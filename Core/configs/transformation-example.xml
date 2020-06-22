@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+    Description:
+        An example configuration file for a transformation which takes the exponent of 2 features, the logarithm of one, rescales 3 features to 0-1 and finally generates 10 equal width bins.
+-->
+
+<config>
+    <component name="transform" type="org.tribuo.transform.TransformationMap">
+        <propertylist name="globalTransformations">
+            <item>equalWidth</item>
+        </propertylist>
+        <propertymap name="featureTransformationList">
+            <entry key="F[01]" value="expAndRescaleList"/>
+            <entry key="F2" value="logList"/>
+            <entry key="F3" value="rescaleList"/>
+        </propertymap>
+    </component>
+
+    <component name="equalWidth" type="org.tribuo.transform.transformations.BinningTransformation">
+        <property name="numBins" value="10"/>
+        <property name="type" value="EQUAL_WIDTH"/>
+    </component>
+
+    <component name="expAndRescaleList" type="org.tribuo.transform.TransformationMap$TransformationList">
+        <propertylist name="list">
+            <item>exp</item>
+            <item>rescale</item>
+        </propertylist>
+    </component>
+
+    <component name="logList" type="org.tribuo.transform.TransformationMap$TransformationList">
+        <propertylist name="list">
+            <item>log</item>
+        </propertylist>
+    </component>
+
+    <component name="rescaleList" type="org.tribuo.transform.TransformationMap$TransformationList">
+        <propertylist name="list">
+            <item>rescale</item>
+        </propertylist>
+    </component>
+
+    <component name="exp" type="org.tribuo.transform.transformations.SimpleTransform">
+        <property name="op" value="exp"/>
+    </component>
+
+    <component name="log" type="org.tribuo.transform.transformations.SimpleTransform">
+        <property name="op" value="log"/>
+    </component>
+
+    <component name="rescale" type="org.tribuo.transform.transformations.LinearScalingTransformation">
+        <property name="targetMin" value="0.0"/>
+        <property name="targetMax" value="1.0"/>
+    </component>
+
+</config>

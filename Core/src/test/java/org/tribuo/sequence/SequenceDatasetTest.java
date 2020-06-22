@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.tribuo.sequence;
+
+import org.junit.jupiter.api.Test;
+import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.FeatureMap;
+import org.tribuo.impl.ListExample;
+import org.tribuo.provenance.SimpleDataSourceProvenance;
+import org.tribuo.test.MockDataSourceProvenance;
+import org.tribuo.test.MockOutput;
+import org.tribuo.test.MockOutputFactory;
+
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class SequenceDatasetTest {
+
+    @Test
+    public void testBasic() {
+        MutableSequenceDataset<MockOutput> dataset = new MutableSequenceDataset<>(new MockDataSourceProvenance(), new MockOutputFactory());
+
+        ListExample<MockOutput> ex1 = new ListExample<>(new MockOutput("green"));
+        ex1.add(new Feature("f1", 1.0));
+        ex1.add(new Feature("f2", 0.0));
+        ex1.add(new Feature("f3", 1.0));
+        ListExample<MockOutput> ex2 = new ListExample<>(new MockOutput("green"));
+        ex2.add(new Feature("f1", 1.0));
+        ex2.add(new Feature("f2", 0.0));
+        ex2.add(new Feature("f3", 1.0));
+        SequenceExample<MockOutput> seqEx = new SequenceExample<>(Arrays.asList(ex1, ex2));
+        dataset.add(seqEx);
+
+        ex1 = new ListExample<>(new MockOutput("blue"));
+        ex1.add(new Feature("f1", 1.0));
+        ex1.add(new Feature("f2", 0.0));
+        ex1.add(new Feature("f4", 1.0));
+        ex2 = new ListExample<>(new MockOutput("green"));
+        ex2.add(new Feature("f1", 1.0));
+        ex2.add(new Feature("f4", 0.0));
+        ex2.add(new Feature("f5", 1.0));
+        seqEx = new SequenceExample<>(Arrays.asList(ex1, ex2));
+        dataset.add(seqEx);
+
+        FeatureMap infoMap = dataset.getFeatureIDMap();
+        assertEquals(4, infoMap.get("f1").getCount());
+        assertEquals(2, infoMap.get("f3").getCount());
+        // One as non-sparse zeros are ignored
+        assertEquals(1, infoMap.get("f4").getCount());
+        assertEquals(1, infoMap.get("f5").getCount());
+
+        SequenceDataset<MockOutput> prunedDataset = SequenceDataset.pruneLowFrequencyFeatures(dataset, 2);
+        infoMap = prunedDataset.getFeatureIDMap();
+        assertEquals(4, infoMap.get("f1").getCount());
+        assertNull(infoMap.get("f2"));
+        assertEquals(2, infoMap.get("f3").getCount());
+        assertNull(infoMap.get("f4"));
+        assertNull(infoMap.get("f5"));
+        Feature f1 = ex2.lookup("f1");
+        assertEquals(1.0, f1.getValue(), 1e-5);
+        assertNull(ex2.lookup("f5"));
+
+        prunedDataset = SequenceDataset.pruneLowFrequencyFeatures(dataset, 3);
+        infoMap = prunedDataset.getFeatureIDMap();
+        assertEquals(4, infoMap.get("f1").getCount());
+        assertNull(infoMap.get("f2"));
+        assertNull(infoMap.get("f3"));
+        assertNull(infoMap.get("f4"));
+        assertNull(infoMap.get("f5"));
+
+        try {
+            prunedDataset = SequenceDataset.pruneLowFrequencyFeatures(dataset, 5);
+            fail("Should have thrown IllegalArgumentException for empty example.");
+        } catch (IllegalArgumentException e) {
+            //pass
+        }
+    }
+
+    @Test
+    public void testDuplicateFeatureBug() {
+        MockOutputFactory mockOutputFactory = new MockOutputFactory();
+        MutableSequenceDataset<MockOutput> dataset = new MutableSequenceDataset<>(new SimpleDataSourceProvenance("test dataset", OffsetDateTime.now(), mockOutputFactory), mockOutputFactory);
+        List<Example<MockOutput>> examples = new ArrayList<>();
+        ListExample<MockOutput> example = new ListExample<>(new MockOutput("BUG!"));
+        example.add(new Feature("feature1", 1.0));
+        example.add(new Feature("feature1", 1.0)); //add duplicate feature
+        examples.add(example);
+        SequenceExample<MockOutput> seqExample = new SequenceExample<>("", examples);
+        try {
+            dataset.add(seqExample);
+            fail("No exception thrown.");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().startsWith("SequenceExample had duplicate features"), "Test for duplicate features");
+        }
+    }
+
+}

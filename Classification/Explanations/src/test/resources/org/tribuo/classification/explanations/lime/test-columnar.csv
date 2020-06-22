@@ -1,0 +1,10 @@
+Response,A,B,C,D,TextField
+Y,Small, 1.0,-1.0,Red,Many fields have text.
+Y,Small, 1.0,1.0,Green,In this case the word text.
+N,Small, 4.0,9.0,Green,Is the signifier for the class label.
+N,Medium,6.0,25.0,Yellow,Without that word it's not positive.
+N,Medium,8.0,40.0,Red,Doesn't matter what the other features are.
+N,Medium,9.0,20.0,Yellow,Not in the slightest.
+Y,Large, -1.,15.0,Green,Just needs the word text.
+N,Large, -2.,14.0,Red,Otherwise it's all irrelevant.
+N,Large, -5.,13.0,Red,Bored of typing now.

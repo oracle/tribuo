@@ -1,0 +1,161 @@
+/*
+ * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.tribuo.multilabel;
+
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.ImmutableOutputInfo;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * An ImmutableOutputInfo for working with multi-label tasks.
+ */
+public class ImmutableMultiLabelInfo extends MultiLabelInfo implements ImmutableOutputInfo<MultiLabel> {
+    private static final Logger logger = Logger.getLogger(ImmutableMultiLabelInfo.class.getName());
+
+    private static final long serialVersionUID = 1L;
+
+    private Map<Integer,String> idLabelMap;
+
+    private Map<String,Integer> labelIDMap;
+
+    private ImmutableMultiLabelInfo(ImmutableMultiLabelInfo info) {
+        super(info);
+        idLabelMap = new HashMap<>();
+        idLabelMap.putAll(info.idLabelMap);
+        labelIDMap = new HashMap<>();
+        labelIDMap.putAll(info.labelIDMap);
+    }
+
+    ImmutableMultiLabelInfo(MultiLabelInfo info) {
+        super(info);
+        idLabelMap = new HashMap<>();
+        labelIDMap = new HashMap<>();
+        int counter = 0;
+        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
+            idLabelMap.put(counter,e.getKey());
+            labelIDMap.put(e.getKey(),counter);
+            counter++;
+        }
+    }
+
+    ImmutableMultiLabelInfo(MutableMultiLabelInfo info, Map<MultiLabel, Integer> mapping) {
+        super(info);
+        if (mapping.size() != info.size()) {
+            throw new IllegalStateException("Mapping and info come from different sources, mapping.size() = " + mapping.size() + ", info.size() = " + info.size());
+        }
+
+        idLabelMap = new HashMap<>();
+        labelIDMap = new HashMap<>();
+        for (Map.Entry<MultiLabel,Integer> e : mapping.entrySet()) {
+            MultiLabel ml = e.getKey();
+            Set<String> names = ml.getNameSet();
+            if (names.size() == 1) {
+                String name = names.iterator().next();
+                idLabelMap.put(e.getValue(), name);
+                labelIDMap.put(name, e.getValue());
+            } else {
+                throw new IllegalArgumentException("Mapping must contain a single label per id, but contains " + names + " -> " + e.getValue());
+            }
+        }
+    }
+
+    @Override
+    public int getID(MultiLabel output) {
+        return labelIDMap.getOrDefault(output.getLabelString(), -1);
+    }
+
+    @Override
+    public MultiLabel getOutput(int id) {
+        String label = idLabelMap.get(id);
+        if (label != null) {
+            return labels.get(label);
+        } else {
+            logger.log(Level.INFO, "No entry found for id " + id);
+            return null;
+        }
+    }
+
+    @Override
+    public long getTotalObservations() {
+        return totalCount;
+    }
+
+    public long getLabelCount(int id) {
+        String label = idLabelMap.get(id);
+        if (label != null) {
+            MutableLong l = labelCounts.get(label);
+            return l.longValue();
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public ImmutableMultiLabelInfo copy() {
+        return new ImmutableMultiLabelInfo(this);
+    }
+
+    @Override
+    public String toReadableString() {
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append('(');
+            builder.append(labelIDMap.get(e.getKey()));
+            builder.append(',');
+            builder.append(e.getKey());
+            builder.append(',');
+            builder.append(e.getValue().longValue());
+            builder.append(')');
+        }
+        return builder.toString();
+    }
+
+    @Override
+    public Iterator<Pair<Integer, MultiLabel>> iterator() {
+        return new ImmutableInfoIterator(idLabelMap);
+    }
+
+    private static class ImmutableInfoIterator implements Iterator<Pair<Integer,MultiLabel>> {
+
+        private final Iterator<Map.Entry<Integer,String>> itr;
+
+        public ImmutableInfoIterator(Map<Integer,String> idLabelMap) {
+            itr = idLabelMap.entrySet().iterator();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return itr.hasNext();
+        }
+
+        @Override
+        public Pair<Integer, MultiLabel> next() {
+            Map.Entry<Integer,String> e = itr.next();
+            return new Pair<>(e.getKey(),new MultiLabel(e.getValue()));
+        }
+    }
+}

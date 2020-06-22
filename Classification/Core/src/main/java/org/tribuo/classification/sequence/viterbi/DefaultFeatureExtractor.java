@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.tribuo.classification.sequence.viterbi;
+
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.Feature;
+import org.tribuo.classification.Label;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * A label feature extractor that produces several kinds of label-based features.
+ * <p>
+ * The options are: the most recent output, the least recent output, recent bigrams, recent trigrams, recent 4-grams.
+ */
+public class DefaultFeatureExtractor implements LabelFeatureExtractor {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * indicates the position of the first (most recent) outcome to include. For example, the
+     * default value of 1 means that if the outcomes produced so far by the classifier were [A, B,
+     * C, D], then the first outcome to be used as a feature would be D since it is the most recent.
+     */
+    @Config(mandatory = true, description = "Position of the most recent outcome to include.")
+    private int mostRecentOutcome;
+
+    /**
+     * indicates the position of the last (least recent) outcome to include. For example, the
+     * default value of 3 means that if the outcomes produced so far by the classifier were [A, B,
+     * C, D], then the last outcome to be used as a feature would be B since and is considered the
+     * least recent.
+     */
+    @Config(mandatory = true, description = "Position of the least recent output to include.")
+    private int leastRecentOutcome;
+
+    /**
+     * when true indicates that bigrams of outcomes should be included as features
+     */
+    @Config(mandatory = true, description = "Use bigrams of the labels as features.")
+    private boolean useBigram;
+
+    /**
+     * indicates that trigrams of outcomes should be included as features
+     */
+    @Config(mandatory = true, description = "Use trigrams of the labels as features.")
+    private boolean useTrigram;
+
+    /**
+     * indicates that 4-grams of outcomes should be included as features
+     */
+    @Config(mandatory = true, description = "Use 4-grams of the labels as features.")
+    private boolean use4gram;
+
+    public DefaultFeatureExtractor() {
+        this(1, 3, true, true, false);
+    }
+
+    public DefaultFeatureExtractor(int mostRecentOutcome, int leastRecentOutcome, boolean useBigram, boolean useTrigram, boolean use4gram) {
+        this.mostRecentOutcome = mostRecentOutcome;
+        this.leastRecentOutcome = leastRecentOutcome;
+        this.useBigram = useBigram;
+        this.useTrigram = useTrigram;
+        this.use4gram = use4gram;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultFeatureExtractor(mostRecent=" + mostRecentOutcome + ",leastRecent=" + leastRecentOutcome + ",useBigram=" + useBigram + ",useTrigram=" + useTrigram + ",use4gram=" + use4gram + ")";
+    }
+
+    @Override
+    public List<Feature> extractFeatures(List<Label> previousOutcomes, double value) {
+        if (previousOutcomes == null || previousOutcomes.size() == 0) {
+            return Collections.emptyList();
+        }
+
+        List<Feature> features = new ArrayList<>();
+
+        for (int i = mostRecentOutcome; i <= leastRecentOutcome; i++) {
+            int index = previousOutcomes.size() - i;
+            if (index >= 0) {
+                Feature feature = new Feature("PreviousOutcome_L" + i + "_" + previousOutcomes.get(index).getLabel(), value);
+                features.add(feature);
+            }
+        }
+
+        if (useBigram && previousOutcomes.size() >= 2) {
+            int size = previousOutcomes.size();
+            String featureValue = previousOutcomes.get(size - 1).getLabel() + "_" + previousOutcomes.get(size - 2).getLabel();
+            Feature feature = new Feature("PreviousOutcomes_L1_2gram_L2R_" + featureValue, value);
+            features.add(feature);
+        }
+
+        if (useTrigram && previousOutcomes.size() >= 3) {
+            int size = previousOutcomes.size();
+            String featureValue = previousOutcomes.get(size - 1).getLabel() + "_" + previousOutcomes.get(size - 2).getLabel() + "_"
+                    + previousOutcomes.get(size - 3).getLabel();
+            Feature feature = new Feature("PreviousOutcomes_L1_3gram_L2R_" + featureValue, value);
+            features.add(feature);
+        }
+
+        if (use4gram && previousOutcomes.size() >= 4) {
+            int size = previousOutcomes.size();
+            String featureValue = previousOutcomes.get(size - 1).getLabel() + "_" + previousOutcomes.get(size - 2).getLabel() + "_"
+                    + previousOutcomes.get(size - 3).getLabel() + "_" + previousOutcomes.get(size - 4).getLabel();
+            Feature feature = new Feature("PreviousOutcomes_L1_4gram_L2R_" + featureValue, value);
+            features.add(feature);
+        }
+
+        return features;
+    }
+
+    @Override
+    public ConfiguredObjectProvenance getProvenance() {
+        return new ConfiguredObjectProvenanceImpl(this, "LabelFeatureExtractor");
+    }
+}

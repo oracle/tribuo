@@ -1,0 +1,546 @@
+/*
+ * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.tribuo.common.xgboost;
+
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import org.tribuo.Dataset;
+import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Output;
+import org.tribuo.Trainer;
+import org.tribuo.WeightedExamples;
+import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.VectorTuple;
+import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.provenance.SkeletalTrainerProvenance;
+import org.tribuo.util.Util;
+import ml.dmlc.xgboost4j.java.Booster;
+import ml.dmlc.xgboost4j.java.DMatrix;
+import ml.dmlc.xgboost4j.java.XGBoostError;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.logging.Logger;
+
+/**
+ * A {@link Trainer} which wraps the XGBoost training procedure.
+ * <p>
+ * This only exposes a few of XGBoost's training parameters.
+ * <p>
+ * It uses pthreads outside of the JVM to parallelise the computation.
+ * <p>
+ * See:
+ * <pre>
+ * Chen T, Guestrin C.
+ * "XGBoost: A Scalable Tree Boosting System"
+ * Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 2016.
+ * </pre>
+ * and for the original algorithm:
+ * <pre>
+ * Friedman JH.
+ * "Greedy Function Approximation: a Gradient Boosting Machine"
+ * Annals of statistics, 2001.
+ * </pre>
+ * N.B.: This uses a native C implementation of xgboost that links to various C libraries, including libgomp
+ * and glibc. If you're running on Alpine, which does not natively use glibc, you'll need to install glibc
+ * into the container.
+ */
+public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>, WeightedExamples {
+    /* Alpine install command
+     * <pre>
+     *    $ apk --no-cache add ca-certificates wget
+     *    $ wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
+     *    $ wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.30-r0/glibc-2.30-r0.apk
+     *    $ apk add glibc-2.30-r0.apk
+     * </pre>
+     */
+
+    private static final Logger logger = Logger.getLogger(XGBoostTrainer.class.getName());
+
+    protected final Map<String, Object> parameters = new HashMap<>();
+
+    /**
+     * The type of XGBoost model.
+     */
+    public enum BoosterType {
+        /**
+         * A boosted linear model.
+         */
+        LINEAR("gblinear"),
+        /**
+         * A gradient boosted decision tree.
+         */
+        GBTREE("gbtree"),
+        /**
+         * A gradient boosted decision tree using dropout.
+         */
+        DART("dart");
+
+        public final String paramName;
+
+        BoosterType(String paramName) {
+            this.paramName = paramName;
+        }
+    }
+
+    @Config(mandatory = true,description="The number of trees to build.")
+    protected int numTrees;
+
+    @Config(description = "The learning rate, shrinks the new tree output to prevent overfitting.")
+    private double eta = 0.3;
+
+    @Config(description = "Minimum loss reduction needed to split a tree node.")
+    private double gamma = 0.0;
+
+    @Config(description="The maximum depth of any tree.")
+    private int maxDepth = 6;
+
+    @Config(description = "The minimum weight in each child node before a split is valid.")
+    private double minChildWeight = 1.0;
+
+    @Config(description="Independently subsample the examples for each tree.")
+    private double subsample = 1.0;
+
+    @Config(description="Independently subsample the features available for each node of each tree.")
+    private double featureSubsample = 1.0;
+
+    @Config(description="l2 regularisation term on the weights.")
+    private double lambda = 1.0;
+
+    @Config(description="l1 regularisation term on the weights.")
+    private double alpha = 1.0;
+
+    @Config(description="The number of threads to use at training time.")
+    private int nThread = 4;
+
+    @Config(description="Quiesce all the logging output from the XGBoost C library.")
+    private int silent = 1;
+
+    @Config(description="Type of the weak learner.")
+    private BoosterType booster = BoosterType.GBTREE;
+
+    @Config(description="The RNG seed.")
+    private long seed = Trainer.DEFAULT_SEED;
+
+    protected int trainInvocationCounter = 0;
+
+    protected XGBoostTrainer(int numTrees) {
+        this(numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, 4, true, Trainer.DEFAULT_SEED);
+    }
+
+    protected XGBoostTrainer(int numTrees, int numThreads, boolean silent) {
+        this(numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, numThreads, silent, Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Create an XGBoost trainer.
+     *
+     * @param numTrees Number of trees to boost.
+     * @param eta Step size shrinkage parameter (default 0.3, range [0,1]).
+     * @param gamma Minimum loss reduction to make a split (default 0, range
+     * [0,inf]).
+     * @param maxDepth Maximum tree depth (default 6, range [1,inf]).
+     * @param minChildWeight Minimum sum of instance weights needed in a leaf
+     * (default 1, range [0, inf]).
+     * @param subsample Subsample size for each tree (default 1, range (0,1]).
+     * @param featureSubsample Subsample features for each tree (default 1,
+     * range (0,1]).
+     * @param lambda L2 regularization term on weights (default 1).
+     * @param alpha L1 regularization term on weights (default 0).
+     * @param nThread Number of threads to use (default 4).
+     * @param silent Silence the training output text.
+     * @param seed RNG seed.
+     */
+    protected XGBoostTrainer(int numTrees, double eta, double gamma, int maxDepth, double minChildWeight, double subsample, double featureSubsample, double lambda, double alpha, int nThread, boolean silent, long seed) {
+        if (numTrees < 1) {
+            throw new IllegalArgumentException("Must supply a positive number of trees. Received " + numTrees);
+        }
+        this.numTrees = numTrees;
+        this.eta = eta;
+        this.gamma = gamma;
+        this.maxDepth = maxDepth;
+        this.minChildWeight = minChildWeight;
+        this.subsample = subsample;
+        this.featureSubsample = featureSubsample;
+        this.lambda = lambda;
+        this.alpha = alpha;
+        this.nThread = nThread;
+        this.silent = silent ? 1 : 0;
+        this.seed = seed;
+    }
+
+    /**
+     * This gives direct access to the XGBoost parameter map.
+     * <p>
+     * It lets you pick things that we haven't exposed like dropout trees, binary classification etc.
+     * <p>
+     * This sidesteps the validation that Tribuo provides for the hyperparameters, and so can produce unexpected results.
+     * @param numTrees Number of trees to boost.
+     * @param parameters A map from string to object, where object can be Number or String.
+     */
+    protected XGBoostTrainer(int numTrees, Map<String,Object> parameters) {
+        if (numTrees < 1) {
+            throw new IllegalArgumentException("Must supply a positive number of trees. Received " + numTrees);
+        }
+        this.numTrees = numTrees;
+        this.parameters.putAll(parameters);
+    }
+
+    /**
+     * For olcut.
+     */
+    protected XGBoostTrainer() { }
+
+    @Override
+    public void postConfig() {
+        parameters.put("eta", eta);
+        parameters.put("gamma", gamma);
+        parameters.put("max_depth", maxDepth);
+        parameters.put("min_child_weight", minChildWeight);
+        parameters.put("subsample", subsample);
+        parameters.put("colsample_bytree", featureSubsample);
+        parameters.put("lambda", lambda);
+        parameters.put("alpha", alpha);
+        parameters.put("nthread", nThread);
+        parameters.put("seed", seed);
+        parameters.put("silent", silent);
+        parameters.put("booster", booster.paramName);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder buffer = new StringBuilder();
+
+        buffer.append("XGBoostTrainer(numTrees=");
+        buffer.append(numTrees);
+        buffer.append(",parameters");
+        buffer.append(parameters.toString());
+        buffer.append(")");
+
+        return buffer.toString();
+    }
+
+    protected XGBoostModel<T> createModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, List<Booster> models, XGBoostOutputConverter<T> converter) {
+        return new XGBoostModel<>(name,provenance,featureIDMap,outputIDInfo,models,converter);
+    }
+
+    @Override
+    public int getInvocationCount() {
+        return trainInvocationCounter;
+    }
+
+    protected static <T extends Output<T>> DMatrixTuple<T> convertDataset(Dataset<T> examples, Function<T,Float> responseExtractor) throws XGBoostError {
+        return convertExamples(examples.getData(), examples.getFeatureIDMap(), responseExtractor);
+    }
+
+    protected static <T extends Output<T>> DMatrixTuple<T> convertDataset(Dataset<T> examples) throws XGBoostError {
+        return convertExamples(examples.getData(), examples.getFeatureIDMap(), null);
+    }
+
+    protected static <T extends Output<T>> DMatrixTuple<T> convertExamples(Iterable<Example<T>> examples, ImmutableFeatureMap featureMap) throws XGBoostError {
+        return convertExamples(examples, featureMap, null);
+    }
+
+    /**
+     * Converts an iterable of examples into a DMatrix.
+     * @param examples The examples to convert.
+     * @param featureMap The feature id map which supplies the indices.
+     * @param responseExtractor The extraction function for the output.
+     * @param <T> The type of the output.
+     * @return A DMatrixTuple.
+     * @throws XGBoostError If the native library failed to construct the DMatrix.
+     */
+    protected static <T extends Output<T>> DMatrixTuple<T> convertExamples(Iterable<Example<T>> examples, ImmutableFeatureMap featureMap, Function<T,Float> responseExtractor) throws XGBoostError {
+        // headers = array of start points for a row
+        // indices = array of feature indices for all data
+        // data = array of feature values for all data
+        // SparseType = DMatrix.SparseType.CSR
+        //public DMatrix(long[] headers, int[] indices, float[] data, SparseType st) throws XGBoostError
+        //
+        // then call
+        //public void setLabel(float[] labels) throws XGBoostError
+
+        boolean labelled = responseExtractor != null;
+        ArrayList<Float> labelsList = new ArrayList<>();
+        ArrayList<Float> dataList = new ArrayList<>();
+        ArrayList<Long> headersList = new ArrayList<>();
+        ArrayList<Integer> indicesList = new ArrayList<>();
+        ArrayList<Float> weightsList = new ArrayList<>();
+        ArrayList<Integer> numValidFeatures = new ArrayList<>();
+        ArrayList<Example<T>> examplesList = new ArrayList<>();
+
+        long rowHeader = 0;
+        headersList.add(rowHeader);
+        for (Example<T> e : examples) {
+            if (labelled) {
+                labelsList.add(responseExtractor.apply(e.getOutput()));
+                weightsList.add(e.getWeight());
+            }
+            examplesList.add(e);
+            long newRowHeader = convertSingleExample(e,featureMap,dataList,indicesList,headersList,rowHeader);
+            numValidFeatures.add((int) (newRowHeader-rowHeader));
+            rowHeader = newRowHeader;
+        }
+
+        float[] data = Util.toPrimitiveFloat(dataList);
+        int[] indices = Util.toPrimitiveInt(indicesList);
+        long[] headers = Util.toPrimitiveLong(headersList);
+
+        DMatrix dataMatrix = new DMatrix(headers, indices, data, DMatrix.SparseType.CSR,featureMap.size());
+        if (labelled) {
+            float[] labels = Util.toPrimitiveFloat(labelsList);
+            dataMatrix.setLabel(labels);
+            float[] weights = Util.toPrimitiveFloat(weightsList);
+            dataMatrix.setWeight(weights);
+        }
+        @SuppressWarnings("unchecked") // Generic array creation
+        Example<T>[] exampleArray = (Example<T>[])examplesList.toArray(new Example[0]);
+        return new DMatrixTuple<>(dataMatrix,Util.toPrimitiveInt(numValidFeatures),exampleArray);
+    }
+
+    protected static <T extends Output<T>> DMatrixTuple<T> convertExample(Example<T> example, ImmutableFeatureMap featureMap) throws XGBoostError {
+        return convertExample(example,featureMap,null);
+    }
+
+    /**
+     * Converts an examples into a DMatrix.
+     * @param example The example to convert.
+     * @param featureMap The feature id map which supplies the indices.
+     * @param responseExtractor The extraction function for the output.
+     * @param <T> The type of the output.
+     * @return A DMatrixTuple.
+     * @throws XGBoostError If the native library failed to construct the DMatrix.
+     */
+    protected static <T extends Output<T>> DMatrixTuple<T> convertExample(Example<T> example, ImmutableFeatureMap featureMap, Function<T,Float> responseExtractor) throws XGBoostError {
+        // headers = array of start points for a row
+        // indices = array of feature indices for all data
+        // data = array of feature values for all data
+        // SparseType = DMatrix.SparseType.CSR
+        //public DMatrix(long[] headers, int[] indices, float[] data, SparseType st) throws XGBoostError
+        //
+        // then call
+        //public void setLabel(float[] labels) throws XGBoostError
+
+        boolean labelled = responseExtractor != null;
+        ArrayList<Float> dataList = new ArrayList<>();
+        ArrayList<Integer> indicesList = new ArrayList<>();
+        ArrayList<Long> headersList = new ArrayList<>();
+        headersList.add(0L);
+
+        long header = convertSingleExample(example,featureMap,dataList,indicesList,headersList,0);
+
+        float[] data = Util.toPrimitiveFloat(dataList);
+        int[] indices = Util.toPrimitiveInt(indicesList);
+        long[] headers = Util.toPrimitiveLong(headersList);
+
+        DMatrix dataMatrix = new DMatrix(headers, indices, data, DMatrix.SparseType.CSR,featureMap.size());
+        if (labelled) {
+            float[] labels = new float[1];
+            labels[0] = responseExtractor.apply(example.getOutput());
+            dataMatrix.setLabel(labels);
+            float[] weights = new float[1];
+            weights[0] = example.getWeight();
+            dataMatrix.setWeight(weights);
+        }
+        @SuppressWarnings("unchecked") // Generic array creation
+        Example<T>[] exampleArray = (Example<T>[])new Example[]{example};
+        return new DMatrixTuple<>(dataMatrix,new int[]{(int)header},exampleArray);
+    }
+
+    /**
+     * Writes out the features from an example into the three supplied {@link ArrayList}s.
+     * <p>
+     * This is used to transform examples into the right format for an XGBoost call.
+     * It's used in both the Classification and Regression XGBoost backends.
+     * The ArrayLists must be non-null, and can contain existing values (as this
+     * method is called multiple times to build up an arraylist containing all the
+     * feature values for a dataset).
+     * <p>
+     * Features with colliding feature ids are summed together.
+     * <p>
+     * Can throw IllegalArgumentException if the {@link Example} contains no features.
+     * @param example The example to inspect.
+     * @param featureMap The feature map of the model/dataset (used to preserve hash information).
+     * @param dataList The output feature values.
+     * @param indicesList The output indices.
+     * @param headersList The output header position (an integer saying how long each sparse example is).
+     * @param header The current header position.
+     * @param <T> The type of the example.
+     * @return The updated header position.
+     */
+    protected static <T extends Output<T>> long convertSingleExample(Example<T> example, ImmutableFeatureMap featureMap, ArrayList<Float> dataList, ArrayList<Integer> indicesList, ArrayList<Long> headersList, long header) {
+        int numActiveFeatures = 0;
+        int prevIdx = -1;
+        int indicesSize = indicesList.size();
+        for (Feature f : example) {
+            int id = featureMap.getID(f.getName());
+            if (id > prevIdx){
+                prevIdx = id;
+                dataList.add((float) f.getValue());
+                indicesList.add(id);
+                numActiveFeatures++;
+            } else if (id > -1) {
+                //
+                // Collision, deal with it.
+                int collisionIdx = Util.binarySearch(indicesList,id,indicesSize,numActiveFeatures+indicesSize);
+                if (collisionIdx < 0) {
+                    //
+                    // Collision but not present in tmpIndices
+                    // move data and bump i
+                    collisionIdx = - (collisionIdx + 1);
+                    indicesList.add(collisionIdx,id);
+                    dataList.add(collisionIdx,(float) f.getValue());
+                    numActiveFeatures++;
+                } else {
+                    //
+                    // Collision present in tmpIndices
+                    // add the values.
+                    dataList.set(collisionIdx, dataList.get(collisionIdx) + (float) f.getValue());
+                }
+            }
+        }
+        if (numActiveFeatures == 0) {
+            throw new IllegalArgumentException("No features found in Example " + example.toString());
+        }
+        header += numActiveFeatures;
+        headersList.add(header);
+        return header;
+    }
+
+    /**
+     * Writes out the features from a SparseVector into the three supplied {@link ArrayList}s.
+     * <p>
+     * This is used to transform examples into the right format for an XGBoost call.
+     * It's used when predicting with an externally trained XGBoost model, as the
+     * external training may not respect Tribuo's feature ordering constraints.
+     * The ArrayLists must be non-null, and can contain existing values (as this
+     * method is called multiple times to build up an arraylist containing all the
+     * feature values for a dataset).
+     * </p>
+     * <p>
+     * This is much simpler than {@link XGBoostTrainer#convertSingleExample} as the validation
+     * of feature indices is done in the {@link org.tribuo.interop.ExternalModel} class.
+     * </p>
+     * @param vector The features to convert.
+     * @param dataList The output feature values.
+     * @param indicesList The output indices.
+     * @param headersList The output header position (an integer saying how long each sparse example is).
+     * @param header The current header position.
+     * @return The updated header position.
+     */
+    static long convertSingleExample(SparseVector vector, ArrayList<Float> dataList, ArrayList<Integer> indicesList, ArrayList<Long> headersList, long header) {
+        int numActiveFeatures = 0;
+        for (VectorTuple v : vector) {
+            dataList.add((float) v.value);
+            indicesList.add(v.index);
+            numActiveFeatures++;
+        }
+        header += numActiveFeatures;
+        headersList.add(header);
+        return header;
+    }
+
+    /**
+     * Used when predicting with an externally trained XGBoost model.
+     * @param vector The features to convert.
+     * @return A DMatrix representing the features.
+     * @throws XGBoostError If the native library returns an error state.
+     */
+    protected static DMatrix convertSparseVector(SparseVector vector) throws XGBoostError {
+        // headers = array of start points for a row
+        // indices = array of feature indices for all data
+        // data = array of feature values for all data
+        // SparseType = DMatrix.SparseType.CSR
+        //public DMatrix(long[] headers, int[] indices, float[] data, SparseType st) throws XGBoostError
+        ArrayList<Float> dataList = new ArrayList<>();
+        ArrayList<Long> headersList = new ArrayList<>();
+        ArrayList<Integer> indicesList = new ArrayList<>();
+
+        long rowHeader = 0;
+        headersList.add(rowHeader);
+        convertSingleExample(vector,dataList,indicesList,headersList,rowHeader);
+
+        float[] data = Util.toPrimitiveFloat(dataList);
+        int[] indices = Util.toPrimitiveInt(indicesList);
+        long[] headers = Util.toPrimitiveLong(headersList);
+
+        return new DMatrix(headers, indices, data, DMatrix.SparseType.CSR,vector.size());
+    }
+
+    /**
+     * Used when predicting with an externally trained XGBoost model.
+     * <p>
+     * It is assumed all vectors are the same size when passed into this function.
+     * @param vectors The batch of features to convert.
+     * @return A DMatrix representing the batch of features.
+     * @throws XGBoostError If the native library returns an error state.
+     */
+    protected static DMatrix convertSparseVectors(List<SparseVector> vectors) throws XGBoostError {
+        // headers = array of start points for a row
+        // indices = array of feature indices for all data
+        // data = array of feature values for all data
+        // SparseType = DMatrix.SparseType.CSR
+        //public DMatrix(long[] headers, int[] indices, float[] data, SparseType st) throws XGBoostError
+        ArrayList<Float> dataList = new ArrayList<>();
+        ArrayList<Long> headersList = new ArrayList<>();
+        ArrayList<Integer> indicesList = new ArrayList<>();
+
+        int numFeatures = 0;
+        long rowHeader = 0;
+        headersList.add(rowHeader);
+        for (SparseVector e : vectors) {
+            rowHeader = convertSingleExample(e,dataList,indicesList,headersList,rowHeader);
+            numFeatures = e.size(); // All vectors are assumed to be the same size.
+        }
+
+        float[] data = Util.toPrimitiveFloat(dataList);
+        int[] indices = Util.toPrimitiveInt(indicesList);
+        long[] headers = Util.toPrimitiveLong(headersList);
+
+        return new DMatrix(headers, indices, data, DMatrix.SparseType.CSR, numFeatures);
+    }
+
+    protected static class DMatrixTuple<T extends Output<T>> {
+        public final DMatrix data;
+        public final int[] numValidFeatures;
+        public final Example<T>[] examples;
+
+        public DMatrixTuple(DMatrix data, int[] numValidFeatures, Example<T>[] examples) {
+            this.data = data;
+            this.numValidFeatures = numValidFeatures;
+            this.examples = examples;
+        }
+    }
+
+    protected static class XGBoostTrainerProvenance extends SkeletalTrainerProvenance {
+        private static final long serialVersionUID = 1L;
+
+        protected <T extends Output<T>> XGBoostTrainerProvenance(XGBoostTrainer<T> host) {
+            super(host);
+        }
+
+        protected XGBoostTrainerProvenance(Map<String,Provenance> map) {
+            super(map);
+        }
+    }
+}

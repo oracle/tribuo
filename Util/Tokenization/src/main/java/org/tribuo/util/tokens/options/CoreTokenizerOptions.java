@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.tribuo.util.tokens.options;
+
+import com.oracle.labs.mlrg.olcut.config.Option;
+import org.tribuo.util.tokens.Tokenizer;
+import org.tribuo.util.tokens.impl.NonTokenizer;
+import org.tribuo.util.tokens.impl.ShapeTokenizer;
+import org.tribuo.util.tokens.universal.UniversalTokenizer;
+
+import java.util.logging.Logger;
+
+/**
+ * CLI Options for all the tokenizers in the core package.
+ */
+public class CoreTokenizerOptions implements TokenizerOptions {
+
+    private static final Logger logger = Logger.getLogger(CoreTokenizerOptions.class.getName());
+    public BreakIteratorTokenizerOptions breakIteratorOptions;
+    public SplitCharactersTokenizerOptions splitCharactersTokenizerOptions;
+    public SplitPatternTokenizerOptions splitPatternTokenizerOptions;
+    @Option(longName = "core-tokenizer-type", usage = "Type of tokenizer")
+    public CoreTokenizerType coreTokenizerType = CoreTokenizerType.SPLIT_CHARACTERS;
+
+    @Override
+    public Tokenizer getTokenizer() {
+        Tokenizer tokenizer;
+        logger.info("Using " + coreTokenizerType);
+        switch (coreTokenizerType) {
+            case BREAK_ITERATOR:
+                tokenizer = breakIteratorOptions.getTokenizer();
+                break;
+            case SPLIT_CHARACTERS:
+                tokenizer = splitCharactersTokenizerOptions.getTokenizer();
+                break;
+            case NON:
+                tokenizer = new NonTokenizer();
+                break;
+            case SHAPE:
+                tokenizer = new ShapeTokenizer();
+                break;
+            case SPLIT_PATTERN:
+                tokenizer = splitPatternTokenizerOptions.getTokenizer();
+                break;
+            case UNIVERSAL:
+                tokenizer = new UniversalTokenizer();
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown tokenizer " + coreTokenizerType);
+        }
+        return tokenizer;
+    }
+
+    public enum CoreTokenizerType {
+        BREAK_ITERATOR, SPLIT_CHARACTERS, NON, SHAPE, SPLIT_PATTERN, UNIVERSAL
+    }
+
+}
