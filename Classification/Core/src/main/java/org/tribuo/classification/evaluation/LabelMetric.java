@@ -103,7 +103,7 @@ public class LabelMetric implements EvaluationMetric<Label, LabelMetric.Context>
 
         public Context(Model<Label> model, List<Prediction<Label>> predictions) {
             super(model, predictions);
-            this.cm = new LabelConfusionMatrix(model, predictions);
+            this.cm = new LabelConfusionMatrix(model.getOutputIDInfo(), predictions);
         }
 
         public ConfusionMatrix<Label> getCM() {
