@@ -289,8 +289,8 @@ public final class StripProvenance {
 
             logger.info("Hashing JSON file");
             MessageDigest digest = o.hashType.getDigest();
-            digest.digest(jsonResult.getBytes(StandardCharsets.UTF_8));
-            String provenanceHash = ProvenanceUtil.bytesToHexString(digest.digest());
+            byte[] digestBytes = digest.digest(jsonResult.getBytes(StandardCharsets.UTF_8));
+            String provenanceHash = ProvenanceUtil.bytesToHexString(digestBytes);
             logger.info("Provenance hash = " + provenanceHash);
 
             if (o.provenanceFile != null) {
