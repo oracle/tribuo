@@ -164,7 +164,7 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
      * @param key The key to check.
      * @return The value if present.
      */
-    public Optional<Object> getMetadataValue(String key) {
+    public synchronized Optional<Object> getMetadataValue(String key) {
         if (metadata != null) {
             return Optional.ofNullable(metadata.get(key));
         } else {
