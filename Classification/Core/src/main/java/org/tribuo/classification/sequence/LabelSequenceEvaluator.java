@@ -86,7 +86,7 @@ public class LabelSequenceEvaluator extends AbstractSequenceEvaluator<Label, Lab
     @Override
     protected LabelMetric.Context createContext(SequenceModel<Label> model, List<List<Prediction<Label>>> predictions) {
         // Warning this passes a null in as the model.
-        return new LabelMetric.Context(null, flattenList(predictions));
+        return new LabelMetric.Context(model, flattenList(predictions));
     }
 
     @Override
