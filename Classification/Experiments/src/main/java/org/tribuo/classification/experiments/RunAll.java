@@ -38,7 +38,9 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +110,7 @@ public class RunAll {
             try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath+".model"))) {
                 oos.writeObject(curModel);
             }
-            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath+".output")))) {
+            try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputPath+".output"), StandardCharsets.UTF_8))) {
                 writer.println("Model = " + name);
                 writer.println("Provenance = " + curModel.toString());
                 writer.println();

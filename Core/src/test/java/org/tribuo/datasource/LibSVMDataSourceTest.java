@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,7 +69,7 @@ public class LibSVMDataSourceTest {
 
         MutableDataset<MockOutput> dataset = new MutableDataset<>(source);
 
-        PrintStream stream = new PrintStream(new FileOutputStream(temp));
+        PrintStream stream = new PrintStream(temp, StandardCharsets.UTF_8.name());
         LibSVMDataSource.writeLibSVMFormat(dataset,stream,false, (MockOutput a) -> Integer.parseInt(a.label));
         stream.close();
 
