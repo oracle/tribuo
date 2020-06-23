@@ -48,6 +48,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -295,7 +296,7 @@ public final class StripProvenance {
 
             if (o.provenanceFile != null) {
                 logger.info("Writing JSON provenance to " + o.provenanceFile.toString());
-                try (PrintWriter writer = new PrintWriter(new FileWriter(o.provenanceFile))) {
+                try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(o.provenanceFile), StandardCharsets.UTF_8))) {
                     writer.println(provenanceHash);
                 }
             }
