@@ -23,6 +23,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -36,7 +37,7 @@ public final class Resources {
     public static Path copyResourceToTmp(String resource) throws IOException {
         Path path = Files.createTempFile("test", ".csv");
         path.toFile().deleteOnExit();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(IOUtil.getInputStream(resource)));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(IOUtil.getInputStream(resource), StandardCharsets.UTF_8));
              BufferedWriter writer = Files.newBufferedWriter(path, Charset.defaultCharset())) {
 
             String ln;
