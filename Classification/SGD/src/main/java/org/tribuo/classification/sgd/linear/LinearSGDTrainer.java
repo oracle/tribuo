@@ -157,7 +157,7 @@ public class LinearSGDTrainer implements Trainer<Label>, WeightedExamples {
         StochasticGradientOptimiser localOptimiser;
         synchronized(this) {
             localRNG = rng.split();
-            localOptimiser = optimiser.clone();
+            localOptimiser = optimiser.copy();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
         }

@@ -149,9 +149,6 @@ public abstract class SGD implements StochasticGradientOptimiser {
     protected abstract String sgdType();
 
     @Override
-    public abstract StochasticGradientOptimiser clone();
-
-    @Override
     public String toString() {
         switch (useMomentum) {
             case STANDARD:
@@ -265,7 +262,7 @@ final class SimpleSGD extends SGD {
     }
 
     @Override
-    public SimpleSGD clone() {
+    public SimpleSGD copy() {
         return new SimpleSGD(initialLearningRate,rho,useMomentum);
     }
 }
@@ -292,7 +289,7 @@ final class LinearDecaySGD extends SGD {
     }
 
     @Override
-    public LinearDecaySGD clone() {
+    public LinearDecaySGD copy() {
         return new LinearDecaySGD(initialLearningRate,rho,useMomentum);
     }
 }
@@ -319,7 +316,7 @@ final class SqrtDecaySGD extends SGD {
     }
 
     @Override
-    public SqrtDecaySGD clone() {
+    public SqrtDecaySGD copy() {
         return new SqrtDecaySGD(initialLearningRate,rho,useMomentum);
     }
 }

@@ -137,7 +137,7 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
     public void reset() { }
 
     @Override
-    public AdaGradRDA clone() {
+    public AdaGradRDA copy() {
         return new AdaGradRDA(initialLearningRate,epsilon,l1,l2,numExamples);
     }
 

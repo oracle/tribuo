@@ -120,7 +120,7 @@ public class Pegasos implements StochasticGradientOptimiser {
     }
 
     @Override
-    public Pegasos clone() {
+    public Pegasos copy() {
         return new Pegasos(lambda,baseRate);
     }
 

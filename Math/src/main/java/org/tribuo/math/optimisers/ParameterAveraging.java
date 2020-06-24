@@ -105,8 +105,8 @@ public class ParameterAveraging implements StochasticGradientOptimiser {
     }
 
     @Override
-    public ParameterAveraging clone() {
-        return new ParameterAveraging(optimiser.clone());
+    public ParameterAveraging copy() {
+        return new ParameterAveraging(optimiser.copy());
     }
 
     @Override

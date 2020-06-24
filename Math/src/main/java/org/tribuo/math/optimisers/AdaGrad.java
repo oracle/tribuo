@@ -106,7 +106,7 @@ public class AdaGrad implements StochasticGradientOptimiser {
     }
 
     @Override
-    public AdaGrad clone() {
+    public AdaGrad copy() {
         return new AdaGrad(initialLearningRate,epsilon);
     }
 

@@ -132,7 +132,7 @@ public class RMSProp implements StochasticGradientOptimiser {
     }
 
     @Override
-    public RMSProp clone() {
+    public RMSProp copy() {
         return new RMSProp(initialLearningRate,rho,epsilon,decay);
     }
 
