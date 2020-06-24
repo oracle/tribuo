@@ -91,7 +91,9 @@ public class RunAll {
         Dataset<Label> test = data.getB();
 
         logger.info("Creating directory - " + o.directory.toString());
-        o.directory.mkdirs();
+        if (!o.directory.exists() && !o.directory.mkdirs()) {
+            logger.warning("Failed to create directory.");
+        }
 
         Map<String,Double> performances = new HashMap<>();
         List<Trainer> trainers = cm.lookupAll(Trainer.class);

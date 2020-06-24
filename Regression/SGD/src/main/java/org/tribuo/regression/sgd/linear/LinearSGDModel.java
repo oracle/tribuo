@@ -145,7 +145,7 @@ public class LinearSGDModel extends Model<Regressor> {
                 }
             }
             classScores.add(new Pair<>(BIAS_FEATURE, weights.get(i,numFeatures)));
-            classScores.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -o1.getB().compareTo(o2.getB()));
+            classScores.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> o2.getB().compareTo(o1.getB()));
             weightMap.put(dimensionNames[i], classScores);
         }
 

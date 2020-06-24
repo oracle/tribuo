@@ -99,7 +99,7 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
                     list.add(new Pair<>(entry.getKey(), entry.getValue()));
                 }
 
-                list.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -o1.getB().compareTo(o2.getB()));
+                list.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> o2.getB().compareTo(o1.getB()));
                 outputMap.put(label.getKey(), list);
             }
 

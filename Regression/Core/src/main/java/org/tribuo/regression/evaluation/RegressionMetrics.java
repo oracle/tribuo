@@ -22,6 +22,7 @@ import org.tribuo.regression.Regressor;
 import org.tribuo.util.Util;
 
 import java.util.function.BiFunction;
+import java.util.function.ToDoubleBiFunction;
 
 /**
  * An enum of the default {@link RegressionMetric}s supported by the multi-dimensional regression
@@ -48,8 +49,8 @@ public enum RegressionMetrics {
      */
     EV((target, context) -> RegressionMetrics.explainedVariance(target, context.getMemo()));
 
-    private final BiFunction<MetricTarget<Regressor>, RegressionMetric.Context, Double> impl;
-    RegressionMetrics(BiFunction<MetricTarget<Regressor>, RegressionMetric.Context, Double> impl) {
+    private final ToDoubleBiFunction<MetricTarget<Regressor>, RegressionMetric.Context> impl;
+    RegressionMetrics(ToDoubleBiFunction<MetricTarget<Regressor>, RegressionMetric.Context> impl) {
         this.impl = impl;
     }
 
