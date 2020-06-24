@@ -208,7 +208,7 @@ final class LabelEvaluationImpl implements LabelEvaluation {
 
     @Override
     public double f1(Label label) {
-        return get(label, LabelMetrics.RECALL);
+        return get(label, LabelMetrics.F1);
     }
 
     @Override
