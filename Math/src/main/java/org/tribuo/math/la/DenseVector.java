@@ -22,6 +22,7 @@ import org.tribuo.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
@@ -590,6 +591,9 @@ public class DenseVector implements SGDVector {
 
         @Override
         public VectorTuple next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("Off the end of the iterator.");
+            }
             tuple.index = index;
             tuple.value = vector.elements[index];
             index++;

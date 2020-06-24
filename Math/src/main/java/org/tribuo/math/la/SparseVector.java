@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Collectors;
@@ -891,6 +892,9 @@ public class SparseVector implements SGDVector {
 
         @Override
         public VectorTuple next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("Off the end of the iterator.");
+            }
             tuple.index = vector.indices[index];
             tuple.value = vector.values[index];
             index++;

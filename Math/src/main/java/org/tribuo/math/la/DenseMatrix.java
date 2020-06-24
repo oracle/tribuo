@@ -19,6 +19,7 @@ package org.tribuo.math.la;
 import org.tribuo.math.util.VectorNormalizer;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
 
@@ -716,6 +717,9 @@ public class DenseMatrix implements Matrix {
 
         @Override
         public MatrixTuple next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("Off the end of the iterator.");
+            }
             tuple.i = i;
             tuple.j = j;
             tuple.value = matrix.values[i][j];
