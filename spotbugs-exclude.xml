@@ -11,7 +11,7 @@ an implementation of Options is instantiated and the configuration manager is
 called to populate the options object with values based on the passed in 
 String arguments. It does this using reflection so SpotBugs has no way of 
 knowing that these fields are in fact populated. So these are all false 
-positive warnings.  See IRML-818 for more details.
+positive warnings.  
  -->     
 <Match>
     <Bug pattern="NP_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD,UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
