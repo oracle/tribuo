@@ -208,7 +208,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
     public abstract FeatureMap getFeatureMap();
 
     @Override
-    public Iterator<Example<T>> iterator() {
+    public synchronized Iterator<Example<T>> iterator() {
         if (indices == null) {
             return data.iterator();
         } else {

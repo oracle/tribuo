@@ -114,7 +114,7 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
     private KernelSVMTrainer() { }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 
