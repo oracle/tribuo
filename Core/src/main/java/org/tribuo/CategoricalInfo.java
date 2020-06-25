@@ -31,11 +31,18 @@ import java.util.SplittableRandom;
  * <p>
  * Contains a mapping from values to observed counts for that value, has
  * an initial optimisation for the binary case to reduce memory consumption.
+ * </p>
  * <p>
  * Can be transformed into a {@link RealInfo} if there are too many unique observed values.
+ * </p>
  * <p>
  * Does not contain an id number, but can be transformed into {@link CategoricalIDInfo} which
  * does contain an id number.
+ * </p>
+ * <p>
+ * Note that the synchronization in this class only protects instantiation where CDF and values
+ * are recomputed. Care should be taken if data is read while {@link #observe(double)} is called.
+ * </p>
  */
 public class CategoricalInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 2L;

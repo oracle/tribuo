@@ -107,7 +107,7 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
     }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         if ((l1Ratio < DELTA) || (l1Ratio > 1.0 + DELTA)) {
             throw new PropertyException("l1Ratio","L1 Ratio must be between 0 and 1. Found value " + l1Ratio);
         }

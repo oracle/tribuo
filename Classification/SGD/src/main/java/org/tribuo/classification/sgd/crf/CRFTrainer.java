@@ -118,7 +118,7 @@ public class CRFTrainer implements SequenceTrainer<Label>, WeightedExamples {
     private CRFTrainer() { }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 

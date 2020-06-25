@@ -131,7 +131,7 @@ public class LinearSGDTrainer implements Trainer<Label>, WeightedExamples {
     private LinearSGDTrainer() { }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 
