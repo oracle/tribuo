@@ -13,9 +13,8 @@ issues with Java serialization those files should only be loaded and saved to tr
 locations where third parties do not have access. We have provided a [JEP 290](https://openjdk.java.net/jeps/290) 
 [allowlist](jep-290-allowlist.txt) which will allow the deserialization of only classes found in the Tribuo library, and 
 this should be enabled on the code paths which deserialize models or datasets. As
-Tribuo supports Java 8+, and JEP 290 is an addition to the Java 8 API, it's difficult
-to integrate this support into our demo programs without altering the java invocation
-on the command line, and so the best way to use the allowlist for those demos is by setting it as a process
+Tribuo supports Java 8+, and JEP 290 is an addition to the Java 8 API from 8u121, the best way to use 
+the allowlist for those demos is by setting it as a process
 wide flag. Additionally when running with a security manager Tribuo will need access to the relevant
 filesystem locations to load or save model files, see the section on [Configuration](#Configuration)
 for more details.
@@ -24,8 +23,9 @@ for more details.
 Tribuo provides a SQL interface which can load data via a JDBC connection. As it's frequently
 necessary to load data via a joined query, and from an unknown schema, Tribuo *does not* validate
 the input SQL, it is expected that the program developer will do this as they know the schema they
-are loading from. Tribuo supports connections via public key wallets via JDBC, use the constructors
-that accept a java.util.Properties instance and configure the wallet appropriately.
+are loading from. Tribuo supports connections via public key wallets via JDBC. To use this functionality
+supply the wallet configuration to the JVM as a system property and use the constructors that accept
+a java.util.Properties instance with the appropriate configuration.
 
 ## Native code
 Tribuo uses several native libraries via JNI interfaces. Native code has different considerations 

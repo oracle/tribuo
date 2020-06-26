@@ -1,5 +1,5 @@
 # Original contributors
-As we lost the git history during the open source release, here is the list of committers to the original internal repo, sorted by number of commits.
+As we removed the git history as part of the open source release, here is the list of committers to the original internal repo, sorted by number of commits.
 
 1. Adam Pocock ([@Craigacp](https://github.com/Craigacp), [adam.pocock@oracle.com](mailto:adam.pocock@oracle.com))
 1. Kate Silverstein ([@k8si](https://github.com/k8si), [kate.silverstein@oracle.com](mailto:kate.silverstein@oracle.com))
