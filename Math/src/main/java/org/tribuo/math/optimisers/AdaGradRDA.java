@@ -167,7 +167,7 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
     /**
      * A subclass of {@link DenseVector} which uses {@link AdaGradRDATensor#truncate(double, double)} to
      * produce the values.
-     *
+     * <p>
      * Be careful when modifying this or {@link DenseVector}.
      */
     private static class AdaGradRDAVector extends DenseVector implements AdaGradRDATensor {
