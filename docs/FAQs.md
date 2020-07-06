@@ -158,3 +158,17 @@ using statistics of all the data. These transformations are recorded in the
 Dataset so they can be recovered via provenance or incorporated into a 
 TransformedModel that applies the transformations to each input before
 prediction.
+
+### What's `Output.fullEquals` for?
+
+The `Output.equals` and `Output.hashcode` methods are constrained to only
+look at the dimension labels. This means that two `Label`s can be compared
+for equality even if they have different confidence scores (as ground truth
+labels usually have a score of 1.0, and predicted ones do not). To compare
+the values including any confidence score the `Output.fullEquals` method should
+be used. Note, this implementation of equals and hashcode causes any two
+`Regressor`s which share the same dimension names to be equal, which is
+unfortunate. When comparing `Regressor` always use `Regressor.fullEquals` to
+include both the regressed value, and the variance. As `Regressor` uses 
+`Double.NaN` as the sentinel value for no variance, NaN variances are considered
+equal to each other.

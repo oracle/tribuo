@@ -25,6 +25,23 @@ ordering of the unhashed names. This ensures that any observed feature must
 have an id number less than or equal to the previous feature, even after
 hashing.
 
+The `Output` subclasses are defined so that `Output.equals` and `Output.hashCode`
+only care about the Strings stored in each `Output`. This is so that a 
+`Label(name="POSITIVE",value=0.6)` is considered equal to a 
+`Label(name="POSITIVE",value=1.0)`, and so the `OutputInfo` which stores
+the `Output`s in a hashmap has a consistent view of the world. Comparing
+two outputs for total equality (i.e. including any values) should be done
+using `Output.fullEquals()`. This approach works well for classification,
+anomaly detection and clustering, but for regression tasks, any `Regressor`
+is considered equal to any other `Regressor` if they share the same
+output dimension names which is rather confusing. A refactor which changed
+this behaviour on the `Regressor` would lead to unfortunate interactions with
+the other `Output` subclasses, and would involve a backwards incompatible change
+to the `OutputInfo` implementations stored inside every `Model`. We plan to 
+fix this behaviour when we've found an alternate design which ensures consistency,
+but until then this pattern should be followed for any new
+`Output` implementations. 
+
 It's best practice not to modify an `Example` after it's been passed to a
 `Dataset` except by methods on that dataset. This allows the `Dataset` to track
 the feature values, and ensure the metadata is up to date. It's especially
