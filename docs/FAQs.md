@@ -48,11 +48,11 @@ we want to continue that with the open source project.
 
 We designed Tribuo to be as modular as possible, with users able to depend on
 only the pieces they need without additional unnecessary components or third
-party dependencies. If you want to deploy a Tribuo Random Forest, you only need
-the tribuo-classification-decision-tree jar and it's dependencies, it doesn't
-pull in TensorFlow, or anything else. This makes it simpler to package up a 
-production deployment, as there is a smaller code surface to test, fewer jars
-and less space used up with unnecessary things.
+party dependencies. If you want to deploy a Tribuo `RandomForestClassifier`,
+you only need the tribuo-classification-decision-tree jar and it's
+dependencies, it doesn't pull in TensorFlow, or anything else. This makes it
+simpler to package up a production deployment, as there is a smaller code
+surface to test, fewer jars and less space used up with unnecessary things.
 
 This early design choice has lead to some additional complexity in the
 development of the core Tribuo library, and we're interested to see if the
@@ -64,7 +64,7 @@ Scikit-learn has popularised the fit/predict style in Python Machine Learning
 libraries, and given Python's lax approach to typing, those methods are only
 part of the API by convention rather that being enforced by the type system. In
 Tribuo we've split out training from predction, so Tribuo's fit method is
-called "train" and lives on the Trainer interface, and Tribuo's predict lives
+called "train" and lives on the `Trainer` interface, and Tribuo's predict lives
 on the Model class. Tribuo uses the same predict call to produce both the
 outputs and the scores for those outputs, it's predict method is the equivalent
 of both "predict" and "predict\_proba" in scikit-learn. We made this separation
@@ -80,7 +80,7 @@ comes with other benefits.
 Primitive arrays in Java are definitely faster, but they imply a dense feature
 space. One of Tribuo's design goals was strong support for NLP tasks, which
 typically have high-dimensional, sparse feature spaces.  As a result, *every*
-feature space in Tribuo is implicitly sparse (unlike the implict dense
+feature space in Tribuo is implicitly sparse (unlike the implicit dense
 assumption in most ML libraries). Another consequence is that Tribuo's features
 are *named*, each Feature is a tuple of a String and a value. This makes it
 easy to understand if there is a feature space mismatch (as commonly occurs in
@@ -116,16 +116,17 @@ featurisation.
 
 ### What's this about provenance?
 
-Provenance (of Models, Datasets and Evaluations) is one of the core benefits of
-Tribuo.  It means each model, dataset and evaluation knows exactly how it was
-created, and moreover it can generate a configuration file which can
+Provenance (of `Model`s, `Dataset`s and `Evaluation`s) is one of the core
+benefits of Tribuo.  It means each model, dataset and evaluation knows exactly
+how it was created, and moreover it can generate a configuration file which can
 reconstruct the object in question from scratch (assuming you still have access
 to the original training and testing data). The provenance and configuration
 systems come from [OLCUT](https://github.com/oracle/olcut) (Oracle Labs
 Configuration and Utility Toolkit), a long lived internal library from Oracle
-Labs which has roots in the configuration system used in Sphinx4. OLCUT provides
-configuration files in multiple formats, and ways to operate on provenance in
-JSON format (other provenance file formats will be added in the future).
+Labs which has roots in the configuration system used in Sphinx4. OLCUT
+provides configuration files in multiple formats, and ways to operate on
+provenance in JSON format (other provenance file formats will be added in the
+future).
 
 ### What's the difference between configuration and provenance?
 
@@ -133,7 +134,7 @@ In short, configuration is the parameter settings for an object (e.g.
 hyperparameters, data scaling, random seed), and provenance is the
 configuration plus information gathered from the specific run that created the
 model/dataset/evaluation (e.g. the number of features, the number of samples,
-the timestamp of the data, the number of times that Trainer's RNG had been
+the timestamp of the data file, the number of times that Trainer's RNG had been
 used).
 
 Provenance is a superset of configuration, and you can convert a provenance
@@ -144,19 +145,19 @@ run-specific information.
 
 ### What's the difference between a DataSource and a Dataset?
 
-A DataSource does the inbound ETL step from the source data on disk or in a
+A `DataSource` does the inbound ETL step from the source data on disk or in a
 database.  It's responsible for featurising the data (e.g. converting text into
-bigram counts), reading the ground truth outputs, and creating the Examples to
-contain the features and outputs. A DataSource can be lazy, it doesn't require
-that all the examples are in memory at once (though in practice many of the
-implementations do load in everything). A Dataset is something suitable for
-training a model, it has the full feature domain, the full output domain, keeps
-every training example in memory, and can be split into training and testing
-chunks in a repeatable way. Datasets can also be transformed, e.g. rescaling
-the features to be between zero and one, and other operations which require
-using statistics of all the data. These transformations are recorded in the
-Dataset so they can be recovered via provenance or incorporated into a 
-TransformedModel that applies the transformations to each input before
+bigram counts), reading the ground truth outputs, and creating the `Example`s
+to contain the features and outputs. A `DataSource` can be lazy, it doesn't
+require that all the examples are in memory at once (though in practice many of
+the implementations do load in everything). A `Dataset` is something suitable
+for training a model, it has the full feature domain, the full output domain,
+keeps every training example in memory, and can be split into training and
+testing chunks in a repeatable way. `Dataset`s can also be transformed, e.g.
+rescaling the features to be between zero and one, and other operations which
+require using statistics of all the data. These transformations are recorded in
+the `Dataset` so they can be recovered via provenance or incorporated into a
+`TransformedModel` that applies the transformations to each input before
 prediction.
 
 ### What's `Output.fullEquals` for?

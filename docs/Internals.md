@@ -23,7 +23,7 @@ by all the `Example` subclasses. It's also maintained by the feature name
 obfuscation, so the hashed names are assigned ids based on the lexicographic
 ordering of the unhashed names. This ensures that any observed feature must
 have an id number less than or equal to the previous feature, even after
-hashing.
+hashing, which makes operations in `SparseVector` much simpler.
 
 The `Output` subclasses are defined so that `Output.equals` and `Output.hashCode`
 only care about the Strings stored in each `Output`. This is so that a 
@@ -46,22 +46,24 @@ It's best practice not to modify an `Example` after it's been passed to a
 `Dataset` except by methods on that dataset. This allows the `Dataset` to track
 the feature values, and ensure the metadata is up to date. It's especially
 dangerous to add new features to an `Example` inside a `Dataset`, as the
-`Dataset won't have a mapping for the new features, and they are likely to be
+`Dataset` won't have a mapping for the new features, and they are likely to be
 ignored.
 
 When subclassing one of Tribuo's interfaces or abstract classes, it's important
 to implement the provenance object. If the state of the class can be purely
-described by configuration, then you can use the
-`ConfiguredObjectProvenanceImpl` which uses reflection to collect the necessary
-information. If the state is partially described by the configuration, then
-it's trickier, and it's recommened to base your provenance class on
-`SkeletalConfiguredObjectProvenance` which provides the reflective parts of the
-provenance. Provenance classes **must** be immutable after construction.
-Provenance is a record of what has happened to produce a class, and it must not
-change. The aim of the provenance system is that it is completely transparent
-to the users of the library, it's pervasive and always correct. The user shouldn't
-have to know anything about provenance, configuration or tracking of state to
-have provenance built into their models and evaluations.
+described by configuration, then you can use `ConfiguredObjectProvenanceImpl`
+which uses reflection to collect the necessary information. If the state is
+partially described by the configuration, then it's trickier, and it's
+recommended to subclass `SkeletalConfiguredObjectProvenance` which provides the
+reflective parts of the provenance. All provenance classes must have a public
+constructor which accepts a `Map<String,Provenance>`, this is used for
+serialisation. The other required methods are constrained by the interface.
+Provenance classes **must** be immutable after construction.  Provenance is a
+record of what has happened to produce a class, and it must not change. The aim
+of the provenance system is that it is completely transparent to the users of
+the library, it's pervasive and always correct. The user shouldn't have to know
+anything about provenance, configuration or tracking of state to have
+provenance built into their models and evaluations.
 
 ## Tracing a training and evaluation run
 
@@ -77,34 +79,34 @@ The two requirements are that there is some `DataProvenance` generated and that
 
 ### Dataset
 The `MutableDataset` performs three operations on the `DataSource`: it copies
-out the `DataSource`'s `OutputFactory`, it queries the `DataProvenance` of the
-source, storing it, and it iterates the `DataSource` once loading the
-`Example`s into the `Dataset`. First a new `MutableFeatureMap` is created, then
-the `OutputFactory` is used to generate a `MutableOutputInfo` (e.g.
+out the `DataSource`'s `OutputFactory`, it stores the `DataProvenance` of the
+source, and it iterates the `DataSource` once loading the `Example`s into the
+`Dataset`. First a new `MutableFeatureMap` is created, then the `OutputFactory`
+is used to generate a `MutableOutputInfo` of the appropriate type (e.g.
 `MutableLabelInfo` for multi-class classification).  Each `Example` has it's
 `Output` recorded in the `OutputInfo` including checking to see if this
-`Example` is unlabelled, denoted by the appropriate "empty `Output`" sentinel
-that each `OutputFactory` impementation can create. Then the `Example`'s
+`Example` is unlabelled, denoted by the appropriate "unknown `Output`" sentinel
+that each `OutputFactory` implementation can create. Then the `Example`'s
 `Feature`s are iterated. Each `Feature` is passed into the `MutableFeatureMap`
 where it's value and name are recorded. If the `Feature` hasn't been observed
 before, then a new `VariableInfo` is created, typically a `CategoricalInfo`,
 and the value is recorded. With the default feature map implementation, if a
-categorical variable has more than 50 unique values it's `VariableInfo` is
-replaced with a `RealInfo` which treats it as real valued. We expect to provide
-more control over this transformation in a future release. The
+categorical variable has more than 50 unique values the `CategoricalInfo` is
+replaced with a `RealInfo` which treats that feature as real valued. We expect
+to provide more control over this transformation in a future release. The
 `CategoricalInfo` captures a histogram of the feature values, and the
 `RealInfo` tracks max, min, mean and variance. Both track the number of times
 this `Feature` was observed.
 
 At this point the `Dataset` can be transformed, by a `TransformationMap`. This
 applies an independent sequence of transformation to each `Feature`, so it can
-do rescaling or binning, but not Principle Component Analysis (PCA).  The
+perform rescaling or binning, but not Principle Component Analysis (PCA).  The
 `TransformationMap` gathers the necessary statistics about the features, and
 then rewrites each `Example` according to the transformation, generating a
 `TransformerMap` which can be used to apply that specific transformations to
 other `Dataset`s (e.g. to fit the transformation on the training data, and
 apply it to the test data), and recording the transformations in the
-`Dataset`'s `Provenance`. This can also be done at training time using the
+`Dataset`'s `DataProvenance`. This can also be done at training time using the
 `TransformTrainer` which wraps the trained `Model` so the transformations are
 always applied.  Transformations which depend on all features and can change
 the feature space itself (e.g. PCA or feature selection) are planned for a
@@ -112,7 +114,7 @@ future release.
 
 ### Training
 On entry into a train method, several things happen: the train invocation count
-is incremented, a RNG specific to this method call is split from the
+is incremented, an RNG specific to this method call is split from the
 `Trainer`'s RNG if required, the `Dataset` is queried for it's
 `DataProvenance`, the `Dataset`'s `FeatureMap` is converted into an
 `ImmutableFeatureMap`, and the `Dataset`s' `OutputInfo` is converted into an
@@ -122,21 +124,26 @@ the `OutputInfo` is checked to see if it contains any sentinel unknown
 `Output`s. If it does, and the `Trainer` is fully supervised, an exception is
 thrown.
 
-The `Trainer` then creates a `SparseVector` from each `Example`'s features, and
-copies out the `Output` into either an id or double value (depending on it's
-class). The `SparseVector` guarantees that there are no id collisions by adding
-together colliding feature values (collisons can be induced by feature
-hashing), and otherwise validates the `Example`.
+The majority of `Trainer`s then create a `SparseVector` from each `Example`'s
+features, and copies out the `Output` into either an id or double value
+(depending on it's class). The `SparseVector` guarantees that there are no id
+collisions by adding together colliding feature values (collisons can be
+induced by feature hashing), and otherwise validates the `Example`. Ensemble
+`Trainer`s and others which wrap an inner `Trainer` leave the `SparseVector`
+conversion to the inner `Trainer.`
 
 The `Trainer` then executes it's training algorithm to produce the model
 parameters.
 
-The `Trainer` then constructs the `ModelProvenance` incorporating the
+Finally, the `Trainer` constructs the `ModelProvenance` incorporating the
 `Dataset`'s `DataProvenance`, the `Trainer`'s `TrainerProvenance` (i.e.
 training hyperparameters), and any run specific `Provenance` that the user
 provided. The `ModelProvenance` along with the `ImmutableFeatureMap`,
 `ImmutableOutputInfo`, and the model parameters are supplied to the appropriate
 model constructor, and the trained `Model` is returned.
+
+`Model`s are immutable, apart from test time parameters such as inference batch
+size, number of inference threads, choice of threading backend etc.
 
 ### Evaluation
 Once an `Evaluator` of the appropriate type has been constructed (either
@@ -152,7 +159,7 @@ elements then there is no feature overlap and an exception is thrown.  The
 dimensions or labels. The `Evaluator` aggregates all the `Prediction`s, checks
 if the `Example`s have ground truth labels (if not it throws an exception), and
 then calculates the appropriate evaluation statistics (e.g. accuracy & F1 for
-classification, RMSE for regression etc). Finally the input data's
+classification, RMSE for regression etc). Finally, the input data's
 `DataProvenance` and the `Model`'s `ModelProvenance` are queried, and the
 evaluation statistics, provenances and predictions are passed to the
-`Evaluation`'s constructor for storage.
+appropriate `Evaluation`'s constructor for storage.
