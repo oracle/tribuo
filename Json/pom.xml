@@ -19,12 +19,12 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>tribuo-interop</artifactId>
         <groupId>org.tribuo</groupId>
+        <artifactId>tribuo</artifactId>
         <version>4.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <name>Interop-Json</name>
+    <name>Json</name>
     <artifactId>tribuo-json</artifactId>
     <packaging>jar</packaging>
     <properties>
@@ -41,10 +41,12 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-data</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

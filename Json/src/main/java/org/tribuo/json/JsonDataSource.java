@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.interop.json;
+package org.tribuo.json;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
