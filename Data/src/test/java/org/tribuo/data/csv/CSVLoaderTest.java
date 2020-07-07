@@ -16,6 +16,7 @@
 
 package org.tribuo.data.csv;
 
+import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
@@ -23,7 +24,6 @@ import org.tribuo.test.MockMultiOutput;
 import org.tribuo.test.MockMultiOutputFactory;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
-import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URL;
@@ -35,10 +35,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 public class CSVLoaderTest {
@@ -129,13 +126,13 @@ public class CSVLoaderTest {
     public void testInvalidResponseName() {
         URL path = CSVLoader.class.getResource("/org/tribuo/data/csv/test.csv");
         CSVLoader<MockOutput> loader = new CSVLoader<>(new MockOutputFactory());
-        assertThrows(IllegalStateException.class, () -> loader.loadDataSource(path, ""));
-        assertThrows(IllegalStateException.class, () -> loader.loadDataSource(path, "response"));
-        assertThrows(IllegalStateException.class, () -> loader.loadDataSource(path, "sdfas"));
+        assertThrows(IllegalArgumentException.class, () -> loader.loadDataSource(path, ""));
+        assertThrows(IllegalArgumentException.class, () -> loader.loadDataSource(path, "response"));
+        assertThrows(IllegalArgumentException.class, () -> loader.loadDataSource(path, "sdfas"));
         String tmp = null;
-        assertThrows(IllegalStateException.class, () -> loader.loadDataSource(path, tmp));
-        assertThrows(IllegalStateException.class, () -> loader.loadDataSource(path, Collections.singleton("alkjfd")));
-        assertThrows(IllegalStateException.class, () -> loader.loadDataSource(path, new HashSet<>()));
+        assertThrows(IllegalArgumentException.class, () -> loader.loadDataSource(path, tmp));
+        assertThrows(IllegalArgumentException.class, () -> loader.loadDataSource(path, Collections.singleton("alkjfd")));
+        assertThrows(IllegalArgumentException.class, () -> loader.loadDataSource(path, new HashSet<>()));
     }
 
     /**

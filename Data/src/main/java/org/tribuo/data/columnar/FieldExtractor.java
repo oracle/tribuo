@@ -29,22 +29,8 @@ import java.util.Optional;
 public interface FieldExtractor<T> extends Configurable, Provenancable<ConfiguredObjectProvenance> {
 
     /**
-     * An optional name to supply to a field extractor that extracts weight values.
-     */
-    public static final String WEIGHT_NAME = "TRIBUO_ROW_PROCESSOR_WEIGHT_FIELD";
-
-    /**
-     * Gets the field name this extractor operates on.
-     * @return The field name.
-     */
-    public String getFieldName();
-
-    /**
-     * Gets the metadata key name.
-     * <p>
-     * If this field is not configured, by convention it takes the value of {@link FieldExtractor#getFieldName()},
-     * by setting the appropriate field in the overridden {@link Configurable#postConfig} of the implementing
-     * class. See {@link org.tribuo.data.columnar.extractors.IdentityExtractor} for an example.
+     * Gets the metadata key name. This is the key into which this value will be written in an {@link org.tribuo.Example}
+     * if it is given to {@link RowProcessor#metadataExtractors}.
      * @return The metadata key name.
      */
     public String getMetadataName();
@@ -57,9 +43,8 @@ public interface FieldExtractor<T> extends Configurable, Provenancable<Configure
 
     /**
      * Returns Optional which is filled if extraction succeeded.
-     * @param value The field value to extract from.
+     * @param row The raw row from which to extract a value
      * @return A value.
      */
-    public Optional<T> extract(String value);
-
+    Optional<T> extract(ColumnarIterator.Row row);
 }

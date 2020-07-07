@@ -16,10 +16,8 @@
 
 package org.tribuo.data.columnar.extractors;
 
-import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.data.columnar.FieldExtractor;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -29,22 +27,16 @@ import java.util.logging.Logger;
  * <p>
  * Returns an empty optional if the value failed to parse.
  */
-public class DoubleExtractor implements FieldExtractor<Double> {
+public class DoubleExtractor extends SimpleFieldExtractor<Double> {
     private static final Logger logger = Logger.getLogger(DoubleExtractor.class.getName());
 
-    @Config(mandatory = true, description = "The field name to read.")
-    private String fieldName;
-
-    @Config(description = "The metadata key to emit, defaults to field name if unpopulated")
-    private String metadataName;
 
     public DoubleExtractor(String fieldName) {
-        this.fieldName = fieldName;
+        super(fieldName);
     }
 
     public DoubleExtractor(String fieldName, String metadataName) {
-        this.fieldName = fieldName;
-        this.metadataName = metadataName;
+        super(fieldName, metadataName);
     }
 
     /**
@@ -53,29 +45,12 @@ public class DoubleExtractor implements FieldExtractor<Double> {
     private DoubleExtractor() {}
 
     @Override
-    public void postConfig() {
-        if (metadataName == null || metadataName.isEmpty()) {
-            metadataName = fieldName;
-        }
-    }
-
-    @Override
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    @Override
-    public String getMetadataName() {
-        return metadataName;
-    }
-
-    @Override
     public Class<Double> getValueType() {
         return Double.class;
     }
 
     @Override
-    public Optional<Double> extract(String value) {
+    protected Optional<Double> extractField(String value) {
         try {
             double f = Double.parseDouble(value);
             return Optional.of(f);
@@ -83,11 +58,6 @@ public class DoubleExtractor implements FieldExtractor<Double> {
             logger.warning("Failed to parse value for field " + fieldName + ", expected a double, got " + value);
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String toString() {
-        return "DoubleExtractor(fieldName="+fieldName+")";
     }
 
     @Override

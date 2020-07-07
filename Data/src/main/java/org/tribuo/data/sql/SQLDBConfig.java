@@ -25,23 +25,26 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 /**
- * SQL database configuration. If you specify the {@linkplain SQLDBConfig#host}, {@linkplain SQLDBConfig#port}, and
- * {@linkplain SQLDBConfig#db} strings and use {@code oracle.jdbc.OracleDriver} as your JDBC Driver, then this will
- * automatically generate a connectionString, otherwise it must be specified manually and host, port, and db fields
- * can be omitted.
- * <p>
- * {@link java.sql.DriverManager}'s default logic will be used to determine which {@link java.sql.Driver} to use for
- * a given connection string.
- * <p>
+ *
  * N.B. This class accepts raw SQL strings and executes them directly via JDBC. It DOES NOT perform
  * any SQL escaping or other injection prevention. It is the user's responsibility to ensure that SQL passed to this
  * class performs as desired.
+ *
+ * SQL database configuration. If you specify the {@linkplain SQLDBConfig#host}, {@linkplain SQLDBConfig#port}, and
+ * {@linkplain SQLDBConfig#db} strings and use {@link oracle.jdbc.OracleDriver} as your JDBC Driver, then this will
+ * automatically generate a connectionString, otherwise it must be specified manually and host, port, and db fields
+ * can be omitted.
+ *
+ * {@link java.sql.DriverManager}'s default logic will be used to determine which {@link java.sql.Driver} to use for
+ * a given connection string.
  */
 public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObjectProvenance> {
 
@@ -61,6 +64,9 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
     private String port;
     @Config(description="Database name.")
     private String db;
+
+    @Config(description="Size of batches to fetch from DB for queries")
+    private int fetchSize = 1000;
 
     private SQLDBConfig() {}
 
@@ -128,6 +134,20 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
             props.put("password", password);
         }
         return DriverManager.getConnection(connectionString, props);
+    }
+
+    /**
+     * Constructs a statement based on the object fields. Uses fetchSize to determine fetch size and sets defaults
+     * for querying data.
+     *
+     * @return A statement object for querying the database.
+     * @throws SQLException If the connection failed.
+     */
+    public Statement getStatement() throws SQLException {
+        Statement stmt = getConnection().createStatement();
+        stmt.setFetchSize(fetchSize);
+        stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+        return stmt;
     }
 
     @Override

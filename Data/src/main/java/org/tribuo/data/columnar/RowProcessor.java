@@ -59,14 +59,10 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     private static final Logger logger = Logger.getLogger(RowProcessor.class.getName());
 
-    /**
-     * The index is inserted into the row map using this field name.
-     */
-    public static final String INDEX_FIELD = "TRIBUO_ROW_PROCESSOR_INDEX_FIELD";
-
     private static final String FEATURE_NAME_REGEX = "["+ColumnarFeature.JOINER+FieldProcessor.NAMESPACE+"]";
 
     private static final Pattern FEATURE_NAME_PATTERN = Pattern.compile(FEATURE_NAME_REGEX);
+
 
     @Config(description="Extractors for the example metadata.")
     private List<FieldExtractor<?>> metadataExtractors = Collections.emptyList();
@@ -170,6 +166,44 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * Generate an {@link Example} from the supplied row. Returns an empty Optional if
+     * there are no features, or the response is required but it was not found. The latter case is
+     * used at training time.
+     * @param row The row to process.
+     * @param outputRequired If an Output must be found in the row to return an Example.
+     * @return An Optional containing an Example if the row was valid, an empty Optional otherwise.
+     */
+    public Optional<Example<T>> generateExample(ColumnarIterator.Row row, boolean outputRequired) {
+        String responseValue = row.getRowData().get(responseProcessor.getFieldName());
+        Optional<T> labelOpt = responseProcessor.process(responseValue);
+        if (!labelOpt.isPresent() && outputRequired) {
+            return Optional.empty();
+        }
+
+        List<ColumnarFeature> features = generateFeatures(row.getRowData());
+
+        if (features.isEmpty()) {
+            logger.warning(String.format("Row %d empty of features, omitting", row.getIndex()));
+            return Optional.empty();
+        } else {
+            T label = labelOpt.orElse(responseProcessor.getOutputFactory().getUnknownOutput());
+
+            Map<String,Object> metadata = generateMetadata(row);
+
+            Example<T> example;
+            if (weightExtractor == null) {
+                example = new ArrayExample<>(label,metadata);
+            } else {
+                example = new ArrayExample<>(label,
+                        weightExtractor.extract(row).orElse(Example.DEFAULT_WEIGHT),
+                        metadata);
+            }
+            example.addAll(features);
+            return Optional.of(example);
+        }
+    }
+
+    /**
+     * Generate an {@link Example} from the supplied row. Returns an empty Optional if
      * there are no features, or the response is required but it was not found.
      * <p>
      * Supplies -1 as the example index, used in cases where the index isn't meaningful.
@@ -190,69 +224,29 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * @param outputRequired If an Output must be found in the row to return an Example.
      * @return An Optional containing an Example if the row was valid, an empty Optional otherwise.
      */
-    public Optional<Example<T>> generateExample(int idx, Map<String,String> row, boolean outputRequired) {
-        String responseValue = row.get(responseProcessor.getFieldName());
-        Optional<T> labelOpt = responseProcessor.process(responseValue);
-        if (!labelOpt.isPresent() && outputRequired) {
-            return Optional.empty();
-        }
-
-        List<ColumnarFeature> features = generateFeatures(row);
-
-        if (features.isEmpty()) {
-            return Optional.empty();
-        } else {
-            T label = labelOpt.orElse(responseProcessor.getOutputFactory().getUnknownOutput());
-
-            Map<String,Object> metadata = generateMetadata(idx, row);
-
-            Example<T> example;
-            if (weightExtractor == null) {
-                example = new ArrayExample<>(label,metadata);
-            } else {
-                String value = row.get(weightExtractor.getFieldName());
-                if (value != null) {
-                    Optional<Float> weight = weightExtractor.extract(value);
-                    example = new ArrayExample<>(label,weight.orElse(Example.DEFAULT_WEIGHT),metadata);
-                } else {
-                    example = new ArrayExample<>(label,metadata);
-                }
-            }
-            example.addAll(features);
-            return Optional.of(example);
-        }
+    public Optional<Example<T>> generateExample(long idx, Map<String,String> row, boolean outputRequired) {
+        return generateExample(new ColumnarIterator.Row(idx, new ArrayList<>(row.keySet()), row), outputRequired);
     }
 
     /**
      * Generates the example metadata from the supplied row and index.
-     * @param idx The index, by convention -1 if there is no meaningful index.
      * @param row The row to process.
      * @return A (possibly empty) map containing the metadata.
      */
-    public Map<String,Object> generateMetadata(int idx, Map<String,String> row) {
+    public Map<String,Object> generateMetadata(ColumnarIterator.Row row) {
         if (metadataExtractors.isEmpty()) {
             return Collections.emptyMap();
         } else {
             Map<String,Object> metadataMap = new HashMap<>();
+            long idx = row.getIndex();
 
             for (FieldExtractor<?> field : metadataExtractors) {
-                String fieldName = field.getFieldName();
-                if (INDEX_FIELD.equals(fieldName)) {
-                    Optional<?> extractedValue = field.extract(String.valueOf(idx));
-                    if (extractedValue.isPresent()) {
-                        metadataMap.put(field.getMetadataName(), extractedValue.get());
-                    } else {
-                        logger.warning("Failed to extract index " + idx);
-                    }
-                } else if (row.containsKey(fieldName)){
-                    Optional<?> extractedValue = field.extract(row.get(fieldName));
-                    if (extractedValue.isPresent()) {
-                        metadataMap.put(field.getMetadataName(), extractedValue.get());
-                    } else {
-                        logger.warning("Failed to extract from field '" + row.get(fieldName) + "'");
-                    }
+                String metadataName = field.getMetadataName();
+                Optional<?> extractedValue = field.extract(row);
+                if(extractedValue.isPresent()) {
+                    metadataMap.put(metadataName, extractedValue.get());
                 } else {
-                    logger.warning("Failed to find field " + fieldName + " in row with idx " + idx);
+                    logger.warning("Failed to extract field with name " + metadataName + " from index " + idx);
                 }
             }
 
