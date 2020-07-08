@@ -17,7 +17,7 @@
 package org.tribuo.regression.rtree.impl;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.common.trees.impl.IntArrayContainer;
+import org.tribuo.common.tree.impl.IntArrayContainer;
 
 import java.util.Arrays;
 

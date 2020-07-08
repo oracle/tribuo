@@ -19,7 +19,7 @@ package org.tribuo.regression.rtree.impurity;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
-import org.tribuo.common.trees.impl.IntArrayContainer;
+import org.tribuo.common.tree.impl.IntArrayContainer;
 
 import java.util.List;
 

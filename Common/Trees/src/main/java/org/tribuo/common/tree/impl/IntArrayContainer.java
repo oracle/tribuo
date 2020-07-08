@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.common.trees.impl;
+package org.tribuo.common.tree.impl;
 
 import java.util.Arrays;
 import java.util.List;

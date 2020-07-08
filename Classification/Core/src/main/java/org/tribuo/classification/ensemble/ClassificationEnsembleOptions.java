@@ -20,8 +20,8 @@ import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
-import org.tribuo.common.trees.DecisionTreeTrainer;
-import org.tribuo.common.trees.RandomForestTrainer;
+import org.tribuo.common.tree.DecisionTreeTrainer;
+import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.ensemble.BaggingTrainer;
 
 import java.util.logging.Logger;

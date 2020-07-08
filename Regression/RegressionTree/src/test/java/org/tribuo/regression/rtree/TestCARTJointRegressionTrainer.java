@@ -19,7 +19,7 @@ package org.tribuo.regression.rtree;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
-import org.tribuo.common.trees.TreeModel;
+import org.tribuo.common.tree.TreeModel;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;

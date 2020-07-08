@@ -28,7 +28,7 @@ import org.tribuo.classification.ensemble.VotingCombiner;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
-import org.tribuo.common.trees.RandomForestTrainer;
+import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.junit.jupiter.api.Assertions;
@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.tribuo.common.trees.AbstractCARTTrainer.MIN_EXAMPLES;
+import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

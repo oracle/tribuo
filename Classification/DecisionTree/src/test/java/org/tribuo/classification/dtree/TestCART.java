@@ -24,7 +24,7 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
-import org.tribuo.common.trees.TreeModel;
+import org.tribuo.common.tree.TreeModel;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

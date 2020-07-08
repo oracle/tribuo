@@ -20,8 +20,8 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
-import org.tribuo.common.trees.AbstractCARTTrainer;
-import org.tribuo.common.trees.RandomForestTrainer;
+import org.tribuo.common.tree.AbstractCARTTrainer;
+import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.tribuo.common.trees.AbstractCARTTrainer.MIN_EXAMPLES;
+import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 
 public class TestRegressionEnsembles {
 

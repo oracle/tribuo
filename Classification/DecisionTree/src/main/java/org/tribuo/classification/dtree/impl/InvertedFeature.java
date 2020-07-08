@@ -17,7 +17,7 @@
 package org.tribuo.classification.dtree.impl;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.common.trees.impl.IntArrayContainer;
+import org.tribuo.common.tree.impl.IntArrayContainer;
 
 import java.io.Serializable;
 import java.util.Arrays;

@@ -48,7 +48,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>tribuo-common-trees</artifactId>
+            <artifactId>tribuo-common-tree</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
