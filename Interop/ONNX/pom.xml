@@ -52,7 +52,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>ai.onnxruntime</groupId>
+            <groupId>com.microsoft.onnxruntime</groupId>
             <artifactId>onnxruntime</artifactId>
             <version>${onnxruntime.version}</version>
         </dependency>
