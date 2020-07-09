@@ -26,7 +26,7 @@ import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.ResponseProcessor;
 import org.tribuo.data.columnar.RowProcessor;
-import org.tribuo.data.columnar.processors.feature.IdentityProcessor;
+import org.tribuo.data.columnar.processors.field.IdentityProcessor;
 import org.tribuo.data.columnar.processors.response.FieldResponseProcessor;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.test.MockOutput;

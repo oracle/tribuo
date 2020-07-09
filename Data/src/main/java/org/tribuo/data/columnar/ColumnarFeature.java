@@ -22,7 +22,9 @@ import org.tribuo.Feature;
 /**
  * A Feature with extra bookkeeping for use inside the columnar package.
  * <p>
- * {@link Example}s may destroy and recreate Feature instances.
+ * {@link Example}s may destroy and recreate Feature instances so don't
+ * expect ColumnarFeatures to still be ColumnarFeatures if you probe the
+ * Example after construction.
  */
 public class ColumnarFeature extends Feature {
     private static final long serialVersionUID = 1L;
@@ -37,9 +39,12 @@ public class ColumnarFeature extends Feature {
 
     private final String secondFieldName;
 
+    private final String origName;
+
     public ColumnarFeature(String fieldName, String name, double value) {
         super(generateFeatureName(fieldName,name), value);
         this.fieldName = fieldName;
+        this.origName = name;
         this.firstFieldName = "";
         this.secondFieldName = "";
     }
@@ -47,6 +52,7 @@ public class ColumnarFeature extends Feature {
     public ColumnarFeature(String firstFieldName, String secondFieldName, String name, double value) {
         super(generateFeatureName(firstFieldName,secondFieldName,name),value);
         this.fieldName = CONJUNCTION;
+        this.origName = name;
         this.firstFieldName = firstFieldName;
         this.secondFieldName = secondFieldName;
     }
@@ -100,5 +106,13 @@ public class ColumnarFeature extends Feature {
      */
     public String getSecondFieldName() {
         return secondFieldName;
+    }
+
+    /**
+     * Get's the feature's name without the field name.
+     * @return The feature's original name.
+     */
+    public String getOriginalName() {
+        return origName;
     }
 }
