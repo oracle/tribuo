@@ -67,7 +67,7 @@ public class LibSVMAnomalyTrainer extends LibSVMTrainer<Event> {
 
     /**
      * Creates a one-class LibSVM trainer using the supplied parameters.
-     * @param parameters
+     * @param parameters The training parameters.
      */
     public LibSVMAnomalyTrainer(SVMParameters<Event> parameters) {
         super(parameters);

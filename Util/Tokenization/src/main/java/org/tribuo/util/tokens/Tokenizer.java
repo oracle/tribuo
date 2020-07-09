@@ -105,11 +105,13 @@ public interface Tokenizer extends Configurable, Cloneable, Provenancable<Config
      * with a fresh CharSequence.
      *
      * @return A tokenizer with the same configuration, but independent state.
+     * @throws CloneNotSupportedException if the tokenizer isn't cloneable.
      */
     public Tokenizer clone() throws CloneNotSupportedException;
 
     /**
      * Generates a Token object from the current state of the tokenizer.
+     * @return The token object from the current state.
      */
     default public Token getToken() {
         return new Token(getText(), getStart(), getEnd(), getType());

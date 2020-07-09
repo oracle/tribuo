@@ -51,6 +51,7 @@ public abstract class ClusteringDataGenerator {
      * Generates a dataset drawn from a mixture of 5 2d gaussians.
      *
      * @param size The number of points to sample for the dataset.
+     * @param seed The RNG seed.
      * @return A pair of datasets.
      */
     public static Dataset<ClusterID> gaussianClusters(long size, long seed) {

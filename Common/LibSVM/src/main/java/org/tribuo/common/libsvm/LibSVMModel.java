@@ -72,7 +72,7 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
 
     /**
      * Gets the underlying list of libsvm models.
-     * @return
+     * @return The underlying model list.
      */
     public List<svm_model> getModel() {
         return models;

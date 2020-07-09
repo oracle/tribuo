@@ -204,6 +204,7 @@ public class CategoricalInfo extends SkeletalVariableInfo {
      * Samples a value from this feature according to the frequency of observation.
      * @param rng The RNG to use.
      * @param totalObservations The observations including the implicit zeros.
+     * @return The sampled value.
      */
     public double frequencyBasedSample(SplittableRandom rng, long totalObservations) {
         if ((totalObservations != this.totalObservations) || (cdf == null)) {
@@ -217,6 +218,7 @@ public class CategoricalInfo extends SkeletalVariableInfo {
      * Samples a value from this feature according to the frequency of observation.
      * @param rng The RNG to use.
      * @param totalObservations The observations including the implicit zeros.
+     * @return The sampled value.
      */
     public double frequencyBasedSample(Random rng, long totalObservations) {
         if ((totalObservations != this.totalObservations) || (cdf == null)) {

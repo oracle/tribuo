@@ -33,6 +33,7 @@ import libsvm.svm_parameter;
 import libsvm.svm_problem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -102,7 +103,7 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
             models.add(svm.svm_train(problem, curParams));
         }
 
-        return models;
+        return Collections.unmodifiableList(models);
     }
 
     @Override
