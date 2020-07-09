@@ -265,7 +265,7 @@ public class CSVLoader<T extends Output<T>> {
         return dataset;
     }
 
-    private static void validateResponseNames(Set<String> responseNames, List<String> headers, String csvPath) throws IllegalStateException {
+    private static void validateResponseNames(Set<String> responseNames, List<String> headers, String csvPath) throws IllegalArgumentException {
         if (responseNames.isEmpty()) {
             throw new IllegalArgumentException("At least one response name must be specified, but responseNames is empty.");
         }
