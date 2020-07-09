@@ -16,11 +16,14 @@
 
 package org.tribuo.interop.onnx;
 
+import ai.onnxruntime.OnnxModelMetadata;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
@@ -46,6 +49,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -142,7 +146,7 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
 
     /**
      * Runs the session to make a prediction.
-     *
+     * <p>
      * Closes the input tensor after the prediction has been made.
      * @param input The input in the external model's format.
      * @return A tensor representing the output.
@@ -286,7 +290,24 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
             OffsetDateTime now = OffsetDateTime.now();
             ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance(provenanceLocation);
             DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data",factory,false,featureMapping.size(),outputMapping.size());
-            ModelProvenance provenance = new ModelProvenance(ONNXExternalModel.class.getName(),now,datasetProvenance,trainerProvenance,Collections.singletonMap("input-name",new StringProvenance("input-name",inputName)));
+            HashMap<String, Provenance> runProvenance = new HashMap<>();
+            runProvenance.put("input-name", new StringProvenance("input-name", inputName));
+            try (OrtEnvironment env = OrtEnvironment.getEnvironment();
+                 OrtSession session = env.createSession(modelArray)) {
+                OnnxModelMetadata metadata = session.getMetadata();
+                runProvenance.put("model-producer", new StringProvenance("model-producer",metadata.getProducerName()));
+                runProvenance.put("model-domain", new StringProvenance("model-domain",metadata.getDomain()));
+                runProvenance.put("model-description", new StringProvenance("model-description",metadata.getDescription()));
+                runProvenance.put("model-graphname", new StringProvenance("model-graphname",metadata.getGraphName()));
+                runProvenance.put("model-version", new LongProvenance("model-version",metadata.getVersion()));
+                for (Map.Entry<String,String> e : metadata.getCustomMetadata().entrySet()) {
+                    String keyName = "model-metadata-"+e.getKey();
+                    runProvenance.put(keyName, new StringProvenance(keyName,e.getValue()));
+                }
+            } catch (OrtException e) {
+                throw new IllegalArgumentException("Failed to load model and read metadata from path " + path, e);
+            }
+            ModelProvenance provenance = new ModelProvenance(ONNXExternalModel.class.getName(),now,datasetProvenance,trainerProvenance,runProvenance);
             return new ONNXExternalModel<>("external-model",provenance,featureMap,outputInfo,
                     featureMapping,modelArray,opts,inputName,featureTransformer,outputTransformer);
         } catch (IOException e) {
