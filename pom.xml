@@ -25,6 +25,7 @@
     <modules>
         <module>Core</module>
         <module>Data</module>
+        <module>Json</module>
         <module>Math</module>
         <module>Interop</module>
         <module>Common</module>

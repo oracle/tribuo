@@ -27,7 +27,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
-        <module>Json</module>
         <module>ONNX</module>
         <module>Tensorflow</module>
     </modules>

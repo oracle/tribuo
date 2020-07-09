@@ -17,4 +17,4 @@
 /**
  * Provides interop with JSON formatted data, along with tools for interacting with JSON provenance objects.
  */
-package org.tribuo.interop.json;
+package org.tribuo.json;

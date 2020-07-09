@@ -17,24 +17,79 @@
 package org.tribuo.clustering.example;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
+import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
+import org.tribuo.Feature;
 import org.tribuo.MutableDataset;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
+import org.tribuo.datasource.ListDataSource;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
+import org.tribuo.util.Util;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Generates three example train and test datasets, used for unit testing.
  * They don't necessarily have sensible cluster boundaries,
  * it's for testing the machinery rather than accuracy.
+ * <p>
+ * Also has a dataset generator which returns a dataset
+ * sampled from a mixture of 2 dimensional gaussians.
  */
 public abstract class ClusteringDataGenerator {
 
     private static ClusteringFactory clusteringFactory = new ClusteringFactory();
+
+    /**
+     * Generates a dataset drawn from a mixture of 5 2d gaussians.
+     *
+     * @param size The number of points to sample for the dataset.
+     * @return A pair of datasets.
+     */
+    public static Dataset<ClusterID> gaussianClusters(long size, long seed) {
+        if (size < 1) {
+            throw new IllegalArgumentException("Size must be a positive number, received " + size);
+        }
+        Random rng = new Random(seed);
+
+        // Dataset parameters
+        String[] featureNames = new String[]{"A","B"};
+        double[] mixingPMF = new double[]{0.1,0.35,0.05,0.25,0.25};
+        double[] mixingCDF = Util.generateCDF(mixingPMF);
+        MultivariateNormalDistribution first = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                new double[]{0.0,0.0}, new double[][]{{1.0,0.0},{0.0,1.0}}
+        );
+        MultivariateNormalDistribution second = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                new double[]{5.0,5.0}, new double[][]{{1.0,0.0},{0.0,1.0}}
+        );
+        MultivariateNormalDistribution third = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                new double[]{2.5,2.5}, new double[][]{{1.0,0.5},{0.5,1.0}}
+        );
+        MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                new double[]{10.0,0.0}, new double[][]{{0.1,0.0},{0.0,0.1}}
+        );
+        MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                new double[]{-1.0,0.0}, new double[][]{{1.0,0.0},{0.0,0.1}}
+        );
+        MultivariateNormalDistribution[] gaussians = new MultivariateNormalDistribution[]{first,second,third,fourth,fifth};
+
+        List<Example<ClusterID>> trainingData = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            int centroid = Util.sampleFromCDF(mixingCDF,rng);
+            double[] sample = gaussians[centroid].sample();
+            trainingData.add(new ArrayExample<>(new ClusterID(centroid),featureNames,sample));
+        }
+
+        SimpleDataSourceProvenance trainingProvenance = new SimpleDataSourceProvenance("Generated clustering data",clusteringFactory);
+        return new MutableDataset<>(new ListDataSource<>(trainingData,clusteringFactory,trainingProvenance));
+    }
 
     public static Pair<Dataset<ClusterID>,Dataset<ClusterID>> denseTrainTest() {
         return denseTrainTest(-1.0);

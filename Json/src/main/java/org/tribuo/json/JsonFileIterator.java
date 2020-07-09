@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.interop.json;
+package org.tribuo.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
