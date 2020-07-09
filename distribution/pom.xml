@@ -15,98 +15,98 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>tribuo-distribution</artifactId>
-	<parent>
-		<groupId>org.tribuo</groupId>
+    <artifactId>tribuo-distribution</artifactId>
+    <parent>
+        <groupId>org.tribuo</groupId>
         <artifactId>tribuo</artifactId>
-		<version>4.0.0-SNAPSHOT</version>
-		<relativePath>..</relativePath>
-	</parent>
+        <version>4.0.0-SNAPSHOT</version>
+        <relativePath>..</relativePath>
+    </parent>
 
-	<name>${project.artifactId}</name>
+    <name>${project.artifactId}</name>
 
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
-				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id> <!-- this is used for inheritance merges -->
-						<phase>package</phase> <!-- bind to the packaging phase -->
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
-	<dependencies>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-core</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-core</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-data</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-data</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-math</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-math</artifactId>
             <version>${project.version}</version>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-common-nearest-neighbour</artifactId>
             <version>${project.version}</version>
         </dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-classification-core</artifactId>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-core</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-classification-tree</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-tree</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-classification-liblinear</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-liblinear</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-classification-libsvm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-libsvm</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-classification-mnnaivebayes</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-mnnaivebayes</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-classification-sgd</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-sgd</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-classification-xgboost</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-xgboost</artifactId>
             <version>${project.version}</version>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-regression-core</artifactId>
@@ -117,31 +117,31 @@
             <artifactId>tribuo-regression-libsvm</artifactId>
             <version>${project.version}</version>
         </dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-regression-sgd</artifactId>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-regression-sgd</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-regression-slm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-regression-slm</artifactId>
             <version>${project.version}</version>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-regression-tree</artifactId>
             <version>${project.version}</version>
         </dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-regression-xgboost</artifactId>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-regression-xgboost</artifactId>
             <version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tribuo</groupId>
-			<artifactId>tribuo-multilabel-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-multilabel-core</artifactId>
             <version>${project.version}</version>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-clustering-core</artifactId>
@@ -222,5 +222,5 @@
             <version>${commonsmath.version}</version>
             <scope>provided</scope>
         </dependency>
-	</dependencies>
+    </dependencies>
 </project>
