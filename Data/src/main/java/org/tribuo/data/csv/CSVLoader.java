@@ -80,46 +80,128 @@ public class CSVLoader<T extends Output<T>> {
     this(CSVIterator.SEPARATOR,CSVIterator.QUOTE,outputFactory);
     }
 
+    /**
+     * Loads a DataSource from the specified csv file then wraps it in a dataset.
+     * @param csvPath The path to load.
+     * @param responseName The name of the response variable.
+     * @return A dataset containing the csv data.
+     * @throws IOException If the read failed.
+     */
     public MutableDataset<T> load(Path csvPath, String responseName) throws IOException {
         return new MutableDataset<>(loadDataSource(csvPath, responseName));
     }
 
+    /**
+     * Loads a DataSource from the specified csv file then wraps it in a dataset.
+     * @param csvPath The path to load.
+     * @param responseName The name of the response variable.
+     * @param header The header of the CSV if it's not present in the file.
+     * @return A dataset containing the csv data.
+     * @throws IOException If the read failed.
+     */
     public MutableDataset<T> load(Path csvPath, String responseName, String[] header) throws IOException {
         return new MutableDataset<>(loadDataSource(csvPath, responseName, header));
     }
 
+    /**
+     * Loads a DataSource from the specified csv file then wraps it in a dataset.
+     * @param csvPath The path to load.
+     * @param responseNames The names of the response variables.
+     * @return A dataset containing the csv data.
+     * @throws IOException If the read failed.
+     */
     public MutableDataset<T> load(Path csvPath, Set<String> responseNames) throws IOException {
         return new MutableDataset<>(loadDataSource(csvPath, responseNames));
     }
 
+    /**
+     * Loads a DataSource from the specified csv file then wraps it in a dataset.
+     * @param csvPath The path to load.
+     * @param responseNames The names of the response variables.
+     * @param header The header of the CSV if it's not present in the file.
+     * @return A dataset containing the csv data.
+     * @throws IOException If the read failed.
+     */
     public MutableDataset<T> load(Path csvPath, Set<String> responseNames, String[] header) throws IOException {
         return new MutableDataset<>(loadDataSource(csvPath, responseNames, header));
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseName The name of the response variable.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(Path csvPath, String responseName) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName));
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseName The name of the response variable.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(URL csvPath, String responseName) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName));
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseName The name of the response variable.
+     * @param header The header of the CSV if it's not present in the file.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(Path csvPath, String responseName, String[] header) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName), header);
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseName The name of the response variable.
+     * @param header The header of the CSV if it's not present in the file.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(URL csvPath, String responseName, String[] header) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName), header);
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseNames The names of the response variables.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(Path csvPath, Set<String> responseNames) throws IOException {
         return loadDataSource(csvPath,responseNames,null);
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseNames The names of the response variables.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(URL csvPath, Set<String> responseNames) throws IOException {
         return loadDataSource(csvPath,responseNames,null);
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseNames The names of the response variables.
+     * @param header The header of the CSV if it's not present in the file.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(Path csvPath, Set<String> responseNames, String[] header) throws IOException {
         try (BufferedReader reader = Files.newBufferedReader(csvPath)) {
             URL url = csvPath.toUri().toURL();
@@ -127,6 +209,14 @@ public class CSVLoader<T extends Output<T>> {
         }
     }
 
+    /**
+     * Loads a DataSource from the specified csv path.
+     * @param csvPath The csv to load from.
+     * @param responseNames The names of the response variables.
+     * @param header The header of the CSV if it's not present in the file.
+     * @return A datasource containing the csv data.
+     * @throws IOException If the disk read failed.
+     */
     public ListDataSource<T> loadDataSource(URL csvPath, Set<String> responseNames, String[] header) throws IOException {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(csvPath.openStream()))) {
             return loadDataSource(reader,csvPath,responseNames,header);
@@ -175,9 +265,9 @@ public class CSVLoader<T extends Output<T>> {
         return dataset;
     }
 
-    private static void validateResponseNames(Set<String> responseNames, List<String> headers, String csvPath) throws IllegalArgumentException{
+    private static void validateResponseNames(Set<String> responseNames, List<String> headers, String csvPath) throws IllegalStateException {
         if (responseNames.isEmpty()) {
-            throw new IllegalArgumentException("At least one response name must be specified, but responseNames is empty.");
+            throw new IllegalStateException("At least one response name must be specified, but responseNames is empty.");
         }
         //
         // Validate that all the expected responses are included in the given header fields
@@ -192,7 +282,7 @@ public class CSVLoader<T extends Output<T>> {
         }
         for (Map.Entry<String, Boolean> kv : responsesFound.entrySet()) {
             if (!kv.getValue()) {
-                throw new IllegalArgumentException(String.format("Response %s not found in file %s", kv.getKey(), csvPath));
+                throw new IllegalStateException(String.format("Response %s not found in file %s", kv.getKey(), csvPath));
             }
         }
     }
@@ -216,7 +306,8 @@ public class CSVLoader<T extends Output<T>> {
      * Attr1,Attr2,...,Var1,Var2,Var3
      * 1.0,0.5,...,0.1,0.1,0.3
      * 1.0,0.5,...,0.2,0.0,0.8
-     *
+     * @param responseNames The response dimension names
+     * @param row The row to process.
      */
     private T buildMultiOutput(Set<String> responseNames, Map<String, String> row) {
         Set<String> pairs = new HashSet<>();

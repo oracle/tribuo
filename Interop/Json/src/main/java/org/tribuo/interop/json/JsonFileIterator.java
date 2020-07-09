@@ -40,6 +40,10 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * An iterator for JSON format files converting them into a format suitable for
+ * {@link org.tribuo.data.columnar.RowProcessor}.
+ */
 public class JsonFileIterator extends ColumnarIterator implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(JsonFileIterator.class.getName());
 

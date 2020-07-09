@@ -72,6 +72,8 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
      *
+     * <p>
+     *
      * Uses ',' as the separator, '"' as the quote character, and '\' as the escape character.
      * @param dataPath The Path to the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
@@ -83,6 +85,8 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
 
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
+     *
+     * <p>
      *
      * Uses ',' as the separator, '"' as the quote character, and '\' as the escape character.
      * @param dataFile A URI for the data file.
@@ -96,6 +100,8 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
      *
+     * <p>
+     *
      * Uses '"' as the quote character, and '\' as the escape character.
      * @param dataPath The Path to the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
@@ -108,6 +114,8 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
 
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
+     *
+     * <p>
      *
      * Uses '"' as the quote character, and '\' as the escape character.
      * @param dataFile A URI for the data file.

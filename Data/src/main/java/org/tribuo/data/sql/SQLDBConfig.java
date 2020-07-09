@@ -39,7 +39,7 @@ import java.util.Properties;
  * class performs as desired.
  *
  * SQL database configuration. If you specify the {@linkplain SQLDBConfig#host}, {@linkplain SQLDBConfig#port}, and
- * {@linkplain SQLDBConfig#db} strings and use {@link oracle.jdbc.OracleDriver} as your JDBC Driver, then this will
+ * {@linkplain SQLDBConfig#db} strings and use {@code oracle.jdbc.OracleDriver} as your JDBC Driver, then this will
  * automatically generate a connectionString, otherwise it must be specified manually and host, port, and db fields
  * can be omitted.
  *

@@ -44,17 +44,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * A {@link org.tribuo.DataSource} for loading columnar data from a database
+ * and applying {@link org.tribuo.data.columnar.FieldProcessor}s to it.
+ * The {@link java.sql.Connection}s it creates are closed when the iterator is empty
+ * (ie. when hasNext is called and returns false). Calling close() on SQLDatasource itself closes all connections
+ * created since close was last called.
+ *
+ * <p>
  *
  * N.B. This class accepts raw SQL strings and executes them directly via JDBC. It DOES NOT perform
  * any SQL escaping or other injection prevention. It is the user's responsibility to ensure that SQL passed to this
  * class performs as desired.
- *
- * A {@link DataSource} for loading columnar data from a database
- * and applying {@link FieldProcessor}s to it.
- * The {@link java.sql.Connection}s it creates are closed when the iterator is empty
- * (ie. when hasNext is called and returns false). Calling close() on SQLDatasource itself closes all connections
- * created since close was last called.
- * @param <T> The {@link Output} subclass.
  */
 public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> implements AutoCloseable {
 
