@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides implementations of {@link org.tribuo.data.columnar.FeatureProcessor}.
+ * Provides implementations of {@link org.tribuo.data.columnar.FieldProcessor}.
  */
-package org.tribuo.data.columnar.processors.feature;
+package org.tribuo.data.columnar.processors.field;

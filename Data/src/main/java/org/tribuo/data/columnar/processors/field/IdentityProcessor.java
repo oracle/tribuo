@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.data.columnar.processors.feature;
+package org.tribuo.data.columnar.processors.field;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
