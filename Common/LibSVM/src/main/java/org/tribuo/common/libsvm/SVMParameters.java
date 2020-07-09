@@ -157,7 +157,7 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
      */
     public static String svmParamsToString(svm_parameter param) {
         StringBuilder sb = new StringBuilder();
-        sb.append("svm_parameter{svm_type=");
+        sb.append("svm_parameter(svm_type=");
         sb.append(param.svm_type);
         sb.append(", kernel_type=");
         sb.append(param.kernel_type);
@@ -191,7 +191,7 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
         sb.append(param.shrinking);
         sb.append(", probability=");
         sb.append(param.probability);
-        sb.append('}');
+        sb.append(')');
         return sb.toString();
     }
 }
