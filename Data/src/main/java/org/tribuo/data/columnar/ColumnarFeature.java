@@ -39,20 +39,33 @@ public class ColumnarFeature extends Feature {
 
     private final String secondFieldName;
 
-    private final String origName;
+    private final String columnEntry;
 
-    public ColumnarFeature(String fieldName, String name, double value) {
-        super(generateFeatureName(fieldName,name), value);
+    /**
+     * Constructs a {@code ColumnarFeature} from the field name, column entry and value.
+     * @param fieldName The field name.
+     * @param columnEntry The name of the extracted value from the field.
+     * @param value The feature value.
+     */
+    public ColumnarFeature(String fieldName, String columnEntry, double value) {
+        super(generateFeatureName(fieldName,columnEntry), value);
         this.fieldName = fieldName;
-        this.origName = name;
+        this.columnEntry = columnEntry;
         this.firstFieldName = "";
         this.secondFieldName = "";
     }
 
-    public ColumnarFeature(String firstFieldName, String secondFieldName, String name, double value) {
-        super(generateFeatureName(firstFieldName,secondFieldName,name),value);
+    /**
+     * Constructs a {@code ColumnarFeature} which is the conjunction of features from two fields.
+     * @param firstFieldName The first field name.
+     * @param secondFieldName The second field name.
+     * @param columnEntry The name of the extracted value from the field.
+     * @param value The feature value.
+     */
+    public ColumnarFeature(String firstFieldName, String secondFieldName, String columnEntry, double value) {
+        super(generateFeatureName(firstFieldName,secondFieldName,columnEntry),value);
         this.fieldName = CONJUNCTION;
-        this.origName = name;
+        this.columnEntry = columnEntry;
         this.firstFieldName = firstFieldName;
         this.secondFieldName = secondFieldName;
     }
@@ -109,10 +122,11 @@ public class ColumnarFeature extends Feature {
     }
 
     /**
-     * Get's the feature's name without the field name.
-     * @return The feature's original name.
+     * Gets the columnEntry (i.e. the feature name produced by the {@link FieldExtractor}
+     * without the fieldName).
+     * @return The feature's column entry.
      */
-    public String getOriginalName() {
-        return origName;
+    public String getColumnEntry() {
+        return columnEntry;
     }
 }

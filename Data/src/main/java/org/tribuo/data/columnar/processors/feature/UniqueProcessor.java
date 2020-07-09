@@ -38,6 +38,9 @@ import java.util.Map;
  */
 public class UniqueProcessor implements FeatureProcessor {
 
+    /**
+     * The type of reduction operation to perform.
+     */
     public enum UniqueType {
         /**
          * Select the first feature value in the list.
@@ -62,19 +65,26 @@ public class UniqueProcessor implements FeatureProcessor {
     }
 
     @Config(mandatory=true,description="The operation to perform.")
-    private UniqueType type;
+    private UniqueType reductionType;
 
     /**
      * For OLCUT
      */
     private UniqueProcessor() {}
 
-    public UniqueProcessor(UniqueType type) {
-        this.type = type;
+    /**
+     * Creates a UniqueProcessor using the specified reduction operation.
+     * @param reductionType The reduction operation to perform.
+     */
+    public UniqueProcessor(UniqueType reductionType) {
+        this.reductionType = reductionType;
     }
 
     @Override
     public List<ColumnarFeature> process(List<ColumnarFeature> features) {
+        if (features.isEmpty()) {
+            return features;
+        }
         Map<String,List<ColumnarFeature>> map = new LinkedHashMap<>();
         for (ColumnarFeature f : features) {
             map.computeIfAbsent(f.getName(), (s) -> new ArrayList<>()).add(f);
@@ -83,19 +93,23 @@ public class UniqueProcessor implements FeatureProcessor {
         // Unique the features
         List<ColumnarFeature> returnVal = new ArrayList<>();
         for (Map.Entry<String,List<ColumnarFeature>> e : map.entrySet()) {
-            returnVal.add(uniqueList(type, e.getValue()));
+            returnVal.add(uniqueList(reductionType, e.getValue()));
         }
         return returnVal;
     }
 
     /**
      * Processes the list returning the unique feature.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the list is empty.
      * @param type The unique operation to perform.
      * @param list The list of features to process.
      * @return The unique feature.
      */
-    public static ColumnarFeature uniqueList(UniqueType type, List<ColumnarFeature> list) {
-        if (list.size() == 1) {
+    private static ColumnarFeature uniqueList(UniqueType type, List<ColumnarFeature> list) {
+        if (list.isEmpty()) {
+            throw new IllegalArgumentException("List must contain at least one feature");
+        } else if (list.size() == 1) {
             return list.get(0);
         } else {
             switch (type) {
@@ -114,9 +128,9 @@ public class UniqueProcessor implements FeatureProcessor {
                     }
                     ColumnarFeature first = list.get(0);
                     if (first.getFieldName().equals(ColumnarFeature.CONJUNCTION)) {
-                        return new ColumnarFeature(first.getFirstFieldName(),first.getSecondFieldName(),first.getOriginalName(),value);
+                        return new ColumnarFeature(first.getFirstFieldName(),first.getSecondFieldName(),first.getColumnEntry(),value);
                     } else {
-                        return new ColumnarFeature(first.getFieldName(),first.getOriginalName(),value);
+                        return new ColumnarFeature(first.getFieldName(),first.getColumnEntry(),value);
                     }
                 default:
                     throw new IllegalStateException("Unknown enum type " + type);
