@@ -29,6 +29,7 @@ import org.tribuo.DataSource;
 import org.tribuo.Example;
 import org.tribuo.Output;
 import org.tribuo.data.columnar.ColumnarDataSource;
+import org.tribuo.data.columnar.ColumnarIterator;
 import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
@@ -41,7 +42,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -71,7 +71,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
 
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
+     *
      * <p>
+     *
      * Uses ',' as the separator, '"' as the quote character, and '\' as the escape character.
      * @param dataPath The Path to the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
@@ -83,7 +85,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
 
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
+     *
      * <p>
+     *
      * Uses ',' as the separator, '"' as the quote character, and '\' as the escape character.
      * @param dataFile A URI for the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
@@ -95,7 +99,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
 
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
+     *
      * <p>
+     *
      * Uses '"' as the quote character, and '\' as the escape character.
      * @param dataPath The Path to the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
@@ -108,7 +114,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
 
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data.
+     *
      * <p>
+     *
      * Uses '"' as the quote character, and '\' as the escape character.
      * @param dataFile A URI for the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
@@ -175,9 +183,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     }
 
     @Override
-    public Iterator<Example<T>> iterator() {
+    public ColumnarIterator rowIterator() {
         try {
-            return new ColumnarIterator(new CSVIterator(dataFile, separator, quote));
+            return new CSVIterator(dataFile, separator, quote);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read data",e);
         }

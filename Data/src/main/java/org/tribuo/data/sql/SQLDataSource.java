@@ -23,21 +23,20 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
-import org.tribuo.Example;
+import org.tribuo.DataSource;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ColumnarDataSource;
+import org.tribuo.data.columnar.ColumnarIterator;
+import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.OffsetDateTime;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -50,11 +49,12 @@ import java.util.logging.Logger;
  * The {@link java.sql.Connection}s it creates are closed when the iterator is empty
  * (ie. when hasNext is called and returns false). Calling close() on SQLDatasource itself closes all connections
  * created since close was last called.
+ *
  * <p>
+ *
  * N.B. This class accepts raw SQL strings and executes them directly via JDBC. It DOES NOT perform
  * any SQL escaping or other injection prevention. It is the user's responsibility to ensure that SQL passed to this
  * class performs as desired.
- * @param <T> The {@link Output} subclass.
  */
 public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> implements AutoCloseable {
 
@@ -82,17 +82,14 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
     }
 
     @Override
-    public Iterator<Example<T>> iterator() {
+    public ColumnarIterator rowIterator() {
         try {
-            Statement stmt = sqlConfig.getConnection().createStatement();
+            Statement stmt = sqlConfig.getStatement();
             statements.add(stmt);
-            stmt.setFetchSize(1000);
-            stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
-            return new ColumnarIterator(new ResultSetIterator(stmt.executeQuery(sqlString)));
+            return new ResultSetIterator(stmt.executeQuery(sqlString), stmt.getFetchSize());
         } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error processing SQL", e);
+            throw new IllegalArgumentException("Error Processing SQL", e);
         }
-        return Collections.emptyIterator();
     }
 
     @Override

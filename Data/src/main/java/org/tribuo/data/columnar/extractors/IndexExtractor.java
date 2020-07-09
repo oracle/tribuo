@@ -16,47 +16,46 @@
 
 package org.tribuo.data.columnar.extractors;
 
+import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.Example;
+import org.tribuo.data.columnar.ColumnarIterator;
+import org.tribuo.data.columnar.FieldExtractor;
 
 import java.util.Optional;
-import java.util.logging.Logger;
 
-/**
- * Extracts the field value and emits it as a String.
+/*
+ * An Extractor with special casing for loading the index
  */
-public class IdentityExtractor extends SimpleFieldExtractor<String> {
-    private static final Logger logger = Logger.getLogger(IdentityExtractor.class.getName());
+public class IndexExtractor implements FieldExtractor<Long> {
 
-    public IdentityExtractor(String fieldName) {
-        super(fieldName);
+    @Config(description = "The metadata key to emit, defaults to Example.NAME")
+    private String metadataName = Example.NAME;
+
+    public IndexExtractor(String metadataName) {
+        this.metadataName = metadataName;
     }
 
-    public IdentityExtractor(String fieldName, String metadataName) {
-        super(fieldName, metadataName);
-    }
-
-    /**
-     * For olcut.
-     */
-    private IdentityExtractor() {}
+    public IndexExtractor() {}
 
     @Override
-    public Class<String> getValueType() {
-        return String.class;
+    public String getMetadataName() {
+        return metadataName;
     }
 
     @Override
-    protected Optional<String> extractField(String value) {
-        if (value == null || value.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(value);
-        }
+    public Class<Long> getValueType() {
+        return Long.class;
+    }
+
+    @Override
+    public Optional<Long> extract(ColumnarIterator.Row row) {
+        return row.getIndex() == -1 ? Optional.empty() : Optional.of(row.getIndex());
     }
 
     @Override
     public ConfiguredObjectProvenance getProvenance() {
-        return new ConfiguredObjectProvenanceImpl(this,"FieldExtractor");
+        return new ConfiguredObjectProvenanceImpl(this, "IndexExtractor");
     }
 }

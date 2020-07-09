@@ -19,6 +19,8 @@ package org.tribuo.data.csv;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.tribuo.MutableDataset;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.FieldProcessor;
@@ -29,7 +31,6 @@ import org.tribuo.data.columnar.processors.response.FieldResponseProcessor;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
-import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -45,10 +46,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  */
 public class CSVDataSourceTest {
 
-    @Test
-    public void testBasic() throws URISyntaxException {
-        URI dataFile = CSVDataSourceTest.class.getResource("/org/tribuo/data/csv/test.csv").toURI();
-        String[] headers = new String[] {"A", "B", "C", "D"};
+    private URI dataFile;
+    private String[] headers;
+    private RowProcessor<MockOutput> rowProcessor;
+
+    @BeforeEach
+    public void setUp() throws URISyntaxException {
+        dataFile = CSVDataSourceTest.class.getResource("/org/tribuo/data/csv/test.csv").toURI();
+        headers = new String[] {"A", "B", "C", "D"};
 
         OutputFactory<MockOutput> outputFactory = new MockOutputFactory();
         ResponseProcessor<MockOutput> responseProcessor = new FieldResponseProcessor<>("RESPONSE", "", outputFactory);
@@ -57,7 +62,11 @@ public class CSVDataSourceTest {
             processors.put(header, new IdentityProcessor(header));
         }
 
-        RowProcessor<MockOutput> rowProcessor = new RowProcessor<>(responseProcessor,processors);
+        rowProcessor = new RowProcessor<>(responseProcessor,processors);
+    }
+
+    @Test
+    public void testBasic() {
 
         CSVDataSource<MockOutput> dataSource = new CSVDataSource<>(dataFile, rowProcessor, true);
 
@@ -75,5 +84,4 @@ public class CSVDataSourceTest {
 
         assertEquals(prov,unmarshalledProvenance);
     }
-
 }

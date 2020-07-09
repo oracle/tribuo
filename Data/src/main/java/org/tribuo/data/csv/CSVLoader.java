@@ -73,7 +73,7 @@ public class CSVLoader<T extends Output<T>> {
     }
 
     public CSVLoader(char separator, OutputFactory<T> outputFactory) {
-        this(separator,CSVIterator.QUOTE,outputFactory);
+        this(separator, CSVIterator.QUOTE,outputFactory);
     }
 
     public CSVLoader(OutputFactory<T> outputFactory) {
@@ -240,13 +240,13 @@ public class CSVLoader<T extends Output<T>> {
     }
 
     private List<Example<T>> innerLoadFromCSV(CSVIterator itr, Set<String> responseNames, String csvPath) {
-        validateResponseNames(responseNames, itr.fields(), csvPath);
+        validateResponseNames(responseNames, itr.getFields(), csvPath);
         List<Example<T>> dataset = new ArrayList<>();
         String responseName = responseNames.size() == 1 ? responseNames.iterator().next() : null;
         //
         // Create the examples.
         while (itr.hasNext()) {
-            Map<String, String> row = itr.next();
+            Map<String, String> row = itr.next().getRowData();
             T label = (responseNames.size() == 1) ?
                     buildOutput(responseName, row) :
                     buildMultiOutput(responseNames, row);
@@ -265,7 +265,7 @@ public class CSVLoader<T extends Output<T>> {
         return dataset;
     }
 
-    private static void validateResponseNames(Set<String> responseNames, String[] headers, String csvPath) throws IllegalStateException {
+    private static void validateResponseNames(Set<String> responseNames, List<String> headers, String csvPath) throws IllegalStateException {
         if (responseNames.isEmpty()) {
             throw new IllegalStateException("At least one response name must be specified, but responseNames is empty.");
         }

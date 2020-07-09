@@ -16,10 +16,8 @@
 
 package org.tribuo.data.columnar.extractors;
 
-import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.data.columnar.FieldExtractor;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -29,22 +27,15 @@ import java.util.logging.Logger;
  * <p>
  * Returns an empty optional if the value failed to parse.
  */
-public class IntExtractor implements FieldExtractor<Integer> {
+public class IntExtractor extends SimpleFieldExtractor<Integer> {
     private static final Logger logger = Logger.getLogger(IntExtractor.class.getName());
 
-    @Config(mandatory = true,description="The field name to read.")
-    private String fieldName;
-
-    @Config(description="The metadata key to emit, defaults to field name if unpopulated")
-    private String metadataName;
-
     public IntExtractor(String fieldName) {
-        this.fieldName = fieldName;
+        super(fieldName);
     }
 
     public IntExtractor(String fieldName, String metadataName) {
-        this.fieldName = fieldName;
-        this.metadataName = metadataName;
+        super(fieldName, metadataName);
     }
 
     /**
@@ -53,29 +44,12 @@ public class IntExtractor implements FieldExtractor<Integer> {
     private IntExtractor() {}
 
     @Override
-    public void postConfig() {
-        if (metadataName == null || metadataName.isEmpty()) {
-            metadataName = fieldName;
-        }
-    }
-
-    @Override
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    @Override
-    public String getMetadataName() {
-        return metadataName;
-    }
-
-    @Override
     public Class<Integer> getValueType() {
         return Integer.class;
     }
 
     @Override
-    public Optional<Integer> extract(String value) {
+    protected Optional<Integer> extractField(String value) {
         try {
             int f = Integer.parseInt(value);
             return Optional.of(f);
@@ -83,11 +57,6 @@ public class IntExtractor implements FieldExtractor<Integer> {
             logger.warning("Failed to parse value for field " + fieldName + ", expected a int, got " + value);
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String toString() {
-        return "IntegerExtractor(fieldName="+fieldName+")";
     }
 
     @Override
