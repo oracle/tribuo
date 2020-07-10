@@ -87,6 +87,91 @@ Finally there are cross cutting module collections:
 of information theoretic functions, and Tokens provides the interface Tribuo uses for tokenization along with 
 implementations of several tokenizers.
 
+## Configuration, Options and Provenance
+
+Many of Tribuo's trainers, datasources and other classes implement the `Configurable` interface. This is 
+provided by [OLCUT](https://github.com/oracle/olcut), and allows for runtime configuration of classes based
+on configuration files written in a variety of formats (the default format is xml, and json & edn are available).
+
+The configuration system is integrated into the command line arguments `Options` system build into OLCUT's 
+`ConfigurationManager`. Values in configuration files can be overridden on the command line by supplying
+`--@<object-name>.<field-name> <value>` in the arguments. The configuration system provides the basis of Tribuo's 
+model tracking `Provenance` system, which records all hyperparameters, dataset parameters (e.g. file location, 
+train/test split etc), and any user supplied instance information, along with run specific information such as the
+file hash, number of training examples etc. A model provenance can be converted into a list of configurations 
+for each `Configurable` object involved in the model training. Similarly an evaluation provenance can be converted
+into the configurations for the model, and the configurations for the test dataset. These configurations can be
+loaded into a fresh `ConfigurationManager`, optionally saved to disk, and the evaluation or model training can be 
+repeated (or rerun with tweaks like new data or a hyperparameter change).
+
+Configurable classes have `@Config` annotations on their fields, and such fields have the value from the 
+configuration file inserted into them upon construction in the configuration system. A snippet from the classification
+SGD trainer is given below to illustrate this:
+
+```java
+public class LinearSGDTrainer implements Trainer<Label>, WeightedExamples {
+    @Config(description="The classification objective function to use.")
+    private LabelObjective objective = new LogMulticlass();
+
+    @Config(description="The gradient optimiser to use.")
+    private StochasticGradientOptimiser optimiser = new AdaGrad(1.0,0.1);
+
+    @Config(description="The number of gradient descent epochs.")
+    private int epochs = 5;
+
+    @Config(description="Log values after this many updates.")
+    private int loggingInterval = -1;
+
+    @Config(description="Minibatch size in SGD.")
+    private int minibatchSize = 1;
+
+    @Config(description="Seed for the RNG used to shuffle elements.")
+    private long seed = Trainer.DEFAULT_SEED;
+
+    @Config(description="Shuffle the data before each epoch. Only turn off for debugging.")
+    private boolean shuffle = true;
+
+    private SplittableRandom rng;
+
+    private int trainInvocationCounter;
+}
+```
+
+Only fields which are configured need to be annotated `@Config`, other fields can be set in the appropriate constructor.
+OLCUT requires that all classes which implement `Configurable` have a no-args constructor, and the interface allows for
+a `postConfig` method, which is called after the object has been constructed and had the appropriate field values
+inserted, but before it is published or returned from the `ConfigurationManager`. This `postConfig` method is used
+for the same validation that you would perform in a constructor, and can be called from the regular constructors.
+Default values for the configurable parameters can be specified in the way that default fields are usually specified,
+and the `@Config` annotation has optional parameters for the description, if the field is mandatory, and if the
+field value should be redacted from any configuration or provenance based on this object. More details about OLCUT
+can be found in it's [documentation](https://github.com/oracle/OLCUT).
+
+The `LinearSGDTrainer` class above is configured by the xml snippet below:
+
+```xml
+<config> 
+   <component name="logistic" type="org.tribuo.classification.sgd.linear.LinearSGDTrainer">
+        <property name="objective" value="log"/>
+        <property name="optimiser" value="adam"/>
+        <property name="epochs" value="10"/>
+        <property name="loggingInterval" value="100"/>
+        <property name="minibatchSize" value="1"/>
+        <property name="seed" value="1"/>
+    </component>
+    <component name="log" type="org.tribuo.classification.sgd.objectives.LogMulticlass"/>
+    <component name="adam" type="org.tribuo.math.optimisers.Adam">
+        <property name="initialLearningRate" value="3e-4"/>
+        <property name="betaOne" value="0.95"/>
+    </component>
+</config>
+```
+
+which instantiates `LinearSGDTrainer` using a logistic regression objective, with the `Adam` gradient optimiser 
+using [Andrei Karpathy's preferred learning rate](https://twitter.com/karpathy/status/801621764144971776) and an 
+adjusted beta one parameter (note these parameters are just demonstration values, we're not recommending these 
+specific values).
+
 ## Data Loading
 
 ### Built-in formats
@@ -184,6 +269,8 @@ Provenance can be removed from the `Model` objects using the `StripProvenance` p
 possible to remove the three kinds of stored provenance separately: trainer provenance, data provenance, instance 
 provenance. Also the SHA-256 hash of the full provenance object can be inserted into the object as a tracking mechanism,
 we intend that the user stores the hash as a key for the original provenance JSON in an external storage mechanism.
+Alternatively `@Config` fields can be marked `redact=True` which will prevent those values from being stored in
+the provenance or any configuration.
 
 ### Feature Hashing
 
