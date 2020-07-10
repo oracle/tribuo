@@ -176,6 +176,7 @@ public class UniversalTokenizer implements Tokenizer {
      * correct, since it doesn't count the smart quotes as letters.
      *
      * @param c The character to check.
+     * @return True if the input is a letter or digit.
      */
     public static boolean isLetterOrDigit(char c) {
         if ((c <= 122 && c >= 97)
@@ -208,6 +209,7 @@ public class UniversalTokenizer implements Tokenizer {
      * A quick check for whether a character is a digit.
      *
      * @param c The character to check
+     * @return True if the input is a digit.
      */
     public static boolean isDigit(char c) {
         if ((c <= 57 && c >= 48) // most frequent: ASCII numbers 0...9
@@ -224,6 +226,7 @@ public class UniversalTokenizer implements Tokenizer {
      * A quick check for whether a character is whitespace.
      *
      * @param c The character to check
+     * @return True if the input is a whitespace character.
      */
     public static boolean isWhitespace(char c) {
         //test for white space
@@ -247,6 +250,7 @@ public class UniversalTokenizer implements Tokenizer {
      * Version 2.0.
      *
      * @param c The character to check
+     * @return True if the input character is in a region which is not whitespace separated.
      */
     public static boolean isNgram(char c) {
         // Test for characters that may not separate words with white

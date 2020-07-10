@@ -36,6 +36,6 @@ public interface TextFeatureExtractor<T extends Output<T>> extends Configurable,
      * @param data The input text.
      * @return An example
      */
-    public Example<T> extract(T label, String data);
+    public Example<T> extract(T output, String data);
 
 }
