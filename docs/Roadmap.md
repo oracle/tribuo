@@ -1,13 +1,14 @@
 # Roadmap
 
-This is the list of features we are considering for the next few feature releases of Tribuo.
-As always, we're interested in the community's feedback, and expect Tribuo's development
-to be informed by what it's users want.
+This is the list of features we are considering for the next few feature
+releases of Tribuo.  As always, we're interested in the community's feedback,
+and Tribuo's development will be informed by what our users want.
 
-Tribuo conforms to semantic versioning, so some of these features may be held back until
-the next major release, while others will land in minor releases.
+Tribuo conforms to semantic versioning, so some of these features may be held
+back until the next major release, while others will land in minor releases.
 
-We've broken this list up into several categories: API changes, internals, new ML algorithms, performance and docs.
+We've broken this list up into several categories: API changes, internals, new
+ML algorithms, performance and documentation.
 
 ## API Changes
 
@@ -25,6 +26,7 @@ harder and so further down the roadmap.
 in the underlying list. It would be useful to have a Map view of a dataset to subsample it for
 specific operations (though this can be achieved today using `DatasetView` and predicates).
 - Make `Example`s immutable after they've been added to a `Dataset`. This is likely to be a breaking change.
+- Add support for global feature transformations, like normalizing to a unit vector, applying PCA and others.
 - Integrate with a plotting library.
 
 ## Internals
@@ -75,3 +77,4 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 
 - Fill out the javadoc so it exists for all public and protected methods.
 - Add more tutorials.
+
