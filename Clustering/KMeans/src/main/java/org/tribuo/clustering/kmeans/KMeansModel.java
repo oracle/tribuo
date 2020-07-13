@@ -62,6 +62,20 @@ public class KMeansModel extends Model<ClusterID> {
         this.distanceType = distanceType;
     }
 
+    /**
+     * Returns a copy of the centroids.
+     * @return The centroids.
+     */
+    public DenseVector[] getCentroidVectors() {
+        DenseVector[] copies = new DenseVector[centroidVectors.length];
+
+        for (int i = 0; i < copies.length; i++) {
+            copies[i] = centroidVectors[i].copy();
+        }
+
+        return copies;
+    }
+
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
         SparseVector vector = SparseVector.createSparseVector(example,featureIDMap,false);
