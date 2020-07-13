@@ -27,6 +27,16 @@ into JSON, or can be serialised directly using Java serialisation. For
 production deployments this provenance information can be redacted and replaced
 with a hash to provide model tracking through an external system.
 
+Tribuo runs on Java 8+, and we test on LTS versions of Java, along with the
+latest release.  Tribuo itself is a pure Java library and supported on all Java
+platforms, however some of our interfaces require native code, and those are
+supported only where the native library is. We test on x86\_64 architectures on
+Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these are supported
+platforms for the native libraries we interface with. If you're interested in
+another platform and wish to use one of the native library interfaces (ONNX
+Runtime, TensorFlow, and XGBoost) then we recommend reaching out to the
+developers of those libraries.
+
 ## Documentation
 
 * [Library Architecture](docs/Architecture.md)
@@ -35,6 +45,15 @@ with a hash to provide model tracking through an external system.
 * [Developer Documentation](docs/Internals.md)
 * [Roadmap](docs/Roadmap.md)
 * [Frequently Asked Questions](docs/FAQs.md)
+
+## Tutorials
+
+We have tutorial notebooks for Classification, Clustering, Regression, Anomaly
+Detection and the configuration system in [tutorials](tutorials). These use the
+[IJava](https://github.com/SpencerPark/IJava) Jupyter notebook kernel, and work
+with Java 10+. The code in the tutorials should be straightforwardly
+convertible back to Java 8 code by replacing the `var` keyword with the
+appropriate types.
 
 ### Interfaces
 
@@ -80,6 +99,16 @@ maintainers of those projects.
 Individual jars are published for each Tribuo module, and it's preferred to
 depend only on the modules necessary for the specific project to prevent
 pulling in large dependencies like TensorFlow.
+
+## Compiling from source
+
+Tribuo uses [Apache Maven](https://maven.apache.org/) v3.5 or higher to build.
+It's compatible with Java 8+, and we test on LTS versions of Java, along with
+the latest release. To build simply run `mvn clean package`. All Tribuo's
+dependencies should be on Maven Central, please file an issue for build related
+issues if you're having trouble (though do check if you're missing proxy
+settings for Maven first, as that's a common cause of build failures, and out
+of our control).
 
 ## Contributing
 
