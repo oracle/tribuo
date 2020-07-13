@@ -249,6 +249,11 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     }
 
     @Override
+    public KMeansModel train(Dataset<ClusterID> dataset) {
+        return train(dataset,Collections.emptyMap());
+    }
+
+    @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
     }

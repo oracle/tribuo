@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.clustering.ClusterID;
+import org.tribuo.clustering.evaluation.ClusteringEvaluation;
 import org.tribuo.clustering.evaluation.ClusteringEvaluator;
 import org.tribuo.clustering.example.ClusteringDataGenerator;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -42,6 +44,25 @@ public class TestKMeans {
     public static void setup() {
         Logger logger = Logger.getLogger(KMeansTrainer.class.getName());
         logger.setLevel(Level.WARNING);
+    }
+
+    @Test
+    public void testEvaluation() {
+        Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(500, 1L);
+        Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
+        ClusteringEvaluator eval = new ClusteringEvaluator();
+
+        KMeansTrainer trainer = new KMeansTrainer(5,10,Distance.EUCLIDEAN,1,1);
+
+        KMeansModel model = trainer.train(data);
+
+        ClusteringEvaluation trainEvaluation = eval.evaluate(model,data);
+        assertFalse(Double.isNaN(trainEvaluation.adjustedMI()));
+        assertFalse(Double.isNaN(trainEvaluation.normalizedMI()));
+
+        ClusteringEvaluation testEvaluation = eval.evaluate(model,test);
+        assertFalse(Double.isNaN(testEvaluation.adjustedMI()));
+        assertFalse(Double.isNaN(testEvaluation.normalizedMI()));
     }
 
     public void testKMeans(Pair<Dataset<ClusterID>,Dataset<ClusterID>> p) {

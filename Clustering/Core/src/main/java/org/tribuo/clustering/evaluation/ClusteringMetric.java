@@ -63,6 +63,14 @@ public class ClusteringMetric implements EvaluationMetric<ClusterID, ClusteringM
         return buildContext(model, predictions);
     }
 
+    @Override
+    public String toString() {
+        return "ClusteringMetric(" +
+                "target=" + target +
+                ",name='" + name + '\'' +
+                ')';
+    }
+
     static final class Context extends MetricContext<ClusterID> {
 
         private final ArrayList<Integer> predictedIDs = new ArrayList<>();
@@ -70,6 +78,10 @@ public class ClusteringMetric implements EvaluationMetric<ClusterID, ClusteringM
 
         Context(Model<ClusterID> model, List<Prediction<ClusterID>> predictions) {
             super(model, predictions);
+            for (Prediction<ClusterID> pred : predictions) {
+                predictedIDs.add(pred.getOutput().getID());
+                trueIDs.add(pred.getExample().getOutput().getID());
+            }
         }
 
         public ArrayList<Integer> getPredictedIDs() {

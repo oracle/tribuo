@@ -170,5 +170,4 @@ public class AnomalyMetric implements EvaluationMetric<Event, AnomalyMetric.Cont
         }
     }
 
-
 }
