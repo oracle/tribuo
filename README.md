@@ -15,6 +15,16 @@ From v3 all models and evaulations include a serialisable provenance object whic
 created, what data was used, any transformations applied to the data, the hyperparameters of the trainer, and for evaluations, what
 model was used. This information can be extracted out into JSON, or can be serialised directly using Java serialisation.
 
+## Build
+
+Requires:
+* JDK 8+
+* Maven 3.5+
+
+Full build:
+
+    mvn install
+
 ## Package Description
 The top level project has core modules which define the API, data interactions, a math library, and common modules shared across prediction types.
 
