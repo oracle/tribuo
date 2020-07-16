@@ -233,10 +233,10 @@ large amount of flexibility.
 ### Columnar Inputs
 
 Columnar data sources require a configurable extraction step to map the columns
-into Tribuo `Example` and `Feature` objects. This is because a single column
-may emit many features, or none at all, some columns may be unnecessary, some
-may form `Example` level metadata, and the output variable needs to be
-specified. To support this usecase Tribuo provides the `RowProcessor` a
+into Tribuo `Example` and `Feature` objects. A single column may contain many features, 
+or may be unnecessary, or may contain `Example` level metadata. In addition, the user 
+must specify which column(s) contain the output variable. To support this usecase 
+Tribuo provides the `RowProcessor` a
 configurable mechanism for converting a `ColumnarIterator.Row`, which is a
 tuple of a `Map<String,String>` and an row number into an `Example`. The
 `RowProcessor` uses 4 interfaces to process the input map:

@@ -63,7 +63,7 @@ community finds this structure useful.
 Scikit-learn has popularised the fit/predict style in Python Machine Learning
 libraries, and given Python's lax approach to typing, those methods are only
 part of the API by convention rather that being enforced by the type system. In
-Tribuo we've split out training from predction, so Tribuo's fit method is
+Tribuo we've split out training from prediction, so Tribuo's fit method is
 called "train" and lives on the `Trainer` interface, and Tribuo's predict lives
 on the Model class. Tribuo uses the same predict call to produce both the
 outputs and the scores for those outputs, it's predict method is the equivalent
