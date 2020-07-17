@@ -64,7 +64,11 @@ The following are false positives related to switch statement fallthrough.
 The murmurhash3 code is working as designed.
  -->
 <Match>
-    <Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+	<Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+	<Class name="org.tribuo.util.MurmurHash3"/>
+</Match>
+<Match>
+    <Bug pattern="SF_SWITCH_FALLTHROUGH"/>
     <Class name="org.tribuo.util.MurmurHash3"/>
 </Match>
 </FindBugsFilter>

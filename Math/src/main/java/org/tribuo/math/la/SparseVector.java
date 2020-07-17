@@ -90,7 +90,7 @@ public class SparseVector implements SGDVector {
     }
 
     public SparseVector(int size, int[] indices, double value) {
-        this.indices = indices;
+        this.indices = Arrays.copyOf(indices,indices.length);
         this.values = new double[indices.length];
         Arrays.fill(this.values,value);
         this.size = size;
