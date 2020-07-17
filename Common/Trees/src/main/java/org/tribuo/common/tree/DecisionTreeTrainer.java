@@ -14,7 +14,22 @@
  * limitations under the License.
  */
 
+package org.tribuo.common.tree;
+
+import org.tribuo.Output;
+import org.tribuo.SparseTrainer;
+import org.tribuo.Trainer;
+import org.tribuo.WeightedExamples;
+
 /**
- * Provides internal implementation classes for building decision trees.
+ * A tag interface for a {@link Trainer} so the random forests trainer can check if it's actually a tree.
  */
-package org.tribuo.common.trees.impl;
+public interface DecisionTreeTrainer<T extends Output<T>> extends SparseTrainer<T>, WeightedExamples {
+
+    /**
+     * Returns the feature subsampling rate.
+     * @return The feature subsampling rate.
+     */
+    public float getFractionFeaturesInSplit();
+
+}

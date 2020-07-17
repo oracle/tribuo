@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.common.trees;
+package org.tribuo.common.tree;
 
 import org.tribuo.Example;
 import org.tribuo.Output;

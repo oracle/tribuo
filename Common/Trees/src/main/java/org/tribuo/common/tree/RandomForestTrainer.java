@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.common.trees;
+package org.tribuo.common.tree;
 
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.tribuo.Output;

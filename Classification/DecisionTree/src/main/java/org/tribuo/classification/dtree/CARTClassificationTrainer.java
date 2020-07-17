@@ -23,8 +23,8 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.dtree.impl.ClassifierTrainingNode;
 import org.tribuo.classification.dtree.impurity.GiniIndex;
 import org.tribuo.classification.dtree.impurity.LabelImpurity;
-import org.tribuo.common.trees.AbstractCARTTrainer;
-import org.tribuo.common.trees.AbstractTrainingNode;
+import org.tribuo.common.tree.AbstractCARTTrainer;
+import org.tribuo.common.tree.AbstractTrainingNode;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 

@@ -19,4 +19,4 @@
  * of the predicted {@link org.tribuo.Output}. Also
  * has an implementation of Random Forests.
  */
-package org.tribuo.common.trees;
+package org.tribuo.common.tree;

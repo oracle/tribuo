@@ -22,7 +22,7 @@
 -->
 
 <config>
-    <component name="rf" type="org.tribuo.common.trees.RandomForestTrainer">
+    <component name="rf" type="org.tribuo.common.tree.RandomForestTrainer">
         <property name="innerTrainer" value="cart"/>
         <property name="combiner" value="votecombiner"/>
         <property name="numMembers" value="5"/>

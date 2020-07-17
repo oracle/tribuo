@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.common.trees;
+package org.tribuo.common.tree;
 
 import org.tribuo.Output;
 import org.tribuo.math.la.SparseVector;
