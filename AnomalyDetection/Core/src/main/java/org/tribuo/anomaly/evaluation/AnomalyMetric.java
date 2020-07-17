@@ -115,7 +115,7 @@ public class AnomalyMetric implements EvaluationMetric<Event, AnomalyMetric.Cont
             return falseNegative;
         }
 
-        private PredictionStatistics tabulate(List<Prediction<Event>> predictions) {
+        private static PredictionStatistics tabulate(List<Prediction<Event>> predictions) {
             // predicted anomalous, actually anomalous
             long truePositive = 0;
             // predicted anomalous, actually expected
