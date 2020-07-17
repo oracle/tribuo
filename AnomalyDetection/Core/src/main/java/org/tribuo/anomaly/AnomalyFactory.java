@@ -36,13 +36,13 @@ public final class AnomalyFactory implements OutputFactory<Event> {
 
     public static final Event UNKNOWN_EVENT = new Event(EventType.UNKNOWN);
     public static final Event EXPECTED_EVENT = new Event(EventType.EXPECTED);
-    public static final Event ANOMALOUS_EVENT = new Event(EventType.ANOMALY);
+    public static final Event ANOMALOUS_EVENT = new Event(EventType.ANOMALOUS);
 
     private static final AnomalyEvaluator evaluator = new AnomalyEvaluator();
 
     @Override
     public <V> Event generateOutput(V label) {
-        if (label.toString().equalsIgnoreCase(EventType.ANOMALY.toString())) {
+        if (label.toString().equalsIgnoreCase(EventType.ANOMALOUS.toString())) {
             return ANOMALOUS_EVENT;
         } else {
             return EXPECTED_EVENT;
@@ -68,8 +68,8 @@ public final class AnomalyFactory implements OutputFactory<Event> {
         Integer anomalousMapping = mapping.get(ANOMALOUS_EVENT);
 
         if (((expectedMapping != null) && (expectedMapping != EventType.EXPECTED.getID())) ||
-        ((anomalousMapping != null) && anomalousMapping != EventType.ANOMALY.getID())){
-            throw new IllegalArgumentException("Anomaly detection requires that anomalous events have id " + EventType.ANOMALY.getID() + ", and expected events have id " + EventType.EXPECTED.getID());
+        ((anomalousMapping != null) && anomalousMapping != EventType.ANOMALOUS.getID())){
+            throw new IllegalArgumentException("Anomaly detection requires that anomalous events have id " + EventType.ANOMALOUS.getID() + ", and expected events have id " + EventType.EXPECTED.getID());
         }
 
         MutableAnomalyInfo info = new MutableAnomalyInfo();

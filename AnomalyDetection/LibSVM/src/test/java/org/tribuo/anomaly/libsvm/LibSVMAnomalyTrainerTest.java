@@ -27,10 +27,13 @@ import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.SVMParameters;
 import org.junit.jupiter.api.Test;
 
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LibSVMAnomalyTrainerTest {
+    private static final Logger logger = Logger.getLogger(LibSVMAnomalyTrainerTest.class.getName());
 
     @Test
     public void gaussianDataTest() {
@@ -51,6 +54,13 @@ public class LibSVMAnomalyTrainerTest {
         assertEquals(200,evaluation.getTruePositives());
         assertTrue(650 < evaluation.getTrueNegatives());
         assertEquals(0,evaluation.getFalseNegatives());
+
+        String confusion = evaluation.confusionString();
+        String output = evaluation.toString();
+
+        // logging a few outputs for easy checking, and to prevent dead code elimination.
+        logger.finer(confusion);
+        logger.finer(output);
     }
 
 }

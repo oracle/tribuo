@@ -68,4 +68,10 @@ public interface AnomalyEvaluation extends Evaluation<Event> {
      */
     double getF1();
 
+    /**
+     * Returns a confusion matrix formatted String for display.
+     * @return The confusion matrix in a String.
+     */
+    String confusionString();
+
 }

@@ -47,22 +47,22 @@ final class AnomalyEvaluationImpl implements AnomalyEvaluation {
 
     @Override
     public long getFalsePositives() {
-        return get(AnomalyMetrics.FP);
+        return (long) get(AnomalyMetrics.FP);
     }
 
     @Override
     public long getTruePositives() {
-        return get(AnomalyMetrics.TP);
+        return (long) get(AnomalyMetrics.TP);
     }
 
     @Override
     public long getTrueNegatives() {
-        return get(AnomalyMetrics.TN);
+        return (long) get(AnomalyMetrics.TN);
     }
 
     @Override
     public long getFalseNegatives() {
-        return get(AnomalyMetrics.FN);
+        return (long) get(AnomalyMetrics.FN);
     }
 
     @Override
@@ -92,12 +92,52 @@ final class AnomalyEvaluationImpl implements AnomalyEvaluation {
 
     @Override
     public String toString() {
-        return String.format("AnomalyEvaluation{tp=%d fp=%d tn=%d fn=%d}",
-                getTruePositives(), getFalsePositives(), getTrueNegatives(), getFalseNegatives());
+        return String.format("AnomalyEvaluation(tp=%d fp=%d tn=%d fn=%d precision=%f recall=%f f1=%f)",
+                getTruePositives(), getFalsePositives(), getTrueNegatives(), getFalseNegatives(), getPrecision(), getRecall(), getF1());
     }
 
-    private long get(AnomalyMetrics metric) {
+    @Override
+    public String confusionString() {
+        int maxLen = Integer.MIN_VALUE;
+        maxLen = Math.max(Event.EventType.EXPECTED.name().length(), maxLen);
+        maxLen = Math.max(Event.EventType.ANOMALOUS.name().length(), maxLen);
+        maxLen = Math.max(String.format(" %,d", getTrueNegatives()).length(), maxLen);
+        maxLen = Math.max(String.format(" %,d", getTruePositives()).length(), maxLen);
+        maxLen = Math.max(String.format(" %,d", getFalseNegatives()).length(), maxLen);
+        maxLen = Math.max(String.format(" %,d", getFalsePositives()).length(), maxLen);
+        StringBuilder sb = new StringBuilder();
+        String trueLabelFormat = String.format("%%-%ds", maxLen + 2);
+        String predictedLabelFormat = String.format("%%%ds", maxLen + 2);
+        String countFormat = String.format("%%,%dd", maxLen + 2);
+
+        //
+        // Empty spot in first row for labels on subsequent rows.
+        sb.append(String.format(trueLabelFormat, ""));
+
+        //
+        // Labels across the top for predicted.
+        sb.append(String.format(predictedLabelFormat, Event.EventType.EXPECTED.name()));
+        sb.append(String.format(predictedLabelFormat, Event.EventType.ANOMALOUS.name()));
+        sb.append('\n');
+
+        //
+        // First row, true label expected
+        sb.append(String.format(trueLabelFormat, Event.EventType.EXPECTED.name()));
+        sb.append(String.format(countFormat, getTrueNegatives()));
+        sb.append(String.format(countFormat, getFalsePositives()));
+        sb.append('\n');
+
+        // Second row, true label anomalous
+        sb.append(String.format(trueLabelFormat, Event.EventType.ANOMALOUS.name()));
+        sb.append(String.format(countFormat, getFalseNegatives()));
+        sb.append(String.format(countFormat, getTruePositives()));
+        sb.append('\n');
+
+        return sb.toString();
+    }
+
+    private double get(AnomalyMetrics metric) {
         double value = get(metric.asMetric().getID());
-        return (long) value;
+        return value;
     }
 }

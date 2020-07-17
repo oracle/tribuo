@@ -21,7 +21,7 @@ import org.tribuo.MutableOutputInfo;
 /**
  * An {@link MutableOutputInfo} object for {@link Event}s.
  * <p>
- * Counts the number of {@link Event.EventType#ANOMALY}, {@link Event.EventType#EXPECTED}
+ * Counts the number of {@link Event.EventType#ANOMALOUS}, {@link Event.EventType#EXPECTED}
  * and {@link Event.EventType#UNKNOWN} outputs observed. The unknown output is invalid
  * at training time, and used as a prediction time sentinel (similarly to other Tribuo
  * prediction tasks).
@@ -46,7 +46,7 @@ public final class MutableAnomalyInfo extends AnomalyInfo implements MutableOutp
             unknownCount++;
         } else {
             switch (output.getType()) {
-                case ANOMALY:
+                case ANOMALOUS:
                     anomalyCount++;
                     break;
                 case EXPECTED:

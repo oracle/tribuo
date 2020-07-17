@@ -21,11 +21,11 @@ import org.tribuo.Output;
 import java.util.Objects;
 
 /**
- * An {@link Output} representing either an {@link EventType#ANOMALY} or an
+ * An {@link Output} representing either an {@link EventType#ANOMALOUS} or an
  * {@link EventType#EXPECTED} event.
- *
+ * <p>
  * Event trainers are allowed to throw IllegalArgumentException if they are supplied
- * an {@link EventType#ANOMALY} at training time. It's noted in the documentation if they
+ * an {@link EventType#ANOMALOUS} at training time. It's noted in the documentation if they
  * do support training from anomalous and expected data.
  */
 public final class Event implements Output<Event> {
@@ -35,7 +35,7 @@ public final class Event implements Output<Event> {
      * The type of event.
      */
     public enum EventType {
-        ANOMALY(1), EXPECTED(0), UNKNOWN(-1);
+        ANOMALOUS(1), EXPECTED(0), UNKNOWN(-1);
         private final int value;
 
         EventType(int value) {

@@ -22,7 +22,7 @@
  * </p>
  * <p>
  * Event trainers are allowed to throw IllegalArgumentException if they are supplied
- * an {@link org.tribuo.anomaly.Event.EventType#ANOMALY} at training time. It's noted in the documentation if they
+ * an {@link org.tribuo.anomaly.Event.EventType#ANOMALOUS} at training time. It's noted in the documentation if they
  * do support training from anomalous and expected data.
  * </p>
  * <p>
