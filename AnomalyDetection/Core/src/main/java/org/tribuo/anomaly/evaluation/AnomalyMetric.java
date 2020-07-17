@@ -148,6 +148,7 @@ public class AnomalyMetric implements EvaluationMetric<Event, AnomalyMetric.Cont
                     }
                 } else {
                     // truth unknown
+                    throw new IllegalArgumentException("Evaluation data contained EventType.UNKNOWN as the ground truth output.");
                 }
             }
             return new PredictionStatistics(truePositive, falsePositive, trueNegative, falseNegative);
