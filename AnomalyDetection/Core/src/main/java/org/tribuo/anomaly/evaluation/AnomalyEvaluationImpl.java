@@ -100,7 +100,7 @@ final class AnomalyEvaluationImpl implements AnomalyEvaluation {
     public String confusionString() {
         int maxLen = Integer.MIN_VALUE;
         maxLen = Math.max(Event.EventType.EXPECTED.name().length(), maxLen);
-        maxLen = Math.max(Event.EventType.ANOMALY.name().length(), maxLen);
+        maxLen = Math.max(Event.EventType.ANOMALOUS.name().length(), maxLen);
         maxLen = Math.max(String.format(" %,d", getTrueNegatives()).length(), maxLen);
         maxLen = Math.max(String.format(" %,d", getTruePositives()).length(), maxLen);
         maxLen = Math.max(String.format(" %,d", getFalseNegatives()).length(), maxLen);
@@ -117,7 +117,7 @@ final class AnomalyEvaluationImpl implements AnomalyEvaluation {
         //
         // Labels across the top for predicted.
         sb.append(String.format(predictedLabelFormat, Event.EventType.EXPECTED.name()));
-        sb.append(String.format(predictedLabelFormat, Event.EventType.ANOMALY.name()));
+        sb.append(String.format(predictedLabelFormat, Event.EventType.ANOMALOUS.name()));
         sb.append('\n');
 
         //
@@ -128,7 +128,7 @@ final class AnomalyEvaluationImpl implements AnomalyEvaluation {
         sb.append('\n');
 
         // Second row, true label anomalous
-        sb.append(String.format(trueLabelFormat, Event.EventType.ANOMALY.name()));
+        sb.append(String.format(trueLabelFormat, Event.EventType.ANOMALOUS.name()));
         sb.append(String.format(countFormat, getFalseNegatives()));
         sb.append(String.format(countFormat, getTruePositives()));
         sb.append('\n');

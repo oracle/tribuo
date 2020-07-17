@@ -130,8 +130,8 @@ public class AnomalyMetric implements EvaluationMetric<Event, AnomalyMetric.Cont
                 Event.EventType truth = example.getOutput().getType();
                 Event.EventType predicted = prediction.getOutput().getType();
 
-                if (truth == EventType.ANOMALY) {
-                    if (predicted == EventType.ANOMALY) {
+                if (truth == EventType.ANOMALOUS) {
+                    if (predicted == EventType.ANOMALOUS) {
                         truePositive++;
                     } else if (predicted == EventType.EXPECTED) {
                         falseNegative++;
@@ -139,7 +139,7 @@ public class AnomalyMetric implements EvaluationMetric<Event, AnomalyMetric.Cont
                         //unknown predicted
                     }
                 } else if (truth == EventType.EXPECTED) {
-                    if (predicted == EventType.ANOMALY) {
+                    if (predicted == EventType.ANOMALOUS) {
                         falsePositive++;
                     } else if (predicted == EventType.EXPECTED) {
                         trueNegative++;

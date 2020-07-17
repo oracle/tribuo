@@ -74,7 +74,7 @@ public class LibSVMAnomalyModel extends LibSVMModel<Event> {
         double[] score = new double[1];
         double prediction = svm.svm_predict_values(models.get(0), features, score);
         if (prediction < 0.0) {
-            return new Prediction<>(new Event(Event.EventType.ANOMALY,score[0]),features.length,example);
+            return new Prediction<>(new Event(Event.EventType.ANOMALOUS,score[0]),features.length,example);
         } else {
             return new Prediction<>(new Event(Event.EventType.EXPECTED,score[0]),features.length,example);
         }

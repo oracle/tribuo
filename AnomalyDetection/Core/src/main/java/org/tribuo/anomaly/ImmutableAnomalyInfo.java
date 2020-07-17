@@ -47,7 +47,7 @@ public final class ImmutableAnomalyInfo extends AnomalyInfo implements Immutable
 
     @Override
     public Event getOutput(int id) {
-        if (id == EventType.ANOMALY.getID()) {
+        if (id == EventType.ANOMALOUS.getID()) {
             return AnomalyFactory.ANOMALOUS_EVENT;
         } else if (id == EventType.EXPECTED.getID()) {
             return AnomalyFactory.EXPECTED_EVENT;

@@ -84,7 +84,7 @@ public class LibSVMAnomalyTrainer extends LibSVMTrainer<Event> {
     @Override
     public LibSVMModel<Event> train(Dataset<Event> dataset, Map<String, Provenance> instanceProvenance) {
         for (Pair<String,Long> p : dataset.getOutputInfo().outputCountsIterable()) {
-            if (p.getA().equals(EventType.ANOMALY.toString()) && (p.getB() > 0)) {
+            if (p.getA().equals(EventType.ANOMALOUS.toString()) && (p.getB() > 0)) {
                 throw new IllegalArgumentException("LibSVMAnomalyTrainer only supports EXPECTED events at training time.");
             }
         }

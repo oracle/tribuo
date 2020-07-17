@@ -79,7 +79,7 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
      */
     public long getEventCount(EventType type) {
         switch (type) {
-            case ANOMALY:
+            case ANOMALOUS:
                 return anomalyCount;
             case EXPECTED:
                 return expectedCount;
@@ -94,7 +94,7 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
     public Iterable<Pair<String,Long>> outputCountsIterable() {
         List<Pair<String,Long>> list = new ArrayList<>();
 
-        list.add(new Pair<>(EventType.ANOMALY.toString(),anomalyCount));
+        list.add(new Pair<>(EventType.ANOMALOUS.toString(),anomalyCount));
         list.add(new Pair<>(EventType.EXPECTED.toString(),expectedCount));
 
         return list;
