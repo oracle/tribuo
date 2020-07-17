@@ -67,7 +67,7 @@ Currently we have interfaces to:
 * [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/).
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/)
 * [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group.
-* [TensorFlow](https://tensorflow.org) - Using the 1.14 Java API. We're working with the Tensorflow JVM SIG, 
+* [TensorFlow](https://tensorflow.org) - Using the 1.14 Java API. We're participating in the Tensorflow JVM SIG, 
 and the upcoming TensorFlow 2 Java API will support training models without Python, which we'll incorporate into Tribuo 
 when it's released.
 * [XGBoost](https://xgboost.ai)

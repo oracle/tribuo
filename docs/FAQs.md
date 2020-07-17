@@ -42,6 +42,27 @@ We're also interested in how people are using Tribuo, our users' feedback and
 feature requests has always driven it's development internally at Oracle, and
 we want to continue that with the open source project.
 
+### What's the versioning strategy & compatibility plan?
+
+Tribuo approximates semantic versioning. Major version bumps can break
+backwards compatibility, both of code and serialized models (though we hope
+to fix the latter by moving to a new serialization architecture). Minor 
+version bumps can add new features, improve performance (both statistically
+and runtime/memory usage), and add new functionality to existing algorithms 
+provided it's an upwards compatible change. Patch releases fix bugs in existing
+versions, and security issues when they are discovered. Patch releases
+may also add small new methods/classes if they are required to fix the bugs.
+
+Tribuo's dependencies may change in each type of release, but patch releases
+can only bump the versions of existing dependencies (to newer patch releases of
+those dependencies), and minor releases can only add new dependencies and bump 
+the versions of existing ones.
+
+Anything considered internal API (e.g. the innards of the tree builders, 
+classes in `impl` packages outside of Core) can change in any version, but
+these are usually marked in the javadoc as internal classes, and will be closed
+off in the module system when we adopt it.
+
 ## Project Overview 
 
 ### Why is the code broken out by prediction task (e.g. Classification, Regression etc)?
