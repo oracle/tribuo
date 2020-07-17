@@ -118,7 +118,7 @@ public class CRFTrainer implements SequenceTrainer<Label>, WeightedExamples {
     private CRFTrainer() { }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 
@@ -144,7 +144,7 @@ public class CRFTrainer implements SequenceTrainer<Label>, WeightedExamples {
         StochasticGradientOptimiser localOptimiser;
         synchronized(this) {
             localRNG = rng.split();
-            localOptimiser = optimiser.clone();
+            localOptimiser = optimiser.copy();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
         }

@@ -42,7 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- MLRG dependencies -->
-        <olcut.version>5.1.1</olcut.version>
+        <olcut.version>5.1.3</olcut.version>
 
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.30</liblinear.version>

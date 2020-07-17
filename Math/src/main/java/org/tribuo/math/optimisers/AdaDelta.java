@@ -103,7 +103,7 @@ public class AdaDelta implements StochasticGradientOptimiser {
     }
 
     @Override
-    public AdaDelta clone() {
+    public AdaDelta copy() {
         return new AdaDelta(rho,epsilon);
     }
 

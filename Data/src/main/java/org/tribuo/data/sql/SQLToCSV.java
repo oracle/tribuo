@@ -139,12 +139,35 @@ public class SQLToCSV {
             System.exit(1);
         }
 
-        Statement stmt;
 
-        try {
-            stmt = conn.createStatement();
+        try (Statement stmt = conn.createStatement()){
             stmt.setFetchSize(1000);
             stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+
+            ResultSet results;
+            try {
+                results = stmt.executeQuery(query);
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, "Error running query", ex);
+                try {
+                    conn.close();
+                } catch (SQLException ex1) {
+                    logger.log(Level.SEVERE, "Failed to close connection", ex1);
+                }
+                return;
+            }
+
+            try(ICSVWriter writer = new CSVParserWriter(opts.outputPath != null ?
+                    Files.newBufferedWriter(opts.outputPath) :
+                    new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), 1024 * 1024), new RFC4180Parser(), "\n")) {
+                writer.writeAll(results, true);
+            } catch (IOException ex) {
+                logger.log(Level.SEVERE, "Error writing CSV", ex);
+                System.exit(1);
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, "Error retrieving results", ex);
+                System.exit(1);
+            }
         } catch (SQLException ex) {
             logger.log(Level.SEVERE, "Couldn't create statement", ex);
             try {
@@ -154,32 +177,6 @@ public class SQLToCSV {
             }
             System.exit(1);
             return;
-        }
-
-        ResultSet results;
-        try {
-            results = stmt.executeQuery(query);
-        } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error running query", ex);
-            try {
-                conn.close();
-            } catch (SQLException ex1) {
-                logger.log(Level.SEVERE, "Failed to close connection", ex1);
-            }
-            return;
-        }
-
-
-        try(ICSVWriter writer = new CSVParserWriter(opts.outputPath != null ?
-                Files.newBufferedWriter(opts.outputPath) :
-                new BufferedWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), 1024 * 1024), new RFC4180Parser(), "\n")) {
-            writer.writeAll(results, true);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, "Error writing CSV", ex);
-            System.exit(1);
-        } catch (SQLException ex) {
-            logger.log(Level.SEVERE, "Error retrieving results", ex);
-            System.exit(1);
         }
 
         try {

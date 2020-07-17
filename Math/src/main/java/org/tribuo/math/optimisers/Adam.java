@@ -129,7 +129,7 @@ public class Adam implements StochasticGradientOptimiser {
     }
 
     @Override
-    public Adam clone() {
+    public Adam copy() {
         return new Adam(initialLearningRate,betaOne,betaTwo,epsilon);
     }
 

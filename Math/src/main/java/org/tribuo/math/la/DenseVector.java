@@ -22,6 +22,7 @@ import org.tribuo.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 
@@ -90,11 +91,11 @@ public class DenseVector implements SGDVector {
         }
 
         if (newShape.length == 2) {
-            DenseMatrix matrix = new DenseMatrix(shape[0],shape[1]);
+            DenseMatrix matrix = new DenseMatrix(newShape[0],newShape[1]);
 
             for (int a = 0; a < size(); a++) {
-                int i = a % shape[0];
-                int j = a / shape[0];
+                int i = a % newShape[0];
+                int j = a / newShape[0];
                 matrix.set(i,j,get(a));
             }
 
@@ -590,6 +591,9 @@ public class DenseVector implements SGDVector {
 
         @Override
         public VectorTuple next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("Off the end of the iterator.");
+            }
             tuple.index = index;
             tuple.value = vector.elements[index];
             index++;

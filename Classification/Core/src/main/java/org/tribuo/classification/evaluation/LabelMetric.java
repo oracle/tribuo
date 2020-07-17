@@ -22,6 +22,7 @@ import org.tribuo.classification.Label;
 import org.tribuo.evaluation.metrics.EvaluationMetric;
 import org.tribuo.evaluation.metrics.MetricContext;
 import org.tribuo.evaluation.metrics.MetricTarget;
+import org.tribuo.sequence.SequenceModel;
 
 import java.util.List;
 import java.util.Objects;
@@ -103,7 +104,12 @@ public class LabelMetric implements EvaluationMetric<Label, LabelMetric.Context>
 
         public Context(Model<Label> model, List<Prediction<Label>> predictions) {
             super(model, predictions);
-            this.cm = new LabelConfusionMatrix(model, predictions);
+            this.cm = new LabelConfusionMatrix(model.getOutputIDInfo(), predictions);
+        }
+
+        public Context(SequenceModel<Label> model, List<Prediction<Label>> predictions) {
+            super(model, predictions);
+            this.cm = new LabelConfusionMatrix(model.getOutputIDInfo(), predictions);
         }
 
         public ConfusionMatrix<Label> getCM() {

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.concurrent.ExecutionException;
@@ -465,13 +466,27 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * It's a specialised non-final pair used for buffering and to reduce object creation.
      * @param <T> The output type.
      */
-    private static class OutputDoublePair<T extends Output<T>> implements Comparable<OutputDoublePair<T>> {
+    private static final class OutputDoublePair<T extends Output<T>> implements Comparable<OutputDoublePair<T>> {
         T output;
         double value;
 
         public OutputDoublePair(T output, double value) {
             this.output = output;
             this.value = value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            OutputDoublePair<?> that = (OutputDoublePair<?>) o;
+            return Double.compare(that.value, value) == 0 &&
+                    output.equals(that.output);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(output, value);
         }
 
         @Override

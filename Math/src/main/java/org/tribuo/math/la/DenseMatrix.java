@@ -19,6 +19,7 @@ package org.tribuo.math.la;
 import org.tribuo.math.util.VectorNormalizer;
 
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
 
@@ -118,13 +119,13 @@ public class DenseMatrix implements Matrix {
         }
 
         if (newShape.length == 2) {
-            DenseMatrix matrix = new DenseMatrix(shape[0],shape[1]);
+            DenseMatrix matrix = new DenseMatrix(newShape[0],newShape[1]);
 
             for (int a = 0; a < numElements; a++) {
                 int oldI = a % dim1;
                 int oldJ = a % dim2;
-                int i = a % shape[0];
-                int j = a / shape[0];
+                int i = a % newShape[0];
+                int j = a / newShape[0];
                 matrix.set(i,j,get(oldI,oldJ));
             }
 
@@ -716,6 +717,9 @@ public class DenseMatrix implements Matrix {
 
         @Override
         public MatrixTuple next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("Off the end of the iterator.");
+            }
             tuple.i = i;
             tuple.j = j;
             tuple.value = matrix.values[i][j];

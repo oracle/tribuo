@@ -272,10 +272,10 @@ public class LIMEColumnarTest {
             }
 
             // Categorical features may be sampled multiple times as they are not specified as BINARISED_CATEGORICAL
-            if ((aCounter > 3) && (aCounter < 0)) {
+            if ((aCounter > 3) || (aCounter < 0)) {
                 fail("Should sample between 0 and 3 A features");
             }
-            if ((dCounter > 3) && (dCounter < 0)) {
+            if ((dCounter > 3) || (dCounter < 0)) {
                 fail("Should sample between 0 and 3 D features");
             }
         }

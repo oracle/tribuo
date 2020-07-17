@@ -33,6 +33,8 @@ import org.tribuo.regression.rtree.impurity.RegressorImpurity;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity.ImpurityTuple;
 import org.tribuo.util.Util;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.logging.Logger;
  * the current impurity and a bunch of other statistics.
  */
 public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> {
+    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(JointRegressorTrainingNode.class.getName());
 
@@ -340,4 +343,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         }
     }
 
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        throw new NotSerializableException("JointRegressorTrainingNode is a runtime class only, and should not be serialized.");
+    }
 }

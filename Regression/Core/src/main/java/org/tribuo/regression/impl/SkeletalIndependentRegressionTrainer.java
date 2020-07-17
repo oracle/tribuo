@@ -60,7 +60,7 @@ public abstract class SkeletalIndependentRegressionTrainer<T> implements Trainer
     protected SkeletalIndependentRegressionTrainer() {}
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 

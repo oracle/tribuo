@@ -25,6 +25,7 @@ import org.tribuo.regression.Regressor;
 
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.ToDoubleBiFunction;
 
 /**
  * A {@link EvaluationMetric} for {@link Regressor}s which calculates the metric based on a
@@ -34,7 +35,7 @@ public class RegressionMetric implements EvaluationMetric<Regressor, RegressionM
 
     private final MetricTarget<Regressor> tgt;
     private final String name;
-    private final BiFunction<MetricTarget<Regressor>, Context, Double> impl;
+    private final ToDoubleBiFunction<MetricTarget<Regressor>, Context> impl;
     private final boolean useExampleWeights;
 
     /**
@@ -46,7 +47,7 @@ public class RegressionMetric implements EvaluationMetric<Regressor, RegressionM
      */
     public RegressionMetric(MetricTarget<Regressor> tgt,
                             String name,
-                            BiFunction<MetricTarget<Regressor>, Context, Double> impl) {
+                            ToDoubleBiFunction<MetricTarget<Regressor>, Context> impl) {
         this(tgt, name, impl, false);
     }
 
@@ -60,7 +61,7 @@ public class RegressionMetric implements EvaluationMetric<Regressor, RegressionM
      */
     public RegressionMetric(MetricTarget<Regressor> tgt,
                             String name,
-                            BiFunction<MetricTarget<Regressor>, Context, Double> impl,
+                            ToDoubleBiFunction<MetricTarget<Regressor>, Context> impl,
                             boolean useExampleWeights) {
         this.tgt = tgt;
         this.name = name;
@@ -70,7 +71,7 @@ public class RegressionMetric implements EvaluationMetric<Regressor, RegressionM
 
     @Override
     public double compute(Context context) {
-        return impl.apply(tgt, context);
+        return impl.applyAsDouble(tgt, context);
     }
 
     @Override

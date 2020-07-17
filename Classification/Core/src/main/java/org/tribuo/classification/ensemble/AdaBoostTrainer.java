@@ -106,7 +106,7 @@ public class AdaBoostTrainer implements Trainer<Label> {
     }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 

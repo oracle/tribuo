@@ -38,7 +38,9 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,7 +91,9 @@ public class RunAll {
         Dataset<Label> test = data.getB();
 
         logger.info("Creating directory - " + o.directory.toString());
-        o.directory.mkdirs();
+        if (!o.directory.exists() && !o.directory.mkdirs()) {
+            logger.warning("Failed to create directory.");
+        }
 
         Map<String,Double> performances = new HashMap<>();
         List<Trainer> trainers = cm.lookupAll(Trainer.class);
@@ -108,7 +112,7 @@ public class RunAll {
             try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath+".model"))) {
                 oos.writeObject(curModel);
             }
-            try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(outputPath+".output")))) {
+            try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputPath+".output"), StandardCharsets.UTF_8))) {
                 writer.println("Model = " + name);
                 writer.println("Provenance = " + curModel.toString());
                 writer.println();

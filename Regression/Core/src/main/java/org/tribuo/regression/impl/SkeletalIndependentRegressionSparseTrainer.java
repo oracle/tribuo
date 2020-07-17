@@ -59,7 +59,7 @@ public abstract class SkeletalIndependentRegressionSparseTrainer<T> implements S
     protected SkeletalIndependentRegressionSparseTrainer() {}
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 

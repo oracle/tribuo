@@ -122,7 +122,7 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
     private TensorflowSequenceTrainer() { }
 
     @Override
-    public void postConfig() throws IOException {
+    public synchronized void postConfig() throws IOException {
         rng = new SplittableRandom(seed);
         graphDef = Files.readAllBytes(graphPath);
     }

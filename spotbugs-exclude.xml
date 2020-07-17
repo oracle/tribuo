@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+              xmlns="https://github.com/spotbugs/filter/3.0.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/3.1.0/spotbugs/etc/findbugsfilter.xsd">
+ 
+<!-- 
+All of the warnings matched with the following are related to instances/
+implementations of the ConfigurationManager's Options interface. In each case 
+an implementation of Options is instantiated and the configuration manager is 
+called to populate the options object with values based on the passed in 
+String arguments. It does this using reflection so SpotBugs has no way of 
+knowing that these fields are in fact populated. So these are all false 
+positive warnings.  
+ -->     
+<Match>
+    <Bug pattern="NP_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD,UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD"/>
+	<Or>
+   		<Class name="org.tribuo.classification.dtree.TrainTest" />
+   		<Class name="org.tribuo.classification.dtree.TrainTest$TrainTestOptions" />
+   		<Class name="org.tribuo.classification.experiments.ConfigurableTrainTest" />
+   		<Class name="org.tribuo.classification.experiments.ConfigurableTrainTest$ConfigurableTrainTestOptions" />
+   		<Class name="org.tribuo.classification.experiments.RunAll" />
+	    <Class name="org.tribuo.classification.experiments.RunAll$RunAllOptions" />
+	    <Class name="org.tribuo.classification.liblinear.TrainTest"/>
+	    <Class name="org.tribuo.classification.liblinear.TrainTest$TrainTestOptions"/>
+	    <Class name="org.tribuo.classification.experiments.TrainTest"/>
+	    <Class name="org.tribuo.classification.experiments.TrainTest$AllClassificationOptions"/>
+	    <Class name="org.tribuo.classification.libsvm.TrainTest"/>
+	    <Class name="org.tribuo.classification.libsvm.TrainTest$TrainTestOptions"/>
+	    <Class name="org.tribuo.classification.mnb.TrainTest"/>
+	    <Class name="org.tribuo.classification.mnb.TrainTest$TrainTestOptions"/>
+	    <Class name="org.tribuo.classification.sgd.crf.CRFOptions"/>
+	    <Class name="org.tribuo.classification.sgd.crf.SeqTest"/>
+	    <Class name="org.tribuo.classification.sgd.crf.SeqTest$CRFOptions"/>
+	    <Class name="org.tribuo.classification.sgd.kernel.TrainTest"/>
+	    <Class name="org.tribuo.classification.sgd.kernel.TrainTest$TrainTestOptions"/>
+	    <Class name="org.tribuo.classification.sgd.TrainTest"/>
+	    <Class name="org.tribuo.classification.sgd.TrainTest$TrainTestOptions"/>
+	    <Class name="org.tribuo.classification.xgboost.TrainTest"/>
+	    <Class name="org.tribuo.classification.xgboost.TrainTest$TrainTestOptions"/>
+	    <Class name="org.tribuo.clustering.kmeans.TrainTest"/>
+	    <Class name="org.tribuo.clustering.kmeans.TrainTest$KMeansOptions"/>
+	    <Class name="org.tribuo.data.ConfigurableTrainTest"/>
+	    <Class name="org.tribuo.data.ConfigurableTrainTest$ConfigurableTrainTestOptions"/>
+	    <Class name="org.tribuo.regression.liblinear.TrainTest"/>
+	    <Class name="org.tribuo.regression.liblinear.TrainTest$LibLinearOptions"/>
+	    <Class name="org.tribuo.regression.libsvm.TrainTest"/>
+	    <Class name="org.tribuo.regression.libsvm.TrainTest$LibLinearOptions"/>
+	    <Class name="org.tribuo.regression.rtree.TrainTest"/>
+	    <Class name="org.tribuo.regression.rtree.TrainTest$DecisionTreeOptions"/>
+	    <Class name="org.tribuo.regression.sgd.TrainTest"/>
+	    <Class name="org.tribuo.regression.sgd.TrainTest$SGDOptions"/>
+	    <Class name="org.tribuo.regression.slm.TrainTest"/>
+	    <Class name="org.tribuo.regression.slm.TrainTest$LARSOptions"/>
+	    <Class name="org.tribuo.regression.xgboost.TrainTest"/>
+	    <Class name="org.tribuo.regression.xgboost.TrainTest$XGBoostOptions"/>
+	</Or>
+</Match>
+
+
+<!-- 
+The following are false positives related to switch statement fallthrough.
+The murmurhash3 code is working as designed.
+ -->
+<Match>
+	<Bug pattern="SF_SWITCH_NO_DEFAULT"/>
+	<Class name="org.tribuo.util.MurmurHash3"/>
+</Match>
+<Match>
+    <Bug pattern="SF_SWITCH_FALLTHROUGH"/>
+    <Class name="org.tribuo.util.MurmurHash3"/>
+</Match>
+</FindBugsFilter>

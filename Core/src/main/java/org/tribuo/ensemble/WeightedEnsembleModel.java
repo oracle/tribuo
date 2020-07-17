@@ -28,6 +28,7 @@ import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.util.Util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,7 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
                           ImmutableOutputInfo<T> outputIDInfo,
                           List<Model<T>> newModels, EnsembleCombiner<T> combiner, float[] weights) {
         super(name,description,featureIDMap,outputIDInfo,newModels);
-        this.weights = weights;
+        this.weights = Arrays.copyOf(weights,weights.length);
         this.combiner = combiner;
     }
 
@@ -99,7 +100,7 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
                     list.add(new Pair<>(entry.getKey(), entry.getValue()));
                 }
 
-                list.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -o1.getB().compareTo(o2.getB()));
+                list.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> o2.getB().compareTo(o1.getB()));
                 outputMap.put(label.getKey(), list);
             }
 

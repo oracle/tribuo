@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PriorityQueue;
 
@@ -346,6 +347,9 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
 
         @Override
         public FeatureTuple next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("Off the end of the iterator.");
+            }
             tuple.name = featureNames[pos];
             tuple.id = featureIDs[pos];
             tuple.value = featureValues[pos];

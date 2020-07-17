@@ -340,6 +340,8 @@ public final class WeightedInformationTheory {
                     boxedWeight = weights.get(e.getKey().getB());
                     weight = boxedWeight == null ? 1.0 : boxedWeight;
                     break;
+                default:
+                    throw new IllegalArgumentException("VariableSelector.THIRD not allowed in a two variable calculation.");
             }
             mi += weight * prob * logRatio;
             //mi += prob * Math.log((vectorLength*jointCount)/(firstProb*secondProb));

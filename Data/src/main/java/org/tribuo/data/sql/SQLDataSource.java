@@ -94,7 +94,7 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
 
     @Override
     public void close() {
-        for(Statement statement: statements) {
+        for (Statement statement: statements) {
             try {
                 statement.close();
             } catch (SQLException e) {

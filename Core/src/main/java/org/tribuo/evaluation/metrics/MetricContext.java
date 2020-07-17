@@ -19,6 +19,7 @@ package org.tribuo.evaluation.metrics;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.sequence.SequenceModel;
 
 import java.util.Collections;
 import java.util.List;
@@ -30,19 +31,35 @@ import java.util.List;
 public abstract class MetricContext<T extends Output<T>> {
 
     private final Model<T> model;
+    private final SequenceModel<T> seqModel;
     private final List<Prediction<T>> predictions;
 
     protected MetricContext(Model<T> model, List<Prediction<T>> predictions) {
         this.model = model;
+        this.seqModel = null;
+        this.predictions = Collections.unmodifiableList(predictions);
+    }
+
+    protected MetricContext(SequenceModel<T> model, List<Prediction<T>> predictions) {
+        this.model = null;
+        this.seqModel = model;
         this.predictions = Collections.unmodifiableList(predictions);
     }
 
     /**
-     * Gets the model used by this context.
-     * @return The model.
+     * Gets the Model used by this context.
+     * @return The model, or null if this MetricContext operates on a SequenceModel.
      */
     public Model<T> getModel() {
         return model;
+    }
+
+    /**
+     * Gets the SequenceModel used by this context.
+     * @return The model, or null if this MetricContext operates on a Model.
+     */
+    public SequenceModel<T> getSequenceModel() {
+        return seqModel;
     }
 
     /**

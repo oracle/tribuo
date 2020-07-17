@@ -79,7 +79,7 @@ public final class BinningTransformation implements Transformation {
     public void postConfig() {
         if (numBins < 2) {
             throw new IllegalArgumentException("Number of bins must be 2 or greater, found " + numBins);
-        } else if (type == BinningType.STD_DEVS && (numBins % 2 == 1)) {
+        } else if (type == BinningType.STD_DEVS && ((numBins & 1) == 1)) {
             throw new IllegalArgumentException("Std dev must have an even number of bins, found " + numBins);
         }
     }

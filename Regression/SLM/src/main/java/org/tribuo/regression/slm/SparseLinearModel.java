@@ -161,7 +161,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
                 double score = weights[i].get(f.index) * f.value;
                 classScores.add(new Pair<>(featureIDMap.get(f.index).getName(), score));
             }
-            classScores.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> -o1.getB().compareTo(o2.getB()));
+            classScores.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> o2.getB().compareTo(o1.getB()));
             weightMap.put(dimensions[i], classScores);
         }
 

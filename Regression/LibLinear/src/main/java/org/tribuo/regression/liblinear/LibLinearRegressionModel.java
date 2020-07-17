@@ -166,7 +166,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
                     scores.add(new Pair<>(f.getName(), score));
                 }
             }
-            scores.sort((o1, o2) -> -o1.getB().compareTo(o2.getB()));
+            scores.sort((o1, o2) -> o2.getB().compareTo(o1.getB()));
             weightMap.put(dimensionNames[i], scores);
         }
 

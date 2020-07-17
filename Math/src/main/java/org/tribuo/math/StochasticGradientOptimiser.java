@@ -35,7 +35,7 @@ import org.tribuo.math.optimisers.ParameterAveraging;
  *
  * Deviating from this order will cause unexpected behaviour.
  */
-public interface StochasticGradientOptimiser extends Cloneable, Configurable, Provenancable<ConfiguredObjectProvenance> {
+public interface StochasticGradientOptimiser extends Configurable, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Initialises the gradient optimiser.
@@ -68,9 +68,8 @@ public interface StochasticGradientOptimiser extends Cloneable, Configurable, Pr
     public void reset();
 
     /**
-     * Clones a gradient optimiser with it's configuration. Cloned optimisers
-     * must be reset before first use, and do not copy the internal state only the hyperparameters.
+     * Copies a gradient optimiser with it's configuration. Usually calls the copy constructor.
      * @return A gradient optimiser with the same configuration, but independent state.
      */
-    public StochasticGradientOptimiser clone();
+    public StochasticGradientOptimiser copy();
 }

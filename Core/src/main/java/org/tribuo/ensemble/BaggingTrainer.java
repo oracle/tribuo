@@ -87,7 +87,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
     }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 

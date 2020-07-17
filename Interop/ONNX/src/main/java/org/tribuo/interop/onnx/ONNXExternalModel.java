@@ -203,7 +203,7 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
     }
 
     @Override
-    protected Model<T> copy(String newName, ModelProvenance newProvenance) {
+    protected synchronized Model<T> copy(String newName, ModelProvenance newProvenance) {
         byte[] newModelArray = Arrays.copyOf(modelArray,modelArray.length);
         try {
             return new ONNXExternalModel<>(newName, newProvenance, featureIDMap, outputIDInfo,

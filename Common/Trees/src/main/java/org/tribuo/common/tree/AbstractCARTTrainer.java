@@ -93,7 +93,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     }
 
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
     }
 

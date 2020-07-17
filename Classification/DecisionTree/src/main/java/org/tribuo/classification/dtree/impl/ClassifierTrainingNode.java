@@ -32,6 +32,8 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.util.Util;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +48,7 @@ import java.util.logging.Logger;
  * the current impurity and a bunch of other statistics.
  */
 public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
+    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ClassifierTrainingNode.class.getName());
 
@@ -275,5 +278,10 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         logger.fine("Built initial List<TreeFeature>");
 
         return data;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream stream)
+            throws IOException {
+        throw new NotSerializableException("ClassifierTrainingNode is a runtime class only, and should not be serialized.");
     }
 }
