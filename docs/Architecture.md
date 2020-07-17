@@ -311,6 +311,21 @@ ensure it maintains the proper statistics.
 We plan to introduce global feature transformations in some future release, to
 allow operations like PCA or other feature extraction steps.
 
+## Weights and Metadata
+
+Examples can have metadata attached to them, which can be used to filter out
+Examples, or otherwise tag them for special processing. The metadata takes the
+form of a `Map<String,String>`, which can only be appended to, and the values
+cannot be modified after insertion. In addition each Example has a float valued
+weight field, which can be used to denote how important an Example is in a
+training or evaluation setting. Not all training algorithms support weighted
+examples, if they do then they implement the `WeightedExamples` tag interface,
+otherwise the example weights are ignored. The weight field is currently
+supported in the `RegressionEvaluator` if the weighted evaluation flag is turned
+on. We'll consider adding this support to the other evaluators, though it
+may require breaking API changes as the return types of some accessor methods 
+could change from integer to floating point values.
+
 ## Obfuscation
 
 One of Tribuo's benefits is it's extensive tracking of model metadata and
