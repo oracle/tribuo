@@ -1,1 +1,1 @@
-../../../../../THIRD_PARTY_LICENSES.txt
+../../../../THIRD_PARTY_LICENSES.txt
