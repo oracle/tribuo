@@ -1,4 +1,10 @@
 # Security Considerations
+{:.no_toc}
+
+* TOC
+{:toc}
+
+
 Tribuo is a library which is designed to be incorporated into larger programs. We therefore
 consider the trust boundary to be outside Tribuo, and to live somewhere in the larger program.
 As such while we provide data loaders we expect them to be used on trusted or cleaned data, and
@@ -72,3 +78,4 @@ can result in model or data leakage.
 | Model replication | Repeated queries with known features, where the attacker receives the full predicted probability distribution for each query can provide enough information for the attacker to replicate the model. If the model is considered an important asset then allowing an attacker to copy it could be detrimental. | The model parameters | To mitigate this only return a small number of predictions (i.e. the top n) or do not provide the probability distribution. This slows down the attack, though doesn't completely prevent it. Other mitigations such as rate limiting or preventing the attacker from controlling or observing the feature inputs are necessary to fully prevent it.|
 | Training metadata leak | If an attacker has the model file, this contains information about the training data (such as feature names, number of features, number of examples etc) which could be potentially sensitive (e.g. bigrams or trigrams from text). | Training metadata | First, treat model files as confidential if the data itself was confidential. Second, Tribuo provides a method for one-way hashing all the feature names, which prevents attackers from trivially finding out the features without supplying input text and testing if the model output changes. Third, the other information such as number of examples can be redacted by removing the provenance information before the model is deployed. | 
 | Training data leak | If an attacker can repeatedly query the model it's possible for an attacker to find specific training data points that are part of the training data set by measuring the confidence of the prediction (as training data points usually have a predicted confidence close to 1.0). | Training data | The most important mitigation is to treat model files as confidential if the training data is confidential. Once access to the model has been prevented then the mitigations for model replication apply. This attack is a variant of model replication but usually requires a little more idea of what the training corpus is than a model replication attack. |
+{: .table}
