@@ -1,9 +1,4 @@
 # Roadmap
-{:.no_toc}
-
-* TOC
-{:toc}
-
 
 This is the list of features we are considering for the next few feature
 releases of Tribuo.  As always, we're interested in the community's feedback,

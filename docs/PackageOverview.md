@@ -1,8 +1,4 @@
 # Package Structure Overview
-{:.no_toc}
-
-* TOC
-{:toc}
 
 Tribuo has a modular structure, to allow minimal dependencies for any specific deployment. We describe the 
 overall package structure below.

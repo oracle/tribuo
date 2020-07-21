@@ -1,8 +1,4 @@
 # Architecture
-{:.no_toc}
-
-* TOC
-{:toc}
 
 Tribuo is a library for making Machine Learning (ML) models, and then using those
 models to make predictions on previously unseen data. 

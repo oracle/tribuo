@@ -1,9 +1,4 @@
 # Security Considerations
-{:.no_toc}
-
-* TOC
-{:toc}
-
 
 Tribuo is a library which is designed to be incorporated into larger programs. We therefore
 consider the trust boundary to be outside Tribuo, and to live somewhere in the larger program.

@@ -1,8 +1,4 @@
 # Tribuo Frequently Asked Questions
-{:.no_toc}
-
-* TOC
-{:toc}
 
 ## General
 

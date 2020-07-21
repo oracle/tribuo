@@ -1,8 +1,4 @@
 # Developing inside Tribuo
-{:.no_toc}
-
-* TOC
-{:toc}
 
 Tribuo internally maintains several invariants, and there are a few tricky
 parts to writing new `Trainer` and `Model` implementations. This document
