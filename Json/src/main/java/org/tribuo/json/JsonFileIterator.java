@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.tribuo.interop.json;
+package org.tribuo.json;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import org.tribuo.data.columnar.FieldNames;
+import org.tribuo.data.columnar.ColumnarIterator;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
@@ -37,27 +36,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  * An iterator for JSON format files converting them into a format suitable for
  * {@link org.tribuo.data.columnar.RowProcessor}.
  */
-public class JsonFileIterator implements Iterator<Map<String,String>>, FieldNames, Closeable {
+public class JsonFileIterator extends ColumnarIterator implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(JsonFileIterator.class.getName());
 
     private final JsonParser parser;
-    private Map<String,String> curEntry;
     private final Iterator<JsonNode> nodeIterator;
-    private final String[] headers;
-    private int rowNum;
+    private int rowNum = 0;
+    private Optional<Row> row;
 
     /**
      * Builds a JsonFileIterator for the supplied Reader.
      * @param reader The source to read.
      */
     public JsonFileIterator(Reader reader) {
-        rowNum = 1;
         JsonFactory jsonFactory = new JsonFactory();
         //noinspection OverlyBroadCatchBlock
         try {
@@ -69,10 +68,12 @@ public class JsonFileIterator implements Iterator<Map<String,String>>, FieldName
                 nodeIterator = node.elements();
                 if (nodeIterator.hasNext()) {
                     JsonNode curNode = nodeIterator.next();
-                    curEntry = convert(curNode);
+                    Map<String, String> curEntry = convert(curNode);
                     List<String> headerList = new ArrayList<>(curEntry.keySet());
                     Collections.sort(headerList);
-                    headers = headerList.toArray(new String[0]);
+                    fields = headerList;
+                    row = Optional.of(new Row(rowNum, fields, curEntry));
+                    rowNum++;
                 } else {
                     throw new NoSuchElementException("No elements found in JSON array");
                 }
@@ -94,34 +95,20 @@ public class JsonFileIterator implements Iterator<Map<String,String>>, FieldName
     }
 
     @Override
-    public String[] fields() {
-        return headers;
-    }
-
-    @Override
-    public boolean hasNext() {
-        return curEntry != null;
-    }
-
-    @Override
-    public Map<String, String> next() {
-        Map<String, String> result = curEntry;
-        if (nodeIterator.hasNext()) {
-            JsonNode node = nodeIterator.next();
-            curEntry = convert(node);
-        } else if (curEntry == null || curEntry.isEmpty()) {
-            throw new NoSuchElementException("Reading past the end of a JsonFileIterator.");
+    protected Optional<Row> getRow() {
+        // row is initially populated in the constructor
+        Optional<Row> toReturn = row;
+        if(nodeIterator.hasNext()) {
+            row = Optional.of(new Row(rowNum, fields, convert(nodeIterator.next())));
+            rowNum++;
+        } else {
+            try {
+                parser.close();
+            } catch (IOException e) {
+                logger.log(Level.WARNING, "Error closing reader at end of file", e);
+            }
         }
-        rowNum++;
-        return result;
-    }
-
-    /**
-     * Get the current example number.
-     * @return The current example number.
-     */
-    public int getRowNum() {
-        return rowNum;
+        return toReturn;
     }
 
     private static Map<String,String> convert(JsonNode node) {

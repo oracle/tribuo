@@ -19,6 +19,9 @@ package org.tribuo.common.libsvm;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import libsvm.svm_model;
+import libsvm.svm_node;
+import libsvm.svm_parameter;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -30,12 +33,10 @@ import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.util.Util;
-import libsvm.svm_model;
-import libsvm.svm_node;
-import libsvm.svm_parameter;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +153,7 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
 
         buffer.append("LibSVMTrainer(");
         buffer.append("svm_params=");
-        buffer.append(parameters.toString());
+        buffer.append(SVMParameters.svmParamsToString(parameters));
         buffer.append(")");
 
         return buffer.toString();

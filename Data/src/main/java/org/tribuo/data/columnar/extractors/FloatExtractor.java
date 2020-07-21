@@ -16,10 +16,8 @@
 
 package org.tribuo.data.columnar.extractors;
 
-import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.data.columnar.FieldExtractor;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -29,23 +27,17 @@ import java.util.logging.Logger;
  * <p>
  * Returns an empty optional if the value failed to parse.
  */
-public class FloatExtractor implements FieldExtractor<Float> {
+public class FloatExtractor extends SimpleFieldExtractor<Float> {
 
     private static final Logger logger = Logger.getLogger(FloatExtractor.class.getName());
 
-    @Config(mandatory = true, description = "The field name to read.")
-    private String fieldName;
-
-    @Config(description = "The metadata key to emit, defaults to field name if unpopulated")
-    private String metadataName;
 
     public FloatExtractor(String fieldName) {
-        this(fieldName, WEIGHT_NAME);
+        super(fieldName, fieldName);
     }
 
     public FloatExtractor(String fieldName, String metadataName) {
-        this.fieldName = fieldName;
-        this.metadataName = metadataName;
+        super(fieldName, metadataName);
     }
 
     /**
@@ -54,29 +46,12 @@ public class FloatExtractor implements FieldExtractor<Float> {
     private FloatExtractor() {}
 
     @Override
-    public void postConfig() {
-        if (metadataName == null || metadataName.isEmpty()) {
-            metadataName = fieldName;
-        }
-    }
-
-    @Override
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    @Override
-    public String getMetadataName() {
-        return metadataName;
-    }
-
-    @Override
     public Class<Float> getValueType() {
         return Float.class;
     }
 
     @Override
-    public Optional<Float> extract(String value) {
+    protected Optional<Float> extractField(String value) {
         try {
             float f = Float.parseFloat(value);
             return Optional.of(f);
@@ -84,11 +59,6 @@ public class FloatExtractor implements FieldExtractor<Float> {
             logger.warning("Failed to parse value for field " + fieldName + ", expected a float, got " + value);
         }
         return Optional.empty();
-    }
-
-    @Override
-    public String toString() {
-        return "FloatExtractor(fieldName="+fieldName+")";
     }
 
     @Override

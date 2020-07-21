@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.interop.json;
+package org.tribuo.json;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -63,10 +63,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.tribuo.interop.json.StripProvenance.ProvenanceTypes.ALL;
-import static org.tribuo.interop.json.StripProvenance.ProvenanceTypes.DATASET;
-import static org.tribuo.interop.json.StripProvenance.ProvenanceTypes.INSTANCE;
-import static org.tribuo.interop.json.StripProvenance.ProvenanceTypes.TRAINER;
+import static org.tribuo.json.StripProvenance.ProvenanceTypes.ALL;
+import static org.tribuo.json.StripProvenance.ProvenanceTypes.DATASET;
+import static org.tribuo.json.StripProvenance.ProvenanceTypes.INSTANCE;
+import static org.tribuo.json.StripProvenance.ProvenanceTypes.TRAINER;
 
 /**
  * A main class for stripping out and storing provenance from a model.

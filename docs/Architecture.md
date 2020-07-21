@@ -237,10 +237,10 @@ large amount of flexibility.
 ### Columnar Inputs
 
 Columnar data sources require a configurable extraction step to map the columns
-into Tribuo `Example` and `Feature` objects. This is because a single column
-may emit many features, or none at all, some columns may be unnecessary, some
-may form `Example` level metadata, and the output variable needs to be
-specified. To support this usecase Tribuo provides the `RowProcessor` a
+into Tribuo `Example` and `Feature` objects. A single column may contain many features, 
+or may be unnecessary, or may contain `Example` level metadata. In addition, the user 
+must specify which column(s) contain the output variable. To support this usecase 
+Tribuo provides the `RowProcessor` a
 configurable mechanism for converting a `ColumnarIterator.Row`, which is a
 tuple of a `Map<String,String>` and an row number into an `Example`. The
 `RowProcessor` uses 4 interfaces to process the input map:
@@ -314,6 +314,21 @@ ensure it maintains the proper statistics.
 
 We plan to introduce global feature transformations in some future release, to
 allow operations like PCA or other feature extraction steps.
+
+## Weights and Metadata
+
+Examples can have metadata attached to them, which can be used to filter out
+Examples, or otherwise tag them for special processing. The metadata takes the
+form of a `Map<String,String>`, which can only be appended to, and the values
+cannot be modified after insertion. In addition each Example has a float valued
+weight field, which can be used to denote how important an Example is in a
+training or evaluation setting. Not all training algorithms support weighted
+examples, if they do then they implement the `WeightedExamples` tag interface,
+otherwise the example weights are ignored. The weight field is currently
+supported in the `RegressionEvaluator` if the weighted evaluation flag is turned
+on. We'll consider adding this support to the other evaluators, though it
+may require breaking API changes as the return types of some accessor methods 
+could change from integer to floating point values.
 
 ## Obfuscation
 

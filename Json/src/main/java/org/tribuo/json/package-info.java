@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.data.columnar;
-
 /**
- * An interface for data loading classes that can provide the field names.
+ * Provides interop with JSON formatted data, along with tools for interacting with JSON provenance objects.
  */
-public interface FieldNames {
-    /**
-     * The field names.
-     * @return The field names.
-     */
-    String[] fields();
-}
+package org.tribuo.json;

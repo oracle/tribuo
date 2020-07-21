@@ -23,8 +23,8 @@ import org.tribuo.data.columnar.extractors.DateExtractor;
 import org.tribuo.data.columnar.extractors.FloatExtractor;
 import org.tribuo.data.columnar.extractors.IdentityExtractor;
 import org.tribuo.data.columnar.extractors.IntExtractor;
-import org.tribuo.data.columnar.processors.feature.DoubleFieldProcessor;
-import org.tribuo.data.columnar.processors.feature.IdentityProcessor;
+import org.tribuo.data.columnar.processors.field.DoubleFieldProcessor;
+import org.tribuo.data.columnar.processors.field.IdentityProcessor;
 import org.tribuo.test.MockOutput;
 import org.junit.jupiter.api.Test;
 

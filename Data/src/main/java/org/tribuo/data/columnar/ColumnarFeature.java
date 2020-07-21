@@ -22,7 +22,9 @@ import org.tribuo.Feature;
 /**
  * A Feature with extra bookkeeping for use inside the columnar package.
  * <p>
- * {@link Example}s may destroy and recreate Feature instances.
+ * {@link Example}s may destroy and recreate Feature instances so don't
+ * expect ColumnarFeatures to still be ColumnarFeatures if you probe the
+ * Example after construction.
  */
 public class ColumnarFeature extends Feature {
     private static final long serialVersionUID = 1L;
@@ -37,16 +39,33 @@ public class ColumnarFeature extends Feature {
 
     private final String secondFieldName;
 
-    public ColumnarFeature(String fieldName, String name, double value) {
-        super(generateFeatureName(fieldName,name), value);
+    private final String columnEntry;
+
+    /**
+     * Constructs a {@code ColumnarFeature} from the field name, column entry and value.
+     * @param fieldName The field name.
+     * @param columnEntry The name of the extracted value from the field.
+     * @param value The feature value.
+     */
+    public ColumnarFeature(String fieldName, String columnEntry, double value) {
+        super(generateFeatureName(fieldName,columnEntry), value);
         this.fieldName = fieldName;
+        this.columnEntry = columnEntry;
         this.firstFieldName = "";
         this.secondFieldName = "";
     }
 
-    public ColumnarFeature(String firstFieldName, String secondFieldName, String name, double value) {
-        super(generateFeatureName(firstFieldName,secondFieldName,name),value);
+    /**
+     * Constructs a {@code ColumnarFeature} which is the conjunction of features from two fields.
+     * @param firstFieldName The first field name.
+     * @param secondFieldName The second field name.
+     * @param columnEntry The name of the extracted value from the field.
+     * @param value The feature value.
+     */
+    public ColumnarFeature(String firstFieldName, String secondFieldName, String columnEntry, double value) {
+        super(generateFeatureName(firstFieldName,secondFieldName,columnEntry),value);
         this.fieldName = CONJUNCTION;
+        this.columnEntry = columnEntry;
         this.firstFieldName = firstFieldName;
         this.secondFieldName = secondFieldName;
     }
@@ -100,5 +119,14 @@ public class ColumnarFeature extends Feature {
      */
     public String getSecondFieldName() {
         return secondFieldName;
+    }
+
+    /**
+     * Gets the columnEntry (i.e. the feature name produced by the {@link FieldExtractor}
+     * without the fieldName).
+     * @return The feature's column entry.
+     */
+    public String getColumnEntry() {
+        return columnEntry;
     }
 }

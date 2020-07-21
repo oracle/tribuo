@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides interop with JSON formatted data, along with tools for interacting with JSON provenance objects.
+ * Provides implementations of {@link org.tribuo.data.columnar.FieldProcessor}.
  */
-package org.tribuo.interop.json;
+package org.tribuo.data.columnar.processors.field;

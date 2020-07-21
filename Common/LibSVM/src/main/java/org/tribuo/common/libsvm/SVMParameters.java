@@ -74,7 +74,7 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
 
     @Override
     public String toString() {
-        return parameters.toString();
+        return svmParamsToString(parameters);
     }
     
     /**
@@ -148,5 +148,50 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
         copy.weight_label = input.weight_label != null ? Arrays.copyOf(input.weight_label,input.weight_label.length) : null;
         copy.weight = input.weight != null ? Arrays.copyOf(input.weight,input.weight.length) : null;
         return copy;
+    }
+
+    /**
+     * A sensible toString for svm_parameter.
+     * @param param The parameters.
+     * @return A String describing the parameters.
+     */
+    public static String svmParamsToString(svm_parameter param) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("svm_parameter(svm_type=");
+        sb.append(param.svm_type);
+        sb.append(", kernel_type=");
+        sb.append(param.kernel_type);
+        sb.append(", degree=");
+        sb.append(param.degree);
+        sb.append(", gamma=");
+        sb.append(param.gamma);
+        sb.append(", coef0=");
+        sb.append(param.coef0);
+        sb.append(", cache_size=");
+        sb.append(param.coef0);
+        sb.append(", eps=");
+        sb.append(param.eps);
+        sb.append(", C=");
+        sb.append(param.C);
+        sb.append(", nr_weight=");
+        sb.append(param.nr_weight);
+        if (param.weight_label != null) {
+            sb.append(", weight_label=");
+            sb.append(Arrays.toString(param.weight_label));
+        }
+        if (param.weight != null) {
+            sb.append(", weight=");
+            sb.append(Arrays.toString(param.weight));
+        }
+        sb.append(", nu=");
+        sb.append(param.nu);
+        sb.append(", p=");
+        sb.append(param.p);
+        sb.append(", shrinking=");
+        sb.append(param.shrinking);
+        sb.append(", probability=");
+        sb.append(param.probability);
+        sb.append(')');
+        return sb.toString();
     }
 }

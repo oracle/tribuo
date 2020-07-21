@@ -16,10 +16,8 @@
 
 package org.tribuo.data.columnar.extractors;
 
-import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.data.columnar.FieldExtractor;
 
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -27,18 +25,15 @@ import java.util.logging.Logger;
 /**
  * Extracts the field value and emits it as a String.
  */
-public class IdentityExtractor implements FieldExtractor<String> {
+public class IdentityExtractor extends SimpleFieldExtractor<String> {
     private static final Logger logger = Logger.getLogger(IdentityExtractor.class.getName());
 
-    @Config(mandatory = true, description = "The field name to read.")
-    private String fieldName;
-
-    @Config(description = "The metadata key to emit, defaults to field name if unpopulated")
-    private String metadataName;
+    public IdentityExtractor(String fieldName) {
+        super(fieldName);
+    }
 
     public IdentityExtractor(String fieldName, String metadataName) {
-        this.fieldName = fieldName;
-        this.metadataName = metadataName;
+        super(fieldName, metadataName);
     }
 
     /**
@@ -47,39 +42,17 @@ public class IdentityExtractor implements FieldExtractor<String> {
     private IdentityExtractor() {}
 
     @Override
-    public void postConfig() {
-        if (metadataName == null || metadataName.isEmpty()) {
-            metadataName = fieldName;
-        }
-    }
-
-    @Override
-    public String getFieldName() {
-        return fieldName;
-    }
-
-    @Override
-    public String getMetadataName() {
-        return metadataName;
-    }
-
-    @Override
     public Class<String> getValueType() {
         return String.class;
     }
 
     @Override
-    public Optional<String> extract(String value) {
+    protected Optional<String> extractField(String value) {
         if (value == null || value.isEmpty()) {
             return Optional.empty();
         } else {
             return Optional.of(value);
         }
-    }
-
-    @Override
-    public String toString() {
-        return "IdentityExtractor(fieldName="+fieldName+")";
     }
 
     @Override

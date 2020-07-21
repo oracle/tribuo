@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.interop.json;
+package org.tribuo.json;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
@@ -29,6 +29,7 @@ import org.tribuo.DataSource;
 import org.tribuo.Example;
 import org.tribuo.Output;
 import org.tribuo.data.columnar.ColumnarDataSource;
+import org.tribuo.data.columnar.ColumnarIterator;
 import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
@@ -41,7 +42,6 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -110,9 +110,9 @@ public class JsonDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     }
 
     @Override
-    public Iterator<Example<T>> iterator() {
+    public ColumnarIterator rowIterator() {
         try {
-            return new ColumnarIterator(new JsonFileIterator(dataFile));
+            return new JsonFileIterator(dataFile);
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read data",e);
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.data.columnar.processors.feature;
+package org.tribuo.data.columnar.processors.field;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
@@ -74,7 +74,7 @@ public class TextFieldProcessor implements FieldProcessor {
 
     /**
      * Note: the copy shares the text pipeline with the original. This may induce multithreading issues if
-     * the underlying pipeline is not thread safe. Tribuo v3 builtin pipelines are thread safe.
+     * the underlying pipeline is not thread safe. Tribuo builtin pipelines are thread safe.
      * @param newFieldName The new field name for the copy.
      * @return A copy of this TextFieldProcessor with the new field name.
      */
