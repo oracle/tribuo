@@ -11,6 +11,6 @@ added in Java 10.
 The tutorials cover:
 - [Intro classification with Irises](irises-tribuo-v4.ipynb)
 - [Intro regression with wine-quality](regression-tribuo-v4.ipynb)
-- [Configuration files with MNIST](mnist-tribuo-v4.ipynb)
+- [Configuration files, provenance and feature transformations on MNIST](configuration-tribuo-v4.ipynb)
 - [Clustering with K-Means](clustering-tribuo-v4.ipynb)
 - [Anomaly Detection with LibSVM](anomaly-tribuo-v4.ipynb)

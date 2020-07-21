@@ -1,0 +1,91 @@
+{
+  "config" : {
+    "components" : [ {
+      "name" : "mnist-test",
+      "type" : "org.tribuo.datasource.LibSVMDataSource",
+      "export" : "false",
+      "import" : "false",
+      "properties" : {
+        "path" : "mnist.t",
+        "outputFactory" : "label-factory"
+      }
+    }, {
+      "name" : "mnist-train",
+      "type" : "org.tribuo.datasource.LibSVMDataSource",
+      "export" : "false",
+      "import" : "false",
+      "properties" : {
+        "path" : "mnist",
+        "outputFactory" : "label-factory"
+      }
+    }, {
+      "name" : "adagrad",
+      "type" : "org.tribuo.math.optimisers.AdaGrad",
+      "export" : "false",
+      "import" : "false",
+      "properties" : {
+        "epsilon" : "0.01",
+        "initialLearningRate" : "0.5"
+      }
+    }, {
+      "name" : "log",
+      "type" : "org.tribuo.classification.sgd.objectives.LogMulticlass",
+      "export" : "false",
+      "import" : "false"
+    }, {
+      "name" : "label-factory",
+      "type" : "org.tribuo.classification.LabelFactory",
+      "export" : "false",
+      "import" : "false"
+    }, {
+      "name" : "gini",
+      "type" : "org.tribuo.classification.dtree.impurity.GiniIndex",
+      "export" : "false",
+      "import" : "false"
+    }, {
+      "name" : "cart",
+      "type" : "org.tribuo.classification.dtree.CARTClassificationTrainer",
+      "export" : "false",
+      "import" : "false",
+      "properties" : {
+        "maxDepth" : "6",
+        "impurity" : "gini",
+        "seed" : "12345",
+        "fractionFeaturesInSplit" : "0.5"
+      }
+    }, {
+      "name" : "entropy",
+      "type" : "org.tribuo.classification.dtree.impurity.Entropy",
+      "export" : "false",
+      "import" : "false"
+    }, {
+      "name" : "logistic",
+      "type" : "org.tribuo.classification.sgd.linear.LinearSGDTrainer",
+      "export" : "false",
+      "import" : "false",
+      "properties" : {
+        "seed" : "1",
+        "minibatchSize" : "1",
+        "epochs" : "2",
+        "optimiser" : "adagrad",
+        "objective" : "log",
+        "loggingInterval" : "10000"
+      }
+    }, {
+      "name" : "xgboost",
+      "type" : "org.tribuo.classification.xgboost.XGBoostClassificationTrainer",
+      "export" : "false",
+      "import" : "false",
+      "properties" : {
+        "numTrees" : "10",
+        "maxDepth" : "4",
+        "eta" : "0.5",
+        "seed" : "1",
+        "minChildWeight" : "1.0",
+        "subsample" : "1.0",
+        "nThread" : "6",
+        "gamma" : "0.1"
+      }
+    } ]
+  }
+}
