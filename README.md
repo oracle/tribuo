@@ -82,6 +82,8 @@ Tribuo has implementations or interfaces for:
 |CART|Tribuo||
 |SVM-SGD|Tribuo|An implementation of the Pegasos algorithm|
 |Adaboost.SAMME|Tribuo|Can use any Tribuo classification trainer as the base learner|
+|Multinomial Naive Bayes|Tribuo|
+|LIME|Tribuo|Our LIME implementation allows mixing of text and tabular data, but does not support images||
 |Regularised Linear Models|LibLinear||
 |SVM|LibSVM or LibLinear|LibLinear only supports linear SVMs|
 |Gradient Boosted Decision Trees|XGBoost||
