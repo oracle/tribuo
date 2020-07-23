@@ -150,12 +150,15 @@ are native libraries), with Maven use:
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
     <version>4.0.0</version>
+    <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-api group: 'org.tribuo', name: 'tribuo-all', version: '4.0.0'
+api 'org.tribuo:tribuo-all:4.0.0@pom'
 ```
+
+The `tribuo-all` dependency is a pom which depends on all the Tribuo subprojects.
 
 Most of Tribuo is pure Java and thus cross-platform, however some of the
 interfaces link to libraries which use native code. Those interfaces
