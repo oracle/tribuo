@@ -11,7 +11,7 @@ Additionally, it includes the evaluation classes for all supported prediction
 types. Development is led by [Oracle Labs'](https://labs.oracle.com) Machine 
 Learning Research Group;  We welcome community contributions.
 
-All the trainers are configurable using the
+All trainers are configurable using the
 [OLCUT](https://github.com/oracle/olcut) configuration system. This allows a
 user to define a trainer in an xml file and repeatably build models.
 Example configurations for each of the supplied Trainers can be found in the config folder
@@ -67,7 +67,7 @@ Tribuo includes implementations of several algorithms suitable for a wide range 
 |K-NN|Tribuo|Includes options for several parallel backends, as well as a single threaded backend|
 |Neural Networks|TensorFlow|Pass a Tensor Flow Neural Net to a Tribuo wrapper. Models can be deployed using the ONNX interface or the TF interface|
 
-The ensembles and K-NN use a combination function to produce the output.
+The ensembles and K-NN use a combination function to produce their output.
 These combiners are prediction task specific, but the ensemble & K-NN implementations
 are task agnostic. We provide voting and averaging combiners for classification and regression tasks.
 
@@ -144,6 +144,7 @@ when it's released.
 Binaries are available on Maven Central, using groupId `org.tribuo`. To pull all of
 Tribuo, including the bindings for TensorFlow, ONNX Runtime and XGBoost (which
 are native libraries), use:
+
 Maven:
 ```xml
 <dependency>
