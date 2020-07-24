@@ -1,25 +1,26 @@
 # Architecture
 
-Tribuo is a library for making Machine Learning (ML) models, and then using those
+Tribuo is a library for creating Machine Learning (ML) models, and for using those
 models to make predictions on previously unseen data. 
 
-A ML model is the result of applying some training algorithm to a dataset, 
-producing what's usually a large number of floating point values, but could be 
-a tree structured if/else statement among many other things. In Tribuo a model
-is that, along with the necessary feature and output statistics to map from
-the named feature space into Tribuo's ids, and to map Tribuo's output ids into
+A ML model is the result of applying some training algorithm to a dataset. Most commonly,
+such algorithms produce output in the form of a large number of floating point values; 
+However, this output may take one of many different forms, such as a tree-structured 
+if/else statement for example. In Tribuo, a model includes not only this output, but 
+also the necessary feature and output statistics to map from
+the named feature space into Tribuo's ids, and from Tribuo's output ids into
 the named output space.
 
-Another way to think about a Tribuo `Model` is a learned mapping from a 
-*sparse* feature space of doubles into a *dense* output space (e.g. of class 
-label probabilities, or regressed outputs etc). Every dimension, both input and
-output, is named so these names can be used to check that the input and the 
+Another way to think about a Tribuo `Model` is to envision it as a learned mapping from a 
+*sparse* feature space of doubles to a *dense* output space (e.g. of class 
+label probabilities, or regressed outputs etc). Every dimension of the input and
+output are named. This naming system makes it possible to check that the input and 
 model agree on the feature space they are using.
 
 ## Data flow overview
 <p align="center"><img width="75%" alt="Tribuo architecture diagram" src="img/tribuo-data-flow.png" /></p>
 
-Tribuo loads in data from disk or a DB using a `DataSource` implementation.
+Tribuo loads data from disk or from a DB using a `DataSource` implementation.
 This DataSource processes the input data, converting it into Tribuo's storage
 format, an `Example`. An Example is a tuple of an `Output` (i.e. what you want
 to predict) and a list of Features, where each `Feature` is a tuple of a
