@@ -1,6 +1,6 @@
 # Architecture
 
-Tribuo is a library for creating Machine Learning (ML) models, and for using those
+Tribuo is a library for creating Machine Learning (ML) models and for using those
 models to make predictions on previously unseen data. 
 
 A ML model is the result of applying some training algorithm to a dataset. Most commonly,
