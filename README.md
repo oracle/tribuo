@@ -9,30 +9,30 @@ algorithms and also wraps other libraries to provide a unified interface.
 Tribuo contains all the code necessary to load, featurise and transform data. 
 Additionally, it includes the evaluation classes for all supported prediction 
 types. Development is led by [Oracle Labs'](https://labs.oracle.com) Machine 
-Learning Research Group and we welcome community contributions.
+Learning Research Group;  We welcome community contributions.
 
 All the trainers are configurable using the
 [OLCUT](https://github.com/oracle/olcut) configuration system. This allows a
-user to define a trainer in an xml file, and repeatably build models. There are
-example configurations for each of the supplied Trainers in the config folder
+user to define a trainer in an xml file and repeatably build models.
+Example configurations for each of the supplied Trainers can be found in the config folder
 of each package. These configuration files can also be written in json or edn
-by using the appropriate OLCUT configuration dependency. Models are
-serializable using Java serialization, as are the datasets themselves. 
+by using the appropriate OLCUT configuration dependency. Models and datasets are 
+serializable using Java serialization. 
 
 All models and evaluations include a serializable provenance object which
-records when the model or evaluation was created, what data was used, any
-transformations applied to the data, the hyperparameters of the trainer, and
-for evaluations, what model was used. This information can be extracted out
-into JSON, or can be serialised directly using Java serialisation. For
-production deployments this provenance information can be redacted and replaced
+records the creation time of the model or evaluation, the identity of the data and any
+transformations applied to it, as well as the hyperparameters of the trainer. In
+the case of evaluations, this provenance information also includes the specific model used. Provenance information can be extracted as
+JSON,or serialised directly using Java serialisation. For
+production deployments, provenance information can be redacted and replaced
 with a hash to provide model tracking through an external system.
 
-Tribuo runs on Java 8+, and we test on LTS versions of Java, along with the
-latest release.  Tribuo itself is a pure Java library and supported on all Java
-platforms, however some of our interfaces require native code, and those are
-supported only where the native library is. We test on x86\_64 architectures on
+Tribuo runs on Java 8+, and we test on LTS versions of Java along with the
+latest release.  Tribuo itself is a pure Java library and is supported on all Java
+platforms;  However, some of our interfaces require native code and are thus
+supported only where there is native library support. We test on x86\_64 architectures on
 Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these are supported
-platforms for the native libraries we interface with. If you're interested in
+platforms for the native libraries with which we interface. If you're interested in
 another platform and wish to use one of the native library interfaces (ONNX
 Runtime, TensorFlow, and XGBoost) then we recommend reaching out to the
 developers of those libraries.
@@ -48,11 +48,10 @@ developers of those libraries.
 
 ## Tutorials
 
-We have tutorial notebooks for Classification, Clustering, Regression, Anomaly
-Detection and the configuration system in [tutorials](tutorials). These use the
+Tutorial notebooks, including examples of Classification, Clustering, Regression, Anomaly
+Detection and the configuration system, can be found in [tutorials](tutorials). These use the
 [IJava](https://github.com/SpencerPark/IJava) Jupyter notebook kernel, and work
-with Java 10+. The code in the tutorials should be straightforwardly
-convertible back to Java 8 code by replacing the `var` keyword with the
+with Java 10+. To convert the tutorials' code back to Java 8, simply replace the `var` keyword with the
 appropriate types.
 
 ## Algorithms
