@@ -4,7 +4,7 @@
 
 [Tribuo](https://tribuo.org) is a machine learning library in Java that provides
 multi-class classification, regression, clustering, anomaly detection and
-multi-label classification. It provides implementations of popular ML
+multi-label classification. Tribuo provides implementations of popular ML
 algorithms and also wraps other libraries to provide a unified interface.
 Tribuo contains all the code necessary to load, featurise and transform data. 
 Additionally, it includes the evaluation classes for all supported prediction 
@@ -49,7 +49,7 @@ developers of those libraries.
 ## Tutorials
 
 Tutorial notebooks, including examples of Classification, Clustering, Regression, Anomaly
-Detection and the configuration system, can be found in [tutorials](tutorials). These use the
+Detection and the configuration system, can be found in the [tutorials](tutorials). These use the
 [IJava](https://github.com/SpencerPark/IJava) Jupyter notebook kernel, and work
 with Java 10+. To convert the tutorials' code back to Java 8, simply replace the `var` keyword with the
 appropriate types.
@@ -58,17 +58,17 @@ appropriate types.
 
 ### General predictors
 
-Tribuo has several implementations which can be used for multiple prediction tasks:
+Tribuo includes implementations of several algorithms suitable for a wide range of prediction tasks:
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
 |Bagging|Tribuo|Can use any Tribuo trainer as the base learner|
 |Random Forest|Tribuo|Can use any Tribuo tree trainer as the base learner|
-|K-NN|Tribuo|Has several parallel backends, as well as a single threaded backend|
-|Neural Networks|TensorFlow|Via the TensorFlow interface. Models can be deployed using the ONNX interface or the TF interface|
+|K-NN|Tribuo|Includes options for several parallel backends, as well as a single threaded backend|
+|Neural Networks|TensorFlow|Pass a Tensor Flow Neural Net to a Tribuo wrapper. Models can be deployed using the ONNX interface or the TF interface|
 
-The ensembles and K-NN use a combination function to produce the output,
-those combiners are prediction task specific but the ensemble & K-NN implementations
+The ensembles and K-NN use a combination function to produce the output.
+These combiners are prediction task specific, but the ensemble & K-NN implementations
 are task agnostic. We provide voting and averaging combiners for classification and regression tasks.
 
 ### Classification
@@ -87,13 +87,13 @@ Tribuo has implementations or interfaces for:
 |SVM|LibSVM or LibLinear|LibLinear only supports linear SVMs|
 |Gradient Boosted Decision Trees|XGBoost||
 
-Tribuo also has a linear chain CRF for sequence classification tasks. This is also
+Tribuo also supplies a linear chain CRF for sequence classification tasks. This CRF is
 trained via SGD using any of Tribuo's gradient optimizers.
 
 ### Regression
 
-Tribuo's regression algorithms are multidimensional by default, any single dimensional implementations are wrapped
-so they can produce a multidimensional output.
+Tribuo's regression algorithms are multidimensional by default. Single dimensional implementations are wrapped
+in order to produce multidimensional output.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
@@ -107,15 +107,15 @@ so they can produce a multidimensional output.
 
 ### Clustering
 
-Tribuo has infrastructure for clustering and a single algorithm. We expect to add new implementations over time.
+Tribuo includes infrastructure for clustering and also supplies a single clustering algorithm implementation. We expect to implement additional algorithms over time.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
-|K-Means|Tribuo|Has both sequential and parallel backends|
+|K-Means|Tribuo|Includes both sequential and parallel backends|
 
 ### Anomaly Detection
 
-Tribuo has infrastructure for anomaly detection tasks and a single backend implementation using LibSVM.
+Tribuo offers infrastructure for anomaly detection tasks and a single backend implementation using LibSVM.
 We expect to add new implementations over time.
 
 |Algorithm|Implementation|Notes|
@@ -141,9 +141,10 @@ when it's released.
 
 ## Binaries
 
-Binaries are on Maven Central, using groupId `org.tribuo`. To pull in all of
+Binaries are available on Maven Central, using groupId `org.tribuo`. To pull all of
 Tribuo, including the bindings for TensorFlow, ONNX Runtime and XGBoost (which
-are native libraries), with Maven use:
+are native libraries), use:
+Maven:
 ```xml
 <dependency>
     <groupId>org.tribuo</groupId>
@@ -167,15 +168,15 @@ are supplied. If you need support for a specific platform, reach out to the
 maintainers of those projects.
 
 Individual jars are published for each Tribuo module, and it's preferred to
-depend only on the modules necessary for the specific project to prevent
+depend only on the modules necessary for the specific project. This prevents
 pulling in large dependencies like TensorFlow.
 
 ## Compiling from source
 
 Tribuo uses [Apache Maven](https://maven.apache.org/) v3.5 or higher to build.
-It's compatible with Java 8+, and we test on LTS versions of Java, along with
-the latest release. To build simply run `mvn clean package`. All Tribuo's
-dependencies should be on Maven Central, please file an issue for build related
+Tribuo is compatible with Java 8+, and we test on LTS versions of Java along with
+the latest release. To build, simply run `mvn clean package`. All Tribuo's
+dependencies should be available on Maven Central. Please file an issue for build-related
 issues if you're having trouble (though do check if you're missing proxy
 settings for Maven first, as that's a common cause of build failures, and out
 of our control).
