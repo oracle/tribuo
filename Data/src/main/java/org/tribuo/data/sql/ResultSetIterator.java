@@ -58,7 +58,7 @@ public class ResultSetIterator extends ColumnarIterator {
     @Override
     protected Optional<Row> getRow() {
         try {
-            if(resultSet.next()) {
+            if(!resultSet.isClosed() && resultSet.next()) {
                 Map<String, String> rowMap = new HashMap<>();
                 for(int i=0; i < fields.size(); i++) {
                     Object obj = null;
@@ -75,7 +75,9 @@ public class ResultSetIterator extends ColumnarIterator {
                 }
                 return Optional.of(new Row(rowNum, fields, rowMap));
             } else {
-                resultSet.close();
+                if(!resultSet.isClosed()) {
+                    resultSet.close();
+                }
                 return Optional.empty();
             }
         } catch (SQLException e) {
