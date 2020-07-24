@@ -2,7 +2,7 @@
 
 # Tribuo - A Java prediction library (v4.0)
 
-[Tribuo](https://tribuo.org) is a machine learning library in Java, providing
+[Tribuo](https://tribuo.org) is a machine learning library in Java that provides
 multi-class classification, regression, clustering, anomaly detection and
 multi-label classification. It provides implementations of popular ML
 algorithms and also wraps other libraries to provide a unified interface.
@@ -23,7 +23,7 @@ All models and evaluations include a serializable provenance object which
 records the creation time of the model or evaluation, the identity of the data and any
 transformations applied to it, as well as the hyperparameters of the trainer. In
 the case of evaluations, this provenance information also includes the specific model used. Provenance information can be extracted as
-JSON,or serialised directly using Java serialisation. For
+JSON, or serialised directly using Java serialisation. For
 production deployments, provenance information can be redacted and replaced
 with a hash to provide model tracking through an external system.
 
@@ -34,7 +34,7 @@ supported only where there is native library support. We test on x86\_64 archite
 Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these are supported
 platforms for the native libraries with which we interface. If you're interested in
 another platform and wish to use one of the native library interfaces (ONNX
-Runtime, TensorFlow, and XGBoost) then we recommend reaching out to the
+Runtime, TensorFlow, and XGBoost), we recommend reaching out to the
 developers of those libraries.
 
 ## Documentation
