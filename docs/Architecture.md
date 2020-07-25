@@ -98,22 +98,22 @@ package has companion implementations of `OutputFactory`, `OutputInfo`,
 for each `Label`. This is a reasonable baseline strategy to use for multi-label
 problems.
 
-Finally there are cross cutting module collections:
+Finally there are cross-cutting module collections:
 - Common provides shared infrastructure for the prediction tasks.
 - Interop provides infrastructure for working with large external libraries
   like TensorFlow and ONNX Runtime.
-- Util provides independent libraries that Tribuo uses for certain tasks:
-  InformationTheory is a library of information theoretic functions, and Tokens
-provides the interface Tribuo uses for tokenization along with implementations
-of several tokenizers.
+- Util provides independent libraries that Tribuo uses for certain tasks. For
+ example, InformationTheory is a library of information theoretic functions
+ , and Tokens provides the interface Tribuo uses for tokenization along with
+  implementations of several tokenizers.
 
 ## Configuration, Options and Provenance
 
 Many of Tribuo's trainers, datasources and other classes implement the
 `Configurable` interface. This is provided by
 [OLCUT](https://github.com/oracle/olcut), and allows for runtime configuration
-of classes based on configuration files written in a variety of formats (the
-default format is xml, and json & edn are also available).
+of classes based on configuration files written in a variety of formats (The
+default format is xml. json & edn are also available).
 
 The configuration system is integrated into the command line arguments
 `Options` system build into OLCUT's `ConfigurationManager`. Values in
@@ -169,7 +169,7 @@ Only fields which are configured need to be annotated `@Config`. Other fields
 can be set in the appropriate constructor.  OLCUT requires that all classes
 which implement `Configurable` have a no-args constructor. The interface
 allows for a `postConfig` method, which is called after the object has been
-constructed and has had the appropriate field values inserted, but before it is
+constructed and the appropriate field values inserted, but before it is
 published or returned from the `ConfigurationManager`. This `postConfig` method
 is used to perform the validation that would normally be performed in a
  constructor, and it can be called from regular constructors.  Default values
