@@ -14,28 +14,29 @@ Learning Research Group;  We welcome community contributions.
 All trainers are configurable using the
 [OLCUT](https://github.com/oracle/olcut) configuration system. This allows a
 user to define a trainer in an xml file and repeatably build models.
-Example configurations for each of the supplied Trainers can be found in the config folder
-of each package. These configuration files can also be written in json or edn
-by using the appropriate OLCUT configuration dependency. Models and datasets are 
-serializable using Java serialization. 
+Example configurations for each of the supplied Trainers can be found in the 
+config folder of each package. These configuration files can also be written
+in json or edn by using the appropriate OLCUT configuration dependency. Models 
+and datasets are serializable using Java serialization. 
 
 All models and evaluations include a serializable provenance object which
-records the creation time of the model or evaluation, the identity of the data and any
-transformations applied to it, as well as the hyperparameters of the trainer. In
-the case of evaluations, this provenance information also includes the specific model used. Provenance information can be extracted as
-JSON, or serialised directly using Java serialisation. For
-production deployments, provenance information can be redacted and replaced
-with a hash to provide model tracking through an external system.
+records the creation time of the model or evaluation, the identity of the data 
+and any transformations applied to it, as well as the hyperparameters of the
+trainer. In the case of evaluations, this provenance information also
+includes the specific model used. Provenance information can be extracted as
+JSON, or serialised directly using Java serialisation. For production
+deployments, provenance information can be redacted and replaced with a hash
+to provide model tracking through an external system.
 
 Tribuo runs on Java 8+, and we test on LTS versions of Java along with the
-latest release.  Tribuo itself is a pure Java library and is supported on all Java
-platforms;  However, some of our interfaces require native code and are thus
-supported only where there is native library support. We test on x86\_64 architectures on
-Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these are supported
-platforms for the native libraries with which we interface. If you're interested in
-another platform and wish to use one of the native library interfaces (ONNX
-Runtime, TensorFlow, and XGBoost), we recommend reaching out to the
-developers of those libraries.
+latest release.  Tribuo itself is a pure Java library and is supported on all 
+Java platforms;  However, some of our interfaces require native code and are
+thus supported only where there is native library support. We test on x86\_64
+architectures on Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these
+are supported platforms for the native libraries with which we interface. If
+you're interested in another platform and wish to use one of the native
+library interfaces (ONNX Runtime, TensorFlow, and XGBoost), we recommend
+reaching out to the developers of those libraries.
 
 ## Documentation
 
@@ -48,17 +49,19 @@ developers of those libraries.
 
 ## Tutorials
 
-Tutorial notebooks, including examples of Classification, Clustering, Regression, Anomaly
-Detection and the configuration system, can be found in the [tutorials](tutorials). These use the
-[IJava](https://github.com/SpencerPark/IJava) Jupyter notebook kernel, and work
-with Java 10+. To convert the tutorials' code back to Java 8, simply replace the `var` keyword with the
-appropriate types.
+Tutorial notebooks, including examples of Classification, Clustering, 
+Regression, Anomaly Detection and the configuration system, can be found in
+the [tutorials](tutorials). These use the [IJava](https://github.com
+/SpencerPark/IJava) Jupyter notebook kernel, and work with Java 10+. To
+convert the tutorials' code back to Java 8, simply replace the `var` keyword 
+with the appropriate types.
 
 ## Algorithms
 
 ### General predictors
 
-Tribuo includes implementations of several algorithms suitable for a wide range of prediction tasks:
+Tribuo includes implementations of several algorithms suitable for a wide range 
+of prediction tasks:
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
@@ -68,8 +71,9 @@ Tribuo includes implementations of several algorithms suitable for a wide range 
 |Neural Networks|TensorFlow|Pass a Tensor Flow Neural Net to a Tribuo wrapper. Models can be deployed using the ONNX interface or the TF interface|
 
 The ensembles and K-NN use a combination function to produce their output.
-These combiners are prediction task specific, but the ensemble & K-NN implementations
-are task agnostic. We provide voting and averaging combiners for classification and regression tasks.
+These combiners are prediction task specific, but the ensemble & K-NN 
+implementations are task agnostic. We provide voting and averaging combiners
+for classification and regression tasks.
 
 ### Classification
 
@@ -87,13 +91,14 @@ Tribuo has implementations or interfaces for:
 |SVM|LibSVM or LibLinear|LibLinear only supports linear SVMs|
 |Gradient Boosted Decision Trees|XGBoost||
 
-Tribuo also supplies a linear chain CRF for sequence classification tasks. This CRF is
-trained via SGD using any of Tribuo's gradient optimizers.
+Tribuo also supplies a linear chain CRF for sequence classification tasks. This 
+CRF is trained via SGD using any of Tribuo's gradient optimizers.
 
 ### Regression
 
-Tribuo's regression algorithms are multidimensional by default. Single dimensional implementations are wrapped
-in order to produce multidimensional output.
+Tribuo's regression algorithms are multidimensional by default. Single 
+dimensional implementations are wrapped in order to produce multidimensional
+output.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
@@ -107,7 +112,9 @@ in order to produce multidimensional output.
 
 ### Clustering
 
-Tribuo includes infrastructure for clustering and also supplies a single clustering algorithm implementation. We expect to implement additional algorithms over time.
+Tribuo includes infrastructure for clustering and also supplies a single 
+clustering algorithm implementation. We expect to implement additional 
+algorithms over time.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
@@ -115,8 +122,8 @@ Tribuo includes infrastructure for clustering and also supplies a single cluster
 
 ### Anomaly Detection
 
-Tribuo offers infrastructure for anomaly detection tasks and a single backend implementation using LibSVM.
-We expect to add new implementations over time.
+Tribuo offers infrastructure for anomaly detection tasks and a single backend 
+implementation using LibSVM. We expect to add new implementations over time.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
@@ -141,9 +148,9 @@ when it's released.
 
 ## Binaries
 
-Binaries are available on Maven Central, using groupId `org.tribuo`. To pull all of
-Tribuo, including the bindings for TensorFlow, ONNX Runtime and XGBoost (which
-are native libraries), use:
+Binaries are available on Maven Central, using groupId `org.tribuo`. To pull all 
+of Tribuo, including the bindings for TensorFlow, ONNX Runtime and XGBoost
+(which are native libraries), use:
 
 Maven:
 ```xml
@@ -168,18 +175,19 @@ respective published binaries, and Tribuo has no control over which binaries
 are supplied. If you need support for a specific platform, reach out to the
 maintainers of those projects.
 
-Individual jars are published for each Tribuo module, and it's preferred to
+Individual jars are published for each Tribuo module. It is preferable to
 depend only on the modules necessary for the specific project. This prevents
-pulling in large dependencies like TensorFlow.
+ your code from unnecessarily pulling in large dependencies like TensorFlow
 
 ## Compiling from source
 
 Tribuo uses [Apache Maven](https://maven.apache.org/) v3.5 or higher to build.
 Tribuo is compatible with Java 8+, and we test on LTS versions of Java along with
 the latest release. To build, simply run `mvn clean package`. All Tribuo's
-dependencies should be available on Maven Central. Please file an issue for build-related
-issues if you're having trouble (though do check if you're missing proxy
-settings for Maven first, as that's a common cause of build failures, and out
+dependencies should be available on Maven Central. Please file an issue for 
+build-related issues if you're having trouble (though do check if you're
+missing proxy settings for Maven first, as that's a common cause of build
+failures, and out
 of our control).
 
 ## Contributing
