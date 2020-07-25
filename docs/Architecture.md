@@ -1,21 +1,21 @@
 # Architecture
 
-Tribuo is a library for creating Machine Learning (ML) models and for using those
-models to make predictions on previously unseen data. 
+Tribuo is a library for creating Machine Learning (ML) models and for using
+those models to make predictions on previously unseen data. 
 
-A ML model is the result of applying some training algorithm to a dataset. Most commonly,
-such algorithms produce output in the form of a large number of floating point values; 
-However, this output may take one of many different forms, such as a tree-structured 
-if/else statement for example. In Tribuo, a model includes not only this output, but 
-also the necessary feature and output statistics to map from
-the named feature space into Tribuo's ids, and from Tribuo's output ids into
-the named output space.
+A ML model is the result of applying some training algorithm to a dataset. Most 
+commonly, such algorithms produce output in the form of a large number of
+floating point values; However, this output may take one of many different
+forms, such as a tree-structured if/else statement for example. In Tribuo,
+a model includes not only this output, but also the necessary feature and
+output statistics to map from the named feature space into Tribuo's ids, and 
+from Tribuo's output ids into the named output space.
 
-Another way to think about a Tribuo `Model` is to envision it as a learned mapping from a 
-*sparse* feature space of doubles to a *dense* output space (e.g. of class 
-label probabilities, or regressed outputs etc). Every dimension of the input and
-output are named. This naming system makes it possible to check that the input and 
-model agree on the feature space they are using.
+A Tribuo `Model` can also be thought of as a learned mapping from a *sparse* 
+feature space of doubles to a *dense* output space (e.g. of class label 
+probabilities, or regressed outputs etc). Every dimension of the input and 
+output are named. This naming system makes it possible to check that the
+ input and model agree on the feature space they are using.
 
 ## Data flow overview
 <p align="center"><img width="75%" alt="Tribuo architecture diagram" src="img/tribuo-data-flow.png" /></p>
@@ -58,11 +58,12 @@ Tribuo has several top level modules:
 
 Tribuo has separate modules for each prediction task:
 - Classification contains an `Output` implementation called `Label` which
-  represents a multi-class classification.  Each `Label` is a tuple of a String
-name, and a double precision score value. The Classification package has
-companion implementations of `OutputFactory`, `OutputInfo`, `Evaluator` and
-`Evaluation` called `LabelFactory`, `LabelInfo`, `LabelEvaluator` and
-`LabelEvaluation` respectively.
+  represents a multi-class classification.  A `Label` is a tuple of a String
+name, and a double precision score value. For each of the more general 
+`OutputFactory`, `OutputInfo`, `Evaluator` and `Evaluation`, the Classification
+ package includes a classification specific implementation, namely
+  `LabelFactory`, `LabelInfo`, `LabelEvaluator` and`LabelEvaluation
+  ` respectively.
 - Regression contains an `Output` implementation called `Regressor` which
   represents multidimensional regression.  Each `Regressor` is a tuple of
 dimension names, double precision dimension values, and double precision
@@ -112,7 +113,7 @@ Many of Tribuo's trainers, datasources and other classes implement the
 `Configurable` interface. This is provided by
 [OLCUT](https://github.com/oracle/olcut), and allows for runtime configuration
 of classes based on configuration files written in a variety of formats (the
-default format is xml, and json & edn are available).
+default format is xml, and json & edn are also available).
 
 The configuration system is integrated into the command line arguments
 `Options` system build into OLCUT's `ConfigurationManager`. Values in
@@ -121,10 +122,10 @@ configuration files can be overridden on the command line by supplying
 system provides the basis of Tribuo's model tracking `Provenance` system, which
 records all hyperparameters, dataset parameters (e.g. file location, train/test
 split etc), and any user supplied instance information, along with run specific
-information such as the file hash, number of training examples etc. A model
+information such as the file hash, number of training examples, etc. A model
 provenance can be converted into a list of configurations for each
-`Configurable` object involved in the model training. Similarly an evaluation
-provenance can be converted into the configurations for the model, and the
+`Configurable` object involved in the model training. Similarly, an evaluation
+provenance can be converted into the configurations for the model and the
 configurations for the test dataset. These configurations can be loaded into a
 fresh `ConfigurationManager`, optionally saved to disk, and the evaluation or
 model training can be repeated (or rerun with tweaks like new data or a
@@ -164,19 +165,19 @@ public class LinearSGDTrainer implements Trainer<Label>, WeightedExamples {
 }
 ```
 
-Only fields which are configured need to be annotated `@Config`, other fields
+Only fields which are configured need to be annotated `@Config`. Other fields
 can be set in the appropriate constructor.  OLCUT requires that all classes
-which implement `Configurable` have a no-args constructor, and the interface
+which implement `Configurable` have a no-args constructor. The interface
 allows for a `postConfig` method, which is called after the object has been
-constructed and had the appropriate field values inserted, but before it is
+constructed and has had the appropriate field values inserted, but before it is
 published or returned from the `ConfigurationManager`. This `postConfig` method
-is used for the same validation that you would perform in a constructor, and
-can be called from the regular constructors.  Default values for the
-configurable parameters can be specified in the way that default fields are
-usually specified, and the `@Config` annotation has optional parameters for the
-description, if the field is mandatory, and if the field value should be
-redacted from any configuration or provenance based on this object. More
-details about OLCUT can be found in it's
+is used to perform the validation that would normally be performed in a
+ constructor, and it can be called from regular constructors.  Default values
+ for the configurable parameters can be specified in the same way default
+ fields are usually specified. The `@Config` annotation has optional
+ parameters to specify the description, whether the field is mandatory, and
+ whether the field value should be redacted from any configuration or
+ provenance based on this object. More details about OLCUT can be found in it's
 [documentation](https://github.com/oracle/OLCUT).
 
 The `LinearSGDTrainer` class above is configured by the xml snippet below:
