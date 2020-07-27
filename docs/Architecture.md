@@ -53,17 +53,17 @@ Tribuo includes several top level modules:
   package which provides infrastructure for working with columnar data.
 - Math provides Tribuo's linear algebra library, along with kernels and
   gradient optimizers.
-- Json provides a json data loader and a tool to strip provenance from trained
+- JSON provides a JSON data loader and a tool to strip provenance from trained
   models.
 
 Tribuo has separate modules for each prediction task:
 - Classification contains an `Output` implementation called `Label`, which
   represents a multi-class classification.  A `Label` is a tuple of a String
-name, and a double precision score value. For each of the more general 
+name, and a double precision score value. For each of 
 `OutputFactory`, `OutputInfo`, `Evaluator` and `Evaluation`, the Classification
- package includes a classification specific implementation, namely
-  `LabelFactory`, `LabelInfo`, `LabelEvaluator` and`LabelEvaluation
-  `, respectively.
+ package includes a classification-specific implementation, namely
+  `LabelFactory`, `LabelInfo`, `LabelEvaluator` and`LabelEvaluation`, 
+  respectively.
 - Regression contains an `Output` implementation called `Regressor`, which
   represents multidimensional regression.  Each `Regressor` is a tuple of
 dimension names, double precision dimension values, and double precision
@@ -112,8 +112,8 @@ Finally, there are cross-cutting module collections:
 Many of Tribuo's trainers, datasources and other classes implement the
 `Configurable` interface. This is provided by
 [OLCUT](https://github.com/oracle/olcut), and allows for runtime configuration
-of classes based on configuration files written in a variety of formats (The
-default format is xml. json & edn are also available).
+of classes based on configuration files written in a variety of formats. The
+default format is xml. Other available formats include JSON & edn.
 
 The configuration system is integrated into the command line arguments
 `Options` system build into OLCUT's `ConfigurationManager`. Values in
@@ -249,9 +249,9 @@ into Tribuo `Example` and `Feature` objects. A single column may contain
    is a tuple of a `Map<String,String>` and a row number) into an `Example`. The
 `RowProcessor` uses four interfaces to process the input map:
 - `FieldExtractor` - processes the whole row at once, extracting metadata
-  fields, which are then written into the `Example`.  An example of such a
-   metadata field is the `Example`'s id number. As described in the javadoc, the
-    `Example`'s weight is handled as a special case of the metadata processing.
+  fields. These extracted fields, such as an `Example`'s id number, are then 
+  written into the `Example`. As described in the javadoc, the `Example`'s 
+  weight is handled as a special case of the metadata processing.
 - `FieldProcessor` - processes a single field to produce a (possibly empty)
   list of `Feature`s.
 - `FeatureProcessor` - processes all the features after they have been
@@ -315,7 +315,7 @@ Tribuo supports independent, feature-based transformations including
  every feature name which matches the regex receives a copy
  of that transformation pipeline, and that pipeline is then applied to the
  feature.  An exception will be thrown if an attempt is made to apply a
- regex transformation to a feature that has already received a local
+ regex transformation pipeline to a feature that has already received a local
  transformation pipeline. Additionally, all transformations are
  applied to the feature domain to ensure it maintains the proper statistics.
 
@@ -331,9 +331,9 @@ Examples can have metadata attached to them, and this metadata can be used to
   values cannot be modified after insertion. In addition, each Example has
   a float-valued weight field, which can be used to denote the importance of an
   Example in a training or evaluation setting. Only training algorithms that
-  implement the `WeightedExamples` tag interface support weighted examples
-  ; otherwise the example weights are ignored. 
-  The weight field is currently supported in the `RegressionEvaluator` if
+  implement the `WeightedExamples` tag interface support weighted examples; 
+  otherwise the example weights are ignored. The weight field is currently 
+  supported in the `RegressionEvaluator` if
   the weighted evaluation flag is turned on. We'll consider adding this
   support to the other evaluators, although it may require breaking API changes
   since the return types of some accessor methods could change from integer to

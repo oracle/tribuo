@@ -4,22 +4,23 @@
 
 ### Why is it called Tribuo?
 
-It's from the latin to assign or apportion, and it's a prediction system for
-assigning outputs to examples. Plus we know a latin teacher, and we'd like to
-keep them employed.
+"Tribuo" comes from the Latin for "to assign" or "apportion", which makes
+ sense since Tribuo is a prediction system for assigning outputs to examples. 
+ Plus we know a Latin teacher, and we'd like to keep her employed.
 
 ### When did the project start?
 
 The initial version of Tribuo was written in 2016 with the internal v1.0
-release in the fall of 2016. The first open source release was v4.0, released
-in July 2020.  Tribuo was designed after the Machine Learning Research Group in
+was released in the fall of 2016. The first open source release was v4.0, 
+released in July 2020.  Tribuo was designed after the Machine Learning
+Research Group in
 [Oracle Labs](https://labs.oracle.com) had written several text classification
-projects in Java, and realised the need for a good single node ML framework on
+projects in Java and realised the need for a good single node ML framework on
 the JVM.
 
 ### What's it being used for?
 
-We have several internal groups at Oracle building ML features using Tribuo,
+Several internal groups at Oracle are using Tribuo to build ML features,
 many focused around it's text classification and sequence prediction features.
 We're releasing it to the wider Java community to help build the ML ecosystem on
 the Java platform.
@@ -38,9 +39,9 @@ other feedback on our GitHub repo. The Tribuo mailing list is
 Contributor Agreement](https://www.oracle.com/technetwork/community/oca-486395.html), 
 and contributors must have signed it before their PRs can be reviewed or merged.
 
-We're also interested in how people are using Tribuo, our users' feedback and
-feature requests has always driven it's development internally at Oracle, and
-we want to continue that with the open source project.
+We're interested in how people are using Tribuo. Our users' feedback and
+feature requests have always driven Tribuo's development internally at Oracle, 
+and we want to continue that tradition with the open source project.
 
 ### What's the versioning strategy & compatibility plan?
 
@@ -48,30 +49,31 @@ Tribuo approximates semantic versioning. Major version bumps can break
 backwards compatibility, both of code and serialized models (though we hope
 to fix the latter by moving to a new serialization architecture). Minor 
 version bumps can add new features, improve performance (both statistically
-and runtime/memory usage), and add new functionality to existing algorithms 
-provided it's an upwards compatible change. Patch releases fix bugs in existing
-versions, and security issues when they are discovered. Patch releases
-may also add small new methods/classes if they are required to fix the bugs.
+and in terms of runtime/memory usage), and add new functionality to existing
+ algorithms, provided it's an upwards compatible change. Patch releases fix
+ bugs in existing versions, and resolve security issues when they are 
+ discovered. Patch releases may also add small new methods/classes if they
+  are required to fix bugs.
 
 Tribuo's dependencies may change in each type of release, but patch releases
 can only bump the versions of existing dependencies (to newer patch releases of
 those dependencies), and minor releases can only add new dependencies and bump 
 the versions of existing ones.
 
-Anything considered internal API (e.g. the innards of the tree builders, 
-classes in `impl` packages outside of Core) can change in any version, but
-these are usually marked in the javadoc as internal classes, and will be closed
-off in the module system when we adopt it.
+Anything considered part of the internal API (e.g. the innards of the tree
+ builders and the  classes in `impl` packages outside of Core) can change in
+  any version, but these are usually marked in the javadoc as internal
+  classes, and will be closed off in the module system when we adopt it.
 
 ## Project Overview 
 
-### Why is the code broken out by prediction task (e.g. Classification, Regression etc)?
+### Why is the code broken out by prediction task (e.g. Classification, Regression, etc.)?
 
 We designed Tribuo to be as modular as possible, with users able to depend on
 only the pieces they need without additional unnecessary components or third
 party dependencies. If you want to deploy a Tribuo `RandomForestClassifier`,
 you only need the tribuo-classification-decision-tree jar and it's
-dependencies, it doesn't pull in TensorFlow, or anything else. This makes it
+dependencies; it doesn't pull in TensorFlow, or anything else. This makes it
 simpler to package up a production deployment, as there is a smaller code
 surface to test, fewer jars and less space used up with unnecessary things.
 
@@ -84,35 +86,37 @@ community finds this structure useful.
 Scikit-learn has popularised the fit/predict style in Python Machine Learning
 libraries, and given Python's lax approach to typing, those methods are only
 part of the API by convention rather that being enforced by the type system. In
-Tribuo we've split out training from prediction, so Tribuo's fit method is
-called "train" and lives on the `Trainer` interface, and Tribuo's predict lives
-on the Model class. Tribuo uses the same predict call to produce both the
-outputs and the scores for those outputs, it's predict method is the equivalent
-of both "predict" and "predict\_proba" in scikit-learn. We made this separation
-to use the type system to enforce that predictions are only made with trained
-models, as it's not possible to have an untrained model with a predict method.
-This does mean that integrating new libraries is more complex than
-scikit-learn, as the interface needs to depend on Tribuo, rather than export a
-couple of methods with specific names, but implementing Tribuo's interfaces
-comes with other benefits.
+Tribuo, we've separated training from prediction. Tribuo's fit method is
+called "train" and lives on the `Trainer` interface, whereas Tribuo's "predict" 
+method lives on the Model class. Tribuo uses the same predict call to produce
+both the outputs and the scores for those outputs. It's predict method is the
+equivalent of both "predict" and "predict\_proba" in scikit-learn. We made
+this separation between training and prediction so as to enable the type
+ system to act as a gate-keeper on prediction; preditions cannot be made
+ using untrained models when it's not possible to have an untrained model
+ with a predict method. This separation does mean that
+ integrating new libraries is more complex than with scikit-learn, since with
+  scikit-learn it is possible to simply export a small number of methods with
+ specific names. With Tribuo on the other hand, the interface needs to depend on
+ Tribuo; however, implementing Tribuo's interfaces comes with other benefits.
 
 ### Why are there feature objects? Why not just use arrays?
 
 Primitive arrays in Java are definitely faster, but they imply a dense feature
 space. One of Tribuo's design goals was strong support for NLP tasks, which
 typically have high-dimensional, sparse feature spaces.  As a result, *every*
-feature space in Tribuo is implicitly sparse (unlike the implicit dense
-assumption in most ML libraries). Another consequence is that Tribuo's features
-are *named*, each Feature is a tuple of a String and a value. This makes it
+feature space in Tribuo is implicitly sparse, unlike the implicit dense
+assumption in most ML libraries. Another consequence is that Tribuo's features
+are *named*. Each Feature is a tuple of a String and a value. This makes it
 easy to understand if there is a feature space mismatch (as commonly occurs in
-NLP when there are out of vocabulary terms), as the Tribuo model knows the
-names of all the features, and can tell when there is a new name it's not seen
-before. This means that it's not possible to load a model in and apply it to
+NLP when there are out of vocabulary terms). The Tribuo model knows the
+names of all the features and can tell when there's a name that is unexpected.
+This means that it's not possible to load a model and apply it to
 data from a completely different domain (i.e. applying an MNIST model to text
-classification) as the feature spaces won't line up, not only will there be a
-different number of features, but they'll all have different names too. In such
-a situation, Tribuo's predict methods will throw a RuntimeException as there
-are no valid features in the supplied Example.
+classification) as the feature spaces will be misaligned: not only will there
+be a different number of features, but they'll all have different names, too. 
+In such a situation, Tribuo's predict methods will throw a RuntimeException
+as there are no valid features in the supplied Example.
 
 ### Why are the model outputs "Predictions"? Why not use arrays?
 
