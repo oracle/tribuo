@@ -9,7 +9,7 @@ algorithms and also wraps other libraries to provide a unified interface.
 Tribuo contains all the code necessary to load, featurise and transform data. 
 Additionally, it includes the evaluation classes for all supported prediction 
 types. Development is led by [Oracle Labs'](https://labs.oracle.com) Machine 
-Learning Research Group;  We welcome community contributions.
+Learning Research Group;  we welcome community contributions.
 
 All trainers are configurable using the
 [OLCUT](https://github.com/oracle/olcut) configuration system. This allows a
@@ -30,7 +30,7 @@ to provide model tracking through an external system.
 
 Tribuo runs on Java 8+, and we test on LTS versions of Java along with the
 latest release.  Tribuo itself is a pure Java library and is supported on all 
-Java platforms;  However, some of our interfaces require native code and are
+Java platforms;  however, some of our interfaces require native code and are
 thus supported only where there is native library support. We test on x86\_64
 architectures on Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these
 are supported platforms for the native libraries with which we interface. If

@@ -5,7 +5,7 @@ those models to make predictions on previously unseen data.
 
 A ML model is the result of applying some training algorithm to a dataset. Most 
 commonly, such algorithms produce output in the form of a large number of
-floating point values; However, this output may take one of many different
+floating point values; however, this output may take one of many different
 forms, such as a tree-structured if/else statement for example. In Tribuo,
 a model includes not only this output, but also the necessary feature and
 output statistics to map from the named feature space into Tribuo's ids, and 
@@ -47,7 +47,7 @@ the number of times the predicted output was the same as the provided output).
 
 ## Structure
 
-Tribuo has several top level modules:
+Tribuo includes several top level modules:
 - Core provides Tribuo's core classes and interfaces.
 - Data provides loaders for text, sql and csv data, along with the columnar
   package which provides infrastructure for working with columnar data.
@@ -98,7 +98,7 @@ package has companion implementations of `OutputFactory`, `OutputInfo`,
 for each `Label`. This is a reasonable baseline strategy to use for multi-label
 problems.
 
-Finally there are cross-cutting module collections:
+Finally, there are cross-cutting module collections:
 - Common provides shared infrastructure for the prediction tasks.
 - Interop provides infrastructure for working with large external libraries
   like TensorFlow and ONNX Runtime.
@@ -211,74 +211,79 @@ not recommending these specific values).
 ### Built-in formats
 
 Tribuo supports several common input formats for loading in data:
-- libsvm/svmlight - a sparse numerical format for classification and regression tasks.
+- libsvm/svmlight - a sparse numerical format for classification and
+ regression tasks.
 - CSV - a plain text delimited format (using an RFC4180 compliant parser).
-- JSON - JavaScript Object Notation, Tribuo natively reads JSON objects which are a map from String to primitive value,
-and the whole file is an array of such objects.
-- SQL - Tribuo has a JDBC loader which can query a database and convert the result set into Tribuo `Example`s.
-- text - a one document per line format, with the response variable before the text delimited by ` ## `.
+- JSON - JavaScript Object Notation, Tribuo natively reads JSON objects which
+ are a map from String to primitive value. The whole file is an array of such
+  objects.
+- SQL - Tribuo has a JDBC loader which can query a database and convert the
+ result set into Tribuo `Example`s.
+- text - a one document per line format, with the response variable before
+ the text delimited by ` ## `.
 
-There are two CSV loaders, a simple one for reading a CSV file (with or without
+There are two CSV loaders:  A simple one for reading a CSV file (with or without
 a header) where all the columns are either features or responses, and a complex
 loader based on Tribuo's `RowProcessor`. The `RowProcessor` also underlies the
 SQL and JSON loaders, and is extremely configurable. For more details see the
 [Columnar Inputs](#columnar-inputs) section below. If there are other common
-formats that are of interest, let us know by filing an issue.
+formats of interest, let us know by filing an issue.
 
 Tribuo's interfaces are extensible, and implementing another format simply
-requires implementing the `DataSource` interface. We recommend looking at
-`LibSVMDataSource` or `TextDataSource` to see how to implement one for a flat
-file format. For columnar data, Tribuo has specialised processing
-infrastructure. This is used for the CSV, JSON and SQL loaders, and provides a
+requires implementing the `DataSource` interface. We recommend using
+`LibSVMDataSource` or `TextDataSource` as examples of how to implement a flat
+ file format. For columnar data, Tribuo has specialised processing
+  infrastructure. This is used for the CSV, JSON and SQL loaders, and provides a
 large amount of flexibility.
 
 ### Columnar Inputs
 
 Columnar data sources require a configurable extraction step to map the columns
-into Tribuo `Example` and `Feature` objects. A single column may contain many features, 
-or may be unnecessary, or may contain `Example` level metadata. In addition, the user 
-must specify which column(s) contain the output variable. To support this usecase 
-Tribuo provides the `RowProcessor` a
-configurable mechanism for converting a `ColumnarIterator.Row`, which is a
-tuple of a `Map<String,String>` and an row number into an `Example`. The
-`RowProcessor` uses 4 interfaces to process the input map:
+into Tribuo `Example` and `Feature` objects. A single column may contain
+ multiple features, may be extraneous, or may contain `Example` level
+  metadata. In addition, the user must specify which column(s) contain the
+  output variable. To support this usecase, Tribuo provides the `RowProcessor
+  `, a configurable mechanism for converting a `ColumnarIterator.Row` (which
+   is a tuple of a `Map<String,String>` and a row number) into an `Example`. The
+`RowProcessor` uses four interfaces to process the input map:
 - `FieldExtractor` - processes the whole row at once, extracting metadata
-  fields which are written into the `Example`.  Metadata fields are things like
-the `Example`'s id number. The `Example`'s weight is handled as a special case
-of the metadata processing as described in the javadoc.
+  fields which are written into the `Example`.  An example of such a metadata
+   field is the `Example`'s id number. As described in the javadoc, the
+    `Example`'s weight is handled as a special case of the metadata processing.
 - `FieldProcessor` - processes a single field, producing a (possibly empty)
   list of `Feature`s.
 - `FeatureProcessor` - processes all the features after they have been
   generated by a `FieldProcessor`. This allows the generation of features which
-depend upon multiple other features (such as conjunctions), and also to filter
-out irrelevant or unnecessary features.
-- `ResponseProcessor` - processes the designated response fields, using the
+depend upon multiple other features, such as conjunctions. It also facilitates
+ the filtering out irrelevant or unnecessary features.
+- `ResponseProcessor` - processes the designated response fields using the
   supplied `OutputFactory` to convert the field text into an `Output` instance.
 
-The different interfaces are supplied to the `RowProcessor` on construction (or
-configuration). By default `FieldProcessor`s are bound to a single column, but
+These interfaces are supplied to the `RowProcessor` on construction (or
+configuration). By default, `FieldProcessor`s are bound to a single column, but
 there is an optional system which generates new `FieldProcessor`s based on
 supplied regexes. This can be used if the data is drawn from a schema-less
 format, where the user doesn't know what fields will be present in each
-document, or if the set of fields is large and the number of unique
-`FieldProcessor`s is small (e.g. so that the same field processor can be
-applied to all columns beginning with "A", without writing a very large
-configuration or code file to describe them all). These regexes are usually
-instantiated once, before any rows are processed, but `RowProcessor` is
-intentionally subclass-able so developers can trigger expansion whenever
-necessary. In the current implementation there is at most one `FieldProcessor`
-per field, we'll reconsider this restriction if there is sufficient interest.
+document. The regex system is also useful when the set of fields is large and
+ the number of unique `FieldProcessor`s is small. For example, the same field
+ processor can be applied to all columns whose name begins with "A", thus
+ avoiding the need to write a very large configuration or code file to
+ describe all such columns. These regexes are usually instantiated once
+ , before any rows are processed, but `RowProcessor` is intentionally
+  subclass-able so that developers can trigger expansion whenever
+necessary. In the current implementation, there is at most one `FieldProcessor`
+per field; we'll reconsider this restriction if there is sufficient interest.
 
-Internally the `RowProcessor` operates on `ColumnarFeature` which is a feature
+Internally, the `RowProcessor` operates on `ColumnarFeature`, which is a feature
 subclass that tracks both the feature name and the column name. It's used to
 allow additional flexibility in the `FeatureProcessor`s when generating
-conjunction or other cross-cutting features. The `Example` contract does not
-guarantee that the feature objects are preserved after being stored in an
-`Example` so don't depend on `ColumnarFeature` outside of the columnar
-processing infrastructure.
+conjunction or other cross-cutting features. `ColumnarFeature`s should not be
+ depended on outside of the columnar processing infrastructure since the
+  Example` contract does not guarantee that feature objects are preserved
+   after being stored in an `Example`.
 
 If your columnar data is not in a format currently supported by Tribuo, you can
-subclass `ColumnarDataSource`, provide an implementation of `ColumnarIterator`
+subclass `ColumnarDataSource`, provide an implementation of `ColumnarIterator,`
 which converts from your input format into `ColumnarIterator.Row`, and then
 configure the `RowProcessor` to extract `Example`s from your data.
 
@@ -286,8 +291,8 @@ configure the `RowProcessor` to extract `Example`s from your data.
 
 `DataSource`s are not designed for splitting data into chunks, but Tribuo
 provides several mechanisms to split up datasets to provide training and test
-splits, subsample data based on it's properties, or to create cross validation
-folds. The train/test and cross-validation splits are self explanatory, though
+splits, subsample data based on it's properties, or to create cross-validation
+folds. The train/test and cross-validation splits are self-explanatory, though
 it's worth nothing that the cross-validation splits use the feature domain of
 the underlying dataset. The `DatasetView` underlies the cross-validation splits
 and can also be constructed using a predicate function (or a list of indices).
@@ -296,67 +301,68 @@ outputs or metadata encoded in an `Example`.
 
 ## Transforming datasets
 
-Tribuo supports independent feature based transformations, i.e. operations like
+Tribuo supports independent, feature-based transformations, i.e. operations like
 rescaling or binning features.  This uses the `org.tribuo.transform` package,
 which provides the mechanisms for fitting and applying transformations.
 Transformations can be chained and are applied in the supplied sequence to the
 specified feature. After the local transformations, a transformation chain can
 be applied to each feature in turn (called the global transformation).  Similar
-to the `RowProcessor` described above the transformations can also be applied
+to the `RowProcessor` described above, the transformations can also be applied
 to a regex, and every feature name which matches the regex has a copy of the
-transformation pipeline instantiated and applied to that feature. There is
-validation to ensure that a regex transformation cannot apply to a feature that
-already has a specific local transformation chain, if this occurs it'll throw
-an exception. These transformations are also applied to the feature domain to
-ensure it maintains the proper statistics.
+transformation pipeline instantiated and applied to that feature. An
+ exception will be thrown if an attempt is made to apply a regex transformation
+ to a feature that already has a specific local transformation chain. These
+  transformations are also applied to the feature domain to ensure it
+   maintains the proper statistics.
 
-We plan to introduce global feature transformations in some future release, to
+We plan to introduce global feature transformations in some future release to
 allow operations like PCA or other feature extraction steps.
 
 ## Weights and Metadata
 
-Examples can have metadata attached to them, which can be used to filter out
-Examples, or otherwise tag them for special processing. The metadata takes the
-form of a `Map<String,String>`, which can only be appended to, and the values
-cannot be modified after insertion. In addition each Example has a float valued
-weight field, which can be used to denote how important an Example is in a
-training or evaluation setting. Not all training algorithms support weighted
-examples, if they do then they implement the `WeightedExamples` tag interface,
-otherwise the example weights are ignored. The weight field is currently
-supported in the `RegressionEvaluator` if the weighted evaluation flag is turned
-on. We'll consider adding this support to the other evaluators, though it
-may require breaking API changes as the return types of some accessor methods 
-could change from integer to floating point values.
+Examples can have metadata attached to them, and this metadata can be used to
+ filter out Examples or otherwise tag them for special processing. The metadata
+ takes the form of a `Map<String,String>`, which can only be appended to; the
+  values cannot be modified after insertion. In addition, each Example has
+  a float-valued weight field, which can be used to denote the importance of an
+  Example is in a training or evaluation setting. Not all training algorithms
+  support weighted examples. Those that support such weights implement the
+  `WeightedExamples` tag interface; otherwise the example weights are ignored
+  . The weight field is currently supported in the `RegressionEvaluator` if
+  the weighted evaluation flag is turned on. We'll consider adding this
+  support to the other evaluators, though it may require breaking API changes
+  since the return types of some accessor methods could change from integer to
+  floating point values.
 
 ## Obfuscation
 
 One of Tribuo's benefits is it's extensive tracking of model metadata and
-provenance, however we realise this metadata isn't necessarily something that
-should live in deployed models that third parties have access to. As a result
-Tribuo provides a few transformation mechanisms to remove metadata from a
-trained model.
+provenance; however, we realise this metadata isn't necessarily something that
+should live in third-party accessible, deployed models. As a
+ result, Tribuo provides a few transformation mechanisms to remove metadata
+ from a trained model.
 
 ### Provenance
 
 Provenance can be removed from the `Model` objects using the `StripProvenance`
-program in the JSON module. It's possible to remove the three kinds of stored
-provenance separately: trainer provenance, data provenance, instance
-provenance. Also the SHA-256 hash of the full provenance object can be inserted
-into the object as a tracking mechanism, we intend that the user stores the
+program located in the JSON module. There are three kind of stored
+ provenance: trainer provenance, data provenance, and instance
+provenance. Each type of provenance can be removed separately. It is also
+ possible to insert a SHA-256 hash of the full provenance object into the
+ model as a tracking mechanism. We intend that the user stores the
 hash as a key for the original provenance JSON in an external storage
-mechanism.  Alternatively `@Config` fields can be marked `redact=True` which
+mechanism. Alternatively, `@Config` fields can be marked `redact=True` which
 will prevent those values from being stored in the provenance or any
 configuration.
 
 ### Feature Hashing
 
 In addition to its use as a dimensionality reduction technique, feature hashing
-also obfuscates the original feature names provided the system doesn't store
-the forward mapping. Tribuo provides an implementation of feature hashing that
-lives entirely in the feature domain object to avoid storing the forward
-mapping from original names to hashed names. This means that Tribuo has no
-knowledge of the true feature names, and the system transparently hashes the
-inputs. The feature names tend to be particularly sensitive when working with
-NLP problems, as for example bigrams would otherwise appear in the feature
-domains.
-
+also obfuscates the original feature names in cases where the forward mapping
+ from original names to hashed names has not been stored by the system. So as
+ to avoid the storage of such a forward mapping, Tribuo provides an
+ implementation of feature hashing that lives entirely in the feature domain
+ object. This means that Tribuo has no knowledge of the true feature names
+ , and the system transparently hashes the inputs. The feature names tend to
+ be particularly sensitive when working with NLP problems. For example
+ , without such hashing, bigrams would appear in the feature domains.
