@@ -28,21 +28,21 @@ to predict) and a list of Features, where each `Feature` is a tuple of a
 read into a `Dataset`, which accumulates statistics about the data for future
 use in model construction. Datasets can be split into chunks to separate out
 training and testing data, or to filter out examples according to some
-criterion. As Examples are fed into a Dataset the Features are observed and
+criterion. As Examples are fed into a Dataset, the Features are observed and
 have their statistics recorded in a `FeatureMap`. Similarly the Outputs are
 recorded in the appropriate `OutputInfo` subclass for the specified Output
 subclass. Once the Dataset has been processed, it's passed to a `Trainer`,
 which contains the training algorithm along with any necessary parameter values
-(in ML these are called hyperparameters to differentiate them from model
-parameters which are learned), and the Trainer performs some iterations of the
+(in ML these are called hyperparameters to differentiate them from the learned
+ model parameters), and the Trainer performs some iterations of the
 training algorithm before producing the `Model`. Models contain the necessary
-parameters to make predictions along with a `Provenance` object which records
-how the Model was constructed (e.g. data file name, data hash, trainer
+learned parameters to make predictions along with a `Provenance` object which
+records how the Model was constructed (e.g. data file name, data hash, trainer
 hyperparameters, time stamp, etc).  Both Models and Datasets can be serialized
-out to disk using Java Serialization. Once a model has been trained it can be
-fed previously unseen Examples and produces `Prediction`s for the Outputs of
-those examples. If the new Examples have known Outputs then the Predictions can
-be passed to an `Evaluator` which calculates statistics like the accuracy (i.e.
+out to disk using Java Serialization. Once a model has been trained, it can be
+fed previously unseen Examples to produce `Prediction`s of their Outputs. If
+the new Examples have known Outputs, then the Predictions can be passed to an
+ `Evaluator`, which calculates statistics like the accuracy (i.e.
 the number of times the predicted output was the same as the provided output).
 
 ## Structure
@@ -53,46 +53,46 @@ Tribuo includes several top level modules:
   package which provides infrastructure for working with columnar data.
 - Math provides Tribuo's linear algebra library, along with kernels and
   gradient optimizers.
-- Json provides a json data loader, and a tool to strip provenance from trained
+- Json provides a json data loader and a tool to strip provenance from trained
   models.
 
 Tribuo has separate modules for each prediction task:
-- Classification contains an `Output` implementation called `Label` which
+- Classification contains an `Output` implementation called `Label`, which
   represents a multi-class classification.  A `Label` is a tuple of a String
 name, and a double precision score value. For each of the more general 
 `OutputFactory`, `OutputInfo`, `Evaluator` and `Evaluation`, the Classification
  package includes a classification specific implementation, namely
   `LabelFactory`, `LabelInfo`, `LabelEvaluator` and`LabelEvaluation
-  ` respectively.
-- Regression contains an `Output` implementation called `Regressor` which
+  `, respectively.
+- Regression contains an `Output` implementation called `Regressor`, which
   represents multidimensional regression.  Each `Regressor` is a tuple of
 dimension names, double precision dimension values, and double precision
 dimension variances. It has companion implementations of `OutputFactory`,
 `OutputInfo`, `Evaluator` and `Evaluation` called `RegressionFactory`,
-`RegressionInfo`, `RegressionEvaluator` and `RegressionEvaluation`
-respectively. By default the dimensions are named "DIM-x" where x is a
+`RegressionInfo`, `RegressionEvaluator` and `RegressionEvaluation`,
+respectively. By default, the dimensions are named "DIM-x" where x is a
 non-negative integer.
-- AnomalyDetection contains an `Output` implementation called `Event` which
+- AnomalyDetection contains an `Output` implementation called `Event`, which
   represents the detection of an anomalous or expected event (represented by
 the `EventType` enum containing `ANOMALY` and `EXPECTED`). Each `Event` is a
 tuple of an `EventType` instance and a double precision score value,
 representing the score of the event type. The AnomalyDetection package has
 companion implementations of `OutputFactory`, `OutputInfo`, `Evaluator` and
 `Evaluation` called `AnomalyFactory`, `AnomalyInfo`, `AnomalyEvaluator` and
-`AnomalyEvaluation` respectively. 
-- Clustering contains an `Output` implementation called `ClusterID` which
+`AnomalyEvaluation`, respectively. 
+- Clustering contains an `Output` implementation called `ClusterID`, which
   represents the cluster id number assigned.  Each `ClusterID` is a
-non-negative integer id number, and a double precision score representing the
+non-negative integer id number and a double precision score representing the
 strength of association.  The Clustering package has companion implementations
 of `OutputFactory`, `OutputInfo`, `Evaluator` and `Evaluation` called
 `ClusteringFactory`, `ClusteringInfo`, `ClusteringEvaluator` and
-`ClusteringEvaluation` respectively.
-- MultiLabel contains an `Output` implementation called `MultiLabel` which
+`ClusteringEvaluation`, respectively.
+- MultiLabel contains an `Output` implementation called `MultiLabel`, which
   represents a multi-label classification.  Each `MultiLabel` is a possibly
 empty set of `Label` instances with their associated scores.  The MultiLabel
 package has companion implementations of `OutputFactory`, `OutputInfo`,
 `Evaluator` and `Evaluation` called `MultiLabelFactory`, `MultiLabelInfo`,
-`MultiLabelEvaluator` and `MultiLabelEvaluation` respectively. It also has a
+`MultiLabelEvaluator` and `MultiLabelEvaluation`, respectively. It also has a
 `Trainer<MultiLabel>` which accepts a `Trainer<Label>` and generates a
 `Model<MultiLabel>` by using the inner trainer to make independent predictions
 for each `Label`. This is a reasonable baseline strategy to use for multi-label
@@ -102,7 +102,7 @@ Finally, there are cross-cutting module collections:
 - Common provides shared infrastructure for the prediction tasks.
 - Interop provides infrastructure for working with large external libraries
   like TensorFlow and ONNX Runtime.
-- Util provides independent libraries that Tribuo uses for certain tasks. For
+- Util provides independent libraries that Tribuo uses for specific tasks. For
  example, InformationTheory is a library of information theoretic functions
  , and Tokens provides the interface Tribuo uses for tokenization along with
   implementations of several tokenizers.
@@ -121,15 +121,15 @@ configuration files can be overridden on the command line by supplying
 `--@<object-name>.<field-name> <value>` in the arguments. The configuration
 system provides the basis of Tribuo's model tracking `Provenance` system, which
 records all hyperparameters, dataset parameters (e.g. file location, train/test
-split etc), and any user supplied instance information, along with run specific
-information such as the file hash, number of training examples, etc. A model
-provenance can be converted into a list of configurations for each
+split, etc.), and any user-supplied instance information, along with run
+ specific information such as the file hash, number of training examples, etc
+ . A model provenance can be converted into a list of configurations for each
 `Configurable` object involved in the model training. Similarly, an evaluation
-provenance can be converted into the configurations for the model and the
+provenance can be converted into the configurations for the model as well as the
 configurations for the test dataset. These configurations can be loaded into a
-fresh `ConfigurationManager`, optionally saved to disk, and the evaluation or
-model training can be repeated (or rerun with tweaks like new data or a
-hyperparameter change).
+fresh `ConfigurationManager` and optionally saved to disk. The evaluation or
+model training can then be repeated or rerun with tweaks like new data or a
+hyperparameter change.
 
 Configurable classes have `@Config` annotations on their fields, and such
 fields have the value from the configuration file inserted into them upon
@@ -167,18 +167,19 @@ public class LinearSGDTrainer implements Trainer<Label>, WeightedExamples {
 
 Only fields which are configured need to be annotated `@Config`. Other fields
 can be set in the appropriate constructor.  OLCUT requires that all classes
-which implement `Configurable` have a no-args constructor. The interface
-allows for a `postConfig` method, which is called after the object has been
-constructed and the appropriate field values inserted, but before it is
-published or returned from the `ConfigurationManager`. This `postConfig` method
-is used to perform the validation that would normally be performed in a
- constructor, and it can be called from regular constructors.  Default values
- for the configurable parameters can be specified in the same way default
- fields are usually specified. The `@Config` annotation has optional
- parameters to specify the description, whether the field is mandatory, and
- whether the field value should be redacted from any configuration or
- provenance based on this object. More details about OLCUT can be found in it's
-[documentation](https://github.com/oracle/OLCUT).
+which implement `Configurable` have a no-args constructor. The `Configurable
+` interface allows for a `postConfig` method, which is called after the
+ object has been constructed and the appropriate field values inserted, but
+ before it is published or returned from the `ConfigurationManager`. This
+ `postConfig` method is used to perform the validation that would normally be
+  performed in a constructor, and it can be called from regular constructors
+  .  Default values for the configurable parameters can be specified in the
+  same way default fields are usually specified. The `@Config` annotation
+  has optional parameters for supplying the description, declaring whether the
+  field is mandatory, and determining whether the field value should be redacted
+  from any configuration or provenance based on this object. More details
+  about OLCUT can be found in it's [documentation](https://github.com/oracle
+  /OLCUT).
 
 The `LinearSGDTrainer` class above is configured by the xml snippet below:
 
@@ -200,11 +201,11 @@ The `LinearSGDTrainer` class above is configured by the xml snippet below:
 </config>
 ```
 
-which instantiates `LinearSGDTrainer` using a logistic regression objective,
-with the `Adam` gradient optimiser using [Andrei Karpathy's preferred learning
-rate](https://twitter.com/karpathy/status/801621764144971776) and an adjusted
-beta one parameter (note these parameters are just demonstration values, we're
-not recommending these specific values).
+This instantiates a `LinearSGDTrainer` with a logistic regression objective and
+an `Adam` gradient optimiser, which employs [Andrei Karpathy's preferred
+ learning rate](https://twitter.com/karpathy/status/801621764144971776) and
+  an adjusted beta one parameter (note these parameters are just
+   demonstration values, we're not recommending these specific values).
 
 ## Data Loading
 
@@ -214,13 +215,13 @@ Tribuo supports several common input formats for loading in data:
 - libsvm/svmlight - a sparse numerical format for classification and
  regression tasks.
 - CSV - a plain text delimited format (using an RFC4180 compliant parser).
-- JSON - JavaScript Object Notation, Tribuo natively reads JSON objects which
+- JSON - JavaScript Object Notation. Tribuo natively reads JSON objects, which
  are a map from String to primitive value. The whole file is an array of such
   objects.
-- SQL - Tribuo has a JDBC loader which can query a database and convert the
+- SQL - Tribuo has a JDBC loader, which can query a database and convert the
  result set into Tribuo `Example`s.
-- text - a one document per line format, with the response variable before
- the text delimited by ` ## `.
+- text - a one document per line format in which with the response variable
+ before the text is delimited by ` ## `.
 
 There are two CSV loaders:  A simple one for reading a CSV file (with or without
 a header) where all the columns are either features or responses, and a complex
@@ -233,44 +234,44 @@ Tribuo's interfaces are extensible, and implementing another format simply
 requires implementing the `DataSource` interface. We recommend using
 `LibSVMDataSource` or `TextDataSource` as examples of how to implement a flat
  file format. For columnar data, Tribuo has specialised processing
-  infrastructure. This is used for the CSV, JSON and SQL loaders, and provides a
-large amount of flexibility.
+  infrastructure. This is used for the CSV, JSON and SQL loaders, and
+  it provides a large amount of flexibility.
 
 ### Columnar Inputs
 
 Columnar data sources require a configurable extraction step to map the columns
 into Tribuo `Example` and `Feature` objects. A single column may contain
- multiple features, may be extraneous, or may contain `Example` level
+ multiple features, may be extraneous, or may contain `Example`-level
   metadata. In addition, the user must specify which column(s) contain the
   output variable. To support this usecase, Tribuo provides the `RowProcessor
   `, a configurable mechanism for converting a `ColumnarIterator.Row` (which
    is a tuple of a `Map<String,String>` and a row number) into an `Example`. The
 `RowProcessor` uses four interfaces to process the input map:
 - `FieldExtractor` - processes the whole row at once, extracting metadata
-  fields which are written into the `Example`.  An example of such a metadata
-   field is the `Example`'s id number. As described in the javadoc, the
+  fields which are then written into the `Example`.  An example of such a
+   metadata field is the `Example`'s id number. As described in the javadoc, the
     `Example`'s weight is handled as a special case of the metadata processing.
 - `FieldProcessor` - processes a single field, producing a (possibly empty)
   list of `Feature`s.
 - `FeatureProcessor` - processes all the features after they have been
-  generated by a `FieldProcessor`. This allows the generation of features which
-depend upon multiple other features, such as conjunctions. It also facilitates
- the filtering out irrelevant or unnecessary features.
+  generated by a `FieldProcessor`. This allows for the generation of features
+  that depend upon multiple other features, such as conjunctions. It also
+  facilitates the filtering out of irrelevant or unnecessary features.
 - `ResponseProcessor` - processes the designated response fields using the
   supplied `OutputFactory` to convert the field text into an `Output` instance.
 
 These interfaces are supplied to the `RowProcessor` on construction (or
 configuration). By default, `FieldProcessor`s are bound to a single column, but
 there is an optional system which generates new `FieldProcessor`s based on
-supplied regexes. This can be used if the data is drawn from a schema-less
-format, where the user doesn't know what fields will be present in each
-document. The regex system is also useful when the set of fields is large and
- the number of unique `FieldProcessor`s is small. For example, the same field
- processor can be applied to all columns whose name begins with "A", thus
- avoiding the need to write a very large configuration or code file to
- describe all such columns. These regexes are usually instantiated once
- , before any rows are processed, but `RowProcessor` is intentionally
-  subclass-able so that developers can trigger expansion whenever
+supplied regexes. This system can be used if the data is drawn from a schema
+-less format where the presence of fields in particular documents is
+ not known in advance by the user.  The regex system is also useful when the
+ set of fields is large and the number of unique `FieldProcessor`s is small
+ . For example, the same field processor can be applied to all columns whose
+ name begins with "A", thus avoiding the need to write a large configuration
+  or code file to describe all such columns. Although these regexes are usually
+  instantiated once, before any rows are processed, `RowProcessor` is
+  intentionally subclass-able so that developers can trigger expansion whenever
 necessary. In the current implementation, there is at most one `FieldProcessor`
 per field; we'll reconsider this restriction if there is sufficient interest.
 
@@ -279,8 +280,8 @@ subclass that tracks both the feature name and the column name. It's used to
 allow additional flexibility in the `FeatureProcessor`s when generating
 conjunction or other cross-cutting features. `ColumnarFeature`s should not be
  depended on outside of the columnar processing infrastructure since the
-  Example` contract does not guarantee that feature objects are preserved
-   after being stored in an `Example`.
+ `Example` contract does not guarantee that feature objects are preserved
+  after being stored in an `Example`.
 
 If your columnar data is not in a format currently supported by Tribuo, you can
 subclass `ColumnarDataSource`, provide an implementation of `ColumnarIterator,`
@@ -290,33 +291,36 @@ configure the `RowProcessor` to extract `Example`s from your data.
 ### Splitting up Datasets
 
 `DataSource`s are not designed for splitting data into chunks, but Tribuo
-provides several mechanisms to split up datasets to provide training and test
-splits, subsample data based on it's properties, or to create cross-validation
+provides several other mechanisms for splitting data into training and test
+sets, subsampling data based on it's properties, or creating cross-validation
 folds. The train/test and cross-validation splits are self-explanatory, though
 it's worth nothing that the cross-validation splits use the feature domain of
-the underlying dataset. The `DatasetView` underlies the cross-validation splits
-and can also be constructed using a predicate function (or a list of indices).
-The predicate function accepts an `Example` and so can depend on the features,
-outputs or metadata encoded in an `Example`.
+the entire, underlying dataset. The `DatasetView` underlies the cross-validation
+splits and can also be constructed using a predicate function (or a list of
+indices). The predicate function accepts an `Example` and so can depend on
+the features, outputs or metadata encoded in an `Example`.
 
 ## Transforming datasets
 
-Tribuo supports independent, feature-based transformations, i.e. operations like
-rescaling or binning features.  This uses the `org.tribuo.transform` package,
-which provides the mechanisms for fitting and applying transformations.
-Transformations can be chained and are applied in the supplied sequence to the
-specified feature. After the local transformations, a transformation chain can
-be applied to each feature in turn (called the global transformation).  Similar
-to the `RowProcessor` described above, the transformations can also be applied
-to a regex, and every feature name which matches the regex has a copy of the
-transformation pipeline instantiated and applied to that feature. An
- exception will be thrown if an attempt is made to apply a regex transformation
- to a feature that already has a specific local transformation chain. These
-  transformations are also applied to the feature domain to ensure it
-   maintains the proper statistics.
+Tribuo supports independent, feature-based transformations including
+ the rescaling or binning of features. These feature transformations can be
+ found in the `org.tribuo.transform` package, which provides the mechanisms
+ for fitting and applying transformations. Transformations can be chained to
+ create pipelines that are applied in the supplied sequence to the specified
+  feature(s). Local transformation pipelines are those that are applied
+ only to the given named feature(s), whereas global transformations pipelines
+ are applied after local pipelines and apply to every feature. Local
+ transformations pipelines can also be applied via a regex. Specifically
+ , every feature name which matches the regex receives a copy
+ of that transformation pipeline, and that pipeline is then applied to the
+ feature.  An exception will be thrown if an attempt is made to apply a
+ regex transformation to a feature that has already received a local
+ transformationvpipeline. Additionally, all transformations are
+ applied to the feature domain to ensure it maintains the proper statistics.
 
-We plan to introduce global feature transformations in some future release to
-allow operations like PCA or other feature extraction steps.
+Currently, transformations must be based on only a single feature at a time
+, but we plan to introduce global feature transformations in some future
+ release to allow operations over the whole feature space such as PCA.
 
 ## Weights and Metadata
 
@@ -325,12 +329,12 @@ Examples can have metadata attached to them, and this metadata can be used to
  takes the form of a `Map<String,String>`, which can only be appended to; the
   values cannot be modified after insertion. In addition, each Example has
   a float-valued weight field, which can be used to denote the importance of an
-  Example is in a training or evaluation setting. Not all training algorithms
+  Example in a training or evaluation setting. Not all training algorithms
   support weighted examples. Those that support such weights implement the
   `WeightedExamples` tag interface; otherwise the example weights are ignored
   . The weight field is currently supported in the `RegressionEvaluator` if
   the weighted evaluation flag is turned on. We'll consider adding this
-  support to the other evaluators, though it may require breaking API changes
+  support to the other evaluators, although it may require breaking API changes
   since the return types of some accessor methods could change from integer to
   floating point values.
 
@@ -344,8 +348,8 @@ should live in third-party accessible, deployed models. As a
 
 ### Provenance
 
-Provenance can be removed from the `Model` objects using the `StripProvenance`
-program located in the JSON module. There are three kind of stored
+Provenance can be removed from `Model` objects using the `StripProvenance`
+program located in the JSON module. There are three kinds of stored
  provenance: trainer provenance, data provenance, and instance
 provenance. Each type of provenance can be removed separately. It is also
  possible to insert a SHA-256 hash of the full provenance object into the
