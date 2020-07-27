@@ -103,8 +103,8 @@ Finally, there are cross-cutting module collections:
 - Interop provides infrastructure for working with large external libraries
   like TensorFlow and ONNX Runtime.
 - Util provides independent libraries that Tribuo uses for specific tasks. For
- example, InformationTheory is a library of information theoretic functions
- , and Tokens provides the interface Tribuo uses for tokenization along with
+ example, InformationTheory is a library of information theoretic functions, 
+ and Tokens provides the interface Tribuo uses for tokenization along with
   implementations of several tokenizers.
 
 ## Configuration, Options and Provenance
@@ -122,8 +122,8 @@ configuration files can be overridden on the command line by supplying
 system provides the basis of Tribuo's model tracking `Provenance` system, which
 records all hyperparameters, dataset parameters (e.g. file location, train/test
 split, etc.), and any user-supplied instance information, along with run
- specific information such as the file hash, number of training examples, etc
- . A model provenance can be converted into a list of configurations for each
+ specific information such as the file hash, number of training examples, etc. 
+ A model provenance can be converted into a list of configurations for each
 `Configurable` object involved in the model training. Similarly, an evaluation
 provenance can be converted into the configurations for the model as well as the
 configurations for the test dataset. These configurations can be loaded into a
@@ -172,8 +172,8 @@ which implement `Configurable` have a no-args constructor. The `Configurable
  object has been constructed and the appropriate field values inserted, but
  before it is published or returned from the `ConfigurationManager`. This
  `postConfig` method is used to perform the validation that would normally be
-  performed in a constructor, and it can be called from regular constructors
-  .  Default values for the configurable parameters can be specified in the
+  performed in a constructor, and it can be called from regular constructors. 
+  Default values for the configurable parameters can be specified in the
   same way default fields are usually specified. The `@Config` annotation
   has optional parameters for supplying the description, declaring whether the
   field is mandatory, and determining whether the field value should be redacted
@@ -266,8 +266,8 @@ there is an optional system which generates new `FieldProcessor`s based on
 supplied regexes. This system can be used if the data is drawn from a schema
 -less format where the presence of fields in particular documents is
  not known in advance by the user.  The regex system is also useful when the
- set of fields is large and the number of unique `FieldProcessor`s is small
- . For example, the same field processor can be applied to all columns whose
+ set of fields is large and the number of unique `FieldProcessor`s is small. 
+ For example, the same field processor can be applied to all columns whose
  name begins with "A", thus avoiding the need to write a large configuration
   or code file to describe all such columns. Although these regexes are usually
   instantiated once, before any rows are processed, `RowProcessor` is
@@ -310,16 +310,16 @@ Tribuo supports independent, feature-based transformations including
   feature(s). Local transformation pipelines are those that are applied
  only to the given named feature(s), whereas global transformations pipelines
  are applied after local pipelines and apply to every feature. Local
- transformations pipelines can also be applied via a regex. Specifically
- , every feature name which matches the regex receives a copy
+ transformations pipelines can also be applied via a regex. Specifically, 
+ every feature name which matches the regex receives a copy
  of that transformation pipeline, and that pipeline is then applied to the
  feature.  An exception will be thrown if an attempt is made to apply a
  regex transformation to a feature that has already received a local
  transformationvpipeline. Additionally, all transformations are
  applied to the feature domain to ensure it maintains the proper statistics.
 
-Currently, transformations must be based on only a single feature at a time
-, but we plan to introduce global feature transformations in some future
+Currently, transformations must be based on only a single feature at a time, 
+but we plan to introduce global feature transformations in some future
  release to allow operations over the whole feature space such as PCA.
 
 ## Weights and Metadata
@@ -331,8 +331,8 @@ Examples can have metadata attached to them, and this metadata can be used to
   a float-valued weight field, which can be used to denote the importance of an
   Example in a training or evaluation setting. Not all training algorithms
   support weighted examples. Those that support such weights implement the
-  `WeightedExamples` tag interface; otherwise the example weights are ignored
-  . The weight field is currently supported in the `RegressionEvaluator` if
+  `WeightedExamples` tag interface; otherwise the example weights are ignored. 
+  The weight field is currently supported in the `RegressionEvaluator` if
   the weighted evaluation flag is turned on. We'll consider adding this
   support to the other evaluators, although it may require breaking API changes
   since the return types of some accessor methods could change from integer to
@@ -366,7 +366,7 @@ also obfuscates the original feature names in cases where the forward mapping
  from original names to hashed names has not been stored by the system. So as
  to avoid the storage of such a forward mapping, Tribuo provides an
  implementation of feature hashing that lives entirely in the feature domain
- object. This means that Tribuo has no knowledge of the true feature names
- , and the system transparently hashes the inputs. The feature names tend to
- be particularly sensitive when working with NLP problems. For example
- , without such hashing, bigrams would appear in the feature domains.
+ object. This means that Tribuo has no knowledge of the true feature names, 
+ and the system transparently hashes the inputs. The feature names tend to
+ be particularly sensitive when working with NLP problems. For example, 
+ without such hashing, bigrams would appear in the feature domains.
