@@ -33,9 +33,10 @@ a math library, and common modules shared across prediction types.
     labels. These scores may optionally be a probability distribution.
 - Core contains several other packages.
   - dataset - Datasets which provide a view on another dataset, either subsampling it or excluding features below a threshold.
-  - datasource - Implementations of DataSource which operate on in memory or simple on disk formats.
+  - datasource - Implementations of DataSource which operate on in-memory or
+   simple on-disk formats.
   - ensemble - Base classes and interfaces for ensemble models.
-  - evaluation - Base evaluation classes for all output types. The package
+  - evaluation - Base evaluation classes for all output types. This package
    also includes evaluation-related classes for cross-validation and train-test 
    splitting.
   - hash - An implementation of feature hashing which obfuscates any feature
@@ -48,9 +49,10 @@ a math library, and common modules shared across prediction types.
   - transform - A feature transformation package that can be applied to a full
    dataset or to individual features matched via regexes. It also contains
     wrapping trainers (trainers that wrap another trainer to provide additional
-     functionality) and wrapping models to ensure the same transformations are
-     always applied at prediction time.
-  - util - Utilities for working with arrays, random samples, and other basic operations.
+     functionality) and wrapping models to ensure that the same transformations
+    are always applied at prediction time.
+  - util - Utilities for basic operations such as for working with arrays and
+   random samples.
 - Data - provides classes which deal with sampled data, columnar data, csv files and text inputs. These classes are mainly optional, and the user is encouraged to provide their own text processing infrastructure.
   - columnar - The columnar package provides many useful base classes for extracting features from columnar data.
   - csv - Builds on the columnar package and supplies infrastructure for working with CSV and other delimiter separated data.
@@ -59,7 +61,7 @@ a math library, and common modules shared across prediction types.
 - Math - provides a linear algebra library for working with both sparse
  and dense vectors and matrices.
   - kernel - a set of kernel functions for use in the SGD package (and elsewhere).
-  - la - a linear algebra library. It contains functions that are used in the
+  - la - a linear algebra library containing functions used in the
    SGD implementation. It is not a full BLAS.
   - optimisers - a set of stochastic gradient descent algorithms, including
    SGD + Momentum, AdaGrad, AdaDelta, RMSProp and
@@ -78,9 +80,10 @@ The classification module has several submodules:
    classifiers. If your system doesn't outperform the baseline classifiers, it 
    can be assumed that your system is not working properly.
 - DecisionTree - an implementation of CART decision trees.
-- Experiments - A set of main functions for training & testing models on any supported dataset. It depends on all the
-  classifiers and allows easy comparison between them. This submodule should
-   not be imported into other projects, since it is intended purely for
+- Experiments - A set of main functions for training & testing models on any
+ supported dataset. This submodule depends on all the
+  classifiers and allows easy comparison between them. It should
+   not be imported into other projects since it is intended purely for
   development and testing.
 - Explanations - An implementation of LIME for classification tasks. If you use the columnar data loader, LIME can
   extract more information about the feature domain and provide better explanations.
@@ -151,7 +154,8 @@ Clustering is the task of grouping input data. The clustering system
  implemented is single membership -- each datapoint is assigned to
 one and only one cluster. This package provides two modules:
 
-- Core - contains the Output subclass for use with clustering data and evaluation code for measuring clustering performance.
+- Core - contains the Output subclass for use with clustering data, as well as
+ the evaluation code for measuring clustering performance.
 - KMeans - an implementation of K-Means using the Java 8 Stream API for parallelisation.
 
 ## Anomaly Detection
@@ -176,7 +180,7 @@ and scoring them from Java using Tribuo's infrastructure. Currently, we
  support loading ONNX, TensorFlow and XGBoost models.
 
 - ONNX - [ONNX](https://onnx.ai) (Open Neural Network eXchange) format is used by several deep learning systems as an export format, and there are converters from systems like scikit-learn to the ONNX format.
-  Tribuo provides a wrapper around Microsoft's [ONNX Runtime](https://onnxruntime.ai) which can score ONNX models on both CPU and GPU platforms.
+  Tribuo provides a wrapper around Microsoft's [ONNX Runtime](https://onnxruntime.ai) that can score ONNX models on both CPU and GPU platforms.
 - TensorFlow - Tribuo supports loading [TensorFlow](https://tensorflow.org)'s classification and regression frozen models and scoring them.
 - XGBoost - Tribuo supports loading [XGBoost](https://xgboost.ai) classification and regression models.
 
@@ -184,7 +188,8 @@ and scoring them from Java using Tribuo's infrastructure. Currently, we
 
 Tribuo includes experimental support for TensorFlow 1.14. Due to a lack of flexibility in TensorFlow 1.14's Java API, models
 still need to be specified in python, and have their graph definitions written out as a protobuf. The Java code accepts this
-protobuf and trains a model that can be used purely from Java. It includes a Java serialisation system so all TensorFlow models
+protobuf and trains a model that can be used purely from Java. It includes a
+ Java serialisation system so that all TensorFlow models
 can be serialised and deserialised in the same way as other Tribuo models. TensorFlow models run by default on GPU if one
 is available.
 
@@ -197,5 +202,5 @@ Tribuo demonstrates the TensorFlow interop by including an example config
  file, python model generation file and protobuf for an MNIST model. In
   addition to the libraries gathered by the Tribuo TensorFlow jar, it is
    necessary to include
-libtensorflow\_jni.so and libtensorflow\_framework.so on your java.library.path.
+libtensorflow\_jni.so and libtensorflow\_framework.so in your java.library.path.
 
