@@ -36,11 +36,11 @@ import org.tribuo.test.MockOutputFactory;
  **/
 public class DatasetTest {
 
-	@BeforeAll
-	public static void suppressLogging() {
+    @BeforeAll
+    public static void suppressLogging() {
         Logger logger = Logger.getLogger(MinimumCardinalityDataset.class.getName());
         logger.setLevel(Level.WARNING);
-	}
+    }
 
     /**
      * Tests that list returned from {@link Dataset#getData()} is unmodifiable.

@@ -32,7 +32,6 @@ import org.tribuo.Output;
 import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.DatasetProvenance;
-import org.tribuo.sequence.SequenceDataset;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,9 +52,8 @@ import java.util.logging.Logger;
  * have no features after the minimum cardinality has been applied, then those
  * examples will not be added to the constructed dataset.
  * 
- * @param <T> The type of the outputs in this {@link SequenceDataset}.
+ * @param <T> The type of the outputs in this {@link Dataset}.
  */
-
 public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDataset<T> {
     private static final long serialVersionUID = 1L;
 
@@ -82,7 +80,7 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
         // Rebuild the data list only with features that have a minimum cardinality.
         FeatureMap wfm = dataset.getFeatureMap();
         for (Example<T> ex : dataset) {
-        	features.clear();
+            features.clear();
             ArrayExample<T> nex = new ArrayExample<>(ex.getOutput());
             nex.setWeight(ex.getWeight());
             for (Feature f : ex) {
@@ -94,7 +92,7 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
                     // at training time.
                     removed.add(f.getName());
                 } else {
-                	features.add(f);
+                    features.add(f);
                 }
             }
             nex.addAll(features);
@@ -119,7 +117,7 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
         featureIDMap = new ImmutableFeatureMap(featureInfos);
 
         if(numExamplesRemoved > 0) {
-        	logger.info(String.format("filtered out %d examples because it had zero features after the minimum frequency count was applied.", numExamplesRemoved));
+            logger.info(String.format("filtered out %d examples because it had zero features after the minimum frequency count was applied.", numExamplesRemoved));
         }
 
     }

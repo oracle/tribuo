@@ -59,14 +59,16 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
     private static final Logger logger = Logger.getLogger(MinimumCardinalitySequenceDataset.class.getName());
 
     private final int minCardinality;
-    
+
     private int numExamplesRemoved = 0;
 
     private final Set<String> removedFeatureNames = new HashSet<>();
 
     /**
-     * @param sequenceDataset this dataset is left untouched and is used to populate the constructed dataset.
-     * @param minCardinality features with a frequency less than minCardinality will be removed.  
+     * @param sequenceDataset this dataset is left untouched and is used to populate
+     *                        the constructed dataset.
+     * @param minCardinality  features with a frequency less than minCardinality
+     *                        will be removed.
      */
     public MinimumCardinalitySequenceDataset(SequenceDataset<T> sequenceDataset, int minCardinality) {
         super(sequenceDataset.getProvenance(), sequenceDataset.getOutputFactory());
@@ -78,37 +80,41 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
         //
         // Rebuild the data list only with features that have a minimum cardinality.
         FeatureMap featureMap = sequenceDataset.getFeatureMap();
-        SEQUENCE: for (SequenceExample<T> sequenceExample : sequenceDataset) {
-        	List<Example<T>> newExamples = new ArrayList<>();
-        	for(Example<T> example : sequenceExample) {
-        		features.clear();
-        		ArrayExample<T> newExample = new ArrayExample<>(example.getOutput());
-        		newExample.setWeight(example.getWeight());
-        		for (Feature feature : example) {
-        			VariableInfo featureInfo = featureMap.get(feature.getName());
-        			if (featureInfo == null || featureInfo.getCount() < minCardinality) {
-	                    //
-	                    // The feature info might be null if we have a feature at 
-	                    // prediction time that we didn't see
-	                    // at training time.
-	                    removedFeatureNames.add(feature.getName());
-	                } else {
-	                	features.add(feature);
-	                }
-	            }
-	            newExample.addAll(features);
-	            if (newExample.size() > 0) {
-	                if (!newExample.validateExample()) {
-	                    throw new IllegalStateException("Duplicate features found in example " + newExample.toString());
-	                }
-	                newExamples.add(newExample);
-	            } else {
-	                numExamplesRemoved++;
-	                continue SEQUENCE;
-	            }
-        	}
-        	SequenceExample<T> newSequenceExample = new SequenceExample<>(newExamples);
-        	data.add(newSequenceExample);
+        for (SequenceExample<T> sequenceExample : sequenceDataset) {
+            boolean add = true;
+            List<Example<T>> newExamples = new ArrayList<>();
+            for (Example<T> example : sequenceExample) {
+                features.clear();
+                ArrayExample<T> newExample = new ArrayExample<>(example.getOutput());
+                newExample.setWeight(example.getWeight());
+                for (Feature feature : example) {
+                    VariableInfo featureInfo = featureMap.get(feature.getName());
+                    if (featureInfo == null || featureInfo.getCount() < minCardinality) {
+                        //
+                        // The feature info might be null if we have a feature at
+                        // prediction time that we didn't see
+                        // at training time.
+                        removedFeatureNames.add(feature.getName());
+                    } else {
+                        features.add(feature);
+                    }
+                }
+                newExample.addAll(features);
+                if (newExample.size() > 0) {
+                    if (!newExample.validateExample()) {
+                        throw new IllegalStateException("Duplicate features found in example " + newExample.toString());
+                    }
+                    newExamples.add(newExample);
+                } else {
+                    numExamplesRemoved++;
+                    add = false;
+                    break;
+                }
+            }
+            if (add) {
+                SequenceExample<T> newSequenceExample = new SequenceExample<>(newExamples);
+                data.add(newSequenceExample);
+            }
         }
 
         // Copy out the feature infos above the threshold.
@@ -121,13 +127,16 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
         this.outputIDInfo = sequenceDataset.getOutputIDInfo();
         this.featureIDMap = new ImmutableFeatureMap(featureInfos);
 
-        if(numExamplesRemoved > 0) {
-        	logger.info(String.format("filtered out %d sequence examples because (at least) one of its examples had zero features after the minimum frequency count was applied.", numExamplesRemoved));
+        if (numExamplesRemoved > 0) {
+            logger.info(String.format(
+                    "filtered out %d sequence examples because (at least) one of its examples had zero features after the minimum frequency count was applied.",
+                    numExamplesRemoved));
         }
     }
 
     /**
      * The feature names that were removed.
+     * 
      * @return The feature names.
      */
     public Set<String> getRemoved() {
@@ -136,6 +145,7 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
 
     /**
      * The number of examples removed due to a lack of features.
+     * 
      * @return The number of removed examples.
      */
     public int getNumExamplesRemoved() {
@@ -144,6 +154,7 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
 
     /**
      * The minimum cardinality threshold for the features.
+     * 
      * @return The cardinality threshold.
      */
     public int getMinCardinality() {
@@ -162,21 +173,26 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
 
         private final IntProvenance minCardinality;
 
-        <T extends Output<T>> MinimumCardinalitySequenceDatasetProvenance(MinimumCardinalitySequenceDataset<T> dataset) {
+        <T extends Output<T>> MinimumCardinalitySequenceDatasetProvenance(
+                MinimumCardinalitySequenceDataset<T> dataset) {
             super(dataset.sourceProvenance, new ListProvenance<>(), dataset);
-            this.minCardinality = new IntProvenance(MIN_CARDINALITY,dataset.minCardinality);
+            this.minCardinality = new IntProvenance(MIN_CARDINALITY, dataset.minCardinality);
         }
 
-        public MinimumCardinalitySequenceDatasetProvenance(Map<String,Provenance> map) {
+        public MinimumCardinalitySequenceDatasetProvenance(Map<String, Provenance> map) {
             super(map);
-            this.minCardinality = ObjectProvenance.checkAndExtractProvenance(map,MIN_CARDINALITY,IntProvenance.class,MinimumCardinalitySequenceDatasetProvenance.class.getSimpleName());
+            this.minCardinality = ObjectProvenance.checkAndExtractProvenance(map, MIN_CARDINALITY, IntProvenance.class,
+                    MinimumCardinalitySequenceDatasetProvenance.class.getSimpleName());
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof MinimumCardinalitySequenceDatasetProvenance)) return false;
-            if (!super.equals(o)) return false;
+            if (this == o)
+                return true;
+            if (!(o instanceof MinimumCardinalitySequenceDatasetProvenance))
+                return false;
+            if (!super.equals(o))
+                return false;
             MinimumCardinalitySequenceDatasetProvenance pairs = (MinimumCardinalitySequenceDatasetProvenance) o;
             return minCardinality.equals(pairs.minCardinality);
         }
@@ -188,8 +204,8 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
 
         @Override
         protected List<Pair<String, Provenance>> allProvenances() {
-            List<Pair<String,Provenance>> provenances = super.allProvenances();
-            provenances.add(new Pair<>(MIN_CARDINALITY,minCardinality));
+            List<Pair<String, Provenance>> provenances = super.allProvenances();
+            provenances.add(new Pair<>(MIN_CARDINALITY, minCardinality));
             return provenances;
         }
     }
