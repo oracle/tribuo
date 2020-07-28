@@ -104,7 +104,7 @@ this separation between training and prediction so as to enable the type
 ### Why are there feature objects? Why not just use arrays?
 
 Primitive arrays in Java are fast, but they imply a dense feature
-space. One of Tribuo's design goals was strong support for NLP tasks, which
+space. One of Tribuo's design goals is strong support for NLP tasks, which
 typically have high-dimensional, sparse feature spaces.  As a result, *every*
 feature space in Tribuo is implicitly sparse, unlike the implicit assumption
  of density made by most ML libraries. Another consequence of supporting NLP
@@ -180,12 +180,12 @@ A `DataSource` performs the inbound ETL step from the source data on disk or
  on the other hand, is something suitable for training a model. It has the full
  feature domain and the full output domain. It keeps every training example
  in memory and can be split into training and testing chunks in a repeatable
-  way. `Dataset`s can also be transformed, e.g. rescaling the features to be 
-  between zero and one. They can perform operations which require using the
-  statistics of all the data. These transformations and operations are
-  recorded in the `Dataset` so that they can be recovered via provenance or
-  incorporated into a `TransformedModel` that applies them to
-  each input before prediction.
+  way. `Dataset`s can also be transformed using the statistics of the data. 
+  For example, `Dataset`s can be rescaled so that the features are constrained
+  between zero and one. These transformations are recorded in the `Dataset` so
+  that they can be recovered via provenance or incorporated into a
+   `TransformedModel` that applies the transformations to each input before
+   prediction.
 
 ### What's the purpose of `Output.fullEquals`?
 
