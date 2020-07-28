@@ -23,7 +23,7 @@ import org.tribuo.math.optimisers.AdaGrad;
 import java.util.logging.Logger;
 
 /**
- * A logistic regression trainer that uses a reasonable objective, optimizer, 
+ * A logistic regression trainer that uses a reasonable objective, optimiser,
  * number of epochs and minibatch size. If you wish to modify any of these 
  * aspects, you can create your own LinearSGDTrainer.
  * <p>

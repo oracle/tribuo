@@ -23,7 +23,7 @@ import org.tribuo.math.StochasticGradientOptimiser;
 import java.util.logging.Logger;
 
 /**
- * CLI options for configuring a gradient optimizer.
+ * CLI options for configuring a gradient optimiser.
  */
 public class GradientOptimiserOptions implements Options {
     private static final Logger logger = Logger.getLogger(GradientOptimiserOptions.class.getName());
@@ -62,8 +62,8 @@ public class GradientOptimiserOptions implements Options {
     public SGD.Momentum momentum = SGD.Momentum.NONE;
 
     /**
-     * Gets the configured gradient optimizer.
-     * @return The gradient optimizer.
+     * Gets the configured gradient optimiser.
+     * @return The gradient optimiser.
      */
     public StochasticGradientOptimiser getOptimiser() {
         StochasticGradientOptimiser sgo;
