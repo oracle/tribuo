@@ -24,13 +24,13 @@ a math library, and common modules shared across prediction types.
    also contains feature id numbers, although these should be treated as an
     implementation detail and not relied upon.
   - Model - A class that can make predictions of a specific Output type.
-  - Output - An interface denoting the type of output, either regression, 
+  - Output - An interface denoting the type of output: regression, 
   multi-label, multi-class, clustering, or anomaly detection.
   - OutputInfo - An interface representing information about the output.
   - Trainer - A class that generates Models based on a Dataset of a specific output type.
   - Prediction - A class that stores the output of a Model when presented
-   with an Example for labeling. It contains scores, which may optionally be
-    a probability distribution, for each of the predicted labels.
+   with an Example for labeling. It contains scores for each of the predicted
+    labels. These scores may optionally be a probability distribution.
 - Core contains several other packages.
   - dataset - Datasets which provide a view on another dataset, either subsampling it or excluding features below a threshold.
   - datasource - Implementations of DataSource which operate on in memory or simple on disk formats.
