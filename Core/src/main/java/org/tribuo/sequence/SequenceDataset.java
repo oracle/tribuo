@@ -19,7 +19,6 @@ package org.tribuo.sequence;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
-import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.ImmutableFeatureMap;
@@ -27,7 +26,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
-import org.tribuo.VariableInfo;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
@@ -68,46 +66,6 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
     protected SequenceDataset(DataProvenance sourceProvenance, OutputFactory<T> outputFactory) {
         this.sourceProvenance = sourceProvenance;
         this.outputFactory = outputFactory;
-    }
-
-    /**
-     * This method prunes low frequency features that occur less than the minCount
-     * parameter value. It modifies the examples in the passed in dataset and adds
-     * them to a new dataset which is returned. This is done because there is no way
-     * to decrease the feature counts in the {@link FeatureMap} as we are removing features.
-     * So, we create a new dataset so that the feature counts are recalculated.
-     * However, because datasets can be huge, we do not want to create a completely
-     * new dataset with new examples as that doubles the memory requirements. The
-     * assumption here is that if you want the low frequency features removed, then
-     * you are ok with the examples in the passed in dataset to be modified. The
-     * expectation is that you will pass in a dataset, replace it with the returned
-     * one, and then discard the passed in dataset.
-     *
-     * @param dataset  the examples in this dataset will be modified (i.e. the low
-     *                 frequency features will be removed) however the InfoMap will be
-     *                 out-of-date
-     * @param minCount features with a frequency less than minCount will be removed.
-     * @param <T>      The type of the output.
-     * @return a dataset with correct counts in FeatureMap, consisting of the same
-     * example objects as the dataset parameter, but the example objects
-     * will have low-frequency features removed.
-     */
-    public static <T extends Output<T>> SequenceDataset<T> pruneLowFrequencyFeatures(SequenceDataset<T> dataset, int minCount) {
-        MutableSequenceDataset<T> newDataset = new MutableSequenceDataset<>(dataset.getSourceProvenance(), dataset.getOutputFactory());
-        FeatureMap oldInfo = dataset.getFeatureMap();
-        for (SequenceExample<T> se : dataset) {
-            List<Feature> removeFeatures = new ArrayList<>();
-            Iterable<Feature> features = se::featureIterator;
-            for (Feature f : features) {
-                VariableInfo finfo = oldInfo.get(f.getName());
-                if (finfo == null || finfo.getCount() < minCount) {
-                    removeFeatures.add(f);
-                }
-            }
-            se.removeFeatures(removeFeatures);
-            newDataset.add(se);
-        }
-        return newDataset;
     }
 
     /**
