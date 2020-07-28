@@ -198,5 +198,5 @@ be used. Note, this implementation of equals and hashcode causes any two
 `Regressor`s that share the same dimension names to be equal, which is
 unfortunate. When comparing `Regressor`, always use `Regressor.fullEquals` to
 include both the regressed value, and the variance. As `Regressor` uses 
-`Double.NaN` as the sentinel value to indicate zero variance, NaN variances are
- considered equal to each other.
+`Double.NaN` as the sentinel value to indicate that no variance was calculated, 
+NaN variances are considered equal to each other.
