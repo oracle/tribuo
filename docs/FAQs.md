@@ -10,11 +10,11 @@
 
 ### When did the project start?
 
-The initial version of Tribuo was written in 2016 with the internal v1.0
+The initial version of Tribuo was written in 2016, and the internal v1.0
 was released in the fall of 2016. The first open source release was v4.0, 
-released in July 2020.  Tribuo was designed after the Machine Learning
-Research Group in
-[Oracle Labs](https://labs.oracle.com) had written several text classification
+released in July 2020.  Tribuo was designed after the [Oracle Labs](https
+://labs.oracle.com) Machine Learning
+Research Group had written several text classification
 projects in Java and realised the need for a good single node ML framework on
 the JVM.
 
