@@ -18,9 +18,9 @@ a math library, and common modules shared across prediction types.
    with a subclass of Output that represents the appropriate type of response.
   - Feature - An immutable tuple of String and value. The String is the feature
    name, which is used as the feature's unique identifier.
-  - FeatureInfo - A class representing information about the feature, e.g. the 
+  - VariableInfo - A class representing information about the feature, e.g. the 
   number of times it occurred in the dataset.
-  - FeatureMap - A map from String to FeatureInfo objects. When immutable, it
+  - FeatureMap - A map from String to VariableInfo objects. When immutable, it
    also contains feature id numbers, although these should be treated as an
     implementation detail and not relied upon.
   - Model - A class that can make predictions of a specific Output type.
