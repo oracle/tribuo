@@ -6,7 +6,7 @@
 
 "Tribuo" comes from the Latin for "to assign" or "apportion", which makes
  sense since Tribuo is a prediction system for assigning outputs to examples. 
- Plus we know a Latin teacher, and we'd like to keep her employed.
+ Plus we know a Latin teacher whom we'd like to keep employed.
 
 ### When did the project start?
 
@@ -69,13 +69,14 @@ Anything considered part of the internal API (e.g. the innards of the tree
 
 ### Why is the code broken out by prediction task (e.g. Classification, Regression, etc.)?
 
-We designed Tribuo to be as modular as possible, with users able to depend on
-only the pieces they need without additional unnecessary components or third
-party dependencies. If you want to deploy a Tribuo `RandomForestClassifier`,
-you only need the tribuo-classification-decision-tree jar and it's
-dependencies; it doesn't pull in TensorFlow, or anything else. This makes it
-simpler to package up a production deployment, as there is a smaller code
-surface to test, fewer jars and less space used up with unnecessary things.
+We designed Tribuo to be as modular as possible. Users are able to depend
+ exclusively on the pieces they need without additional unnecessary
+ components or third party dependencies. If you want to deploy a Tribuo
+  `RandomForestClassifier`, you only need the tribuo-classification-decision
+-tree jar and it's dependencies; it doesn't pull in TensorFlow, or anything
+ else. This makes it simpler to package up a production deployment, as there
+  is a smaller code surface to test, and fewer jars and less space used up with
+   unnecessary things.
 
 This early design choice has lead to some additional complexity in the
 development of the core Tribuo library, and we're interested to see if the
@@ -93,7 +94,7 @@ both the outputs and the scores for those outputs. It's predict method is the
 equivalent of both "predict" and "predict\_proba" in scikit-learn. We made
 this separation between training and prediction so as to enable the type
  system to act as a gate-keeper on prediction; preditions cannot be made
- using untrained models when it's not possible to have an untrained model
+ using untrained models when it's impossible to have an untrained model
  with a predict method. This separation does mean that
  integrating new libraries is more complex than with scikit-learn, since with
   scikit-learn it is possible to simply export a small number of methods with
@@ -102,29 +103,30 @@ this separation between training and prediction so as to enable the type
 
 ### Why are there feature objects? Why not just use arrays?
 
-Primitive arrays in Java are definitely faster, but they imply a dense feature
+Primitive arrays in Java are fast, but they imply a dense feature
 space. One of Tribuo's design goals was strong support for NLP tasks, which
 typically have high-dimensional, sparse feature spaces.  As a result, *every*
-feature space in Tribuo is implicitly sparse, unlike the implicit dense
-assumption in most ML libraries. Another consequence is that Tribuo's features
-are *named*. Each Feature is a tuple of a String and a value. This makes it
-easy to understand if there is a feature space mismatch (as commonly occurs in
-NLP when there are out of vocabulary terms). The Tribuo model knows the
-names of all the features and can tell when there's a name that is unexpected.
-This means that it's not possible to load a model and apply it to
-data from a completely different domain (i.e. applying an MNIST model to text
-classification) as the feature spaces will be misaligned: not only will there
-be a different number of features, but they'll all have different names, too. 
-In such a situation, Tribuo's predict methods will throw a RuntimeException
-as there are no valid features in the supplied Example.
+feature space in Tribuo is implicitly sparse, unlike the implicit assumption
+ of density made by most ML libraries. Another consequence of supporting NLP
+ tasks is that Tribuo's features are *named*. Each Feature is a tuple of a
+ String and a value. This makes it easy to understand if there is a feature
+ space mismatch (as commonly occurs in NLP when there are out of vocabulary
+  terms). Since a Tribuo model knows the names of all the features, it can
+ tell when it encounters a feature name that is unexpected. This prevents the
+  possibility of loading a model and applying it to data from a completely
+  different domain (i.e. applying an MNIST model to text classification) as
+  the feature spaces will be misaligned: not only will there be a different
+ number of features, but they'll have different names, too. In such a situation,
+ Tribuo's predict methods will throw a RuntimeException as there are no valid
+ features in the supplied Example.
 
 ### Why are the model outputs "Predictions"? Why not use arrays?
 
-The model's prediction contains a set of outputs that had positive scores, and
-each output is *named*, making it easy to understand which score goes with
-which output. Returning an array means the user has to maintain the mapping
-between the array index and the name of the output (e.g. "hire" = 0,
-"re-interview" = 1, "reject" = 2) manually, separate from the model file
+The model's `Prediction` contains a set of *named* outputs. These names make it
+ easy to understand which score goes with which output. Returning an array
+ means the user has to manually maintain the mapping between the array index
+ and the name of the output (e.g. "hire" = 0,
+"re-interview" = 1, "reject" = 2) in a separate location from the model file
 itself. This leads to bugs and mismatches when the user loads the wrong model
 or uses the wrong mapping. With Tribuo's approach *this can never happen*, the
 model knows what it's output domain is, and can describe it to the user in the
@@ -133,15 +135,14 @@ form the user expects (i.e. Strings).
 ### Why don't features or outputs have id numbers?
 
 In truth, they do, but feature ids and output ids are managed by Tribuo, and
-should never need to be seen by a user of Tribuo. Those ids are automatically
+should never need to be seen by a user of Tribuo. These ids are automatically
 generated, and should only be necessary for debugging new model implementations
 or interfaces. Having the ids managed by the library ensures that they can't be
-confused when chaining models together, or during data loading or
-featurisation.
+confused when chaining models together, loading data, or applying featurization.
 
 ### What's this about provenance?
 
-Provenance (of `Model`s, `Dataset`s and `Evaluation`s) is one of the core
+Provenance of `Model`s, `Dataset`s and `Evaluation`s is one of the core
 benefits of Tribuo.  It means each model, dataset and evaluation knows exactly
 how it was created, and moreover it can generate a configuration file which can
 reconstruct the object in question from scratch (assuming you still have access
@@ -149,43 +150,44 @@ to the original training and testing data). The provenance and configuration
 systems come from [OLCUT](https://github.com/oracle/olcut) (Oracle Labs
 Configuration and Utility Toolkit), a long lived internal library from Oracle
 Labs which has roots in the configuration system used in Sphinx4. OLCUT
-provides configuration files in multiple formats, and ways to operate on
-provenance in JSON format (other provenance file formats will be added in the
-future).
+provides configuration files in multiple formats, and includes ways to
+ operate on provenance in JSON format (other provenance file formats will be
+  added in the future).
 
 ### What's the difference between configuration and provenance?
 
-In short, configuration is the parameter settings for an object (e.g.
-hyperparameters, data scaling, random seed), and provenance is the
-configuration plus information gathered from the specific run that created the
-model/dataset/evaluation (e.g. the number of features, the number of samples,
-the timestamp of the data file, the number of times that Trainer's RNG had been
-used).
+In short, the configuration sets the parameters for an object (e.g.
+hyperparameters, data scaling, and random seed). The provenance is the
+configuration plus the information gathered from the specific run that created
+ the model/dataset/evaluation (e.g. the number of features, the number of
+  samples, the timestamp of the data file, and the number of times that the
+   Trainer's RNG has been used).
 
-Provenance is a superset of configuration, and you can convert a provenance
-object into configurations for all it's constituent parts, but you can't
-convert a configuration into a provenance without executing the code (e.g.
-loading the dataset, training the model) as otherwise it won't know the
-run-specific information.
+The provenance is a superset of configurations. You can convert a provenance
+object into a set of configurations, one for each of its constituent parts. In 
+contrast, the configuration cannot be converted into a provenance without
+ executing the code (e.g. loading the dataset or training the model) as
+ otherwise it won't know the run-specific information.
 
 ### What's the difference between a DataSource and a Dataset?
 
-A `DataSource` does the inbound ETL step from the source data on disk or in a
-database.  It's responsible for featurising the data (e.g. converting text into
-bigram counts), reading the ground truth outputs, and creating the `Example`s
-to contain the features and outputs. A `DataSource` can be lazy, it doesn't
-require that all the examples are in memory at once (though in practice many of
-the implementations do load in everything). A `Dataset` is something suitable
-for training a model, it has the full feature domain, the full output domain,
-keeps every training example in memory, and can be split into training and
-testing chunks in a repeatable way. `Dataset`s can also be transformed, e.g.
-rescaling the features to be between zero and one, and other operations which
-require using statistics of all the data. These transformations are recorded in
-the `Dataset` so they can be recovered via provenance or incorporated into a
-`TransformedModel` that applies the transformations to each input before
-prediction.
+A `DataSource` performs the inbound ETL step from the source data on disk or
+ from a database.  It's responsible for featurizing the data (e.g. converting
+ text into bigram counts), reading the ground truth outputs, and creating the
+ `Example`s to contain the features and outputs. A `DataSource` can be lazy;
+ it doesn't require that all examples be in memory at once (although in
+ practice many of the implementations do load all of the examples). A `Dataset`, 
+ on the other hand, is something suitable for training a model. It has the full
+ feature domain and the full output domain. It keeps every training example
+ in memory and can be split into training and testing chunks in a repeatable
+  way. `Dataset`s can also be transformed, e.g. rescaling the features to be 
+  between zero and one. They can perform operations which require using the
+  statistics of all the data. These transformations and operations are
+  recorded in the `Dataset` so that they can be recovered via provenance or
+  incorporated into a `TransformedModel` that applies them to
+  each input before prediction.
 
-### What's `Output.fullEquals` for?
+### What's the purpose of `Output.fullEquals`?
 
 The `Output.equals` and `Output.hashcode` methods are constrained to only
 look at the dimension labels. This means that two `Label`s can be compared
@@ -193,8 +195,8 @@ for equality even if they have different confidence scores (as ground truth
 labels usually have a score of 1.0, and predicted ones do not). To compare
 the values including any confidence score the `Output.fullEquals` method should
 be used. Note, this implementation of equals and hashcode causes any two
-`Regressor`s which share the same dimension names to be equal, which is
-unfortunate. When comparing `Regressor` always use `Regressor.fullEquals` to
+`Regressor`s that share the same dimension names to be equal, which is
+unfortunate. When comparing `Regressor`, always use `Regressor.fullEquals` to
 include both the regressed value, and the variance. As `Regressor` uses 
-`Double.NaN` as the sentinel value for no variance, NaN variances are considered
-equal to each other.
+`Double.NaN` as the sentinel value to indicate zero variance, NaN variances are
+ considered equal to each other.
