@@ -297,7 +297,7 @@ public final class StripProvenance {
             if (o.provenanceFile != null) {
                 logger.info("Writing JSON provenance to " + o.provenanceFile.toString());
                 try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(o.provenanceFile), StandardCharsets.UTF_8))) {
-                    writer.println(provenanceHash);
+                    writer.println(jsonResult);
                 }
             }
 

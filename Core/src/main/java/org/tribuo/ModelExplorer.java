@@ -140,7 +140,7 @@ public class ModelExplorer implements CommandGroup {
     }
 
     @Command(usage="Shows the output statistics")
-    public String showLabelStats(CommandInterpreter ci) {
+    public String showOutputStats(CommandInterpreter ci) {
         return "Label histogram : \n" + model.getOutputIDInfo().toReadableString();
     }
 
