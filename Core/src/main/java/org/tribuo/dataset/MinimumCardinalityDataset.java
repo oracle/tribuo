@@ -33,6 +33,7 @@ import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.DatasetProvenance;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,21 +42,22 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- * A wrapper for a Dataset that will only return features that have a minimum
- * cardinality. This Dataset will rewrite the information map for the features
- * to exclude the low cardinality features.
- * <p>
- * For example this class can be used to remove low frequency words from a BoW formatted dataset.
- * </p>
- *
- * @param <T> The type of the outputs in this Dataset.
+ * This class creates a pruned dataset in which low frequency features that
+ * occur less than the provided minimum cardinality have been removed. This can
+ * be useful when the dataset is very large due to many low-frequency features.
+ * For example, this class can be used to remove low frequency words from a BoW
+ * formatted dataset. Here, a new dataset is created so that the feature counts
+ * are recalculated and so that the original, passed-in dataset is not modified.
+ * The returned dataset may have fewer examples because if any of the examples
+ * have no features after the minimum cardinality has been applied, then those
+ * examples will not be added to the constructed dataset.
+ * 
+ * @param <T> The type of the outputs in this {@link Dataset}.
  */
 public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDataset<T> {
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(MinimumCardinalityDataset.class.getName());
-
-    private final Dataset<T> wrapped;
 
     private final int minCardinality;
     
@@ -63,17 +65,22 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
 
     private final Set<String> removed = new HashSet<>();
 
-    public MinimumCardinalityDataset(Dataset<T> wrapped, int minCardinality) {
-        super(wrapped.getProvenance(), wrapped.getOutputFactory());
-        this.wrapped = wrapped;
+    /**
+     * @param dataset this dataset is left untouched and is used to populate the constructed dataset.
+     * @param minCardinality features with a frequency less than minCardinality will be removed.  
+     */
+    public MinimumCardinalityDataset(Dataset<T> dataset, int minCardinality) {
+        super(dataset.getProvenance(), dataset.getOutputFactory());
         this.minCardinality = minCardinality;
 
         MutableFeatureMap featureInfos = new MutableFeatureMap();
 
+        List<Feature> features = new ArrayList<>();
         //
         // Rebuild the data list only with features that have a minimum cardinality.
-        FeatureMap wfm = wrapped.getFeatureMap();
-        for (Example<T> ex : wrapped) {
+        FeatureMap wfm = dataset.getFeatureMap();
+        for (Example<T> ex : dataset) {
+            features.clear();
             ArrayExample<T> nex = new ArrayExample<>(ex.getOutput());
             nex.setWeight(ex.getWeight());
             for (Feature f : ex) {
@@ -85,9 +92,10 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
                     // at training time.
                     removed.add(f.getName());
                 } else {
-                    nex.add(f);
+                    features.add(f);
                 }
             }
+            nex.addAll(features);
             if (nex.size() > 0) {
                 if (!nex.validateExample()) {
                     throw new IllegalStateException("Duplicate features found in example " + nex.toString());
@@ -100,17 +108,18 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
 
         // Copy out the feature infos above the threshold.
         for (VariableInfo info : wfm) {
-            if (info.getCount() > minCardinality) {
+            if (info.getCount() >= minCardinality) {
                 featureInfos.put(info.copy());
             }
         }
 
-        outputIDInfo = wrapped.getOutputIDInfo();
+        outputIDInfo = dataset.getOutputIDInfo();
         featureIDMap = new ImmutableFeatureMap(featureInfos);
-    }
 
-    public Dataset<T> getWrapped() {
-        return wrapped;
+        if(numExamplesRemoved > 0) {
+            logger.info(String.format("filtered out %d examples because it had zero features after the minimum frequency count was applied.", numExamplesRemoved));
+        }
+
     }
 
     /**
