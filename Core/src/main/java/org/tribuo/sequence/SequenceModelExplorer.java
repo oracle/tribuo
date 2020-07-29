@@ -135,11 +135,6 @@ public class SequenceModelExplorer implements CommandGroup {
         return counter + " features occurred more than " + minCount + " times.";
     }
 
-    @Command(usage="Shows the output statistics")
-    public String showLabelStats(CommandInterpreter ci) {
-        return "Label histogram : \n" + model.getOutputIDInfo().toReadableString();
-    }
-
     public static String usage() {
         StringBuilder string = new StringBuilder();
         string.append("Usage: ModelExplorer\n");
