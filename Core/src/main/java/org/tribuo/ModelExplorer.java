@@ -139,11 +139,6 @@ public class ModelExplorer implements CommandGroup {
         return counter + " features occurred more than " + minCount + " times.";
     }
 
-    @Command(usage="Shows the output statistics")
-    public String showOutputStats(CommandInterpreter ci) {
-        return "Label histogram : \n" + model.getOutputIDInfo().toReadableString();
-    }
-
     public static class ModelExplorerOptions implements Options {
         @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
         public String modelFilename;
