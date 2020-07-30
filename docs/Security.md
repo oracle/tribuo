@@ -36,12 +36,14 @@ it's frequently necessary to load data via a joined query from an unknown
 a java.util.Properties instance with the appropriate configuration.
 
 ## Native code
-Tribuo uses several native libraries via JNI interfaces. Native code has different considerations 
-as compared to pure Java code; native code can cause issues in the running JVM. 
-We are active contributors to all the native ML libraries that Tribuo uses,
- and we fix issues upstream if we find them. Nevertheless, you should
-think carefully before running a model that requires native code inside an application container like a
-JavaEE or JakartaEE server. Multiple instances of Tribuo running inside separate containers may cause
+Tribuo uses several native libraries via JNI interfaces. Native code has
+different considerations 
+as compared to pure Java code because native code can cause issues in the
+running JVM. We are active contributors to all the native ML libraries that 
+Tribuo uses, and we fix issues upstream if we find them. Nevertheless, you
+should think carefully before running a model that requires native code
+inside an application container like a JavaEE or JakartaEE server. Multiple
+ instances of Tribuo running inside separate containers may cause
 issues with JNI library loading due to ClassLoader security considerations.
 
 ## Configuration
@@ -80,7 +82,7 @@ ML systems that can result in model or data leakage.
 
 | Threat | Description | Exposed Assets | Possible Mitigations |
 | ------ | ----------- | -------------- | -------------------- |
-| Model replication | Repeated queries with known features, where the attacker receives the full predicted probability distribution for each query. This distribution may provide enough information for the attacker to replicate the model. If the model is considered an important asset, allowing an attacker to copy it could be detrimental. | The model parameters | Only return a small number of predictions (i.e. the top n) or do not provide the probability distribution. This slows down the attack, but does not completely prevent it. Other mitigations such as employing rate limiting or preventing the attacker from controlling or observing the feature inputs are necessary to fully prevent this attack.|
+| Model replication | If an attacker can repeatedly query the model, where they either know or control the features, and they can observe the full prediction (e.g. the complete predicted probability distribution) for each query, then this can provide sufficient information for them to replicate the model.  If the model is considered an important asset, allowing an attacker to copy it could be detrimental. | The model parameters | Only return a small number of predictions (i.e. the top n) or do not provide the probability distribution. This slows down the attack, but does not completely prevent it. Other mitigations such as employing rate limiting or preventing the attacker from controlling or observing the feature inputs are necessary to fully prevent this attack.|
 | Training metadata leak | The model file contains information about the training data such as the feature names, number of features, and number of examples. This information is potentially sensitive, as in the case of bigrams or trigrams from text. | Training metadata | Firstly, treat model files as confidential if the data itself is confidential. Secondly, use Tribuo's methods for one-way hashing of the feature names. Hashing prevents attackers from trivially discovering the features without needing to complete the process of supplying the input text and testing if the model output changes. Thirdly, other information present in the model file, such as the number of examples, can be redacted by removing the provenance information before the model is deployed. | 
 | Training data leak | If an attacker can repeatedly query the model, it's possible for an attacker to find specific training data points that are part of the training data set. This attack is accomplished by measuring the confidence of the prediction (as training data points usually have a predicted confidence close to 1.0). | Training data | The most important mitigation is to treat model files as confidential if the training data is confidential. Once access to the model has been prevented, the mitigations for model replication apply. This attack is a variant of model replication that usually requires some foreknowledge of the identity of the training corpus. |
 {: .table}
