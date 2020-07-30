@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 /**
  * A trainer for a kernelised model using the Pegasos optimiser.
  * <p>
- * The Pegasos optimizer is extremely sensitive to the lambda parameter, and this
+ * The Pegasos optimiser is extremely sensitive to the lambda parameter, and this
  * value must be tuned to get good performance.
  * <p>
  * See:
