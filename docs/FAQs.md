@@ -33,9 +33,9 @@ Tribuo is released under the Apache 2.0 license.
 We welcome bug reports, bug fixes, features, documentation improvements and
 other feedback on our GitHub repo. The Tribuo mailing list is
 [tribuo-devel@oss.oracle.com](mailto:tribuo-devel@oss.oracle.com), archived
-[here](https://oss.oracle.com/pipermail/tribuo-devel/), and we have a [Slack
-community](). Code contributions are accepted under the terms of the [Oracle
-Contributor
+[here](https://oss.oracle.com/pipermail/tribuo-devel/). We're looking at
+different options for real time chat. Code contributions are accepted under the
+terms of the [Oracle Contributor
 Agreement](https://www.oracle.com/technetwork/community/oca-486395.html).
 Contributors must have sign the agreement before their PRs can be reviewed or
 merged.

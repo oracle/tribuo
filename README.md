@@ -196,9 +196,10 @@ We welcome contributions! See our [contribution guidelines](./CONTRIBUTING.md).
 
 We have a discussion mailing list
 [tribuo-devel@oss.oracle.com](mailto:tribuo-devel@oss.oracle.com), archived
-[here](https://oss.oracle.com/pipermail/tribuo-devel/), and a [Slack
-community](). For bug reports, feature requests or other issues, please file a
-[Github Issue](https://github.com/oracle/tribuo/issues).
+[here](https://oss.oracle.com/pipermail/tribuo-devel/). We're investigating
+different options for real time chat, check back in the near future. For bug
+reports, feature requests or other issues, please file a [Github
+Issue](https://github.com/oracle/tribuo/issues).
 
 Security issues should follow our [reporting guidelines](./SECURITY.md).
 
