@@ -1,192 +1,215 @@
+<p align="center"><img width="50%" alt="Tribuo Logo" src="docs/img/Tribuo_Logo_Colour.png" /></p>
+
 # Tribuo - A Java prediction library (v4.0)
 
-[Tribuo](https://tribuo.org) is a prediction system in Java, providing multi-class classification, regression, clustering, anomaly detection and multi-label classification.
-It wraps other libraries to provide a unified interface and also has several implementations of useful
-algorithms. It was initially developed by [Oracle Labs'](https://labs.oracle.com)
-Machine Learning Research Group.
+[Tribuo](https://tribuo.org) is a machine learning library in Java that
+provides multi-class classification, regression, clustering, anomaly detection
+and multi-label classification. Tribuo provides implementations of popular ML
+algorithms and also wraps other libraries to provide a unified interface.
+Tribuo contains all the code necessary to load, featurise and transform data.
+Additionally, it includes the evaluation classes for all supported prediction
+types. Development is led by [Oracle Labs'](https://labs.oracle.com) Machine
+Learning Research Group;  we welcome community contributions.
 
-All the trainers are configurable using the [OLCUT](https://github.com/oracle/olcut) configuration system. This allows
-a user to define a trainer in an xml file, and repeatably build models. There are example configurations
-for each of the supplied Trainers in the config folder of each package. Models are serializable using
-Java serialization, as are the datasets themselves. These configuration files can be written in
-json if the olcut-config-json dependency is added along with the Tribuo dependencies.
+All trainers are configurable using the
+[OLCUT](https://github.com/oracle/olcut) configuration system. This allows a
+user to define a trainer in an xml file and repeatably build models.  Example
+configurations for each of the supplied Trainers can be found in the config
+folder of each package. These configuration files can also be written in json
+or edn by using the appropriate OLCUT configuration dependency. Models and
+datasets are serializable using Java serialization. 
 
-From v3 all models and evaulations include a serialisable provenance object which records when the model or evaluation was
-created, what data was used, any transformations applied to the data, the hyperparameters of the trainer, and for evaluations, what
-model was used. This information can be extracted out into JSON, or can be serialised directly using Java serialisation.
+All models and evaluations include a serializable provenance object which
+records the creation time of the model or evaluation, the identity of the data
+and any transformations applied to it, as well as the hyperparameters of the
+trainer. In the case of evaluations, this provenance information also includes
+the specific model used. Provenance information can be extracted as JSON, or
+serialised directly using Java serialisation. For production deployments,
+provenance information can be redacted and replaced with a hash to provide
+model tracking through an external system.
 
-## Package Description
-The top level project has core modules which define the API, data interactions, a math library, and common modules shared across prediction types.
+Tribuo runs on Java 8+, and we test on LTS versions of Java along with the
+latest release.  Tribuo itself is a pure Java library and is supported on all
+Java platforms;  however, some of our interfaces require native code and are
+thus supported only where there is native library support. We test on x86\_64
+architectures on Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these are
+supported platforms for the native libraries with which we interface. If you're
+interested in another platform and wish to use one of the native library
+interfaces (ONNX Runtime, TensorFlow, and XGBoost), we recommend reaching out
+to the developers of those libraries.
 
-- Core - Provides the main classes and interfaces:
-  - Dataset - A list of Examples, plus associated feature information (number of categories, or mean & variance for real values).
-  - DataSource - A list of Examples processed from some other format, along with provenance describing where they were loaded and how they were processed.
-  - Example - An array or list of String & value pairs. This is typed with a subclass of Output representing the response for this example.
-  - Feature - An immutable tuple of String and value. The String is the name of the feature, and used as the unique identifier for a given feature.
-  - FeatureInfo - A class representing information about the feature, e.g. number of times it occurred in the dataset.
-  - FeatureMap - A map from String to FeatureInfo objects. When immutable it also contains feature id numbers, though these should be treated as an implementation detail and not relied upon.
-  - Model - A class that can make predictions of a specific Output type.
-  - Output - An interface denoting the type of output, either regression, multi-label, multi-class, clustering, or anomaly detection.
-  - OutputInfo - An interface representing information about the output.
-  - Trainer - A class that generates Models based on a Dataset of a specific output type.
-  - Prediction - A class that stores the output of a Model when presented with an Example for labelling. It contains scores for each of the predicted labels, which may optionally be a probability distribution.
-- Core contains several other packages.
-  - dataset - Datasets which provide a view on another dataset, either subsampling it or excluding features below a threshold.
-  - datasource - Implementations of DataSource which operate on in memory or simple on disk formats.
-  - ensemble - Base classes and interfaces for ensemble models.
-  - evaluation - Base evaluation classes for all output types, including cross-validation and train-test splitting.
-  - hash - An implementation of feature hashing which obfuscates any feature names that are stored in a Model. This prevents the name of a feature from leaking out, which excludes a type of information leakage from the training data.
-  - provenance - Provenance classes for Tribuo, which track the location and transformations of datasets, the parameters of trainers and other useful information.
-  - sequence - A sequence prediction API.
-  - transform - A feature transformation package, which can apply to a full dataset or individual features matched via regexes. It also has wrapping trainers and models to ensure the transformations are always applied at prediction time.
-  - util - Utilities for working with arrays, random samples, and other basic operations.
-- Data - provides classes which deal with sampled data, columnar data, csv files and text inputs. These classes are mainly optional, and the user is encouraged to provide their own text processing infrastructure.
-  - columnar - The columnar package provides many useful base classes for extracting features from columnar data.
-  - csv - Builds on the columnar package and supplies infrastructure for working with CSV and other delimiter separated data.
-  - sql - Builds on the columnar package and supplies infrastructure for working with JDBC sources.
-  - text - An example text processsing infrastructure.
-- Math - provides a linear algebra library for working with vectors and matrices both sparse and dense.
-  - kernel - a set of kernel functions for use in the SGD package (and elsewhere).
-  - la - a linear algebra library. It currently has functions that are used in the SGD implementation and is not a full BLAS.
-  - optimisers - a set of stochastic gradient descent algorithms, including SGD + Momentum, AdaGrad, AdaDelta, RMSProp and
-  several others. AdaGrad should be considered the default algorithm, it works best across the widest range of linear SGD
-  problems.
-  - util - various util classes for working with arrays, vectors and matrices.
+## Documentation
 
-## Multi-class Classification
+* [Library Architecture](docs/Architecture.md)
+* [Package Overview](docs/PackageOverview.md)
+* [Javadoc](https://tribuo.org/javadoc/4.0.0/index.html)
+* [Developer Documentation](docs/Internals.md)
+* [Roadmap](docs/Roadmap.md)
+* [Frequently Asked Questions](docs/FAQs.md)
 
-Multi-class classification is the act of assigning a single label from a set of labels to a test example.
-The classification module has several submodules:
+## Tutorials
 
-- Core - contains an Output subclass for use with multi-class classification
-  tasks, evaluation code for checking model performance, and an
-  implementation of Adaboost.SAMME. Also contains simple baseline classifiers, if
-  your system doesn't outperform these, it's not working.
-- DecisionTree - an implementation of CART decision trees.
-- Experiments - A set of main functions for training & testing models on any supported dataset. It depends on all the
-  classifiers and allows easy comparison between them. This should not be imported into other projects, it's purely for
-  development and testing.
-- Explanations - An implementation of LIME for classification tasks. If you use the columnar data loader, LIME can
-  extract more information about the feature domain and provide better explanations.
-- LibLinear - a wrapper around the LibLinear-java library. This provides linear-SVMs, and other l1 or l2 regularised
-  linear classifiers.
-- LibSVM - a wrapper around the Java version of LibSVM. This provides linear & kernel SVMs, with sigmoid, gaussian and
-  polynomial kernels.
-- Multinomial Naive Bayes - an implementation of a multinomial naive bayes classifier. It aims to have a compact in
-  memory representation of the model, so only has weights for observed feature/class pairs.
-- SGD - an implementation of stochastic gradient descent based classifiers. It has a linear package for logistic
-  regression and linear-SVM (using log and hinge losses respectively), a kernel package for training a kernel-SVM using the
-  Pegasos algorithm, and a crf package for training a linear-chain CRF. These implementations depend upon the stochastic
-  gradient optimisers in the main Math package. The linear and crf packages can use any of the provided gradient optimisers,
-  which enforce various different kinds of regularisation or convergence metrics. This is the preferred package for linear
-  classification and for sequence classification due to the speed and scalability of the SGD approach.
-- XGBoost - a wrapper around the XGBoost Java API. XGBoost requires a C library accessed via JNI. 
-  XGBoost is a scalable implementation of gradient boosted trees, and one of the highest accuracy classifiers
-  provided in this project.
+Tutorial notebooks, including examples of Classification, Clustering,
+Regression, Anomaly Detection and the configuration system, can be found in the
+[tutorials](tutorials). These use the [IJava](https://github.com
+/SpencerPark/IJava) Jupyter notebook kernel, and work with Java 10+. To convert
+the tutorials' code back to Java 8, simply replace the `var` keyword with the
+appropriate types.
 
-## Multi-label Classification
+## Algorithms
 
-Multi-label classification is the task of predicting a set of labels for a test example, rather than just a single label.
-Currently this package provides an Output subclass for multi-label prediction, evaluation code for checking the
-performance of a multi-label model, and a basic implementation of independent binary predictions. The simplest
-multi-label approach is to break each multi-label prediction into n binary predictions, one for each possible label.
-The supplied trainer takes another classification trainer and uses it to build n models, one per label, which then are ran
-in sequence on a test example to produce the final multi-label output.
+### General predictors
 
-There are many more complicated multi-label approaches in the literature that use the label structure to improve
-performance, we'll consider adding these based on demand from the community.
+Tribuo includes implementations of several algorithms suitable for a wide range 
+of prediction tasks:
 
-## Regression
+|Algorithm|Implementation|Notes|
+|---|---|---|
+|Bagging|Tribuo|Can use any Tribuo trainer as the base learner|
+|Random Forest|Tribuo|Can use any Tribuo tree trainer as the base learner|
+|K-NN|Tribuo|Includes options for several parallel backends, as well as a single threaded backend|
+|Neural Networks|TensorFlow|Pass a TensorFlow Neural Net to a Tribuo wrapper. Models can be deployed using the ONNX interface or the TF interface|
 
-Regression is the task of predicting real valued outputs for a test example. This package provides several modules:
+The ensembles and K-NN use a combination function to produce their output.
+These combiners are prediction task specific, but the ensemble & K-NN 
+implementations are task agnostic. We provide voting and averaging combiners
+for classification and regression tasks.
 
-- Core - contains an Output subclass for use with regression data, and evaluation code for checking model performance using
-  standard regression metrics (R^2, explained variance, RMSE, mean absolute error). Also contains simple baseline
-  regressions, if your system doesn't outperform these it's not working.
-- LibLinear - a wrapper around the LibLinear-java library. This provides linear-SVMs, and other l1 or l2 regularised
-  linear regressions.
-- LibSVM - a wrapper around the Java version of LibSVM. This provides linear & kernel SVRs, with sigmoid, gaussian and
-  polynomial kernels.
-- RegressionTrees - a implementation of two types of CART regression trees. The first builds a separate tree per output
-  dimension, the second builds a single tree for all outputs.
-- SGD - a implementation of stochastic gradient descent for linear regression. It uses the set of gradient optimisers
-  in the main Math package, which allow for various forms of regularisation and descent algorithms.
-- SLM - a implementation of sparse linear models. It has a co-ordinate descent implementation of ElasticNet, a LARS
-  implementation, a LASSO implementation using LARS, and a couple of sequential forward selection algortihms.
-- XGBoost - a wrapper around the XGBoost Java API. XGBoost requires a C library accessed via JNI.
+### Classification
 
-One day we might add Gaussian Processes, when it's easy to integrate with a BLAS from Java.
+Tribuo has implementations or interfaces for:
 
-## Clustering
+|Algorithm|Implementation|Notes|
+|---|---|---|
+|Linear models|Tribuo|Uses SGD and allows any gradient optimizer|
+|CART|Tribuo||
+|SVM-SGD|Tribuo|An implementation of the Pegasos algorithm|
+|Adaboost.SAMME|Tribuo|Can use any Tribuo classification trainer as the base learner|
+|Multinomial Naive Bayes|Tribuo|
+|LIME|Tribuo|Our LIME implementation allows mixing of text and tabular data, but does not support images||
+|Regularised Linear Models|LibLinear||
+|SVM|LibSVM or LibLinear|LibLinear only supports linear SVMs|
+|Gradient Boosted Decision Trees|XGBoost||
 
-Clustering is the task of grouping input data. The clustering system implemented is single membership, each datapoint is assigned to
-one and only one cluster. This package provides two modules:
+Tribuo also supplies a linear chain CRF for sequence classification tasks. This
+CRF is trained via SGD using any of Tribuo's gradient optimizers.
 
-- Core - contains the Output subclass for use with clustering data, and evaluation code for measuring clustering performance.
-- KMeans - an implementation of K-Means using the Java 8 Stream API for parallelisation.
+### Regression
 
-## Anomaly Detection
+Tribuo's regression algorithms are multidimensional by default. Single 
+dimensional implementations are wrapped in order to produce multidimensional
+output.
 
-Anomaly detection is the task of finding outliers or anomalies at prediction time, when trained on a set of non-anomalous data.
-This package provides two modules:
+|Algorithm|Implementation|Notes|
+|---|---|---|
+|Linear models|Tribuo|Uses SGD and allows any gradient optimizer|
+|CART|Tribuo||
+|Lasso|Tribuo|Using the LARS algorithm|
+|Elastic Net|Tribuo|Using the co-ordinate descent algorithm|
+|Regularised Linear Models|LibLinear||
+|SVM|LibSVM or LibLinear|LibLinear only supports linear SVMs|
+|Gradient Boosted Decision Trees|XGBoost||
 
-- Core - contains the Output subclass for use with anomaly detection data.
-- LibSVM - a wrapper around the Java version of LibSVM, which provides a one-class SVM.
+### Clustering
 
-## Common
+Tribuo includes infrastructure for clustering and also supplies a single
+clustering algorithm implementation. We expect to implement additional
+algorithms over time.
 
-There is a common package which shares code across multiple prediction types. This provides the
-base support for LibLinear, LibSVM, nearest neighbour, tree, and XGBoost models.
+|Algorithm|Implementation|Notes|
+|---|---|---|
+|K-Means|Tribuo|Includes both sequential and parallel backends|
 
-## Third party models
+### Anomaly Detection
 
-Tribuo supports loading a number of third party models which were trained outside the system (even in other programming languages)
-and scoring them from Java using Tribuo's infrastructure. Currently we support loading ONNX, Tensorflow and XGBoost models.
+Tribuo offers infrastructure for anomaly detection tasks and a single backend 
+implementation using LibSVM. We expect to add new implementations over time.
 
-- ONNX - ONNX (Open Neural Network eXchange) format is used by several deep learning systems as an export format, and there are converters from systems like scikit-learn to the ONNX format.
-  Tribuo provides a wrapper around Microsoft's onnx-runtime which can score ONNX models on both CPU and GPU platforms.
-- Tensorflow - Tribuo supports loading Tensorflow's classification and regression frozen models and scoring them.
-- XGBoost - Tribuo supports loading XGBoost classification and regression models.
+|Algorithm|Implementation|Notes|
+|---|---|---|
+|One-class SVM|LibSVM||
 
-## Tensorflow
+### Interfaces
 
-Tribuo includes experimental support for Tensorflow 1.14. Due to a lack of flexibility in Tensorflow 1.14's Java API, models
-still need to be specified in python, and have their graph definitions written out as a protobuf. The Java code accepts this
-protobuf and trains a model that can be used purely from Java. It includes a Java serialisation system so all Tensorflow models
-can be serialised and deserialised in the same way as other Tribuo models. Tensorflow models run by default on GPU.
+In addition to our own implementations of Machine Learning algorithms, Tribuo
+also provides a common interface to popular ML tools on the JVM. If you're
+interested in contributing a new interface, open a GitHub Issue, and we can
+discuss how it would fit into Tribuo.
 
-This support is experimental while the TF JVM SIG rewrites the Tensorflow Java API.
-We participate in the Tensorflow JVM group, and the upcoming releases from that group will include full Java support for training models
-without the need to define the model in Python before training.
+Currently we have interfaces to:
 
-It includes an example config file, python model generation file and protobuf for an MNIST model, which demonstrates the Tensorflow
-interop. In addition to the libraries gathered by the Tribuo tensorflow jar you need to have
-libtensorflow\_jni.so and libtensorflow\_framework.so on your java.library.path.
+* [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/).
+* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation.
+* [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group.
+* [TensorFlow](https://tensorflow.org) - Using the 1.14 Java API. We're participating in the Tensorflow JVM SIG, 
+and the upcoming TensorFlow 2 Java API will support training models without Python, which we'll incorporate into Tribuo 
+when it's released.
+* [XGBoost](https://xgboost.ai)
 
-## Java Security Manager
+## Binaries
 
-Tribuo uses OLCUT's configuration and provenance systems which use reflection
-to construct and inspect classes.  Therefore when running with a Java security
-manager you need to give the OLCUT jar appropriate permissions. We have tested
-this set of permissions which allows the configuration and provenance systems
-to work:
+Binaries are available on Maven Central, using groupId `org.tribuo`. To pull
+all of Tribuo, including the bindings for TensorFlow, ONNX Runtime and XGBoost
+(which are native libraries), use:
 
-    // OLCUT permissions
-    grant codeBase "file:/path/to/olcut/olcut-core-5.1.1.jar" {
-            permission java.lang.RuntimePermission "accessDeclaredMembers";
-            permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
-            permission java.util.logging.LoggingPermission "control";
-            permission java.io.FilePermission "<<ALL FILES>>", "read";
-            permission java.util.PropertyPermission "*", "read,write";
-    };
+Maven:
+```xml
+<dependency>
+    <groupId>org.tribuo</groupId>
+    <artifactId>tribuo-all</artifactId>
+    <version>4.0.0</version>
+    <type>pom</type>
+</dependency>
+```
+or from Gradle:
+```groovy
+api 'org.tribuo:tribuo-all:4.0.0@pom'
+```
 
-The read FilePermission can be restricted to the jars which contain configuration 
-files, configuration files on disk, and the locations of serialised objects. The 
-one here provides access to the complete filesystem, as the necessary read 
-locations are program specific and should thus be narrowed based on your 
-requirements. If you need to save an OLCUT configuration out then you will also 
-need to add write permissions for the save location.
+The `tribuo-all` dependency is a pom which depends on all the Tribuo
+subprojects.
+
+Most of Tribuo is pure Java and thus cross-platform, however some of the
+interfaces link to libraries which use native code. Those interfaces
+(TensorFlow, ONNX Runtime and XGBoost) only run on supported platforms for the
+respective published binaries, and Tribuo has no control over which binaries
+are supplied. If you need support for a specific platform, reach out to the
+maintainers of those projects.
+
+Individual jars are published for each Tribuo module. It is preferable to
+depend only on the modules necessary for the specific project. This prevents
+your code from unnecessarily pulling in large dependencies like TensorFlow
+
+## Compiling from source
+
+Tribuo uses [Apache Maven](https://maven.apache.org/) v3.5 or higher to build.
+Tribuo is compatible with Java 8+, and we test on LTS versions of Java along
+with the latest release. To build, simply run `mvn clean package`. All Tribuo's
+dependencies should be available on Maven Central. Please file an issue for
+build-related issues if you're having trouble (though do check if you're
+missing proxy settings for Maven first, as that's a common cause of build
+failures, and out of our control).
+
+## Contributing
+
+We welcome contributions! See our [contribution guidelines](./CONTRIBUTING.md).
+
+We have a discussion mailing list
+[tribuo-devel@oss.oracle.com](mailto:tribuo-devel@oss.oracle.com), archived
+[here](https://oss.oracle.com/pipermail/tribuo-devel/). We're investigating
+different options for real time chat, check back in the near future. For bug
+reports, feature requests or other issues, please file a [Github
+Issue](https://github.com/oracle/tribuo/issues).
+
+Security issues should follow our [reporting guidelines](./SECURITY.md).
+
+## License
+
+Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
 - v4.0.0 - Initial public release.
+- v3 - Added provenance system, the external model support and onnx integrations.
+- v2 - Expanded beyond a classification system, to support regression, clustering and multi-label classification.
+- v1 - Initial internal release. This release only supported multi-class classification.

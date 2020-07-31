@@ -42,6 +42,11 @@ import java.util.Set;
  * Regressor are sorted by the natural ordering of their names (i.e. using the String comparator).
  * This allows the use of direct indexing into the elements.
  * </p>
+ * <p>
+ * Note {@link Regressor#fullEquals} compares the dimensions, the regressed values and the
+ * variances. However unlike {@link Double#equals}, if the two variances being compared are
+ * set to the sentinel value of {@link Double#NaN}, then they are considered equal.
+ * </p>
  */
 public class Regressor implements Output<Regressor>, Iterable<Regressor.DimensionTuple> {
     private static final long serialVersionUID = 1L;
