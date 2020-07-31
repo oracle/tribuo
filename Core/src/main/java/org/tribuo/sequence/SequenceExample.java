@@ -133,7 +133,7 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
             throw new IllegalArgumentException("outputs.size() = " + outputs.size() + ", features.size() = " + features.size());
         }
 
-        List<Example<T>> examples = new ArrayList<>();
+        List<Example<T>> examples = new ArrayList<>(outputs.size());
 
         for (int i = 0; i < outputs.size(); i++) {
             List<? extends Feature> list = features.get(i);
@@ -153,7 +153,7 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      */
     public SequenceExample(SequenceExample<T> other) {
         this.text = other.text;
-        this.examples = new ArrayList<>();
+        this.examples = new ArrayList<>(other.size());
         for(Example<T> example : other) {
             examples.add(example.copy());
         }
@@ -289,7 +289,7 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @return A new SequenceExample.
      */
     public static <T extends Output<T>> SequenceExample<T> createWithEmptyOutputs(List<? extends List<? extends Feature>> features, OutputFactory<T> outputFactory) {
-        ArrayList<Example<T>> examples = new ArrayList<>();
+        ArrayList<Example<T>> examples = new ArrayList<>(features.size());
 
         for (List<? extends Feature> list : features) {
             ArrayExample<T> example = new ArrayExample<>(outputFactory.getUnknownOutput());
