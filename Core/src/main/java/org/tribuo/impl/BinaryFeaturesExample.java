@@ -353,7 +353,7 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     @Override
     public void reduceByName(Merger merger) {
         if (size > 0) {
-            List<String> newNames = Arrays.stream(featureNames).distinct().collect(Collectors.toList());
+            List<String> newNames = Arrays.stream(featureNames, 0, size).distinct().collect(Collectors.toList());
             Collections.sort(newNames);
             featureNames = newNames.toArray(new String[newNames.size()]);
             size = featureNames.length;
@@ -364,34 +364,7 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
 
     @Override
     public void densify(List<String> featureList) {
-        // Ensure we have enough space.
-        if (featureList.size() > featureNames.length) {
-            growArray(featureList.size());
-        }
-        int insertedCount = 0;
-        int curPos = 0;
-        for (String curName : featureList) {
-            // If we've reached the end of our old feature set, just insert.
-            if (curPos == size) {
-                featureNames[size + insertedCount] = curName;
-                insertedCount++;
-            } else {
-                // Check to see if our insertion candidate is the same as the current feature name.
-                int comparison = curName.compareTo(featureNames[curPos]);
-                if (comparison < 0) {
-                    // If it's earlier, insert it.
-                    featureNames[size + insertedCount] = curName;
-                    insertedCount++;
-                } else if (comparison == 0) {
-                    // Otherwise just bump our pointer, we've already got this feature.
-                    curPos++;
-                }
-            }
-        }
-        // Bump the size up by the number of inserted features.
-        size += insertedCount;
-        // Sort the features
-        sort();
+        throw new UnsupportedOperationException();
     }
 
     @Override
