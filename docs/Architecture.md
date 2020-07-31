@@ -6,13 +6,13 @@ those models to make predictions on previously unseen data.
 A ML model is the result of applying some training algorithm to a dataset. Most
 commonly, such algorithms produce output in the form of a large number of
 floating point values; however, this output may take one of many different
-forms, such as a tree-structured if/else statement for example. In Tribuo, a
+forms, such as a tree-structured if/else statement. In Tribuo, a
 model includes not only this output, but also the necessary feature and output
 statistics to map from the named feature space into Tribuo's ids, and from
 Tribuo's output ids into the named output space.
 
 A Tribuo `Model` can also be thought of as a learned mapping from a *sparse*
-feature space of doubles to a *dense* output space (e.g. of class label
+feature space of doubles to a *dense* output space (e.g., of class label
 probabilities, or regressed outputs etc). Every dimension of the input and
 output are named. This naming system makes it possible to check that the input
 and model agree on the feature space they are using.
@@ -20,30 +20,31 @@ and model agree on the feature space they are using.
 ## Data flow overview
 <p align="center"><img width="75%" alt="Tribuo architecture diagram" src="img/tribuo-data-flow.png" /></p>
 
-Tribuo loads data from disk or from a DB using a `DataSource` implementation.
-This DataSource processes the input data, converting it into Tribuo's storage
-format, an `Example`. An Example is a tuple of an `Output` (i.e. what you want
-to predict) and a list of Features, where each `Feature` is a tuple of a
-`String` feature name and a `double` feature value.  The DataSource is then
-read into a `Dataset`, which accumulates statistics about the data for future
-use in model construction. Datasets can be split into chunks to separate out
-training and testing data, or to filter out examples according to some
-criterion. As Examples are fed into a Dataset, the Features are observed and
-have their statistics recorded in a `FeatureMap`. Similarly the Outputs are
-recorded in the appropriate `OutputInfo` subclass for the specified Output
-subclass. Once the Dataset has been processed, it's passed to a `Trainer`,
-which contains the training algorithm along with any necessary parameter values
-(in ML these are called hyperparameters to differentiate them from the learned
-model parameters), and the Trainer performs some iterations of the training
-algorithm before producing the `Model`. A Model contains the necessary learned
-parameters to make predictions along with a `Provenance` object which records
-how the Model was constructed (e.g. data file name, data hash, trainer
-hyperparameters, time stamp, etc).  Both Models and Datasets can be serialized
-out to disk using Java Serialization. Once a model has been trained, it can be
-fed previously unseen Examples to produce `Prediction`s of their Outputs. If
-the new Examples have known Outputs, then the Predictions can be passed to an
-`Evaluator`, which calculates statistics like the accuracy (i.e.  the number of
-times the predicted output was the same as the provided output).
+Tribuo loads data using a `DataSource` implementation, which might load from a
+location like a DB or a file on disk.  This DataSource processes the input
+data, converting it into Tribuo's storage format, an `Example`. An Example is a
+tuple of an `Output` (i.e., what you want to predict) and a list of Features,
+where each `Feature` is a tuple of a `String` feature name and a `double`
+feature value.  The DataSource is then read into a `Dataset`, which accumulates
+statistics about the data for future use in model construction. Datasets can be
+split into chunks to separate out training and testing data, or to filter out
+examples according to some criterion. As Examples are fed into a Dataset, the
+Features are observed and have their statistics recorded in a `FeatureMap`.
+Similarly the Outputs are recorded in the appropriate `OutputInfo` subclass for
+the specified Output subclass. Once the Dataset has been processed, it's passed
+to a `Trainer`, which contains the training algorithm along with any necessary
+parameter values (in ML these are called hyperparameters to differentiate them
+from the learned model parameters), and the Trainer performs some iterations of
+the training algorithm before producing the `Model`. A Model contains the
+necessary learned parameters to make predictions along with a `Provenance`
+object which records how the Model was constructed (e.g., data file name, data
+hash, trainer hyperparameters, time stamp, etc).  Both Models and Datasets can
+be serialized out to disk using Java Serialization. Once a model has been
+trained, it can be fed previously unseen Examples to produce `Prediction`s of
+their Outputs. If the new Examples have known Outputs, then the Predictions can
+be passed to an `Evaluator`, which calculates statistics like the accuracy
+(i.e.,  the number of times the predicted output was the same as the provided
+output).
 
 ## Structure
 
@@ -119,7 +120,7 @@ The configuration system is integrated into the command line arguments
 configuration files can be overridden on the command line by supplying
 `--@<object-name>.<field-name> <value>` in the arguments. The configuration
 system provides the basis of Tribuo's model tracking `Provenance` system, which
-records all hyperparameters, dataset parameters (e.g. file location, train/test
+records all hyperparameters, dataset parameters (e.g., file location, train/test
 split, etc.), and any user-supplied instance information, along with run
 specific information such as the file hash, number of training examples, etc.
 A model provenance can be converted into a list of configurations for each
@@ -242,7 +243,7 @@ Columnar data sources require a configurable extraction step to map the columns
 into Tribuo `Example` and `Feature` objects. A single column may contain
 multiple features, may be extraneous, or may contain `Example`-level metadata.
 In addition, the user must specify which column(s) contain the output variable.
-To support this usecase, Tribuo provides the `RowProcessor `, a configurable
+To support this usecase, Tribuo provides the `RowProcessor`, a configurable
 mechanism for converting a `ColumnarIterator.Row` (which is a tuple of a
 `Map<String,String>` and a row number) into an `Example`. The `RowProcessor`
 uses four interfaces to process the input map:
@@ -262,17 +263,17 @@ facilitates the filtering out of irrelevant or unnecessary features.
 These interfaces are supplied to the `RowProcessor` on construction (or
 configuration). By default, `FieldProcessor`s are bound to a single column, but
 there is an optional system which generates new `FieldProcessor`s based on
-supplied regexes. This system can be used if the data is drawn from a schema
--less format where the presence of fields in particular documents is not known
-in advance by the user.  The regex system is also useful when the set of fields
-is large and the number of unique `FieldProcessor`s is small.  For example, the
-same field processor can be applied to all columns whose name begins with "A",
-thus avoiding the need to write a large configuration or code file to describe
-all such columns. Although these regexes are usually instantiated once, before
-any rows are processed, `RowProcessor` is intentionally subclass-able so that
-developers can trigger expansion whenever necessary. In the current
-implementation, there is at most one `FieldProcessor` per field; we'll
-reconsider this restriction if there is sufficient interest.
+supplied regexes. This system can be used if the data is drawn from a
+schema-less format where the presence of fields in particular documents is not
+known in advance by the user.  The regex system is also useful when the set of
+fields is large and the number of unique `FieldProcessor`s is small.  For
+example, the same field processor can be applied to all columns whose name
+begins with "A", thus avoiding the need to write a large configuration or code
+file to describe all such columns. Although these regexes are usually
+instantiated once, before any rows are processed, `RowProcessor` is
+intentionally subclass-able so that developers can trigger expansion whenever
+necessary. In the current implementation, there is at most one `FieldProcessor`
+per field; we'll reconsider this restriction if there is sufficient interest.
 
 Internally, the `RowProcessor` operates on `ColumnarFeature`, which is a
 feature subclass that tracks both the feature name and the column name. It's

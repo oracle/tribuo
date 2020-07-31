@@ -33,7 +33,8 @@ a math library, and common modules shared across prediction types.
   - VariableInfo - A class representing information about the feature, e.g. the 
     number of times it occurred in the dataset.
 - Core contains several other packages.
-  - dataset - Datasets which provide a view on another dataset, either subsampling it or excluding features below a threshold.
+  - dataset - Datasets which provide a view on another dataset, either
+    subsampling it or excluding features below a threshold.
   - datasource - Implementations of DataSource which operate on in-memory or
     simple on-disk formats.
   - ensemble - Base classes and interfaces for ensemble models.
@@ -54,20 +55,26 @@ a math library, and common modules shared across prediction types.
     are always applied at prediction time.
   - util - Utilities for basic operations such as for working with arrays and
     random samples.
-- Data - provides classes which deal with sampled data, columnar data, csv files and text inputs. These classes are mainly optional, and the user is encouraged to provide their own text processing infrastructure.
-  - columnar - The columnar package provides many useful base classes for extracting features from columnar data.
-  - csv - Builds on the columnar package and supplies infrastructure for working with CSV and other delimiter separated data.
-  - sql - Builds on the columnar package and supplies infrastructure for working with JDBC sources.
-  - text - An example text processsing infrastructure.
+- Data - provides classes which deal with sampled data, columnar data, csv
+  files and text inputs. The user is encouraged to provide their own text
+processing infrastructure implementation, as the one here is fairly basic.
+  - columnar - The columnar package provides many useful base classes for
+    extracting features from columnar data.
+  - csv - Builds on the columnar package and supplies infrastructure for
+    working with CSV and other delimiter separated data.
+  - sql - Builds on the columnar package and supplies infrastructure for
+    working with JDBC sources.
+  - text - Text processsing infrastructure interfaces and an example
+    implementation.
 - Math - provides a linear algebra library for working with both sparse
  and dense vectors and matrices.
   - kernel - a set of kernel functions for use in the SGD package (and elsewhere).
   - la - a linear algebra library containing functions used in the
     SGD implementation. It is not a full BLAS.
-  - optimisers - a set of stochastic gradient descent algorithms, including
-    SGD + Momentum, AdaGrad, AdaDelta, RMSProp and
-    several others. AdaGrad should be considered the default algorithm since
-    it works best across the widest range of linear SGD problems.
+  - optimisers - a set of stochastic gradient descent algorithms, including SGD
+    with Momentum, AdaGrad, AdaDelta, RMSProp and several others. AdaGrad
+should be considered the default algorithm since it works best across the
+widest range of linear SGD problems.
   - util - various util classes for working with arrays, vectors and matrices.
 
 ## Multi-class Classification
@@ -77,9 +84,7 @@ labels to a test example.  The classification module has several submodules:
 
 - Core - contains an Output subclass for use with multi-class classification
   tasks, evaluation code for checking model performance, and an implementation
-of Adaboost.SAMME. It also contains simple baseline classifiers. If your system
-doesn't outperform the baseline classifiers, it can be assumed that your system
-is not working properly.
+of Adaboost.SAMME. It also contains simple baseline classifiers. 
 - DecisionTree - an implementation of CART decision trees.
 - Experiments - A set of main functions for training & testing models on any
   supported dataset. This submodule depends on all the classifiers and allows
@@ -107,7 +112,7 @@ and for sequence classification due to the speed and scalability of the SGD
 approach.
 - XGBoost - a wrapper around the XGBoost Java API. XGBoost requires a C library
   accessed via JNI.  XGBoost is a scalable implementation of gradient boosted
-trees. It is one of the highest accuracy classifiers provided in this project.
+trees.
 
 ## Multi-label Classification
 
@@ -115,15 +120,13 @@ Multi-label classification is the task of predicting a set of labels for a test
 example rather than just a single label.  This package provides an Output
 subclass for multi-label prediction, evaluation code for checking the
 performance of a multi-label model, and a basic implementation of independent
-binary predictions. The simplest multi-label approach is to break each
-multi-label prediction into n binary predictions, one for each possible label.
-To achieve this, the supplied trainer takes another classification trainer and
-uses it to build n models, one per label, which are then run in sequence on a
-test example to produce the final multi-label output.
-
-There are many more complicated multi-label approaches in the literature that
-use the label structure to improve performance. We'll consider adding these
-based on demand from the community.
+binary predictions.
+ 
+The independent binary predictor breaks each multi-label prediction into n
+binary predictions, one for each possible label.  To achieve this, the supplied
+trainer takes a classification trainer and uses it to build n models, one per
+label, which are then run in sequence on a test example to produce the final
+multi-label output.
 
 ## Regression
 
@@ -133,9 +136,7 @@ This package provides several modules:
 - Core - contains an Output subclass for use with regression data, as well as
   evaluation code for checking model performance using standard regression
 metrics (R^2, explained variance, RMSE, and mean absolute error). The module
-also contains simple baseline regressions. If your system fails to outperform
-these baseline models, it can be assumed that your system is not working
-properly.
+also contains simple baseline regressions.
 - LibLinear - a wrapper around the LibLinear-java library. This provides
   linear-SVMs and other l1 or l2 regularised linear regressions.
 - LibSVM - a wrapper around the Java version of LibSVM. This provides linear &
@@ -152,9 +153,6 @@ implementation using LARS, and a couple of sequential forward selection
 algorithms.
 - XGBoost - a wrapper around the XGBoost Java API. XGBoost requires a C library
   accessed via JNI.
-
-One day, when it's easy to integrate with a BLAS from Java, we plan to add
-Gaussian Processes.
 
 ## Clustering
 
@@ -196,7 +194,7 @@ converters from systems like scikit-learn to the ONNX format.  Tribuo provides
 a wrapper around Microsoft's [ONNX Runtime](https://onnxruntime.ai) that can
 score ONNX models on both CPU and GPU platforms.
 - TensorFlow - Tribuo supports loading [TensorFlow](https://tensorflow.org)'s
-  classification and regression frozen models and scoring them.
+  frozen classification and regression models and scoring them.
 - XGBoost - Tribuo supports loading [XGBoost](https://xgboost.ai)
   classification and regression models.
 

@@ -61,6 +61,9 @@ specify a minimum purity decrease requirement.
 in a Tribuo compatible interface, but the codebase isn't quite ready for release.
 - Support word embedding features.
 - Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).
+- More complex Multi-Label prediction algorithms.
+- More anomaly detection algorithms.
+- More clustering algorithms.
 
 ## Performance
 

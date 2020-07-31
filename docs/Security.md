@@ -7,7 +7,7 @@ on trusted or cleaned data. We expect that the larger program will control
 access to Tribuo's interfaces. Tribuo's data loaders and other interfaces
 perform defensive copying and other standard procedures when user code crosses
 over into Tribuo's internals. For performance reasons, however, this defensive
-behavior is not generally the case for calls within Tribuo (e.g.  the linear
+behavior is not generally the case for calls within Tribuo (e.g., the linear
 algebra library exposes mutable state to reduce copying).
 
 ## Serialized files
