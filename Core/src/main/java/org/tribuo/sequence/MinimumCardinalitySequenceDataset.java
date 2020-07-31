@@ -32,6 +32,7 @@ import org.tribuo.MutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.provenance.DatasetProvenance;
 
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
@@ -82,10 +83,15 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
         FeatureMap featureMap = sequenceDataset.getFeatureMap();
         for (SequenceExample<T> sequenceExample : sequenceDataset) {
             boolean add = true;
-            List<Example<T>> newExamples = new ArrayList<>();
+            List<Example<T>> newExamples = new ArrayList<>(sequenceExample.size());
             for (Example<T> example : sequenceExample) {
                 features.clear();
-                ArrayExample<T> newExample = new ArrayExample<>(example.getOutput());
+                Example<T> newExample;
+                if(example instanceof BinaryFeaturesExample) {
+                    newExample = new BinaryFeaturesExample<>(example.getOutput());
+                } else {
+                    newExample = new ArrayExample<>(example.getOutput());
+                }
                 newExample.setWeight(example.getWeight());
                 for (Feature feature : example) {
                     VariableInfo featureInfo = featureMap.get(feature.getName());
