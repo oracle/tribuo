@@ -113,14 +113,15 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
         for (int i = 0; i < outputs.size(); i++) {
             List<? extends Feature> list = features.get(i);
             Example<T> example = null;
-            if(attemptBinaryFeatures && features.size() > 0 && features.get(0).size() > 0 && features.get(0).get(0).getValue() == 1.0) {
+            if(attemptBinaryFeatures){
                 try {
                     example = new BinaryFeaturesExample<>(outputs.get(i), list);
                 } catch(IllegalArgumentException iae){
                     logger.finer("attempted to create BinaryFeaturesExample but not all of the features were binary");
+                    example = new ArrayExample<>(outputs.get(i), list);
                 }
             }
-            if(example == null) {
+            else {
                 example = new ArrayExample<>(outputs.get(i), list);
             }
             examples.add(example);
