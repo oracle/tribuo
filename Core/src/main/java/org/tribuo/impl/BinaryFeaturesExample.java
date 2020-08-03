@@ -41,9 +41,21 @@ import org.tribuo.util.Merger;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
 
 /**
- * An {@link Example} backed by two arrays, one of String and one of double.
+ * An {@link Example} backed by a single array of feature names. This
+ * implementation is modeled after {@link ArrayExample} but does not store
+ * feature values because it assumes only binary features - i.e. features with a
+ * feature value of 1.0. The following methods throw an
+ * {@link UnsupportedOperationException}:
+ * <ul>
+ * <li>{@link #densify(List)}</li>
+ * <li>{@link #densify(FeatureMap)}</li>
+ * <li>{@link #set(Feature)}</li>
+ * <li>{@link #transform(TransformerMap)}</li>
+ * </ul>
+ *
+ * @param <T>
  */
-public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
+public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(BinaryFeaturesExample.class.getName());
@@ -55,10 +67,11 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     protected int size = 0;
 
     /**
-     * Constructs an example from an output and a weight, with an initial
-     * size for the feature arrays.
-     * @param output The output.
-     * @param weight The weight.
+     * Constructs an example from an output and a weight, with an initial size for
+     * the feature arrays.
+     * 
+     * @param output      The output.
+     * @param weight      The weight.
      * @param initialSize The initial size of the feature arrays.
      */
     public BinaryFeaturesExample(T output, float weight, int initialSize) {
@@ -68,8 +81,9 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
 
     /**
      * Constructs an example from an output, a weight and the metadata.
-     * @param output The output.
-     * @param weight The weight.
+     * 
+     * @param output   The output.
+     * @param weight   The weight.
      * @param metadata The metadata.
      */
     public BinaryFeaturesExample(T output, float weight, Map<String,Object> metadata) {
@@ -79,6 +93,7 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
 
     /**
      * Constructs an example from an output and a weight.
+     * 
      * @param output The output.
      * @param weight The example weight.
      */
@@ -89,7 +104,8 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
 
     /**
      * Constructs an example from an output and the metadata.
-     * @param output The output.
+     * 
+     * @param output   The output.
      * @param metadata The metadata.
      */
     public BinaryFeaturesExample(T output, Map<String,Object> metadata) {
@@ -99,6 +115,7 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
 
     /**
      * Constructs an example from an output.
+     * 
      * @param output The output.
      */
     public BinaryFeaturesExample(T output) {
@@ -107,11 +124,11 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     }
 
     /**
-     * Constructs an example from an output, an array of names and an array of values.
-     * This is currently the most efficient constructor.
+     * Constructs an example from an output, an array of names and an array of
+     * values. This is currently the most efficient constructor.
+     * 
      * @param output The output.
-     * @param names The feature names.
-     * @param values The feature values.
+     * @param names  The feature names.
      */
     public BinaryFeaturesExample(T output, String[] names) {
         super(output);
@@ -121,8 +138,11 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     }
 
     /**
-     * Constructs an example from an output and a list of features.
-     * @param output The output.
+     * Constructs an example from an output and a list of features. This constructor
+     * will throw an {@link IllegalArgumentException} if any of the features have a
+     * feature value that does not equal 1.0.
+     * 
+     * @param output   The output (e.g. label) of the example
      * @param features The list of features.
      */
     public BinaryFeaturesExample(T output, List<? extends Feature> features) {
@@ -141,7 +161,10 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     }
 
     /**
-     * Copy constructor.
+     * Copy constructor. This constructor will throw an
+     * {@link IllegalArgumentException} if any of the features have a feature value
+     * that does not equal 1.0.
+     * 
      * @param other The example to copy.
      */
     public BinaryFeaturesExample(Example<T> other) {
@@ -198,12 +221,25 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
         }
     }
 
+    /**
+     * Adds a feature to this example. This method will throw an {@link IllegalArgumentException} if
+     * any of the features have a feature value that does not equal 1.0.
+     * 
+     * @param feature The feature to add to this example.
+     */
     @Override
     public void add(Feature feature) {
         checkIsBinary(feature);
         add(feature.getName());
     }
 
+    /**
+     * Adds a collection of features to this example. This method will throw an
+     * {@link IllegalArgumentException} if any of the features have a feature value
+     * that does not equal 1.0.
+     * 
+     * @param features The features to add to this example.
+     */
     @Override
     public void addAll(Collection<? extends Feature> features) {
         if (size + features.size() >= featureNames.length) {
@@ -368,8 +404,13 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     }
 
     @Override
+    protected void densify(FeatureMap fMap) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Iterator<Feature> iterator() {
-        return new ArrayExampleIterator();
+        return new BinaryFeaturesExampleIterator();
     }
 
     @Override
@@ -407,8 +448,14 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
         if (Objects.equals(metadata,that.metadata) && output.getClass().equals(that.output.getClass())) {
             @SuppressWarnings("unchecked") //guarded by a getClass.
             boolean outputTest = output.fullEquals((T)that.output);
-            return outputTest && size == that.size &&
-                    Arrays.equals(featureNames, that.featureNames);
+            if(outputTest && size == that.size) {
+                //we do not use Arrays.equals here because these are "backing arrays" which could be different sizes 
+                for(int i=0; i<size; i++) {
+                    if(!this.featureNames[i].equals(that.featureNames[i])) return false;
+                }
+                return true;
+            }
+            return false;
         } else {
             return false;
         }
@@ -418,11 +465,16 @@ public class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     public int hashCode() {
         int result = Objects.hash(size);
         result = 31 * result + output.hashCode();
-        result = 31 * result + Arrays.hashCode(featureNames);
+        //featureNames is a backing array which could be different sizes for otherwise
+        //equivalent example objects.  So, we need to trim the feature names here to
+        //guarantee consistent behavior for example that are 'equal' (according to 
+        //the equals method).
+        String[] trimmedFeatureNames = Arrays.copyOf(featureNames, size);
+        result = 31 * result + Arrays.hashCode(trimmedFeatureNames);
         return result;
     }
 
-    class ArrayExampleIterator implements Iterator<Feature> {
+    class BinaryFeaturesExampleIterator implements Iterator<Feature> {
         int pos = 0;
 
         @Override
