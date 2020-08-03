@@ -50,7 +50,7 @@ public final class SequenceDataGenerator {
     }
 
     public static SequenceExample<Label> generateGorillaA() {
-        String text = "The silverback gorilla is angry";
+        //"The silverback gorilla is angry"
         List<Example<Label>> examples = new ArrayList<>();
 
         Example<Label> the = new ListExample<>(new Label("O"));
@@ -82,11 +82,11 @@ public final class SequenceDataGenerator {
         angry.add(new Feature("W=angry",1.0));
         examples.add(angry);
 
-        return new SequenceExample<>(text,examples);
+        return new SequenceExample<>(examples);
     }
 
     public static SequenceExample<Label> generateGorillaB() {
-        String text = "That is one angry looking gorilla";
+        //"That is one angry looking gorilla"
         List<Example<Label>> examples = new ArrayList<>();
 
         Example<Label> that = new ListExample<>(new Label("O"));
@@ -124,7 +124,7 @@ public final class SequenceDataGenerator {
         gorilla.add(new Feature("W=gorilla",1.0));
         examples.add(gorilla);
 
-        return new SequenceExample<>(text,examples);
+        return new SequenceExample<>(examples);
     }
 
     /**
@@ -132,7 +132,7 @@ public final class SequenceDataGenerator {
      * @return A {@link SequenceExample} which is invalid in the context of the Gorilla example data.
      */
     public static SequenceExample<Label> generateInvalidExample() {
-        String text = "invalid example";
+        //"invalid example"
         List<Example<Label>> examples = new ArrayList<>();
 
         Example<Label> invalid = new ListExample<>(new Label("O"));
@@ -147,7 +147,7 @@ public final class SequenceDataGenerator {
         example.add(new Feature("W=example",1.0));
         examples.add(example);
 
-        return new SequenceExample<>(text,examples);
+        return new SequenceExample<>(examples);
     }
 
     /**
@@ -155,7 +155,7 @@ public final class SequenceDataGenerator {
      * @return A {@link SequenceExample} which is invalid as one example contains no features.
      */
     public static SequenceExample<Label> generateOtherInvalidExample() {
-        String text = "invalid example";
+        //"invalid example"
         List<Example<Label>> examples = new ArrayList<>();
 
         Example<Label> invalid = new ListExample<>(new Label("O"));
@@ -167,7 +167,7 @@ public final class SequenceDataGenerator {
         example.add(new Feature("W=example",1.0));
         examples.add(example);
 
-        return new SequenceExample<>(text,examples);
+        return new SequenceExample<>(examples);
     }
 
     /**
@@ -175,9 +175,7 @@ public final class SequenceDataGenerator {
      * @return A {@link SequenceExample} which is invalid as it contains no examples.
      */
     public static SequenceExample<Label> generateEmptyExample() {
-        String text = "invalid example";
         List<Example<Label>> examples = new ArrayList<>();
-
-        return new SequenceExample<>(text,examples);
+        return new SequenceExample<>(examples);
     }
 }
