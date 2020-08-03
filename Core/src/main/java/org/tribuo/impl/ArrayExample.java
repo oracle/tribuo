@@ -488,9 +488,15 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         if (Objects.equals(metadata,that.metadata) && output.getClass().equals(that.output.getClass())) {
             @SuppressWarnings("unchecked") //guarded by a getClass.
             boolean outputTest = output.fullEquals((T)that.output);
-            return outputTest && size == that.size &&
-                    Arrays.equals(featureNames, that.featureNames) &&
-                    Arrays.equals(featureValues, that.featureValues);
+            if(outputTest && size == that.size) {
+                //we do not use Arrays.equals here because these are "backing arrays" which could be different sizes 
+                for(int i=0; i<size; i++) {
+                    if(!this.featureNames[i].equals(that.featureNames[i])) return false;
+                    if(this.featureValues[i] != that.featureValues[i]) return false;
+                }
+                return true;
+            }
+            return false;
         } else {
             return false;
         }
@@ -500,8 +506,14 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
     public int hashCode() {
         int result = Objects.hash(size);
         result = 31 * result + output.hashCode();
-        result = 31 * result + Arrays.hashCode(featureNames);
-        result = 31 * result + Arrays.hashCode(featureValues);
+        //featureNames is a backing array which could be different sizes for otherwise
+        //equivalent example objects.  So, we need to trim the feature names here to
+        //guarantee consistent behavior for example that are 'equal' (according to 
+        //the equals method).
+        String[] trimmedFeatureNames = Arrays.copyOf(featureNames, size);
+        result = 31 * result + Arrays.hashCode(trimmedFeatureNames);
+        double[] trimmedFeatureValues = Arrays.copyOf(featureValues, size);
+        result = 31 * result + Arrays.hashCode(trimmedFeatureValues);
         return result;
     }
 
