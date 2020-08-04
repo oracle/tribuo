@@ -506,14 +506,13 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
     public int hashCode() {
         int result = Objects.hash(size);
         result = 31 * result + output.hashCode();
-        //featureNames is a backing array which could be different sizes for otherwise
-        //equivalent example objects.  So, we need to trim the feature names here to
-        //guarantee consistent behavior for example that are 'equal' (according to 
-        //the equals method).
-        String[] trimmedFeatureNames = Arrays.copyOf(featureNames, size);
-        result = 31 * result + Arrays.hashCode(trimmedFeatureNames);
-        double[] trimmedFeatureValues = Arrays.copyOf(featureValues, size);
-        result = 31 * result + Arrays.hashCode(trimmedFeatureValues);
+        //we don't use Arrays.hashCode here because featureNames and featureValues
+        //are backing arrays and the length of each could be arbitrarily diverging 
+        //from the member size.  
+        for(int i=0; i<size; i++) {
+            result = 31 * result + featureNames[i].hashCode();
+            result = 31 * result + Double.hashCode(featureValues[i]);
+        }
         return result;
     }
 
