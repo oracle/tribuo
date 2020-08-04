@@ -124,8 +124,8 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
     }
 
     /**
-     * Constructs an example from an output, an array of names and an array of
-     * values. This is currently the most efficient constructor.
+     * Constructs an example from an output and an array of names. This is currently
+     * the most efficient constructor.
      * 
      * @param output The output.
      * @param names  The feature names.
@@ -254,7 +254,7 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
     }
 
     /**
-     * Grows the backing arrays storing the names and values.
+     * Grows the backing arrays storing the names.
      * @param minCapacity The new minimum capacity required.
      */
     protected void growArray(int minCapacity) {
@@ -465,12 +465,12 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
     public int hashCode() {
         int result = Objects.hash(size);
         result = 31 * result + output.hashCode();
-        //featureNames is a backing array which could be different sizes for otherwise
-        //equivalent example objects.  So, we need to trim the feature names here to
-        //guarantee consistent behavior for example that are 'equal' (according to 
-        //the equals method).
-        String[] trimmedFeatureNames = Arrays.copyOf(featureNames, size);
-        result = 31 * result + Arrays.hashCode(trimmedFeatureNames);
+        //we don't use Arrays.hashCode here because featureNames 
+        //is a backing array and its length could be arbitrarily diverging 
+        //from the member size.  
+        for(int i=0; i<size; i++) {
+            result = 31 * result + featureNames[i].hashCode();
+        }
         return result;
     }
 

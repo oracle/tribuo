@@ -120,8 +120,7 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
                     logger.finer("attempted to create BinaryFeaturesExample but not all of the features were binary");
                     example = new ArrayExample<>(outputs.get(i), list);
                 }
-            }
-            else {
+            } else {
                 example = new ArrayExample<>(outputs.get(i), list);
             }
             examples.add(example);
