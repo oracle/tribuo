@@ -16,18 +16,9 @@
 
 package org.tribuo.impl;
 
-import com.oracle.labs.mlrg.olcut.util.SortUtil;
-import org.tribuo.Example;
-import org.tribuo.Feature;
-import org.tribuo.FeatureMap;
-import org.tribuo.Output;
-import org.tribuo.VariableInfo;
-import org.tribuo.transform.Transformer;
-import org.tribuo.transform.TransformerMap;
-import org.tribuo.util.Merger;
-
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,115 +28,132 @@ import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.FeatureMap;
+import org.tribuo.Output;
+import org.tribuo.VariableInfo;
+import org.tribuo.transform.TransformerMap;
+import org.tribuo.util.Merger;
+
+import com.oracle.labs.mlrg.olcut.util.SortUtil;
 
 /**
- * An {@link Example} backed by two arrays, one of String and one of double.
+ * An {@link Example} backed by a single array of feature names. This
+ * implementation is modeled after {@link ArrayExample} but does not store
+ * feature values because it assumes only binary features - i.e. features with a
+ * feature value of 1.0. The following methods throw an
+ * {@link UnsupportedOperationException}:
+ * <ul>
+ * <li>{@link #densify(List)}</li>
+ * <li>{@link #densify(FeatureMap)}</li>
+ * <li>{@link #set(Feature)}</li>
+ * <li>{@link #transform(TransformerMap)}</li>
+ * </ul>
+ *
+ * @param <T>
  */
-public class ArrayExample<T extends Output<T>> extends Example<T> {
+public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = Logger.getLogger(ArrayExample.class.getName());
+    private static final Logger logger = Logger.getLogger(BinaryFeaturesExample.class.getName());
 
     public static final int DEFAULT_SIZE = 10;
 
     protected String[] featureNames;
 
-    protected double[] featureValues;
-
     protected int size = 0;
 
     /**
-     * Constructs an example from an output and a weight, with an initial
-     * size for the feature arrays.
-     * @param output The output.
-     * @param weight The weight.
+     * Constructs an example from an output and a weight, with an initial size for
+     * the feature arrays.
+     * 
+     * @param output      The output.
+     * @param weight      The weight.
      * @param initialSize The initial size of the feature arrays.
      */
-    public ArrayExample(T output, float weight, int initialSize) {
+    public BinaryFeaturesExample(T output, float weight, int initialSize) {
         super(output,weight);
         featureNames = new String[initialSize];
-        featureValues = new double[initialSize];
     }
 
     /**
      * Constructs an example from an output, a weight and the metadata.
-     * @param output The output.
-     * @param weight The weight.
+     * 
+     * @param output   The output.
+     * @param weight   The weight.
      * @param metadata The metadata.
      */
-    public ArrayExample(T output, float weight, Map<String,Object> metadata) {
+    public BinaryFeaturesExample(T output, float weight, Map<String,Object> metadata) {
         super(output,weight,metadata);
         featureNames = new String[DEFAULT_SIZE];
-        featureValues = new double[DEFAULT_SIZE];
     }
 
     /**
      * Constructs an example from an output and a weight.
+     * 
      * @param output The output.
      * @param weight The example weight.
      */
-    public ArrayExample(T output, float weight) {
+    public BinaryFeaturesExample(T output, float weight) {
         super(output,weight);
         featureNames = new String[DEFAULT_SIZE];
-        featureValues = new double[DEFAULT_SIZE];
     }
 
     /**
      * Constructs an example from an output and the metadata.
-     * @param output The output.
+     * 
+     * @param output   The output.
      * @param metadata The metadata.
      */
-    public ArrayExample(T output, Map<String,Object> metadata) {
+    public BinaryFeaturesExample(T output, Map<String,Object> metadata) {
         super(output,metadata);
         featureNames = new String[DEFAULT_SIZE];
-        featureValues = new double[DEFAULT_SIZE];
     }
 
     /**
      * Constructs an example from an output.
+     * 
      * @param output The output.
      */
-    public ArrayExample(T output) {
+    public BinaryFeaturesExample(T output) {
         super(output);
         featureNames = new String[DEFAULT_SIZE];
-        featureValues = new double[DEFAULT_SIZE];
     }
 
     /**
-     * Constructs an example from an output, an array of names and an array of values.
-     * This is currently the most efficient constructor.
+     * Constructs an example from an output and an array of names. This is currently
+     * the most efficient constructor.
+     * 
      * @param output The output.
-     * @param names The feature names.
-     * @param values The feature values.
+     * @param names  The feature names.
      */
-    public ArrayExample(T output, String[] names, double[] values) {
+    public BinaryFeaturesExample(T output, String[] names) {
         super(output);
-        if (names.length != values.length) {
-            throw new IllegalArgumentException("names.length != values.length, names = " + names.length + ", values = " + values.length);
-        }
-
         size = names.length;
         featureNames = Arrays.copyOf(names,names.length);
-        featureValues = Arrays.copyOf(values,values.length);
-
         sort();
     }
 
     /**
-     * Constructs an example from an output and a list of features.
-     * @param output The output.
+     * Constructs an example from an output and a list of features. This constructor
+     * will throw an {@link IllegalArgumentException} if any of the features have a
+     * feature value that does not equal 1.0.
+     * 
+     * @param output   The output (e.g. label) of the example
      * @param features The list of features.
      */
-    public ArrayExample(T output, List<? extends Feature> features) {
+    public BinaryFeaturesExample(T output, List<? extends Feature> features) {
         super(output);
         size = features.size();
         featureNames = new String[size];
-        featureValues = new double[size];
 
         int i = 0;
         for (Feature f : features) {
+            checkIsBinary(f);
             featureNames[i] = f.getName();
-            featureValues[i] = f.getValue();
             i++;
         }
 
@@ -153,16 +161,18 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
     }
 
     /**
-     * Copy constructor.
+     * Copy constructor. This constructor will throw an
+     * {@link IllegalArgumentException} if any of the features have a feature value
+     * that does not equal 1.0.
+     * 
      * @param other The example to copy.
      */
-    public ArrayExample(Example<T> other) {
+    public BinaryFeaturesExample(Example<T> other) {
         super(other);
         featureNames = new String[other.size()];
-        featureValues = new double[other.size()];
         for (Feature f : other) {
+            checkIsBinary(f);
             featureNames[size] = f.getName();
-            featureValues[size] = f.getValue();
             size++;
         }
     }
@@ -174,13 +184,12 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
      * @param weight The weight to use.
      * @param <U> The output type of the other example.
      */
-    public <U extends Output<U>> ArrayExample(T output, Example<U> other, float weight) {
+    public <U extends Output<U>> BinaryFeaturesExample(T output, Example<U> other, float weight) {
         super(output,weight);
         featureNames = new String[other.size()];
-        featureValues = new double[other.size()];
         for (Feature f : other) {
+            checkIsBinary(f);
             featureNames[size] = f.getName();
-            featureValues[size] = f.getValue();
             size++;
         }
     }
@@ -190,7 +199,7 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
      * @param name The name of the feature.
      * @param value The value of the feature.
      */
-    public void add(String name, double value) {
+    public void add(String name) {
         if (size >= featureNames.length) {
             growArray();
         }
@@ -198,37 +207,59 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         // TODO: find the right insertion position, System.arraycopy
         // everything up one and then write the new value.
         featureNames[size] = name;
-        featureValues[size] = value;
         size++;
         sort();
     }
 
-    @Override
-    public void add(Feature feature) {
-        add(feature.getName(),feature.getValue());
+    public static boolean isBinary(Feature feature) {
+        return feature.getValue() == 1.0;
     }
 
+    public static void checkIsBinary(Feature feature) {
+        if(!isBinary(feature)) {
+            throw new IllegalArgumentException("non-binary features are not allowed in BinaryFeaturesExample: value="+feature.getValue());
+        }
+    }
+
+    /**
+     * Adds a feature to this example. This method will throw an {@link IllegalArgumentException} if
+     * any of the features have a feature value that does not equal 1.0.
+     * 
+     * @param feature The feature to add to this example.
+     */
+    @Override
+    public void add(Feature feature) {
+        checkIsBinary(feature);
+        add(feature.getName());
+    }
+
+    /**
+     * Adds a collection of features to this example. This method will throw an
+     * {@link IllegalArgumentException} if any of the features have a feature value
+     * that does not equal 1.0.
+     * 
+     * @param features The features to add to this example.
+     */
     @Override
     public void addAll(Collection<? extends Feature> features) {
         if (size + features.size() >= featureNames.length) {
             growArray(size+features.size());
         }
         for (Feature f : features) {
+            checkIsBinary(f);
             featureNames[size] = f.getName();
-            featureValues[size] = f.getValue();
             size++;
         }
         sort();
     }
 
     /**
-     * Grows the backing arrays storing the names and values.
+     * Grows the backing arrays storing the names.
      * @param minCapacity The new minimum capacity required.
      */
     protected void growArray(int minCapacity) {
         int newCapacity = newCapacity(minCapacity);
         featureNames = Arrays.copyOf(featureNames,newCapacity);
-        featureValues = Arrays.copyOf(featureValues,newCapacity);
     }
 
     /**
@@ -270,20 +301,9 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         int[] sortedIndices = SortUtil.argsort(featureNames,0,size,true);
 
         String[] newNames = Arrays.copyOf(featureNames,size);
-        double[] newValues = Arrays.copyOf(featureValues,size);
         for (int i = 0; i < sortedIndices.length; i++) {
             featureNames[i] = newNames[sortedIndices[i]];
-            featureValues[i] = newValues[sortedIndices[i]];
         }
-    }
-
-    /**
-     * Returns a copy of the feature values array at the specific size.
-     * @param newSize The new size.
-     * @return A copy of the feature values.
-     */
-    public double[] copyValues(int newSize) {
-        return Arrays.copyOf(featureValues,newSize);
     }
 
     @Override
@@ -307,7 +327,6 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         }
 
         String[] newNames = new String[size-removeQueue.size()];
-        double[] newValues = new double[size-removeQueue.size()];
 
         int source = 0;
         int dest = 0;
@@ -315,7 +334,6 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
             int curRemoveIdx = removeQueue.poll();
             while (source < curRemoveIdx) {
                 newNames[dest] = featureNames[source];
-                newValues[dest] = featureValues[source];
                 source++;
                 dest++;
             }
@@ -323,43 +341,11 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         }
         while (source < size) {
             newNames[dest] = featureNames[source];
-            newValues[dest] = featureValues[source];
             source++;
             dest++;
         }
         featureNames = newNames;
-        featureValues = newValues;
         size = featureNames.length;
-    }
-
-    @Override
-    public void reduceByName(Merger merger) {
-        if (size > 0) {
-            int[] sortedIndices = SortUtil.argsort(featureNames,0,size,true);
-            String[] newNames = new String[featureNames.length];
-            double[] newValues = new double[featureNames.length];
-            for (int i = 0; i < sortedIndices.length; i++) {
-                newNames[i] = featureNames[sortedIndices[i]];
-                newValues[i] = featureValues[sortedIndices[i]];
-            }
-            featureNames[0] = newNames[0];
-            featureValues[0] = newValues[0];
-            int dest = 0;
-            for (int i = 1; i < size; i++) {
-                while ((i < size) && newNames[i].equals(featureNames[dest])) {
-                    featureValues[dest] = merger.merge(featureValues[dest], newValues[i]);
-                    i++;
-                }
-                if (i < size) {
-                    dest++;
-                    featureNames[dest] = newNames[i];
-                    featureValues[dest] = newValues[i];
-                }
-            }
-            size = dest + 1;
-        } else {
-            logger.finer("Reducing an example with no features.");
-        }
     }
 
     @Override
@@ -367,19 +353,14 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         if (size == 0) {
             return false;
         } else {
-            for (int i = 0; i < size; i++) {
-                if (Double.isNaN(featureValues[i])) {
-                    return false;
-                }
-            }
             Set<String> names = new HashSet<>(Arrays.asList(featureNames).subList(0, size));
             return names.size() == size;
         }
     }
 
     @Override
-    public ArrayExample<T> copy() {
-        return new ArrayExample<>(this);
+    public BinaryFeaturesExample<T> copy() {
+        return new BinaryFeaturesExample<>(this);
     }
 
     @Override
@@ -388,69 +369,48 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         if (index < 0) {
             return null;
         } else {
-            return new Feature(featureNames[index],featureValues[index]);
+            return new Feature(featureNames[index], 1.0);
         }
     }
 
     @Override
     public void set(Feature feature) {
-        int index = Arrays.binarySearch(featureNames,0,size,feature.getName());
-        if (index < 0) {
-            throw new IllegalArgumentException("Feature " + feature + " not found in example.");
-        } else {
-            featureValues[index] = feature.getValue();
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void transform(TransformerMap transformerMap) {
-        for (Map.Entry<String,List<Transformer>> e : transformerMap.entrySet()) {
-            int index = Arrays.binarySearch(featureNames,0,size,e.getKey());
-            if (index >= 0) {
-                double value = featureValues[index];
-                for (Transformer t : e.getValue()) {
-                    value = t.transform(value);
-                }
-                featureValues[index] = value;
-            }
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @param merger this parameter is ignored because we do not store feature values in this class.  So, the 'merging' can be thought of as a logical AND.
+     */
+    @Override
+    public void reduceByName(Merger merger) {
+        if (size > 0) {
+            List<String> newNames = Arrays.stream(featureNames, 0, size).distinct().collect(Collectors.toList());
+            Collections.sort(newNames);
+            featureNames = newNames.toArray(new String[newNames.size()]);
+            size = featureNames.length;
+        } else {
+            logger.finer("Reducing an example with no features.");
         }
     }
 
     @Override
     public void densify(List<String> featureList) {
-        // Ensure we have enough space.
-        if (featureList.size() > featureNames.length) {
-            growArray(featureList.size());
-        }
-        int insertedCount = 0;
-        int curPos = 0;
-        for (String curName : featureList) {
-            // If we've reached the end of our old feature set, just insert.
-            if (curPos == size) {
-                featureNames[size + insertedCount] = curName;
-                insertedCount++;
-            } else {
-                // Check to see if our insertion candidate is the same as the current feature name.
-                int comparison = curName.compareTo(featureNames[curPos]);
-                if (comparison < 0) {
-                    // If it's earlier, insert it.
-                    featureNames[size + insertedCount] = curName;
-                    insertedCount++;
-                } else if (comparison == 0) {
-                    // Otherwise just bump our pointer, we've already got this feature.
-                    curPos++;
-                }
-            }
-        }
-        // Bump the size up by the number of inserted features.
-        size += insertedCount;
-        // Sort the features
-        sort();
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void densify(FeatureMap fMap) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Iterator<Feature> iterator() {
-        return new ArrayExampleIterator();
+        return new BinaryFeaturesExampleIterator();
     }
 
     @Override
@@ -469,7 +429,7 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         }
         builder.append(",features=[");
         for(int i = 0; i < size; i++) {
-            builder.append('(').append(featureNames[i]).append(", ").append(featureValues[i]).append(')');
+            builder.append('(').append(featureNames[i]).append(", ").append(1.0).append(')');
             if(i != 0) {
                 builder.append(", ");
             }
@@ -483,8 +443,8 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ArrayExample)) return false;
-        ArrayExample<?> that = (ArrayExample<?>) o;
+        if (!(o instanceof BinaryFeaturesExample)) return false;
+        BinaryFeaturesExample<?> that = (BinaryFeaturesExample<?>) o;
         if (Objects.equals(metadata,that.metadata) && output.getClass().equals(that.output.getClass())) {
             @SuppressWarnings("unchecked") //guarded by a getClass.
             boolean outputTest = output.fullEquals((T)that.output);
@@ -492,7 +452,6 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
                 //we do not use Arrays.equals here because these are "backing arrays" which could be different sizes 
                 for(int i=0; i<size; i++) {
                     if(!this.featureNames[i].equals(that.featureNames[i])) return false;
-                    if(this.featureValues[i] != that.featureValues[i]) return false;
                 }
                 return true;
             }
@@ -506,17 +465,16 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
     public int hashCode() {
         int result = Objects.hash(size);
         result = 31 * result + output.hashCode();
-        //we don't use Arrays.hashCode here because featureNames and featureValues
-        //are backing arrays and the length of each could be arbitrarily diverging 
+        //we don't use Arrays.hashCode here because featureNames 
+        //is a backing array and its length could be arbitrarily diverging 
         //from the member size.  
         for(int i=0; i<size; i++) {
             result = 31 * result + featureNames[i].hashCode();
-            result = 31 * result + Double.hashCode(featureValues[i]);
         }
         return result;
     }
 
-    class ArrayExampleIterator implements Iterator<Feature> {
+    class BinaryFeaturesExampleIterator implements Iterator<Feature> {
         int pos = 0;
 
         @Override
@@ -526,7 +484,7 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
 
         @Override
         public Feature next() {
-            Feature f = new Feature(featureNames[pos],featureValues[pos]);
+            Feature f = new Feature(featureNames[pos], 1.0);
             pos++;
             return f;
         }

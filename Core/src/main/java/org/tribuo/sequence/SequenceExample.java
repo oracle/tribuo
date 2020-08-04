@@ -23,12 +23,14 @@ import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.util.Merger;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * A sequence of examples, used for sequence classification.
@@ -36,46 +38,12 @@ import java.util.List;
 public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>>, Serializable {
     private static final long serialVersionUID = 1L;
 
+    private static final Logger logger = Logger.getLogger(SequenceExample.class.getName());
+
     public static final float DEFAULT_WEIGHT = 1.0f;
 
     private final List<Example<T>> examples;
     private float weight = 1.0f;
-
-    @Deprecated
-    private final String text;
-
-    /**
-     * Deprecated as the text field is marked for removal.
-     * @param text The text of this example.
-     */
-    @Deprecated
-    public SequenceExample(String text) {
-        this.text = text;
-        this.examples = new ArrayList<>();
-    }
-
-    /**
-     * Deprecated as the text field is marked for removal.
-     * @param text The text of this example.
-     * @param examples A {@link List} of {@link Example}s one per element.
-     */
-    @Deprecated
-    public SequenceExample(String text, List<Example<T>> examples) {
-        this(text,examples,DEFAULT_WEIGHT);
-    }
-
-    /**
-     * Deprecated as the text field is marked for removal.
-     * @param text The text of this example.
-     * @param examples A {@link List} of {@link Example}s one per element.
-     * @param weight The weight of this SequenceExample.
-     */
-    @Deprecated
-    public SequenceExample(String text, List<Example<T>> examples, float weight) {
-        this.text = text;
-        this.examples = examples;
-        this.weight = weight;
-    }
 
     /**
      * Creates an empty sequence example.
@@ -102,7 +70,6 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @param weight The weight of this sequence.
      */
     public SequenceExample(List<Example<T>> examples, float weight) {
-        this.text = "";
         this.examples = examples;
         this.weight = weight;
     }
@@ -129,6 +96,14 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @param weight The weight for this sequence example.
      */
     public SequenceExample(List<T> outputs, List<? extends List<? extends Feature>> features, float weight) {
+        this(outputs, features, weight, false);
+    }
+
+    public SequenceExample(List<T> outputs, List<? extends List<? extends Feature>> features, boolean attemptBinaryFeatures) {
+        this(outputs, features, DEFAULT_WEIGHT, attemptBinaryFeatures);
+    }
+    
+    public SequenceExample(List<T> outputs, List<? extends List<? extends Feature>> features, float weight, boolean attemptBinaryFeatures) {
         if (outputs.size() != features.size()) {
             throw new IllegalArgumentException("outputs.size() = " + outputs.size() + ", features.size() = " + features.size());
         }
@@ -137,12 +112,20 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
 
         for (int i = 0; i < outputs.size(); i++) {
             List<? extends Feature> list = features.get(i);
-            ArrayExample<T> example = new ArrayExample<>(outputs.get(i));
-            example.addAll(list);
+            Example<T> example = null;
+            if(attemptBinaryFeatures){
+                try {
+                    example = new BinaryFeaturesExample<>(outputs.get(i), list);
+                } catch(IllegalArgumentException iae){
+                    logger.finer("attempted to create BinaryFeaturesExample but not all of the features were binary");
+                    example = new ArrayExample<>(outputs.get(i), list);
+                }
+            } else {
+                example = new ArrayExample<>(outputs.get(i), list);
+            }
             examples.add(example);
         }
 
-        this.text = "";
         this.examples = examples;
         this.weight = weight;
     }
@@ -152,7 +135,6 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @param other The sequence example to copy.
      */
     public SequenceExample(SequenceExample<T> other) {
-        this.text = other.text;
         this.examples = new ArrayList<>(other.size());
         for(Example<T> example : other) {
             examples.add(example.copy());
@@ -227,11 +209,6 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      */
     public float getWeight() {
         return weight;
-    }
-
-    @Deprecated
-    public String getText() {
-        return text;
     }
 
     /**

@@ -16,16 +16,11 @@
 
 package org.tribuo.sequence;
 
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.tribuo.Example;
-import org.tribuo.Feature;
-import org.tribuo.FeatureMap;
-import org.tribuo.impl.ListExample;
-import org.tribuo.provenance.SimpleDataSourceProvenance;
-import org.tribuo.test.MockDataSourceProvenance;
-import org.tribuo.test.MockOutput;
-import org.tribuo.test.MockOutputFactory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -34,10 +29,18 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.FeatureMap;
+import org.tribuo.impl.BinaryFeaturesExample;
+import org.tribuo.impl.ListExample;
+import org.tribuo.provenance.SimpleDataSourceProvenance;
+import org.tribuo.test.MockDataSourceProvenance;
+import org.tribuo.test.MockOutput;
+import org.tribuo.test.MockOutputFactory;
+import org.tribuo.util.Merger;
 
 public class SequenceDatasetTest {
 
@@ -181,6 +184,48 @@ public class SequenceDatasetTest {
         assertNull(infoMap.get("f6"));
         assertNull(infoMap.get("f7"));
         assertEquals(2, minimumCardinalityDataset.size());
+    }
+
+    @Test
+    public void testBinaryFeatures() {
+        MutableSequenceDataset<MockOutput> dataset = new MutableSequenceDataset<>(new MockDataSourceProvenance(), new MockOutputFactory());
+
+        List<MockOutput> outputs = Arrays.asList(new MockOutput("green"), new MockOutput("blue"), new MockOutput("green"), new MockOutput("blue"), new MockOutput("red"));
+        List<? extends List<? extends Feature>> features = Arrays.asList(
+                Arrays.asList(new Feature("F1", 1.0), new Feature("F2", 1.0), new Feature("F1", 1.0), new Feature("F3", 1.0)),
+                Arrays.asList(new Feature("F1", 1.0), new Feature("F2", 1.0)),
+                Arrays.asList(new Feature("F1", 1.0), new Feature("F4", 1.0), new Feature("F5", 1.0)),
+                Arrays.asList(new Feature("F1", 1.0), new Feature("F5", 2.0)),
+                Arrays.asList(new Feature("F1", 1.0), new Feature("F1", 1.0))
+                );
+        SequenceExample<MockOutput> seqEx = new SequenceExample<>(outputs, features, true);
+        seqEx.reduceByName(Merger.max());
+        dataset.add(seqEx);
+
+        assertTrue(seqEx.get(0) instanceof BinaryFeaturesExample);
+        assertTrue(seqEx.get(1) instanceof BinaryFeaturesExample);
+        assertTrue(seqEx.get(2) instanceof BinaryFeaturesExample);
+        assertFalse(seqEx.get(3) instanceof BinaryFeaturesExample);
+        assertTrue(seqEx.get(4) instanceof BinaryFeaturesExample);
+
+        FeatureMap infoMap = dataset.getFeatureIDMap();
+        assertEquals(5, infoMap.get("F1").getCount());
+        assertEquals(2, infoMap.get("F2").getCount());
+        assertEquals(1, infoMap.get("F3").getCount());
+        assertEquals(1, infoMap.get("F4").getCount());
+        assertEquals(2, infoMap.get("F5").getCount());
+        assertEquals(1, dataset.size());
+
+        MinimumCardinalitySequenceDataset<MockOutput> minimumCardinalityDataset = new MinimumCardinalitySequenceDataset<>(dataset, 3);
+        assertEquals(3, minimumCardinalityDataset.getMinCardinality());
+        infoMap = minimumCardinalityDataset.getFeatureIDMap();
+        System.out.println(minimumCardinalityDataset.getNumExamplesRemoved());
+        assertEquals(5, infoMap.get("F1").getCount());
+        assertNull(infoMap.get("F2"));
+        assertNull(infoMap.get("F3"));
+        assertNull(infoMap.get("F4"));
+        assertNull(infoMap.get("F5"));
+        assertEquals(1, minimumCardinalityDataset.size());
     }
 
     private ListExample<MockOutput> createExample(String outputLabel, String... featureNames) {

@@ -17,8 +17,11 @@
 package org.tribuo;
 
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.impl.ListExample;
 import org.tribuo.test.MockOutput;
+import org.tribuo.util.Merger;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -209,5 +212,73 @@ public class ExampleTest {
 
         // This example should be valid
         assertTrue(test.validateExample());
+    }
+    
+    @Test
+    public void testBinaryFeaturesExample() {
+        MockOutput output = new MockOutput("UNK");
+        Example<MockOutput> test = new BinaryFeaturesExample<>(output);
+        // Empty examples are invalid.
+        assertFalse(test.validateExample());
+
+        test.add(new Feature("test",1.0));
+        test.add(new Feature("test",1.0));
+        assertFalse(test.validateExample());
+        test.reduceByName(Merger.max());
+        assertTrue(test.validateExample());
+        //try adding a non-binary feature
+        Assertions.assertThrows(IllegalArgumentException.class, () -> test.add(new Feature("test-2",2.0)));
+        Assertions.assertThrows(UnsupportedOperationException.class, () -> test.transform(null));
+        
+        test.add(new Feature("test-2",1.0));
+        
+        Example<MockOutput> test2 = test.copy();
+        test2.add(new Feature("test-2",1.0));
+        test2.reduceByName(Merger.max());
+        assertTrue(test.validateExample());
+
+        assertTrue(test.getMetadata().isEmpty());
+        assertFalse(test.getMetadataValue("Bananas").isPresent());
+        // Check that appends work
+        test.setMetadataValue("Bananas","Yellow");
+        assertTrue(test.containsMetadata("Bananas"));
+        assertEquals(test.getMetadataValue("Bananas").get(),"Yellow");
+        assertEquals(1,test.getMetadata().size());
+        // Check that the metadata grows appropriately
+        test.setMetadataValue("Oranges","Orange");
+        assertEquals(test.getMetadataValue("Oranges").get(),"Orange");
+        Map<String,Object> metadata = test.getMetadata();
+        assertEquals(2,metadata.size());
+        // Check that the metadata returned is a copy
+        metadata.put("Strawberries","Red");
+        assertEquals(2,test.getMetadata().size());
+        // Check that overwriting throws
+        assertThrows(IllegalArgumentException.class,() -> test.setMetadataValue("Bananas","Pink"));
+        assertEquals(2,test.getMetadata().size());
+        assertEquals(test.getMetadataValue("Bananas").get(),"Yellow");
+        assertEquals(test.getMetadataValue("Oranges").get(),"Orange");
+        // Check that the metadata is copied
+        Example<MockOutput> copy = test.copy();
+        assertEquals(2,copy.getMetadata().size());
+        assertEquals(copy.getMetadataValue("Bananas").get(),"Yellow");
+        assertEquals(copy.getMetadataValue("Oranges").get(),"Orange");
+        // Check that the copies are independent
+        copy.setMetadataValue("Strawberries","Red");
+        assertEquals(3,copy.getMetadata().size());
+        assertEquals(2,test.getMetadata().size());
+        
+        Feature lookup = test.lookup("test-2");
+        assertEquals("test-2", lookup.name);
+        assertEquals(1.0, lookup.value);
+        assertTrue(BinaryFeaturesExample.isBinary(lookup));
+        ((BinaryFeaturesExample<MockOutput>) test).add("f3");
+        assertThrows(IllegalArgumentException.class, () -> BinaryFeaturesExample.checkIsBinary(new Feature("f4", 2.0)));
+        
+        int count = 0;
+        for(Feature feature : test) {
+            assertTrue(BinaryFeaturesExample.isBinary(feature));
+            count++;
+        }
+        assertEquals(3, count);
     }
 }
