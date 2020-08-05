@@ -201,23 +201,21 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
 
     @Override
     public String toString() {
-        Set<Label> labelsToPrint = new LinkedHashSet<>(occurrences.keySet());
         if (labelOrder == null) {
             labelOrder = new ArrayList<>(domain.getDomain());
         } else {
-            labelsToPrint.retainAll(occurrences.keySet());
-        }
-        int maxLen = Integer.MIN_VALUE;
+            labelOrder.retainAll(occurrences.keySet());
+        }        int maxLen = Integer.MIN_VALUE;
         for (Label label : labelOrder) {
             maxLen = Math.max(label.getLabel().length(), maxLen);
-            maxLen = Math.max(String.format(" %,d", (int)(double)occurrences.get(label)).length(), maxLen);
+            if(occurrences.containsKey(label)) {
+                maxLen = Math.max(String.format(" %,d", (int)(double)occurrences.get(label)).length(), maxLen);
+            }
         }
         StringBuilder sb = new StringBuilder();
         String trueLabelFormat = String.format("%%-%ds", maxLen + 2);
         String predictedLabelFormat = String.format("%%%ds", maxLen + 2);
         String countFormat = String.format("%%,%dd", maxLen + 2);
-
-        List<Label> printOrder = new ArrayList<>(labelsToPrint);
 
         //
         // Empty spot in first row for labels on subsequent rows.
@@ -225,14 +223,14 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
 
         //
         // Labels across the top for predicted.
-        for (Label predictedLabel : printOrder) {
+        for (Label predictedLabel : labelOrder) {
             sb.append(String.format(predictedLabelFormat, predictedLabel.getLabel()));
         }
         sb.append('\n');
 
-        for (Label trueLabel : printOrder) {
+        for (Label trueLabel : labelOrder) {
             sb.append(String.format(trueLabelFormat, trueLabel.getLabel()));
-            for (Label predictedLabel : printOrder) {
+            for (Label predictedLabel : labelOrder) {
             	int confusion = (int) confusion(predictedLabel, trueLabel);
                 sb.append(String.format(countFormat, confusion));
             }
