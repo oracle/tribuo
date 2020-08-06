@@ -203,15 +203,15 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
     public String toString() {
         if (labelOrder == null) {
             labelOrder = new ArrayList<>(domain.getDomain());
-        } else {
-            labelOrder.retainAll(occurrences.keySet());
-        }        int maxLen = Integer.MIN_VALUE;
+        }
+        labelOrder.retainAll(occurrences.keySet());
+        
+        int maxLen = Integer.MIN_VALUE;
         for (Label label : labelOrder) {
             maxLen = Math.max(label.getLabel().length(), maxLen);
-            if(occurrences.containsKey(label)) {
-                maxLen = Math.max(String.format(" %,d", (int)(double)occurrences.get(label)).length(), maxLen);
-            }
+            maxLen = Math.max(String.format(" %,d", (int)(double)occurrences.get(label)).length(), maxLen);
         }
+
         StringBuilder sb = new StringBuilder();
         String trueLabelFormat = String.format("%%-%ds", maxLen + 2);
         String predictedLabelFormat = String.format("%%%ds", maxLen + 2);
