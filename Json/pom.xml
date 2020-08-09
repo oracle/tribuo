@@ -34,7 +34,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.oracle.labs.mlrg.olcut</groupId>
+            <groupId>com.oracle.labs.olcut</groupId>
             <artifactId>olcut-config-json</artifactId>
             <version>${olcut.version}</version>
         </dependency>

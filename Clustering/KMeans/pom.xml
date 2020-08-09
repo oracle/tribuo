@@ -51,7 +51,7 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.oracle.labs.mlrg.olcut</groupId>
+            <groupId>com.oracle.labs.olcut</groupId>
             <artifactId>olcut-core</artifactId>
         </dependency>
         <dependency>
