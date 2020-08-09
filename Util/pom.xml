@@ -36,7 +36,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.oracle.labs.mlrg.olcut</groupId>
+                <groupId>com.oracle.labs.olcut</groupId>
                 <artifactId>olcut-core</artifactId>
                 <version>${olcut.version}</version>
             </dependency>
