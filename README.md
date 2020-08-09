@@ -8,7 +8,7 @@ and multi-label classification. Tribuo provides implementations of popular ML
 algorithms and also wraps other libraries to provide a unified interface.
 Tribuo contains all the code necessary to load, featurise and transform data.
 Additionally, it includes the evaluation classes for all supported prediction
-types. Development is led by [Oracle Labs'](https://labs.oracle.com) Machine
+types. Development is led by [Oracle Labs](https://labs.oracle.com)' Machine
 Learning Research Group;  we welcome community contributions.
 
 All trainers are configurable using the
@@ -43,6 +43,7 @@ to the developers of those libraries.
 * [Library Architecture](docs/Architecture.md)
 * [Package Overview](docs/PackageOverview.md)
 * [Javadoc](https://tribuo.org/javadoc/4.0.0/index.html)
+* [Helper Programs](docs/HelperPrograms.md)
 * [Developer Documentation](docs/Internals.md)
 * [Roadmap](docs/Roadmap.md)
 * [Frequently Asked Questions](docs/FAQs.md)
@@ -51,8 +52,8 @@ to the developers of those libraries.
 
 Tutorial notebooks, including examples of Classification, Clustering,
 Regression, Anomaly Detection and the configuration system, can be found in the
-[tutorials](tutorials). These use the [IJava](https://github.com
-/SpencerPark/IJava) Jupyter notebook kernel, and work with Java 10+. To convert
+[tutorials](tutorials). These use the [IJava](https://github.com/SpencerPark/IJava) 
+Jupyter notebook kernel, and work with Java 10+. To convert
 the tutorials' code back to Java 8, simply replace the `var` keyword with the
 appropriate types.
 

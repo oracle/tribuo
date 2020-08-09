@@ -12,7 +12,7 @@ know a Latin teacher whom we'd like to keep employed.
 
 The initial version of Tribuo was written in 2016, and the internal v1.0 was
 released in the fall of 2016. The first open source release was v4.0, released
-in July 2020.  Tribuo was designed after the [Oracle
+in August 2020.  Tribuo was designed after the [Oracle
 Labs](https://labs.oracle.com) Machine Learning Research Group had written
 several text classification projects in Java and realised the need for a good
 single node ML framework on the JVM.
@@ -53,7 +53,7 @@ it's an upwards compatible change, minor version bumps can add new features,
 improve performance (both statistically and in terms of runtime/memory usage),
 and add new functionality to existing algorithms. Patch releases fix bugs in
 existing versions and resolve security issues when they are discovered. Patch
-releases may also add small, new methods/classes if they are required to fix
+releases may also add small methods or classes if they are required to fix
 bugs.
 
 Tribuo's dependencies may change in each type of release, but patch releases
@@ -62,7 +62,7 @@ those dependencies), and minor releases can only add new dependencies and bump
 the versions of existing ones.
 
 Anything considered part of the internal API (e.g. the innards of the tree
-builders and the  classes in `impl` packages outside of Core) can change in any
+builders and the classes in `impl` packages outside of Core) can change in any
 version, but these are usually marked in the javadoc as internal classes and
 will be closed off in the module system when we adopt it.
 
@@ -76,7 +76,7 @@ or third party dependencies. If you want to deploy a Tribuo
 `RandomForestClassifier`, you only need the tribuo-classification-decision-tree
 jar and it's dependencies; it doesn't pull in TensorFlow, or anything else.
 This makes it simpler to package up a production deployment; there is a smaller
-code surface to test and fewer jars and less space used up with unnecessary
+code surface to test, fewer jars, and less space used up with unnecessary
 things.
 
 This early design choice has lead to some additional complexity in the
@@ -94,13 +94,13 @@ lives on the Model class. Tribuo uses the same predict call to produce both the
 outputs and the scores for those outputs. Its predict method is the equivalent
 of both "predict" and "predict\_proba" in scikit-learn. We made this separation
 between training and prediction so as to enable the type system to act as a
-gate-keeper on prediction; preditions cannot be made using untrained models
+gate-keeper on prediction; predictions cannot be made using untrained models
 when it's impossible to have an untrained model with a predict method. This
 separation means that integrating new libraries is more complex with Tribuo
-than with scikit-learn, since with scikit-learn it is possible to simply export
-a small number of methods with specific names. With Tribuo on the other hand,
-the interface needs to depend on Tribuo; however, implementing Tribuo's
-interfaces comes with other benefits.
+than with scikit-learn, since to conform to the scikit-learn API it is possible 
+to simply export a small number of methods with specific names. With Tribuo on 
+the other hand, the library needs to depend on Tribuo; however, implementing 
+Tribuo's interfaces comes with other benefits.
 
 ### Why are there feature objects? Why not just use arrays?
 
@@ -117,7 +117,7 @@ unexpected feature name. This prevents the possibility of loading a model and
 applying it to data from a completely different domain (i.e. applying an MNIST
 model to text classification) as the feature spaces will be misaligned: not
 only will there be a different number of features, but they'll have different
-names, too.  Since this situation results in an absense of valid features in
+names, too.  Since this situation results in an absence of valid features in
 the supplied Example, Tribuo's predict methods will throw a RuntimeException.
 
 ### Why are the model outputs "Predictions"? Why not use arrays?
@@ -138,7 +138,7 @@ they should never need to be seen by a user of Tribuo. These ids are
 automatically generated, and should only be necessary for debugging new model
 implementations or interfaces. Having the ids managed by the library ensures
 that they can't be confused when chaining models together, loading data, or
-applying featurisation.
+featurising inputs.
 
 ### What's this about provenance?
 

@@ -47,7 +47,7 @@ It's best practice not to modify an `Example` after it's been passed to a
 the feature values, and ensure the metadata is up to date. It's especially
 dangerous to add new features to an `Example` inside a `Dataset`, as the
 `Dataset` won't have a mapping for the new features, and they are likely to be
-ignored.
+ignored. We are likely to enforce this restriction in a future version.
 
 When subclassing one of Tribuo's interfaces or abstract classes, it's important
 to implement the provenance object. If the state of the class can be purely
@@ -69,7 +69,7 @@ provenance built into their models and evaluations.
 
 ### DataSource 
 `Example`s are created in a `DataSource`. Preferably they are created with a
-`Feature` list as this ensures the O(nlogn) sort cost is paid once, rather than
+`Feature` list as this ensures the O(n log n) sort cost is paid once, rather than
 multiple insertions and sorts. The `DataSource` uses the supplied
 `OutputFactory` implementation to convert whatever is denoted as the output
 into an `Output` subclass. The `Example` creation process can be loading
@@ -130,7 +130,7 @@ features, and copies out the `Output` into either an id or double value
 collisions by adding together colliding feature values (collisons can be
 induced by feature hashing), and otherwise validates the `Example`. Ensemble
 `Trainer`s and others which wrap an inner `Trainer` leave the `SparseVector`
-conversion to the inner `Trainer.`
+conversion to the inner `Trainer`.
 
 The `Trainer` then executes it's training algorithm to produce the model
 parameters.
