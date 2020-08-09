@@ -18,11 +18,11 @@ trusted locations where third parties do not have access. We have provided a
 which will allow the deserialization of only the classes found in the Tribuo
 library. This allowlist should be enabled on the code paths which deserialize
 models or datasets. As Tribuo supports Java 8+, and JEP 290 is an addition to
-the Java 8 API from 8u121, the best way to use the allowlist for those demos is
-by setting it as a process-wide flag.  Additionally, when running with a
-security manager, Tribuo will need access to the relevant filesystem locations
-to load or save model files. See the section on [Configuration](#Configuration)
-for more details.
+the Java 8 API from 8u121, the best way to use the allowlist for the main 
+programs provided with Tribuo is by setting it as a process-wide flag.  
+Additionally, when running with a security manager, Tribuo will need access to
+the relevant filesystem locations to load or save model files. See the section 
+on [Configuration](#Configuration) for more details.
 
 ## Database access
 Tribuo provides a SQL interface that can load data via a JDBC connection. As
@@ -52,7 +52,7 @@ OLCUT jar appropriate permissions. We have tested this set of permissions,
 which allows the configuration and provenance systems to work:
 
     // OLCUT permissions
-    grant codeBase "file:/path/to/olcut/olcut-core-5.1.3.jar" {
+    grant codeBase "file:/path/to/olcut/olcut-core-5.1.4.jar" {
             permission java.lang.RuntimePermission "accessDeclaredMembers";
             permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
             permission java.util.logging.LoggingPermission "control";
@@ -68,9 +68,9 @@ This scope should be narrowed based on your requirements. If you need to save
 an OLCUT configuration, you will also need to add write permissions for the
 save location.
 
-Similar read and write permissions are necessary for Tribuo to be able to load
-and save models; therefore, a similar snippet will be needed for the Tribuo jar
-when running with a security manager.
+Similar file read and write permissions are necessary for Tribuo to be able to
+load and save models; therefore, you'll need to grant Tribuo those permissions
+using a similar snippet when running with a security manager.
 
 ## Threat Model
 As a library incorporated into other programs, Tribuo expects it's inputs to be
@@ -79,7 +79,7 @@ ML systems that can result in model or data leakage.
 
 | Threat | Description | Exposed Assets | Possible Mitigations |
 | ------ | ----------- | -------------- | -------------------- |
-| Model replication | If an attacker can repeatedly query the model, where they either know or control the features, and they can observe the full prediction (e.g. the complete predicted probability distribution) for each query, then this can provide sufficient information for them to replicate the model.  If the model is considered an important asset, allowing an attacker to copy it could be detrimental. | The model parameters | Only return a small number of predictions (i.e. the top n) or do not provide the probability distribution. This slows down the attack, but does not completely prevent it. Other mitigations such as employing rate limiting or preventing the attacker from controlling or observing the feature inputs are necessary to fully prevent this attack.|
+| Model replication | If an attacker can repeatedly query the model, where they either know or control the features, and they can observe the full prediction (e.g., the complete predicted probability distribution) for each query, then this can provide sufficient information for them to replicate the model.  If the model is considered an important asset, allowing an attacker to copy it could be detrimental. | The model parameters | Only return a small number of predictions (i.e., the top n) or do not provide the probability distribution. This slows down the attack, but does not completely prevent it. Other mitigations such as employing rate limiting or preventing the attacker from controlling or observing the feature inputs are necessary to fully prevent this attack.|
 | Training metadata leak | The model file contains information about the training data such as the feature names, number of features, and number of examples. This information is potentially sensitive, as in the case of bigrams or trigrams from text. | Training metadata | Firstly, treat model files as confidential if the data itself is confidential. Secondly, use Tribuo's methods for one-way hashing of the feature names. Hashing prevents attackers from trivially discovering the features without needing to complete the process of supplying the input text and testing if the model output changes. Thirdly, other information present in the model file, such as the number of examples, can be redacted by removing the provenance information before the model is deployed. | 
 | Training data leak | If an attacker can repeatedly query the model, it's possible for an attacker to find specific training data points that are part of the training data set. This attack is accomplished by measuring the confidence of the prediction (as training data points usually have a predicted confidence close to 1.0). | Training data | The most important mitigation is to treat model files as confidential if the training data is confidential. Once access to the model has been prevented, the mitigations for model replication apply. This attack is a variant of model replication that usually requires some foreknowledge of the identity of the training corpus. |
 

@@ -179,7 +179,6 @@ supplying the description, declaring whether the field is mandatory, and
 determining whether the field value should be redacted from any configuration
 or provenance based on this object. More details about OLCUT can be found in
 it's [documentation](https://github.com/oracle/OLCUT).
-  
 
 The `LinearSGDTrainer` class above is configured by the xml snippet below:
 
@@ -202,7 +201,7 @@ The `LinearSGDTrainer` class above is configured by the xml snippet below:
 ```
 
 This instantiates a `LinearSGDTrainer` with a logistic regression objective and
-an `Adam` gradient optimiser, which employs [Andrei Karpathy's preferred
+an `Adam` gradient optimiser, using [Andrei Karpathy's preferred
 learning rate](https://twitter.com/karpathy/status/801621764144971776) and an
 adjusted beta one parameter (note these parameters are just demonstration
 values, we're not recommending these specific values).
@@ -284,7 +283,7 @@ depended on when outside the columnar processing infrastructure since the
 being stored in an `Example`.
 
 If your columnar data is not in a format currently supported by Tribuo, you can
-subclass `ColumnarDataSource`, provide an implementation of `ColumnarIterator,`
+subclass `ColumnarDataSource`, provide an implementation of `ColumnarIterator`,
 which converts from your input format into `ColumnarIterator.Row`, and then
 configure the `RowProcessor` to extract `Example`s from your data.
 
@@ -310,13 +309,13 @@ pipelines that are applied in the supplied sequence to the specified
 feature(s). Local transformation pipelines are those that are applied only to
 the given named feature(s), whereas global transformations pipelines are
 applied after local pipelines and apply to every feature. Local transformations
-pipelines can also be applied via a regex. Specifically, every feature name
-which matches the regex receives a copy of that transformation pipeline, and
-that pipeline is then applied to the feature.  An exception will be thrown if
-an attempt is made to apply a regex transformation pipeline to a feature that
-has already received a local transformation pipeline. Additionally, all
-transformations are applied to the feature domain to ensure it maintains the
-proper statistics.
+pipelines can also be applied to features which match a regular expression 
+(regex). Specifically, every feature name which matches the regex receives a 
+copy of that transformation pipeline, and that pipeline is then applied to the
+feature.  An exception will be thrown if an attempt is made to apply a regex 
+transformation pipeline to a feature that has already received a local 
+transformation pipeline. Additionally, all transformations are applied to the 
+feature domain to ensure it maintains the proper statistics.
 
 Currently, transformations must be based on only a single feature at a time,
 but we plan to introduce global feature transformations in some future release

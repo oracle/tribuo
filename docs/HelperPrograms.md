@@ -140,9 +140,9 @@ system and a few flags.
 Found in tribuo-classification-experiments,
 `org.tribuo.classification.experiments.ConfigurableTrainTest` is similar to the
 one from [data](#ConfigurableTrainTest) but is specialised to classification
-problems, and so requires fewer arguments and configuration. It also exposes
-classification specific options such as per label weights for training, and
-also the ability to write out the predictions to a text file for downstream
+problems, and so requires fewer arguments and less configuration. It also 
+exposes classification specific options such as per label weights for training, 
+and also the ability to write out the predictions to a text file for downstream
 processing.
 
 ### RunAll

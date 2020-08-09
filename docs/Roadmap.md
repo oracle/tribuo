@@ -73,11 +73,11 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
     - Reduce repeated work in the regression impurity metrics.
     - Prevent wasted computation when computing leaves (leaf nodes have their statistics computed 
  as if they were going to be split, even when it is known they won't due to their size).
+- Multithreading the various SGD based trainers using a Hogwild approach.
 - Incorporate support for a BLAS.
 - Investigate use of the Java Vector API to improve performance critical math operations.
 
 ## Documentation
 
-- Fill out the javadoc so it exists for all public and protected methods.
+- Fill out the javadoc so it exists for all public and protected methods, including constructors.
 - Add more tutorials.
-
