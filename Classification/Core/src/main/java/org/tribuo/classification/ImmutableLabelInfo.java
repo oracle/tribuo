@@ -20,9 +20,13 @@ import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,9 +41,11 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
 
     private static final long serialVersionUID = 1L;
 
-    private Map<Integer,String> idLabelMap;
+    private final Map<Integer,String> idLabelMap;
 
-    private Map<String,Integer> labelIDMap;
+    private final Map<String,Integer> labelIDMap;
+
+    private transient Set<Label> domain;
 
     private ImmutableLabelInfo(ImmutableLabelInfo info) {
         super(info);
@@ -47,6 +53,7 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
         idLabelMap.putAll(info.idLabelMap);
         labelIDMap = new HashMap<>();
         labelIDMap.putAll(info.labelIDMap);
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 
     ImmutableLabelInfo(LabelInfo info) {
@@ -59,6 +66,7 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             labelIDMap.put(e.getKey(),counter);
             counter++;
         }
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 
     ImmutableLabelInfo(LabelInfo info, Map<Label,Integer> mapping) {
@@ -73,6 +81,18 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             idLabelMap.put(e.getValue(),e.getKey().label);
             labelIDMap.put(e.getKey().label,e.getValue());
         }
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
+    }
+
+    /**
+     * Returns the set of possible {@link Label}s that this LabelInfo has seen.
+     *
+     * Each label has the default score of Double.NaN.
+     * @return The set of possible labels.
+     */
+    @Override
+    public Set<Label> getDomain() {
+        return domain;
     }
 
     @Override
@@ -164,5 +184,11 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             Map.Entry<Integer,String> e = itr.next();
             return new Pair<>(e.getKey(),new Label(e.getValue()));
         }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 }
