@@ -36,6 +36,9 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * An iterator over a CSV file.
+ */
 public class CSVIterator extends ColumnarIterator implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(CSVIterator.class.getName());
 
@@ -153,7 +156,13 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
         }
     }
 
-
+    /**
+     * Zips together the headers and the line into a Map.
+     * @param headers The field headers.
+     * @param line The extracted line.
+     * @param rowNum The row number used for error messages.
+     * @return A map from header to value.
+     */
     private static Map<String,String> zip(List<String> headers, String[] line, long rowNum) {
         if (headers.size() != line.length) {
             throw new IllegalArgumentException("On row " + rowNum + " headers has " + headers.size() + " elements, current line has " + line.length + " elements.");

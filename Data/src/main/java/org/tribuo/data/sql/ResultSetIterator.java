@@ -29,6 +29,9 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * An iterator over a ResultSet returned from JDBC.
+ */
 public class ResultSetIterator extends ColumnarIterator {
     private static final Logger logger = Logger.getLogger(ResultSetIterator.class.getName());
 
