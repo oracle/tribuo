@@ -30,13 +30,14 @@ import java.util.logging.Logger;
 /**
  * An abstract class for iterators that read data in to a columnar format, usually from a file of some kind. Subclasses
  * handle how to format data from that file.
+ * <p>
+ * Note: the {@code fields} field must be set in the constructor of implementing classes.
  */
 public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Row> implements Iterator<ColumnarIterator.Row> {
     private static final Logger logger = Logger.getLogger(ColumnarIterator.class.getName());
 
     protected List<String> fields;
     private Optional<Row> currentRow = Optional.empty();
-
 
     /**
      * A representation of a row of untyped data from a columnar data source. In addition to its row data it stores a
@@ -73,12 +74,34 @@ public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Ro
         }
     }
 
-    protected ColumnarIterator() {}
 
+    /**
+     * Constructs a ColumnarIterator wrapped around a buffering spliterator.
+     * <p>
+     * Note when using this constructor you must set the {@code fields} field to
+     * the appropriate value after you've called super(). It must be immutable.
+     */
+    protected ColumnarIterator() {
+        super();
+    }
+
+    /**
+     * Constructs a ColumnarIterator wrapped around a buffering spliterator.
+     * <p>
+     * Note when using this constructor you must set the {@code fields} field to
+     * the appropriate value after you've called super(). It must be immutable.
+     * @param characteristics The spliterator characteristics.
+     * @param batchsize The buffer size.
+     * @param estimatedSize The estimated size of this iterator.
+     */
     protected ColumnarIterator(int characteristics, int batchsize, long estimatedSize) {
         super(characteristics, batchsize, estimatedSize);
     }
 
+    /**
+     * The immutable list of field names.
+     * @return The field names.
+     */
     public List<String> getFields() {
         return fields;
     }

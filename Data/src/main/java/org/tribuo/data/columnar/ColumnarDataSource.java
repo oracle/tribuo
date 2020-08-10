@@ -24,8 +24,8 @@ import org.tribuo.OutputFactory;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * A {@link ConfigurableDataSource} base class which takes columnar data (e.g. csv or DB table rows) and generates {@link Example}s.
@@ -67,11 +67,50 @@ public abstract class ColumnarDataSource<T extends Output<T>> implements Configu
     }
 
     public Iterator<Example<T>> iterator() {
-        return StreamSupport.stream(rowIterator(), false).flatMap(r ->
-            rowProcessor.generateExample(r, outputRequired)
-                    .map(Stream::of)
-                    .orElseGet(Stream::empty)).iterator();
+        return new InnerIterator<>(rowProcessor,rowIterator(),outputRequired);
     }
 
     protected abstract ColumnarIterator rowIterator();
+
+    private static class InnerIterator<T extends Output<T>> implements Iterator<Example<T>> {
+        private final boolean outputRequired;
+        private final ColumnarIterator iterator;
+        private final RowProcessor<T> processor;
+
+        private Example<T> buffer = null;
+
+        InnerIterator(RowProcessor<T> processor, ColumnarIterator iterator, boolean outputRequired) {
+            this.processor = processor;
+            this.iterator = iterator;
+            this.outputRequired = outputRequired;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (buffer != null) {
+                return true;
+            }
+
+            while (buffer == null && iterator.hasNext()) {
+                ColumnarIterator.Row m = iterator.next();
+
+                Optional<Example<T>> exampleOpt = processor.generateExample(m,outputRequired);
+                if (exampleOpt.isPresent()) {
+                    buffer = exampleOpt.get();
+                }
+            }
+            return buffer != null;
+        }
+
+        @Override
+        public Example<T> next() {
+            if (hasNext()) {
+                Example<T> ret = buffer;
+                buffer = null;
+                return ret;
+            } else {
+                throw new NoSuchElementException("No more data");
+            }
+        }
+    }
 }
