@@ -24,6 +24,7 @@ import org.tribuo.math.la.DenseMatrix;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,8 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
     private final int total;
     private final Map<Label, Double> occurrences;
 
+    private final Set<Label> observed;
+
     private final DenseMatrix cm;
 
     private List<Label> labelOrder;
@@ -81,6 +84,7 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
         this.total = predictions.size();
         this.cm = new DenseMatrix(domain.size(), domain.size());
         this.occurrences = new HashMap<>();
+        this.observed = new HashSet<>();
         tabulate(predictions);
     }
 
@@ -98,6 +102,8 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
                 throw new IllegalArgumentException("Prediction with unknown ground truth. Unable to evaluate.");
             }
             occurrences.merge(y,1d, Double::sum);
+            observed.add(y);
+            observed.add(p);
             int iy = getIDOrThrow(y);
             int ip = getIDOrThrow(p);
             cm.add(ip, iy, 1d);
@@ -204,12 +210,12 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
         if (labelOrder == null) {
             labelOrder = new ArrayList<>(domain.getDomain());
         }
-        labelOrder.retainAll(occurrences.keySet());
+        labelOrder.retainAll(observed);
         
         int maxLen = Integer.MIN_VALUE;
         for (Label label : labelOrder) {
             maxLen = Math.max(label.getLabel().length(), maxLen);
-            maxLen = Math.max(String.format(" %,d", (int)(double)occurrences.get(label)).length(), maxLen);
+            maxLen = Math.max(String.format(" %,d", (int)(double)occurrences.getOrDefault(label,0.0)).length(), maxLen);
         }
 
         StringBuilder sb = new StringBuilder();
@@ -248,7 +254,7 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
             labelOrder = new ArrayList<>(domain.getDomain());
         }
         Set<Label> labelsToPrint = new LinkedHashSet<>(labelOrder);
-        labelsToPrint.retainAll(occurrences.keySet());
+        labelsToPrint.retainAll(observed);
         StringBuilder sb = new StringBuilder();
         sb.append("<table>\n");
         sb.append(String.format("<tr><th>True Label</th><th style=\"text-align:center\" colspan=\"%d\">Predicted Labels</th></tr>%n", occurrences.size() + 1));
