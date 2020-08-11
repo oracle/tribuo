@@ -16,15 +16,21 @@
 
 package org.tribuo.regression;
 
+import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,12 +46,15 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
 
     private final Map<String,Integer> labelIDMap;
 
+    private final Set<Regressor> domain;
+
     private ImmutableRegressionInfo(ImmutableRegressionInfo info) {
         super(info);
         idLabelMap = new LinkedHashMap<>();
         idLabelMap.putAll(info.idLabelMap);
         labelIDMap = new LinkedHashMap<>();
         labelIDMap.putAll(info.labelIDMap);
+        domain = calculateDomain(minMap);
     }
 
     ImmutableRegressionInfo(RegressionInfo info) {
@@ -58,6 +67,7 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
             labelIDMap.put(e.getKey(),counter);
             counter++;
         }
+        domain = calculateDomain(minMap);
     }
 
     ImmutableRegressionInfo(RegressionInfo info, Map<Regressor,Integer> mapping) {
@@ -78,6 +88,27 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
                 throw new IllegalArgumentException("Mapping must contain a single regression dimension per id, but contains " + Arrays.toString(names) + " -> " + e.getValue());
             }
         }
+        domain = calculateDomain(minMap);
+    }
+
+    /**
+     * Generates the domain for this regression info.
+     * @param minMap The set of minimum values per dimension.
+     * @return The domain.
+     */
+    private static SortedSet<Regressor> calculateDomain(Map<String, MutableDouble> minMap) {
+        TreeSet<Regressor.DimensionTuple> outputs = new TreeSet<>(Comparator.comparing(Regressor.DimensionTuple::getName));
+        for (Map.Entry<String,MutableDouble> e : minMap.entrySet()) {
+            outputs.add(new Regressor.DimensionTuple(e.getKey(),e.getValue().doubleValue()));
+        }
+        @SuppressWarnings("unchecked") // DimensionTuple is a subtype of Regressor, and this set is immutable.
+        SortedSet<Regressor> setOutputs = (SortedSet<Regressor>) (SortedSet) Collections.unmodifiableSortedSet(outputs);
+        return setOutputs;
+    }
+
+    @Override
+    public Set<Regressor> getDomain() {
+        return domain;
     }
 
     @Override
