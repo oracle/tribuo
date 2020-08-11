@@ -74,8 +74,8 @@ public abstract class RegressionInfo implements OutputInfo<Regressor> {
     }
 
     /**
-     * Returns a set containing a MultipleRegressor for each dimension with the minimum value observed.
-     * @return A set of MultipleRegressors, each with one active dimension.
+     * Returns a set containing a Regressor for each dimension with the minimum value observed.
+     * @return A set of Regressors, each with one active dimension.
      */
     @Override
     public Set<Regressor> getDomain() {
