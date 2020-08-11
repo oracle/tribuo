@@ -21,6 +21,8 @@ import com.oracle.labs.mlrg.olcut.util.MutableNumber;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -34,13 +36,31 @@ import java.util.Set;
 public class ImmutableClusteringInfo extends ClusteringInfo implements ImmutableOutputInfo<ClusterID> {
     private static final long serialVersionUID = 1L;
 
+    private final Set<ClusterID> domain;
+
     public ImmutableClusteringInfo(Map<Integer,MutableLong> counts) {
         super();
         clusterCounts.putAll(MutableNumber.copyMap(counts));
+
+        Set<ClusterID> outputs = new HashSet<>();
+        for (Map.Entry<Integer,MutableLong> e : clusterCounts.entrySet()) {
+            outputs.add(new ClusterID(e.getKey()));
+        }
+        domain = Collections.unmodifiableSet(outputs);
     }
 
     public ImmutableClusteringInfo(ClusteringInfo other) {
         super(other);
+        Set<ClusterID> outputs = new HashSet<>();
+        for (Map.Entry<Integer,MutableLong> e : clusterCounts.entrySet()) {
+            outputs.add(new ClusterID(e.getKey()));
+        }
+        domain = Collections.unmodifiableSet(outputs);
+    }
+
+    @Override
+    public Set<ClusterID> getDomain() {
+        return domain;
     }
 
     @Override
