@@ -8,7 +8,7 @@ deployment. We describe the overall package structure below.
 The top level project has core modules which define the API, data interactions,
 a math library, and common modules shared across prediction types.
 
-- Core - Provides the main classes and interfaces:
+- Core - (artifactID: `tribuo-core`, package root: `org.tribuo`) Provides the main classes and interfaces:
   - Dataset - A list of Examples plus associated feature information, such
     as the number of categories for categorical features, or the mean
     and variance in the case of real-valued features.
@@ -55,7 +55,7 @@ a math library, and common modules shared across prediction types.
     are always applied at prediction time.
   - util - Utilities for basic operations such as for working with arrays and
     random samples.
-- Data - provides classes which deal with sampled data, columnar data, csv
+- Data - (artifactID `tribuo-data`, package root: `org.tribuo.data`) provides classes which deal with sampled data, columnar data, csv
   files and text inputs. The user is encouraged to provide their own text
 processing infrastructure implementation, as the one here is fairly basic.
   - columnar - The columnar package provides many useful base classes for
@@ -66,7 +66,9 @@ processing infrastructure implementation, as the one here is fairly basic.
     working with JDBC sources.
   - text - Text processsing infrastructure interfaces and an example
     implementation.
-- Math - provides a linear algebra library for working with both sparse
+- Json - (artifactID `tribuo-json`, package root: `org.tribuo.json`) provides functionality
+for loading from json data sources, and for stripping provenance out of a model.
+- Math - (artifactID `tribuo-math`, package root: `org.tribuo.math`) provides a linear algebra library for working with both sparse
  and dense vectors and matrices.
   - kernel - a set of kernel functions for use in the SGD package (and elsewhere).
   - la - a linear algebra library containing functions used in the
@@ -82,37 +84,17 @@ widest range of linear SGD problems.
 Multi-class classification is the act of assigning a single label from a set of
 labels to a test example.  The classification module has several submodules:
 
-- Core - contains an Output subclass for use with multi-class classification
-  tasks, evaluation code for checking model performance, and an implementation
-of Adaboost.SAMME. It also contains simple baseline classifiers. 
-- DecisionTree - an implementation of CART decision trees.
-- Experiments - A set of main functions for training & testing models on any
-  supported dataset. This submodule depends on all the classifiers and allows
-easy comparison between them. It should not be imported into other projects
-since it is intended purely for development and testing.
-- Explanations - An implementation of LIME for classification tasks. If you use
-  the columnar data loader, LIME can extract more information about the feature
-domain and provide better explanations.
-- LibLinear - a wrapper around the LibLinear-java library. This provides
-  linear-SVMs and other l1 or l2 regularised linear classifiers.
-- LibSVM - a wrapper around the Java version of LibSVM. This provides linear &
-  kernel SVMs with sigmoid, gaussian and polynomial kernels.
-- Multinomial Naive Bayes - an implementation of a multinomial naive bayes
-  classifier. Since it aims to store a compact in-memory representation of the
-model, it only keeps track of weights for observed feature/class pairs.
-- SGD - an implementation of stochastic gradient descent based classifiers. It
-  includes a linear package for logistic regression and linear-SVM (using log
-and hinge losses, respectively), a kernel package for training a kernel-SVM
-using the Pegasos algorithm, and a crf package for training a linear-chain CRF.
-These implementations depend upon the stochastic gradient optimisers in the
-main Math package. The linear and crf packages can use any of the provided
-gradient optimisers, which enforce various different kinds of regularisation or
-convergence metrics. This is the preferred package for linear classification
-and for sequence classification due to the speed and scalability of the SGD
-approach.
-- XGBoost - a wrapper around the XGBoost Java API. XGBoost requires a C library
-  accessed via JNI.  XGBoost is a scalable implementation of gradient boosted
-trees.
+| Folder | ArtifactID | Package root | Description |
+| --- | --- | --- | --- |
+| Core | `tribuo-classification-core` | `org.tribuo.classification` | Contains an Output subclass for use with multi-class classification tasks, evaluation code for checking model performance, and an implementation of Adaboost.SAMME. It also contains simple baseline classifiers. |
+| DecisionTree | `tribuo-classification-tree` | `org.tribuo.classification.dtree` | An implementation of CART decision trees. |
+| Experiments | `tribuo-classification-experiments` | `org.tribuo.classification.experiments` | A set of main functions for training & testing models on any supported dataset. This submodule depends on all the classifiers and allows easy comparison between them. It should not be imported into other projects since it is intended purely for development and testing. |
+| Explanations | `tribuo-classification-experiments` | `org.tribuo.classification.explanations` | An implementation of LIME for classification tasks. If you use the columnar data loader, LIME can extract more information about the feature domain and provide better explanations. |
+| LibLinear | `tribuo-classification-liblinear` | `org.tribuo.classification.liblinear` | A wrapper around the LibLinear-java library. This provides linear-SVMs and other l1 or l2 regularised linear classifiers. |
+| LibSVM | `tribuo-classification-libsvm` | `org.tribuo.classification.libsvm` | A wrapper around the Java version of LibSVM. This provides linear & kernel SVMs with sigmoid, gaussian and polynomial kernels. |
+| Multinomial Naive Bayes | `tribuo-classification-mnnaivebayes` | `org.tribuo.classification.mnb` | An implementation of a multinomial naive bayes classifier. Since it aims to store a compact in-memory representation of the model, it only keeps track of weights for observed feature/class pairs. |
+| SGD | `tribuo-classification-sgd` | `org.tribuo.classification.sgd` | An implementation of stochastic gradient descent based classifiers. It includes a linear package for logistic regression and linear-SVM (using log and hinge losses, respectively), a kernel package for training a kernel-SVM using the Pegasos algorithm, and a crf package for training a linear-chain CRF. These implementations depend upon the stochastic gradient optimisers in the main Math package. The linear and crf packages can use any of the provided gradient optimisers, which enforce various different kinds of regularisation or convergence metrics. This is the preferred package for linear classification and for sequence classification due to the speed and scalability of the SGD approach. |
+| XGBoost | `tribuo-classification-xgboost` | `org.tribuo.classification.xgboost` | A wrapper around the XGBoost Java API. XGBoost requires a C library accessed via JNI.  XGBoost is a scalable implementation of gradient boosted trees. |
 
 ## Multi-label Classification
 
@@ -120,7 +102,8 @@ Multi-label classification is the task of predicting a set of labels for a test
 example rather than just a single label.  This package provides an Output
 subclass for multi-label prediction, evaluation code for checking the
 performance of a multi-label model, and a basic implementation of independent
-binary predictions.
+binary predictions. The multi-label support is found in the `tribuo-multilabel-core`
+artifact, in the `org.tribuo.multilabel` package.
  
 The independent binary predictor breaks each multi-label prediction into n
 binary predictions, one for each possible label.  To achieve this, the supplied
@@ -133,26 +116,15 @@ multi-label output.
 Regression is the task of predicting real-valued outputs for a test example.
 This package provides several modules:
 
-- Core - contains an Output subclass for use with regression data, as well as
-  evaluation code for checking model performance using standard regression
-metrics (R^2, explained variance, RMSE, and mean absolute error). The module
-also contains simple baseline regressions.
-- LibLinear - a wrapper around the LibLinear-java library. This provides
-  linear-SVMs and other l1 or l2 regularised linear regressions.
-- LibSVM - a wrapper around the Java version of LibSVM. This provides linear &
-  kernel SVRs with sigmoid, gaussian and polynomial kernels.
-- RegressionTrees - an implementation of two types of CART regression trees.
-  The first type builds a separate tree per output dimension, while the second
-type builds a single tree for all outputs.
-- SGD - an implementation of stochastic gradient descent for linear regression.
-  It uses the main Math package's set of gradient optimisers, which allow for
-various regularisation and descent algorithms.
-- SLM - an implementation of sparse linear models. It includes a co-ordinate
-  descent implementation of ElasticNet, a LARS implementation, a LASSO
-implementation using LARS, and a couple of sequential forward selection
-algorithms.
-- XGBoost - a wrapper around the XGBoost Java API. XGBoost requires a C library
-  accessed via JNI.
+| Folder | ArtifactID | Package root | Description |
+| --- | --- | --- | --- |
+| Core | `tribuo-regression-core` | `org.tribuo.regression` | contains an Output subclass for use with regression data, as well as evaluation code for checking model performance using standard regression metrics (R^2, explained variance, RMSE, and mean absolute error). The module also contains simple baseline regressions. |
+| LibLinear | `tribuo-regression-liblinear` | `org.tribuo.regression.liblinear` | A wrapper around the LibLinear-java library. This provides linear-SVMs and other l1 or l2 regularised linear regressions. |
+| LibSVM | `tribuo-regression-libsvm` | `org.tribuo.regression.libsvm` | A wrapper around the Java version of LibSVM. This provides linear & kernel SVRs with sigmoid, gaussian and polynomial kernels. |
+| RegressionTrees | `tribuo-regression-tree` | `org.tribuo.regression.rtree` | An implementation of two types of CART regression trees. The first type builds a separate tree per output dimension, while the second type builds a single tree for all outputs. |
+| SGD | `tribuo-regression-sgd` | `org.tribuo.regression.sgd` | An implementation of stochastic gradient descent for linear regression. It uses the main Math package's set of gradient optimisers, which allow for various regularisation and descent algorithms. |
+| SLM | `tribuo-regression-slm` | `org.tribuo.regression.slm` | An implementation of sparse linear models. It includes a co-ordinate descent implementation of ElasticNet, a LARS implementation, a LASSO implementation using LARS, and a couple of sequential forward selection algorithms. |
+| XGBoost | `tribuo-regression-xgboost` | `org.tribuo.regression.xgboost` | A wrapper around the XGBoost Java API. XGBoost requires a C library accessed via JNI.
 
 ## Clustering
 
@@ -160,10 +132,10 @@ Clustering is the task of grouping input data. The clustering system
 implemented is single membership -- each datapoint is assigned to one and only
 one cluster. This package provides two modules:
 
-- Core - contains the Output subclass for use with clustering data, as well as
-  the evaluation code for measuring clustering performance.
-- KMeans - an implementation of K-Means using the Java 8 Stream API for
-  parallelisation.
+| Folder | ArtifactID | Package root | Description |
+| --- | --- | --- | --- |
+| Core | `tribuo-clustering-core` | `org.tribuo.clustering` | Contains the Output subclass for use with clustering data, as well as the evaluation code for measuring clustering performance. |
+| KMeans | `tribuo-clustering-kmeans` | `org.tribuo.clustering.kmeans` | An implementation of K-Means using the Java 8 Stream API for parallelisation. |
 
 ## Anomaly Detection
 
@@ -171,15 +143,17 @@ Anomaly detection is the task of finding outliers or anomalies at prediction
 time using a model trained on non-anomalous data.  This package provides two
 modules:
 
-- Core - contains the Output subclass for use with anomaly detection data.
-- LibSVM - a wrapper around the Java version of LibSVM, which provides a
-  one-class SVM.
+| Folder | ArtifactID | Package root | Description |
+| --- | --- | --- | --- |
+| Core | `tribuo-anomaly-core` | `org.tribuo.anomaly` | Contains the Output subclass for use with anomaly detection data. |
+| LibSVM | `tribuo-anomaly-libsvm` | `org.tribuo.anomaly.libsvm` | A wrapper around the Java version of LibSVM, which provides a one-class SVM. |
 
 ## Common
 
-The common package shares code across multiple prediction types. It provides
+The common module shares code across multiple prediction types. It provides
 the base support for LibLinear, LibSVM, nearest neighbour, tree, and XGBoost
-models.
+models. The nearest neighbour submodule is standalone, however the rest of the
+submodules require the prediction specific implementation modules.
 
 ## Third party models
 
@@ -192,7 +166,8 @@ TensorFlow and XGBoost models.
   by several deep learning systems as an export format, and there are
 converters from systems like scikit-learn to the ONNX format.  Tribuo provides
 a wrapper around Microsoft's [ONNX Runtime](https://onnxruntime.ai) that can
-score ONNX models on both CPU and GPU platforms.
+score ONNX models on both CPU and GPU platforms. ONNX support is found in the
+`tribuo-onnx` artifact in the `org.tribuo.interop.onnx` package.
 - TensorFlow - Tribuo supports loading [TensorFlow](https://tensorflow.org)'s
   frozen classification and regression models and scoring them.
 - XGBoost - Tribuo supports loading [XGBoost](https://xgboost.ai)
@@ -200,7 +175,8 @@ score ONNX models on both CPU and GPU platforms.
 
 ## TensorFlow
 
-Tribuo includes experimental support for TensorFlow 1.14. Due to a lack of
+Tribuo includes experimental support for TensorFlow 1.14 in the `tribuo-tensorflow`
+artifact in the `org.tribuo.interop.tensorflow` package. Due to a lack of
 flexibility in TensorFlow 1.14's Java API, models still need to be specified in
 python, and have their graph definitions written out as a protobuf. The Java
 code accepts this protobuf and trains a model that can be used purely from
@@ -218,4 +194,3 @@ python model generation file and protobuf for an MNIST model. In addition to
 the libraries gathered by the Tribuo TensorFlow jar, it is necessary to include
 libtensorflow\_jni.so and libtensorflow\_framework.so in your
 java.library.path.
-
