@@ -19,3 +19,5 @@ The [tribuo.org](https://tribuo.org) website, the Tribuo logo, and other associa
 
 1. Simon Jeal ([simonjeal.info](simonjeal.info), [LinkedIn](https://www.linkedin.com/in/simon-jeal-6b692414/))
 1. Alex Chan-Perryman ([achanperryman.com](achanperryman.com), [LinkedIn](https://www.linkedin.com/in/alex-chan-perryman-6b5ab93b/))
+
+The website was implemented from the design by Jeffrey Alexander ([website repo](https://github.com/oracle/tribuo-site)).
