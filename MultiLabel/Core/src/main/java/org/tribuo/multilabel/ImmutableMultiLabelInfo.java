@@ -20,7 +20,10 @@ import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 
+import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -35,9 +38,11 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
 
     private static final long serialVersionUID = 1L;
 
-    private Map<Integer,String> idLabelMap;
+    private final Map<Integer,String> idLabelMap;
 
-    private Map<String,Integer> labelIDMap;
+    private final Map<String,Integer> labelIDMap;
+
+    private transient Set<MultiLabel> domain;
 
     private ImmutableMultiLabelInfo(ImmutableMultiLabelInfo info) {
         super(info);
@@ -45,6 +50,8 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
         idLabelMap.putAll(info.idLabelMap);
         labelIDMap = new HashMap<>();
         labelIDMap.putAll(info.labelIDMap);
+
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 
     ImmutableMultiLabelInfo(MultiLabelInfo info) {
@@ -57,6 +64,8 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
             labelIDMap.put(e.getKey(),counter);
             counter++;
         }
+
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 
     ImmutableMultiLabelInfo(MutableMultiLabelInfo info, Map<MultiLabel, Integer> mapping) {
@@ -78,6 +87,13 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
                 throw new IllegalArgumentException("Mapping must contain a single label per id, but contains " + names + " -> " + e.getValue());
             }
         }
+
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
+    }
+
+    @Override
+    public Set<MultiLabel> getDomain() {
+        return domain;
     }
 
     @Override
@@ -101,6 +117,11 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
         return totalCount;
     }
 
+    /**
+     * Gets the count of the label occurrence for the specified id number, or 0 if it's unknown.
+     * @param id The label id.
+     * @return The label count.
+     */
     public long getLabelCount(int id) {
         String label = idLabelMap.get(id);
         if (label != null) {
@@ -157,5 +178,10 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
             Map.Entry<Integer,String> e = itr.next();
             return new Pair<>(e.getKey(),new MultiLabel(e.getValue()));
         }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 }
