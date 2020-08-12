@@ -6,6 +6,6 @@ TRAINDATA=$3
 TESTDATA=$4
 
 MAINCLASS="org.tribuo.classification.xgboost.TrainTest"
-CLASSPATH=target/tribuo-classification-xgboost-4.0.0-SNAPSHOT-jar-with-dependencies.jar
+CLASSPATH=target/tribuo-classification-xgboost-4.0.0-jar-with-dependencies.jar
 
 java -cp $CLASSPATH $MAINCLASS -s TEXT --xgb-ensemble-size ${NUM_TREES} --xgb-num-threads 1 -f ${MODEL_NAME}.model -u $TRAINDATA -v $TESTDATA
