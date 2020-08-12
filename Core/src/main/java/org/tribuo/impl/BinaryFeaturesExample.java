@@ -53,7 +53,7 @@ import com.oracle.labs.mlrg.olcut.util.SortUtil;
  * <li>{@link #transform(TransformerMap)}</li>
  * </ul>
  *
- * @param <T>
+ * @param <T> The output type.
  */
 public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
     private static final long serialVersionUID = 1L;
@@ -195,9 +195,8 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
     }
 
     /**
-     * Adds a single feature.
+     * Adds a single feature with a value of 1.
      * @param name The name of the feature.
-     * @param value The value of the feature.
      */
     public void add(String name) {
         if (size >= featureNames.length) {
