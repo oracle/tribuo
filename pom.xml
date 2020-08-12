@@ -47,13 +47,13 @@
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.30</liblinear.version>
         <libsvm.version>3.24</libsvm.version>
-        <onnxruntime.version>1.3.1</onnxruntime.version>
+        <onnxruntime.version>1.4.0</onnxruntime.version>
         <tensorflow.version>1.14.0</tensorflow.version>
         <xgboost.version>1.0.0</xgboost.version>
 
         <!-- 3rd party other dependencies -->
-        <junit.version>5.4.2</junit.version>
-        <opencsv.version>5.1</opencsv.version>
+        <junit.version>5.6.2</junit.version>
+        <opencsv.version>5.2</opencsv.version>
         <commonsmath.version>3.6.1</commonsmath.version>
     </properties>
 
@@ -108,7 +108,7 @@
     <scm>
       <connection>scm:git:git://github.com/oracle/tribuo.git</connection>
       <developerConnection>scm:git:ssh://github.com:oracle/tribuo.git</developerConnection>
-      <url>http://github.com/oracle/tribuo/tree/master</url>
+      <url>http://github.com/oracle/tribuo/tree/main</url>
     </scm>
 
     <dependencyManagement>
