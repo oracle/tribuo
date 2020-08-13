@@ -24,9 +24,11 @@ import org.tribuo.util.Merger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,7 +101,42 @@ public class ExampleTest {
         example.densify(Arrays.asList(featureNames));
         expected = new ListExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0});
         checkDenseExample(expected,example);
+    }
 
+    @Test
+    public void testArrayExampleRemove() {
+        String[] names = new String[]{"A","B","C","D","E"};
+        double[] values = new double[]{1.0,1.0,1.0,1.0,1.0};
+        MockOutput output = new MockOutput("UNK");
+
+        List<Feature> featureList;
+        Example<MockOutput> example;
+
+        example = new ArrayExample<>(output,names,values);
+        example.removeFeatures(Collections.singletonList(new Feature("E",1.0)));
+        assertEquals(4,example.size());
+
+        example = new ArrayExample<>(output,names,values);
+        featureList = new ArrayList<>();
+        featureList.add(new Feature("D",1.0));
+        featureList.add(new Feature("C",1.0));
+        featureList.add(new Feature("alpha",1.0));
+        example.removeFeatures(featureList);
+        assertEquals(3,example.size());
+        assertEquals("A",example.lookup("A").name);
+        assertEquals("B",example.lookup("B").name);
+        assertEquals("E",example.lookup("E").name);
+
+        example = new ArrayExample<>(output,names,values);
+        featureList = new ArrayList<>();
+        featureList.add(new Feature("D",1.0));
+        featureList.add(new Feature("D",1.0));
+        featureList.add(new Feature("B",1.0));
+        featureList.add(new Feature("E",1.0));
+        example.removeFeatures(featureList);
+        assertEquals(2,example.size());
+        assertEquals("A",example.lookup("A").name);
+        assertEquals("C",example.lookup("C").name);
     }
 
     public static void checkDenseExample(Example<MockOutput> expected, Example<MockOutput> actual) {
