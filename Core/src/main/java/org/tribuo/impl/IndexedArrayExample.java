@@ -209,6 +209,8 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
         for (Feature f : featureList) {
             Integer i = map.get(f.getName());
             if (i != null) {
+                // If we've found this feature ID remove it from the map to prevent double counting
+                map.remove(f.getName());
                 removeQueue.add(i);
             }
         }
