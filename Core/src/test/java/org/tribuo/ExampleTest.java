@@ -137,7 +137,20 @@ public class ExampleTest {
         assertEquals(2,example.size());
         assertEquals("A",example.lookup("A").name);
         assertEquals("C",example.lookup("C").name);
+
+        example = new ArrayExample<>(output,new String[]{"A","B","C","D","E","A","C","E"},new double[]{1,1,1,1,1,1,1,1});
+        featureList = new ArrayList<>();
+        featureList.add(new Feature("D",1.0));
+        featureList.add(new Feature("D",1.0));
+        featureList.add(new Feature("B",1.0));
+        featureList.add(new Feature("E",1.0));
+        example.removeFeatures(featureList);
+        assertEquals(4,example.size());
+        assertEquals("A",example.lookup("A").name);
+        assertEquals("C",example.lookup("C").name);
     }
+
+
 
     public static void checkDenseExample(Example<MockOutput> expected, Example<MockOutput> actual) {
         assertEquals(expected.size(),actual.size());

@@ -16,6 +16,7 @@
 
 package org.tribuo.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -312,18 +313,19 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
 
     @Override
     public void removeFeatures(List<Feature> featureList) {
-        Map<String,Integer> map = new HashMap<>();
+        Map<String,List<Integer>> map = new HashMap<>();
         for (int i = 0; i < featureNames.length; i++) {
-            map.put(featureNames[i],i);
+            List<Integer> list = map.computeIfAbsent(featureNames[i],(k) -> new ArrayList<>());
+            list.add(i);
         }
 
         PriorityQueue<Integer> removeQueue = new PriorityQueue<>();
         for (Feature f : featureList) {
-            Integer i = map.get(f.getName());
+            List<Integer> i = map.get(f.getName());
             if (i != null) {
-                // If we've found this feature ID remove it from the map to prevent double counting
+                // If we've found this feature remove it from the map to prevent double counting
                 map.remove(f.getName());
-                removeQueue.add(i);
+                removeQueue.addAll(i);
             }
         }
 
