@@ -150,8 +150,6 @@ public class ExampleTest {
         assertEquals("C",example.lookup("C").name);
     }
 
-
-
     public static void checkDenseExample(Example<MockOutput> expected, Example<MockOutput> actual) {
         assertEquals(expected.size(),actual.size());
         Iterator<Feature> expectedItr = expected.iterator();
