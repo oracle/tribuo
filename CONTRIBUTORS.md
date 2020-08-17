@@ -11,13 +11,14 @@ As we removed the git history as part of the open source release, here is the li
 1. Jeffrey Alexander ([@jhalexand](https://github.com/jhalexand), [jeffrey.alexander@oracle.com](mailto:jeffrey.alexander@oracle.com))
 1. Katherine Younglove ([@katieyounglove](https://github.com/katieyounglove), [katherine.younglove@oracle.com](mailto:katherine.younglove@oracle.com))
 1. Michael Wick ([@michaelwick](https://github.com/michaelwick), [michael.wick@oracle.com](mailto:michael.wick@oracle.com))
+1. Samantha Campo ([@samanthacampo](https://github.com/samanthacampo), [samantha.campo@oracle.com](mailto:samantha.campo@oracle.com))
 1. Forough Poursabzi-Sangdeh ([@foroughp](https://github.com/foroughp), forough.poursabzi@gmail.com, Forough was an intern in MLRG during the summer of 2016).
 
 # Website and Graphic Design
 
 The [tribuo.org](https://tribuo.org) website, the Tribuo logo, and other associated graphics were designed by:
 
-1. Simon Jeal ([simonjeal.info](simonjeal.info), [LinkedIn](https://www.linkedin.com/in/simon-jeal-6b692414/))
-1. Alex Chan-Perryman ([achanperryman.com](achanperryman.com), [LinkedIn](https://www.linkedin.com/in/alex-chan-perryman-6b5ab93b/))
+1. Simon Jeal ([website](https://simonjeal.info), [LinkedIn](https://www.linkedin.com/in/simon-jeal-6b692414/))
+1. Alex Chan-Perryman ([website](), [LinkedIn](https://www.linkedin.com/in/alex-chan-perryman-6b5ab93b/))
 
 The website was implemented from the design by Jeffrey Alexander ([website repo](https://github.com/oracle/tribuo-site)).
