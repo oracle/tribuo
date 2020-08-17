@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.tribuo</groupId>
         <artifactId>tribuo-clustering</artifactId>
-        <version>4.0.0</version>
+        <version>4.1.0-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
     <name>Clustering-Core</name>
