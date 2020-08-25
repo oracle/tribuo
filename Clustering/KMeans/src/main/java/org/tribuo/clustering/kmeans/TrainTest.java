@@ -28,6 +28,7 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.clustering.evaluation.ClusteringEvaluation;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
+import org.tribuo.clustering.kmeans.KMeansTrainer.Initialisation;
 import org.tribuo.data.DataOptions;
 
 import java.io.IOException;
@@ -54,6 +55,9 @@ public class TrainTest {
         public int iterations = 10;
         @Option(charName='d',longName="distance",usage="Distance function to use in the e step. Defaults to EUCLIDEAN.")
         public Distance distance = Distance.EUCLIDEAN;
+        @Option(charName='i',longName="initialisation",usage="Type of initialisation " +
+                "to use for centroids. Defaults to UNIFORM.")
+        public Initialisation initialisation = Initialisation.UNIFORM;
         @Option(charName='t',longName="num-threads",usage="Number of threads to use (default 4, range (1, num hw threads)).")
         public int numThreads = 4;
     }
@@ -87,7 +91,8 @@ public class TrainTest {
         Dataset<ClusterID> train = data.getA();
 
         //public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, int seed)
-        KMeansTrainer trainer = new KMeansTrainer(o.centroids,o.iterations,o.distance,o.numThreads,o.general.seed);
+        KMeansTrainer trainer = new KMeansTrainer(o.centroids,o.iterations,
+                o.distance,o.initialisation,o.numThreads,o.general.seed);
         Model<ClusterID> model = trainer.train(train);
         logger.info("Finished training model");
         ClusteringEvaluation evaluation = factory.getEvaluator().evaluate(model,train);

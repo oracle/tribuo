@@ -38,7 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestKMeans {
 
-    private static final KMeansTrainer t = new KMeansTrainer(4,10,Distance.EUCLIDEAN,1,1);
+    private static final KMeansTrainer t = new KMeansTrainer(4,10,
+            Distance.EUCLIDEAN, KMeansTrainer.Initialisation.UNIFORM, 1,1);
 
     @BeforeAll
     public static void setup() {
@@ -52,7 +53,8 @@ public class TestKMeans {
         Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
         ClusteringEvaluator eval = new ClusteringEvaluator();
 
-        KMeansTrainer trainer = new KMeansTrainer(5,10,Distance.EUCLIDEAN,1,1);
+        KMeansTrainer trainer = new KMeansTrainer(5,10,Distance.EUCLIDEAN,
+                KMeansTrainer.Initialisation.UNIFORM,1,1);
 
         KMeansModel model = trainer.train(data);
 

@@ -27,20 +27,15 @@ import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -89,6 +84,21 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         L1
     }
 
+    /**
+     * Possible initialization functions.
+     */
+    public enum Initialisation {
+        /**
+         * Initialize centroids by choosing uniformly at random from the data
+         * points.
+         */
+        UNIFORM,
+        /**
+         * KMeans++ initialisation.
+         */
+        PLUSPLUS
+    }
+
     @Config(mandatory = true,description="Number of centroids (i.e. the \"k\" in k-means).")
     private int centroids;
 
@@ -97,6 +107,9 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     @Config(mandatory = true,description="The distance function to use.")
     private Distance distanceType;
+
+    @Config(mandatory = true,description="The initialisation to use.")
+    private Initialisation initialisationType;
 
     @Config(description="The number of threads to use for training.")
     private int numThreads = 1;
@@ -121,10 +134,12 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
-    public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, long seed) {
+    public KMeansTrainer(int centroids, int iterations, Distance distanceType
+            , Initialisation initialisationType, int numThreads, long seed) {
         this.centroids = centroids;
         this.iterations = iterations;
         this.distanceType = distanceType;
+        this.initialisationType = initialisationType;
         this.numThreads = numThreads;
         this.seed = seed;
         postConfig();
@@ -146,7 +161,6 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             trainInvocationCounter++;
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
-        DenseVector[] centroidVectors = initialiseCentroids(centroids,examples,featureMap,localRNG);
 
         ForkJoinPool fjp = new ForkJoinPool(numThreads);
 
@@ -159,6 +173,19 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             data[n] = SparseVector.createSparseVector(example,featureMap,false);
             oldCentre[n] = -1;
             n++;
+        }
+
+        DenseVector[] centroidVectors;
+        switch (initialisationType) {
+            case UNIFORM:
+                centroidVectors = initialiseCentroids(centroids,examples,featureMap,localRNG);
+                break;
+            case PLUSPLUS:
+                centroidVectors = initialisePlusPlusCentroids(centroids,
+                        data, featureMap,localRNG);
+                break;
+            default:
+                throw new IllegalStateException("Unknown initialisation" + initialisationType);
         }
 
         Map<Integer,List<Integer>> clusterAssignments = new HashMap<>();
@@ -193,20 +220,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                     SparseVector vector = e.vector;
                     for (int j = 0; j < centroids; j++) {
                         DenseVector cluster = centroidVectors[j];
-                        double distance;
-                        switch (distanceType) {
-                            case EUCLIDEAN:
-                                distance = cluster.euclideanDistance(vector);
-                                break;
-                            case COSINE:
-                                distance = cluster.cosineDistance(vector);
-                                break;
-                            case L1:
-                                distance = cluster.l1Distance(vector);
-                                break;
-                            default:
-                                throw new IllegalStateException("Unknown distance " + distanceType);
-                        }
+                        double distance = getDistance(cluster, vector);
                         if (distance < minDist) {
                             minDist = distance;
                             clusterID = j;
@@ -261,8 +275,6 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     /**
      * Initialisation method called at the start of each train call.
      *
-     * Used to allow overriding for kmeans++, kmedoids etc.
-     *
      * @param centroids The number of centroids to create.
      * @param examples The dataset to use.
      * @param featureMap The feature map to use for centroid sampling.
@@ -282,6 +294,84 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             centroidVectors[i] = DenseVector.createDenseVector(newCentroid);
         }
         return centroidVectors;
+    }
+
+    protected DenseVector[] initialisePlusPlusCentroids(int centroids,
+                                                        SparseVector[] data,
+                                                        ImmutableFeatureMap featureMap,
+                                                        SplittableRandom rng) {
+
+        DenseVector[] centroidVectors = new DenseVector[centroids];
+        double[] newCentroid = getRandomCentroidFromData(data);
+        centroidVectors[0] = DenseVector.createDenseVector(newCentroid);
+
+        // Set each currently uninitialised centroid
+        for (int i = 1; i < centroids; i++) {
+            double[] distancePerVec = new double[data.length];
+
+            // go through every vector
+            for (int j = 0; j < data.length; j++) {
+                SparseVector curVec = data[j];
+                distancePerVec[j] = minDistancePerVector(curVec, i, centroidVectors);
+            }
+            int idxOfMax = argmax(distancePerVec);
+            newCentroid = data[idxOfMax].toDenseArray();
+            centroidVectors[i] = DenseVector.createDenseVector(newCentroid);
+        }
+        return centroidVectors;
+    }
+
+    protected double[] getRandomCentroidFromData(SparseVector[] data) {
+        Random rand = new Random();
+        int rand_idx = rand.nextInt(data.length);
+        double[] newCentroid = data[rand_idx].toDenseArray();
+        return newCentroid;
+    }
+
+    protected int argmax(double[] distancePerVec) {
+        double maxDist = Double.NEGATIVE_INFINITY;
+        int idxOfMax = -1;
+
+        double curDist;
+        for (int i = 0; i < distancePerVec.length; i++) {
+            curDist = distancePerVec[i];
+            if (curDist > maxDist) {
+               maxDist = curDist;
+               idxOfMax = i;
+            }
+        }
+        return idxOfMax;
+    }
+    protected double minDistancePerVector(SparseVector curVec,
+                                        int numInitializedCentroids,
+                                          DenseVector[] centroidVectors) {
+        double minDistance = Double.POSITIVE_INFINITY;
+        double tempDistance;
+
+        // iterate through all previously initialized centroid
+        for (int i = 0; i < numInitializedCentroids; i++) {
+            DenseVector curCentroid = centroidVectors[i];
+            tempDistance = getDistance(curCentroid, curVec);
+            minDistance = Math.max(minDistance, tempDistance);
+        }
+        return minDistance;
+    }
+    protected double getDistance(DenseVector cluster, SGDVector vector) {
+        double distance;
+        switch (distanceType) {
+            case EUCLIDEAN:
+                distance = cluster.euclideanDistance(vector);
+                break;
+            case COSINE:
+                distance = cluster.cosineDistance(vector);
+                break;
+            case L1:
+                distance = cluster.l1Distance(vector);
+                break;
+            default:
+                throw new IllegalStateException("Unknown distance " + distanceType);
+        }
+        return distance;
     }
 
     protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, Map<Integer,List<Integer>> clusterAssignments, SparseVector[] data, double[] weights) {
