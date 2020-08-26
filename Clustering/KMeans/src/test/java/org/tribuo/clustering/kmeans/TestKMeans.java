@@ -41,6 +41,9 @@ public class TestKMeans {
     private static final KMeansTrainer t = new KMeansTrainer(4,10,
             Distance.EUCLIDEAN, KMeansTrainer.Initialisation.UNIFORM, 1,1);
 
+    private static final KMeansTrainer plusPlus = new KMeansTrainer(4,10,
+            Distance.EUCLIDEAN, KMeansTrainer.Initialisation.PLUSPLUS, 1,1);
+
     @BeforeAll
     public static void setup() {
         Logger logger = Logger.getLogger(KMeansTrainer.class.getName());
@@ -53,10 +56,10 @@ public class TestKMeans {
         Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
         ClusteringEvaluator eval = new ClusteringEvaluator();
 
-        KMeansTrainer trainer = new KMeansTrainer(5,10,Distance.EUCLIDEAN,
-                KMeansTrainer.Initialisation.UNIFORM,1,1);
+//        KMeansTrainer trainer = new KMeansTrainer(5,10,Distance.EUCLIDEAN,
+//                KMeansTrainer.Initialisation.UNIFORM,1,1);
 
-        KMeansModel model = trainer.train(data);
+        KMeansModel model = plusPlus.train(data);
 
         ClusteringEvaluation trainEvaluation = eval.evaluate(model,data);
         assertFalse(Double.isNaN(trainEvaluation.adjustedMI()));
@@ -72,6 +75,14 @@ public class TestKMeans {
         ClusteringEvaluator e = new ClusteringEvaluator();
         e.evaluate(m,p.getB());
     }
+
+    public void testKMeansPlusPlus(Pair<Dataset<ClusterID>,
+            Dataset<ClusterID>> p) {
+        Model<ClusterID> m = plusPlus.train(p.getA());
+        ClusteringEvaluator e = new ClusteringEvaluator();
+        e.evaluate(m,p.getB());
+    }
+
 
     @Test
     public void testDenseData() {

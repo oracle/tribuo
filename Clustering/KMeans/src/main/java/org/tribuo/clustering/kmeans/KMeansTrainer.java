@@ -32,7 +32,9 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
+import org.tribuo.util.Util;
 
+import javax.xml.stream.XMLInputFactory;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.Map.Entry;
@@ -182,7 +184,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                 break;
             case PLUSPLUS:
                 centroidVectors = initialisePlusPlusCentroids(centroids,
-                        data, featureMap,localRNG);
+                        data,featureMap,localRNG);
                 break;
             default:
                 throw new IllegalStateException("Unknown initialisation" + initialisationType);
@@ -300,62 +302,62 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                                                         SparseVector[] data,
                                                         ImmutableFeatureMap featureMap,
                                                         SplittableRandom rng) {
+        int numFeatures = featureMap.size();
+        double[] minDistancePerVector = new double[data.length];
+        Arrays.fill(minDistancePerVector, Double.POSITIVE_INFINITY);
 
+        double[] squared_min_distance = new double[data.length];
+        double[] probabilities = new double[data.length];
         DenseVector[] centroidVectors = new DenseVector[centroids];
-        double[] newCentroid = getRandomCentroidFromData(data);
-        centroidVectors[0] = DenseVector.createDenseVector(newCentroid);
 
-        // Set each currently uninitialised centroid
+        // set first centroid randomly from the data
+        centroidVectors[0] = getRandomCentroidFromData(data, numFeatures);
+
+        // Set each uninitialised centroid remaining
         for (int i = 1; i < centroids; i++) {
-            double[] distancePerVec = new double[data.length];
+            DenseVector prevCentroid = centroidVectors[i-1];
 
-            // go through every vector
+            // go through every vector and see if the min distance to the
+            // current vector is smaller than previous min distance for vec
+            double tempDistance;
             for (int j = 0; j < data.length; j++) {
                 SparseVector curVec = data[j];
-                distancePerVec[j] = minDistancePerVector(curVec, i, centroidVectors);
+                tempDistance = getDistance(prevCentroid, curVec);
+                minDistancePerVector[j] = Math.min(minDistancePerVector[j], tempDistance);
             }
-            int idxOfMax = argmax(distancePerVec);
-            newCentroid = data[idxOfMax].toDenseArray();
-            centroidVectors[i] = DenseVector.createDenseVector(newCentroid);
+
+            // square the distances and get total for normalization
+            double total = 0.0;
+            for (int j = 0;  j < data.length; j++) {
+                squared_min_distance[j] = Math.pow(minDistancePerVector[j], 2);
+                total += squared_min_distance[j];
+            }
+
+            // compute probabilites as p[i] = D(xi)^2 / sum(D(x)^2)
+            for (int j = 0; j < probabilities.length; j++) {
+                probabilities[j] = squared_min_distance[j] / total;
+            }
+
+            // sample from probabilites to get the new centroid from data
+            double[] cdf = Util.generateCDF(probabilities);
+            int idx = Util.sampleFromCDF(cdf, rng);
+            centroidVectors[i] = sparseToDense(data[idx], numFeatures);
         }
         return centroidVectors;
     }
 
-    protected double[] getRandomCentroidFromData(SparseVector[] data) {
-        Random rand = new Random();
-        int rand_idx = rand.nextInt(data.length);
-        double[] newCentroid = data[rand_idx].toDenseArray();
-        return newCentroid;
+    protected DenseVector getRandomCentroidFromData(SparseVector[] data,
+                                                 int numFeatures) {
+        int rand_idx = rng.nextInt(data.length);
+        return sparseToDense(data[rand_idx], numFeatures);
     }
 
-    protected int argmax(double[] distancePerVec) {
-        double maxDist = Double.NEGATIVE_INFINITY;
-        int idxOfMax = -1;
-
-        double curDist;
-        for (int i = 0; i < distancePerVec.length; i++) {
-            curDist = distancePerVec[i];
-            if (curDist > maxDist) {
-               maxDist = curDist;
-               idxOfMax = i;
-            }
-        }
-        return idxOfMax;
+    protected DenseVector sparseToDense(SparseVector vec, int numFeatures) {
+        DenseVector dense = new DenseVector(numFeatures);
+        dense.intersectAndAddInPlace(vec);
+        return dense;
     }
-    protected double minDistancePerVector(SparseVector curVec,
-                                        int numInitializedCentroids,
-                                          DenseVector[] centroidVectors) {
-        double minDistance = Double.POSITIVE_INFINITY;
-        double tempDistance;
 
-        // iterate through all previously initialized centroid
-        for (int i = 0; i < numInitializedCentroids; i++) {
-            DenseVector curCentroid = centroidVectors[i];
-            tempDistance = getDistance(curCentroid, curVec);
-            minDistance = Math.max(minDistance, tempDistance);
-        }
-        return minDistance;
-    }
     protected double getDistance(DenseVector cluster, SGDVector vector) {
         double distance;
         switch (distanceType) {
