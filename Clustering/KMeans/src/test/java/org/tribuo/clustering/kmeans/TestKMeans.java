@@ -52,22 +52,42 @@ public class TestKMeans {
 
     @Test
     public void testEvaluation() {
-        Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(500, 1L);
-        Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
-        ClusteringEvaluator eval = new ClusteringEvaluator();
+        Pair<Dataset<ClusterID>, Dataset<ClusterID>> datasets =
+                getEvaluationData();
 
 //        KMeansTrainer trainer = new KMeansTrainer(5,10,Distance.EUCLIDEAN,
 //                KMeansTrainer.Initialisation.UNIFORM,1,1);
 
-        KMeansModel model = plusPlus.train(data);
+        KMeansModel model = t.train(datasets.getA());
+        evaluationHelper(model, datasets);
+    }
 
-        ClusteringEvaluation trainEvaluation = eval.evaluate(model,data);
+    @Test
+    public void testPlusPlusEvaluation() {
+        Pair<Dataset<ClusterID>, Dataset<ClusterID>> datasets =
+                getEvaluationData();
+
+        KMeansModel model = plusPlus.train(datasets.getA());
+        evaluationHelper(model, datasets);
+    }
+
+    public void evaluationHelper(KMeansModel model, Pair<Dataset<ClusterID>,
+            Dataset<ClusterID>> datasets) {
+        ClusteringEvaluator eval = new ClusteringEvaluator();
+        ClusteringEvaluation trainEvaluation = eval.evaluate(model,datasets.getA());
         assertFalse(Double.isNaN(trainEvaluation.adjustedMI()));
         assertFalse(Double.isNaN(trainEvaluation.normalizedMI()));
 
-        ClusteringEvaluation testEvaluation = eval.evaluate(model,test);
+        ClusteringEvaluation testEvaluation = eval.evaluate(model,
+                datasets.getB());
         assertFalse(Double.isNaN(testEvaluation.adjustedMI()));
         assertFalse(Double.isNaN(testEvaluation.normalizedMI()));
+    }
+
+    public Pair<Dataset<ClusterID>, Dataset<ClusterID>> getEvaluationData() {
+        Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(500, 1L);
+        Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
+        return new Pair<>(data, test);
     }
 
     public void testKMeans(Pair<Dataset<ClusterID>,Dataset<ClusterID>> p) {
