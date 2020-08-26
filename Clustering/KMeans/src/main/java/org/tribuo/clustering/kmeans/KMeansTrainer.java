@@ -251,7 +251,6 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             }
         }
 
-
         Map<Integer,MutableLong> counts = new HashMap<>();
         for (Entry<Integer,List<Integer>> e : clusterAssignments.entrySet()) {
             counts.put(e.getKey(),new MutableLong(e.getValue().size()));
@@ -306,7 +305,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         double[] minDistancePerVector = new double[data.length];
         Arrays.fill(minDistancePerVector, Double.POSITIVE_INFINITY);
 
-        double[] squared_min_distance = new double[data.length];
+        double[] squaredMinDistance = new double[data.length];
         double[] probabilities = new double[data.length];
         DenseVector[] centroidVectors = new DenseVector[centroids];
 
@@ -329,13 +328,13 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             // square the distances and get total for normalization
             double total = 0.0;
             for (int j = 0;  j < data.length; j++) {
-                squared_min_distance[j] = Math.pow(minDistancePerVector[j], 2);
-                total += squared_min_distance[j];
+                squaredMinDistance[j] = Math.pow(minDistancePerVector[j], 2);
+                total += squaredMinDistance[j];
             }
 
             // compute probabilites as p[i] = D(xi)^2 / sum(D(x)^2)
             for (int j = 0; j < probabilities.length; j++) {
-                probabilities[j] = squared_min_distance[j] / total;
+                probabilities[j] = squaredMinDistance[j] / total;
             }
 
             // sample from probabilites to get the new centroid from data

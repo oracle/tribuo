@@ -52,86 +52,100 @@ public class TestKMeans {
 
     @Test
     public void testEvaluation() {
-        Pair<Dataset<ClusterID>, Dataset<ClusterID>> datasets =
-                getEvaluationData();
-
-//        KMeansTrainer trainer = new KMeansTrainer(5,10,Distance.EUCLIDEAN,
-//                KMeansTrainer.Initialisation.UNIFORM,1,1);
-
-        KMeansModel model = t.train(datasets.getA());
-        evaluationHelper(model, datasets);
+        runEvaluation(t);
     }
 
     @Test
     public void testPlusPlusEvaluation() {
-        Pair<Dataset<ClusterID>, Dataset<ClusterID>> datasets =
-                getEvaluationData();
-
-        KMeansModel model = plusPlus.train(datasets.getA());
-        evaluationHelper(model, datasets);
+        runEvaluation(plusPlus);
     }
 
-    public void evaluationHelper(KMeansModel model, Pair<Dataset<ClusterID>,
-            Dataset<ClusterID>> datasets) {
+    public void runEvaluation(KMeansTrainer trainer) {
+        Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(500, 1L);
+        Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
         ClusteringEvaluator eval = new ClusteringEvaluator();
-        ClusteringEvaluation trainEvaluation = eval.evaluate(model,datasets.getA());
+
+        KMeansModel model = trainer.train(data);
+
+        ClusteringEvaluation trainEvaluation = eval.evaluate(model,data);
         assertFalse(Double.isNaN(trainEvaluation.adjustedMI()));
         assertFalse(Double.isNaN(trainEvaluation.normalizedMI()));
 
-        ClusteringEvaluation testEvaluation = eval.evaluate(model,
-                datasets.getB());
+        ClusteringEvaluation testEvaluation = eval.evaluate(model,test);
         assertFalse(Double.isNaN(testEvaluation.adjustedMI()));
-        assertFalse(Double.isNaN(testEvaluation.normalizedMI()));
-    }
+        assertFalse(Double.isNaN(testEvaluation.normalizedMI()));    }
 
-    public Pair<Dataset<ClusterID>, Dataset<ClusterID>> getEvaluationData() {
-        Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(500, 1L);
-        Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
-        return new Pair<>(data, test);
-    }
-
-    public void testKMeans(Pair<Dataset<ClusterID>,Dataset<ClusterID>> p) {
-        Model<ClusterID> m = t.train(p.getA());
+    public void testTrainer(Pair<Dataset<ClusterID>,
+            Dataset<ClusterID>> p, KMeansTrainer trainer) {
+        Model<ClusterID> m = trainer.train(p.getA());
         ClusteringEvaluator e = new ClusteringEvaluator();
         e.evaluate(m,p.getB());
     }
 
-    public void testKMeansPlusPlus(Pair<Dataset<ClusterID>,
-            Dataset<ClusterID>> p) {
-        Model<ClusterID> m = plusPlus.train(p.getA());
-        ClusteringEvaluator e = new ClusteringEvaluator();
-        e.evaluate(m,p.getB());
+    public void runDenseData(KMeansTrainer trainer) {
+        Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
+        testTrainer(p, trainer);
     }
-
 
     @Test
     public void testDenseData() {
-        Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
-        testKMeans(p);
+        runDenseData(t);
+    }
+
+    @Test
+    public void testPlusPlusDenseData() {
+        runDenseData(plusPlus);
+    }
+
+    public void runSparseData(KMeansTrainer trainer) {
+        Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.sparseTrainTest();
+        testTrainer(p, trainer);
     }
 
     @Test
     public void testSparseData() {
-        Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.sparseTrainTest();
-        testKMeans(p);
+        runSparseData(t);
     }
 
     @Test
-    public void testInvalidExample() {
+    public void testPlusPlusSparseData() {
+        runSparseData(plusPlus);
+    }
+
+    public void runInvalidExample(KMeansTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<ClusterID>, Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
-            Model<ClusterID> m = t.train(p.getA());
+            Model<ClusterID> m = trainer.train(p.getA());
             m.predict(ClusteringDataGenerator.invalidSparseExample());
         });
     }
 
     @Test
-    public void testEmptyExample() {
+    public void testInvalidExample() {
+        runInvalidExample(t);
+    }
+
+    @Test
+    public void testPlusPlusInvalidExample() {
+        runInvalidExample(plusPlus);
+    }
+
+
+    public void runEmptyExample(KMeansTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<ClusterID>, Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
-            Model<ClusterID> m = t.train(p.getA());
+            Model<ClusterID> m = trainer.train(p.getA());
             m.predict(ClusteringDataGenerator.emptyExample());
         });
     }
 
+    @Test
+    public void testEmptyExample() {
+        runEmptyExample(t);
+    }
+
+    @Test
+    public void testPlusPlusEmptyExample() {
+        runEmptyExample(plusPlus);
+    }
 }
