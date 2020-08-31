@@ -2,20 +2,22 @@
   "config" : {
     "components" : [ {
       "name" : "mnist-test",
-      "type" : "org.tribuo.datasource.LibSVMDataSource",
+      "type" : "org.tribuo.datasource.IDXDataSource",
       "export" : "false",
       "import" : "false",
       "properties" : {
-        "path" : "mnist.t",
+        "featuresPath" : "t10k-images-idx3-ubyte.gz",
+        "outputPath" : "t10k-labels-idx1-ubyte.gz",
         "outputFactory" : "label-factory"
       }
     }, {
       "name" : "mnist-train",
-      "type" : "org.tribuo.datasource.LibSVMDataSource",
+      "type" : "org.tribuo.datasource.IDXDataSource",
       "export" : "false",
       "import" : "false",
       "properties" : {
-        "path" : "mnist",
+        "featuresPath" : "train-images-idx3-ubyte.gz",
+        "outputPath" : "train-labels-idx1-ubyte.gz",
         "outputFactory" : "label-factory"
       }
     }, {

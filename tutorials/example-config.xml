@@ -40,13 +40,15 @@
 
     <component name="label-factory" type="org.tribuo.classification.LabelFactory"/>
 
-    <component name="mnist-train" type="org.tribuo.datasource.LibSVMDataSource">
-        <property name="path" value="mnist"/>
+    <component name="mnist-train" type="org.tribuo.datasource.IDXDataSource">
+        <property name="featuresPath" value="train-images-idx3-ubyte.gz"/>
+        <property name="outputPath" value="train-labels-idx1-ubyte.gz"/>
         <property name="outputFactory" value="label-factory"/>
     </component>
 
     <component name="mnist-test" type="org.tribuo.datasource.LibSVMDataSource">
-        <property name="path" value="mnist.t"/>
+        <property name="featuresPath" value="t10k-images-idx3-ubyte.gz"/>
+        <property name="outputPath" value="t10k-labels-idx1-ubyte.gz"/>
         <property name="outputFactory" value="label-factory"/>
     </component>
 
