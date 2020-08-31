@@ -58,6 +58,8 @@ import java.util.zip.GZIPOutputStream;
  * A DataSource which can read IDX formatted data (i.e. MNIST).
  * <p>
  * Transparently reads GZipped files.
+ * <p>
+ * The file format is defined <a href="http://yann.lecun.com/exdb/mnist/">here</a>.
  */
 public final class IDXDataSource<T extends Output<T>> implements ConfigurableDataSource<T> {
     private static final Logger logger = Logger.getLogger(IDXDataSource.class.getName());
