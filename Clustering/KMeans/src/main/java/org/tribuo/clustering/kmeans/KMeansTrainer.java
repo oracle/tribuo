@@ -110,7 +110,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     @Config(mandatory = true,description="The distance function to use.")
     private Distance distanceType;
 
-    @Config(mandatory = true,description="The initialisation to use.")
+    @Config(mandatory = true,description="The centroid initialisation " +
+            "method to use.")
     private Initialisation initialisationType;
 
     @Config(description="The number of threads to use for training.")
@@ -133,6 +134,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param centroids The number of centroids to use.
      * @param iterations The maximum number of iterations.
      * @param distanceType The distance function.
+     * @param initialisationType The centroid initialization method.
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
@@ -274,7 +276,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     }
 
     /**
-     * Initialisation method called at the start of each train call.
+     * Initialisation method called at the start of each train call when
+     * using uniform centroid initialisation.
      *
      * @param centroids The number of centroids to create.
      * @param examples The dataset to use.
@@ -297,6 +300,16 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         return centroidVectors;
     }
 
+    /**
+     * Initialisation method called at the start of each train call when
+     * using kmeans++ centroid initialisation.
+     *
+     * @param centroids The number of centroids to create.
+     * @param data The dataset of {@link SparseVector} to use.
+     * @param featureMap The feature map to use for centroid sampling.
+     * @param rng The RNG to use.
+     * @return A {@link DenseVector} array of centroids.
+     */
     protected DenseVector[] initialisePlusPlusCentroids(int centroids,
                                                         SparseVector[] data,
                                                         ImmutableFeatureMap featureMap,
@@ -317,7 +330,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             DenseVector prevCentroid = centroidVectors[i-1];
 
             // go through every vector and see if the min distance to the
-            // current vector is smaller than previous min distance for vec
+            // newest centroid is smaller than previous min distance for vec
             double tempDistance;
             for (int j = 0; j < data.length; j++) {
                 SparseVector curVec = data[j];
@@ -332,12 +345,12 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                 total += squaredMinDistance[j];
             }
 
-            // compute probabilites as p[i] = D(xi)^2 / sum(D(x)^2)
+            // compute probabilities as p[i] = D(xi)^2 / sum(D(x)^2)
             for (int j = 0; j < probabilities.length; j++) {
                 probabilities[j] = squaredMinDistance[j] / total;
             }
 
-            // sample from probabilites to get the new centroid from data
+            // sample from probabilities to get the new centroid from data
             double[] cdf = Util.generateCDF(probabilities);
             int idx = Util.sampleFromCDF(cdf, rng);
             centroidVectors[i] = sparseToDense(data[idx], numFeatures);
@@ -345,12 +358,27 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         return centroidVectors;
     }
 
+    /**
+     * Randomly select a piece of data as the starting centroid.
+     *
+     * @param data The dataset of {@link SparseVector} to use.
+     * @param numFeatures The number of features.
+     * @return A {@Link DenseVector} representing a centroid.
+     */
     protected DenseVector getRandomCentroidFromData(SparseVector[] data,
                                                  int numFeatures) {
         int rand_idx = rng.nextInt(data.length);
         return sparseToDense(data[rand_idx], numFeatures);
     }
 
+    /**
+     * Create a {@link DenseVector} from the data contained in a
+     * {@link SparseVector}.
+     *
+     * @param vec The {@link SparseVector} to be transformed.
+     * @param numFeatures The number of features.
+     * @return A {@link DenseVector} containing the information from vec.
+     */
     protected DenseVector sparseToDense(SparseVector vec, int numFeatures) {
         DenseVector dense = new DenseVector(numFeatures);
         dense.intersectAndAddInPlace(vec);
