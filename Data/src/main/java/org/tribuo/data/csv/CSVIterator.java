@@ -42,13 +42,20 @@ import java.util.logging.Logger;
 public class CSVIterator extends ColumnarIterator implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(CSVIterator.class.getName());
 
+    /**
+     * Default separator character.
+     */
     public final static char SEPARATOR = ',';
+
+    /**
+     * Default quote character.
+     */
     public final static char QUOTE = '"';
 
 
     private final CSVReader reader;
-    // We read numRows for idx from the CSVReader, so we need to keep track of whether the CSVReader read a header row
-    private int rowOffset = 1;
+    // We read numRows for idx from the CSVReader
+    private int recordNum = 0;
 
     /**
      * Builds a CSVIterator for the supplied Reader. Defaults to {@link CSVIterator#SEPARATOR} for the separator
@@ -141,7 +148,6 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
                     logger.warning("Given an empty CSV");
                 } else {
                     this.fields = Collections.unmodifiableList(Arrays.asList(inducedHeader));
-                    rowOffset++;
                 }
             } else {
                 this.fields = Collections.unmodifiableList(fields);
@@ -197,7 +203,8 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
                     return Optional.empty();
                 }
 
-                return Optional.of(new Row(reader.getRecordsRead() - rowOffset,
+                // Note this is intentionally recordNum++ as we count records from 0.
+                return Optional.of(new Row(recordNum++,
                         fields,
                         zip(fields, rawRow, reader.getRecordsRead())));
             } else {
