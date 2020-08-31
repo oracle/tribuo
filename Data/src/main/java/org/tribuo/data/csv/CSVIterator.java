@@ -183,8 +183,12 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
                 if(reader.getRecordsRead() % 50_000 == 0) {
                     logger.info(String.format("Read %d records on %d lines", reader.getRecordsRead(), reader.getLinesRead()));
                 }
-                if (rawRow.length == 1 && rawRow[0].isEmpty()) {
-                    // Found an extraneous newline in the csv file, aborting.
+                while (rawRow != null && rawRow.length == 1 && rawRow[0].isEmpty()) {
+                    // Found an extraneous newline in the csv file
+                    logger.warning("Ignoring extra newline at line " + reader.getLinesRead());
+                    rawRow = reader.readNext();
+                }
+                if (rawRow == null) {
                     try {
                         reader.close();
                     } catch (IOException e) {
@@ -192,6 +196,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
                     }
                     return Optional.empty();
                 }
+
                 return Optional.of(new Row(reader.getRecordsRead() - rowOffset,
                         fields,
                         zip(fields, rawRow, reader.getRecordsRead())));
