@@ -35,8 +35,13 @@ import org.tribuo.OutputFactory;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.DataSourceProvenance;
 
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -47,6 +52,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * A DataSource which can read IDX formatted data (i.e. MNIST).
@@ -60,12 +66,12 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
      * The possible IDX input formats.
      */
     public enum IDXType {
-        UBYTE((byte)0x08),
-        BYTE((byte)0x09),
-        SHORT((byte)0x0B),
-        INT((byte)0x0C),
-        FLOAT((byte)0x0D),
-        DOUBLE((byte)0x0E);
+        UBYTE((byte) 0x08),
+        BYTE((byte) 0x09),
+        SHORT((byte) 0x0B),
+        INT((byte) 0x0C),
+        FLOAT((byte) 0x0D),
+        DOUBLE((byte) 0x0E);
 
         /**
          * The encoded byte value.
@@ -79,6 +85,7 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
         /**
          * Converts the byte into the enum. Throws IllegalArgumentException if it's
          * not a valid byte.
+         *
          * @param input The byte to convert.
          * @return The corresponding enum instance.
          */
@@ -92,13 +99,13 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
         }
     }
 
-    @Config(mandatory = true, description="Path to load the features from.")
+    @Config(mandatory = true, description = "Path to load the features from.")
     private Path featuresPath;
 
-    @Config(mandatory = true, description="Path to load the features from.")
+    @Config(mandatory = true, description = "Path to load the features from.")
     private Path outputPath;
 
-    @Config(mandatory = true, description="The output factory to use.")
+    @Config(mandatory = true, description = "The output factory to use.")
     private OutputFactory<T> outputFactory;
 
     private final ArrayList<Example<T>> data = new ArrayList<>();
@@ -114,8 +121,9 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
 
     /**
      * Constructs an IDXDataSource from the supplied paths.
-     * @param featuresPath The path to the features file.
-     * @param outputPath The path to the output file.
+     *
+     * @param featuresPath  The path to the features file.
+     * @param outputPath    The path to the output file.
      * @param outputFactory The output factory.
      * @throws IOException If either file cannot be read.
      */
@@ -133,7 +141,7 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
 
     @Override
     public String toString() {
-        return "IDXDataSource(featuresPath=" + featuresPath.toString() + ",outputPath=" +outputPath.toString() + ")";
+        return "IDXDataSource(featuresPath=" + featuresPath.toString() + ",outputPath=" + outputPath.toString() + ",featureType=" + dataType + ")";
     }
 
     @Override
@@ -155,6 +163,7 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
 
     /**
      * Loads the data.
+     *
      * @throws IOException If the files could not be read.
      */
     private void read() throws IOException {
@@ -178,10 +187,10 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
         }
 
         String[] featureNames = new String[numFeatures];
-        int width = (""+numFeatures).length();
-        String formatString = "%0"+width+"d";
+        int width = ("" + numFeatures).length();
+        String formatString = "%0" + width + "d";
         for (int i = 0; i < numFeatures; i++) {
-            featureNames[i] = String.format(formatString,i);
+            featureNames[i] = String.format(formatString, i);
         }
 
         ArrayList<Feature> buffer = new ArrayList<>();
@@ -209,11 +218,11 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
                         case UBYTE:
                         case SHORT:
                         case INT:
-                            outputBuilder.append((int)outputs.data[j+outputCounter]);
+                            outputBuilder.append((int) outputs.data[j + outputCounter]);
                             break;
                         case FLOAT:
                         case DOUBLE:
-                            outputBuilder.append(outputs.data[j+outputCounter]);
+                            outputBuilder.append(outputs.data[j + outputCounter]);
                             break;
                     }
                 }
@@ -238,11 +247,12 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
 
     /**
      * Reads a single IDX format file.
+     *
      * @param path The path to read.
      * @return The IDXData from the file.
      * @throws IOException If the file could not be read.
      */
-    private static IDXData readData(Path path) throws IOException {
+    static IDXData readData(Path path) throws IOException {
         DataInputStream stream = new DataInputStream(IOUtil.getInputStreamForLocation(path.toString()));
         short magicNumber = stream.readShort();
         if (magicNumber != 0) {
@@ -251,6 +261,9 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
         final byte dataTypeByte = stream.readByte();
         final IDXType dataType = IDXType.convert(dataTypeByte);
         final byte numDimensions = stream.readByte();
+        if (numDimensions < 1) {
+            throw new IllegalStateException("Invalid number of dimensions, found " + numDimensions);
+        }
         final int[] shape = new int[numDimensions];
         int size = 1;
         for (int i = 0; i < numDimensions; i++) {
@@ -261,36 +274,45 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
             size *= shape[i];
         }
         double[] data = new double[size];
-        for (int i = 0; i < size; i++) {
-            switch (dataType) {
-                case BYTE:
-                    data[i] = stream.readByte();
-                    break;
-                case UBYTE:
-                    byte curByte = stream.readByte();
-                    int val = curByte & 0xff;
-                    data[i] = val;
-                    break;
-                case SHORT:
-                    data[i] = stream.readShort();
-                    break;
-                case INT:
-                    data[i] = stream.readInt();
-                    break;
-                case FLOAT:
-                    data[i] = stream.readFloat();
-                    break;
-                case DOUBLE:
-                    data[i] = stream.readDouble();
-                    break;
+        try {
+            for (int i = 0; i < size; i++) {
+                switch (dataType) {
+                    case BYTE:
+                        data[i] = stream.readByte();
+                        break;
+                    case UBYTE:
+                        data[i] = stream.readUnsignedByte();
+                        break;
+                    case SHORT:
+                        data[i] = stream.readShort();
+                        break;
+                    case INT:
+                        data[i] = stream.readInt();
+                        break;
+                    case FLOAT:
+                        data[i] = stream.readFloat();
+                        break;
+                    case DOUBLE:
+                        data[i] = stream.readDouble();
+                        break;
+                }
             }
+        } catch (EOFException e) {
+            throw new IllegalStateException("Too little data in the file, expected to find " + size + " elements");
+        }
+        try {
+            byte unexpectedByte = stream.readByte();
+            throw new IllegalStateException("Too much data in the file");
+        } catch (EOFException e) {
+            //pass as the stream is exhausted
         }
 
-        return new IDXData(dataType,shape,data);
+        return new IDXData(dataType, shape, data);
     }
 
     /**
      * The number of examples loaded.
+     *
      * @return The number of examples.
      */
     public int size() {
@@ -299,6 +321,7 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
 
     /**
      * The type of the features that were loaded in.
+     *
      * @return The feature type.
      */
     public IDXType getDataType() {
@@ -311,17 +334,144 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
     }
 
     /**
-     * Not yet a record.
+     * Java side representation for an IDX file.
      */
-    private static class IDXData {
-        private final IDXType dataType;
-        private final int[] shape;
-        public final double[] data;
+    public static class IDXData {
+        final IDXType dataType;
+        final int[] shape;
+        final double[] data;
 
-        public IDXData(IDXType dataType, int[] shape, double[] data) {
+        /**
+         * Constructor, does not validate or copy inputs.
+         * Use the factory method.
+         * @param dataType The data type.
+         * @param shape    The tensor shape.
+         * @param data     The data to write.
+         */
+        IDXData(IDXType dataType, int[] shape, double[] data) {
             this.dataType = dataType;
             this.shape = shape;
             this.data = data;
+        }
+
+        /**
+         * Constructs an IDXData, validating the input and defensively copying it.
+         *
+         * @param dataType The data type.
+         * @param shape    The tensor shape.
+         * @param data     The data to write.
+         * @return An IDXData.
+         */
+        public static IDXData createIDXData(IDXType dataType, int[] shape, double[] data) {
+            int[] shapeCopy = Arrays.copyOf(shape, shape.length);
+            double[] dataCopy = Arrays.copyOf(data, data.length);
+            if (shape.length > 128) {
+                throw new IllegalArgumentException("Must have fewer than 128 dimensions");
+            }
+            int numElements = 1;
+            for (int i = 0; i < shapeCopy.length; i++) {
+                numElements *= shapeCopy[i];
+                if (shapeCopy[i] < 1) {
+                    throw new IllegalArgumentException("Invalid shape, all elements must be positive, found " + Arrays.toString(shapeCopy));
+                }
+            }
+            if (numElements != dataCopy.length) {
+                throw new IllegalArgumentException("Incorrect number of elements, expected " + numElements + ", found " + dataCopy.length);
+            }
+
+            if (dataType != IDXType.DOUBLE) {
+                for (int i = 0; i < dataCopy.length; i++) {
+                    switch (dataType) {
+                        case UBYTE:
+                            int tmpU = 0xFF & (int) dataCopy[i];
+                            if (dataCopy[i] != tmpU) {
+                                throw new IllegalArgumentException("Invalid value at idx " + i + ", could not be converted to unsigned byte");
+                            }
+                            break;
+                        case BYTE:
+                            byte tmpB = (byte) dataCopy[i];
+                            if (dataCopy[i] != tmpB) {
+                                throw new IllegalArgumentException("Invalid value at idx " + i + ", could not be converted to byte");
+                            }
+                            break;
+                        case SHORT:
+                            short tmpS = (short) dataCopy[i];
+                            if (dataCopy[i] != tmpS) {
+                                throw new IllegalArgumentException("Invalid value at idx " + i + ", could not be converted to short");
+                            }
+                            break;
+                        case INT:
+                            int tmpI = (int) dataCopy[i];
+                            if (dataCopy[i] != tmpI) {
+                                throw new IllegalArgumentException("Invalid value at idx " + i + ", could not be converted to int");
+                            }
+                            break;
+                        case FLOAT:
+                            float tmpF = (float) dataCopy[i];
+                            if (dataCopy[i] != tmpF) {
+                                throw new IllegalArgumentException("Invalid value at idx " + i + ", could not be converted to float");
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return new IDXData(dataType, shape, data);
+        }
+
+        /**
+         * Writes out this IDXData to the specified path.
+         *
+         * @param outputPath The path to write to.
+         * @param gzip       If true, gzip the output.
+         * @throws IOException If the write failed.
+         */
+        public void save(Path outputPath, boolean gzip) throws IOException {
+            try (DataOutputStream ds = makeStream(outputPath, gzip)) {
+                // Magic number
+                ds.writeShort(0);
+                // Data type
+                ds.writeByte(dataType.value);
+                // Num dimensions
+                ds.writeByte(shape.length);
+
+                for (int i = 0; i < shape.length; i++) {
+                    ds.writeInt(shape[i]);
+                }
+
+                for (int i = 0; i < data.length; i++) {
+                    switch (dataType) {
+                        case UBYTE:
+                            ds.writeByte(0xFF & (int) data[i]);
+                            break;
+                        case BYTE:
+                            ds.writeByte((byte) data[i]);
+                            break;
+                        case SHORT:
+                            ds.writeShort((short) data[i]);
+                            break;
+                        case INT:
+                            ds.writeInt((int) data[i]);
+                            break;
+                        case FLOAT:
+                            ds.writeFloat((float) data[i]);
+                            break;
+                        case DOUBLE:
+                            ds.writeDouble(data[i]);
+                            break;
+                    }
+                }
+            }
+        }
+
+        private static DataOutputStream makeStream(Path outputPath, boolean gzip) throws IOException {
+            OutputStream stream;
+            if (gzip) {
+                stream = new GZIPOutputStream(new FileOutputStream(outputPath.toFile()));
+            } else {
+                stream = new FileOutputStream(outputPath.toFile());
+            }
+            return new DataOutputStream(new BufferedOutputStream(stream));
         }
     }
 
@@ -345,16 +495,16 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
         private final EnumProvenance<IDXType> featureType;
 
         <T extends Output<T>> IDXDataSourceProvenance(IDXDataSource<T> host) {
-            super(host,"DataSource");
-            this.outputFileModifiedTime = new DateTimeProvenance(OUTPUT_FILE_MODIFIED_TIME,OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.outputPath.toFile().lastModified()), ZoneId.systemDefault()));
-            this.featuresFileModifiedTime = new DateTimeProvenance(FEATURES_FILE_MODIFIED_TIME,OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.featuresPath.toFile().lastModified()), ZoneId.systemDefault()));
-            this.dataSourceCreationTime = new DateTimeProvenance(DATASOURCE_CREATION_TIME,OffsetDateTime.now());
-            this.featuresSHA256Hash = new HashProvenance(DEFAULT_HASH_TYPE,FEATURES_RESOURCE_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.featuresPath));
-            this.outputSHA256Hash = new HashProvenance(DEFAULT_HASH_TYPE,OUTPUT_RESOURCE_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.outputPath));
-            this.featureType = new EnumProvenance<>(FEATURE_TYPE,host.dataType);
+            super(host, "DataSource");
+            this.outputFileModifiedTime = new DateTimeProvenance(OUTPUT_FILE_MODIFIED_TIME, OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.outputPath.toFile().lastModified()), ZoneId.systemDefault()));
+            this.featuresFileModifiedTime = new DateTimeProvenance(FEATURES_FILE_MODIFIED_TIME, OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.featuresPath.toFile().lastModified()), ZoneId.systemDefault()));
+            this.dataSourceCreationTime = new DateTimeProvenance(DATASOURCE_CREATION_TIME, OffsetDateTime.now());
+            this.featuresSHA256Hash = new HashProvenance(DEFAULT_HASH_TYPE, FEATURES_RESOURCE_HASH, ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE, host.featuresPath));
+            this.outputSHA256Hash = new HashProvenance(DEFAULT_HASH_TYPE, OUTPUT_RESOURCE_HASH, ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE, host.outputPath));
+            this.featureType = new EnumProvenance<>(FEATURE_TYPE, host.dataType);
         }
 
-        public IDXDataSourceProvenance(Map<String,Provenance> map) {
+        public IDXDataSourceProvenance(Map<String, Provenance> map) {
             this(extractProvenanceInfo(map));
         }
 
@@ -370,29 +520,29 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
             this.featureType = (EnumProvenance<IDXType>) info.instanceValues.get(FEATURE_TYPE);
         }
 
-        protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
-            Map<String,Provenance> configuredParameters = new HashMap<>(map);
-            String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, IDXDataSourceProvenance.class.getSimpleName()).getValue();
-            String hostTypeStringName = ObjectProvenance.checkAndExtractProvenance(configuredParameters,HOST_SHORT_NAME, StringProvenance.class, IDXDataSourceProvenance.class.getSimpleName()).getValue();
+        protected static ExtractedInfo extractProvenanceInfo(Map<String, Provenance> map) {
+            Map<String, Provenance> configuredParameters = new HashMap<>(map);
+            String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters, CLASS_NAME, StringProvenance.class, IDXDataSourceProvenance.class.getSimpleName()).getValue();
+            String hostTypeStringName = ObjectProvenance.checkAndExtractProvenance(configuredParameters, HOST_SHORT_NAME, StringProvenance.class, IDXDataSourceProvenance.class.getSimpleName()).getValue();
 
-            Map<String,PrimitiveProvenance<?>> instanceParameters = new HashMap<>();
-            instanceParameters.put(FEATURES_FILE_MODIFIED_TIME,ObjectProvenance.checkAndExtractProvenance(configuredParameters,FEATURES_FILE_MODIFIED_TIME,DateTimeProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
-            instanceParameters.put(OUTPUT_FILE_MODIFIED_TIME,ObjectProvenance.checkAndExtractProvenance(configuredParameters,OUTPUT_FILE_MODIFIED_TIME,DateTimeProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
-            instanceParameters.put(DATASOURCE_CREATION_TIME,ObjectProvenance.checkAndExtractProvenance(configuredParameters,DATASOURCE_CREATION_TIME,DateTimeProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
-            instanceParameters.put(FEATURES_RESOURCE_HASH,ObjectProvenance.checkAndExtractProvenance(configuredParameters,FEATURES_RESOURCE_HASH,HashProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
-            instanceParameters.put(OUTPUT_RESOURCE_HASH,ObjectProvenance.checkAndExtractProvenance(configuredParameters,OUTPUT_RESOURCE_HASH,HashProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
-            instanceParameters.put(FEATURE_TYPE,ObjectProvenance.checkAndExtractProvenance(configuredParameters,FEATURE_TYPE,EnumProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
+            Map<String, PrimitiveProvenance<?>> instanceParameters = new HashMap<>();
+            instanceParameters.put(FEATURES_FILE_MODIFIED_TIME, ObjectProvenance.checkAndExtractProvenance(configuredParameters, FEATURES_FILE_MODIFIED_TIME, DateTimeProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
+            instanceParameters.put(OUTPUT_FILE_MODIFIED_TIME, ObjectProvenance.checkAndExtractProvenance(configuredParameters, OUTPUT_FILE_MODIFIED_TIME, DateTimeProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
+            instanceParameters.put(DATASOURCE_CREATION_TIME, ObjectProvenance.checkAndExtractProvenance(configuredParameters, DATASOURCE_CREATION_TIME, DateTimeProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
+            instanceParameters.put(FEATURES_RESOURCE_HASH, ObjectProvenance.checkAndExtractProvenance(configuredParameters, FEATURES_RESOURCE_HASH, HashProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
+            instanceParameters.put(OUTPUT_RESOURCE_HASH, ObjectProvenance.checkAndExtractProvenance(configuredParameters, OUTPUT_RESOURCE_HASH, HashProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
+            instanceParameters.put(FEATURE_TYPE, ObjectProvenance.checkAndExtractProvenance(configuredParameters, FEATURE_TYPE, EnumProvenance.class, IDXDataSourceProvenance.class.getSimpleName()));
 
-            return new ExtractedInfo(className,hostTypeStringName,configuredParameters,instanceParameters);
+            return new ExtractedInfo(className, hostTypeStringName, configuredParameters, instanceParameters);
         }
 
         @Override
         public Map<String, PrimitiveProvenance<?>> getInstanceValues() {
-            Map<String,PrimitiveProvenance<?>> map = super.getInstanceValues();
+            Map<String, PrimitiveProvenance<?>> map = super.getInstanceValues();
 
             map.put(featuresFileModifiedTime.getKey(), featuresFileModifiedTime);
             map.put(outputFileModifiedTime.getKey(), outputFileModifiedTime);
-            map.put(dataSourceCreationTime.getKey(),dataSourceCreationTime);
+            map.put(dataSourceCreationTime.getKey(), dataSourceCreationTime);
             map.put(featuresSHA256Hash.getKey(), featuresSHA256Hash);
             map.put(outputSHA256Hash.getKey(), outputSHA256Hash);
             map.put(featureType.getKey(), featureType);
