@@ -34,10 +34,15 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.util.Util;
 
-import javax.xml.stream.XMLInputFactory;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,6 +68,11 @@ import java.util.stream.Stream;
  * J. Friedman, T. Hastie, &amp; R. Tibshirani.
  * "The Elements of Statistical Learning"
  * Springer 2001. <a href="http://web.stanford.edu/~hastie/ElemStatLearn/">PDF</a>
+ * </pre>
+ * <pre>
+ * D. Arthur, S. Vassilvitskii.
+ * "K-Means++: The Advantages of Careful Seeding"
+ * <a href="https://theory.stanford.edu/~sergei/papers/kMeansPP-soda">PDF</a>
  * </pre>
  */
 public class KMeansTrainer implements Trainer<ClusterID> {
@@ -94,30 +104,29 @@ public class KMeansTrainer implements Trainer<ClusterID> {
          * Initialize centroids by choosing uniformly at random from the data
          * points.
          */
-        UNIFORM,
+        RANDOM,
         /**
          * KMeans++ initialisation.
          */
         PLUSPLUS
     }
 
-    @Config(mandatory = true,description="Number of centroids (i.e. the \"k\" in k-means).")
+    @Config(mandatory = true, description = "Number of centroids (i.e. the \"k\" in k-means).")
     private int centroids;
 
-    @Config(mandatory = true,description="The number of iterations to run.")
+    @Config(mandatory = true, description = "The number of iterations to run.")
     private int iterations;
 
-    @Config(mandatory = true,description="The distance function to use.")
+    @Config(mandatory = true, description = "The distance function to use.")
     private Distance distanceType;
 
-    @Config(mandatory = true,description="The centroid initialisation " +
-            "method to use.")
+    @Config(mandatory = true, description = "The centroid initialisation method to use.")
     private Initialisation initialisationType;
 
-    @Config(description="The number of threads to use for training.")
+    @Config(description = "The number of threads to use for training.")
     private int numThreads = 1;
 
-    @Config(mandatory = true,description="The seed to use for the RNG.")
+    @Config(mandatory = true, description = "The seed to use for the RNG.")
     private long seed;
 
     private SplittableRandom rng;
@@ -127,10 +136,12 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     /**
      * for olcut.
      */
-    private KMeansTrainer() {}
+    private KMeansTrainer() {
+    }
 
     /**
      * Constructs a K-Means trainer using the supplied parameters.
+     *
      * @param centroids The number of centroids to use.
      * @param iterations The maximum number of iterations.
      * @param distanceType The distance function.
@@ -138,8 +149,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
-    public KMeansTrainer(int centroids, int iterations, Distance distanceType
-            , Initialisation initialisationType, int numThreads, long seed) {
+    public KMeansTrainer(int centroids, int iterations, Distance distanceType, Initialisation initialisationType, int numThreads, long seed) {
         this.centroids = centroids;
         this.iterations = iterations;
         this.distanceType = distanceType;
@@ -159,7 +169,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         // Creates a new local RNG and adds one to the invocation count.
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
-        synchronized(this) {
+        synchronized (this) {
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
@@ -174,27 +184,26 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         int n = 0;
         for (Example<ClusterID> example : examples) {
             weights[n] = example.getWeight();
-            data[n] = SparseVector.createSparseVector(example,featureMap,false);
+            data[n] = SparseVector.createSparseVector(example, featureMap, false);
             oldCentre[n] = -1;
             n++;
         }
 
         DenseVector[] centroidVectors;
         switch (initialisationType) {
-            case UNIFORM:
-                centroidVectors = initialiseCentroids(centroids,examples,featureMap,localRNG);
+            case RANDOM:
+                centroidVectors = initialiseRandomCentroids(centroids, featureMap, localRNG);
                 break;
             case PLUSPLUS:
-                centroidVectors = initialisePlusPlusCentroids(centroids,
-                        data,featureMap,localRNG);
+                centroidVectors = initialisePlusPlusCentroids(centroids, data, featureMap, localRNG, distanceType);
                 break;
             default:
                 throw new IllegalStateException("Unknown initialisation" + initialisationType);
         }
 
-        Map<Integer,List<Integer>> clusterAssignments = new HashMap<>();
+        Map<Integer, List<Integer>> clusterAssignments = new HashMap<>();
         for (int i = 0; i < centroids; i++) {
-            clusterAssignments.put(i,Collections.synchronizedList(new ArrayList<>()));
+            clusterAssignments.put(i, Collections.synchronizedList(new ArrayList<>()));
         }
 
         boolean converged = false;
@@ -203,18 +212,18 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             //logger.log(Level.INFO,"Beginning iteration " + i);
             AtomicInteger changeCounter = new AtomicInteger(0);
 
-            for (Entry<Integer,List<Integer>> e : clusterAssignments.entrySet()) {
+            for (Entry<Integer, List<Integer>> e : clusterAssignments.entrySet()) {
                 e.getValue().clear();
             }
 
             // E step
             Stream<SparseVector> vecStream = Arrays.stream(data);
-            Stream<Integer> intStream = IntStream.range(0,data.length).boxed();
+            Stream<Integer> intStream = IntStream.range(0, data.length).boxed();
             Stream<IntAndVector> eStream;
             if (numThreads > 1) {
-                eStream = StreamUtil.boundParallelism(StreamUtil.zip(intStream,vecStream,IntAndVector::new).parallel());
+                eStream = StreamUtil.boundParallelism(StreamUtil.zip(intStream, vecStream, IntAndVector::new).parallel());
             } else {
-                eStream = StreamUtil.zip(intStream,vecStream,IntAndVector::new);
+                eStream = StreamUtil.zip(intStream, vecStream, IntAndVector::new);
             }
             try {
                 fjp.submit(() -> eStream.forEach((IntAndVector e) -> {
@@ -224,7 +233,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                     SparseVector vector = e.vector;
                     for (int j = 0; j < centroids; j++) {
                         DenseVector cluster = centroidVectors[j];
-                        double distance = getDistance(cluster, vector);
+                        double distance = getDistance(cluster, vector, distanceType);
                         if (distance < minDist) {
                             minDist = distance;
                             clusterID = j;
@@ -239,11 +248,11 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                     }
                 })).get();
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException("Parallel execution failed",e);
+                throw new RuntimeException("Parallel execution failed", e);
             }
             //logger.log(Level.INFO, "E step completed. " + changeCounter.get() + " words updated.");
 
-            mStep(fjp,centroidVectors,clusterAssignments,data,weights);
+            mStep(fjp, centroidVectors, clusterAssignments, data, weights);
 
             logger.log(Level.INFO, "Iteration " + i + " completed. " + changeCounter.get() + " examples updated.");
 
@@ -253,21 +262,22 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             }
         }
 
-        Map<Integer,MutableLong> counts = new HashMap<>();
-        for (Entry<Integer,List<Integer>> e : clusterAssignments.entrySet()) {
-            counts.put(e.getKey(),new MutableLong(e.getValue().size()));
+        Map<Integer, MutableLong> counts = new HashMap<>();
+        for (Entry<Integer, List<Integer>> e : clusterAssignments.entrySet()) {
+            counts.put(e.getKey(), new MutableLong(e.getValue().size()));
         }
 
         ImmutableOutputInfo<ClusterID> outputMap = new ImmutableClusteringInfo(counts);
 
-        ModelProvenance provenance = new ModelProvenance(KMeansModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
+        ModelProvenance provenance = new ModelProvenance(KMeansModel.class.getName(), OffsetDateTime.now(),
+                examples.getProvenance(), trainerProvenance, runProvenance);
 
-        return new KMeansModel("",provenance,featureMap,outputMap,centroidVectors, distanceType);
+        return new KMeansModel("", provenance, featureMap, outputMap, centroidVectors, distanceType);
     }
 
     @Override
     public KMeansModel train(Dataset<ClusterID> dataset) {
-        return train(dataset,Collections.emptyMap());
+        return train(dataset, Collections.emptyMap());
     }
 
     @Override
@@ -279,13 +289,13 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * Initialisation method called at the start of each train call when
      * using uniform centroid initialisation.
      *
-     * @param centroids The number of centroids to create.
-     * @param examples The dataset to use.
+     * @param centroids  The number of centroids to create.
      * @param featureMap The feature map to use for centroid sampling.
      * @param rng The RNG to use.
      * @return A {@link DenseVector} array of centroids.
      */
-    protected static DenseVector[] initialiseCentroids(int centroids, Dataset<ClusterID> examples, ImmutableFeatureMap featureMap, SplittableRandom rng) {
+    private static DenseVector[] initialiseRandomCentroids(int centroids, ImmutableFeatureMap featureMap,
+                                                           SplittableRandom rng) {
         DenseVector[] centroidVectors = new DenseVector[centroids];
         int numFeatures = featureMap.size();
         for (int i = 0; i < centroids; i++) {
@@ -310,10 +320,13 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param rng The RNG to use.
      * @return A {@link DenseVector} array of centroids.
      */
-    protected DenseVector[] initialisePlusPlusCentroids(int centroids,
-                                                        SparseVector[] data,
-                                                        ImmutableFeatureMap featureMap,
-                                                        SplittableRandom rng) {
+    private static DenseVector[] initialisePlusPlusCentroids(int centroids, SparseVector[] data,
+                                                             ImmutableFeatureMap featureMap, SplittableRandom rng,
+                                                             Distance distanceType) {
+        if (centroids > data.length) {
+            throw new IllegalArgumentException("The number of centroids may not exceed the number of samples.");
+        }
+
         int numFeatures = featureMap.size();
         double[] minDistancePerVector = new double[data.length];
         Arrays.fill(minDistancePerVector, Double.POSITIVE_INFINITY);
@@ -323,25 +336,25 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         DenseVector[] centroidVectors = new DenseVector[centroids];
 
         // set first centroid randomly from the data
-        centroidVectors[0] = getRandomCentroidFromData(data, numFeatures);
+        centroidVectors[0] = getRandomCentroidFromData(data, numFeatures, rng);
 
         // Set each uninitialised centroid remaining
         for (int i = 1; i < centroids; i++) {
-            DenseVector prevCentroid = centroidVectors[i-1];
+            DenseVector prevCentroid = centroidVectors[i - 1];
 
             // go through every vector and see if the min distance to the
             // newest centroid is smaller than previous min distance for vec
             double tempDistance;
             for (int j = 0; j < data.length; j++) {
                 SparseVector curVec = data[j];
-                tempDistance = getDistance(prevCentroid, curVec);
+                tempDistance = getDistance(prevCentroid, curVec, distanceType);
                 minDistancePerVector[j] = Math.min(minDistancePerVector[j], tempDistance);
             }
 
             // square the distances and get total for normalization
             double total = 0.0;
-            for (int j = 0;  j < data.length; j++) {
-                squaredMinDistance[j] = Math.pow(minDistancePerVector[j], 2);
+            for (int j = 0; j < data.length; j++) {
+                squaredMinDistance[j] = minDistancePerVector[j] * minDistancePerVector[j];
                 total += squaredMinDistance[j];
             }
 
@@ -363,10 +376,11 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      *
      * @param data The dataset of {@link SparseVector} to use.
      * @param numFeatures The number of features.
-     * @return A {@Link DenseVector} representing a centroid.
+     * @param rng The RNG to use.
+     * @return A {@link DenseVector} representing a centroid.
      */
-    protected DenseVector getRandomCentroidFromData(SparseVector[] data,
-                                                 int numFeatures) {
+    private static DenseVector getRandomCentroidFromData(SparseVector[] data,
+                                                         int numFeatures, SplittableRandom rng) {
         int rand_idx = rng.nextInt(data.length);
         return sparseToDense(data[rand_idx], numFeatures);
     }
@@ -379,13 +393,14 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param numFeatures The number of features.
      * @return A {@link DenseVector} containing the information from vec.
      */
-    protected DenseVector sparseToDense(SparseVector vec, int numFeatures) {
+    private static DenseVector sparseToDense(SparseVector vec, int numFeatures) {
         DenseVector dense = new DenseVector(numFeatures);
         dense.intersectAndAddInPlace(vec);
         return dense;
     }
 
-    protected double getDistance(DenseVector cluster, SGDVector vector) {
+    private static double getDistance(DenseVector cluster, SGDVector vector,
+                                      Distance distanceType) {
         double distance;
         switch (distanceType) {
             case EUCLIDEAN:
@@ -403,9 +418,9 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         return distance;
     }
 
-    protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, Map<Integer,List<Integer>> clusterAssignments, SparseVector[] data, double[] weights) {
+    protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, Map<Integer, List<Integer>> clusterAssignments, SparseVector[] data, double[] weights) {
         // M step
-        Stream<Entry<Integer,List<Integer>>> mStream;
+        Stream<Entry<Integer, List<Integer>>> mStream;
         if (numThreads > 1) {
             mStream = StreamUtil.boundParallelism(clusterAssignments.entrySet().stream().parallel());
         } else {
@@ -418,21 +433,21 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
                 int counter = 0;
                 for (Integer idx : e.getValue()) {
-                    newCentroid.intersectAndAddInPlace(data[idx],(double f) -> f * weights[idx]);
+                    newCentroid.intersectAndAddInPlace(data[idx], (double f) -> f * weights[idx]);
                     counter++;
                 }
                 if (counter > 0) {
-                    newCentroid.scaleInPlace(1.0/counter);
+                    newCentroid.scaleInPlace(1.0 / counter);
                 }
             })).get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Parallel execution failed",e);
+            throw new RuntimeException("Parallel execution failed", e);
         }
     }
 
     @Override
     public String toString() {
-        return "KMeansTrainer(centroids="+centroids+",distanceType="+ distanceType +",seed="+seed+",numThreads="+numThreads+")";
+        return "KMeansTrainer(centroids=" + centroids + ",distanceType=" + distanceType + ",seed=" + seed + ",numThreads=" + numThreads + ")";
     }
 
     @Override

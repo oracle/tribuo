@@ -55,9 +55,9 @@ public class TrainTest {
         public int iterations = 10;
         @Option(charName='d',longName="distance",usage="Distance function to use in the e step. Defaults to EUCLIDEAN.")
         public Distance distance = Distance.EUCLIDEAN;
-        @Option(charName='i',longName="initialisation",usage="Type of initialisation " +
-                "to use for centroids. Defaults to UNIFORM.")
-        public Initialisation initialisation = Initialisation.UNIFORM;
+        @Option(charName='i',longName="initialisation",usage="Type of initialisation to use for centroids. Defaults " +
+                "to RANDOM.")
+        public Initialisation initialisation = Initialisation.RANDOM;
         @Option(charName='t',longName="num-threads",usage="Number of threads to use (default 4, range (1, num hw threads)).")
         public int numThreads = 4;
     }

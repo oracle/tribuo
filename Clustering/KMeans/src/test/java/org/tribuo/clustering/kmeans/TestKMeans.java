@@ -38,11 +38,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestKMeans {
 
-    private static final KMeansTrainer t = new KMeansTrainer(4,10,
-            Distance.EUCLIDEAN, KMeansTrainer.Initialisation.UNIFORM, 1,1);
+    private static final KMeansTrainer t = new KMeansTrainer(4,10, Distance.EUCLIDEAN,
+            KMeansTrainer.Initialisation.RANDOM, 1,1);
 
-    private static final KMeansTrainer plusPlus = new KMeansTrainer(4,10,
-            Distance.EUCLIDEAN, KMeansTrainer.Initialisation.PLUSPLUS, 1,1);
+    private static final KMeansTrainer plusPlus = new KMeansTrainer(4,10,  Distance.EUCLIDEAN,
+            KMeansTrainer.Initialisation.PLUSPLUS, 1,1);
 
     @BeforeAll
     public static void setup() {
@@ -73,10 +73,10 @@ public class TestKMeans {
 
         ClusteringEvaluation testEvaluation = eval.evaluate(model,test);
         assertFalse(Double.isNaN(testEvaluation.adjustedMI()));
-        assertFalse(Double.isNaN(testEvaluation.normalizedMI()));    }
+        assertFalse(Double.isNaN(testEvaluation.normalizedMI()));
+    }
 
-    public void testTrainer(Pair<Dataset<ClusterID>,
-            Dataset<ClusterID>> p, KMeansTrainer trainer) {
+    public void testTrainer(Pair<Dataset<ClusterID>, Dataset<ClusterID>> p, KMeansTrainer trainer) {
         Model<ClusterID> m = trainer.train(p.getA());
         ClusteringEvaluator e = new ClusteringEvaluator();
         e.evaluate(m,p.getB());
@@ -147,5 +147,13 @@ public class TestKMeans {
     @Test
     public void testPlusPlusEmptyExample() {
         runEmptyExample(plusPlus);
+    }
+
+    @Test
+    public void testPlusPlusTooManyCentroids() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(3, 1L);
+            plusPlus.train(data);
+        });
     }
 }
