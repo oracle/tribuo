@@ -19,6 +19,6 @@ As we removed the git history as part of the open source release, here is the li
 The [tribuo.org](https://tribuo.org) website, the Tribuo logo, and other associated graphics were designed by:
 
 1. Simon Jeal ([website](https://simonjeal.info), [LinkedIn](https://www.linkedin.com/in/simon-jeal-6b692414/))
-1. Alex Chan-Perryman ([website](), [LinkedIn](https://www.linkedin.com/in/alex-chan-perryman-6b5ab93b/))
+1. Alex Chan-Perryman ([website](https://achanperryman.com/), [LinkedIn](https://www.linkedin.com/in/alex-chan-perryman-6b5ab93b/))
 
 The website was implemented from the design by Jeffrey Alexander ([website repo](https://github.com/oracle/tribuo-site)).
