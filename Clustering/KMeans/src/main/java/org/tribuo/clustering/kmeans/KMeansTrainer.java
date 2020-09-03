@@ -69,6 +69,8 @@ import java.util.stream.Stream;
  * "The Elements of Statistical Learning"
  * Springer 2001. <a href="http://web.stanford.edu/~hastie/ElemStatLearn/">PDF</a>
  * </pre>
+ * <p>
+ * For more on optional kmeans++ initialisation, see:
  * <pre>
  * D. Arthur, S. Vassilvitskii.
  * "K-Means++: The Advantages of Careful Seeding"
@@ -286,8 +288,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     }
 
     /**
-     * Initialisation method called at the start of each train call when
-     * using uniform centroid initialisation.
+     * Initialisation method called at the start of each train call when using the default centroid initialisation.
+     * Centroids are initialised using a uniform random sample from the feature domain.
      *
      * @param centroids  The number of centroids to create.
      * @param featureMap The feature map to use for centroid sampling.
@@ -311,8 +313,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     }
 
     /**
-     * Initialisation method called at the start of each train call when
-     * using kmeans++ centroid initialisation.
+     * Initialisation method called at the start of each train call when using kmeans++ centroid initialisation.
      *
      * @param centroids The number of centroids to create.
      * @param data The dataset of {@link SparseVector} to use.
@@ -344,10 +345,9 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
             // go through every vector and see if the min distance to the
             // newest centroid is smaller than previous min distance for vec
-            double tempDistance;
             for (int j = 0; j < data.length; j++) {
                 SparseVector curVec = data[j];
-                tempDistance = getDistance(prevCentroid, curVec, distanceType);
+                double tempDistance = getDistance(prevCentroid, curVec, distanceType);
                 minDistancePerVector[j] = Math.min(minDistancePerVector[j], tempDistance);
             }
 
@@ -399,6 +399,13 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         return dense;
     }
 
+    /**
+     *
+     * @param cluster A {@link DenseVector} representing a centroid.
+     * @param vector A {@link SGDVector} representing an example.
+     * @param distanceType The distance metric to employ.
+     * @return A double representing the distance from vector to centroid.
+     */
     private static double getDistance(DenseVector cluster, SGDVector vector,
                                       Distance distanceType) {
         double distance;

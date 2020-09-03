@@ -49,16 +49,15 @@ public class TrainTest {
         }
         public DataOptions general;
 
-        @Option(charName='n',longName="num-clusters",usage="Number of clusters to infer. Defaults to 5.")
+        @Option(charName='n',longName="num-clusters",usage="Number of clusters to infer.")
         public int centroids = 5;
-        @Option(charName='i',longName="iterations",usage="Maximum number of iterations. Defaults to 10.")
+        @Option(charName='i',longName="iterations",usage="Maximum number of iterations.")
         public int iterations = 10;
-        @Option(charName='d',longName="distance",usage="Distance function to use in the e step. Defaults to EUCLIDEAN.")
+        @Option(charName='d',longName="distance",usage="Distance function to use in the e step.")
         public Distance distance = Distance.EUCLIDEAN;
-        @Option(charName='i',longName="initialisation",usage="Type of initialisation to use for centroids. Defaults " +
-                "to RANDOM.")
+        @Option(charName='s',longName="initialisation",usage="Type of initialisation to use for centroids.")
         public Initialisation initialisation = Initialisation.RANDOM;
-        @Option(charName='t',longName="num-threads",usage="Number of threads to use (default 4, range (1, num hw threads)).")
+        @Option(charName='t',longName="num-threads",usage="Number of threads to use (range (1, num hw threads)).")
         public int numThreads = 4;
     }
 
