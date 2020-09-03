@@ -52,6 +52,7 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
      * @param maxDepth The maximum depth of the tree.
      * @param minChildWeight The minimum node weight to consider it for a split.
      * @param fractionFeaturesInSplit The fraction of features available in each split.
+     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
      * @param impurity Impurity measure to determine split quality. See {@link LabelImpurity}.
      * @param seed The RNG seed.
      */
@@ -59,10 +60,11 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
             int maxDepth,
             float minChildWeight,
             float fractionFeaturesInSplit,
+            boolean useRandomSplitPoints,
             LabelImpurity impurity,
             long seed
     ) {
-        super(maxDepth, minChildWeight, fractionFeaturesInSplit, seed);
+        super(maxDepth, minChildWeight, fractionFeaturesInSplit, useRandomSplitPoints, seed);
         this.impurity = impurity;
         postConfig();
     }
@@ -80,7 +82,7 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
      * @param maxDepth The maximum depth of the tree.
      */
     public CARTClassificationTrainer(int maxDepth) {
-        this(maxDepth, MIN_EXAMPLES, 1.0f, new GiniIndex(), Trainer.DEFAULT_SEED);
+        this(maxDepth, MIN_EXAMPLES, 1.0f, false, new GiniIndex(), Trainer.DEFAULT_SEED);
     }
 
     /**
@@ -90,7 +92,19 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
      * @param seed The seed for the RNG.
      */
     public CARTClassificationTrainer(int maxDepth, float fractionFeaturesInSplit, long seed) {
-        this(maxDepth, MIN_EXAMPLES, fractionFeaturesInSplit, new GiniIndex(), seed);
+        this(maxDepth, MIN_EXAMPLES, fractionFeaturesInSplit, false, new GiniIndex(), seed);
+    }
+
+    /**
+     * Creates a CART Trainer. Sets the impurity to the {@link GiniIndex}.
+     * @param maxDepth The maximum depth of the tree.
+     * @param fractionFeaturesInSplit The fraction of features available in each split.
+     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
+     * @param seed The seed for the RNG.
+     */
+    public CARTClassificationTrainer(int maxDepth, float fractionFeaturesInSplit,
+                                     boolean useRandomSplitPoints, long seed) {
+        this(maxDepth, MIN_EXAMPLES, fractionFeaturesInSplit, useRandomSplitPoints, new GiniIndex(), seed);
     }
 
     @Override
@@ -108,6 +122,8 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
         buffer.append(minChildWeight);
         buffer.append(",fractionFeaturesInSplit=");
         buffer.append(fractionFeaturesInSplit);
+        buffer.append(",useRandomSplitPoints=");
+        buffer.append(useRandomSplitPoints);
         buffer.append(",impurity=");
         buffer.append(impurity.toString());
         buffer.append(",seed=");

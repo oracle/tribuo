@@ -71,6 +71,12 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     @Config(description="The fraction of features to consider in each split. 1.0f indicates all features are considered.")
     protected float fractionFeaturesInSplit = 1.0f;
 
+    /**
+     * Number of features to sample per split. 1 indicates all features are considered.
+     */
+    @Config(description="Whether to choose split points for attributes at random.")
+    protected boolean useRandomSplitPoints = false;
+
     @Config(description="The RNG seed to use when sampling features in a split.")
     protected long seed = Trainer.DEFAULT_SEED;
 
@@ -83,11 +89,14 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
      * @param maxDepth The maximum depth of the tree.
      * @param minChildWeight The minimum child weight allowed.
      * @param fractionFeaturesInSplit The fraction of features to consider at each split.
+     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
      * @param seed The seed for the feature subsampling RNG.
      */
-    protected AbstractCARTTrainer(int maxDepth, float minChildWeight, float fractionFeaturesInSplit, long seed) {
+    protected AbstractCARTTrainer(int maxDepth, float minChildWeight, float fractionFeaturesInSplit,
+                                  boolean useRandomSplitPoints, long seed) {
         this.maxDepth = maxDepth;
         this.fractionFeaturesInSplit = fractionFeaturesInSplit;
+        this.useRandomSplitPoints = useRandomSplitPoints;
         this.minChildWeight = minChildWeight;
         this.seed = seed;
     }
@@ -106,6 +115,9 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     public float getFractionFeaturesInSplit() {
         return fractionFeaturesInSplit;
     }
+
+    @Override
+    public boolean getUseRandomSplitPoints() {return useRandomSplitPoints; }
 
     @Override
     public TreeModel<T> train(Dataset<T> examples) {

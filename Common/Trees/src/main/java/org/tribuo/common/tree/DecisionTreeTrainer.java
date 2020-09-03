@@ -32,4 +32,10 @@ public interface DecisionTreeTrainer<T extends Output<T>> extends SparseTrainer<
      */
     public float getFractionFeaturesInSplit();
 
+    /**
+     * Returns whether to choose split points for attributes at random.
+     * @return Whether to choose split points for attributes at random.
+     */
+    public boolean getUseRandomSplitPoints();
+
 }
