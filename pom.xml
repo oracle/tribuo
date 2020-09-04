@@ -165,6 +165,7 @@
                 <configuration>
                     <source>8</source>
                     <show>protected</show>
+                    <notimestamp>true</notimestamp>
                     <failOnError>false</failOnError>
                     <linksource>true</linksource>
                     <nohelp>true</nohelp>
