@@ -109,11 +109,11 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
             System.arraycopy(labelCounts, 0, greaterThanCounts, 0, labelCounts.length);
             // searching for the intervals between features.
             int idx = rng.nextInt(feature.size()-1);
-            for (int j = 0; j < idx; j++) {
+            for (int j = 0; j < idx + 1; j++) {
                 InvertedFeature vf = feature.get(j);
-                float[] countsBelow = vf.getLabelCounts();
-                Util.inPlaceAdd(lessThanCounts, countsBelow);
-                Util.inPlaceSubtract(greaterThanCounts, countsBelow);
+                float[] countsBelowOrEqual = vf.getLabelCounts();
+                Util.inPlaceAdd(lessThanCounts, countsBelowOrEqual);
+                Util.inPlaceSubtract(greaterThanCounts, countsBelowOrEqual);
             }
             double lessThanScore = impurity.impurityWeighted(lessThanCounts);
             double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
