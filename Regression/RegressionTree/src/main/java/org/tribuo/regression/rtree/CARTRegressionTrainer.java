@@ -161,7 +161,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
                         Util.randpermInPlace(originalIndices, localRNG);
                         System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                     }
-                    List<AbstractTrainingNode<Regressor>> nodes = node.buildTree(indices);
+                    List<AbstractTrainingNode<Regressor>> nodes = node.buildTree(indices, localRNG);
                     // Use the queue as a stack to improve cache locality.
                     for (AbstractTrainingNode<Regressor> newNode : nodes) {
                         queue.addFirst(newNode);

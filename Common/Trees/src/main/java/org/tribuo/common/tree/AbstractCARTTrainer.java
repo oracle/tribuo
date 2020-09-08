@@ -166,7 +166,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
                     Util.randpermInPlace(originalIndices, localRNG);
                     System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                 }
-                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices);
+                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices, localRNG);
                 // Use the queue as a stack to improve cache locality.
                 // Building depth first.
                 for (AbstractTrainingNode<T> newNode : nodes) {

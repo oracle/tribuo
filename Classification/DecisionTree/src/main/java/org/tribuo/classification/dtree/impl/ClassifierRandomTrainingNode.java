@@ -41,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -95,24 +96,25 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
-    public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs) {
+    public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = impurity.impurity(labelCounts);
         float[] lessThanCounts = new float[labelCounts.length];
         float[] greaterThanCounts = new float[labelCounts.length];
         double countsSum = Util.sum(labelCounts);
-        Random rand = new Random();
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
             Arrays.fill(lessThanCounts,0.0f);
             System.arraycopy(labelCounts, 0, greaterThanCounts, 0, labelCounts.length);
             // searching for the intervals between features.
-            int idx = rand.nextInt(feature.size()-1);
-            InvertedFeature f = feature.get(idx);
-            float[] featureCounts = f.getLabelCounts();
-            Util.inPlaceAdd(lessThanCounts,featureCounts);
-            Util.inPlaceSubtract(greaterThanCounts,featureCounts);
+            int idx = rng.nextInt(feature.size()-1);
+            for (int j = 0; j < idx; j++) {
+                InvertedFeature vf = feature.get(j);
+                float[] countsBelow = vf.getLabelCounts();
+                Util.inPlaceAdd(lessThanCounts, countsBelow);
+                Util.inPlaceSubtract(greaterThanCounts, countsBelow);
+            }
             double lessThanScore = impurity.impurityWeighted(lessThanCounts);
             double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
             if ((lessThanScore > 1e-10) && (greaterThanScore > 1e-10)) {
@@ -120,7 +122,7 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
                 if (score < bestScore) {
                     bestID = i;
                     bestScore = score;
-                    bestSplitValue = (f.value + feature.get(idx + 1).value) / 2.0;
+                    bestSplitValue = (feature.get(idx).value + feature.get(idx + 1).value) / 2.0;
                 }
             }
         }

@@ -259,7 +259,7 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
         if (indices != null) {
             return "InvertedFeature(value=" + value + ",size=" + curSize + ",indices=" + Arrays.toString(indices) + ")";
         } else {
-            return "InvertedFeature(value=" + value + ",size=" + curSize + ",index=" + index + ")";
+            return "InvertedFeature(value=" + value + ",size=1" + ",index=" + index + ")";
         }
     }
 }

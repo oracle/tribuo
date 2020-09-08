@@ -20,6 +20,7 @@ import org.tribuo.Output;
 import org.tribuo.math.la.SparseVector;
 
 import java.util.List;
+import java.util.SplittableRandom;
 
 /**
  * Base class for decision tree nodes used at training time.
@@ -47,7 +48,7 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         this.numExamples = numExamples;
     }
 
-    public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices);
+    public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices, SplittableRandom rng);
 
     public abstract Node<T> convertTree();
 

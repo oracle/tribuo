@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -90,7 +91,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
-    public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs) {
+    public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = impurity.impurity(labelCounts);

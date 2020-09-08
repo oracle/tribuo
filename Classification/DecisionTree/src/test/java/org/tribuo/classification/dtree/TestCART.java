@@ -20,7 +20,9 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
+import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.dtree.impurity.GiniIndex;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
@@ -34,10 +36,13 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 
 public class TestCART {
 
-    private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
+//    private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
+    private static final CARTClassificationTrainer t = new CARTClassificationTrainer(5, MIN_EXAMPLES, 1.0f, true,
+        new GiniIndex(), Trainer.DEFAULT_SEED);
 
     public void testCART(Pair<Dataset<Label>,Dataset<Label>> p) {
         TreeModel<Label> m = t.train(p.getA());
