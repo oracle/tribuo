@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import org.tribuo.Dataset;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.dtree.impl.ClassifierRandomTrainingNode;
 import org.tribuo.classification.dtree.impl.ClassifierTrainingNode;
 import org.tribuo.classification.dtree.impurity.GiniIndex;
 import org.tribuo.classification.dtree.impurity.LabelImpurity;
@@ -109,7 +110,11 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
 
     @Override
     protected AbstractTrainingNode<Label> mkTrainingNode(Dataset<Label> examples) {
-        return new ClassifierTrainingNode(impurity, examples);
+        if (useRandomSplitPoints) {
+            return new ClassifierRandomTrainingNode(impurity, examples);
+        } else {
+            return new ClassifierTrainingNode(impurity, examples);
+        }
     }
 
     @Override

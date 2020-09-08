@@ -70,6 +70,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
      * @param maxDepth maxDepth The maximum depth of the tree.
      * @param minChildWeight minChildWeight The minimum node weight to consider it for a split.
      * @param fractionFeaturesInSplit fractionFeaturesInSplit The fraction of features available in each split.
+     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
      * @param impurity impurity The impurity function to use to determine split quality.
      * @param seed The RNG seed.
      */
@@ -77,10 +78,11 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
             int maxDepth,
             float minChildWeight,
             float fractionFeaturesInSplit,
+            boolean useRandomSplitPoints,
             RegressorImpurity impurity,
             long seed
     ) {
-        super(maxDepth, minChildWeight, fractionFeaturesInSplit, seed);
+        super(maxDepth, minChildWeight, fractionFeaturesInSplit, useRandomSplitPoints, seed);
         this.impurity = impurity;
         postConfig();
     }
@@ -99,14 +101,16 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
      * @param maxDepth The maximum depth of the tree.
      */
     public CARTRegressionTrainer(int maxDepth) {
-        this(maxDepth, MIN_EXAMPLES, 1.0f, new MeanSquaredError(), Trainer.DEFAULT_SEED);
+        this(maxDepth, MIN_EXAMPLES, 1.0f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
     }
 
+    // TODO: Do I need to change this??
     @Override
     protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples) {
         throw new IllegalStateException("Shouldn't reach here.");
     }
 
+    // TODO: Do I need to change this??
     @Override
     public TreeModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
@@ -182,6 +186,8 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
         buffer.append(minChildWeight);
         buffer.append(",fractionFeaturesInSplit=");
         buffer.append(fractionFeaturesInSplit);
+        buffer.append(",useRandomSplitPoints=");
+        buffer.append(useRandomSplitPoints);
         buffer.append(",impurity=");
         buffer.append(impurity.toString());
         buffer.append(",seed=");

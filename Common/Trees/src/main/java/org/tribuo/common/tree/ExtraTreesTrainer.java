@@ -52,10 +52,12 @@ public class ExtraTreesTrainer<T extends Output<T>> extends BaggingTrainer<T> {
 
     public ExtraTreesTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers) {
         super(trainer,combiner,numMembers);
+        postConfig();
     }
 
     public ExtraTreesTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed) {
         super(trainer,combiner,numMembers,seed);
+        postConfig();
     }
 
     @Override
@@ -63,6 +65,11 @@ public class ExtraTreesTrainer<T extends Output<T>> extends BaggingTrainer<T> {
         super.postConfig();
         if (!(innerTrainer instanceof DecisionTreeTrainer)) {
             throw new PropertyException("","innerTrainer","ExtraTreesTrainer requires a decision tree innerTrainer");
+        }
+        DecisionTreeTrainer<T> t = (DecisionTreeTrainer<T>) innerTrainer;
+        if (!t.getUseRandomSplitPoints()) {
+            throw new PropertyException("","innerTrainer","RandomForestTrainer requires that the decision tree " +
+                    "innerTrainer have random split points turned on.");
         }
     }
 

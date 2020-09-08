@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.logging.Logger;
 
 /**
@@ -47,7 +48,10 @@ import java.util.logging.Logger;
  * Contains a list of the example indices currently found in this node,
  * the current impurity and a bunch of other statistics.
  */
-public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
+import java.util.logging.Logger;
+
+public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
+
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ClassifierTrainingNode.class.getName());
@@ -71,11 +75,12 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * @param impurity The impurity function to use.
      * @param examples The training data.
      */
-    public ClassifierTrainingNode(LabelImpurity impurity, Dataset<Label> examples) {
+    public ClassifierRandomTrainingNode(LabelImpurity impurity, Dataset<Label> examples) {
         this(impurity,invertData(examples), examples.size(), 0, examples.getFeatureIDMap(), examples.getOutputIDInfo());
     }
 
-    private ClassifierTrainingNode(LabelImpurity impurity, ArrayList<TreeFeature> data, int numExamples, int depth, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap) {
+    private ClassifierRandomTrainingNode(LabelImpurity impurity, ArrayList<TreeFeature> data, int numExamples,
+                                         int depth, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap) {
         super(depth, numExamples);
         this.data = data;
         this.featureIDMap = featureIDMap;
@@ -97,25 +102,25 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         float[] lessThanCounts = new float[labelCounts.length];
         float[] greaterThanCounts = new float[labelCounts.length];
         double countsSum = Util.sum(labelCounts);
+        Random rand = new Random();
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
             Arrays.fill(lessThanCounts,0.0f);
             System.arraycopy(labelCounts, 0, greaterThanCounts, 0, labelCounts.length);
             // searching for the intervals between features.
-            for (int j = 0; j < feature.size()-1; j++) {
-                InvertedFeature f = feature.get(j);
-                float[] featureCounts = f.getLabelCounts();
-                Util.inPlaceAdd(lessThanCounts,featureCounts);
-                Util.inPlaceSubtract(greaterThanCounts,featureCounts);
-                double lessThanScore = impurity.impurityWeighted(lessThanCounts);
-                double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
-                if ((lessThanScore > 1e-10) && (greaterThanScore > 1e-10)) {
-                    double score = (lessThanScore + greaterThanScore) / countsSum;
-                    if (score < bestScore) {
-                        bestID = i;
-                        bestScore = score;
-                        bestSplitValue = (f.value + feature.get(j + 1).value) / 2.0;
-                    }
+            int idx = rand.nextInt(feature.size()-1);
+            InvertedFeature f = feature.get(idx);
+            float[] featureCounts = f.getLabelCounts();
+            Util.inPlaceAdd(lessThanCounts,featureCounts);
+            Util.inPlaceSubtract(greaterThanCounts,featureCounts);
+            double lessThanScore = impurity.impurityWeighted(lessThanCounts);
+            double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
+            if ((lessThanScore > 1e-10) && (greaterThanScore > 1e-10)) {
+                double score = (lessThanScore + greaterThanScore) / countsSum;
+                if (score < bestScore) {
+                    bestID = i;
+                    bestScore = score;
+                    bestSplitValue = (f.value + feature.get(idx + 1).value) / 2.0;
                 }
             }
         }
@@ -169,8 +174,10 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
             greaterThanData.add(split.getB());
         }
 
-        lessThanOrEqual = new ClassifierTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1, featureIDMap, labelIDMap);
-        greaterThan = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size, depth + 1, featureIDMap, labelIDMap);
+        lessThanOrEqual = new ClassifierRandomTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1,
+                featureIDMap, labelIDMap);
+        greaterThan = new ClassifierRandomTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size,
+                depth + 1, featureIDMap, labelIDMap);
         List<AbstractTrainingNode<Label>> output = new ArrayList<>();
         output.add(lessThanOrEqual);
         output.add(greaterThan);

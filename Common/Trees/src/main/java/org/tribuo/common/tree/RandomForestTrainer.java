@@ -48,10 +48,12 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
 
     public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers) {
         super(trainer,combiner,numMembers);
+        postConfig();
     }
 
     public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed) {
         super(trainer,combiner,numMembers,seed);
+        postConfig();
     }
 
     @Override
@@ -59,6 +61,12 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
         super.postConfig();
         if (!(innerTrainer instanceof DecisionTreeTrainer)) {
             throw new PropertyException("","innerTrainer","RandomForestTrainer requires a decision tree innerTrainer");
+        }
+
+        DecisionTreeTrainer<T> t = (DecisionTreeTrainer<T>) innerTrainer;
+        if (t.getFractionFeaturesInSplit() == 1f) {
+            throw new PropertyException("","innerTrainer","RandomForestTrainer requires that the decision tree " +
+                    "innerTrainer have fractional features in split.");
         }
     }
 

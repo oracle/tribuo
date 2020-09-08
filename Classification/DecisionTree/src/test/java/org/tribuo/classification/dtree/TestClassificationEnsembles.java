@@ -49,7 +49,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestClassificationEnsembles {
 
     private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
-    private static final CARTClassificationTrainer subsamplingTree = new CARTClassificationTrainer(Integer.MAX_VALUE, MIN_EXAMPLES, 0.5f, new GiniIndex(), Trainer.DEFAULT_SEED);
+    private static final CARTClassificationTrainer subsamplingTree = new CARTClassificationTrainer(Integer.MAX_VALUE,
+            MIN_EXAMPLES, 0.5f, false, new GiniIndex(), Trainer.DEFAULT_SEED);
     private static final AdaBoostTrainer adaT = new AdaBoostTrainer(t,10);
     private static final BaggingTrainer<Label> bagT = new BaggingTrainer<>(t,new VotingCombiner(),10);
     private static final RandomForestTrainer<Label> rfT = new RandomForestTrainer<>(subsamplingTree,new VotingCombiner(),10);
