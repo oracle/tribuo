@@ -105,6 +105,12 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
         double countsSum = Util.sum(labelCounts);
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
+
+            // if there is only 1 inverted feature for this attribute, it has only 1 value, and cannot be split
+            if (feature.size() < 2) {
+                continue;
+            }
+
             Arrays.fill(lessThanCounts,0.0f);
             System.arraycopy(labelCounts, 0, greaterThanCounts, 0, labelCounts.length);
             // searching for the intervals between features.
