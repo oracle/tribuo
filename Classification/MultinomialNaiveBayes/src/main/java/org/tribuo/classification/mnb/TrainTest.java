@@ -18,6 +18,7 @@ package org.tribuo.classification.mnb;
 
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Options;
+import com.oracle.labs.mlrg.olcut.config.UsageException;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.TrainTestHelper;
@@ -25,20 +26,14 @@ import org.tribuo.classification.ensemble.ClassificationEnsembleOptions;
 import org.tribuo.data.DataOptions;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Build and run a multinomial naive bayes classifier for a standard dataset.
  */
 public class TrainTest {
 
-    public static void main(String[] args) throws IOException {
-        TrainTestOptions o = new TrainTestOptions();
-        ConfigurationManager cm = new ConfigurationManager(args, o);
-        Trainer<Label> trainer = o.mnbOptions.getTrainer();
-        trainer = o.ensembleOptions.wrapTrainer(trainer);
-        TrainTestHelper.run(cm, o.general, trainer);
-        cm.close();
-    }
+    private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
     public static class TrainTestOptions implements Options {
         public DataOptions general;
@@ -51,4 +46,16 @@ public class TrainTest {
         }
 
     }
+
+    public static void main(String[] args) throws IOException {
+        TrainTestOptions o = new TrainTestOptions();
+        try (ConfigurationManager cm = new ConfigurationManager(args,o)){
+            Trainer<Label> trainer = o.mnbOptions.getTrainer();
+            trainer = o.ensembleOptions.wrapTrainer(trainer);
+            TrainTestHelper.run(cm, o.general, trainer);
+        } catch (UsageException e) {
+            logger.info(e.getMessage());
+        }
+    }
+
 }
