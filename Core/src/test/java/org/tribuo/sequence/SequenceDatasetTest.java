@@ -219,7 +219,6 @@ public class SequenceDatasetTest {
         MinimumCardinalitySequenceDataset<MockOutput> minimumCardinalityDataset = new MinimumCardinalitySequenceDataset<>(dataset, 3);
         assertEquals(3, minimumCardinalityDataset.getMinCardinality());
         infoMap = minimumCardinalityDataset.getFeatureIDMap();
-        System.out.println(minimumCardinalityDataset.getNumExamplesRemoved());
         assertEquals(5, infoMap.get("F1").getCount());
         assertNull(infoMap.get("F2"));
         assertNull(infoMap.get("F3"));
