@@ -183,9 +183,6 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
         int fn = 0;
         int fp = 0;
         int tn = 0;
-        double trecall = 0;
-        double tprecision = 0;
-        double tf1 = 0;
         sb.append("<table>\n");
         sb.append("<tr>\n");
         sb.append("<th>Class</th><th>n</th> <th>%</th> <th>tp</th> <th>fn</th> <th>fp</th> <th>Recall</th> <th>Precision</th> <th>F1</th>");
@@ -203,9 +200,6 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
             tp += cm.tp(label);
             fn += cm.fn(label);
             fp += cm.fp(label);
-            trecall += evaluation.recall(label);
-            tprecision += evaluation.precision(label);
-            tf1 += evaluation.f1(label);
             sb.append("<tr>");
             sb.append("<td><code>").append(label).append("</code></td>");
             int occurrence = (int) cm.support(label);
@@ -223,7 +217,7 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
         sb.append(String.format("<td style=\"text-align:right\">%,12d</td><td style=\"text-align:right\"></td><td style=\"text-align:right\">%,12d</td><td style=\"text-align:right\">%,12d</td><td style=\"text-align:right\">%,12d</td>%n", tn, tp, fn, fp));
         sb.append("<td colspan=\"4\"></td>");
         sb.append("</tr>\n<tr>");
-        sb.append(String.format("<td>Accuracy</td><td style=\"text-align:right\" colspan=\"6\">%8.3f</td>%n", (double) tp / tn));
+        sb.append(String.format("<td>Accuracy</td><td style=\"text-align:right\" colspan=\"6\">%8.3f</td>%n", evaluation.accuracy()));
         sb.append("<td colspan=\"4\"></td>");
         sb.append("</tr>\n<tr>");
         sb.append("<td>Micro Average</td>");
