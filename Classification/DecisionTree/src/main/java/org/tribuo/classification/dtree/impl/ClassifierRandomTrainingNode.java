@@ -106,7 +106,7 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
 
-            // if there is only 1 inverted feature for this attribute, it has only 1 value, and cannot be split
+            // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
             if (feature.size() < 2) {
                 continue;
             }
@@ -144,16 +144,15 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
     }
 
     /**
-     * TODO: FILL THIS IN!
-     * @param featureIDs
-     * @param bestID
-     * @param bestSplitValue
-     * @return
+     * Splits the data to form two nodes.
+     * @param featureIDs Indices of the features available in this split.
+     * @param splitID ID of the feature on which the split should be based.
+     * @param splitValue Feature value to use for splitting the data.
+     * @return A list of training nodes resulting from the split.
      */
-    public List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue ) {
-        splitID = featureIDs[bestID];
+    public List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int splitID, double splitValue ) {
+        splitID = featureIDs[splitID];
         split = true;
-        splitValue = bestSplitValue;
         IntArrayContainer lessThanIndices = mergeBufferOne.get();
         lessThanIndices.size = 0;
         IntArrayContainer buffer = mergeBufferTwo.get();

@@ -39,6 +39,7 @@ import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -100,7 +101,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
-    public List<AbstractTrainingNode<Regressor>> buildTree(int[] featureIDs) {
+    public List<AbstractTrainingNode<Regressor>> buildTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double weightSum = Util.sum(indices,indices.length,weights);

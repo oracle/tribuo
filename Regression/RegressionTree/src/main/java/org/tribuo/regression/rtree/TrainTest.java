@@ -119,16 +119,16 @@ public class TrainTest {
         switch (o.treeType) {
             case CART_INDEPENDENT:
                 if (o.fraction <= 0) {
-                    trainer = new CARTRegressionTrainer(o.depth,o.minChildWeight,1, impurity, o.general.seed);
+                    trainer = new CARTRegressionTrainer(o.depth,o.minChildWeight,1, false, impurity, o.general.seed);
                 } else {
-                    trainer = new CARTRegressionTrainer(o.depth, o.minChildWeight, o.fraction, impurity, o.general.seed);
+                    trainer = new CARTRegressionTrainer(o.depth, o.minChildWeight, o.fraction, false, impurity, o.general.seed);
                 }
                 break;
             case CART_JOINT:
                 if (o.fraction <= 0) {
-                    trainer = new CARTJointRegressionTrainer(o.depth,o.minChildWeight,1, impurity, o.normalize, o.general.seed);
+                    trainer = new CARTJointRegressionTrainer(o.depth,o.minChildWeight,1, false, impurity, o.normalize, o.general.seed);
                 } else {
-                    trainer = new CARTJointRegressionTrainer(o.depth, o.minChildWeight, o.fraction, impurity, o.normalize, o.general.seed);
+                    trainer = new CARTJointRegressionTrainer(o.depth, o.minChildWeight, o.fraction, false, impurity, o.normalize, o.general.seed);
                 }
                 break;
             default:
