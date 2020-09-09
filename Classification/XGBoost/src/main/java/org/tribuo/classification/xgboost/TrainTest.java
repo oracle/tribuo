@@ -18,15 +18,21 @@ package org.tribuo.classification.xgboost;
 
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Options;
+import com.oracle.labs.mlrg.olcut.config.UsageException;
+import org.tribuo.Trainer;
+import org.tribuo.classification.Label;
 import org.tribuo.classification.TrainTestHelper;
 import org.tribuo.data.DataOptions;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Build and run an XGBoost classifier for a standard dataset.
  */
 public class TrainTest {
+
+    private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
     public static class TrainTestOptions implements Options {
 
@@ -45,9 +51,11 @@ public class TrainTest {
      */
     public static void main(String[] args) throws IOException {
         TrainTestOptions o = new TrainTestOptions();
-        ConfigurationManager cm = new ConfigurationManager(args, o);
-        XGBoostClassificationTrainer trainer = o.xgboostOptions.getTrainer();
-        TrainTestHelper.run(cm, o.general, trainer);
-        cm.close();
+        try (ConfigurationManager cm = new ConfigurationManager(args,o)){
+            Trainer<Label> trainer = o.xgboostOptions.getTrainer();
+            TrainTestHelper.run(cm, o.general, trainer);
+        } catch (UsageException e) {
+            logger.info(e.getMessage());
+        }
     }
 }

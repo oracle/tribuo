@@ -18,6 +18,7 @@ package org.tribuo.classification.dtree;
 
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Options;
+import com.oracle.labs.mlrg.olcut.config.UsageException;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
@@ -46,13 +47,14 @@ public class TrainTest {
 
     public static void main(String[] args) throws IOException {
         TrainTestOptions o = new TrainTestOptions();
-        ConfigurationManager cm = new ConfigurationManager(args, o);
-        Trainer<Label> trainer = o.cartOptions.getTrainer();
-        Model<Label> model = TrainTestHelper.run(cm, o.generalOptions, trainer);
-
-        if (o.cartOptions.cartPrintTree) {
-            logger.info(model.toString());
+        try (ConfigurationManager cm = new ConfigurationManager(args,o)){
+            Trainer<Label> trainer = o.cartOptions.getTrainer();
+            Model<Label> model = TrainTestHelper.run(cm, o.generalOptions, trainer);
+            if (o.cartOptions.cartPrintTree) {
+                logger.info(model.toString());
+            }
+        } catch (UsageException e) {
+            logger.info(e.getMessage());
         }
-        cm.close();
     }
 }

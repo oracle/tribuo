@@ -18,21 +18,21 @@ package org.tribuo.classification.experiments;
 
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Options;
+import com.oracle.labs.mlrg.olcut.config.UsageException;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.TrainTestHelper;
 import org.tribuo.data.DataOptions;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Build and run a classifier for a standard dataset.
  */
 public class TrainTest {
 
-    public enum AlgorithmType {
-        CART, KNN, LIBLINEAR, LIBSVM, MNB, RANDOM_FOREST, SGD_KERNEL, SGD_LINEAR, XGBOOST
-    }
+    private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
     public static class AllClassificationOptions implements Options {
         @Override
@@ -46,9 +46,12 @@ public class TrainTest {
 
     public static void main(String[] args) throws IOException {
         AllClassificationOptions o = new AllClassificationOptions();
-        ConfigurationManager cm = new ConfigurationManager(args, o);
-        Trainer<Label> trainer = o.trainerOptions.getTrainer();
-        TrainTestHelper.run(cm, o.general, trainer);
-        cm.close();
+        try (ConfigurationManager cm = new ConfigurationManager(args,o)){
+            Trainer<Label> trainer = o.trainerOptions.getTrainer();
+            TrainTestHelper.run(cm, o.general, trainer);
+        } catch (UsageException e) {
+            logger.info(e.getMessage());
+            return;
+        }
     }
 }
