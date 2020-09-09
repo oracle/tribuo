@@ -158,7 +158,7 @@ public class ConfigurableTrainTest {
         LabelEvaluation labelEvaluation = labelEvaluator.evaluate(model,predictions,test.getProvenance());
         final long testStop = System.currentTimeMillis();
         logger.info("Finished evaluating model " + Util.formatDuration(testStart,testStop));
-        System.out.println(labelEvaluator.toString());
+        System.out.println(labelEvaluation.toString());
         ConfusionMatrix<Label> matrix = labelEvaluation.getConfusionMatrix();
         System.out.println(matrix.toString());
         if (model.generatesProbabilities()) {
