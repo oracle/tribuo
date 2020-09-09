@@ -103,6 +103,8 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
         float[] lessThanCounts = new float[labelCounts.length];
         float[] greaterThanCounts = new float[labelCounts.length];
         double countsSum = Util.sum(labelCounts);
+
+        // split each feature once randomly and record the least impure amongst these
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
 
@@ -113,9 +115,9 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
 
             Arrays.fill(lessThanCounts,0.0f);
             System.arraycopy(labelCounts, 0, greaterThanCounts, 0, labelCounts.length);
-            // searching for the intervals between features.
-            int idx = rng.nextInt(feature.size()-1);
-            for (int j = 0; j < idx + 1; j++) {
+
+            int split_idx = rng.nextInt(feature.size()-1);
+            for (int j = 0; j < split_idx + 1; j++) {
                 InvertedFeature vf = feature.get(j);
                 float[] countsBelowOrEqual = vf.getLabelCounts();
                 Util.inPlaceAdd(lessThanCounts, countsBelowOrEqual);
@@ -128,10 +130,11 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
                 if (score < bestScore) {
                     bestID = i;
                     bestScore = score;
-                    bestSplitValue = (feature.get(idx).value + feature.get(idx + 1).value) / 2.0;
+                    bestSplitValue = (feature.get(split_idx).value + feature.get(split_idx + 1).value) / 2.0;
                 }
             }
         }
+
         List<AbstractTrainingNode<Label>> output;
         // If we found a split better than the current impurity.
         if (bestID != -1) {
@@ -146,13 +149,14 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
     /**
      * Splits the data to form two nodes.
      * @param featureIDs Indices of the features available in this split.
-     * @param splitID ID of the feature on which the split should be based.
-     * @param splitValue Feature value to use for splitting the data.
+     * @param bestID ID of the feature on which the split should be based.
+     * @param bestSplitValue Feature value to use for splitting the data.
      * @return A list of training nodes resulting from the split.
      */
-    public List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int splitID, double splitValue ) {
-        splitID = featureIDs[splitID];
+    public List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue) {
+        splitID = featureIDs[bestID];
         split = true;
+        splitValue = bestSplitValue;
         IntArrayContainer lessThanIndices = mergeBufferOne.get();
         lessThanIndices.size = 0;
         IntArrayContainer buffer = mergeBufferTwo.get();

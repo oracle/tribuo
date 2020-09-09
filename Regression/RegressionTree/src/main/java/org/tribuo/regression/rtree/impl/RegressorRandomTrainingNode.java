@@ -29,9 +29,11 @@ import org.tribuo.common.tree.impl.IntArrayContainer;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.regression.Regressor;
+import org.tribuo.regression.Regressor.DimensionTuple;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity.ImpurityTuple;
 import org.tribuo.util.Util;
+import org.tribuo.regression.rtree.impl.RegressorTrainingNode.InvertedData;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
@@ -46,10 +48,10 @@ import java.util.logging.Logger;
  * Contains a list of the example indices currently found in this node,
  * the current impurity and a bunch of other statistics.
  */
-public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> {
+public class RegressorRandomTrainingNode extends AbstractTrainingNode<Regressor> {
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = Logger.getLogger(JointRegressorTrainingNode.class.getName());
+    private static final Logger logger = Logger.getLogger(RegressorTrainingNode.class.getName());
 
     private static final ThreadLocal<IntArrayContainer> mergeBufferOne = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
     private static final ThreadLocal<IntArrayContainer> mergeBufferTwo = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
@@ -59,8 +61,6 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
 
     private transient ArrayList<TreeFeature> data;
 
-    private final boolean normalize;
-
     private final ImmutableOutputInfo<Regressor> labelIDMap;
 
     private final ImmutableFeatureMap featureIDMap;
@@ -69,43 +69,32 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
 
     private final int[] indices;
 
-    private final float[][] targets;
+    private final float[] targets;
 
     private final float[] weights;
 
-    /**
-     * Constructor which creates the inverted file.
-     * @param impurity The impurity function to use.
-     * @param examples The training data.
-     * @param normalize Normalizes the leaves so each leaf has a distribution which sums to 1.0.
-     */
-    public JointRegressorTrainingNode(RegressorImpurity impurity, Dataset<Regressor> examples, boolean normalize) {
-        this(impurity, invertData(examples), examples.size(), examples.getFeatureIDMap(), examples.getOutputIDInfo(), normalize);
+    private final String dimName;
+
+    public RegressorRandomTrainingNode(RegressorImpurity impurity, InvertedData tuple, int dimIndex, String dimName,
+                                  int numExamples, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputInfo) {
+        this(impurity,tuple.copyData(),tuple.indices,tuple.targets[dimIndex],tuple.weights,dimName,numExamples,0,featureIDMap,outputInfo);
     }
 
-    private JointRegressorTrainingNode(RegressorImpurity impurity, InvertedData tuple, int numExamples, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputInfo, boolean normalize) {
-        this(impurity,tuple.data,tuple.indices,tuple.targets,tuple.weights,numExamples,0,featureIDMap,outputInfo,normalize);
-    }
-
-    private JointRegressorTrainingNode(RegressorImpurity impurity, ArrayList<TreeFeature> data, int[] indices, float[][] targets, float[] weights, int numExamples, int depth, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap, boolean normalize) {
+    private RegressorRandomTrainingNode(RegressorImpurity impurity, ArrayList<TreeFeature> data, int[] indices, float[] targets, float[] weights, String dimName, int numExamples, int depth, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap) {
         super(depth, numExamples);
         this.data = data;
-        this.normalize = normalize;
         this.featureIDMap = featureIDMap;
         this.labelIDMap = labelIDMap;
         this.impurity = impurity;
         this.indices = indices;
         this.targets = targets;
         this.weights = weights;
+        this.dimName = dimName;
     }
 
     @Override
     public double getImpurity() {
-        double tmp = 0.0;
-        for (int i = 0; i < targets.length; i++) {
-            tmp += impurity.impurity(indices, targets[i], weights);
-        }
-        return tmp / targets.length;
+        return impurity.impurity(indices, targets, weights);
     }
 
     /**
@@ -120,46 +109,49 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         double weightSum = Util.sum(indices,indices.length,weights);
         double bestScore = getImpurity();
         //logger.info("Cur node score = " + bestScore);
-        List<int[]> curIndices = new ArrayList<>();
+        List<int[]> curLeftIndices = new ArrayList<>();
+        List<int[]> curRightIndices = new ArrayList<>();
         List<int[]> bestLeftIndices = new ArrayList<>();
         List<int[]> bestRightIndices = new ArrayList<>();
+
+        // split each feature once randomly and record the least impure amongst these
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
-
-            curIndices.clear();
-            for (int j = 0; j < feature.size(); j++) {
-                InvertedFeature f = feature.get(j);
-                int[] curFeatureIndices = f.indices();
-                curIndices.add(curFeatureIndices);
+            // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
+            if (feature.size() < 2) {
+                continue;
             }
 
-            // searching for the intervals between features.
-            for (int j = 0; j < feature.size()-1; j++) {
-                List<int[]> curLeftIndices = curIndices.subList(0,j+1);
-                List<int[]> curRightIndices = curIndices.subList(j+1,feature.size());
-                double lessThanScore = 0.0;
-                double greaterThanScore = 0.0;
-                for (int k = 0; k < targets.length; k++) {
-                    ImpurityTuple left = impurity.impurityTuple(curLeftIndices,targets[k],weights);
-                    lessThanScore += left.impurity * left.weight;
-                    ImpurityTuple right = impurity.impurityTuple(curRightIndices,targets[k],weights);
-                    greaterThanScore += right.impurity * right.weight;
+            int split_idx = rng.nextInt(feature.size()-1);
+
+            InvertedFeature vf;
+            for (int j = 0; j < feature.size(); j++) {
+                vf = feature.get(j);
+                if (j <= split_idx) {
+                    curLeftIndices.add(vf.indices());
                 }
-                double score = (lessThanScore + greaterThanScore) / (targets.length * weightSum);
-                if (score < bestScore) {
-                    bestID = i;
-                    bestScore = score;
-                    bestSplitValue = (feature.get(j).value + feature.get(j + 1).value) / 2.0;
-                    // Clear out the old best indices before storing the new ones.
-                    bestLeftIndices.clear();
-                    bestLeftIndices.addAll(curLeftIndices);
-                    bestRightIndices.clear();
-                    bestRightIndices.addAll(curRightIndices);
-                    //logger.info("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score);
-                    //logger.info("less score = " +lessThanScore+", less size = "+lessThanIndices.size+", greater score = " + greaterThanScore+", greater size = "+greaterThanIndices.size);
+                else {
+                    curRightIndices.add(vf.indices());
                 }
+            }
+
+            ImpurityTuple lessThanScore = impurity.impurityTuple(curLeftIndices,targets,weights);
+            ImpurityTuple greaterThanScore = impurity.impurityTuple(curRightIndices,targets,weights);
+            double score = (lessThanScore.impurity*lessThanScore.weight + greaterThanScore.impurity*greaterThanScore.weight) / weightSum;
+            if (score < bestScore) {
+                bestID = i;
+                bestScore = score;
+                bestSplitValue = (feature.get(split_idx).value + feature.get(split_idx + 1).value) / 2.0;
+                // Clear out the old best indices before storing the new ones.
+                bestLeftIndices.clear();
+                bestLeftIndices.addAll(curLeftIndices);
+                bestRightIndices.clear();
+                bestRightIndices.addAll(curRightIndices);
+                //logger.info("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score);
+                //logger.info("less score = " +lessThanScore+", less size = "+lessThanIndices.size+", greater score = " + greaterThanScore+", greater size = "+greaterThanIndices.size);
             }
         }
+
         List<AbstractTrainingNode<Regressor>> output;
         // If we found a split better than the current impurity.
         if (bestID != -1) {
@@ -200,10 +192,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             lessThanData.add(split.getA());
             greaterThanData.add(split.getB());
         }
-        lessThanOrEqual = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets,
-                weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
-        greaterThan = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
-                weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
+        lessThanOrEqual = new RegressorRandomTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName, leftIndices.length, depth + 1, featureIDMap, labelIDMap);
+        greaterThan = new RegressorRandomTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName, rightIndices.length, depth + 1, featureIDMap, labelIDMap);
         List<AbstractTrainingNode<Regressor>> output = new ArrayList<>();
         output.add(lessThanOrEqual);
         output.add(greaterThan);
@@ -222,53 +212,21 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             Node<Regressor> newLessThan = lessThanOrEqual.convertTree();
             return new SplitNode<>(splitValue,splitID,getImpurity(),newGreaterThan,newLessThan);
         } else {
+            double mean = 0.0;
             double weightSum = 0.0;
-            double[] mean = new double[targets.length];
-            Regressor leafPred;
-            if (normalize) {
-                for (int i = 0; i < indices.length; i++) {
-                    int idx = indices[i];
-                    float weight = weights[idx];
-                    weightSum += weight;
-                    for (int j = 0; j < targets.length; j++) {
-                        float value = targets[j][idx];
+            double variance = 0.0;
+            for (int i = 0; i < indices.length; i++) {
+                int idx = indices[i];
+                float value = targets[idx];
+                float weight = weights[idx];
 
-                        double oldMean = mean[j];
-                        mean[j] += (weight / weightSum) * (value - oldMean);
-                    }
-                }
-                String[] names = new String[targets.length];
-                double sum = 0.0;
-                for (int i = 0; i < targets.length; i++) {
-                    names[i] = labelIDMap.getOutput(i).getNames()[0];
-                    sum += mean[i];
-                }
-                // Normalize all the outputs so they sum to 1.0.
-                for (int i = 0; i < targets.length; i++) {
-                    mean[i] /= sum;
-                }
-                leafPred = new Regressor(names, mean);
-            } else {
-                double[] variance = new double[targets.length];
-                for (int i = 0; i < indices.length; i++) {
-                    int idx = indices[i];
-                    float weight = weights[idx];
-                    weightSum += weight;
-                    for (int j = 0; j < targets.length; j++) {
-                        float value = targets[j][idx];
-
-                        double oldMean = mean[j];
-                        mean[j] += (weight / weightSum) * (value - oldMean);
-                        variance[j] += weight * (value - oldMean) * (value - mean[j]);
-                    }
-                }
-                String[] names = new String[targets.length];
-                for (int i = 0; i < targets.length; i++) {
-                    names[i] = labelIDMap.getOutput(i).getNames()[0];
-                    variance[i] = indices.length > 1 ? variance[i] / (weightSum - 1) : 0;
-                }
-                leafPred = new Regressor(names, mean, variance);
+                weightSum += weight;
+                double oldMean = mean;
+                mean += (weight / weightSum) * (value - oldMean);
+                variance += weight * (value - oldMean) * (value - mean);
             }
+            variance = indices.length > 1 ? variance / (weightSum-1) : 0;
+            DimensionTuple leafPred = new DimensionTuple(dimName,mean,variance);
             return new LeafNode<>(getImpurity(),leafPred,Collections.emptyMap(),false);
         }
     }
@@ -279,13 +237,13 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * @param examples An input dataset.
      * @return A list of TreeFeatures which contain {@link InvertedFeature}s.
      */
-    private static InvertedData invertData(Dataset<Regressor> examples) {
+    public static InvertedData invertData(Dataset<Regressor> examples) {
         ImmutableFeatureMap featureInfos = examples.getFeatureIDMap();
         ImmutableOutputInfo<Regressor> labelInfo = examples.getOutputIDInfo();
         int numLabels = labelInfo.size();
         int numFeatures = featureInfos.size();
         int[] indices = new int[examples.size()];
-        float[][] targets = new float[labelInfo.size()][examples.size()];
+        float[][] targets = new float[numLabels][examples.size()];
         float[] weights = new float[examples.size()];
 
         logger.fine("Building initial List<TreeFeature> for " + numFeatures + " features and " + numLabels + " outputs");
@@ -299,9 +257,9 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             Example<Regressor> e = examples.getExample(i);
             indices[i] = i;
             weights[i] = e.getWeight();
-            double[] newTargets = e.getOutput().getValues();
-            for (int j = 0; j < targets.length; j++) {
-                targets[j][i] = (float) newTargets[j];
+            double[] output = e.getOutput().getValues();
+            for (int j = 0; j < output.length; j++) {
+                targets[j][i] = (float) output[j];
             }
             SparseVector vec = SparseVector.createSparseVector(e,featureInfos,false);
             int lastID = 0;
@@ -345,22 +303,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         return new InvertedData(data,indices,targets,weights);
     }
 
-    private static class InvertedData {
-        final ArrayList<TreeFeature> data;
-        final int[] indices;
-        final float[][] targets;
-        final float[] weights;
-
-        InvertedData(ArrayList<TreeFeature> data, int[] indices, float[][] targets, float[] weights) {
-            this.data = data;
-            this.indices = indices;
-            this.targets = targets;
-            this.weights = weights;
-        }
-    }
-
     private void writeObject(java.io.ObjectOutputStream stream)
             throws IOException {
-        throw new NotSerializableException("JointRegressorTrainingNode is a runtime class only, and should not be serialized.");
+        throw new NotSerializableException("RegressorTrainingNode is a runtime class only, and should not be serialized.");
     }
 }

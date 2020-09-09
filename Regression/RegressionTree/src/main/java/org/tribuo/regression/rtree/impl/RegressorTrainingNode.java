@@ -144,35 +144,48 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         List<AbstractTrainingNode<Regressor>> output;
         // If we found a split better than the current impurity.
         if (bestID != -1) {
-            splitID = featureIDs[bestID];
-            split = true;
-            splitValue = bestSplitValue;
-            IntArrayContainer firstBuffer = mergeBufferOne.get();
-            firstBuffer.size = 0;
-            firstBuffer.grow(indices.length);
-            IntArrayContainer secondBuffer = mergeBufferTwo.get();
-            secondBuffer.size = 0;
-            secondBuffer.grow(indices.length);
-            int[] leftIndices = IntArrayContainer.merge(bestLeftIndices, firstBuffer, secondBuffer);
-            int[] rightIndices = IntArrayContainer.merge(bestRightIndices, firstBuffer, secondBuffer);
-            //logger.info("Splitting on feature " + bestID + " with value " + bestSplitValue + " at depth " + depth + ", " + numExamples + " examples in node.");
-            //logger.info("left indices length = " + leftIndices.length);
-            ArrayList<TreeFeature> lessThanData = new ArrayList<>(data.size());
-            ArrayList<TreeFeature> greaterThanData = new ArrayList<>(data.size());
-            for (TreeFeature feature : data) {
-                Pair<TreeFeature,TreeFeature> split = feature.split(leftIndices, rightIndices, firstBuffer, secondBuffer);
-                lessThanData.add(split.getA());
-                greaterThanData.add(split.getB());
-            }
-            lessThanOrEqual = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName, leftIndices.length, depth + 1, featureIDMap, labelIDMap);
-            greaterThan = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName, rightIndices.length, depth + 1, featureIDMap, labelIDMap);
-            output = new ArrayList<>();
-            output.add(lessThanOrEqual);
-            output.add(greaterThan);
+            output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
         }
         data = null;
+        return output;
+    }
+
+    /**
+     * Splits the data to form two nodes.
+     * @param featureIDs Indices of the features available in this split.
+     * @param bestID ID of the feature on which the split should be based.
+     * @param bestSplitValue Feature value to use for splitting the data.
+     * @return A list of training nodes resulting from the split.
+     */
+    public List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
+                                                             List<int[]> bestLeftIndices, List<int[]> bestRightIndices){
+        splitID = featureIDs[bestID];
+        split = true;
+        splitValue = bestSplitValue;
+        IntArrayContainer firstBuffer = mergeBufferOne.get();
+        firstBuffer.size = 0;
+        firstBuffer.grow(indices.length);
+        IntArrayContainer secondBuffer = mergeBufferTwo.get();
+        secondBuffer.size = 0;
+        secondBuffer.grow(indices.length);
+        int[] leftIndices = IntArrayContainer.merge(bestLeftIndices, firstBuffer, secondBuffer);
+        int[] rightIndices = IntArrayContainer.merge(bestRightIndices, firstBuffer, secondBuffer);
+        //logger.info("Splitting on feature " + bestID + " with value " + bestSplitValue + " at depth " + depth + ", " + numExamples + " examples in node.");
+        //logger.info("left indices length = " + leftIndices.length);
+        ArrayList<TreeFeature> lessThanData = new ArrayList<>(data.size());
+        ArrayList<TreeFeature> greaterThanData = new ArrayList<>(data.size());
+        for (TreeFeature feature : data) {
+            Pair<TreeFeature,TreeFeature> split = feature.split(leftIndices, rightIndices, firstBuffer, secondBuffer);
+            lessThanData.add(split.getA());
+            greaterThanData.add(split.getB());
+        }
+        lessThanOrEqual = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName, leftIndices.length, depth + 1, featureIDMap, labelIDMap);
+        greaterThan = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName, rightIndices.length, depth + 1, featureIDMap, labelIDMap);
+        List<AbstractTrainingNode<Regressor>> output = new ArrayList<>();
+        output.add(lessThanOrEqual);
+        output.add(greaterThan);
         return output;
     }
 

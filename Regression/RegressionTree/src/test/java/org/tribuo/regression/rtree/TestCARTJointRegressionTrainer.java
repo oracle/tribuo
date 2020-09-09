@@ -19,6 +19,7 @@ package org.tribuo.regression.rtree;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Trainer;
 import org.tribuo.common.tree.TreeModel;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
@@ -26,6 +27,7 @@ import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.regression.rtree.impurity.MeanSquaredError;
 
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,8 @@ public class TestCARTJointRegressionTrainer {
 
     private static final CARTJointRegressionTrainer t = new CARTJointRegressionTrainer();
     private static final CARTJointRegressionTrainer normedt = new CARTJointRegressionTrainer(Integer.MAX_VALUE,true);
+    private static final CARTJointRegressionTrainer randomt = new CARTJointRegressionTrainer(Integer.MAX_VALUE, 5,
+            1.0f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
 
     public void testJointRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         TreeModel<Regressor> m = t.train(p.getA());
@@ -43,6 +47,8 @@ public class TestCARTJointRegressionTrainer {
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
         m = normedt.train(p.getA());
         evaluation = e.evaluate(m,p.getB());
+
+        m = randomt.train(p.getA());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());

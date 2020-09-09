@@ -30,6 +30,7 @@ import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.regression.Regressor;
+import org.tribuo.regression.rtree.impl.RegressorRandomTrainingNode;
 import org.tribuo.regression.rtree.impl.RegressorTrainingNode;
 import org.tribuo.regression.rtree.impl.RegressorTrainingNode.InvertedData;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
@@ -104,13 +105,11 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
         this(maxDepth, MIN_EXAMPLES, 1.0f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
     }
 
-    // TODO: Do I need to change this??
     @Override
     protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples) {
         throw new IllegalStateException("Shouldn't reach here.");
     }
 
-    // TODO: Do I need to change this??
     @Override
     public TreeModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
@@ -149,7 +148,14 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
             String dimName = r.getNames()[0];
             int dimIdx = outputIDInfo.getID(r);
 
-            AbstractTrainingNode<Regressor> root = new RegressorTrainingNode(impurity,data,dimIdx,dimName,examples.size(),featureIDMap,outputIDInfo);
+            AbstractTrainingNode<Regressor> root;
+            if (useRandomSplitPoints){
+                root = new RegressorRandomTrainingNode(impurity,data,dimIdx,dimName,examples.size(),featureIDMap,outputIDInfo);
+            }
+            else{
+                root = new RegressorTrainingNode(impurity,data,dimIdx,dimName,examples.size(),featureIDMap,outputIDInfo);
+            }
+//            AbstractTrainingNode<Regressor> root = new RegressorTrainingNode(impurity,data,dimIdx,dimName,examples.size(),featureIDMap,outputIDInfo);
             Deque<AbstractTrainingNode<Regressor>> queue = new LinkedList<>();
             queue.add(root);
 
