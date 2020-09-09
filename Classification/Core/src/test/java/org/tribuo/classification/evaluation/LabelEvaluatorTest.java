@@ -176,7 +176,7 @@ public class LabelEvaluatorTest {
                 "</tr><tr><td><code>d</code></td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">     7.7%</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">0</td><td style=\"text-align:right\">0</td><td style=\"text-align:right\">   1.000</td><td style=\"text-align:right\">   1.000</td><td style=\"text-align:right\">   1.000</td>\n" +
                 "</tr><tr><td>Total</td><td style=\"text-align:right\">          13</td><td style=\"text-align:right\"></td><td style=\"text-align:right\">           3</td><td style=\"text-align:right\">           2</td><td style=\"text-align:right\">           2</td>\n" +
                 "<td colspan=\"4\"></td></tr>\n" +
-                "<tr><td>Accuracy</td><td style=\"text-align:right\" colspan=\"6\">   0.231</td>\n" +
+                "<tr><td>Accuracy</td><td style=\"text-align:right\" colspan=\"6\">   0.600</td>\n" +
                 "<td colspan=\"4\"></td></tr>\n" +
                 "<tr><td>Micro Average</td><td style=\"text-align:right\" colspan=\"6\">   0.600</td><td style=\"text-align:right\">   0.600</td><td style=\"text-align:right\">   0.600</td>\n" +
                 "</tr></table>";
