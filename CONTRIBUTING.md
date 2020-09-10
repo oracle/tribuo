@@ -39,4 +39,4 @@ name will be the name of the squashed commit to main.
 1. We will assign the pull request to be reviewed before it is merged.
 
 ## Code of Conduct
-Follow the [Golden Rule](https://en.wikipedia.org/wiki/Golden_Rule). If you'd like more specific guidelines see the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/1/4/code-of-conduct/)
+Follow the [Golden Rule](https://en.wikipedia.org/wiki/Golden_Rule). More specific guidelines are in the [Contributor Covenant Code of Conduct](./CODE_OF_CONDUCT.md)
