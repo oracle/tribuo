@@ -28,12 +28,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,7 +52,7 @@ public class CSVSaverTest {
         //
         // Save the dataset
         CSVSaver saver = new CSVSaver();
-        Path tmp = Paths.get("/tmp/foo.csv");
+        Path tmp = Files.createTempFile("foo","csv");
         tmp.toFile().deleteOnExit();
         saver.save(tmp, before, "RESPONSE");
         //
@@ -81,7 +80,7 @@ public class CSVSaverTest {
         //
         // Save the dataset
         CSVSaver saver = new CSVSaver();
-        Path tmp = Paths.get("/tmp/foo-multi.csv");
+        Path tmp = Files.createTempFile("foo-multi","csv");
         tmp.toFile().deleteOnExit();
         saver.save(tmp, before, responses);
         //
@@ -105,7 +104,7 @@ public class CSVSaverTest {
     public void testSaveEmpty() throws IOException {
         MutableDataset<MockOutput> src = new MutableDataset<>(null, new MockOutputFactory());
         CSVSaver saver = new CSVSaver();
-        Path tmp = Paths.get("/tmp/foo-empty.csv");
+        Path tmp = Files.createTempFile("foo-empty","csv");
         tmp.toFile().deleteOnExit();
         saver.save(tmp, src, "RESPONSE");
         CSVLoader<MockOutput> loader = new CSVLoader<>(new MockOutputFactory());
