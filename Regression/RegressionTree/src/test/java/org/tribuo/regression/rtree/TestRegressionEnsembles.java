@@ -21,6 +21,7 @@ import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
 import org.tribuo.common.tree.AbstractCARTTrainer;
+import org.tribuo.common.tree.ExtraTreesTrainer;
 import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.regression.Regressor;
@@ -40,13 +41,20 @@ public class TestRegressionEnsembles {
 
     private static final CARTRegressionTrainer t = new CARTRegressionTrainer();
     private static final CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE, MIN_EXAMPLES, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
+    private static final CARTRegressionTrainer randomTree = new CARTRegressionTrainer(Integer.MAX_VALUE, MIN_EXAMPLES
+            , 0.5f, true, new MeanSquaredError(), Trainer.DEFAULT_SEED);
     private static final BaggingTrainer<Regressor> bagT = new BaggingTrainer<>(t,new AveragingCombiner(),10);
     private static final RandomForestTrainer<Regressor> rfT = new RandomForestTrainer<>(subsamplingTree,new AveragingCombiner(),10);
+    private static final ExtraTreesTrainer<Regressor> eTT = new ExtraTreesTrainer<>(randomTree,new AveragingCombiner(),10);
 
     private static final CARTJointRegressionTrainer mT = new CARTJointRegressionTrainer();
     private static final CARTJointRegressionTrainer mSubsamplingTree = new CARTJointRegressionTrainer(Integer.MAX_VALUE, AbstractCARTTrainer.MIN_EXAMPLES, 0.5f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
+    private static final CARTJointRegressionTrainer mRandomTree = new CARTJointRegressionTrainer(Integer.MAX_VALUE,
+            AbstractCARTTrainer.MIN_EXAMPLES, 0.5f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
     private static final BaggingTrainer<Regressor> mBagT = new BaggingTrainer<>(mT,new AveragingCombiner(),10);
     private static final RandomForestTrainer<Regressor> mRfT = new RandomForestTrainer<>(mSubsamplingTree,new AveragingCombiner(),10);
+    private static final ExtraTreesTrainer<Regressor> mETT = new ExtraTreesTrainer<>(mRandomTree,
+            new AveragingCombiner(),10);
 
     private static final RegressionEvaluator evaluator = new RegressionEvaluator();
 
@@ -66,6 +74,11 @@ public class TestRegressionEnsembles {
         evaluator.evaluate(m,p.getB());
     }
 
+    public void testExtraTrees(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+        Model<Regressor> m = eTT.train(p.getA());
+        evaluator.evaluate(m,p.getB());
+    }
+
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
@@ -73,6 +86,7 @@ public class TestRegressionEnsembles {
         testRandomForest(p);
         testMultiBagging(p);
         testMultiRandomForest(p);
+        testExtraTrees(p);
     }
 
     @Test
@@ -82,6 +96,7 @@ public class TestRegressionEnsembles {
         testRandomForest(p);
         testMultiBagging(p);
         testMultiRandomForest(p);
+        testExtraTrees(p);
     }
 
     public void testMultiBagging(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
@@ -94,6 +109,11 @@ public class TestRegressionEnsembles {
         evaluator.evaluate(m,p.getB());
     }
 
+    public void testMultiExtraTrees(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+        Model<Regressor> m = mETT.train(p.getA());
+        evaluator.evaluate(m,p.getB());
+    }
+
     @Test
     public void testMultiDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
@@ -101,6 +121,7 @@ public class TestRegressionEnsembles {
         testRandomForest(p);
         testMultiBagging(p);
         testMultiRandomForest(p);
+        testMultiExtraTrees(p);
     }
 
     @Test
@@ -110,6 +131,7 @@ public class TestRegressionEnsembles {
         testRandomForest(p);
         testMultiBagging(p);
         testMultiRandomForest(p);
+        testMultiExtraTrees(p);
     }
 
 }
