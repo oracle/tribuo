@@ -28,6 +28,7 @@ import org.tribuo.classification.ensemble.VotingCombiner;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
+import org.tribuo.common.tree.ExtraTreesTrainer;
 import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.ensemble.BaggingTrainer;
@@ -51,9 +52,13 @@ public class TestClassificationEnsembles {
     private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
     private static final CARTClassificationTrainer subsamplingTree = new CARTClassificationTrainer(Integer.MAX_VALUE,
             MIN_EXAMPLES, 0.5f, false, new GiniIndex(), Trainer.DEFAULT_SEED);
+    private static final CARTClassificationTrainer randomTree = new CARTClassificationTrainer(Integer.MAX_VALUE,
+            MIN_EXAMPLES, 0.5f, true, new GiniIndex(), Trainer.DEFAULT_SEED);
     private static final AdaBoostTrainer adaT = new AdaBoostTrainer(t,10);
     private static final BaggingTrainer<Label> bagT = new BaggingTrainer<>(t,new VotingCombiner(),10);
     private static final RandomForestTrainer<Label> rfT = new RandomForestTrainer<>(subsamplingTree,new VotingCombiner(),10);
+    private static final ExtraTreesTrainer<Label> eTT = new ExtraTreesTrainer<>(randomTree,new VotingCombiner(),
+            10);
 
     @BeforeAll
     public static void setup() {
@@ -68,6 +73,7 @@ public class TestClassificationEnsembles {
         testSingleClassTraining(adaT);
         testSingleClassTraining(bagT);
         testSingleClassTraining(rfT);
+        testSingleClassTraining(eTT);
     }
 
     public void testSingleClassTraining(Trainer<Label> trainer) {
@@ -118,12 +124,25 @@ public class TestClassificationEnsembles {
         Assertions.assertFalse(features.isEmpty());
     }
 
+    public void testExtraTrees(Pair<Dataset<Label>,Dataset<Label>> p) {
+        Model<Label> m = eTT.train(p.getA());
+        LabelEvaluator e = new LabelEvaluator();
+        LabelEvaluation evaluation = e.evaluate(m,p.getB());
+        Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+        Assertions.assertNotNull(features);
+        Assertions.assertFalse(features.isEmpty());
+        features = m.getTopFeatures(-1);
+        Assertions.assertNotNull(features);
+        Assertions.assertFalse(features.isEmpty());
+    }
+
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         testAdaBoost(p);
         testBagging(p);
         testRandomForest(p);
+        testExtraTrees(p);
     }
 
     @Test
@@ -132,6 +151,7 @@ public class TestClassificationEnsembles {
         testAdaBoost(p);
         testBagging(p);
         testRandomForest(p);
+        testExtraTrees(p);
     }
 
     @Test
@@ -140,6 +160,7 @@ public class TestClassificationEnsembles {
         testAdaBoost(p);
         testBagging(p);
         testRandomForest(p);
+        testExtraTrees(p);
     }
 
 }
