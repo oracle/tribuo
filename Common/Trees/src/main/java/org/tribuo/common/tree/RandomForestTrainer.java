@@ -27,8 +27,8 @@ import java.util.logging.Logger;
  * A trainer which produces a random forest.
  * <p>
  * Random Forests are basically bagged trees, with feature subsampling at each of the nodes.
- * It's up to the user to supply a decision tree trainer which has feature subsampling turned on by
- * checking {@link DecisionTreeTrainer#getFractionFeaturesInSplit()}.
+ * An exception will be thrown if the user does not supply a decision tree trainer with feature subsampling turned on
+ * and random splitting turned off.
  * <p>
  * See:
  * <pre>
@@ -67,6 +67,12 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
         if (t.getFractionFeaturesInSplit() == 1f) {
             throw new PropertyException("","innerTrainer","RandomForestTrainer requires that the decision tree " +
                     "innerTrainer have fractional features in split.");
+        }
+
+        if (t.getUseRandomSplitPoints()) {
+            throw new PropertyException("","innerTrainer","RandomForestTrainer requires that the decision tree " +
+                    "use non-random splitting, but useRandomSplits was true. If you want random splits, use " +
+                    "ExtraTreesTrainer instead.");
         }
     }
 

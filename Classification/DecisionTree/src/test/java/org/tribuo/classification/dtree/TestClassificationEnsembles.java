@@ -16,6 +16,7 @@
 
 package org.tribuo.classification.dtree;
 
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -41,6 +42,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -163,4 +165,19 @@ public class TestClassificationEnsembles {
         testExtraTrees(p);
     }
 
+    @Test
+    public void testInvalidExtraTrees() {
+        assertThrows(PropertyException.class, () -> {
+            new ExtraTreesTrainer<>(subsamplingTree,new VotingCombiner(),
+                    10);
+        });
+    }
+
+    @Test
+    public void testInvalidRandomForest() {
+        assertThrows(PropertyException.class, () -> {
+            new RandomForestTrainer<>(randomTree,new VotingCombiner(),
+                    10);
+        });
+    }
 }

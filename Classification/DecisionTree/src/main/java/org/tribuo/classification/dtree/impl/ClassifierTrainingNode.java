@@ -139,7 +139,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * @param bestSplitValue Feature value to use for splitting the data.
      * @return A list of training nodes resulting from the split.
      */
-    public List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue ) {
+    private List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue ) {
         splitID = featureIDs[bestID];
         split = true;
         splitValue = bestSplitValue;

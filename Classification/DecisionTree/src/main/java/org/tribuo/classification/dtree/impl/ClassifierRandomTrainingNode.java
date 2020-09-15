@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
@@ -55,7 +54,7 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = Logger.getLogger(ClassifierTrainingNode.class.getName());
+    private static final Logger logger = Logger.getLogger(ClassifierRandomTrainingNode.class.getName());
 
     private static final ThreadLocal<IntArrayContainer> mergeBufferOne = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
     private static final ThreadLocal<IntArrayContainer> mergeBufferTwo = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
@@ -109,15 +108,15 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
 
             // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
-            if (feature.size() < 2) {
+            if (feature.size() == 1) {
                 continue;
             }
 
             Arrays.fill(lessThanCounts,0.0f);
             System.arraycopy(labelCounts, 0, greaterThanCounts, 0, labelCounts.length);
 
-            int split_idx = rng.nextInt(feature.size()-1);
-            for (int j = 0; j < split_idx + 1; j++) {
+            int splitIdx = rng.nextInt(feature.size()-1);
+            for (int j = 0; j < splitIdx + 1; j++) {
                 InvertedFeature vf = feature.get(j);
                 float[] countsBelowOrEqual = vf.getLabelCounts();
                 Util.inPlaceAdd(lessThanCounts, countsBelowOrEqual);
@@ -130,7 +129,7 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
                 if (score < bestScore) {
                     bestID = i;
                     bestScore = score;
-                    bestSplitValue = (feature.get(split_idx).value + feature.get(split_idx + 1).value) / 2.0;
+                    bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
                 }
             }
         }
@@ -153,7 +152,7 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
      * @param bestSplitValue Feature value to use for splitting the data.
      * @return A list of training nodes resulting from the split.
      */
-    public List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue) {
+    private List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue) {
         splitID = featureIDs[bestID];
         split = true;
         splitValue = bestSplitValue;
@@ -312,6 +311,7 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
 
     private void writeObject(java.io.ObjectOutputStream stream)
             throws IOException {
-        throw new NotSerializableException("ClassifierTrainingNode is a runtime class only, and should not be serialized.");
+        throw new NotSerializableException("ClassifierRandomTrainingNode is a runtime class only, and should not be " +
+                "serialized.");
     }
 }

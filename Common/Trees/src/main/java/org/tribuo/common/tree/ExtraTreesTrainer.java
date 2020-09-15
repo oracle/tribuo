@@ -26,24 +26,21 @@ import java.util.logging.Logger;
 /**
  * A trainer which produces an Extra Trees Ensemble.
  * <p>
- * Extra Trees are trees with feature subsampling at each of the nodes. Split points for attributes are chosen
- * randomly.
- * It's up to the user to supply a decision tree trainer which has feature subsampling turned on by
- * checking {@link DecisionTreeTrainer#getFractionFeaturesInSplit()}.
- * It's is also up to the user to supply a decision tree trainer which has random splitting turned on by
- * checking {@link DecisionTreeTrainer#getUseRandomSplitPoints()}.
+ * Extra Trees are trees where split points for attributes are chosen randomly. Feature subsampling is available at
+ * each of the nodes.
+ * An exception will be thrown if the inner trainer is not a decision tree trainer or if random splitting is turned off.
  * <p>
  * See:
  * <pre>
- * J. Friedman, T. Hastie, &amp; R. Tibshirani.
- * "The Elements of Statistical Learning"
- * Springer 2001. <a href="http://web.stanford.edu/~hastie/ElemStatLearn/">PDF</a>
+ * P. Geurts, D. Ernst, &amp L. Wehenkel.
+ * "Extremely Randomized Trees"
+ * March 2006. <a href="https://link.springer.com/article/10.1007/s10994-006-6226-1">PDF</a>
  * </pre>
- * TODO: Add reference to ExtraTrees paper?
+ *
  */
 public class ExtraTreesTrainer<T extends Output<T>> extends BaggingTrainer<T> {
 
-    private static final Logger logger = Logger.getLogger(RandomForestTrainer.class.getName());
+    private static final Logger logger = Logger.getLogger(ExtraTreesTrainer.class.getName());
 
     /**
      * For the configuration system.
@@ -68,7 +65,7 @@ public class ExtraTreesTrainer<T extends Output<T>> extends BaggingTrainer<T> {
         }
         DecisionTreeTrainer<T> t = (DecisionTreeTrainer<T>) innerTrainer;
         if (!t.getUseRandomSplitPoints()) {
-            throw new PropertyException("","innerTrainer","RandomForestTrainer requires that the decision tree " +
+            throw new PropertyException("","innerTrainer","ExtraTreesTrainer requires that the decision tree " +
                     "innerTrainer have random split points turned on.");
         }
     }

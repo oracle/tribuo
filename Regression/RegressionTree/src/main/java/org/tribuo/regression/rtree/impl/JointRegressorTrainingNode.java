@@ -178,7 +178,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * @param bestSplitValue Feature value to use for splitting the data.
      * @return A list of training nodes resulting from the split.
      */
-    public List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
+    private List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
                                                              List<int[]> bestLeftIndices, List<int[]> bestRightIndices){
         splitID = featureIDs[bestID];
         split = true;

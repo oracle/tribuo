@@ -51,7 +51,7 @@ import java.util.logging.Logger;
 public class RegressorRandomTrainingNode extends AbstractTrainingNode<Regressor> {
     private static final long serialVersionUID = 1L;
 
-    private static final Logger logger = Logger.getLogger(RegressorTrainingNode.class.getName());
+    private static final Logger logger = Logger.getLogger(RegressorRandomTrainingNode.class.getName());
 
     private static final ThreadLocal<IntArrayContainer> mergeBufferOne = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
     private static final ThreadLocal<IntArrayContainer> mergeBufferTwo = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
@@ -118,21 +118,21 @@ public class RegressorRandomTrainingNode extends AbstractTrainingNode<Regressor>
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
             // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
-            if (feature.size() < 2) {
+            if (feature.size() == 1) {
                 continue;
             }
 
-            int split_idx = rng.nextInt(feature.size()-1);
+            int splitIdx = rng.nextInt(feature.size()-1);
 
-            InvertedFeature vf;
-            for (int j = 0; j < feature.size(); j++) {
+            for (int j = 0; j < splitIdx + 1; j++) {
+                InvertedFeature vf;
                 vf = feature.get(j);
-                if (j <= split_idx) {
-                    curLeftIndices.add(vf.indices());
-                }
-                else {
-                    curRightIndices.add(vf.indices());
-                }
+                curLeftIndices.add(vf.indices());
+            }
+            for (int j = splitIdx + 1; j < feature.size(); j++) {
+                InvertedFeature vf;
+                vf = feature.get(j);
+                curRightIndices.add(vf.indices());
             }
 
             ImpurityTuple lessThanScore = impurity.impurityTuple(curLeftIndices,targets,weights);
@@ -141,7 +141,7 @@ public class RegressorRandomTrainingNode extends AbstractTrainingNode<Regressor>
             if (score < bestScore) {
                 bestID = i;
                 bestScore = score;
-                bestSplitValue = (feature.get(split_idx).value + feature.get(split_idx + 1).value) / 2.0;
+                bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
                 // Clear out the old best indices before storing the new ones.
                 bestLeftIndices.clear();
                 bestLeftIndices.addAll(curLeftIndices);
@@ -170,7 +170,7 @@ public class RegressorRandomTrainingNode extends AbstractTrainingNode<Regressor>
      * @param bestSplitValue Feature value to use for splitting the data.
      * @return A list of training nodes resulting from the split.
      */
-    public List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
+    private List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
                                                              List<int[]> bestLeftIndices, List<int[]> bestRightIndices){
         splitID = featureIDs[bestID];
         split = true;
@@ -305,6 +305,7 @@ public class RegressorRandomTrainingNode extends AbstractTrainingNode<Regressor>
 
     private void writeObject(java.io.ObjectOutputStream stream)
             throws IOException {
-        throw new NotSerializableException("RegressorTrainingNode is a runtime class only, and should not be serialized.");
+        throw new NotSerializableException("RegressorRandomTrainingNode is a runtime class only, and should not be " +
+                "serialized.");
     }
 }
