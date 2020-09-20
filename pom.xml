@@ -55,6 +55,12 @@
         <junit.version>5.6.2</junit.version>
         <opencsv.version>5.2</opencsv.version>
         <commonsmath.version>3.6.1</commonsmath.version>
+
+        <!-- Other properties -->
+        <!-- used by CI on Windows as the
+             XGBoost 1.0.0 binary on Maven Central doesn't
+             include Windows support -->
+        <skipXGBoostTests>false</skipXGBoostTests>
     </properties>
 
     <name>Tribuo</name>
