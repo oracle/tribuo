@@ -127,16 +127,17 @@ public class LabelEvaluatorTest {
         LabelEvaluation evaluation = new LabelEvaluator()
                 .evaluate(model, testPreds, dataset.getProvenance());
 
-        String expected = "Class                           n          tp          fn          fp      recall        prec          f1\n" +
-                "a                               1           1           0           0       1.000       1.000       1.000\n" +
-                "b                               2           1           1           1       0.500       0.500       0.500\n" +
-                "c                               1           0           1           1       0.000       0.000       0.000\n" +
-                "d                               1           1           0           0       1.000       1.000       1.000\n" +
-                "Total                           5           3           2           2\n" +
-                "Accuracy                                                                    0.600\n" +
-                "Micro Average                                                               0.600       0.600       0.600\n" +
-                "Macro Average                                                               0.625       0.625       0.625\n" +
-                "Balanced Error Rate                                                         0.375";
+        // Uses String.format to respect JVM locale
+        String expected =     "Class                           n          tp          fn          fp      recall        prec          f1\n" +
+                String.format("a                               1           1           0           0       %1.3f       %1.3f       %1.3f\n",1.0,1.0,1.0) +
+                String.format("b                               2           1           1           1       %1.3f       %1.3f       %1.3f\n",0.5,0.5,0.5) +
+                String.format("c                               1           0           1           1       %1.3f       %1.3f       %1.3f\n",0.0,0.0,0.0) +
+                String.format("d                               1           1           0           0       %1.3f       %1.3f       %1.3f\n",1.0,1.0,1.0) +
+                String.format("Total                           5           3           2           2\n") +
+                String.format("Accuracy                                                                    %1.3f\n",0.6) +
+                String.format("Micro Average                                                               %1.3f       %1.3f       %1.3f\n",0.6,0.6,0.6) +
+                String.format("Macro Average                                                               %1.3f       %1.3f       %1.3f\n",0.625,0.625,0.625) +
+                String.format("Balanced Error Rate                                                         %1.3f",0.375);
 
         String actual = evaluation.toString();
         actual = actual.replaceAll("\\r+", "");
@@ -166,19 +167,25 @@ public class LabelEvaluatorTest {
         LabelEvaluation evaluation = new LabelEvaluator()
                 .evaluate(model, testPreds, dataset.getProvenance());
 
+        // Uses String.format to respect JVM locale
         String expected = "<table>\n" +
                 "<tr>\n" +
                 "<th>Class</th><th>n</th> <th>%</th> <th>tp</th> <th>fn</th> <th>fp</th> <th>Recall</th> <th>Precision</th> <th>F1</th>\n" +
                 "</tr>\n" +
-                "<tr><td><code>a</code></td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">     7.7%</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">0</td><td style=\"text-align:right\">0</td><td style=\"text-align:right\">   1.000</td><td style=\"text-align:right\">   1.000</td><td style=\"text-align:right\">   1.000</td>\n" +
-                "</tr><tr><td><code>b</code></td><td style=\"text-align:right\">2</td><td style=\"text-align:right\">    15.4%</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">   0.500</td><td style=\"text-align:right\">   0.500</td><td style=\"text-align:right\">   0.500</td>\n" +
-                "</tr><tr><td><code>c</code></td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">     7.7%</td><td style=\"text-align:right\">0</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">   0.000</td><td style=\"text-align:right\">   0.000</td><td style=\"text-align:right\">   0.000</td>\n" +
-                "</tr><tr><td><code>d</code></td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">     7.7%</td><td style=\"text-align:right\">1</td><td style=\"text-align:right\">0</td><td style=\"text-align:right\">0</td><td style=\"text-align:right\">   1.000</td><td style=\"text-align:right\">   1.000</td><td style=\"text-align:right\">   1.000</td>\n" +
-                "</tr><tr><td>Total</td><td style=\"text-align:right\">          13</td><td style=\"text-align:right\"></td><td style=\"text-align:right\">           3</td><td style=\"text-align:right\">           2</td><td style=\"text-align:right\">           2</td>\n" +
+                String.format("<tr><td><code>a</code></td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">     %1.1f%%</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td>\n</tr>",
+                    1,7.7,1,0,0,1.0,1.0,1.0) +
+                String.format("<tr><td><code>b</code></td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">    %1.1f%%</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td>\n</tr>",
+                    2,15.4,1,1,1,0.5,0.5,0.5) +
+                String.format("<tr><td><code>c</code></td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">     %1.1f%%</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td>\n</tr>",
+                    1,7.7,0,1,1,0.0,0.0,0.0) +
+                String.format("<tr><td><code>d</code></td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">     %1.1f%%</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">%d</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td>\n</tr>",
+                    1,7.7,1,0,0,1.0,1.0,1.0) +
+                "<tr><td>Total</td><td style=\"text-align:right\">          13</td><td style=\"text-align:right\"></td><td style=\"text-align:right\">           3</td><td style=\"text-align:right\">           2</td><td style=\"text-align:right\">           2</td>\n" +
                 "<td colspan=\"4\"></td></tr>\n" +
-                "<tr><td>Accuracy</td><td style=\"text-align:right\" colspan=\"6\">   0.600</td>\n" +
+                String.format("<tr><td>Accuracy</td><td style=\"text-align:right\" colspan=\"6\">   %1.3f</td>\n",0.6) +
                 "<td colspan=\"4\"></td></tr>\n" +
-                "<tr><td>Micro Average</td><td style=\"text-align:right\" colspan=\"6\">   0.600</td><td style=\"text-align:right\">   0.600</td><td style=\"text-align:right\">   0.600</td>\n" +
+                String.format("<tr><td>Micro Average</td><td style=\"text-align:right\" colspan=\"6\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td><td style=\"text-align:right\">   %1.3f</td>\n",
+                        0.6,0.6,0.6) +
                 "</tr></table>";
         String actual = evaluation.toHTML();
         actual = actual.replaceAll("\\r+", "");
@@ -218,7 +225,8 @@ public class LabelEvaluatorTest {
             return sb.toString();
         };
 
-        String expected = "micro avg: 0.60 0.60 0.60";
+        // Use String.format to respect JVM locale
+        String expected = String.format("micro avg: %2.2f %2.2f %2.2f", 0.60, 0.60, 0.60);
         assertEquals(expected, custom.apply(evaluation));
     }
 
