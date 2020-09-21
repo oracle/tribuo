@@ -98,7 +98,7 @@ public class ClassifierRandomTrainingNode extends AbstractTrainingNode<Label> {
     public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
-        double bestScore = impurity.impurity(labelCounts);
+        double bestScore = impurityScore;
         float[] lessThanCounts = new float[labelCounts.length];
         float[] greaterThanCounts = new float[labelCounts.length];
         double countsSum = Util.sum(labelCounts);

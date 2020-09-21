@@ -75,7 +75,8 @@ public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObj
     }
 
     /**
-     * Calculates the impurity assuming the input are weighted counts, normalizing by their sum.
+     * Calculates the impurity assuming the input are weighted counts, normalizing by their sum. The resulting
+     * impurity is then rescaled by multiplying by the sum.
      * @param input The input counts.
      * @return The impurity.
      */

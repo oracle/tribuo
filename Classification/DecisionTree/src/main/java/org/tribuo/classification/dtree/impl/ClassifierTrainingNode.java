@@ -83,6 +83,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         this.labelIDMap = labelIDMap;
         this.impurity = impurity;
         this.labelCounts = data.get(0).getLabelCounts();
+        this.impurityScore = getImpurity();
     }
 
     /**
@@ -94,7 +95,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
-        double bestScore = impurity.impurity(labelCounts);
+        double bestScore = impurityScore;
         float[] lessThanCounts = new float[labelCounts.length];
         float[] greaterThanCounts = new float[labelCounts.length];
         double countsSum = Util.sum(labelCounts);
@@ -108,6 +109,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 float[] featureCounts = f.getLabelCounts();
                 Util.inPlaceAdd(lessThanCounts,featureCounts);
                 Util.inPlaceSubtract(greaterThanCounts,featureCounts);
+                // ImpurityWeighted rescales the impurity by the sum, in order to average properly when you add the
+                // left side & right side together, and then divide by the sum of the counts
                 double lessThanScore = impurity.impurityWeighted(lessThanCounts);
                 double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
                 if ((lessThanScore > 1e-10) && (greaterThanScore > 1e-10)) {

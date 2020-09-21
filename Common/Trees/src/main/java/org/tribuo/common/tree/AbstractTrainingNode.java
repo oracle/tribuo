@@ -38,6 +38,8 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     protected int splitID;
 
     protected double splitValue;
+
+    protected double impurityScore;
     
     protected AbstractTrainingNode<T> greaterThan;
     

@@ -97,6 +97,7 @@ public class JointRegressorRandomTrainingNode extends AbstractTrainingNode<Regre
         this.indices = indices;
         this.targets = targets;
         this.weights = weights;
+        this.impurityScore = getImpurity();
     }
 
     @Override
@@ -118,7 +119,7 @@ public class JointRegressorRandomTrainingNode extends AbstractTrainingNode<Regre
         int bestID = -1;
         double bestSplitValue = 0.0;
         double weightSum = Util.sum(indices,indices.length,weights);
-        double bestScore = getImpurity();
+        double bestScore = impurityScore;
         //logger.info("Cur node score = " + bestScore);
         List<int[]> curLeftIndices = new ArrayList<>();
         List<int[]> curRightIndices = new ArrayList<>();

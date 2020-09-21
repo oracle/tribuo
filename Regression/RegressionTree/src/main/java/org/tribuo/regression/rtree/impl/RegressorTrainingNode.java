@@ -88,6 +88,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         this.targets = targets;
         this.weights = weights;
         this.dimName = dimName;
+        this.impurityScore = getImpurity();
     }
 
     @Override
@@ -105,7 +106,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double weightSum = Util.sum(indices,indices.length,weights);
-        double bestScore = getImpurity();
+        double bestScore = impurityScore;
         //logger.info("Cur node score = " + bestScore);
         List<int[]> curIndices = new ArrayList<>();
         List<int[]> bestLeftIndices = new ArrayList<>();
