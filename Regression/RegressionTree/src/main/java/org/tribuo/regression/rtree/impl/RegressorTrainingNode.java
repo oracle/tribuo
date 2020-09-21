@@ -113,7 +113,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double weightSum = Util.sum(indices,indices.length,weights);
-        double bestScore = impurityScore;
+        double bestScore = getImpurity();
         //logger.info("Cur node score = " + bestScore);
         List<int[]> curIndices = new ArrayList<>();
         List<int[]> bestLeftIndices = new ArrayList<>();
@@ -164,7 +164,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double weightSum = Util.sum(indices,indices.length,weights);
-        double bestScore = impurityScore;
+        double bestScore = getImpurity();
         //logger.info("Cur node score = " + bestScore);
         List<int[]> curLeftIndices = new ArrayList<>();
         List<int[]> curRightIndices = new ArrayList<>();

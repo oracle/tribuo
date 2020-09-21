@@ -104,7 +104,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     private List<AbstractTrainingNode<Label>> buildGreedyTree(int[] featureIDs, SplittableRandom rng ) {
         int bestID = -1;
         double bestSplitValue = 0.0;
-        double bestScore = impurityScore;
+        double bestScore = getImpurity();
         float[] lessThanCounts = new float[labelCounts.length];
         float[] greaterThanCounts = new float[labelCounts.length];
         double countsSum = Util.sum(labelCounts);
@@ -146,7 +146,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     public List<AbstractTrainingNode<Label>> buildRandomTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
-        double bestScore = impurityScore;
+        double bestScore = getImpurity();
         float[] lessThanCounts = new float[labelCounts.length];
         float[] greaterThanCounts = new float[labelCounts.length];
         double countsSum = Util.sum(labelCounts);
