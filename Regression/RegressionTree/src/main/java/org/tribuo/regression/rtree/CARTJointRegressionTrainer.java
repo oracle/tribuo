@@ -24,7 +24,6 @@ import org.tribuo.common.tree.AbstractTrainingNode;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.regression.Regressor;
-import org.tribuo.regression.rtree.impl.JointRegressorRandomTrainingNode;
 import org.tribuo.regression.rtree.impl.JointRegressorTrainingNode;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity;
@@ -107,12 +106,7 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
 
     @Override
     protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples) {
-        if (useRandomSplitPoints) {
-            return new JointRegressorRandomTrainingNode(impurity, examples, normalize);
-        }
-        else {
-            return new JointRegressorTrainingNode(impurity, examples, normalize);
-        }
+        return new JointRegressorTrainingNode(impurity, examples, normalize);
     }
 
     @Override

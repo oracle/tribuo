@@ -88,13 +88,11 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         this.targets = targets;
         this.weights = weights;
         this.dimName = dimName;
-        this.impurityScore = getImpurity();
+        this.impurityScore = impurity.impurity(indices, targets, weights);
     }
 
     @Override
-    public double getImpurity() {
-        return impurity.impurity(indices, targets, weights);
-    }
+    public double getImpurity() { return impurityScore;}
 
     /**
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
@@ -102,7 +100,16 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
-    public List<AbstractTrainingNode<Regressor>> buildTree(int[] featureIDs, SplittableRandom rng) {
+    public List<AbstractTrainingNode<Regressor>> buildTree(int[] featureIDs, SplittableRandom rng,
+                                                           boolean useRandomSplitPoints) {
+        if (useRandomSplitPoints) {
+            return buildRandomTree(featureIDs, rng);
+        } else {
+            return buildGreedyTree(featureIDs, rng);
+        }
+    }
+
+    private List<AbstractTrainingNode<Regressor>> buildGreedyTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double weightSum = Util.sum(indices,indices.length,weights);
@@ -142,6 +149,66 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
                 }
             }
         }
+        List<AbstractTrainingNode<Regressor>> output;
+        // If we found a split better than the current impurity.
+        if (bestID != -1) {
+            output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
+        } else {
+            output = Collections.emptyList();
+        }
+        data = null;
+        return output;
+    }
+
+    private List<AbstractTrainingNode<Regressor>> buildRandomTree(int[] featureIDs, SplittableRandom rng) {
+        int bestID = -1;
+        double bestSplitValue = 0.0;
+        double weightSum = Util.sum(indices,indices.length,weights);
+        double bestScore = impurityScore;
+        //logger.info("Cur node score = " + bestScore);
+        List<int[]> curLeftIndices = new ArrayList<>();
+        List<int[]> curRightIndices = new ArrayList<>();
+        List<int[]> bestLeftIndices = new ArrayList<>();
+        List<int[]> bestRightIndices = new ArrayList<>();
+
+        // split each feature once randomly and record the least impure amongst these
+        for (int i = 0; i < featureIDs.length; i++) {
+            List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
+            // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
+            if (feature.size() == 1) {
+                continue;
+            }
+
+            int splitIdx = rng.nextInt(feature.size()-1);
+
+            for (int j = 0; j < splitIdx + 1; j++) {
+                InvertedFeature vf;
+                vf = feature.get(j);
+                curLeftIndices.add(vf.indices());
+            }
+            for (int j = splitIdx + 1; j < feature.size(); j++) {
+                InvertedFeature vf;
+                vf = feature.get(j);
+                curRightIndices.add(vf.indices());
+            }
+
+            ImpurityTuple lessThanScore = impurity.impurityTuple(curLeftIndices,targets,weights);
+            ImpurityTuple greaterThanScore = impurity.impurityTuple(curRightIndices,targets,weights);
+            double score = (lessThanScore.impurity*lessThanScore.weight + greaterThanScore.impurity*greaterThanScore.weight) / weightSum;
+            if (score < bestScore) {
+                bestID = i;
+                bestScore = score;
+                bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
+                // Clear out the old best indices before storing the new ones.
+                bestLeftIndices.clear();
+                bestLeftIndices.addAll(curLeftIndices);
+                bestRightIndices.clear();
+                bestRightIndices.addAll(curRightIndices);
+                //logger.info("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score);
+                //logger.info("less score = " +lessThanScore+", less size = "+lessThanIndices.size+", greater score = " + greaterThanScore+", greater size = "+greaterThanIndices.size);
+            }
+        }
+
         List<AbstractTrainingNode<Regressor>> output;
         // If we found a split better than the current impurity.
         if (bestID != -1) {

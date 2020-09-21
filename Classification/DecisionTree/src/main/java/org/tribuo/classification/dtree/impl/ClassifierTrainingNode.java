@@ -83,7 +83,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         this.labelIDMap = labelIDMap;
         this.impurity = impurity;
         this.labelCounts = data.get(0).getLabelCounts();
-        this.impurityScore = getImpurity();
+        this.impurityScore = impurity.impurity(labelCounts);
     }
 
     /**
@@ -92,7 +92,16 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
-    public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng) {
+    public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng,
+                                                       boolean useRandomSplitPoints) {
+        if (useRandomSplitPoints) {
+            return buildRandomTree(featureIDs, rng);
+        } else {
+            return buildGreedyTree(featureIDs, rng);
+        }
+    }
+
+    private List<AbstractTrainingNode<Label>> buildGreedyTree(int[] featureIDs, SplittableRandom rng ) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = impurityScore;
@@ -134,6 +143,55 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         return output;
     }
 
+    public List<AbstractTrainingNode<Label>> buildRandomTree(int[] featureIDs, SplittableRandom rng) {
+        int bestID = -1;
+        double bestSplitValue = 0.0;
+        double bestScore = impurityScore;
+        float[] lessThanCounts = new float[labelCounts.length];
+        float[] greaterThanCounts = new float[labelCounts.length];
+        double countsSum = Util.sum(labelCounts);
+
+        // split each feature once randomly and record the least impure amongst these
+        for (int i = 0; i < featureIDs.length; i++) {
+            List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
+
+            // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
+            if (feature.size() == 1) {
+                continue;
+            }
+
+            Arrays.fill(lessThanCounts,0.0f);
+            System.arraycopy(labelCounts, 0, greaterThanCounts, 0, labelCounts.length);
+
+            int splitIdx = rng.nextInt(feature.size()-1);
+            for (int j = 0; j < splitIdx + 1; j++) {
+                InvertedFeature vf = feature.get(j);
+                float[] countsBelowOrEqual = vf.getLabelCounts();
+                Util.inPlaceAdd(lessThanCounts, countsBelowOrEqual);
+                Util.inPlaceSubtract(greaterThanCounts, countsBelowOrEqual);
+            }
+            double lessThanScore = impurity.impurityWeighted(lessThanCounts);
+            double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
+            if ((lessThanScore > 1e-10) && (greaterThanScore > 1e-10)) {
+                double score = (lessThanScore + greaterThanScore) / countsSum;
+                if (score < bestScore) {
+                    bestID = i;
+                    bestScore = score;
+                    bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
+                }
+            }
+        }
+
+        List<AbstractTrainingNode<Label>> output;
+        // If we found a split better than the current impurity.
+        if (bestID != -1) {
+            output = splitAtBest(featureIDs, bestID, bestSplitValue);
+        } else {
+            output = Collections.emptyList();
+        }
+        data = null;
+        return output;
+    }
 
     /**
      * Splits the data to form two nodes.
@@ -213,9 +271,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     }
 
     @Override
-    public double getImpurity() {
-        return impurity.impurity(labelCounts);
-    }
+    public double getImpurity() { return impurityScore;}
 
     /**
      * Inverts a training dataset from row major to column major. This partially de-sparsifies the dataset

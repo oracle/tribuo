@@ -50,7 +50,8 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         this.numExamples = numExamples;
     }
 
-    public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices, SplittableRandom rng);
+    public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices, SplittableRandom rng,
+                                                            boolean useRandomSplitPoints);
 
     public abstract Node<T> convertTree();
 
