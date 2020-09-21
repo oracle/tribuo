@@ -59,12 +59,13 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
     public CARTClassificationTrainer(
             int maxDepth,
             float minChildWeight,
+            float minImpurityDecrease,
             float fractionFeaturesInSplit,
             boolean useRandomSplitPoints,
             LabelImpurity impurity,
             long seed
     ) {
-        super(maxDepth, minChildWeight, fractionFeaturesInSplit, useRandomSplitPoints, seed);
+        super(maxDepth, minChildWeight, minImpurityDecrease, fractionFeaturesInSplit, useRandomSplitPoints, seed);
         this.impurity = impurity;
         postConfig();
     }

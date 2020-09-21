@@ -66,6 +66,12 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     protected int maxDepth = Integer.MAX_VALUE;
 
     /**
+     * Minimum impurity decrease. The decrease in impurity needed in order to split the node.
+     */
+    @Config(description="The maximum depth of the tree.")
+    protected float minImpurityDecrease = 0.0f;
+
+    /**
      * Number of features to sample per split. 1 indicates all features are considered.
      */
     @Config(description="The fraction of features to consider in each split. 1.0f indicates all features are considered.")
@@ -88,22 +94,34 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
      * After calls to this superconstructor subclasses must call postConfig().
      * @param maxDepth The maximum depth of the tree.
      * @param minChildWeight The minimum child weight allowed.
+     * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
      * @param fractionFeaturesInSplit The fraction of features to consider at each split.
      * @param useRandomSplitPoints Whether to choose split points for attributes at random.
      * @param seed The seed for the feature subsampling RNG.
      */
-    protected AbstractCARTTrainer(int maxDepth, float minChildWeight, float fractionFeaturesInSplit,
-                                  boolean useRandomSplitPoints, long seed) {
+    protected AbstractCARTTrainer(int maxDepth, float minChildWeight, float minImpurityDecrease,
+                                  float fractionFeaturesInSplit, boolean useRandomSplitPoints, long seed) {
         this.maxDepth = maxDepth;
         this.fractionFeaturesInSplit = fractionFeaturesInSplit;
         this.useRandomSplitPoints = useRandomSplitPoints;
         this.minChildWeight = minChildWeight;
+        this.minImpurityDecrease = minImpurityDecrease;
         this.seed = seed;
     }
 
     @Override
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
+
+        // TODO: Do we want to check any of the other params here?
+        if ((fractionFeaturesInSplit < 0.0f) || (this.fractionFeaturesInSplit > 1.0f)) {
+            throw new IllegalArgumentException("fractionFeaturesInSplit must be between 0 and 1");
+        }
+
+        if (minImpurityDecrease < 0.0f) {
+            throw new IllegalArgumentException("minImpurityDecrease must be greater than or equal to 0");
+        }
+
     }
 
     @Override

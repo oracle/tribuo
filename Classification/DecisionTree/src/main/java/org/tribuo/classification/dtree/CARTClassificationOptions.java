@@ -41,6 +41,8 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
     public int cartMaxDepth = 6;
     @Option(longName = "cart-min-child-weight", usage = "Minimum child weight.")
     public float cartMinChildWeight = 5.0f;
+    @Option(longName = "cart-min-impurity-decrease", usage = "Minimum impurity decrease.")
+    public float cartMinImpurityDecrease = 0.0f;
     @Option(longName = "cart-split-fraction", usage = "Fraction of features in split.")
     public float cartSplitFraction = 0.0f;
     @Option(longName = "cart-random-split", usage = "Whether to choose split points for attributes at random.")
@@ -71,12 +73,12 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
         CARTClassificationTrainer trainer;
         switch (cartTreeAlgorithm) {
             case CART:
-                if (cartSplitFraction <= 0) {
-                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, 1, cartRandomSplit,
-                            impurity, cartSeed);
+                if (cartSplitFraction == 0) {
+                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease
+                            ,1, cartRandomSplit, impurity, cartSeed);
                 } else {
-                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartSplitFraction,
-                            cartRandomSplit, impurity, cartSeed);
+                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease
+                            ,cartSplitFraction, cartRandomSplit, impurity, cartSeed);
                 }
                 break;
             default:
