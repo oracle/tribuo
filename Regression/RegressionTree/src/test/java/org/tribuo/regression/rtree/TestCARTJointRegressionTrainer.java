@@ -39,7 +39,7 @@ public class TestCARTJointRegressionTrainer {
 
     private static final CARTJointRegressionTrainer t = new CARTJointRegressionTrainer();
     private static final CARTJointRegressionTrainer normedt = new CARTJointRegressionTrainer(Integer.MAX_VALUE,true);
-    private static final CARTJointRegressionTrainer randomt = new CARTJointRegressionTrainer(Integer.MAX_VALUE, 5,
+    private static final CARTJointRegressionTrainer randomt = new CARTJointRegressionTrainer(Integer.MAX_VALUE, 5, 0.0f,
             0.75f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
 
     public void testJointRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p, AbstractCARTTrainer<Regressor> trainer) {

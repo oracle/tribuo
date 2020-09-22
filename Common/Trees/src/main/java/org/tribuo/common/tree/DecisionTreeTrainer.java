@@ -38,4 +38,9 @@ public interface DecisionTreeTrainer<T extends Output<T>> extends SparseTrainer<
      */
     public boolean getUseRandomSplitPoints();
 
+    /**
+     * Returns the minimum decrease in impurity necessary to split a node.
+     * @return The minimum decrease in impurity necessary to split a node.
+     */
+    public float getMinImpurityDecrease();
 }

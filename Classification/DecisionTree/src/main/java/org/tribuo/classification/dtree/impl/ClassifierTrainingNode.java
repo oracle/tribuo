@@ -89,19 +89,28 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     /**
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
+     * @param rng Splittable random number generator.
+     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
+     * @param scaledMinImpurityDecrease The product of the number of original examples and the minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
     public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng,
-                                                       boolean useRandomSplitPoints) {
+                                                       boolean useRandomSplitPoints, float scaledMinImpurityDecrease) {
         if (useRandomSplitPoints) {
-            return buildRandomTree(featureIDs, rng);
+            return buildRandomTree(featureIDs, rng, scaledMinImpurityDecrease);
         } else {
-            return buildGreedyTree(featureIDs, rng);
+            return buildGreedyTree(featureIDs, scaledMinImpurityDecrease);
         }
     }
 
-    private List<AbstractTrainingNode<Label>> buildGreedyTree(int[] featureIDs, SplittableRandom rng ) {
+    /**
+     * Builds a tree according to CART
+     * @param featureIDs Indices of the features available in this split.
+     * @param scaledMinImpurityDecrease The product of the number of original examples and the minImpurityDecrease.
+     * @return A possibly empty list of TrainingNodes.
+     */
+    private List<AbstractTrainingNode<Label>> buildGreedyTree(int[] featureIDs, float scaledMinImpurityDecrease) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
@@ -133,8 +142,9 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
             }
         }
         List<AbstractTrainingNode<Label>> output;
+        double impurityDecrease = countsSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if (bestID != -1) {
+        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue);
         } else {
             output = Collections.emptyList();
@@ -143,7 +153,15 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         return output;
     }
 
-    public List<AbstractTrainingNode<Label>> buildRandomTree(int[] featureIDs, SplittableRandom rng) {
+    /**
+     * Builds a CART tree with randomly chosen split points.
+     * @param featureIDs Indices of the features available in this split.
+     * @param rng Splittable random number generator.
+     * @param scaledMinImpurityDecrease The product of the number of original examples and the minImpurityDecrease.
+     * @return A possibly empty list of TrainingNodes.
+     */
+    public List<AbstractTrainingNode<Label>> buildRandomTree(int[] featureIDs, SplittableRandom rng,
+                                                             float scaledMinImpurityDecrease) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
@@ -183,8 +201,9 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         }
 
         List<AbstractTrainingNode<Label>> output;
+        double impurityDecrease = countsSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if (bestID != -1) {
+        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue);
         } else {
             output = Collections.emptyList();

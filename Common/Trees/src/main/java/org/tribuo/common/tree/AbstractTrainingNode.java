@@ -51,7 +51,7 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     }
 
     public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices, SplittableRandom rng,
-                                                            boolean useRandomSplitPoints);
+                                                            boolean useRandomSplitPoints, float minImpurityDecrease);
 
     public abstract Node<T> convertTree();
 

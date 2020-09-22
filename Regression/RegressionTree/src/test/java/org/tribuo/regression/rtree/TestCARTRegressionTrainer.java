@@ -37,7 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class TestCARTRegressionTrainer {
 
     private static final CARTRegressionTrainer t = new CARTRegressionTrainer();
-    private static final CARTRegressionTrainer randomt = new CARTRegressionTrainer(Integer.MAX_VALUE, 5, 0.75f, true,
+    private static final CARTRegressionTrainer randomt = new CARTRegressionTrainer(Integer.MAX_VALUE, 5, 0.0f, 0.75f,
+        true,
             new MeanSquaredError(), Trainer.DEFAULT_SEED);
 
     public void testIndependentRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p,

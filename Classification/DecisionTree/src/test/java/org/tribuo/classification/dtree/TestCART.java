@@ -42,8 +42,8 @@ import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 public class TestCART {
 
     private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
-    private static final CARTClassificationTrainer randomt = new CARTClassificationTrainer(5, 2, 1.0f, true,
-        new GiniIndex(), Trainer.DEFAULT_SEED);
+    private static final CARTClassificationTrainer randomt = new CARTClassificationTrainer(5,     2, 0.0f,1.0f, true,
+            new GiniIndex(), Trainer.DEFAULT_SEED);
 
     public void testCART(Pair<Dataset<Label>,Dataset<Label>> p, AbstractCARTTrainer<Label> trainer) {
         TreeModel<Label> m = trainer.train(p.getA());

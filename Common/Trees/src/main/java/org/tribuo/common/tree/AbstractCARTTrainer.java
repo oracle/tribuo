@@ -19,6 +19,7 @@ package org.tribuo.common.tree;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.Dataset;
+import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
@@ -68,7 +69,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     /**
      * Minimum impurity decrease. The decrease in impurity needed in order to split the node.
      */
-    @Config(description="The maximum depth of the tree.")
+    @Config(description="The decrease in impurity needed in order to split the node.")
     protected float minImpurityDecrease = 0.0f;
 
     /**
@@ -121,7 +122,6 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         if (minImpurityDecrease < 0.0f) {
             throw new IllegalArgumentException("minImpurityDecrease must be greater than or equal to 0");
         }
-
     }
 
     @Override
@@ -136,6 +136,9 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
 
     @Override
     public boolean getUseRandomSplitPoints() {return useRandomSplitPoints; }
+
+    @Override
+    public float getMinImpurityDecrease() {return minImpurityDecrease; }
 
     @Override
     public TreeModel<T> train(Dataset<T> examples) {
@@ -172,6 +175,9 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
             indices = originalIndices;
         }
 
+        float weightSum = 0.0f;
+        for (Example<T> e : examples) { weightSum += e.getWeight(); }
+
         AbstractTrainingNode<T> root = mkTrainingNode(examples);
         Deque<AbstractTrainingNode<T>> queue = new LinkedList<>();
         queue.add(root);
@@ -184,7 +190,8 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
                     Util.randpermInPlace(originalIndices, localRNG);
                     System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                 }
-                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices, localRNG, useRandomSplitPoints);
+                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices, localRNG, getUseRandomSplitPoints(),
+                        getMinImpurityDecrease() * weightSum);
                 // Use the queue as a stack to improve cache locality.
                 // Building depth first.
                 for (AbstractTrainingNode<T> newNode : nodes) {

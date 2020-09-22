@@ -59,6 +59,7 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
      *
      * @param maxDepth maxDepth The maximum depth of the tree.
      * @param minChildWeight minChildWeight The minimum node weight to consider it for a split.
+     * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
      * @param fractionFeaturesInSplit fractionFeaturesInSplit The fraction of features available in each split.
      * @param useRandomSplitPoints Whether to choose split points for attributes at random.
      * @param impurity impurity The impurity function to use to determine split quality.
@@ -68,13 +69,14 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
     public CARTJointRegressionTrainer(
             int maxDepth,
             float minChildWeight,
+            float minImpurityDecrease,
             float fractionFeaturesInSplit,
             boolean useRandomSplitPoints,
             RegressorImpurity impurity,
             boolean normalize,
             long seed
     ) {
-        super(maxDepth, minChildWeight, fractionFeaturesInSplit, useRandomSplitPoints, seed);
+        super(maxDepth, minChildWeight, minImpurityDecrease, fractionFeaturesInSplit, useRandomSplitPoints, seed);
         this.impurity = impurity;
         this.normalize = normalize;
         postConfig();
@@ -84,7 +86,7 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
      * Creates a CART Trainer. Sets the impurity to the {@link MeanSquaredError} and does not normalize the outputs.
      */
     public CARTJointRegressionTrainer() {
-        this(Integer.MAX_VALUE, MIN_EXAMPLES, 1.0f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
+        this(Integer.MAX_VALUE, MIN_EXAMPLES, 0.0f, 1.0f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
     }
 
     /**
@@ -92,7 +94,7 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
      * @param maxDepth The maximum depth of the tree.
      */
     public CARTJointRegressionTrainer(int maxDepth) {
-        this(maxDepth, MIN_EXAMPLES, 1.0f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
+        this(maxDepth, MIN_EXAMPLES, 0.0f, 1.0f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
     }
 
     /**
@@ -101,7 +103,7 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
      * @param normalize Normalises the leaves so each leaf has a distribution which sums to 1.0.
      */
     public CARTJointRegressionTrainer(int maxDepth, boolean normalize) {
-        this(maxDepth, MIN_EXAMPLES, 1.0f, false, new MeanSquaredError(), normalize, Trainer.DEFAULT_SEED);
+        this(maxDepth, MIN_EXAMPLES, 0.0f, 1.0f, false, new MeanSquaredError(), normalize, Trainer.DEFAULT_SEED);
     }
 
     @Override
@@ -117,6 +119,8 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
         buffer.append(maxDepth);
         buffer.append(",minChildWeight=");
         buffer.append(minChildWeight);
+        buffer.append(",minImpurityDecrease=");
+        buffer.append(minImpurityDecrease);
         buffer.append(",fractionFeaturesInSplit=");
         buffer.append(fractionFeaturesInSplit);
         buffer.append(",useRandomSplitPoints=");

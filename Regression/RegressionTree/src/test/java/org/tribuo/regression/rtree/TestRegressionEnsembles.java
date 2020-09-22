@@ -40,17 +40,18 @@ import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 public class TestRegressionEnsembles {
 
     private static final CARTRegressionTrainer t = new CARTRegressionTrainer();
-    private static final CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE, MIN_EXAMPLES, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
+    private static final CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE,
+            MIN_EXAMPLES, 0.0f, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
     private static final CARTRegressionTrainer randomTree = new CARTRegressionTrainer(Integer.MAX_VALUE, MIN_EXAMPLES
-            , 0.5f, true, new MeanSquaredError(), Trainer.DEFAULT_SEED);
+            , 0.0f,0.5f, true, new MeanSquaredError(), Trainer.DEFAULT_SEED);
     private static final BaggingTrainer<Regressor> bagT = new BaggingTrainer<>(t,new AveragingCombiner(),10);
     private static final RandomForestTrainer<Regressor> rfT = new RandomForestTrainer<>(subsamplingTree,new AveragingCombiner(),10);
     private static final ExtraTreesTrainer<Regressor> eTT = new ExtraTreesTrainer<>(randomTree,new AveragingCombiner(),10);
 
     private static final CARTJointRegressionTrainer mT = new CARTJointRegressionTrainer();
-    private static final CARTJointRegressionTrainer mSubsamplingTree = new CARTJointRegressionTrainer(Integer.MAX_VALUE, AbstractCARTTrainer.MIN_EXAMPLES, 0.5f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
+    private static final CARTJointRegressionTrainer mSubsamplingTree = new CARTJointRegressionTrainer(Integer.MAX_VALUE, AbstractCARTTrainer.MIN_EXAMPLES, 0.0f,0.5f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
     private static final CARTJointRegressionTrainer mRandomTree = new CARTJointRegressionTrainer(Integer.MAX_VALUE,
-            AbstractCARTTrainer.MIN_EXAMPLES, 0.5f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
+            AbstractCARTTrainer.MIN_EXAMPLES, 0.0f,0.5f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
     private static final BaggingTrainer<Regressor> mBagT = new BaggingTrainer<>(mT,new AveragingCombiner(),10);
     private static final RandomForestTrainer<Regressor> mRfT = new RandomForestTrainer<>(mSubsamplingTree,new AveragingCombiner(),10);
     private static final ExtraTreesTrainer<Regressor> mETT = new ExtraTreesTrainer<>(mRandomTree,

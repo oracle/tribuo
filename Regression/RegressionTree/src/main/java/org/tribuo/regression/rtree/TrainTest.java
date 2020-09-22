@@ -62,6 +62,9 @@ public class TrainTest {
         public float fraction = 0.0f;
         @Option(charName='m',longName="min-child-weight",usage="Minimum child weight.")
         public float minChildWeight = 5.0f;
+        @Option(charName='p',longName="min-impurity-decrease",usage="Minimumum decrease in impurity required in order" +
+                " for the node to be split.")
+        public float minImpurityDecrease = 0.0f;
         @Option(charName='n',longName="normalize",usage="Normalize the leaf outputs so each leaf sums to 1.0.")
         public boolean normalize = false;
         @Option(charName='i',longName="impurity",usage="Impurity measure to use. Defaults to MSE.")
@@ -119,16 +122,20 @@ public class TrainTest {
         switch (o.treeType) {
             case CART_INDEPENDENT:
                 if (o.fraction <= 0) {
-                    trainer = new CARTRegressionTrainer(o.depth,o.minChildWeight,1, false, impurity, o.general.seed);
+                    trainer = new CARTRegressionTrainer(o.depth,o.minChildWeight,0.0f, 1, false, impurity,
+                            o.general.seed);
                 } else {
-                    trainer = new CARTRegressionTrainer(o.depth, o.minChildWeight, o.fraction, false, impurity, o.general.seed);
+                    trainer = new CARTRegressionTrainer(o.depth, o.minChildWeight,0.0f,o.fraction, false, impurity,
+                            o.general.seed);
                 }
                 break;
             case CART_JOINT:
                 if (o.fraction <= 0) {
-                    trainer = new CARTJointRegressionTrainer(o.depth,o.minChildWeight,1, false, impurity, o.normalize, o.general.seed);
+                    trainer = new CARTJointRegressionTrainer(o.depth,o.minChildWeight,0.0f,1, false, impurity,
+                            o.normalize, o.general.seed);
                 } else {
-                    trainer = new CARTJointRegressionTrainer(o.depth, o.minChildWeight, o.fraction, false, impurity, o.normalize, o.general.seed);
+                    trainer = new CARTJointRegressionTrainer(o.depth, o.minChildWeight, 0.0f, o.fraction, false,
+                            impurity, o.normalize, o.general.seed);
                 }
                 break;
             default:

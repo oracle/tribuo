@@ -19,6 +19,7 @@ package org.tribuo.regression.rtree;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.Dataset;
+import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
@@ -69,6 +70,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
      *
      * @param maxDepth maxDepth The maximum depth of the tree.
      * @param minChildWeight minChildWeight The minimum node weight to consider it for a split.
+     * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
      * @param fractionFeaturesInSplit fractionFeaturesInSplit The fraction of features available in each split.
      * @param useRandomSplitPoints Whether to choose split points for attributes at random.
      * @param impurity impurity The impurity function to use to determine split quality.
@@ -77,12 +79,13 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
     public CARTRegressionTrainer(
             int maxDepth,
             float minChildWeight,
+            float minImpurityDecrease,
             float fractionFeaturesInSplit,
             boolean useRandomSplitPoints,
             RegressorImpurity impurity,
             long seed
     ) {
-        super(maxDepth, minChildWeight, fractionFeaturesInSplit, useRandomSplitPoints, seed);
+        super(maxDepth, minChildWeight, minImpurityDecrease, fractionFeaturesInSplit, useRandomSplitPoints, seed);
         this.impurity = impurity;
         postConfig();
     }
@@ -101,7 +104,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
      * @param maxDepth The maximum depth of the tree.
      */
     public CARTRegressionTrainer(int maxDepth) {
-        this(maxDepth, MIN_EXAMPLES, 1.0f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
+        this(maxDepth, MIN_EXAMPLES, 0.0f, 1.0f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
     }
 
     @Override
@@ -140,6 +143,9 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
             indices = originalIndices;
         }
 
+        float weightSum = 0.0f;
+        for (Example<Regressor> e : examples) { weightSum += e.getWeight(); }
+
         InvertedData data = RegressorTrainingNode.invertData(examples);
 
         Map<String, Node<Regressor>> nodeMap = new HashMap<>();
@@ -159,7 +165,8 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
                         Util.randpermInPlace(originalIndices, localRNG);
                         System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                     }
-                    List<AbstractTrainingNode<Regressor>> nodes = node.buildTree(indices, localRNG, useRandomSplitPoints);
+                    List<AbstractTrainingNode<Regressor>> nodes = node.buildTree(indices, localRNG,
+                            getUseRandomSplitPoints(),getMinImpurityDecrease() * weightSum);
                     // Use the queue as a stack to improve cache locality.
                     for (AbstractTrainingNode<Regressor> newNode : nodes) {
                         queue.addFirst(newNode);
@@ -182,6 +189,8 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
         buffer.append(maxDepth);
         buffer.append(",minChildWeight=");
         buffer.append(minChildWeight);
+        buffer.append(",minImpurityDecrease=");
+        buffer.append(minImpurityDecrease);
         buffer.append(",fractionFeaturesInSplit=");
         buffer.append(fractionFeaturesInSplit);
         buffer.append(",useRandomSplitPoints=");
