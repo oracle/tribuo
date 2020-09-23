@@ -11,13 +11,12 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-latest
     strategy:
       matrix:
         # test against supported LTS versions and latest
-        java: [ 8, 11, 14 ]
-    name: OpenJDK ${{ matrix.java }}
+        java: [ 8, 11, 15 ]
+    name: Windows OpenJDK ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup OpenJDK
