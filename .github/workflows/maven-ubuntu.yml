@@ -15,8 +15,8 @@ jobs:
     strategy:
       matrix:
         # test against supported LTS versions and latest
-        java: [ 8, 11, 14 ]
-    name: OpenJDK ${{ matrix.java }}
+        java: [ 8, 11, 15 ]
+    name: Ubuntu OpenJDK ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup OpenJDK
