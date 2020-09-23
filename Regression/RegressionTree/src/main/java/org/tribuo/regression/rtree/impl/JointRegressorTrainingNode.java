@@ -103,6 +103,10 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
     @Override
     public double getImpurity() { return impurityScore;}
 
+    /**
+     * Calculates the impurity score of the node.
+     * @return the impurity score of the node.
+     */
     private double calcImpurity(){
         double tmp = 0.0;
         for (int i = 0; i < targets.length; i++) {
@@ -116,7 +120,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
      * @param useRandomSplitPoints Whether to choose split points for attributes at random.
-     * @param scaledMinImpurityDecrease The product of the number of original examples and the minImpurityDecrease.
+     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
@@ -132,7 +137,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
     /**
      * Builds a tree according to CART
      * @param featureIDs Indices of the features available in this split.
-     * @param scaledMinImpurityDecrease The product of the number of original examples and the minImpurityDecrease.
+     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     private List<AbstractTrainingNode<Regressor>> buildGreedyTree(int[] featureIDs, float scaledMinImpurityDecrease) {
@@ -197,7 +203,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * Builds a CART tree with randomly chosen split points.
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
-     * @param scaledMinImpurityDecrease The product of the number of original examples and the minImpurityDecrease.
+    * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     private List<AbstractTrainingNode<Regressor>> buildRandomTree(int[] featureIDs, SplittableRandom rng, float scaledMinImpurityDecrease) {
@@ -274,6 +281,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * @param featureIDs Indices of the features available in this split.
      * @param bestID ID of the feature on which the split should be based.
      * @param bestSplitValue Feature value to use for splitting the data.
+     * @param bestLeftIndices The indices of the examples less than or equal to the split value.
+     * @param bestRightIndices The indices of the examples greater than the split value.
      * @return A list of training nodes resulting from the split.
      */
     private List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,

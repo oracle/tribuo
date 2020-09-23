@@ -42,7 +42,7 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
     public final double value;
 
     private final int numLabels;
-    private final float[] labelCounts;
+    private final float[] weightedLabelCounts;
 
     /**
      * indices *must* be inserted in a sorted order.
@@ -68,9 +68,9 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
         this.weights = weights;
         this.curSize = indices.length;
         this.numLabels = numLabels;
-        this.labelCounts = new float[numLabels];
+        this.weightedLabelCounts = new float[numLabels];
         for (int idx : indices) {
-            labelCounts[labels[idx]] += weights[idx];
+            weightedLabelCounts[labels[idx]] += weights[idx];
         }
     }
 
@@ -80,8 +80,8 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
         this.numLabels = numLabels;
         this.labels = labels;
         this.weights = weights;
-        this.labelCounts = new float[numLabels];
-        this.labelCounts[labels[index]] += weights[index];
+        this.weightedLabelCounts = new float[numLabels];
+        this.weightedLabelCounts[labels[index]] += weights[index];
     }
 
     public void add(int index) {
@@ -89,7 +89,7 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
             initArrays();
         }
         append(index);
-        labelCounts[labels[index]] += weights[index];
+        weightedLabelCounts[labels[index]] += weights[index];
     }
 
     private void append(int index) {
@@ -112,8 +112,8 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
         }
     }
 
-    public float[] getLabelCounts() {
-        return labelCounts;
+    public float[] getWeightedLabelCounts() {
+        return weightedLabelCounts;
     }
 
     public void fixSize() {
@@ -238,7 +238,7 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
                 numLabels == that.numLabels &&
                 curSize == that.curSize &&
                 index == that.index &&
-                Arrays.equals(labelCounts, that.labelCounts) &&
+                Arrays.equals(weightedLabelCounts, that.weightedLabelCounts) &&
                 Arrays.equals(indices, that.indices) &&
                 Arrays.equals(labels, that.labels) &&
                 Arrays.equals(weights, that.weights);
@@ -247,7 +247,7 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
     @Override
     public int hashCode() {
         int result = Objects.hash(value, numLabels, curSize, index);
-        result = 31 * result + Arrays.hashCode(labelCounts);
+        result = 31 * result + Arrays.hashCode(weightedLabelCounts);
         result = 31 * result + Arrays.hashCode(indices);
         result = 31 * result + Arrays.hashCode(labels);
         result = 31 * result + Arrays.hashCode(weights);

@@ -114,13 +114,20 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
 
-        // TODO: Do we want to check any of the other params here?
         if ((fractionFeaturesInSplit < 0.0f) || (this.fractionFeaturesInSplit > 1.0f)) {
             throw new IllegalArgumentException("fractionFeaturesInSplit must be between 0 and 1");
         }
 
         if (minImpurityDecrease < 0.0f) {
             throw new IllegalArgumentException("minImpurityDecrease must be greater than or equal to 0");
+        }
+
+        if (maxDepth < 1) {
+            throw new IllegalArgumentException("maxDepth must be greater than or equal to 1");
+        }
+
+        if ((minChildWeight < 0.0f)) {
+            throw new IllegalArgumentException("minChildWeight must be greater than or equal to 0");
         }
     }
 
@@ -170,7 +177,6 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         }
         if (numFeaturesInSplit != featureIDMap.size()) {
             indices = new int[numFeaturesInSplit];
-            // log
         } else {
             indices = originalIndices;
         }
