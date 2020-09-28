@@ -59,6 +59,12 @@ import java.util.regex.Pattern;
  * A DataSource which can read LibSVM formatted data.
  * <p>
  * It also provides a static save method which writes LibSVM format data.
+ * <p>
+ * This class can read libsvm files which are zero-indexed or one-indexed, and the
+ * parsed result is available after construction. When loading testing data it's
+ * best to use the maxFeatureID from the training data (or the number of features
+ * in the model) to ensure that the feature names are formatted with the appropriate
+ * number of leading zeros.
  */
 public final class LibSVMDataSource<T extends Output<T>> implements ConfigurableDataSource<T> {
     private static final Logger logger = Logger.getLogger(LibSVMDataSource.class.getName());
@@ -93,26 +99,94 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
      */
     private LibSVMDataSource() {}
 
+    /**
+     * Constructs a LibSVMDataSource from the supplied path and output factory.
+     * @param path The path to load.
+     * @param outputFactory The output factory to use.
+     * @throws IOException If the file could not be read or is an invalid format.
+     */
     public LibSVMDataSource(Path path, OutputFactory<T> outputFactory) throws IOException {
         this(path,path.toUri().toURL(),outputFactory,false,false,0);
     }
 
+    /**
+     * Constructs a LibSVMDataSource from the supplied path and output factory.
+     * <p>
+     * Also allows control over the maximum feature id and if the file is zero indexed.
+     * The maximum feature id is used as part of the padding calculation converting the
+     * integer feature numbers into Tribuo's String feature names and is important
+     * to set when loading test data to ensure that the names line up with the training
+     * names. For example if there are 110 features, but the test dataset only has features
+     * 0-90, then without setting {@code maxFeatureID = 110} all the features will be named
+     * "00" through "90", rather than the expected "000" - "090", leading to a mismatch.
+     * @param path The path to load.
+     * @param outputFactory The output factory to use.
+     * @param zeroIndexed Are the features in this file indexed from zero?
+     * @param maxFeatureID The maximum feature ID allowed.
+     * @throws IOException If the file could not be read or is an invalid format.
+     */
     public LibSVMDataSource(Path path, OutputFactory<T> outputFactory, boolean zeroIndexed, int maxFeatureID) throws IOException {
         this(path,path.toUri().toURL(),outputFactory,true,zeroIndexed,maxFeatureID);
     }
 
+    /**
+     * Constructs a LibSVMDataSource from the supplied URL and output factory.
+     * @param url The url to load.
+     * @param outputFactory The output factory to use.
+     * @throws IOException If the url could not load or is in an invalid format.
+     */
     public LibSVMDataSource(URL url, OutputFactory<T> outputFactory) throws IOException {
         this(null,url,outputFactory,false,false,0);
     }
 
+    /**
+     * Constructs a LibSVMDataSource from the supplied URL and output factory.
+     * <p>
+     * Also allows control over the maximum feature id and if the file is zero indexed.
+     * The maximum feature id is used as part of the padding calculation converting the
+     * integer feature numbers into Tribuo's String feature names and is important
+     * to set when loading test data to ensure that the names line up with the training
+     * names. For example if there are 110 features, but the test dataset only has features
+     * 0-90, then without setting {@code maxFeatureID = 110} all the features will be named
+     * "00" through "90", rather than the expected "000" - "090", leading to a mismatch.
+     * @param url The url to load.
+     * @param outputFactory The output factory to use.
+     * @param zeroIndexed Are the features in this file indexed from zero?
+     * @param maxFeatureID The maximum feature ID allowed.
+     * @throws IOException If the url could not load or is in an invalid format.
+     */
     public LibSVMDataSource(URL url, OutputFactory<T> outputFactory, boolean zeroIndexed, int maxFeatureID) throws IOException {
         this(null,url,outputFactory,true,zeroIndexed,maxFeatureID);
     }
 
+    /**
+     * Constructs a LibSVMDataSource from the supplied url or path and output factory.
+     * <p>
+     * One of the url or path must be null.
+     * <p>
+     * Also allows control over the maximum feature id and if the file is zero indexed.
+     * The maximum feature id is used as part of the padding calculation converting the
+     * integer feature numbers into Tribuo's String feature names and is important
+     * to set when loading test data to ensure that the names line up with the training
+     * names. For example if there are 110 features, but the test dataset only has features
+     * 0-90, then without setting {@code maxFeatureID = 110} all the features will be named
+     * "00" through "90", rather than the expected "000" - "090", leading to a mismatch.
+     * @param url The url to load.
+     * @param outputFactory The output factory to use.
+     * @param zeroIndexed Are the features in this file indexed from zero?
+     * @param maxFeatureID The maximum feature ID allowed.
+     * @throws IOException If the url could not load or is in an invalid format.
+     */
     private LibSVMDataSource(Path path, URL url, OutputFactory<T> outputFactory, boolean rangeSet, boolean zeroIndexed, int maxFeatureID) throws IOException {
-        this.outputFactory = outputFactory;
+        if (url == null && path == null) {
+            throw new IllegalArgumentException("Must supply a non-null path or url.");
+        }
         this.path = path;
         this.url = url;
+        if (outputFactory == null) {
+            throw new IllegalArgumentException("outputFactory must not be null");
+        }
+        this.outputFactory = outputFactory;
         this.rangeSet = rangeSet;
         if (rangeSet) {
             this.zeroIndexed = zeroIndexed;
@@ -164,7 +238,6 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
     public int getMaxFeatureID() {
         return maxFeatureID;
     }
-
 
     @Override
     public String toString() {
@@ -297,6 +370,10 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
         }
     }
 
+    /**
+     * The number of examples.
+     * @return The number of examples.
+     */
     public int size() {
         return data.size();
     }
@@ -333,6 +410,9 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
         }
     }
 
+    /**
+     * The provenance for a {@link LibSVMDataSource}.
+     */
     public static final class LibSVMDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
@@ -340,6 +420,11 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
         private final DateTimeProvenance dataSourceCreationTime;
         private final HashProvenance sha256Hash;
 
+        /**
+         * Constructs a provenance from the host object's information.
+         * @param host The host LibSVMDataSource.
+         * @param <T> The output type.
+         */
         <T extends Output<T>> LibSVMDataSourceProvenance(LibSVMDataSource<T> host) {
             super(host,"DataSource");
             Optional<OffsetDateTime> time = ProvenanceUtil.getModifiedTime(host.url);
@@ -348,6 +433,10 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
             this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE,RESOURCE_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.url));
         }
 
+        /**
+         * Constructs a provenance during unmarshalling.
+         * @param map The map of unmarshalled provenances.
+         */
         public LibSVMDataSourceProvenance(Map<String,Provenance> map) {
             this(extractProvenanceInfo(map));
         }
