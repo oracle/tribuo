@@ -63,7 +63,6 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     private static final Pattern FEATURE_NAME_PATTERN = Pattern.compile(FEATURE_NAME_REGEX);
 
-
     @Config(description="Extractors for the example metadata.")
     private List<FieldExtractor<?>> metadataExtractors = Collections.emptyList();
 
@@ -88,20 +87,84 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     protected boolean configured;
 
+    /**
+     * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
+     * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
+     * <p>
+     * This processor does not generate any additional metadata for the examples, nor does it set the
+     * weight value on generated examples.
+     * @param responseProcessor The response processor to use.
+     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     */
     public RowProcessor(ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap) {
         this(Collections.emptyList(),null,responseProcessor,fieldProcessorMap,Collections.emptySet());
     }
 
+    /**
+     * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
+     * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
+     * <p>
+     * After extraction the features are then processed using the supplied set of feature processors.
+     * These processors can be used to insert conjunction features which are triggered when
+     * multiple features appear, or to filter out unnecessary features.
+     * <p>
+     * This processor does not generate any additional metadata for the examples, nor does it set the
+     * weight value on generated examples.
+     * @param responseProcessor The response processor to use.
+     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     * @param featureProcessors The feature processors to run on each extracted feature list.
+     */
     public RowProcessor(ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap, Set<FeatureProcessor> featureProcessors) {
         this(Collections.emptyList(),null,responseProcessor,fieldProcessorMap,featureProcessors);
     }
 
+    /**
+     * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
+     * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
+     * <p>
+     * After extraction the features are then processed using the supplied set of feature processors.
+     * These processors can be used to insert conjunction features which are triggered when
+     * multiple features appear, or to filter out unnecessary features.
+     * <p>
+     * Additionally this processor can extract a weight from each row and insert it into the example, along
+     * with more general metadata fields (e.g. the row number, date stamps). The weightExtractor can be null,
+     * and if so the weights are left unset.
+     * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
+     *                           the same metadata name then the constructor throws a PropertyException.
+     * @param weightExtractor The weight extractor, if null the weights are left unset at their default.
+     * @param responseProcessor The response processor to use.
+     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     * @param featureProcessors The feature processors to run on each extracted feature list.
+     */
     public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
                         ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
                         Set<FeatureProcessor> featureProcessors) {
         this(metadataExtractors,weightExtractor,responseProcessor,fieldProcessorMap,Collections.emptyMap(),featureProcessors);
     }
 
+    /**
+     * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
+     * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
+     * <p>
+     * In addition this processor can instantiate field processors which match the regexes supplied in
+     * the regexMappingProcessors. If a regex matches a field which already has a fieldProcessor assigned to
+     * it, it throws an IllegalArgumentException.
+     * <p>
+     * After extraction the features are then processed using the supplied set of feature processors.
+     * These processors can be used to insert conjunction features which are triggered when
+     * multiple features appear, or to filter out unnecessary features.
+     * <p>
+     * Additionally this processor can extract a weight from each row and insert it into the example, along
+     * with more general metadata fields (e.g. the row number, date stamps). The weightExtractor can be null,
+     * and if so the weights are left unset.
+     * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
+     *                           the same metadata name then the constructor throws a PropertyException.
+     * @param weightExtractor The weight extractor, if null the weights are left unset at their default.
+     * @param responseProcessor The response processor to use.
+     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     * @param regexMappingProcessors A set of field processors which can be instantiated if the regexes match the field names.
+     * @param featureProcessors The feature processors to run on each extracted feature list.
+     */
     public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
                         ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
                         Map<String,FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors) {
