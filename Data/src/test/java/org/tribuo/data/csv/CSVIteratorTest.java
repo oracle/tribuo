@@ -38,6 +38,7 @@ public class CSVIteratorTest {
     private URI noHeaderPath;
     private URI quotePath;
     private URI tsvPath;
+    private URI doubleLineBreak;
     private List<ColumnarIterator.Row> pathReference;
     private List<String> headers;
 
@@ -47,6 +48,7 @@ public class CSVIteratorTest {
         noHeaderPath = getClass().getResource("/org/tribuo/data/csv/test-noheader.csv").toURI();
         quotePath = getClass().getResource("/org/tribuo/data/csv/testQuote.csv").toURI();
         tsvPath = getClass().getResource("/org/tribuo/data/csv/testQuote.tsv").toURI();
+        doubleLineBreak = getClass().getResource("/org/tribuo/data/csv/test-double-line-break.csv").toURI();
 
         headers = Arrays.asList("A B C D RESPONSE".split(" "));
         pathReference = new ArrayList<>();
@@ -94,7 +96,6 @@ public class CSVIteratorTest {
         pathReference.add(new ColumnarIterator.Row(5, headers, rVals));
     }
 
-
     @Test
     public void testCsvReadingCorrectly() throws IOException {
         CSVIterator iter = new CSVIterator(path);
@@ -137,6 +138,19 @@ public class CSVIteratorTest {
     @Test
     public void testQuotedTsvReadingCorrectly() throws IOException {
         CSVIterator iter = new CSVIterator(tsvPath, '\t', '|');
+        for(int i=0; i < pathReference.size();i++) {
+            ColumnarIterator.Row iterRow = iter.next();
+            ColumnarIterator.Row refRow = pathReference.get(i);
+            assertEquals(refRow.getIndex(), iterRow.getIndex(), "Failure on row " + i + " of " + path.toString());
+            assertEquals(refRow.getFields(), iterRow.getFields(), "Failure on row " + i + " of " + path.toString());
+            assertEquals(refRow.getRowData(), iterRow.getRowData(), "Failure on row " + i + " of " + path.toString());
+        }
+        assertFalse(iter.hasNext(), "Iterator should be empty after reading");
+    }
+
+    @Test
+    public void testDoubleLineBreakReadingCorrectly() throws IOException {
+        CSVIterator iter = new CSVIterator(doubleLineBreak);
         for(int i=0; i < pathReference.size();i++) {
             ColumnarIterator.Row iterRow = iter.next();
             ColumnarIterator.Row refRow = pathReference.get(i);
