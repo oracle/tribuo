@@ -63,7 +63,8 @@ import java.util.logging.Logger;
  * </pre>
  * N.B.: This uses a native C implementation of xgboost that links to various C libraries, including libgomp
  * and glibc. If you're running on Alpine, which does not natively use glibc, you'll need to install glibc
- * into the container.
+ * into the container. On Windows this binary is not available in the Maven Central release, you'll need
+ * to compile it from source.
  */
 public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>, WeightedExamples {
     /* Alpine install command

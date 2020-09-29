@@ -76,6 +76,10 @@ import java.util.stream.Collectors;
  * "Greedy Function Approximation: a Gradient Boosting Machine"
  * Annals of statistics, 2001.
  * </pre>
+ * <p>
+ * Note: XGBoost requires a native library, on macOS this library requires libomp (which can be installed via homebrew),
+ * on Windows this native library must be compiled into a jar as it's not contained in the official XGBoost binary
+ * on Maven Central.
  */
 public final class XGBoostExternalModel<T extends Output<T>> extends ExternalModel<T,DMatrix,float[][]> {
     private static final long serialVersionUID = 1L;
