@@ -73,6 +73,9 @@ public final class MessageDigestHasher extends Hasher {
         this.provenance = new MessageDigestHasherProvenance(hashType);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() throws PropertyException {
         if (saltStr != null) {

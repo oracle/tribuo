@@ -130,6 +130,9 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         this.probability = this.parameters.probability == 1;
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         parameters = new svm_parameter();

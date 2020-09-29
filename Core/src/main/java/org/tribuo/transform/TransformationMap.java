@@ -81,6 +81,9 @@ public class TransformationMap implements Configurable, Provenancable<Configured
         this(Collections.emptyList(),featureTransformations);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         for (Map.Entry<String,TransformationList> e : featureTransformationList.entrySet()) {

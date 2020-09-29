@@ -94,6 +94,9 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
         return "jdbc:oracle:thin:@" + host + ":" + port + "/" + db;
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
 

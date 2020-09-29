@@ -89,6 +89,9 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
         super((Path)null,outputFactory,extractor);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() throws IOException {
         read();

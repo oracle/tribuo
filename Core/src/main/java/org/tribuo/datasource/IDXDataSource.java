@@ -138,6 +138,9 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
         read();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() throws IOException {
         read();

@@ -74,6 +74,9 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.provenance = new RegressionFactoryProvenance(splitChar);

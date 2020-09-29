@@ -64,6 +64,9 @@ public class ImageTransformer implements ExampleTransformer {
         this.channels = channels;
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if (width < 1 || height < 1 || channels < 1) {

@@ -63,6 +63,9 @@ public class BreakIteratorTokenizer implements Tokenizer {
         cs = null;
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         locale = Locale.forLanguageTag(localeStr);

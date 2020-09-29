@@ -211,6 +211,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
      */
     protected XGBoostTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         parameters.put("eta", eta);

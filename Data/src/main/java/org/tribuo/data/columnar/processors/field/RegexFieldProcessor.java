@@ -72,6 +72,9 @@ public class RegexFieldProcessor implements FieldProcessor {
         this(fieldName,Pattern.compile(regex),modes);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.regex = Pattern.compile(regexString);

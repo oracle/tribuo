@@ -62,6 +62,9 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
 
     private DummyRegressionTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if ((dummyType == DummyType.CONSTANT) && (Double.isNaN(constantValue))) {

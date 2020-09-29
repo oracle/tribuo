@@ -182,6 +182,9 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      */
     protected RowProcessor() {}
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         configured = regexMappingProcessors.isEmpty();

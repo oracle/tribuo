@@ -171,6 +171,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
         this.provenance = new CSVDataSourceProvenance(this);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.dataFile = dataPath.toUri();

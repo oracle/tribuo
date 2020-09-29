@@ -126,6 +126,9 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         switch (op) {

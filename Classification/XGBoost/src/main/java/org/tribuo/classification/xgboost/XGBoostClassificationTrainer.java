@@ -117,6 +117,9 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
      */
     protected XGBoostClassificationTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         super.postConfig();

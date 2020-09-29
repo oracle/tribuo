@@ -54,6 +54,9 @@ public final class DummyClassifierTrainer implements Trainer<Label> {
 
     private DummyClassifierTrainer() {}
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if ((dummyType == DummyType.CONSTANT) && (constantLabel == null)) {

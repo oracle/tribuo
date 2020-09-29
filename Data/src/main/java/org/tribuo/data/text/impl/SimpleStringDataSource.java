@@ -68,6 +68,9 @@ public class SimpleStringDataSource<T extends Output<T>> extends SimpleTextDataS
         this.provenance = cacheProvenance();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         read();

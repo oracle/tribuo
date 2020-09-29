@@ -109,6 +109,9 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         libLinearParams = new Parameter(trainerType.getSolverType(),cost,terminationCriterion,maxIterations,epsilon);

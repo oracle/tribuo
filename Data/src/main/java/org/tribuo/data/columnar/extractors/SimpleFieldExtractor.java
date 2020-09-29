@@ -48,6 +48,9 @@ public abstract class SimpleFieldExtractor<T> implements FieldExtractor<T> {
 
     protected SimpleFieldExtractor() {}
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if (metadataName == null || metadataName.isEmpty()) {

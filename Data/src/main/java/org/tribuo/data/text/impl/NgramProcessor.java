@@ -68,6 +68,9 @@ public class NgramProcessor implements TextProcessor {
      */
     private NgramProcessor() {}
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.tokenizerThreadLocal = ThreadLocal.withInitial(() -> {try { return tokenizer.clone(); } catch (CloneNotSupportedException e) { throw new IllegalArgumentException("Tokenizer not cloneable",e); }});
