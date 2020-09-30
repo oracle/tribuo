@@ -90,7 +90,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
-     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
      * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
      *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
@@ -256,7 +256,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
 
         lessThanOrEqual = new ClassifierTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1, featureIDMap, labelIDMap);
         greaterThan = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size, depth + 1, featureIDMap, labelIDMap);
-        List<AbstractTrainingNode<Label>> output = new ArrayList<>();
+        List<AbstractTrainingNode<Label>> output = new ArrayList<>(2);
         output.add(lessThanOrEqual);
         output.add(greaterThan);
         return output;
@@ -293,7 +293,9 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     }
 
     @Override
-    public double getImpurity() { return impurityScore;}
+    public double getImpurity() {
+        return impurityScore;
+    }
 
     /**
      * Inverts a training dataset from row major to column major. This partially de-sparsifies the dataset

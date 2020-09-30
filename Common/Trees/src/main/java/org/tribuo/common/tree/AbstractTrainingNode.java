@@ -50,12 +50,22 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         this.numExamples = numExamples;
     }
 
+    /**
+     * 
+     * @param indices
+     * @param rng
+     * @param useRandomSplitPoints
+     * @param minImpurityDecrease
+     * @return
+     */
     public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices, SplittableRandom rng,
                                                             boolean useRandomSplitPoints, float minImpurityDecrease);
 
     public abstract Node<T> convertTree();
 
-    public int getDepth() { return depth; }
+    public int getDepth() {
+        return depth;
+    }
 
     @Override
     public Node<T> getNextNode(SparseVector example) {
@@ -71,7 +81,9 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         }
     }
 
-    public int getNumExamples() { return numExamples; }
+    public int getNumExamples() {
+        return numExamples;
+    }
 
     @Override
     public boolean isLeaf() {

@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 /**
  * A trainer which produces an Extra Trees Ensemble.
  * <p>
- * Extra Trees are trees where split points for attributes are chosen randomly. Feature subsampling is available at
+ * Extra Trees are trees where split points for features are chosen randomly. Feature subsampling is available at
  * each of the nodes.
  * An exception will be thrown if the inner trainer is not a decision tree trainer or if random splitting is turned off.
  * <p>

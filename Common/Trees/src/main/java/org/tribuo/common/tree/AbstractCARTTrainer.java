@@ -79,9 +79,9 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     protected float fractionFeaturesInSplit = 1.0f;
 
     /**
-     * Number of features to sample per split. 1 indicates all features are considered.
+     * Whether to choose split points for features at random.
      */
-    @Config(description="Whether to choose split points for attributes at random.")
+    @Config(description="Whether to choose split points for features at random.")
     protected boolean useRandomSplitPoints = false;
 
     @Config(description="The RNG seed to use when sampling features in a split.")
@@ -97,7 +97,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
      * @param minChildWeight The minimum child weight allowed.
      * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
      * @param fractionFeaturesInSplit The fraction of features to consider at each split.
-     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
      * @param seed The seed for the feature subsampling RNG.
      */
     protected AbstractCARTTrainer(int maxDepth, float minChildWeight, float minImpurityDecrease,
@@ -126,8 +126,8 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
             throw new IllegalArgumentException("maxDepth must be greater than or equal to 1");
         }
 
-        if ((minChildWeight < 0.0f)) {
-            throw new IllegalArgumentException("minChildWeight must be greater than or equal to 0");
+        if ((minChildWeight <= 0.0f)) {
+            throw new IllegalArgumentException("minChildWeight must be greater than 0");
         }
     }
 
@@ -142,10 +142,14 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     }
 
     @Override
-    public boolean getUseRandomSplitPoints() {return useRandomSplitPoints; }
+    public boolean getUseRandomSplitPoints() {
+        return useRandomSplitPoints;
+    }
 
     @Override
-    public float getMinImpurityDecrease() {return minImpurityDecrease; }
+    public float getMinImpurityDecrease() {
+        return minImpurityDecrease;
+    }
 
     @Override
     public TreeModel<T> train(Dataset<T> examples) {
@@ -182,7 +186,9 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         }
 
         float weightSum = 0.0f;
-        for (Example<T> e : examples) { weightSum += e.getWeight(); }
+        for (Example<T> e : examples) {
+            weightSum += e.getWeight();
+        }
 
         AbstractTrainingNode<T> root = mkTrainingNode(examples);
         Deque<AbstractTrainingNode<T>> queue = new LinkedList<>();

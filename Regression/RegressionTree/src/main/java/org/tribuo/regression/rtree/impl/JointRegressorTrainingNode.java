@@ -119,7 +119,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
-     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
      * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
      *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
