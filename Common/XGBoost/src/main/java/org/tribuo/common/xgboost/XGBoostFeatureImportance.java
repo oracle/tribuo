@@ -3,6 +3,7 @@ package org.tribuo.common.xgboost;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.XGBoostError;
 import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.Model;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -91,10 +92,12 @@ public class XGBoostFeatureImportance {
 
     private final Booster booster;
     private final ImmutableFeatureMap featureMap;
+    private final Model<?> model;
 
-    XGBoostFeatureImportance(Booster booster, ImmutableFeatureMap featureMap) {
+    XGBoostFeatureImportance(Booster booster, Model<?> model) {
         this.booster = booster;
-        this.featureMap = featureMap;
+        this.model = model;
+        this.featureMap = model.getFeatureIDMap();
     }
 
     private String translateFeatureId(String xgbFeatName) {
@@ -247,6 +250,6 @@ public class XGBoostFeatureImportance {
     }
 
     public String toString() {
-        return String.format("XGBoostFeatureImportance(booster=%s, featureIdMap=%s)", booster.toString(), featureMap.toString());
+        return String.format("XGBoostFeatureImportance(model=%s)", model.toString());
     }
 }

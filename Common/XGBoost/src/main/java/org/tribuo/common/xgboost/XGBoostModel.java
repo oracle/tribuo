@@ -164,7 +164,7 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
      * @return The feature importance object(s).
      */
     public List<XGBoostFeatureImportance> getFeatureImportance() {
-        return models.stream().map(b -> new XGBoostFeatureImportance(b, featureIDMap)).collect(Collectors.toList());
+        return models.stream().map(b -> new XGBoostFeatureImportance(b, this)).collect(Collectors.toList());
     }
 
     @Override
