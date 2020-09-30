@@ -28,6 +28,7 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
+import org.tribuo.common.xgboost.XGBoostFeatureImportance;
 import org.tribuo.common.xgboost.XGBoostModel;
 import org.tribuo.data.text.TextDataSource;
 import org.tribuo.data.text.TextFeatureExtractor;
@@ -176,6 +177,27 @@ public class TestXGBoost {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+    }
+
+    @Test
+    public void testFeatureImportanceSmokeTest() {
+        // we're just testing that not actually throws an exception
+        XGBoostModel<Label> m = (XGBoostModel<Label>)t.train(LabelledDataGenerator.denseTrainTest().getA());
+
+        XGBoostFeatureImportance i = m.getFeatureImportance().get(0);
+        i.getImportances();
+        i.getCover();
+        i.getGain();
+        i.getWeight();
+        i.getTotalCover();
+        i.getTotalGain();
+
+        i.getImportances(5);
+        i.getCover(5);
+        i.getGain(5);
+        i.getWeight(5);
+        i.getTotalCover(5);
+        i.getTotalGain(5);
     }
 
     @Test

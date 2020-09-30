@@ -41,16 +41,16 @@ public class XGBoostFeatureImportance {
      * An instance of feature importance values for a single feature. See {@link XGBoostFeatureImportance} for details
      * on interpreting the metrics.
      */
-    public static class XGBoostFeatureImportanceRecord {
+    public static class XGBoostFeatureImportanceInstance {
 
-        private String featureName;
+        private final String featureName;
         private final double gain;
         private final double cover;
         private final double weight;
         private final double totalGain;
         private final double totalCover;
 
-        XGBoostFeatureImportanceRecord(String featureName, double gain, double cover, double weight, double totalGain, double totalCover) {
+        XGBoostFeatureImportanceInstance(String featureName, double gain, double cover, double weight, double totalGain, double totalCover) {
             this.featureName = featureName;
             this.gain = gain;
             this.cover = cover;
@@ -89,8 +89,8 @@ public class XGBoostFeatureImportance {
         }
     }
 
-    private Booster booster;
-    private ImmutableFeatureMap featureMap;
+    private final Booster booster;
+    private final ImmutableFeatureMap featureMap;
 
     XGBoostFeatureImportance(Booster booster, ImmutableFeatureMap featureMap) {
         this.booster = booster;
@@ -210,14 +210,15 @@ public class XGBoostFeatureImportance {
     }
 
     /**
+     * @return records of all importance metrics for each feature, sorted by gain.
      */
-    public List<XGBoostFeatureImportanceRecord> getImportances() {
+    public List<XGBoostFeatureImportanceInstance> getImportances() {
         Map<String, LinkedHashMap<String, Double>> importanceByType = Stream.of(GAIN, COVER, WEIGHT, TOTAL_GAIN, TOTAL_COVER)
                 .map(importanceType -> new AbstractMap.SimpleEntry<>(importanceType, coalesceImportanceStream(getImportanceStream(importanceType))))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         // this is already sorted by gain
         List<String> features = new ArrayList<>(importanceByType.get(GAIN).keySet());
-        return features.stream().map(featureName -> new XGBoostFeatureImportanceRecord(featureName,
+        return features.stream().map(featureName -> new XGBoostFeatureImportanceInstance(featureName,
                 importanceByType.get(GAIN).get(featureName),
                 importanceByType.get(COVER).get(featureName),
                 importanceByType.get(WEIGHT).get(featureName),
@@ -230,13 +231,13 @@ public class XGBoostFeatureImportance {
      * @param numFeatures number of features to return
      * @return records of all importance metrics for each feature, sorted by gain.
      */
-    public List<XGBoostFeatureImportanceRecord> getImportances(int numFeatures) {
+    public List<XGBoostFeatureImportanceInstance> getImportances(int numFeatures) {
         Map<String, LinkedHashMap<String, Double>> importanceByType = Stream.of(GAIN, COVER, WEIGHT, TOTAL_GAIN, TOTAL_COVER)
                 .map(importanceType -> new AbstractMap.SimpleEntry<>(importanceType, coalesceImportanceStream(getImportanceStream(importanceType))))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         // this is already sorted by gain
         List<String> features = new ArrayList<>(importanceByType.get(GAIN).keySet()).subList(0, Math.min(importanceByType.get(GAIN).keySet().size(), numFeatures));
-        return features.stream().map(featureName -> new XGBoostFeatureImportanceRecord(featureName,
+        return features.stream().map(featureName -> new XGBoostFeatureImportanceInstance(featureName,
                 importanceByType.get(GAIN).get(featureName),
                 importanceByType.get(COVER).get(featureName),
                 importanceByType.get(WEIGHT).get(featureName),
@@ -246,8 +247,6 @@ public class XGBoostFeatureImportance {
     }
 
     public String toString() {
-        return "XGBoostFeatureImportance(" + getImportances(5).stream()
-                .map(XGBoostFeatureImportanceRecord::toString)
-                .collect(Collectors.joining(",\n\t")) + ")";
+        return String.format("XGBoostFeatureImportance(booster=%s, featureIdMap=%s)", booster.toString(), featureMap.toString());
     }
 }
