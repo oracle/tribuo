@@ -46,6 +46,7 @@ import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A {@link Model} which wraps around a XGBoost.Booster.
@@ -154,6 +155,16 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
             logger.log(Level.SEVERE, "XGBoost threw an error", e);
             throw new IllegalStateException(e);
         }
+    }
+
+    /**
+     * Creates objects to report feature importance metrics for XGBoost. See the documentation of {@link XGBoostFeatureImportance}
+     * for more information on what those metrics mean. Typically this list will contain a single instance for the entire
+     * model. For multidimensional regression the list will have one entry per dimension, in dimension order.
+     * @return The feature importance object(s).
+     */
+    public List<XGBoostFeatureImportance> getFeatureImportance() {
+        return models.stream().map(b -> new XGBoostFeatureImportance(b, this)).collect(Collectors.toList());
     }
 
     @Override

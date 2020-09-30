@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A {@link Model} which wraps around a XGBoost.Booster which was trained by a system other than Tribuo.
@@ -146,6 +147,16 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
     @Override
     protected List<Prediction<T>> convertOutput(float[][] output, int[] numValidFeatures, List<Example<T>> examples) {
         return converter.convertBatchOutput(outputIDInfo,Collections.singletonList(output),numValidFeatures,(Example<T>[])examples.toArray(new Example[0]));
+    }
+
+    /**
+     * Creates objects to report feature importance metrics for XGBoost. See the documentation of {@link XGBoostFeatureImportance}
+     * for more information on what those metrics mean. Typically this list will contain a single instance for the entire
+     * model. For multidimensional regression the list will have one entry per dimension, in dimension order.
+     * @return The feature importance object(s).
+     */
+    public List<XGBoostFeatureImportance> getFeatureImportance() {
+        return Collections.singletonList(new XGBoostFeatureImportance(model, this));
     }
 
     @Override
