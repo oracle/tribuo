@@ -98,7 +98,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
-     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
      * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
      *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
@@ -194,7 +194,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         // split each feature once randomly and record the least impure amongst these
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
-            // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
+            // if there is only 1 inverted feature for this feature, it has only 1 value, so cannot be split
             if (feature.size() == 1) {
                 continue;
             }

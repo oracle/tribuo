@@ -61,7 +61,7 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
      * @param minChildWeight minChildWeight The minimum node weight to consider it for a split.
      * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
      * @param fractionFeaturesInSplit fractionFeaturesInSplit The fraction of features available in each split.
-     * @param useRandomSplitPoints Whether to choose split points for attributes at random.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
      * @param impurity impurity The impurity function to use to determine split quality.
      * @param normalize Normalize the leaves so each output sums to one.
      * @param seed The seed to use for the RNG.

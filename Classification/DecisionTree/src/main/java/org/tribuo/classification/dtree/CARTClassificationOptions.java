@@ -45,7 +45,7 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
     public float cartMinImpurityDecrease = 0.0f;
     @Option(longName = "cart-split-fraction", usage = "Fraction of features in split.")
     public float cartSplitFraction = 0.0f;
-    @Option(longName = "cart-random-split", usage = "Whether to choose split points for attributes at random.")
+    @Option(longName = "cart-random-split", usage = "Whether to choose split points for features at random.")
     public boolean cartRandomSplit = false;
     @Option(longName = "cart-impurity", usage = "Impurity measure to use. Defaults to GINI.")
     public ImpurityType cartImpurity = ImpurityType.GINI;

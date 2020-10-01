@@ -65,6 +65,9 @@ public class TrainTest {
         @Option(charName='p',longName="min-impurity-decrease",usage="Minimumum decrease in impurity required in order" +
                 " for the node to be split.")
         public float minImpurityDecrease = 0.0f;
+        @Option(charName='r',longName="use-random-split-points",usage="Whether to choose split points for features at" +
+                " random.")
+        public boolean useRandomSplitPoints = false;
         @Option(charName='n',longName="normalize",usage="Normalize the leaf outputs so each leaf sums to 1.0.")
         public boolean normalize = false;
         @Option(charName='i',longName="impurity",usage="Impurity measure to use. Defaults to MSE.")
@@ -121,20 +124,20 @@ public class TrainTest {
         SparseTrainer<Regressor> trainer;
         switch (o.treeType) {
             case CART_INDEPENDENT:
-                if (o.fraction <= 0) {
-                    trainer = new CARTRegressionTrainer(o.depth,o.minChildWeight,0.0f, 1, false, impurity,
+                if (o.fraction == 0) {
+                    trainer = new CARTRegressionTrainer(o.depth,o.minChildWeight,o.minImpurityDecrease, 1, o.useRandomSplitPoints, impurity,
                             o.general.seed);
                 } else {
-                    trainer = new CARTRegressionTrainer(o.depth, o.minChildWeight,0.0f,o.fraction, false, impurity,
+                    trainer = new CARTRegressionTrainer(o.depth, o.minChildWeight,o.minImpurityDecrease,o.fraction, o.useRandomSplitPoints, impurity,
                             o.general.seed);
                 }
                 break;
             case CART_JOINT:
-                if (o.fraction <= 0) {
-                    trainer = new CARTJointRegressionTrainer(o.depth,o.minChildWeight,0.0f,1, false, impurity,
+                if (o.fraction == 0) {
+                    trainer = new CARTJointRegressionTrainer(o.depth,o.minChildWeight,o.minImpurityDecrease,1, o.useRandomSplitPoints, impurity,
                             o.normalize, o.general.seed);
                 } else {
-                    trainer = new CARTJointRegressionTrainer(o.depth, o.minChildWeight, 0.0f, o.fraction, false,
+                    trainer = new CARTJointRegressionTrainer(o.depth, o.minChildWeight, o.minImpurityDecrease, o.fraction, o.useRandomSplitPoints,
                             impurity, o.normalize, o.general.seed);
                 }
                 break;

@@ -223,7 +223,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         // split each feature once randomly and record the least impure amongst these
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
-            // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
+            // if there is only 1 inverted feature for this feature, it has only 1 value, so cannot be split
             if (feature.size() == 1) {
                 continue;
             }

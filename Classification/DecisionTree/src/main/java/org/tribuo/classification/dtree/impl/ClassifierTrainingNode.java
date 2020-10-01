@@ -176,7 +176,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
 
-            // if there is only 1 inverted feature for this attribute, it has only 1 value, so cannot be split
+            // if there is only 1 inverted feature for this feature, it has only 1 value, so cannot be split
             if (feature.size() == 1) {
                 continue;
             }
