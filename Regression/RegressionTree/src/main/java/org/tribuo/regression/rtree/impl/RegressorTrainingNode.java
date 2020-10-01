@@ -274,7 +274,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         }
         lessThanOrEqual = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName, leftIndices.length, depth + 1, featureIDMap, labelIDMap);
         greaterThan = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName, rightIndices.length, depth + 1, featureIDMap, labelIDMap);
-        List<AbstractTrainingNode<Regressor>> output = new ArrayList<>();
+        List<AbstractTrainingNode<Regressor>> output = new ArrayList<>(2);
         output.add(lessThanOrEqual);
         output.add(greaterThan);
         return output;

@@ -138,13 +138,15 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
         }
         if (numFeaturesInSplit != featureIDMap.size()) {
             indices = new int[numFeaturesInSplit];
-            // log
         } else {
             indices = originalIndices;
         }
 
         float weightSum = 0.0f;
-        for (Example<Regressor> e : examples) { weightSum += e.getWeight(); }
+        for (Example<Regressor> e : examples) {
+            weightSum += e.getWeight();
+        }
+        float scaledMinImpurityDecrease = getMinImpurityDecrease() * weightSum;
 
         InvertedData data = RegressorTrainingNode.invertData(examples);
 
@@ -166,7 +168,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
                         System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                     }
                     List<AbstractTrainingNode<Regressor>> nodes = node.buildTree(indices, localRNG,
-                            getUseRandomSplitPoints(),getMinImpurityDecrease() * weightSum);
+                            getUseRandomSplitPoints(),scaledMinImpurityDecrease);
                     // Use the queue as a stack to improve cache locality.
                     for (AbstractTrainingNode<Regressor> newNode : nodes) {
                         queue.addFirst(newNode);

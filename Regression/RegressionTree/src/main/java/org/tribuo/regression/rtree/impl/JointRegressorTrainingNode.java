@@ -101,13 +101,15 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
     }
 
     @Override
-    public double getImpurity() { return impurityScore;}
+    public double getImpurity() {
+        return impurityScore;
+    }
 
     /**
      * Calculates the impurity score of the node.
      * @return the impurity score of the node.
      */
-    private double calcImpurity(){
+    private double calcImpurity() {
         double tmp = 0.0;
         for (int i = 0; i < targets.length; i++) {
             tmp += impurity.impurity(indices, targets[i], weights);
@@ -311,7 +313,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
                 weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
         greaterThan = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
                 weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
-        List<AbstractTrainingNode<Regressor>> output = new ArrayList<>();
+        List<AbstractTrainingNode<Regressor>> output = new ArrayList<>(2);
         output.add(lessThanOrEqual);
         output.add(greaterThan);
         return output;

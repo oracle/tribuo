@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
-import org.tribuo.common.tree.AbstractCARTTrainer;
 import org.tribuo.common.tree.TreeModel;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
@@ -42,7 +41,7 @@ public class TestCARTJointRegressionTrainer {
     private static final CARTJointRegressionTrainer randomt = new CARTJointRegressionTrainer(Integer.MAX_VALUE, 5, 0.0f,
             0.75f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
 
-    public void testJointRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p, AbstractCARTTrainer<Regressor> trainer) {
+    public void testJointRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p, CARTJointRegressionTrainer trainer) {
         TreeModel<Regressor> m = trainer.train(p.getA());
         RegressionEvaluator e = new RegressionEvaluator();
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
@@ -91,7 +90,7 @@ public class TestCARTJointRegressionTrainer {
         testJointRegressionTree(p, randomt);
     }
 
-    public void runInvalidExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runInvalidExample(CARTJointRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());
@@ -114,7 +113,7 @@ public class TestCARTJointRegressionTrainer {
         runInvalidExample(randomt);
     }
 
-    public void runEmptyExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runEmptyExample(CARTJointRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());
@@ -138,7 +137,7 @@ public class TestCARTJointRegressionTrainer {
     }
 
 
-    public void runMultiDenseData(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiDenseData(CARTJointRegressionTrainer trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
         testJointRegressionTree(p, trainer);
     }
@@ -158,7 +157,7 @@ public class TestCARTJointRegressionTrainer {
         runMultiDenseData(randomt);
     }
 
-    public void runMultiSparseData(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiSparseData(CARTJointRegressionTrainer trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimSparseTrainTest();
         testJointRegressionTree(p, trainer);
     }
@@ -178,7 +177,7 @@ public class TestCARTJointRegressionTrainer {
         runMultiSparseData(randomt);
     }
 
-    public void runMultiInvalidExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiInvalidExample(CARTJointRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());
@@ -201,7 +200,7 @@ public class TestCARTJointRegressionTrainer {
         runMultiInvalidExample(randomt);
     }
 
-    public void runMultiEmptyExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiEmptyExample(CARTJointRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());

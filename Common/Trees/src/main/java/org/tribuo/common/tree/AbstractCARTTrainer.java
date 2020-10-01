@@ -189,6 +189,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         for (Example<T> e : examples) {
             weightSum += e.getWeight();
         }
+        float scaledMinImpurityDecrease = getMinImpurityDecrease() * weightSum;
 
         AbstractTrainingNode<T> root = mkTrainingNode(examples);
         Deque<AbstractTrainingNode<T>> queue = new LinkedList<>();
@@ -203,7 +204,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
                     System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                 }
                 List<AbstractTrainingNode<T>> nodes = node.buildTree(indices, localRNG, getUseRandomSplitPoints(),
-                        getMinImpurityDecrease() * weightSum);
+                        scaledMinImpurityDecrease);
                 // Use the queue as a stack to improve cache locality.
                 // Building depth first.
                 for (AbstractTrainingNode<T> newNode : nodes) {

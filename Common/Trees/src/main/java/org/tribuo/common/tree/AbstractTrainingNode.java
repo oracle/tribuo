@@ -51,15 +51,16 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     }
 
     /**
-     * 
-     * @param indices
-     * @param rng
-     * @param useRandomSplitPoints
-     * @param minImpurityDecrease
-     * @return
+     * Builds next level of a tree.
+     * @param featureIDs Indices of the features available in this split.
+     * @param rng Splittable random number generator.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
+     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
+     * @return A possibly empty list of TrainingNodes.
      */
-    public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices, SplittableRandom rng,
-                                                            boolean useRandomSplitPoints, float minImpurityDecrease);
+    public abstract List<AbstractTrainingNode<T>> buildTree(int[] featureIDs, SplittableRandom rng,
+                                                            boolean useRandomSplitPoints, float scaledMinImpurityDecrease);
 
     public abstract Node<T> convertTree();
 

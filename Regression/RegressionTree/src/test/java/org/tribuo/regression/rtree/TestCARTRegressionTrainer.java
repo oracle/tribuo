@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
-import org.tribuo.common.tree.AbstractCARTTrainer;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -42,7 +41,7 @@ public class TestCARTRegressionTrainer {
             new MeanSquaredError(), Trainer.DEFAULT_SEED);
 
     public void testIndependentRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p,
-                                              AbstractCARTTrainer<Regressor> trainer) {
+                                              CARTRegressionTrainer trainer) {
         Model<Regressor> m = trainer.train(p.getA());
         RegressionEvaluator e = new RegressionEvaluator();
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
@@ -54,7 +53,7 @@ public class TestCARTRegressionTrainer {
         Assertions.assertFalse(features.isEmpty());
     }
 
-    public void runDenseData(AbstractCARTTrainer<Regressor> trainer) {
+    public void runDenseData(CARTRegressionTrainer trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         testIndependentRegressionTree(p, trainer);
     }
@@ -69,7 +68,7 @@ public class TestCARTRegressionTrainer {
         runDenseData(randomt);
     }
 
-    public void runSparseData(AbstractCARTTrainer<Regressor> trainer) {
+    public void runSparseData(CARTRegressionTrainer trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
         testIndependentRegressionTree(p, trainer);
     }
@@ -84,7 +83,7 @@ public class TestCARTRegressionTrainer {
         runSparseData(randomt);
     }
 
-    public void runInvalidExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runInvalidExample(CARTRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());
@@ -102,7 +101,7 @@ public class TestCARTRegressionTrainer {
         runInvalidExample(randomt);
     }
 
-    public void runEmptyExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runEmptyExample(CARTRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());
@@ -120,7 +119,7 @@ public class TestCARTRegressionTrainer {
         runEmptyExample(randomt);
     }
 
-    public void runMultiDenseData(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiDenseData(CARTRegressionTrainer trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
         testIndependentRegressionTree(p, trainer);
     }
@@ -135,7 +134,7 @@ public class TestCARTRegressionTrainer {
         runMultiDenseData(randomt);
     }
 
-    public void runMultiSparseData(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiSparseData(CARTRegressionTrainer trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimSparseTrainTest();
         testIndependentRegressionTree(p, trainer);
     }
@@ -150,7 +149,7 @@ public class TestCARTRegressionTrainer {
         runMultiSparseData(randomt);
     }
 
-    public void runMultiInvalidExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiInvalidExample(CARTRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());
@@ -168,7 +167,7 @@ public class TestCARTRegressionTrainer {
         runMultiInvalidExample(randomt);
     }
 
-    public void runMultiEmptyExample(AbstractCARTTrainer<Regressor> trainer) {
+    public void runMultiEmptyExample(CARTRegressionTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
             Model<Regressor> m = trainer.train(p.getA());
