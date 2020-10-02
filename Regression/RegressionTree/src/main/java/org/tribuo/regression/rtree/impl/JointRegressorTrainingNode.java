@@ -38,6 +38,7 @@ import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -96,10 +97,19 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         this.indices = indices;
         this.targets = targets;
         this.weights = weights;
+        this.impurityScore = calcImpurity();
     }
 
     @Override
     public double getImpurity() {
+        return impurityScore;
+    }
+
+    /**
+     * Calculates the impurity score of the node.
+     * @return the impurity score of the node.
+     */
+    private double calcImpurity() {
         double tmp = 0.0;
         for (int i = 0; i < targets.length; i++) {
             tmp += impurity.impurity(indices, targets[i], weights);
@@ -110,10 +120,30 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
     /**
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
+     * @param rng Splittable random number generator.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
+     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
-    public List<AbstractTrainingNode<Regressor>> buildTree(int[] featureIDs) {
+    public List<AbstractTrainingNode<Regressor>> buildTree(int[] featureIDs, SplittableRandom rng,
+                                                           boolean useRandomSplitPoints, float scaledMinImpurityDecrease) {
+        if (useRandomSplitPoints) {
+            return buildRandomTree(featureIDs, rng, scaledMinImpurityDecrease);
+        } else {
+            return buildGreedyTree(featureIDs, scaledMinImpurityDecrease);
+        }
+    }
+
+    /**
+     * Builds a tree according to CART
+     * @param featureIDs Indices of the features available in this split.
+     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
+     * @return A possibly empty list of TrainingNodes.
+     */
+    private List<AbstractTrainingNode<Regressor>> buildGreedyTree(int[] featureIDs, float scaledMinImpurityDecrease) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double weightSum = Util.sum(indices,indices.length,weights);
@@ -160,37 +190,132 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             }
         }
         List<AbstractTrainingNode<Regressor>> output;
+        double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if (bestID != -1) {
-            splitID = featureIDs[bestID];
-            split = true;
-            splitValue = bestSplitValue;
-            IntArrayContainer firstBuffer = mergeBufferOne.get();
-            firstBuffer.size = 0;
-            firstBuffer.grow(indices.length);
-            IntArrayContainer secondBuffer = mergeBufferTwo.get();
-            secondBuffer.size = 0;
-            secondBuffer.grow(indices.length);
-            int[] leftIndices = IntArrayContainer.merge(bestLeftIndices, firstBuffer, secondBuffer);
-            int[] rightIndices = IntArrayContainer.merge(bestRightIndices, firstBuffer, secondBuffer);
-            //logger.info("Splitting on feature " + bestID + " with value " + bestSplitValue + " at depth " + depth + ", " + numExamples + " examples in node.");
-            //logger.info("left indices length = " + leftIndices.length);
-            ArrayList<TreeFeature> lessThanData = new ArrayList<>(data.size());
-            ArrayList<TreeFeature> greaterThanData = new ArrayList<>(data.size());
-            for (TreeFeature feature : data) {
-                Pair<TreeFeature,TreeFeature> split = feature.split(leftIndices, rightIndices, firstBuffer, secondBuffer);
-                lessThanData.add(split.getA());
-                greaterThanData.add(split.getB());
-            }
-            lessThanOrEqual = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
-            greaterThan = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
-            output = new ArrayList<>();
-            output.add(lessThanOrEqual);
-            output.add(greaterThan);
+        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
+            output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
         }
         data = null;
+        return output;
+    }
+
+    /**
+     * Builds a CART tree with randomly chosen split points.
+     * @param featureIDs Indices of the features available in this split.
+     * @param rng Splittable random number generator.
+    * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
+     * @return A possibly empty list of TrainingNodes.
+     */
+    private List<AbstractTrainingNode<Regressor>> buildRandomTree(int[] featureIDs, SplittableRandom rng, float scaledMinImpurityDecrease) {
+        int bestID = -1;
+        double bestSplitValue = 0.0;
+        double weightSum = Util.sum(indices,indices.length,weights);
+        double bestScore = getImpurity();
+        //logger.info("Cur node score = " + bestScore);
+        List<int[]> curLeftIndices = new ArrayList<>();
+        List<int[]> curRightIndices = new ArrayList<>();
+        List<int[]> bestLeftIndices = new ArrayList<>();
+        List<int[]> bestRightIndices = new ArrayList<>();
+
+        // split each feature once randomly and record the least impure amongst these
+        for (int i = 0; i < featureIDs.length; i++) {
+            List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
+            // if there is only 1 inverted feature for this feature, it has only 1 value, so cannot be split
+            if (feature.size() == 1) {
+                continue;
+            }
+
+            double lessThanScore = 0.0;
+            double greaterThanScore = 0.0;
+
+            int splitIdx = rng.nextInt(feature.size()-1);
+
+            for (int j = 0; j < splitIdx + 1; j++) {
+                InvertedFeature vf;
+                vf = feature.get(j);
+                curLeftIndices.add(vf.indices());
+            }
+            for (int j = splitIdx + 1; j < feature.size(); j++) {
+                InvertedFeature vf;
+                vf = feature.get(j);
+                curRightIndices.add(vf.indices());
+            }
+
+            for (int k = 0; k < targets.length; k++) {
+                ImpurityTuple left = impurity.impurityTuple(curLeftIndices,targets[k],weights);
+                lessThanScore += left.impurity * left.weight;
+                ImpurityTuple right = impurity.impurityTuple(curRightIndices,targets[k],weights);
+                greaterThanScore += right.impurity * right.weight;
+            }
+
+            double score = (lessThanScore + greaterThanScore) / (targets.length * weightSum);
+            if (score < bestScore) {
+                bestID = i;
+                bestScore = score;
+                bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
+                // Clear out the old best indices before storing the new ones.
+                bestLeftIndices.clear();
+                bestLeftIndices.addAll(curLeftIndices);
+                bestRightIndices.clear();
+                bestRightIndices.addAll(curRightIndices);
+                //logger.info("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score);
+                //logger.info("less score = " +lessThanScore+", less size = "+lessThanIndices.size+", greater score = " + greaterThanScore+", greater size = "+greaterThanIndices.size);
+            }
+        }
+
+        List<AbstractTrainingNode<Regressor>> output;
+        double impurityDecrease = weightSum * (getImpurity() - bestScore);
+        // If we found a split better than the current impurity.
+        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
+            output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
+        } else {
+            output = Collections.emptyList();
+        }
+        data = null;
+        return output;
+    }
+
+    /**
+     * Splits the data to form two nodes.
+     * @param featureIDs Indices of the features available in this split.
+     * @param bestID ID of the feature on which the split should be based.
+     * @param bestSplitValue Feature value to use for splitting the data.
+     * @param bestLeftIndices The indices of the examples less than or equal to the split value.
+     * @param bestRightIndices The indices of the examples greater than the split value.
+     * @return A list of training nodes resulting from the split.
+     */
+    private List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
+                                                             List<int[]> bestLeftIndices, List<int[]> bestRightIndices){
+        splitID = featureIDs[bestID];
+        split = true;
+        splitValue = bestSplitValue;
+        IntArrayContainer firstBuffer = mergeBufferOne.get();
+        firstBuffer.size = 0;
+        firstBuffer.grow(indices.length);
+        IntArrayContainer secondBuffer = mergeBufferTwo.get();
+        secondBuffer.size = 0;
+        secondBuffer.grow(indices.length);
+        int[] leftIndices = IntArrayContainer.merge(bestLeftIndices, firstBuffer, secondBuffer);
+        int[] rightIndices = IntArrayContainer.merge(bestRightIndices, firstBuffer, secondBuffer);
+        //logger.info("Splitting on feature " + bestID + " with value " + bestSplitValue + " at depth " + depth + ", " + numExamples + " examples in node.");
+        //logger.info("left indices length = " + leftIndices.length);
+        ArrayList<TreeFeature> lessThanData = new ArrayList<>(data.size());
+        ArrayList<TreeFeature> greaterThanData = new ArrayList<>(data.size());
+        for (TreeFeature feature : data) {
+            Pair<TreeFeature,TreeFeature> split = feature.split(leftIndices, rightIndices, firstBuffer, secondBuffer);
+            lessThanData.add(split.getA());
+            greaterThanData.add(split.getB());
+        }
+        lessThanOrEqual = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets,
+                weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
+        greaterThan = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
+                weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize);
+        List<AbstractTrainingNode<Regressor>> output = new ArrayList<>(2);
+        output.add(lessThanOrEqual);
+        output.add(greaterThan);
         return output;
     }
 

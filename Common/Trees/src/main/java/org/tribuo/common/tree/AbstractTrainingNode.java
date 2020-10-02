@@ -20,6 +20,7 @@ import org.tribuo.Output;
 import org.tribuo.math.la.SparseVector;
 
 import java.util.List;
+import java.util.SplittableRandom;
 
 /**
  * Base class for decision tree nodes used at training time.
@@ -37,6 +38,8 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     protected int splitID;
 
     protected double splitValue;
+
+    protected double impurityScore;
     
     protected AbstractTrainingNode<T> greaterThan;
     
@@ -47,11 +50,23 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         this.numExamples = numExamples;
     }
 
-    public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices);
+    /**
+     * Builds next level of a tree.
+     * @param featureIDs Indices of the features available in this split.
+     * @param rng Splittable random number generator.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
+     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
+     *                                  minImpurityDecrease.
+     * @return A possibly empty list of TrainingNodes.
+     */
+    public abstract List<AbstractTrainingNode<T>> buildTree(int[] featureIDs, SplittableRandom rng,
+                                                            boolean useRandomSplitPoints, float scaledMinImpurityDecrease);
 
     public abstract Node<T> convertTree();
 
-    public int getDepth() { return depth; }
+    public int getDepth() {
+        return depth;
+    }
 
     @Override
     public Node<T> getNextNode(SparseVector example) {
@@ -67,7 +82,9 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         }
     }
 
-    public int getNumExamples() { return numExamples; }
+    public int getNumExamples() {
+        return numExamples;
+    }
 
     @Override
     public boolean isLeaf() {

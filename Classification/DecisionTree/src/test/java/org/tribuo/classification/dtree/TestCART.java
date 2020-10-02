@@ -20,7 +20,9 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
+import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.dtree.impurity.GiniIndex;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
@@ -38,9 +40,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class TestCART {
 
     private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
+    private static final CARTClassificationTrainer randomt = new CARTClassificationTrainer(5,2, 0.0f,1.0f, true,
+            new GiniIndex(), Trainer.DEFAULT_SEED);
 
-    public void testCART(Pair<Dataset<Label>,Dataset<Label>> p) {
-        TreeModel<Label> m = t.train(p.getA());
+    public void testCART(Pair<Dataset<Label>,Dataset<Label>> p, CARTClassificationTrainer trainer) {
+        TreeModel<Label> m = trainer.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
@@ -51,12 +55,11 @@ public class TestCART {
         Assertions.assertFalse(features.isEmpty());
     }
 
-    @Test
-    public void testSingleClassTraining() {
+    public void runSingleClassTraining(CARTClassificationTrainer trainer) {
         Pair<Dataset<Label>,Dataset<Label>> data = LabelledDataGenerator.denseTrainTest();
 
         DatasetView<Label> trainingData = DatasetView.createView(data.getA(),(Example<Label> e) -> e.getOutput().getLabel().equals("Foo"), "Foo selector");
-        Model<Label> model = t.train(trainingData);
+        Model<Label> model = trainer.train(trainingData);
         LabelEvaluation evaluation = (LabelEvaluation) trainingData.getOutputFactory().getEvaluator().evaluate(model,data.getB());
         assertEquals(0.0,evaluation.accuracy(new Label("Bar")));
         assertEquals(0.0,evaluation.accuracy(new Label("Baz")));
@@ -65,38 +68,93 @@ public class TestCART {
     }
 
     @Test
-    public void testDenseData() {
+    public void testSingleClassTraining() {
+        runSingleClassTraining(t);
+    }
+
+    @Test
+    public void testRandomSingleClassTraining() {
+        runSingleClassTraining(randomt);
+    }
+
+    public void runDenseData(CARTClassificationTrainer trainer) {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testCART(p);
+        testCART(p, trainer);
+    }
+
+    @Test
+    public void testDenseData() {
+        runDenseData(t);
+    }
+
+    @Test
+    public void testRandomDenseData() {
+        runDenseData(randomt);
+    }
+
+    public void runSparseData(CARTClassificationTrainer trainer) {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.sparseTrainTest();
+        testCART(p, trainer);
     }
 
     @Test
     public void testSparseData() {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.sparseTrainTest();
-        testCART(p);
+        runSparseData(t);
+    }
+
+    @Test
+    public void testRandomSparseData() {
+        runSparseData(randomt);
+    }
+
+    public void runSparseBinaryData(CARTClassificationTrainer trainer) {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.binarySparseTrainTest();
+        testCART(p, trainer);
     }
 
     @Test
     public void testSparseBinaryData() {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.binarySparseTrainTest();
-        testCART(p);
+        runSparseBinaryData(t);
     }
 
     @Test
-    public void testInvalidExample() {
+    public void testRandomSparseBinaryData() {
+        runSparseBinaryData(randomt);
+    }
+
+    public void runInvalidExample(CARTClassificationTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-            Model<Label> m = t.train(p.getA());
+            Model<Label> m = trainer.train(p.getA());
             m.predict(LabelledDataGenerator.invalidSparseExample());
         });
     }
 
     @Test
-    public void testEmptyExample() {
+    public void testInvalidExample() {
+        runInvalidExample(t);
+    }
+
+    @Test
+    public void testRandomInvalidExample() {
+        runInvalidExample(randomt);
+    }
+
+    public void runEmptyExample(CARTClassificationTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-            Model<Label> m = t.train(p.getA());
+            Model<Label> m = trainer.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
+    }
+
+    @Test
+    public void testEmptyExample() {
+        runEmptyExample(t);
+    }
+
+    @Test
+    public void testRandomEmptyExample() {
+        runEmptyExample(randomt);
     }
 }

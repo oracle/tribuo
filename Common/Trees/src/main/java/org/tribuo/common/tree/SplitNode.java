@@ -61,7 +61,7 @@ public class SplitNode<T extends Output<T>> implements Node<T> {
     }
 
     @Override
-    public boolean isLeaf() { 
+    public boolean isLeaf() {
         return false;
     }
 

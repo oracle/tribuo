@@ -19,6 +19,7 @@ package org.tribuo.common.tree;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.Dataset;
+import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
@@ -66,10 +67,22 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     protected int maxDepth = Integer.MAX_VALUE;
 
     /**
+     * Minimum impurity decrease. The decrease in impurity needed in order to split the node.
+     */
+    @Config(description="The decrease in impurity needed in order to split the node.")
+    protected float minImpurityDecrease = 0.0f;
+
+    /**
      * Number of features to sample per split. 1 indicates all features are considered.
      */
     @Config(description="The fraction of features to consider in each split. 1.0f indicates all features are considered.")
     protected float fractionFeaturesInSplit = 1.0f;
+
+    /**
+     * Whether to choose split points for features at random.
+     */
+    @Config(description="Whether to choose split points for features at random.")
+    protected boolean useRandomSplitPoints = false;
 
     @Config(description="The RNG seed to use when sampling features in a split.")
     protected long seed = Trainer.DEFAULT_SEED;
@@ -82,19 +95,41 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
      * After calls to this superconstructor subclasses must call postConfig().
      * @param maxDepth The maximum depth of the tree.
      * @param minChildWeight The minimum child weight allowed.
+     * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
      * @param fractionFeaturesInSplit The fraction of features to consider at each split.
+     * @param useRandomSplitPoints Whether to choose split points for features at random.
      * @param seed The seed for the feature subsampling RNG.
      */
-    protected AbstractCARTTrainer(int maxDepth, float minChildWeight, float fractionFeaturesInSplit, long seed) {
+    protected AbstractCARTTrainer(int maxDepth, float minChildWeight, float minImpurityDecrease,
+                                  float fractionFeaturesInSplit, boolean useRandomSplitPoints, long seed) {
         this.maxDepth = maxDepth;
         this.fractionFeaturesInSplit = fractionFeaturesInSplit;
+        this.useRandomSplitPoints = useRandomSplitPoints;
         this.minChildWeight = minChildWeight;
+        this.minImpurityDecrease = minImpurityDecrease;
         this.seed = seed;
     }
 
     @Override
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
+
+        if ((fractionFeaturesInSplit <= 0.0f) || (this.fractionFeaturesInSplit > 1.0f)) {
+            throw new IllegalArgumentException("fractionFeaturesInSplit must be greater than 0 and less than or equal" +
+                    " to 1");
+        }
+
+        if (minImpurityDecrease < 0.0f) {
+            throw new IllegalArgumentException("minImpurityDecrease must be greater than or equal to 0");
+        }
+
+        if (maxDepth < 1) {
+            throw new IllegalArgumentException("maxDepth must be greater than or equal to 1");
+        }
+
+        if (minChildWeight <= 0.0f) {
+            throw new IllegalArgumentException("minChildWeight must be greater than 0");
+        }
     }
 
     @Override
@@ -105,6 +140,16 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     @Override
     public float getFractionFeaturesInSplit() {
         return fractionFeaturesInSplit;
+    }
+
+    @Override
+    public boolean getUseRandomSplitPoints() {
+        return useRandomSplitPoints;
+    }
+
+    @Override
+    public float getMinImpurityDecrease() {
+        return minImpurityDecrease;
     }
 
     @Override
@@ -137,10 +182,15 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         }
         if (numFeaturesInSplit != featureIDMap.size()) {
             indices = new int[numFeaturesInSplit];
-            // log
         } else {
             indices = originalIndices;
         }
+
+        float weightSum = 0.0f;
+        for (Example<T> e : examples) {
+            weightSum += e.getWeight();
+        }
+        float scaledMinImpurityDecrease = getMinImpurityDecrease() * weightSum;
 
         AbstractTrainingNode<T> root = mkTrainingNode(examples);
         Deque<AbstractTrainingNode<T>> queue = new LinkedList<>();
@@ -148,13 +198,14 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
 
         while (!queue.isEmpty()) {
             AbstractTrainingNode<T> node = queue.poll();
-            if ((node.getDepth() < maxDepth) &&
+            if ((node.getImpurity() > 0.0) && (node.getDepth() < maxDepth) &&
                     (node.getNumExamples() > minChildWeight)) {
                 if (numFeaturesInSplit != featureIDMap.size()) {
                     Util.randpermInPlace(originalIndices, localRNG);
                     System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                 }
-                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices);
+                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices, localRNG, getUseRandomSplitPoints(),
+                        scaledMinImpurityDecrease);
                 // Use the queue as a stack to improve cache locality.
                 // Building depth first.
                 for (AbstractTrainingNode<T> newNode : nodes) {

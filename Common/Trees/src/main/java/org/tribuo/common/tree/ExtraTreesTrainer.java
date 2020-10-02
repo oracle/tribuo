@@ -24,34 +24,36 @@ import org.tribuo.ensemble.EnsembleCombiner;
 import java.util.logging.Logger;
 
 /**
- * A trainer which produces a random forest.
+ * A trainer which produces an Extremely Randomized Tree Ensemble.
  * <p>
- * Random Forests are basically bagged trees, with feature subsampling at each of the nodes.
- * An exception will be thrown if the user does not supply a decision tree trainer with feature subsampling turned on
- * and random splitting turned off.
+ * Extremely Randomized Trees are similar to Random Forests, but they add an extra element of randomness in that
+ * the split points for features are also chosen randomly. As with Random Forests, feature subsampling is available at
+ * each of the nodes.
+ * An exception will be thrown if the inner trainer is not a decision tree trainer or if random splitting is turned off.
  * <p>
  * See:
  * <pre>
- * J. Friedman, T. Hastie, &amp; R. Tibshirani.
- * "The Elements of Statistical Learning"
- * Springer 2001. <a href="http://web.stanford.edu/~hastie/ElemStatLearn/">PDF</a>
+ * P. Geurts, D. Ernst, &amp L. Wehenkel.
+ * "Extremely Randomized Trees"
+ * March 2006. <a href="https://link.springer.com/article/10.1007/s10994-006-6226-1">PDF</a>
  * </pre>
+ *
  */
-public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> {
+public class ExtraTreesTrainer<T extends Output<T>> extends BaggingTrainer<T> {
 
-    private static final Logger logger = Logger.getLogger(RandomForestTrainer.class.getName());
+    private static final Logger logger = Logger.getLogger(ExtraTreesTrainer.class.getName());
 
     /**
      * For the configuration system.
      */
-    private RandomForestTrainer() { }
+    private ExtraTreesTrainer() { }
 
-    public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers) {
+    public ExtraTreesTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers) {
         super(trainer,combiner,numMembers);
         postConfig();
     }
 
-    public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed) {
+    public ExtraTreesTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed) {
         super(trainer,combiner,numMembers,seed);
         postConfig();
     }
@@ -60,32 +62,25 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
     public void postConfig() {
         super.postConfig();
         if (!(innerTrainer instanceof DecisionTreeTrainer)) {
-            throw new PropertyException("","innerTrainer","RandomForestTrainer requires a decision tree innerTrainer");
+            throw new PropertyException("","innerTrainer","ExtraTreesTrainer requires a decision tree innerTrainer");
         }
-
         DecisionTreeTrainer<T> t = (DecisionTreeTrainer<T>) innerTrainer;
-        if (t.getFractionFeaturesInSplit() == 1f) {
-            throw new PropertyException("","innerTrainer","RandomForestTrainer requires that the decision tree " +
-                    "innerTrainer have fractional features in split.");
-        }
-
-        if (t.getUseRandomSplitPoints()) {
-            throw new PropertyException("","innerTrainer","RandomForestTrainer requires that the decision tree " +
-                    "use non-random splitting, but useRandomSplits was true. If you want random splits, use " +
-                    "ExtraTreesTrainer instead.");
+        if (!t.getUseRandomSplitPoints()) {
+            throw new PropertyException("","innerTrainer","ExtraTreesTrainer requires that the decision tree " +
+                    "innerTrainer have random split points turned on.");
         }
     }
 
     @Override
     protected String ensembleName() {
-        return "random-forest-ensemble";
+        return "extra-trees-ensemble";
     }
 
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
 
-        buffer.append("RandomForestTrainer(");
+        buffer.append("ExtraTreesTrainer(");
         buffer.append("innerTrainer=");
         buffer.append(innerTrainer.toString());
         buffer.append(",combiner=");
@@ -98,5 +93,6 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
 
         return buffer.toString();
     }
-    
+
 }
+

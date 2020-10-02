@@ -41,8 +41,12 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
     public int cartMaxDepth = 6;
     @Option(longName = "cart-min-child-weight", usage = "Minimum child weight.")
     public float cartMinChildWeight = 5.0f;
+    @Option(longName = "cart-min-impurity-decrease", usage = "Minimum impurity decrease.")
+    public float cartMinImpurityDecrease = 0.0f;
     @Option(longName = "cart-split-fraction", usage = "Fraction of features in split.")
-    public float cartSplitFraction = 0.0f;
+    public float cartSplitFraction = 1.0f;
+    @Option(longName = "cart-random-split", usage = "Whether to choose split points for features at random.")
+    public boolean cartRandomSplit = false;
     @Option(longName = "cart-impurity", usage = "Impurity measure to use. Defaults to GINI.")
     public ImpurityType cartImpurity = ImpurityType.GINI;
     @Option(longName = "cart-print-tree", usage = "Prints the decision tree.")
@@ -69,11 +73,8 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
         CARTClassificationTrainer trainer;
         switch (cartTreeAlgorithm) {
             case CART:
-                if (cartSplitFraction <= 0) {
-                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, 1, impurity, cartSeed);
-                } else {
-                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartSplitFraction, impurity, cartSeed);
-                }
+                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease
+                            ,cartSplitFraction, cartRandomSplit, impurity, cartSeed);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown tree type " + cartTreeAlgorithm);

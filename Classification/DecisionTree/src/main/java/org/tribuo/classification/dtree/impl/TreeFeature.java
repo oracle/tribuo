@@ -116,14 +116,14 @@ class TreeFeature implements Iterable<InvertedFeature>, Serializable {
         feature.forEach(InvertedFeature::fixSize);
     }
 
-    public float[] getLabelCounts() {
-        float[] labelCounts = new float[numLabels];
+    public float[] getWeightedLabelCounts() {
+        float[] weightedLabelCounts = new float[numLabels];
 
         for (InvertedFeature f : feature) {
-            Util.inPlaceAdd(labelCounts,f.getLabelCounts());
+            Util.inPlaceAdd(weightedLabelCounts,f.getWeightedLabelCounts());
         }
 
-        return labelCounts;
+        return weightedLabelCounts;
     }
 
     /**
