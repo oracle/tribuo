@@ -44,7 +44,7 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
     @Option(longName = "cart-min-impurity-decrease", usage = "Minimum impurity decrease.")
     public float cartMinImpurityDecrease = 0.0f;
     @Option(longName = "cart-split-fraction", usage = "Fraction of features in split.")
-    public float cartSplitFraction = 0.0f;
+    public float cartSplitFraction = 1.0f;
     @Option(longName = "cart-random-split", usage = "Whether to choose split points for features at random.")
     public boolean cartRandomSplit = false;
     @Option(longName = "cart-impurity", usage = "Impurity measure to use. Defaults to GINI.")
@@ -73,13 +73,8 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
         CARTClassificationTrainer trainer;
         switch (cartTreeAlgorithm) {
             case CART:
-                if (cartSplitFraction == 0) {
-                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease
-                            ,1, cartRandomSplit, impurity, cartSeed);
-                } else {
                     trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease
                             ,cartSplitFraction, cartRandomSplit, impurity, cartSeed);
-                }
                 break;
             default:
                 throw new IllegalArgumentException("Unknown tree type " + cartTreeAlgorithm);

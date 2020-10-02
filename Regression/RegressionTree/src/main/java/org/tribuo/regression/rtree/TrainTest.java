@@ -59,7 +59,7 @@ public class TrainTest {
         @Option(charName='d',longName="max-depth",usage="Maximum depth in the decision tree.")
         public int depth = 6;
         @Option(charName='e',longName="split-fraction",usage="Fraction of features in split.")
-        public float fraction = 0.0f;
+        public float fraction = 1.0f;
         @Option(charName='m',longName="min-child-weight",usage="Minimum child weight.")
         public float minChildWeight = 5.0f;
         @Option(charName='p',longName="min-impurity-decrease",usage="Minimumum decrease in impurity required in order" +
@@ -124,22 +124,12 @@ public class TrainTest {
         SparseTrainer<Regressor> trainer;
         switch (o.treeType) {
             case CART_INDEPENDENT:
-                if (o.fraction == 0) {
-                    trainer = new CARTRegressionTrainer(o.depth,o.minChildWeight,o.minImpurityDecrease, 1, o.useRandomSplitPoints, impurity,
-                            o.general.seed);
-                } else {
                     trainer = new CARTRegressionTrainer(o.depth, o.minChildWeight,o.minImpurityDecrease,o.fraction, o.useRandomSplitPoints, impurity,
                             o.general.seed);
-                }
                 break;
             case CART_JOINT:
-                if (o.fraction == 0) {
-                    trainer = new CARTJointRegressionTrainer(o.depth,o.minChildWeight,o.minImpurityDecrease,1, o.useRandomSplitPoints, impurity,
-                            o.normalize, o.general.seed);
-                } else {
                     trainer = new CARTJointRegressionTrainer(o.depth, o.minChildWeight, o.minImpurityDecrease, o.fraction, o.useRandomSplitPoints,
                             impurity, o.normalize, o.general.seed);
-                }
                 break;
             default:
                 logger.severe("unknown tree type " + o.treeType);
