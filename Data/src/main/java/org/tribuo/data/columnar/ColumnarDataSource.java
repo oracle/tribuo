@@ -83,6 +83,7 @@ public abstract class ColumnarDataSource<T extends Output<T>> implements Configu
             this.processor = processor;
             this.iterator = iterator;
             this.outputRequired = outputRequired;
+            processor.expandRegexMapping(iterator.getFields());
         }
 
         @Override

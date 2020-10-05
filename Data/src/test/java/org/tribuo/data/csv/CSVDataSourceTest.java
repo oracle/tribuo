@@ -34,6 +34,7 @@ import org.tribuo.test.MockOutputFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,9 @@ public class CSVDataSourceTest {
     private String[] headers;
     private RowProcessor<MockOutput> rowProcessor;
 
+    private URI regexDataFile;
+    private RowProcessor<MockOutput> regexRowProcessor;
+
     @BeforeEach
     public void setUp() throws URISyntaxException {
         dataFile = CSVDataSourceTest.class.getResource("/org/tribuo/data/csv/test.csv").toURI();
@@ -63,6 +67,12 @@ public class CSVDataSourceTest {
         }
 
         rowProcessor = new RowProcessor<>(responseProcessor,processors);
+
+        regexDataFile = CSVDataSourceTest.class.getResource("/org/tribuo/data/csv/test-regexmapping.csv").toURI();
+        Map<String, FieldProcessor> regexProcessor = new HashMap<>();
+        regexProcessor.put("foo.*", new IdentityProcessor("REGEXDUMMY"));
+
+        regexRowProcessor = new RowProcessor<>(Collections.emptyList(), null, responseProcessor, Collections.emptyMap(), regexProcessor, Collections.emptySet());
     }
 
     @Test
@@ -83,5 +93,26 @@ public class CSVDataSourceTest {
         ObjectProvenance unmarshalledProvenance = ProvenanceUtil.unmarshalProvenance(datasetProvenance);
 
         assertEquals(prov,unmarshalledProvenance);
+    }
+
+    @Test
+    public void testRegexExpand() {
+        CSVDataSource<MockOutput> dataSource = new CSVDataSource<>(regexDataFile, regexRowProcessor, true);
+
+        MutableDataset<MockOutput> dataset = new MutableDataset<>(dataSource);
+
+        assertEquals(6,dataset.size(),"Found an incorrect number of rows when loading the csv.");
+
+        DatasetProvenance prov = dataset.getProvenance();
+
+        List<ObjectMarshalledProvenance> datasetProvenance = ProvenanceUtil.marshalProvenance(prov);
+
+        assertFalse(datasetProvenance.isEmpty());
+
+        ObjectProvenance unmarshalledProvenance = ProvenanceUtil.unmarshalProvenance(datasetProvenance);
+
+        assertEquals(prov,unmarshalledProvenance);
+
+        assertEquals(13, dataset.getFeatureMap().size());
     }
 }
