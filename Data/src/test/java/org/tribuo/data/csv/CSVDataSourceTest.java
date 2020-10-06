@@ -21,6 +21,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.tribuo.Dataset;
 import org.tribuo.MutableDataset;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.FieldProcessor;
@@ -39,8 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -115,4 +115,11 @@ public class CSVDataSourceTest {
 
         assertEquals(13, dataset.getFeatureMap().size());
     }
+
+    @Test
+    public void testRowProcessorReuse() {
+        Dataset<MockOutput> ds1 = new MutableDataset<>(new CSVDataSource<>(regexDataFile, regexRowProcessor, true));
+        Dataset<MockOutput> ds2 = new MutableDataset<>(new CSVDataSource<>(regexDataFile, regexRowProcessor, true));
+    }
+
 }
