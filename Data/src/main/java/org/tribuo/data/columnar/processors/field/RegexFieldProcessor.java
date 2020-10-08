@@ -64,6 +64,7 @@ public class RegexFieldProcessor implements FieldProcessor {
     public RegexFieldProcessor(String fieldName, Pattern regex, EnumSet<Mode> modes) {
         this.regex = regex;
         this.fieldName = fieldName;
+        this.regexString = regex.pattern();
         this.modes = modes;
     }
 
