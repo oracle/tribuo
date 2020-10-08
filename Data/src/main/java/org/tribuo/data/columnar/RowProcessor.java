@@ -382,10 +382,10 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         if (configured) {
             logger.warning("RowProcessor was already configured, yet expandRegexMapping was called with " + fieldNames.toString());
         }
-        Set<String> fieldsMatchingRegex = partialExpandRegexMapping(fieldNames);
+        Set<String> regexesMatchingFieldNames = partialExpandRegexMapping(fieldNames);
 
-        if (fieldsMatchingRegex.size() != regexMappingProcessors.size()) {
-            throw new IllegalArgumentException("Failed to match all the regexes, found " + fieldsMatchingRegex.size() + ", required " + regexMappingProcessors.size());
+        if (regexesMatchingFieldNames.size() != regexMappingProcessors.size()) {
+            throw new IllegalArgumentException("Failed to match all the regexes, found " + regexesMatchingFieldNames.size() + ", required " + regexMappingProcessors.size());
         } else {
             regexMappingProcessors.clear();
             configured = true;
@@ -401,7 +401,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * @return the set of regexes that were matched by fieldNames.
      */
     protected Set<String> partialExpandRegexMapping(Collection<String> fieldNames) {
-        HashSet<String> fieldsMatchingRegex = new HashSet<>();
+        HashSet<String> regexesMatchingFieldNames = new HashSet<>();
         // Loop over all regexes
         for (Map.Entry<String,FieldProcessor> e : regexMappingProcessors.entrySet()) {
             Pattern p = Pattern.compile(e.getKey());
@@ -416,18 +416,19 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
                         throw new IllegalArgumentException("Regex " + p.toString() + " matched field " + s + " which already had a field processor " + f.toString());
                     }
 
-                    fieldsMatchingRegex.add(e.getKey());
+                    regexesMatchingFieldNames.add(e.getKey());
                 }
             }
         }
-        return fieldsMatchingRegex;
+        return regexesMatchingFieldNames;
     }
 
     /**
      * @deprecated In a future release this API will change, in the meantime this is the correct way to get a row
      *   processor with clean state.
      * <p/>
-     * RowProcessor is stateful in a way that can sometimes make it fail the second time it is used. Concretely
+     * When using regexMappingProcessors, RowProcessor is stateful in a way that can sometimes make it fail the second
+     * time it is used. Concretely:
      * <pre>
      *     RowProcessor rp;
      *     Dataset ds1 = new MutableDataset(new CSVDataSource(csvfile1, rp));
