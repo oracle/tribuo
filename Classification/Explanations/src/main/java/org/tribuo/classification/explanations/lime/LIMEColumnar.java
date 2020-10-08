@@ -107,12 +107,12 @@ public class LIMEColumnar extends LIMEBase implements ColumnarExplainer<Regresso
     public LIMEColumnar(SplittableRandom rng, Model<Label> innerModel, SparseTrainer<Regressor> explanationTrainer,
                         int numSamples, RowProcessor<Label> exampleGenerator, Tokenizer tokenizer) {
         super(rng, innerModel, explanationTrainer, numSamples);
-        this.generator = exampleGenerator;
+        this.generator = exampleGenerator.copy();
         this.responseProcessor = generator.getResponseProcessor();
         this.tokenizer = tokenizer;
         this.tokenizerThreadLocal = ThreadLocal.withInitial(() -> {try { return this.tokenizer.clone(); } catch (CloneNotSupportedException e) { throw new IllegalArgumentException("Tokenizer not cloneable",e); }});
-        if (!exampleGenerator.isConfigured()) {
-            exampleGenerator.expandRegexMapping(innerModel);
+        if (!this.generator.isConfigured()) {
+            this.generator.expandRegexMapping(innerModel);
         }
         this.binarisedInfos = new HashMap<>();
         ArrayList<VariableInfo> infos = new ArrayList<>();

@@ -42,9 +42,12 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
     public String getFieldName();
 
     /**
+     * @deprecated Response processors should be immutable; downstream objects assume that they are
      * Set the field name this ResponseProcessor uses.
      * @param fieldName The field name.
+     *
      */
+    @Deprecated()
     public void setFieldName(String fieldName);
 
     /**
