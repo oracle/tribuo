@@ -153,7 +153,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * @return The field processors.
      */
     public Map<String,FieldProcessor> getFieldProcessors() {
-        return fieldProcessorMap;
+        return Collections.unmodifiableMap(fieldProcessorMap);
     }
 
     /**
@@ -161,7 +161,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * @return The feature processors.
      */
     public Set<FeatureProcessor> getFeatureProcessors() {
-        return featureProcessors;
+        return Collections.unmodifiableSet(featureProcessors);
     }
 
     /**
@@ -285,7 +285,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * @return The set of column names it processes.
      */
     public Set<String> getColumnNames() {
-        return fieldProcessorMap.keySet();
+        return Collections.unmodifiableSet(fieldProcessorMap.keySet());
     }
 
     /**
