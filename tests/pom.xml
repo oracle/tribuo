@@ -22,7 +22,7 @@
         <artifactId>tribuo</artifactId>
         <groupId>org.tribuo</groupId>
         <version>4.1.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>${project.artifactId}</name>
