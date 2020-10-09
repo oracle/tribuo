@@ -261,7 +261,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      */
     public List<ColumnarFeature> generateFeatures(Map<String,String> row) {
         if (!configured) {
-            throw new IllegalStateException("expandRegexMapping not called, yet there are fieldProcessorMap which have not been bound to a field name.");
+            throw new IllegalStateException("expandRegexMapping not called, yet there are entries in regexMappingProcessors which have not been bound to a field name.");
         }
         List<ColumnarFeature> features = new ArrayList<>();
 
