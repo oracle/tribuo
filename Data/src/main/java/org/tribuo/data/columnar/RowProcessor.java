@@ -381,14 +381,15 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     public void expandRegexMapping(Collection<String> fieldNames) {
         if (configured) {
             logger.warning("RowProcessor was already configured, yet expandRegexMapping was called with " + fieldNames.toString());
-        }
-        Set<String> regexesMatchingFieldNames = partialExpandRegexMapping(fieldNames);
-
-        if (regexesMatchingFieldNames.size() != regexMappingProcessors.size()) {
-            throw new IllegalArgumentException("Failed to match all the regexes, found " + regexesMatchingFieldNames.size() + ", required " + regexMappingProcessors.size());
         } else {
-            regexMappingProcessors.clear();
-            configured = true;
+            Set<String> regexesMatchingFieldNames = partialExpandRegexMapping(fieldNames);
+
+            if (regexesMatchingFieldNames.size() != regexMappingProcessors.size()) {
+                throw new IllegalArgumentException("Failed to match all the regexes, found " + regexesMatchingFieldNames.size() + ", required " + regexMappingProcessors.size());
+            } else {
+                regexMappingProcessors.clear();
+                configured = true;
+            }
         }
     }
 
@@ -409,8 +410,11 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
             for (String s : fieldNames) {
                 // Check if the pattern matches the field name
                 if (p.matcher(s).matches()) {
-                    // If it matches, add the field to the fieldProcessorMap map
-                    FieldProcessor f = fieldProcessorMap.put(s,e.getValue().copy(s));
+                    // If it matches, add the field to the fieldProcessorMap map and the fieldProcessorList (for the provenance).
+                    FieldProcessor newProcessor = e.getValue().copy(s);
+                    fieldProcessorList.add(newProcessor);
+                    FieldProcessor f = fieldProcessorMap.put(s,newProcessor);
+
 
                     if (f != null) {
                         throw new IllegalArgumentException("Regex " + p.toString() + " matched field " + s + " which already had a field processor " + f.toString());

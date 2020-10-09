@@ -68,6 +68,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
         return fieldName;
     }
 
+    @Deprecated
     @Override
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
