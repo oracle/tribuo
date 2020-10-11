@@ -158,13 +158,16 @@ Maven:
 <dependency>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.1</version>
     <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-api 'org.tribuo:tribuo-all:4.0.0@pom'
+implementation ("org.tribuo:tribuo-all:4.0.1@pom") {
+    transitive = true // for Groovy
+    // isTransitive = true // for Kotlin
+}
 ```
 
 The `tribuo-all` dependency is a pom which depends on all the Tribuo
@@ -210,6 +213,7 @@ Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
+- v4.0.1 - Bugfix for CSVReader to cope with blank lines, added IDXDataSource to allow loading of native MNIST format data.
 - v4.0.0 - Initial public release.
 - v3 - Added provenance system, the external model support and onnx integrations.
 - v2 - Expanded beyond a classification system, to support regression, clustering and multi-label classification.
