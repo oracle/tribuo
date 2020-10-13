@@ -39,8 +39,10 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -255,61 +257,66 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
      * @throws IOException If the file could not be read.
      */
     static IDXData readData(Path path) throws IOException {
-        DataInputStream stream = new DataInputStream(IOUtil.getInputStreamForLocation(path.toString()));
-        short magicNumber = stream.readShort();
-        if (magicNumber != 0) {
-            throw new IllegalStateException("Invalid IDX file, magic number was not zero. Found " + magicNumber);
+        InputStream inputStream = IOUtil.getInputStreamForLocation(path.toString());
+        if (inputStream == null) {
+            throw new FileNotFoundException("Failed to load from path - " + path);
         }
-        final byte dataTypeByte = stream.readByte();
-        final IDXType dataType = IDXType.convert(dataTypeByte);
-        final byte numDimensions = stream.readByte();
-        if (numDimensions < 1) {
-            throw new IllegalStateException("Invalid number of dimensions, found " + numDimensions);
-        }
-        final int[] shape = new int[numDimensions];
-        int size = 1;
-        for (int i = 0; i < numDimensions; i++) {
-            shape[i] = stream.readInt();
-            if (shape[i] < 1) {
-                throw new IllegalStateException("Invalid shape, found " + Arrays.toString(shape));
+        // DataInputStream.close implicitly closes the InputStream
+        try (DataInputStream stream = new DataInputStream(inputStream)) {
+            short magicNumber = stream.readShort();
+            if (magicNumber != 0) {
+                throw new IllegalStateException("Invalid IDX file, magic number was not zero. Found " + magicNumber);
             }
-            size *= shape[i];
-        }
-        double[] data = new double[size];
-        try {
-            for (int i = 0; i < size; i++) {
-                switch (dataType) {
-                    case BYTE:
-                        data[i] = stream.readByte();
-                        break;
-                    case UBYTE:
-                        data[i] = stream.readUnsignedByte();
-                        break;
-                    case SHORT:
-                        data[i] = stream.readShort();
-                        break;
-                    case INT:
-                        data[i] = stream.readInt();
-                        break;
-                    case FLOAT:
-                        data[i] = stream.readFloat();
-                        break;
-                    case DOUBLE:
-                        data[i] = stream.readDouble();
-                        break;
+            final byte dataTypeByte = stream.readByte();
+            final IDXType dataType = IDXType.convert(dataTypeByte);
+            final byte numDimensions = stream.readByte();
+            if (numDimensions < 1) {
+                throw new IllegalStateException("Invalid number of dimensions, found " + numDimensions);
+            }
+            final int[] shape = new int[numDimensions];
+            int size = 1;
+            for (int i = 0; i < numDimensions; i++) {
+                shape[i] = stream.readInt();
+                if (shape[i] < 1) {
+                    throw new IllegalStateException("Invalid shape, found " + Arrays.toString(shape));
                 }
+                size *= shape[i];
             }
-        } catch (EOFException e) {
-            throw new IllegalStateException("Too little data in the file, expected to find " + size + " elements");
+            double[] data = new double[size];
+            try {
+                for (int i = 0; i < size; i++) {
+                    switch (dataType) {
+                        case BYTE:
+                            data[i] = stream.readByte();
+                            break;
+                        case UBYTE:
+                            data[i] = stream.readUnsignedByte();
+                            break;
+                        case SHORT:
+                            data[i] = stream.readShort();
+                            break;
+                        case INT:
+                            data[i] = stream.readInt();
+                            break;
+                        case FLOAT:
+                            data[i] = stream.readFloat();
+                            break;
+                        case DOUBLE:
+                            data[i] = stream.readDouble();
+                            break;
+                    }
+                }
+            } catch (EOFException e) {
+                throw new IllegalStateException("Too little data in the file, expected to find " + size + " elements");
+            }
+            try {
+                byte unexpectedByte = stream.readByte();
+                throw new IllegalStateException("Too much data in the file");
+            } catch (EOFException e) {
+                //pass as the stream is exhausted
+            }
+            return new IDXData(dataType, shape, data);
         }
-        try {
-            byte unexpectedByte = stream.readByte();
-            throw new IllegalStateException("Too much data in the file");
-        } catch (EOFException e) {
-            //pass as the stream is exhausted
-        }
-
-        return new IDXData(dataType, shape, data);
     }
 
     /**
