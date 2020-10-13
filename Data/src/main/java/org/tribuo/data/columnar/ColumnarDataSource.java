@@ -81,7 +81,9 @@ public abstract class ColumnarDataSource<T extends Output<T>> implements Configu
 
         InnerIterator(RowProcessor<T> processor, ColumnarIterator iterator, boolean outputRequired) {
             this.processor = processor.copy();
-            this.processor.expandRegexMapping(iterator.getFields());
+            if (!this.processor.isConfigured()) {
+                this.processor.expandRegexMapping(iterator.getFields());
+            }
             this.iterator = iterator;
             this.outputRequired = outputRequired;
         }

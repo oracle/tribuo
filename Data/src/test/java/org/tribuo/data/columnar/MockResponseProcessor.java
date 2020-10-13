@@ -49,6 +49,7 @@ public class MockResponseProcessor implements ResponseProcessor<MockOutput> {
         return fieldName;
     }
 
+    @Deprecated
     @Override
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;

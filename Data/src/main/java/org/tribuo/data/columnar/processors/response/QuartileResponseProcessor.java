@@ -54,6 +54,7 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
         this.outputFactory = outputFactory;
     }
 
+    @Deprecated
     @Override
     public void setFieldName(String fieldName) {
         this.fieldName = fieldName;
