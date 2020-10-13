@@ -108,7 +108,8 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
     }
 
     @Override
-    protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples) {
+    protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples,
+                                                             AbstractTrainingNode.LeafDeterminer leafDeterminer) {
         throw new IllegalStateException("Shouldn't reach here.");
     }
 
@@ -147,6 +148,8 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
             weightSum += e.getWeight();
         }
         float scaledMinImpurityDecrease = getMinImpurityDecrease() * weightSum;
+        AbstractTrainingNode.LeafDeterminer leafDeterminer = new AbstractTrainingNode.LeafDeterminer(maxDepth,
+                minChildWeight, scaledMinImpurityDecrease);
 
         InvertedData data = RegressorTrainingNode.invertData(examples);
 
@@ -155,20 +158,21 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
             String dimName = r.getNames()[0];
             int dimIdx = outputIDInfo.getID(r);
 
-            AbstractTrainingNode<Regressor> root = new RegressorTrainingNode(impurity,data,dimIdx,dimName,examples.size(),featureIDMap,outputIDInfo);
+            AbstractTrainingNode<Regressor> root = new RegressorTrainingNode(impurity,data,dimIdx,dimName,
+                    examples.size(),featureIDMap,outputIDInfo, leafDeterminer);
             Deque<AbstractTrainingNode<Regressor>> queue = new LinkedList<>();
             queue.add(root);
 
             while (!queue.isEmpty()) {
                 AbstractTrainingNode<Regressor> node = queue.poll();
                 if ((node.getImpurity() > 0.0) && (node.getDepth() < maxDepth) &&
-                        (node.getNumExamples() > minChildWeight)) {
+                        (node.getWeightSum() > minChildWeight)) {
                     if (numFeaturesInSplit != featureIDMap.size()) {
                         Util.randpermInPlace(originalIndices, localRNG);
                         System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                     }
                     List<AbstractTrainingNode<Regressor>> nodes = node.buildTree(indices, localRNG,
-                            getUseRandomSplitPoints(),scaledMinImpurityDecrease);
+                            getUseRandomSplitPoints());
                     // Use the queue as a stack to improve cache locality.
                     for (AbstractTrainingNode<Regressor> newNode : nodes) {
                         queue.addFirst(newNode);

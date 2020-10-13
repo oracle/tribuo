@@ -107,8 +107,9 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
     }
 
     @Override
-    protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples) {
-        return new JointRegressorTrainingNode(impurity, examples, normalize);
+    protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples,
+                                                             AbstractTrainingNode.LeafDeterminer leafDeterminer) {
+        return new JointRegressorTrainingNode(impurity, examples, normalize, leafDeterminer);
     }
 
     @Override

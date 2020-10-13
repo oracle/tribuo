@@ -74,12 +74,20 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
 
     private final String dimName;
 
-    public RegressorTrainingNode(RegressorImpurity impurity, InvertedData tuple, int dimIndex, String dimName, int numExamples, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputInfo) {
-        this(impurity,tuple.copyData(),tuple.indices,tuple.targets[dimIndex],tuple.weights,dimName,numExamples,0,featureIDMap,outputInfo);
+    private final float weightSum;
+
+    public RegressorTrainingNode(RegressorImpurity impurity, InvertedData tuple, int dimIndex, String dimName,
+                                 int numExamples, ImmutableFeatureMap featureIDMap,
+                                 ImmutableOutputInfo<Regressor> outputInfo, LeafDeterminer leafDeterminer) {
+        this(impurity,tuple.copyData(),tuple.indices,tuple.targets[dimIndex],tuple.weights,dimName,numExamples,0,
+                featureIDMap,outputInfo, leafDeterminer);
     }
 
-    private RegressorTrainingNode(RegressorImpurity impurity, ArrayList<TreeFeature> data, int[] indices, float[] targets, float[] weights, String dimName, int numExamples, int depth, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap) {
-        super(depth, numExamples);
+    private RegressorTrainingNode(RegressorImpurity impurity, ArrayList<TreeFeature> data, int[] indices,
+                                  float[] targets, float[] weights, String dimName, int numExamples, int depth,
+                                  ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
+                                  LeafDeterminer leafDeterminer) {
+        super(depth, numExamples, leafDeterminer);
         this.data = data;
         this.featureIDMap = featureIDMap;
         this.labelIDMap = labelIDMap;
@@ -88,42 +96,40 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         this.targets = targets;
         this.weights = weights;
         this.dimName = dimName;
+        this.weightSum = Util.sum(indices,indices.length,weights);
         this.impurityScore = impurity.impurity(indices, targets, weights);
     }
 
     @Override
-    public double getImpurity() { return impurityScore;}
+    public double getImpurity() {
+        return impurityScore;
+    }
 
     /**
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
      * @param useRandomSplitPoints Whether to choose split points for features at random.
-     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
-     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
     public List<AbstractTrainingNode<Regressor>> buildTree(int[] featureIDs, SplittableRandom rng,
-                                                           boolean useRandomSplitPoints, float scaledMinImpurityDecrease) {
+                                                           boolean useRandomSplitPoints) {
         if (useRandomSplitPoints) {
-            return buildRandomTree(featureIDs, rng, scaledMinImpurityDecrease);
+            return buildRandomTree(featureIDs, rng);
         } else {
-            return buildGreedyTree(featureIDs, scaledMinImpurityDecrease);
+            return buildGreedyTree(featureIDs);
         }
     }
 
     /**
      * Builds a tree according to CART
      * @param featureIDs Indices of the features available in this split.
-     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
-     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
-    private List<AbstractTrainingNode<Regressor>> buildGreedyTree(int[] featureIDs, float scaledMinImpurityDecrease) {
+    private List<AbstractTrainingNode<Regressor>> buildGreedyTree(int[] featureIDs) {
         int bestID = -1;
         double bestSplitValue = 0.0;
-        double weightSum = Util.sum(indices,indices.length,weights);
         double bestScore = getImpurity();
         //logger.info("Cur node score = " + bestScore);
         List<int[]> curIndices = new ArrayList<>();
@@ -163,7 +169,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         List<AbstractTrainingNode<Regressor>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
+        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
@@ -176,14 +182,11 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
      * Builds a CART tree with randomly chosen split points.
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
-     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
-     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
-    private List<AbstractTrainingNode<Regressor>> buildRandomTree(int[] featureIDs, SplittableRandom rng, float scaledMinImpurityDecrease) {
+    private List<AbstractTrainingNode<Regressor>> buildRandomTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
-        double weightSum = Util.sum(indices,indices.length,weights);
         double bestScore = getImpurity();
         //logger.info("Cur node score = " + bestScore);
         List<int[]> curLeftIndices = new ArrayList<>();
@@ -232,7 +235,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         List<AbstractTrainingNode<Regressor>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
+        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
@@ -272,8 +275,10 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             lessThanData.add(split.getA());
             greaterThanData.add(split.getB());
         }
-        lessThanOrEqual = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName, leftIndices.length, depth + 1, featureIDMap, labelIDMap);
-        greaterThan = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName, rightIndices.length, depth + 1, featureIDMap, labelIDMap);
+        lessThanOrEqual = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName,
+                leftIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+        greaterThan = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName,
+                rightIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
         List<AbstractTrainingNode<Regressor>> output = new ArrayList<>(2);
         output.add(lessThanOrEqual);
         output.add(greaterThan);
@@ -309,6 +314,11 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             DimensionTuple leafPred = new DimensionTuple(dimName,mean,variance);
             return new LeafNode<>(getImpurity(),leafPred,Collections.emptyMap(),false);
         }
+    }
+
+    @Override
+    public float getWeightSum() {
+        return weightSum;
     }
 
     /**

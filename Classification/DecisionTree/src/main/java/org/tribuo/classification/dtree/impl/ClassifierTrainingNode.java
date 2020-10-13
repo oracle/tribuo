@@ -67,22 +67,29 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
 
     private final float[] weightedLabelCounts;
 
+    private final float weightSum;
+
     /**
      * Constructor which creates the inverted file.
      * @param impurity The impurity function to use.
      * @param examples The training data.
+     * @param leafDeterminer Contains parameters needed to determine whether a node is a leaf.
      */
-    public ClassifierTrainingNode(LabelImpurity impurity, Dataset<Label> examples) {
-        this(impurity,invertData(examples), examples.size(), 0, examples.getFeatureIDMap(), examples.getOutputIDInfo());
+    public ClassifierTrainingNode(LabelImpurity impurity, Dataset<Label> examples, LeafDeterminer leafDeterminer) {
+        this(impurity,invertData(examples), examples.size(), 0, examples.getFeatureIDMap(),
+                examples.getOutputIDInfo(),leafDeterminer);
     }
 
-    private ClassifierTrainingNode(LabelImpurity impurity, ArrayList<TreeFeature> data, int numExamples, int depth, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap) {
-        super(depth, numExamples);
+    private ClassifierTrainingNode(LabelImpurity impurity, ArrayList<TreeFeature> data, int numExamples, int depth,
+                                   ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap,
+                                   LeafDeterminer leafDeterminer) {
+        super(depth, numExamples, leafDeterminer);
         this.data = data;
         this.featureIDMap = featureIDMap;
         this.labelIDMap = labelIDMap;
         this.impurity = impurity;
         this.weightedLabelCounts = data.get(0).getWeightedLabelCounts();
+        this.weightSum = Util.sum(weightedLabelCounts);
         this.impurityScore = impurity.impurity(weightedLabelCounts);
     }
 
@@ -91,34 +98,29 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
      * @param useRandomSplitPoints Whether to choose split points for features at random.
-     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
-     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     @Override
     public List<AbstractTrainingNode<Label>> buildTree(int[] featureIDs, SplittableRandom rng,
-                                                       boolean useRandomSplitPoints, float scaledMinImpurityDecrease) {
+                                                       boolean useRandomSplitPoints) {
         if (useRandomSplitPoints) {
-            return buildRandomTree(featureIDs, rng, scaledMinImpurityDecrease);
+            return buildRandomTree(featureIDs, rng);
         } else {
-            return buildGreedyTree(featureIDs, scaledMinImpurityDecrease);
+            return buildGreedyTree(featureIDs);
         }
     }
 
     /**
      * Builds a tree according to CART
      * @param featureIDs Indices of the features available in this split.
-     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
-     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
-    private List<AbstractTrainingNode<Label>> buildGreedyTree(int[] featureIDs, float scaledMinImpurityDecrease) {
+    private List<AbstractTrainingNode<Label>> buildGreedyTree(int[] featureIDs) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
         float[] lessThanCounts = new float[weightedLabelCounts.length];
         float[] greaterThanCounts = new float[weightedLabelCounts.length];
-        double weightSum = Util.sum(weightedLabelCounts);
         for (int i = 0; i < featureIDs.length; i++) {
             List<InvertedFeature> feature = data.get(featureIDs[i]).getFeature();
             Arrays.fill(lessThanCounts,0.0f);
@@ -146,7 +148,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         List<AbstractTrainingNode<Label>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
+        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue);
         } else {
             output = Collections.emptyList();
@@ -159,18 +161,16 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * Builds a CART tree with randomly chosen split points.
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
-     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
-     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
-    public List<AbstractTrainingNode<Label>> buildRandomTree(int[] featureIDs, SplittableRandom rng,
-                                                             float scaledMinImpurityDecrease) {
+    public List<AbstractTrainingNode<Label>> buildRandomTree(int[] featureIDs, SplittableRandom rng) {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
+        float[] lessThanCountsOfBest;
+        float[] greaterThanCountsOfBest;
         float[] lessThanCounts = new float[weightedLabelCounts.length];
         float[] greaterThanCounts = new float[weightedLabelCounts.length];
-        double weightSum = Util.sum(weightedLabelCounts);
 
         // split each feature once randomly and record the least impure amongst these
         for (int i = 0; i < featureIDs.length; i++) {
@@ -198,6 +198,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 if (score < bestScore) {
                     bestID = i;
                     bestScore = score;
+                    lessThanCountsOfBest = lessThanCounts;
+                    greaterThanCountsOfBest = greaterThanCounts;
                     bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
                 }
             }
@@ -206,8 +208,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         List<AbstractTrainingNode<Label>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= scaledMinImpurityDecrease)) {
-            output = splitAtBest(featureIDs, bestID, bestSplitValue);
+        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+            output = splitAtBest(featureIDs, bestID, bestSplitValue, lessThanCountsOfBest, greaterThanCountsOfBest);
         } else {
             output = Collections.emptyList();
         }
@@ -220,9 +222,11 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * @param featureIDs Indices of the features available in this split.
      * @param bestID ID of the feature on which the split should be based.
      * @param bestSplitValue Feature value to use for splitting the data.
+     *                       TODO: update
      * @return A list of training nodes resulting from the split.
      */
-    private List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue ) {
+    private List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
+                                                          float[] lessThanCounts, float[] greaterThanCounts ) {
         splitID = featureIDs[bestID];
         split = true;
         splitValue = bestSplitValue;
@@ -254,8 +258,19 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
             greaterThanData.add(split.getB());
         }
 
-        lessThanOrEqual = new ClassifierTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1, featureIDMap, labelIDMap);
-        greaterThan = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size, depth + 1, featureIDMap, labelIDMap);
+// TODO: if contains fewer than certain number of examples, or if impurity is at a certain value, or if depth is
+//  maxDepth, or child weight minChildWeight make leaf nodes here instead
+        if ((lessThanIndices.size > leafDeterminer.getMinChildWeight()) && (depth + 1 < leafDeterminer.getMaxDepth())) {
+            lessThanOrEqual = new ClassifierTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1,
+                    featureIDMap, labelIDMap, leafDeterminer);
+            greaterThan = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size,
+                    depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+        }
+        else {
+            lessThanOrEqual = new LeafNode(impurity.impurity(lessThanCounts), );
+            greaterThan = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size,
+                    depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+        }
         List<AbstractTrainingNode<Label>> output = new ArrayList<>(2);
         output.add(lessThanOrEqual);
         output.add(greaterThan);
@@ -272,7 +287,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
             // split node
             Node<Label> newGreaterThan = greaterThan.convertTree();
             Node<Label> newLessThan = lessThanOrEqual.convertTree();
-            return new SplitNode<>(splitValue,splitID,impurity.impurity(weightedLabelCounts),newGreaterThan,newLessThan);
+            return new SplitNode<>(splitValue,splitID,getImpurity(),newGreaterThan,newLessThan);
         } else {
             // leaf node
             double[] normedCounts = Util.normalizeToDistribution(weightedLabelCounts);
@@ -288,8 +303,13 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                     maxLabel = label;
                 }
             }
-            return new LeafNode<>(impurity.impurity(weightedLabelCounts),maxLabel,counts,true);
+            return new LeafNode<>(getImpurity(),maxLabel,counts,true);
         }
+    }
+
+    @Override
+    public float getWeightSum() {
+        return weightSum;
     }
 
     @Override
