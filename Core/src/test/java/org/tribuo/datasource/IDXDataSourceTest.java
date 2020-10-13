@@ -16,6 +16,8 @@
 
 package org.tribuo.datasource;
 
+import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.junit.jupiter.api.Test;
 import org.tribuo.FeatureMap;
 import org.tribuo.MutableDataset;
@@ -26,6 +28,7 @@ import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
 
 import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -34,6 +37,7 @@ import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -207,6 +211,34 @@ public class IDXDataSourceTest {
         // Fifth has no data
         Path fifth = Paths.get(IDXDataSourceTest.class.getResource("/org/tribuo/datasource/no-data.idx").toURI());
         assertThrows(IllegalStateException.class, () -> IDXDataSource.readData(fifth));
+    }
+
+    @Test
+    public void testFileNotFound() throws IOException {
+        // First check that the configuration system throws out of postConfig
+        ConfigurationManager cm = new ConfigurationManager("/org/tribuo/datasource/config.xml");
+
+        try {
+            IDXDataSource<MockOutput> tmp = (IDXDataSource<MockOutput>) cm.lookup("train");
+            fail("Should have thrown PropertyException");
+        } catch (PropertyException e) {
+            if (!e.getMessage().contains("Failed to load from path - ")) {
+                fail("Incorrect exception message",e);
+            }
+        } catch (RuntimeException e) {
+            fail("Incorrect exception thrown",e);
+        }
+
+        // Next check the constructor throws
+        MockOutputFactory factory = new MockOutputFactory();
+        try {
+            IDXDataSource<MockOutput> tmp = new IDXDataSource<>(Paths.get("these-features-dont-exist"), Paths.get("these-outputs-dont-exist"), factory);
+            fail("Should have thrown FileNotFoundException");
+        } catch (FileNotFoundException e) {
+            if (!e.getMessage().contains("Failed to load from path - ")) {
+                fail("Incorrect exception message",e);
+            }
+        }
     }
 
 }
