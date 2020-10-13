@@ -46,11 +46,28 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
      */
     private RandomForestTrainer() { }
 
+    /**
+     * Constructs a RandomForestTrainer with the default seed {@link org.tribuo.Trainer#DEFAULT_SEED}.
+     * <p>
+     * Throws {@link PropertyException} if the trainer is not set to subsample the features.
+     * @param trainer The tree trainer.
+     * @param combiner The combining function for the ensemble.
+     * @param numMembers The number of ensemble members to train.
+     */
     public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers) {
         super(trainer,combiner,numMembers);
         postConfig();
     }
 
+    /**
+     * Constructs a RandomForestTrainer with the supplied seed, trainer, combining function and number of members.
+     * <p>
+     * Throws {@link PropertyException} if the trainer is not set to subsample the features.
+     * @param trainer The tree trainer.
+     * @param combiner The combining function for the ensemble.
+     * @param numMembers The number of ensemble members to train.
+     * @param seed The RNG seed.
+     */
     public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed) {
         super(trainer,combiner,numMembers,seed);
         postConfig();
