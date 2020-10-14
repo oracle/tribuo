@@ -100,6 +100,23 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         this.impurityScore = impurity.impurity(indices, targets, weights);
     }
 
+    private RegressorTrainingNode(RegressorImpurity impurity, ArrayList<TreeFeature> data, int[] indices,
+                                  float[] targets, float[] weights, String dimName, int numExamples, int depth,
+                                  ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
+                                  LeafDeterminer leafDeterminer, float weightSum, double impurityScore) {
+        super(depth, numExamples, leafDeterminer);
+        this.data = data;
+        this.featureIDMap = featureIDMap;
+        this.labelIDMap = labelIDMap;
+        this.impurity = impurity;
+        this.indices = indices;
+        this.targets = targets;
+        this.weights = weights;
+        this.dimName = dimName;
+        this.weightSum = weightSum;
+        this.impurityScore = impurityScore;
+    }
+
     @Override
     public double getImpurity() {
         return impurityScore;
@@ -254,8 +271,8 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
      * @param featureIDs Indices of the features available in this split.
      * @param bestID ID of the feature on which the split should be based.
      * @param bestSplitValue Feature value to use for splitting the data.
-     * @param bestLeftIndices The indices of the examples less than or equal to the split value.
-     * @param bestRightIndices The indices of the examples greater than the split value.
+     * @param bestLeftIndices The indices of the examples less than or equal to the split value for the given feature.
+     * @param bestRightIndices The indices of the examples greater than the split value for the given feature.
      * @return A list of training nodes resulting from the split.
      */
     private List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
@@ -305,7 +322,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         }
         else {
             tmpNode = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName,
-                    leftIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+                    leftIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer, leftWeightSum, leftImpurityScore);
             lessThanOrEqual = tmpNode;
             output.add(tmpNode);
         }
@@ -315,7 +332,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         }
         else {
             tmpNode = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName,
-                    rightIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+                    rightIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer, rightWeightSum, rightImpurityScore);
             greaterThan = tmpNode;
             output.add(tmpNode);
         }
@@ -334,6 +351,12 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         return mkLeaf(getImpurity(), indices);
     }
 
+    /**
+     * Makes a {@link LeafNode}
+     * @param impurityScore the impurity score for the node.
+     * @param indices the indices of the examples to be placed in the node.
+     * @return A {@link LeafNode}
+     */
     private LeafNode<Regressor> mkLeaf(double impurityScore, int[] indices) {
         double mean = 0.0;
         double weightSum = 0.0;

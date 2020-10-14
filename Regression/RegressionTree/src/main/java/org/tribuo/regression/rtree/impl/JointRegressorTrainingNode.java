@@ -112,6 +112,24 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         this.impurityScore = calcImpurity(indices);
     }
 
+    private JointRegressorTrainingNode(RegressorImpurity impurity, ArrayList<TreeFeature> data, int[] indices,
+                                       float[][] targets, float[] weights, int numExamples, int depth,
+                                       ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
+                                       boolean normalize, LeafDeterminer leafDeterminer, float weightSum,
+                                       double impurityScore) {
+        super(depth, numExamples, leafDeterminer);
+        this.data = data;
+        this.normalize = normalize;
+        this.featureIDMap = featureIDMap;
+        this.labelIDMap = labelIDMap;
+        this.impurity = impurity;
+        this.indices = indices;
+        this.targets = targets;
+        this.weights = weights;
+        this.weightSum = weightSum;
+        this.impurityScore = impurityScore;
+    }
+
     @Override
     public double getImpurity() {
         return impurityScore;
@@ -124,7 +142,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
 
     /**
      * Calculates the impurity score of the node.
-     * @return the impurity score of the node.
+     * @return The impurity score of the node.
      */
     private double calcImpurity(int[] indices) {
         double tmp = 0.0;
@@ -292,8 +310,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * @param featureIDs Indices of the features available in this split.
      * @param bestID ID of the feature on which the split should be based.
      * @param bestSplitValue Feature value to use for splitting the data.
-     * @param bestLeftIndices The indices of the examples less than or equal to the split value.
-     * @param bestRightIndices The indices of the examples greater than the split value.
+     * @param bestLeftIndices The indices of the examples less than or equal to the split value for the given feature.
+     * @param bestRightIndices The indices of the examples greater than the split value for the given feature.
      * @return A list of training nodes resulting from the split.
      */
     private List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
@@ -341,7 +359,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         }
         else {
             tmpNode = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets,
-                    weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer);
+                    weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer,
+                    leftWeightSum, leftImpurityScore);
             lessThanOrEqual = tmpNode;
             output.add(tmpNode);
         }
@@ -351,7 +370,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         }
         else {
             tmpNode = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
-                    weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer);
+                    weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer,
+                    rightWeightSum, rightImpurityScore);
             greaterThan = tmpNode;
             output.add(tmpNode);
         }
@@ -370,6 +390,12 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         return mkLeaf(getImpurity(), indices);
     }
 
+    /**
+     * Makes a {@link LeafNode}
+     * @param impurityScore the impurity score for the node.
+     * @param indices the indices of the examples to be placed in the node.
+     * @return A {@link LeafNode}
+     */
     private LeafNode<Regressor> mkLeaf(double impurityScore, int[] indices) {
         double weightSum = 0.0;
         double[] mean = new double[targets.length];

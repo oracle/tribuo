@@ -251,7 +251,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * @param featureIDs Indices of the features available in this split.
      * @param bestID ID of the feature on which the split should be based.
      * @param bestSplitValue Feature value to use for splitting the data.
-     *                       TODO: update
+     * @param lessThanCounts Weighted label counts for data less than or equal to the split value for the given feature.
+     * @param greaterThanCounts Weighted label counts for data greater than the split value for the given feature.
      * @return A list of training nodes resulting from the split.
      */
     private List<AbstractTrainingNode<Label>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
@@ -328,10 +329,10 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     }
 
     /**
-     * TODO: fill this in
-     * @param impurityScore
-     * @param weightedCounts
-     * @return
+     * Makes a {@link LeafNode}
+     * @param impurityScore the impurity score for the node.
+     * @param weightedCounts the weighted label counts of the data in the node.
+     * @return a {@link LeafNode}
      */
     private LeafNode<Label> mkLeaf(double impurityScore, float[] weightedCounts) {
         double[] normedCounts = Util.normalizeToDistribution(weightedCounts);

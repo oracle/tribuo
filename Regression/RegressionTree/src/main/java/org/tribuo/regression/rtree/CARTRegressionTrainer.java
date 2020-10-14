@@ -166,7 +166,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
             while (!queue.isEmpty()) {
                 AbstractTrainingNode<Regressor> node = queue.poll();
                 if ((node.getImpurity() > 0.0) && (node.getDepth() < maxDepth) &&
-                        (node.getWeightSum() > minChildWeight)) {
+                        (node.getWeightSum() >= minChildWeight)) {
                     if (numFeaturesInSplit != featureIDMap.size()) {
                         Util.randpermInPlace(originalIndices, localRNG);
                         System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);

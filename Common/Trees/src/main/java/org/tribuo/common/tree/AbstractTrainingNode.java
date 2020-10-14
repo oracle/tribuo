@@ -75,12 +75,22 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         return numExamples;
     }
 
+    /**
+     * Determines whether the node to be created should be a {@link LeafNode}.
+     * @param impurityScore impurity score for the new node.
+     * @param weightSum total example weight for the new node.
+     * @return Whether the new node should be a {@link LeafNode}.
+     */
     public boolean shouldMakeLeaf(double impurityScore, float weightSum) {
         return ((impurityScore == 0.0) ||
                 (depth + 1 >= leafDeterminer.getMaxDepth()) ||
                 (weightSum < leafDeterminer.getMinChildWeight()));
     }
 
+    /**
+     * Transforms an {@link AbstractTrainingNode} into a {@link SplitNode}
+     * @return A {@link SplitNode}
+     */
     public SplitNode<T> mkSplitNode() {
         Node<T> newGreaterThan = greaterThan;
         Node<T> newLessThan = lessThanOrEqual;

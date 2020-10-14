@@ -202,7 +202,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         while (!queue.isEmpty()) {
             AbstractTrainingNode<T> node = queue.poll();
             if ((node.getImpurity() > 0.0) && (node.getDepth() < maxDepth) &&
-                    (node.getWeightSum() > minChildWeight)) {
+                    (node.getWeightSum() >= minChildWeight)) {
                 if (numFeaturesInSplit != featureIDMap.size()) {
                     Util.randpermInPlace(originalIndices, localRNG);
                     System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
