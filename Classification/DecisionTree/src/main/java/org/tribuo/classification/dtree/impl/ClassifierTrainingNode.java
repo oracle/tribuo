@@ -93,6 +93,30 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         this.impurityScore = impurity.impurity(weightedLabelCounts);
     }
 
+    private ClassifierTrainingNode(LabelImpurity impurity, ArrayList<TreeFeature> data, int numExamples, int depth,
+                                   ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap,
+                                   LeafDeterminer leafDeterminer, float[] weightedLabelCounts, float weightSum,
+                                   double impurityScore) {
+        super(depth, numExamples, leafDeterminer);
+        this.data = data;
+        this.featureIDMap = featureIDMap;
+        this.labelIDMap = labelIDMap;
+        this.impurity = impurity;
+        this.weightedLabelCounts = weightedLabelCounts;
+        this.weightSum = weightSum;
+        this.impurityScore = impurityScore;
+    }
+
+    @Override
+    public float getWeightSum() {
+        return weightSum;
+    }
+
+    @Override
+    public double getImpurity() {
+        return impurityScore;
+    }
+
     /**
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
@@ -119,6 +143,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
+        float[] lessThanCountsOfBest = null;
+        float[] greaterThanCountsOfBest = null;
         float[] lessThanCounts = new float[weightedLabelCounts.length];
         float[] greaterThanCounts = new float[weightedLabelCounts.length];
         for (int i = 0; i < featureIDs.length; i++) {
@@ -140,6 +166,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                     if (score < bestScore) {
                         bestID = i;
                         bestScore = score;
+                        lessThanCountsOfBest = lessThanCounts;
+                        greaterThanCountsOfBest = greaterThanCounts;
                         bestSplitValue = (f.value + feature.get(j + 1).value) / 2.0;
                     }
                 }
@@ -149,7 +177,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
         if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
-            output = splitAtBest(featureIDs, bestID, bestSplitValue);
+            output = splitAtBest(featureIDs, bestID, bestSplitValue, lessThanCountsOfBest, greaterThanCountsOfBest);
         } else {
             output = Collections.emptyList();
         }
@@ -167,8 +195,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
-        float[] lessThanCountsOfBest;
-        float[] greaterThanCountsOfBest;
+        float[] lessThanCountsOfBest = null;
+        float[] greaterThanCountsOfBest = null;
         float[] lessThanCounts = new float[weightedLabelCounts.length];
         float[] greaterThanCounts = new float[weightedLabelCounts.length];
 
@@ -230,6 +258,22 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         splitID = featureIDs[bestID];
         split = true;
         splitValue = bestSplitValue;
+
+        float lessThanWeightSum = Util.sum(lessThanCounts);
+        double lessThanImpurityScore = impurity.impurity(lessThanCounts);
+
+        float greaterThanWeightSum = Util.sum(greaterThanCounts);
+        double greaterThanImpurityScore = impurity.impurity(greaterThanCounts);
+
+        boolean shouldMakeLessThanLeaf = shouldMakeLeaf(lessThanImpurityScore, lessThanWeightSum);
+        boolean shouldMakeGreaterThanLeaf = shouldMakeLeaf(greaterThanImpurityScore, greaterThanWeightSum);
+
+        if (shouldMakeLessThanLeaf && shouldMakeGreaterThanLeaf) {
+            lessThanOrEqual = mkLeaf(lessThanImpurityScore, lessThanCounts);
+            greaterThan = mkLeaf(greaterThanImpurityScore, greaterThanCounts);
+            return Collections.emptyList();
+        }
+
         IntArrayContainer lessThanIndices = mergeBufferOne.get();
         lessThanIndices.size = 0;
         IntArrayContainer buffer = mergeBufferTwo.get();
@@ -258,23 +302,51 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
             greaterThanData.add(split.getB());
         }
 
-// TODO: if contains fewer than certain number of examples, or if impurity is at a certain value, or if depth is
-//  maxDepth, or child weight minChildWeight make leaf nodes here instead
-        if ((lessThanIndices.size > leafDeterminer.getMinChildWeight()) && (depth + 1 < leafDeterminer.getMaxDepth())) {
-            lessThanOrEqual = new ClassifierTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1,
-                    featureIDMap, labelIDMap, leafDeterminer);
-            greaterThan = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size,
-                    depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+        List<AbstractTrainingNode<Label>> output = new ArrayList<>(2);
+        AbstractTrainingNode<Label> tmpNode;
+        if (shouldMakeLessThanLeaf) {
+            lessThanOrEqual = mkLeaf(lessThanImpurityScore, lessThanCounts);
         }
         else {
-            lessThanOrEqual = new LeafNode(impurity.impurity(lessThanCounts), );
-            greaterThan = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size,
-                    depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+            tmpNode = new ClassifierTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1,
+                    featureIDMap, labelIDMap, leafDeterminer, lessThanCounts, lessThanWeightSum, lessThanImpurityScore);
+            lessThanOrEqual = tmpNode;
+            output.add(tmpNode);
         }
-        List<AbstractTrainingNode<Label>> output = new ArrayList<>(2);
-        output.add(lessThanOrEqual);
-        output.add(greaterThan);
+
+        if (shouldMakeGreaterThanLeaf) {
+            greaterThan = mkLeaf(greaterThanImpurityScore, greaterThanCounts);
+        }
+        else {
+            tmpNode = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size,
+                    depth + 1, featureIDMap, labelIDMap, leafDeterminer, greaterThanCounts, greaterThanWeightSum, greaterThanImpurityScore);
+            greaterThan = tmpNode;
+            output.add(tmpNode);
+        }
         return output;
+    }
+
+    /**
+     * TODO: fill this in
+     * @param impurityScore
+     * @param weightedCounts
+     * @return
+     */
+    private LeafNode<Label> mkLeaf(double impurityScore, float[] weightedCounts) {
+        double[] normedCounts = Util.normalizeToDistribution(weightedCounts);
+        double maxScore = Double.NEGATIVE_INFINITY;
+        Label maxLabel = null;
+        Map<String,Label> counts = new LinkedHashMap<>();
+        for (int i = 0; i < weightedCounts.length; i++) {
+            String name = labelIDMap.getOutput(i).getLabel();
+            Label label = new Label(name,normedCounts[i]);
+            counts.put(name, label);
+            if (label.getScore() > maxScore) {
+                maxScore = label.getScore();
+                maxLabel = label;
+            }
+        }
+        return new LeafNode<>(impurityScore,maxLabel,counts,true);
     }
 
     /**
@@ -284,37 +356,9 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     @Override
     public Node<Label> convertTree() {
         if (split) {
-            // split node
-            Node<Label> newGreaterThan = greaterThan.convertTree();
-            Node<Label> newLessThan = lessThanOrEqual.convertTree();
-            return new SplitNode<>(splitValue,splitID,getImpurity(),newGreaterThan,newLessThan);
-        } else {
-            // leaf node
-            double[] normedCounts = Util.normalizeToDistribution(weightedLabelCounts);
-            double maxScore = Double.NEGATIVE_INFINITY;
-            Label maxLabel = null;
-            Map<String,Label> counts = new LinkedHashMap<>();
-            for (int i = 0; i < weightedLabelCounts.length; i++) {
-                String name = labelIDMap.getOutput(i).getLabel();
-                Label label = new Label(name,normedCounts[i]);
-                counts.put(name, label);
-                if (label.getScore() > maxScore) {
-                    maxScore = label.getScore();
-                    maxLabel = label;
-                }
-            }
-            return new LeafNode<>(getImpurity(),maxLabel,counts,true);
+            return mkSplitNode();
         }
-    }
-
-    @Override
-    public float getWeightSum() {
-        return weightSum;
-    }
-
-    @Override
-    public double getImpurity() {
-        return impurityScore;
+        return mkLeaf(getImpurity(), weightedLabelCounts);
     }
 
     /**

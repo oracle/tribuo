@@ -43,9 +43,9 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
 
     protected double impurityScore;
     
-    protected AbstractTrainingNode<T> greaterThan;
+    protected Node<T> greaterThan;
     
-    protected AbstractTrainingNode<T> lessThanOrEqual;
+    protected Node<T> lessThanOrEqual;
 
     protected AbstractTrainingNode(int depth, int numExamples, LeafDeterminer leafDeterminer) {
         this.depth = depth;
@@ -73,6 +73,29 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
 
     public int getNumExamples() {
         return numExamples;
+    }
+
+    public boolean shouldMakeLeaf(double impurityScore, float weightSum) {
+        return ((impurityScore == 0.0) ||
+                (depth + 1 >= leafDeterminer.getMaxDepth()) ||
+                (weightSum < leafDeterminer.getMinChildWeight()));
+    }
+
+    public SplitNode<T> mkSplitNode() {
+        Node<T> newGreaterThan = greaterThan;
+        Node<T> newLessThan = lessThanOrEqual;
+
+        // split node
+        if (greaterThan instanceof AbstractTrainingNode) {
+            AbstractTrainingNode<T> abstractGreaterThan = (AbstractTrainingNode<T>) greaterThan;
+            newGreaterThan = abstractGreaterThan.convertTree();
+        }
+
+        if (lessThanOrEqual instanceof AbstractTrainingNode) {
+            AbstractTrainingNode<T> abstractLessThan = (AbstractTrainingNode<T>) lessThanOrEqual;
+            newLessThan = abstractLessThan.convertTree();
+        }
+        return new SplitNode<>(splitValue,splitID,getImpurity(),newGreaterThan,newLessThan);
     }
 
     @Override

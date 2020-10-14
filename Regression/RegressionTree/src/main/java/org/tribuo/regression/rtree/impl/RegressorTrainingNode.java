@@ -105,6 +105,11 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         return impurityScore;
     }
 
+    @Override
+    public float getWeightSum() {
+        return weightSum;
+    }
+
     /**
      * Builds a tree according to CART (as it does not do multi-way splits on categorical values like C4.5).
      * @param featureIDs Indices of the features available in this split.
@@ -255,6 +260,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
      */
     private List<AbstractTrainingNode<Regressor>> splitAtBest(int[] featureIDs, int bestID, double bestSplitValue,
                                                              List<int[]> bestLeftIndices, List<int[]> bestRightIndices){
+
         splitID = featureIDs[bestID];
         split = true;
         splitValue = bestSplitValue;
@@ -266,6 +272,22 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         secondBuffer.grow(indices.length);
         int[] leftIndices = IntArrayContainer.merge(bestLeftIndices, firstBuffer, secondBuffer);
         int[] rightIndices = IntArrayContainer.merge(bestRightIndices, firstBuffer, secondBuffer);
+
+        float leftWeightSum = Util.sum(leftIndices,leftIndices.length,weights);
+        double leftImpurityScore = impurity.impurity(leftIndices, targets, weights);
+
+        float rightWeightSum = Util.sum(rightIndices,rightIndices.length,weights);
+        double rightImpurityScore = impurity.impurity(rightIndices, targets, weights);
+
+        boolean shouldMakeLeftLeaf = shouldMakeLeaf(leftImpurityScore, leftWeightSum);
+        boolean shouldMakeRightLeaf = shouldMakeLeaf(rightImpurityScore, rightWeightSum);
+
+        if (shouldMakeLeftLeaf && shouldMakeRightLeaf) {
+            lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
+            greaterThan = mkLeaf(rightImpurityScore, rightIndices);
+            return Collections.emptyList();
+        }
+
         //logger.info("Splitting on feature " + bestID + " with value " + bestSplitValue + " at depth " + depth + ", " + numExamples + " examples in node.");
         //logger.info("left indices length = " + leftIndices.length);
         ArrayList<TreeFeature> lessThanData = new ArrayList<>(data.size());
@@ -275,13 +297,28 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             lessThanData.add(split.getA());
             greaterThanData.add(split.getB());
         }
-        lessThanOrEqual = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName,
-                leftIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
-        greaterThan = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName,
-                rightIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+
         List<AbstractTrainingNode<Regressor>> output = new ArrayList<>(2);
-        output.add(lessThanOrEqual);
-        output.add(greaterThan);
+        AbstractTrainingNode<Regressor> tmpNode;
+        if (shouldMakeLeftLeaf) {
+            lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
+        }
+        else {
+            tmpNode = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName,
+                    leftIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+            lessThanOrEqual = tmpNode;
+            output.add(tmpNode);
+        }
+
+        if (shouldMakeRightLeaf) {
+            greaterThan = mkLeaf(rightImpurityScore, rightIndices);
+        }
+        else {
+            tmpNode = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName,
+                    rightIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer);
+            greaterThan = tmpNode;
+            output.add(tmpNode);
+        }
         return output;
     }
 
@@ -292,33 +329,28 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
     @Override
     public Node<Regressor> convertTree() {
         if (split) {
-            // split node
-            Node<Regressor> newGreaterThan = greaterThan.convertTree();
-            Node<Regressor> newLessThan = lessThanOrEqual.convertTree();
-            return new SplitNode<>(splitValue,splitID,getImpurity(),newGreaterThan,newLessThan);
-        } else {
-            double mean = 0.0;
-            double weightSum = 0.0;
-            double variance = 0.0;
-            for (int i = 0; i < indices.length; i++) {
-                int idx = indices[i];
-                float value = targets[idx];
-                float weight = weights[idx];
-
-                weightSum += weight;
-                double oldMean = mean;
-                mean += (weight / weightSum) * (value - oldMean);
-                variance += weight * (value - oldMean) * (value - mean);
-            }
-            variance = indices.length > 1 ? variance / (weightSum-1) : 0;
-            DimensionTuple leafPred = new DimensionTuple(dimName,mean,variance);
-            return new LeafNode<>(getImpurity(),leafPred,Collections.emptyMap(),false);
+            return mkSplitNode();
         }
+        return mkLeaf(getImpurity(), indices);
     }
 
-    @Override
-    public float getWeightSum() {
-        return weightSum;
+    private LeafNode<Regressor> mkLeaf(double impurityScore, int[] indices) {
+        double mean = 0.0;
+        double weightSum = 0.0;
+        double variance = 0.0;
+        for (int i = 0; i < indices.length; i++) {
+            int idx = indices[i];
+            float value = targets[idx];
+            float weight = weights[idx];
+
+            weightSum += weight;
+            double oldMean = mean;
+            mean += (weight / weightSum) * (value - oldMean);
+            variance += weight * (value - oldMean) * (value - mean);
+        }
+        variance = indices.length > 1 ? variance / (weightSum-1) : 0;
+        DimensionTuple leafPred = new DimensionTuple(dimName,mean,variance);
+        return new LeafNode<>(impurityScore,leafPred,Collections.emptyMap(),false);
     }
 
     /**

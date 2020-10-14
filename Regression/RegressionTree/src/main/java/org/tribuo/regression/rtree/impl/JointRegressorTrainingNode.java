@@ -109,7 +109,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         this.targets = targets;
         this.weights = weights;
         this.weightSum = Util.sum(indices,indices.length,weights);
-        this.impurityScore = calcImpurity();
+        this.impurityScore = calcImpurity(indices);
     }
 
     @Override
@@ -117,11 +117,16 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         return impurityScore;
     }
 
+    @Override
+    public float getWeightSum() {
+        return weightSum;
+    }
+
     /**
      * Calculates the impurity score of the node.
      * @return the impurity score of the node.
      */
-    private double calcImpurity() {
+    private double calcImpurity(int[] indices) {
         double tmp = 0.0;
         for (int i = 0; i < targets.length; i++) {
             tmp += impurity.impurity(indices, targets[i], weights);
@@ -304,6 +309,21 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         secondBuffer.grow(indices.length);
         int[] leftIndices = IntArrayContainer.merge(bestLeftIndices, firstBuffer, secondBuffer);
         int[] rightIndices = IntArrayContainer.merge(bestRightIndices, firstBuffer, secondBuffer);
+
+        float leftWeightSum = Util.sum(leftIndices,leftIndices.length,weights);
+        double leftImpurityScore = calcImpurity(leftIndices);
+
+        float rightWeightSum = Util.sum(rightIndices,rightIndices.length,weights);
+        double rightImpurityScore = calcImpurity(rightIndices);
+
+        boolean shouldMakeLeftLeaf = shouldMakeLeaf(leftImpurityScore, leftWeightSum);
+        boolean shouldMakeRightLeaf = shouldMakeLeaf(rightImpurityScore, rightWeightSum);
+
+        if (shouldMakeLeftLeaf && shouldMakeRightLeaf) {
+            lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
+            greaterThan = mkLeaf(rightImpurityScore, rightIndices);
+            return Collections.emptyList();
+        }
         //logger.info("Splitting on feature " + bestID + " with value " + bestSplitValue + " at depth " + depth + ", " + numExamples + " examples in node.");
         //logger.info("left indices length = " + leftIndices.length);
         ArrayList<TreeFeature> lessThanData = new ArrayList<>(data.size());
@@ -313,13 +333,28 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             lessThanData.add(split.getA());
             greaterThanData.add(split.getB());
         }
-        lessThanOrEqual = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets,
-                weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer);
-        greaterThan = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
-                weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer);
+
         List<AbstractTrainingNode<Regressor>> output = new ArrayList<>(2);
-        output.add(lessThanOrEqual);
-        output.add(greaterThan);
+        AbstractTrainingNode<Regressor> tmpNode;
+        if (shouldMakeLeftLeaf) {
+            lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
+        }
+        else {
+            tmpNode = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets,
+                    weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer);
+            lessThanOrEqual = tmpNode;
+            output.add(tmpNode);
+        }
+
+        if (shouldMakeRightLeaf) {
+            greaterThan = mkLeaf(rightImpurityScore, rightIndices);
+        }
+        else {
+            tmpNode = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
+                    weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer);
+            greaterThan = tmpNode;
+            output.add(tmpNode);
+        }
         return output;
     }
 
@@ -330,65 +365,60 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
     @Override
     public Node<Regressor> convertTree() {
         if (split) {
-            // split node
-            Node<Regressor> newGreaterThan = greaterThan.convertTree();
-            Node<Regressor> newLessThan = lessThanOrEqual.convertTree();
-            return new SplitNode<>(splitValue,splitID,getImpurity(),newGreaterThan,newLessThan);
-        } else {
-            double weightSum = 0.0;
-            double[] mean = new double[targets.length];
-            Regressor leafPred;
-            if (normalize) {
-                for (int i = 0; i < indices.length; i++) {
-                    int idx = indices[i];
-                    float weight = weights[idx];
-                    weightSum += weight;
-                    for (int j = 0; j < targets.length; j++) {
-                        float value = targets[j][idx];
-
-                        double oldMean = mean[j];
-                        mean[j] += (weight / weightSum) * (value - oldMean);
-                    }
-                }
-                String[] names = new String[targets.length];
-                double sum = 0.0;
-                for (int i = 0; i < targets.length; i++) {
-                    names[i] = labelIDMap.getOutput(i).getNames()[0];
-                    sum += mean[i];
-                }
-                // Normalize all the outputs so they sum to 1.0.
-                for (int i = 0; i < targets.length; i++) {
-                    mean[i] /= sum;
-                }
-                leafPred = new Regressor(names, mean);
-            } else {
-                double[] variance = new double[targets.length];
-                for (int i = 0; i < indices.length; i++) {
-                    int idx = indices[i];
-                    float weight = weights[idx];
-                    weightSum += weight;
-                    for (int j = 0; j < targets.length; j++) {
-                        float value = targets[j][idx];
-
-                        double oldMean = mean[j];
-                        mean[j] += (weight / weightSum) * (value - oldMean);
-                        variance[j] += weight * (value - oldMean) * (value - mean[j]);
-                    }
-                }
-                String[] names = new String[targets.length];
-                for (int i = 0; i < targets.length; i++) {
-                    names[i] = labelIDMap.getOutput(i).getNames()[0];
-                    variance[i] = indices.length > 1 ? variance[i] / (weightSum - 1) : 0;
-                }
-                leafPred = new Regressor(names, mean, variance);
-            }
-            return new LeafNode<>(getImpurity(),leafPred,Collections.emptyMap(),false);
+            return mkSplitNode();
         }
+        return mkLeaf(getImpurity(), indices);
     }
 
-    @Override
-    public float getWeightSum() {
-        return weightSum;
+    private LeafNode<Regressor> mkLeaf(double impurityScore, int[] indices) {
+        double weightSum = 0.0;
+        double[] mean = new double[targets.length];
+        Regressor leafPred;
+        if (normalize) {
+            for (int i = 0; i < indices.length; i++) {
+                int idx = indices[i];
+                float weight = weights[idx];
+                weightSum += weight;
+                for (int j = 0; j < targets.length; j++) {
+                    float value = targets[j][idx];
+
+                    double oldMean = mean[j];
+                    mean[j] += (weight / weightSum) * (value - oldMean);
+                }
+            }
+            String[] names = new String[targets.length];
+            double sum = 0.0;
+            for (int i = 0; i < targets.length; i++) {
+                names[i] = labelIDMap.getOutput(i).getNames()[0];
+                sum += mean[i];
+            }
+            // Normalize all the outputs so they sum to 1.0.
+            for (int i = 0; i < targets.length; i++) {
+                mean[i] /= sum;
+            }
+            leafPred = new Regressor(names, mean);
+        } else {
+            double[] variance = new double[targets.length];
+            for (int i = 0; i < indices.length; i++) {
+                int idx = indices[i];
+                float weight = weights[idx];
+                weightSum += weight;
+                for (int j = 0; j < targets.length; j++) {
+                    float value = targets[j][idx];
+
+                    double oldMean = mean[j];
+                    mean[j] += (weight / weightSum) * (value - oldMean);
+                    variance[j] += weight * (value - oldMean) * (value - mean[j]);
+                }
+            }
+            String[] names = new String[targets.length];
+            for (int i = 0; i < targets.length; i++) {
+                names[i] = labelIDMap.getOutput(i).getNames()[0];
+                variance[i] = indices.length > 1 ? variance[i] / (weightSum - 1) : 0;
+            }
+            leafPred = new Regressor(names, mean, variance);
+        }
+        return new LeafNode<>(impurityScore,leafPred,Collections.emptyMap(),false);
     }
 
     /**
