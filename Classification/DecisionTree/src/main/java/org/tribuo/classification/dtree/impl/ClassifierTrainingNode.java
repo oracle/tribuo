@@ -143,8 +143,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
-        float[] lessThanCountsOfBest = null;
-        float[] greaterThanCountsOfBest = null;
+        float[] lessThanCountsOfBest = new float[weightedLabelCounts.length];
+        float[] greaterThanCountsOfBest = new float[weightedLabelCounts.length];
         float[] lessThanCounts = new float[weightedLabelCounts.length];
         float[] greaterThanCounts = new float[weightedLabelCounts.length];
         for (int i = 0; i < featureIDs.length; i++) {
@@ -166,13 +166,14 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                     if (score < bestScore) {
                         bestID = i;
                         bestScore = score;
-                        lessThanCountsOfBest = lessThanCounts;
-                        greaterThanCountsOfBest = greaterThanCounts;
+                        System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
+                        System.arraycopy(lessThanCounts,0,greaterThanCountsOfBest,0,greaterThanCounts.length);
                         bestSplitValue = (f.value + feature.get(j + 1).value) / 2.0;
                     }
                 }
             }
         }
+
         List<AbstractTrainingNode<Label>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
@@ -195,8 +196,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         int bestID = -1;
         double bestSplitValue = 0.0;
         double bestScore = getImpurity();
-        float[] lessThanCountsOfBest = null;
-        float[] greaterThanCountsOfBest = null;
+        float[] lessThanCountsOfBest = new float[weightedLabelCounts.length];
+        float[] greaterThanCountsOfBest = new float[weightedLabelCounts.length];
         float[] lessThanCounts = new float[weightedLabelCounts.length];
         float[] greaterThanCounts = new float[weightedLabelCounts.length];
 
@@ -226,8 +227,8 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 if (score < bestScore) {
                     bestID = i;
                     bestScore = score;
-                    lessThanCountsOfBest = lessThanCounts;
-                    greaterThanCountsOfBest = greaterThanCounts;
+                    System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
+                    System.arraycopy(lessThanCounts,0,greaterThanCountsOfBest,0,greaterThanCounts.length);
                     bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
                 }
             }
