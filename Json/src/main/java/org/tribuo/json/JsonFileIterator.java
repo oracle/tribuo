@@ -50,7 +50,6 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
     private final JsonParser parser;
     private final Iterator<JsonNode> nodeIterator;
     private int rowNum = 0;
-    private Optional<Row> row;
 
     /**
      * Builds a JsonFileIterator for the supplied Reader.
@@ -72,16 +71,16 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
                     List<String> headerList = new ArrayList<>(curEntry.keySet());
                     Collections.sort(headerList);
                     fields = headerList;
-                    row = Optional.of(new Row(rowNum, fields, curEntry));
+                    currentRow = Optional.of(new Row(rowNum, fields, curEntry));
                     rowNum++;
                 } else {
-                    throw new NoSuchElementException("No elements found in JSON array");
+                    throw new IllegalStateException("No elements found in JSON array");
                 }
             } else {
-                throw new NoSuchElementException("JSON array not found reading file");
+                throw new IllegalStateException("JSON array not found when reading file");
             }
         } catch (IOException e) {
-            throw new NoSuchElementException("Error reading file header caused by: " + e.getMessage());
+            throw new IllegalStateException("Error reading json file caused by: " + e.getMessage());
         }
     }
 
@@ -97,18 +96,18 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
     @Override
     protected Optional<Row> getRow() {
         // row is initially populated in the constructor
-        Optional<Row> toReturn = row;
-        if(nodeIterator.hasNext()) {
-            row = Optional.of(new Row(rowNum, fields, convert(nodeIterator.next())));
+        if (nodeIterator.hasNext()) {
+            Row row = new Row(rowNum, fields, convert(nodeIterator.next()));
             rowNum++;
+            return Optional.of(row);
         } else {
             try {
                 parser.close();
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error closing reader at end of file", e);
             }
+            return Optional.empty();
         }
-        return toReturn;
     }
 
     private static Map<String,String> convert(JsonNode node) {
@@ -117,7 +116,7 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
             for (Iterator<Entry<String, JsonNode>> itr = node.fields(); itr.hasNext(); ) {
                 Entry<String, JsonNode> e = itr.next();
                 if (e.getValue() != null) {
-                    entry.put(e.getKey(), e.getValue().textValue());
+                    entry.put(e.getKey(), e.getValue().asText());
                 }
             }
             return entry;
