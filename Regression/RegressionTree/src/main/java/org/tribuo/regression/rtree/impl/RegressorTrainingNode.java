@@ -319,8 +319,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         AbstractTrainingNode<Regressor> tmpNode;
         if (shouldMakeLeftLeaf) {
             lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
-        }
-        else {
+        } else {
             tmpNode = new RegressorTrainingNode(impurity, lessThanData, leftIndices, targets, weights, dimName,
                     leftIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer, leftWeightSum, leftImpurityScore);
             lessThanOrEqual = tmpNode;
@@ -329,8 +328,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
 
         if (shouldMakeRightLeaf) {
             greaterThan = mkLeaf(rightImpurityScore, rightIndices);
-        }
-        else {
+        } else {
             tmpNode = new RegressorTrainingNode(impurity, greaterThanData, rightIndices, targets, weights, dimName,
                     rightIndices.length, depth + 1, featureIDMap, labelIDMap, leafDeterminer, rightWeightSum, rightImpurityScore);
             greaterThan = tmpNode;
@@ -347,31 +345,32 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
     public Node<Regressor> convertTree() {
         if (split) {
             return mkSplitNode();
+        } else {
+            return mkLeaf(getImpurity(), indices);
         }
-        return mkLeaf(getImpurity(), indices);
     }
 
     /**
      * Makes a {@link LeafNode}
      * @param impurityScore the impurity score for the node.
-     * @param indices the indices of the examples to be placed in the node.
+     * @param leafIndices the indices of the examples to be placed in the node.
      * @return A {@link LeafNode}
      */
-    private LeafNode<Regressor> mkLeaf(double impurityScore, int[] indices) {
+    private LeafNode<Regressor> mkLeaf(double impurityScore, int[] leafIndices) {
         double mean = 0.0;
-        double weightSum = 0.0;
+        double leafWeightSum = 0.0;
         double variance = 0.0;
-        for (int i = 0; i < indices.length; i++) {
-            int idx = indices[i];
+        for (int i = 0; i < leafIndices.length; i++) {
+            int idx = leafIndices[i];
             float value = targets[idx];
             float weight = weights[idx];
 
-            weightSum += weight;
+            leafWeightSum += weight;
             double oldMean = mean;
-            mean += (weight / weightSum) * (value - oldMean);
+            mean += (weight / leafWeightSum) * (value - oldMean);
             variance += weight * (value - oldMean) * (value - mean);
         }
-        variance = indices.length > 1 ? variance / (weightSum-1) : 0;
+        variance = leafIndices.length > 1 ? variance / (leafWeightSum-1) : 0;
         DimensionTuple leafPred = new DimensionTuple(dimName,mean,variance);
         return new LeafNode<>(impurityScore,leafPred,Collections.emptyMap(),false);
     }

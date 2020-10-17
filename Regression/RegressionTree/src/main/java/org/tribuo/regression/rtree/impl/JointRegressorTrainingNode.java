@@ -144,10 +144,10 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * Calculates the impurity score of the node.
      * @return The impurity score of the node.
      */
-    private double calcImpurity(int[] indices) {
+    private double calcImpurity(int[] cur_indices) {
         double tmp = 0.0;
         for (int i = 0; i < targets.length; i++) {
-            tmp += impurity.impurity(indices, targets[i], weights);
+            tmp += impurity.impurity(cur_indices, targets[i], weights);
         }
         return tmp / targets.length;
     }
@@ -356,8 +356,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         AbstractTrainingNode<Regressor> tmpNode;
         if (shouldMakeLeftLeaf) {
             lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
-        }
-        else {
+        } else {
             tmpNode = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets,
                     weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer,
                     leftWeightSum, leftImpurityScore);
@@ -367,8 +366,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
 
         if (shouldMakeRightLeaf) {
             greaterThan = mkLeaf(rightImpurityScore, rightIndices);
-        }
-        else {
+        } else {
             tmpNode = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
                     weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer,
                     rightWeightSum, rightImpurityScore);
@@ -386,30 +384,31 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
     public Node<Regressor> convertTree() {
         if (split) {
             return mkSplitNode();
+        } else {
+            return mkLeaf(getImpurity(), indices);
         }
-        return mkLeaf(getImpurity(), indices);
     }
 
     /**
      * Makes a {@link LeafNode}
      * @param impurityScore the impurity score for the node.
-     * @param indices the indices of the examples to be placed in the node.
+     * @param leafIndices the indices of the examples to be placed in the node.
      * @return A {@link LeafNode}
      */
-    private LeafNode<Regressor> mkLeaf(double impurityScore, int[] indices) {
-        double weightSum = 0.0;
+    private LeafNode<Regressor> mkLeaf(double impurityScore, int[] leafIndices) {
+        double leafWeightSum = 0.0;
         double[] mean = new double[targets.length];
         Regressor leafPred;
         if (normalize) {
-            for (int i = 0; i < indices.length; i++) {
-                int idx = indices[i];
+            for (int i = 0; i < leafIndices.length; i++) {
+                int idx = leafIndices[i];
                 float weight = weights[idx];
-                weightSum += weight;
+                leafWeightSum += weight;
                 for (int j = 0; j < targets.length; j++) {
                     float value = targets[j][idx];
 
                     double oldMean = mean[j];
-                    mean[j] += (weight / weightSum) * (value - oldMean);
+                    mean[j] += (weight / leafWeightSum) * (value - oldMean);
                 }
             }
             String[] names = new String[targets.length];
@@ -425,22 +424,22 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             leafPred = new Regressor(names, mean);
         } else {
             double[] variance = new double[targets.length];
-            for (int i = 0; i < indices.length; i++) {
-                int idx = indices[i];
+            for (int i = 0; i < leafIndices.length; i++) {
+                int idx = leafIndices[i];
                 float weight = weights[idx];
-                weightSum += weight;
+                leafWeightSum += weight;
                 for (int j = 0; j < targets.length; j++) {
                     float value = targets[j][idx];
 
                     double oldMean = mean[j];
-                    mean[j] += (weight / weightSum) * (value - oldMean);
+                    mean[j] += (weight / leafWeightSum) * (value - oldMean);
                     variance[j] += weight * (value - oldMean) * (value - mean[j]);
                 }
             }
             String[] names = new String[targets.length];
             for (int i = 0; i < targets.length; i++) {
                 names[i] = labelIDMap.getOutput(i).getNames()[0];
-                variance[i] = indices.length > 1 ? variance[i] / (weightSum - 1) : 0;
+                variance[i] = leafIndices.length > 1 ? variance[i] / (leafWeightSum - 1) : 0;
             }
             leafPred = new Regressor(names, mean, variance);
         }

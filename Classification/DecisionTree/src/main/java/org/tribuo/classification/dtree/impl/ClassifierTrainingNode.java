@@ -73,7 +73,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * Constructor which creates the inverted file.
      * @param impurity The impurity function to use.
      * @param examples The training data.
-     * @param leafDeterminer Contains parameters needed to determine whether a node is a leaf.
+     * @param leafDeterminer Contains parameters needed to determine whether a child node will be a leaf.
      */
     public ClassifierTrainingNode(LabelImpurity impurity, Dataset<Label> examples, LeafDeterminer leafDeterminer) {
         this(impurity,invertData(examples), examples.size(), 0, examples.getFeatureIDMap(),
@@ -308,8 +308,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         AbstractTrainingNode<Label> tmpNode;
         if (shouldMakeLessThanLeaf) {
             lessThanOrEqual = mkLeaf(lessThanImpurityScore, lessThanCounts);
-        }
-        else {
+        } else {
             tmpNode = new ClassifierTrainingNode(impurity, lessThanData, lessThanIndices.size, depth + 1,
                     featureIDMap, labelIDMap, leafDeterminer, lessThanCounts, lessThanWeightSum, lessThanImpurityScore);
             lessThanOrEqual = tmpNode;
@@ -318,8 +317,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
 
         if (shouldMakeGreaterThanLeaf) {
             greaterThan = mkLeaf(greaterThanImpurityScore, greaterThanCounts);
-        }
-        else {
+        } else {
             tmpNode = new ClassifierTrainingNode(impurity, greaterThanData, numExamples - lessThanIndices.size,
                     depth + 1, featureIDMap, labelIDMap, leafDeterminer, greaterThanCounts, greaterThanWeightSum, greaterThanImpurityScore);
             greaterThan = tmpNode;
@@ -359,8 +357,9 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
     public Node<Label> convertTree() {
         if (split) {
             return mkSplitNode();
+        } else {
+            return mkLeaf(getImpurity(), weightedLabelCounts);
         }
-        return mkLeaf(getImpurity(), weightedLabelCounts);
     }
 
     /**

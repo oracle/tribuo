@@ -65,14 +65,14 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
 
     public abstract Node<T> convertTree();
 
+    /**
+     * The sum of the weights associated with this node's examples.
+     * @return the sum of the weights associated with this node's examples.
+     */
     public abstract float getWeightSum();
 
     public int getDepth() {
         return depth;
-    }
-
-    public int getNumExamples() {
-        return numExamples;
     }
 
     /**
@@ -120,6 +120,10 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         } else {
             return null;
         }
+    }
+
+    public int getNumExamples() {
+        return numExamples;
     }
 
     @Override
