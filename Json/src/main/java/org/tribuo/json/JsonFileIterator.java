@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.data.columnar.ColumnarIterator;
 
 import java.io.IOException;
@@ -30,12 +31,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,12 +65,16 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
                 nodeIterator = node.elements();
                 if (nodeIterator.hasNext()) {
                     JsonNode curNode = nodeIterator.next();
-                    Map<String, String> curEntry = convert(curNode);
-                    List<String> headerList = new ArrayList<>(curEntry.keySet());
-                    Collections.sort(headerList);
-                    fields = headerList;
-                    currentRow = Optional.of(new Row(rowNum, fields, curEntry));
-                    rowNum++;
+                    if (curNode instanceof ObjectNode) {
+                        Map<String, String> curEntry = JsonUtil.convertToMap((ObjectNode)curNode);
+                        List<String> headerList = new ArrayList<>(curEntry.keySet());
+                        Collections.sort(headerList);
+                        fields = headerList;
+                        currentRow = Optional.of(new Row(rowNum, fields, curEntry));
+                        rowNum++;
+                    } else {
+                        throw new IllegalStateException("Expected an array of JSON objects but found '" + curNode.asText() + "'");
+                    }
                 } else {
                     throw new IllegalStateException("No elements found in JSON array");
                 }
@@ -97,9 +99,15 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
     protected Optional<Row> getRow() {
         // row is initially populated in the constructor
         if (nodeIterator.hasNext()) {
-            Row row = new Row(rowNum, fields, convert(nodeIterator.next()));
-            rowNum++;
-            return Optional.of(row);
+            JsonNode next = nodeIterator.next();
+            if (next instanceof ObjectNode) {
+                Row row = new Row(rowNum, fields, JsonUtil.convertToMap((ObjectNode)next));
+                rowNum++;
+                return Optional.of(row);
+            } else {
+                logger.warning("Unexpected node found, expected ObjectNode, found '" + next.asText() + '"');
+                return Optional.empty();
+            }
         } else {
             try {
                 parser.close();
@@ -110,26 +118,8 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
         }
     }
 
-    private static Map<String,String> convert(JsonNode node) {
-        if (node != null) {
-            Map<String,String> entry = new HashMap<>();
-            for (Iterator<Entry<String, JsonNode>> itr = node.fields(); itr.hasNext(); ) {
-                Entry<String, JsonNode> e = itr.next();
-                if (e.getValue() != null) {
-                    entry.put(e.getKey(), e.getValue().asText());
-                }
-            }
-            return entry;
-        } else {
-            return Collections.emptyMap();
-        }
-    }
-
     @Override
     public void close() throws IOException {
         parser.close();
     }
 }
-
-
-
