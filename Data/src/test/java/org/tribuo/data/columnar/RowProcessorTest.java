@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.data.columnar.extractors.DateExtractor;
+import org.tribuo.data.columnar.extractors.OffsetDateTimeExtractor;
 import org.tribuo.data.columnar.extractors.FloatExtractor;
 import org.tribuo.data.columnar.extractors.IdentityExtractor;
 import org.tribuo.data.columnar.extractors.IntExtractor;
@@ -29,7 +30,9 @@ import org.tribuo.test.MockOutput;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,8 +103,6 @@ public class RowProcessorTest {
 
     @Test
     public void metadataExtractorTest() {
-        List<String> fieldNames = Arrays.asList("Armadillos", "Armadas", "Archery", "Battleship", "Battles", "Carrots", "Mass", "Label");
-
         Map<String, FieldProcessor> fixed = new HashMap<>();
 
         fixed.put("Battles", new IdentityProcessor("Battles"));
@@ -110,7 +111,8 @@ public class RowProcessorTest {
         List<FieldExtractor<?>> metadataExtractors = new ArrayList<>();
         metadataExtractors.add(new IdentityExtractor("Armadillos", Example.NAME));
         metadataExtractors.add(new IntExtractor("Armadillos", "ID"));
-        metadataExtractors.add(new DateExtractor("Carrots","Date",DateTimeFormatter.BASIC_ISO_DATE));
+        metadataExtractors.add(new DateExtractor("Carrots","Date","uuuuMMdd"));
+        metadataExtractors.add(new OffsetDateTimeExtractor("Carrot-time","OffsetDateTime","dd/MM/yyyy HH:mmx"));
 
         FloatExtractor weightExtractor = new FloatExtractor("Mass");
 
@@ -123,6 +125,7 @@ public class RowProcessorTest {
         row.put("Battleship","4");
         row.put("Battles","5");
         row.put("Carrots","20010506");
+        row.put("Carrot-time","14/10/2020 16:07+01");
         row.put("Mass","9000");
         row.put("Label","Sheep");
 
@@ -144,23 +147,25 @@ public class RowProcessorTest {
 
         // Check metadata is extracted correctly
         Map<String,Object> metadata = example.getMetadata();
-        assertEquals(3,metadata.size());
+        assertEquals(4,metadata.size());
         assertEquals("1",metadata.get(Example.NAME));
         assertEquals(1,metadata.get("ID"));
         assertEquals(LocalDate.of(2001,5,6),metadata.get("Date"));
+        assertEquals(OffsetDateTime.of(LocalDate.of(2020,10,14), LocalTime.of(16,7), ZoneOffset.ofHours(1)),metadata.get("OffsetDateTime"));
 
         // Check metadata types
         Map<String,Class<?>> metadataTypes = processor.getMetadataTypes();
-        assertEquals(3,metadataTypes.size());
+        assertEquals(4,metadataTypes.size());
         assertEquals(String.class,metadataTypes.get(Example.NAME));
         assertEquals(Integer.class,metadataTypes.get("ID"));
         assertEquals(LocalDate.class,metadataTypes.get("Date"));
+        assertEquals(OffsetDateTime.class,metadataTypes.get("OffsetDateTime"));
 
         // Check an invalid metadata extractor throws IllegalArgumentException
         List<FieldExtractor<?>> badExtractors = new ArrayList<>();
         badExtractors.add(new IdentityExtractor("Armadillos", Example.NAME));
         badExtractors.add(new IntExtractor("Armadillos", "ID"));
-        badExtractors.add(new DateExtractor("Carrots", "ID",DateTimeFormatter.BASIC_ISO_DATE));
+        badExtractors.add(new DateExtractor("Carrots", "ID", "uuuuMMdd"));
 
         assertThrows(PropertyException.class, () -> new RowProcessor<>(badExtractors,weightExtractor,response,fixed,Collections.emptySet()));
     }
