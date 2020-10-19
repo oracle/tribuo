@@ -49,9 +49,6 @@ import java.util.logging.Logger;
 /**
  * A {@link DataSource} for loading data from a JSON text file
  * and applying {@link FieldProcessor}s to it.
- * <p>
- * Also provides a method for converting a Jackson {@code JsonNode}
- * into a Map suitable for inclusion into a {@link ColumnarIterator.Row}.
  */
 public class JsonDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     private static final Logger logger = Logger.getLogger(JsonFileIterator.class.getName());
