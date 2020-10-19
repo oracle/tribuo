@@ -37,7 +37,7 @@ public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Ro
     private static final Logger logger = Logger.getLogger(ColumnarIterator.class.getName());
 
     protected List<String> fields;
-    private Optional<Row> currentRow = Optional.empty();
+    protected Optional<Row> currentRow = Optional.empty();
 
     /**
      * A representation of a row of untyped data from a columnar data source. In addition to its row data it stores a
@@ -108,7 +108,7 @@ public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Ro
 
     @Override
     public boolean hasNext() {
-        if(currentRow.isPresent()) {
+        if (currentRow.isPresent()) {
             return true;
         } else {
             currentRow = getRow();
@@ -118,7 +118,7 @@ public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Ro
 
     @Override
     public Row next() {
-        if(hasNext()) {
+        if (hasNext()) {
             Row r = currentRow.get();
             currentRow = Optional.empty();
             return r;
@@ -129,7 +129,7 @@ public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Ro
 
     @Override
     public boolean tryAdvance(Consumer<? super Row> action) {
-        if(hasNext()) {
+        if (hasNext()) {
             action.accept(next());
             return true;
         } else {
@@ -139,13 +139,13 @@ public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Ro
 
     @Override
     public void forEachRemaining(Consumer<? super Row> action) {
-        while(hasNext()) {
+        while (hasNext()) {
             action.accept(next());
         }
     }
 
     /**
-     * Returns the next row of data based on internal state stored by the implementor, or {@link Optional#EMPTY}
+     * Returns the next row of data based on internal state stored by the implementor, or {@link Optional#empty()}
      * if there is no more data.
      * @return The next row of data or None.
      */
