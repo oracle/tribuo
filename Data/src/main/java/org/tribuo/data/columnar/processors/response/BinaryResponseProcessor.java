@@ -44,7 +44,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     @Config(description="The positive response to emit.")
     private String positiveName = "1";
 
-    @Config(description="The negative reponse to emit.")
+    @Config(description="The negative response to emit.")
     private String negativeName = "0";
 
     /**
@@ -52,6 +52,13 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
      */
     private BinaryResponseProcessor() {}
 
+    /**
+     * Constructs a binary response processor which emits a positive value for a single string
+     * and a negative value for all other field values.
+     * @param fieldName The field name to read.
+     * @param positiveResponse The positive response to look for.
+     * @param outputFactory The output factory to use.
+     */
     public BinaryResponseProcessor(String fieldName, String positiveResponse, OutputFactory<T> outputFactory) {
         this.fieldName = fieldName;
         this.positiveResponse = positiveResponse;

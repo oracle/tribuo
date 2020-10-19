@@ -28,10 +28,21 @@ import java.util.logging.Logger;
 public class IdentityExtractor extends SimpleFieldExtractor<String> {
     private static final Logger logger = Logger.getLogger(IdentityExtractor.class.getName());
 
+    /**
+     * Extracts the String value from the supplied field.
+     * Writes the metadata out using the field name as the key.
+     * @param fieldName The field name to inspect.
+     */
     public IdentityExtractor(String fieldName) {
         super(fieldName);
     }
 
+    /**
+     * Extracts the String value from the supplied field.
+     * Writes the metadata out using the metadataName as the key.
+     * @param fieldName The field name to inspect.
+     * @param metadataName The metadata name to emit.
+     */
     public IdentityExtractor(String fieldName, String metadataName) {
         super(fieldName, metadataName);
     }

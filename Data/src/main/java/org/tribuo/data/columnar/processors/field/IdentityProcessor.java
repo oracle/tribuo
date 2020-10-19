@@ -30,6 +30,9 @@ import java.util.List;
  */
 public class IdentityProcessor implements FieldProcessor {
 
+    /**
+     * The value of the emitted features.
+     */
     public static final double FEATURE_VALUE = 1.0;
 
     /**
@@ -38,6 +41,11 @@ public class IdentityProcessor implements FieldProcessor {
     @Config(mandatory = true,description="The field name to read.")
     private String fieldName;
 
+    /**
+     * Constructs a field processor which emits a single feature with a specific value
+     * and uses the field name and field value as the feature name.
+     * @param fieldName The field name to read.
+     */
     public IdentityProcessor(String fieldName) {
         this.fieldName = fieldName;
     }

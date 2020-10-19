@@ -31,11 +31,21 @@ public class FloatExtractor extends SimpleFieldExtractor<Float> {
 
     private static final Logger logger = Logger.getLogger(FloatExtractor.class.getName());
 
-
+    /**
+     * Extracts a float value from the supplied field name.
+     * Writes the metadata out using the field name as the key.
+     * @param fieldName The field name to inspect.
+     */
     public FloatExtractor(String fieldName) {
-        super(fieldName, fieldName);
+        super(fieldName);
     }
 
+    /**
+     * Extracts a float value from the supplied field name.
+     * Writes the metadata out using the metadataName as the key.
+     * @param fieldName The field name to inspect.
+     * @param metadataName The metadata name to emit.
+     */
     public FloatExtractor(String fieldName, String metadataName) {
         super(fieldName, metadataName);
     }

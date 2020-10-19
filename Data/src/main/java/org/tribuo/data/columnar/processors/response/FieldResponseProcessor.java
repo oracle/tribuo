@@ -44,6 +44,13 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
      */
     private FieldResponseProcessor() {}
 
+    /**
+     * Constructs a response processor which passes the field value through the
+     * output factory.
+     * @param fieldName The field to read.
+     * @param defaultValue The default value to extract if it's not found.
+     * @param outputFactory The output factory to use.
+     */
     public FieldResponseProcessor(String fieldName, String defaultValue, OutputFactory<T> outputFactory) {
         this.fieldName = fieldName;
         this.defaultValue = defaultValue;

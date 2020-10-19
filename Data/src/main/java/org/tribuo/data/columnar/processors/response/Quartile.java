@@ -36,6 +36,12 @@ public class Quartile implements Configurable, Provenancable<ConfiguredObjectPro
     @Config(mandatory = true,description="The upper quartile value.")
     private double upperMedian;
 
+    /**
+     * Constructs a quartile with the specified values.
+     * @param median The median.
+     * @param lowerMedian The lower quartile.
+     * @param upperMedian The upper quartile.
+     */
     public Quartile(double median, double lowerMedian, double upperMedian) {
         this.median = median;
         this.lowerMedian = lowerMedian;
@@ -47,14 +53,26 @@ public class Quartile implements Configurable, Provenancable<ConfiguredObjectPro
      */
     private Quartile() {}
 
+    /**
+     * Returns the median value.
+     * @return The median.
+     */
     public double getMedian() {
         return median;
     }
 
+    /**
+     * Returns the lower quartile value.
+     * @return The lower quartile value.
+     */
     public double getLowerMedian() {
         return lowerMedian;
     }
 
+    /**
+     * The upper quartile value.
+     * @return The upper quartile value.
+     */
     public double getUpperMedian() {
         return upperMedian;
     }

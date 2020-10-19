@@ -44,12 +44,24 @@ public class DateExtractor extends SimpleFieldExtractor<LocalDate> {
      */
     private DateExtractor() {}
 
+    /**
+     * Constructs a date extractor that emits a LocalDate by applying the supplied format to the specified field.
+     * @param fieldName The field to read.
+     * @param metadataName The metadata field to write.
+     * @param dateFormat The date format (supplied to {@link DateTimeFormatter}.
+     */
     public DateExtractor(String fieldName, String metadataName, String dateFormat) {
         super(fieldName, metadataName);
         this.dateFormat = dateFormat;
         postConfig();
     }
 
+    /**
+     * Constructs a date extractor that emits a LocalDate by applying the supplied format to the specified field.
+     * @param fieldName The field to read.
+     * @param metadataName The metadata field to write.
+     * @param formatter The date format (supplied to {@link DateTimeFormatter}.
+     */
     public DateExtractor(String fieldName, String metadataName, DateTimeFormatter formatter) {
         super(fieldName, metadataName);
         this.formatter = formatter;
