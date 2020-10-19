@@ -30,7 +30,7 @@ public interface FieldExtractor<T> extends Configurable, Provenancable<Configure
 
     /**
      * Gets the metadata key name. This is the key into which this value will be written in an {@link org.tribuo.Example}
-     * if it is given to {@link RowProcessor#metadataExtractors}.
+     * if it is given to {@link RowProcessor}.
      * @return The metadata key name.
      */
     public String getMetadataName();

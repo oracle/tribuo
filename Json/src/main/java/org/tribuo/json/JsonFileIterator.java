@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.data.columnar.ColumnarIterator;
 
 import java.io.IOException;
@@ -30,12 +31,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,7 +48,6 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
     private final JsonParser parser;
     private final Iterator<JsonNode> nodeIterator;
     private int rowNum = 0;
-    private Optional<Row> row;
 
     /**
      * Builds a JsonFileIterator for the supplied Reader.
@@ -68,20 +65,24 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
                 nodeIterator = node.elements();
                 if (nodeIterator.hasNext()) {
                     JsonNode curNode = nodeIterator.next();
-                    Map<String, String> curEntry = convert(curNode);
-                    List<String> headerList = new ArrayList<>(curEntry.keySet());
-                    Collections.sort(headerList);
-                    fields = headerList;
-                    row = Optional.of(new Row(rowNum, fields, curEntry));
-                    rowNum++;
+                    if (curNode instanceof ObjectNode) {
+                        Map<String, String> curEntry = JsonUtil.convertToMap((ObjectNode)curNode);
+                        List<String> headerList = new ArrayList<>(curEntry.keySet());
+                        Collections.sort(headerList);
+                        fields = headerList;
+                        currentRow = Optional.of(new Row(rowNum, fields, curEntry));
+                        rowNum++;
+                    } else {
+                        throw new IllegalStateException("Expected an array of JSON objects but found '" + curNode.asText() + "'");
+                    }
                 } else {
-                    throw new NoSuchElementException("No elements found in JSON array");
+                    throw new IllegalStateException("No elements found in JSON array");
                 }
             } else {
-                throw new NoSuchElementException("JSON array not found reading file");
+                throw new IllegalStateException("JSON array not found when reading file");
             }
         } catch (IOException e) {
-            throw new NoSuchElementException("Error reading file header caused by: " + e.getMessage());
+            throw new IllegalStateException("Error reading json file caused by: " + e.getMessage());
         }
     }
 
@@ -97,32 +98,23 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
     @Override
     protected Optional<Row> getRow() {
         // row is initially populated in the constructor
-        Optional<Row> toReturn = row;
-        if(nodeIterator.hasNext()) {
-            row = Optional.of(new Row(rowNum, fields, convert(nodeIterator.next())));
-            rowNum++;
+        if (nodeIterator.hasNext()) {
+            JsonNode next = nodeIterator.next();
+            if (next instanceof ObjectNode) {
+                Row row = new Row(rowNum, fields, JsonUtil.convertToMap((ObjectNode)next));
+                rowNum++;
+                return Optional.of(row);
+            } else {
+                logger.warning("Unexpected node found, expected ObjectNode, found '" + next.asText() + '"');
+                return Optional.empty();
+            }
         } else {
             try {
                 parser.close();
             } catch (IOException e) {
                 logger.log(Level.WARNING, "Error closing reader at end of file", e);
             }
-        }
-        return toReturn;
-    }
-
-    private static Map<String,String> convert(JsonNode node) {
-        if (node != null) {
-            Map<String,String> entry = new HashMap<>();
-            for (Iterator<Entry<String, JsonNode>> itr = node.fields(); itr.hasNext(); ) {
-                Entry<String, JsonNode> e = itr.next();
-                if (e.getValue() != null) {
-                    entry.put(e.getKey(), e.getValue().textValue());
-                }
-            }
-            return entry;
-        } else {
-            return Collections.emptyMap();
+            return Optional.empty();
         }
     }
 
@@ -131,6 +123,3 @@ public class JsonFileIterator extends ColumnarIterator implements AutoCloseable 
         parser.close();
     }
 }
-
-
-
