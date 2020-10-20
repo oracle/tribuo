@@ -144,10 +144,10 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * Calculates the impurity score of the node.
      * @return The impurity score of the node.
      */
-    private double calcImpurity(int[] cur_indices) {
+    private double calcImpurity(int[] curIndices) {
         double tmp = 0.0;
         for (int i = 0; i < targets.length; i++) {
-            tmp += impurity.impurity(cur_indices, targets[i], weights);
+            tmp += impurity.impurity(curIndices, targets[i], weights);
         }
         return tmp / targets.length;
     }
