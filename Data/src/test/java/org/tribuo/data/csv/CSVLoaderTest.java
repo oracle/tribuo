@@ -44,8 +44,16 @@ public class CSVLoaderTest {
     public void testLoad() throws IOException {
         URL path = CSVLoaderTest.class.getResource("/org/tribuo/data/csv/test.csv");
         CSVLoader<MockOutput> loader = new CSVLoader<>(new MockOutputFactory());
-        checkData_test_csv(loader.loadDataSource(path, "RESPONSE"));
-        checkData_test_csv(loader.loadDataSource(path, Collections.singleton("RESPONSE")));
+        checkDataTestCsv(loader.loadDataSource(path, "RESPONSE"));
+        checkDataTestCsv(loader.loadDataSource(path, Collections.singleton("RESPONSE")));
+    }
+
+    @Test
+    public void testLoadBOM() throws IOException {
+        URL path = CSVLoaderTest.class.getResource("/org/tribuo/data/csv/test-bom.csv");
+        CSVLoader<MockOutput> loader = new CSVLoader<>(new MockOutputFactory());
+        checkDataTestCsv(loader.loadDataSource(path, "RESPONSE"));
+        checkDataTestCsv(loader.loadDataSource(path, Collections.singleton("RESPONSE")));
     }
 
     @Test
@@ -91,11 +99,11 @@ public class CSVLoaderTest {
         //
         // Test behavior when CSV file does not have a header row and the user instead supplies the header.
         URL noheader = CSVLoader.class.getResource("/org/tribuo/data/csv/test-noheader.csv");
-        checkData_test_csv(loader.loadDataSource(noheader, "RESPONSE", header));
-        checkData_test_csv(loader.loadDataSource(noheader, Collections.singleton("RESPONSE"), header));
+        checkDataTestCsv(loader.loadDataSource(noheader, "RESPONSE", header));
+        checkDataTestCsv(loader.loadDataSource(noheader, Collections.singleton("RESPONSE"), header));
     }
 
-    private void checkData_test_csv(DataSource<MockOutput> source) throws IOException {
+    private void checkDataTestCsv(DataSource<MockOutput> source) throws IOException {
         MutableDataset<MockOutput> data = new MutableDataset<>(source);
         assertEquals(6, data.size());
         assertEquals("monkey", data.getExample(0).getOutput().label);

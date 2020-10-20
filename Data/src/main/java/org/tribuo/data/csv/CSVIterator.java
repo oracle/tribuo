@@ -140,24 +140,31 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
      * @param fields The headers to use.
      */
     public CSVIterator(Reader rdr, char separator, char quote, List<String> fields) {
-        reader = new CSVReaderBuilder(rdr).withCSVParser(new RFC4180ParserBuilder().withSeparator(separator).withQuoteChar(quote).build()).build();
         try {
-            if (fields == null || fields.isEmpty()) {
-                String[] inducedHeader = reader.readNext();
-                if(inducedHeader == null) {
-                    logger.warning("Given an empty CSV");
-                } else {
-                    this.fields = Collections.unmodifiableList(Arrays.asList(inducedHeader));
-                }
-            } else {
-                this.fields = Collections.unmodifiableList(fields);
-            }
-        } catch (CsvValidationException | IOException e) {
+            Reader bomRemoved = CSVDataSource.removeBOM(rdr);
+            // Unfortunately OpenCSV is going to wrap the PushbackReader returned by removeBOM(Reader)
+            // in a BufferedReader, so we'll have two layers of buffering.
+            reader = new CSVReaderBuilder(bomRemoved).withCSVParser(new RFC4180ParserBuilder().withSeparator(separator).withQuoteChar(quote).build()).build();
             try {
-                reader.close();
-            } catch (IOException e2) {
-                logger.log(Level.WARNING, "Error closing reader in another error", e2);
+                if (fields == null || fields.isEmpty()) {
+                    String[] inducedHeader = reader.readNext();
+                    if(inducedHeader == null) {
+                        logger.warning("Given an empty CSV");
+                    } else {
+                        this.fields = Collections.unmodifiableList(Arrays.asList(inducedHeader));
+                    }
+                } else {
+                    this.fields = Collections.unmodifiableList(fields);
+                }
+            } catch (CsvValidationException | IOException e) {
+                try {
+                    reader.close();
+                } catch (IOException e2) {
+                    logger.log(Level.WARNING, "Error closing reader in another error", e2);
+                }
+                throw new IllegalArgumentException("Error reading file caused by: " + e.getMessage());
             }
+        } catch (IOException e) {
             throw new IllegalArgumentException("Error reading file caused by: " + e.getMessage());
         }
     }
