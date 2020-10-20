@@ -91,6 +91,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
 
     protected int trainInvocationCounter;
 
+
     /**
      * After calls to this superconstructor subclasses must call postConfig().
      * @param maxDepth The maximum depth of the tree.
@@ -191,21 +192,22 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
             weightSum += e.getWeight();
         }
         float scaledMinImpurityDecrease = getMinImpurityDecrease() * weightSum;
+        AbstractTrainingNode.LeafDeterminer leafDeterminer = new AbstractTrainingNode.LeafDeterminer(maxDepth,
+                minChildWeight, scaledMinImpurityDecrease);
 
-        AbstractTrainingNode<T> root = mkTrainingNode(examples);
+        AbstractTrainingNode<T> root = mkTrainingNode(examples, leafDeterminer);
         Deque<AbstractTrainingNode<T>> queue = new LinkedList<>();
         queue.add(root);
 
         while (!queue.isEmpty()) {
             AbstractTrainingNode<T> node = queue.poll();
             if ((node.getImpurity() > 0.0) && (node.getDepth() < maxDepth) &&
-                    (node.getNumExamples() > minChildWeight)) {
+                    (node.getWeightSum() >= minChildWeight)) {
                 if (numFeaturesInSplit != featureIDMap.size()) {
                     Util.randpermInPlace(originalIndices, localRNG);
                     System.arraycopy(originalIndices, 0, indices, 0, numFeaturesInSplit);
                 }
-                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices, localRNG, getUseRandomSplitPoints(),
-                        scaledMinImpurityDecrease);
+                List<AbstractTrainingNode<T>> nodes = node.buildTree(indices, localRNG, getUseRandomSplitPoints());
                 // Use the queue as a stack to improve cache locality.
                 // Building depth first.
                 for (AbstractTrainingNode<T> newNode : nodes) {
@@ -218,7 +220,8 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         return new TreeModel<>("cart-tree", provenance, featureIDMap, outputIDInfo, false, root.convertTree());
     }
 
-    protected abstract AbstractTrainingNode<T> mkTrainingNode(Dataset<T> examples);
+    protected abstract AbstractTrainingNode<T> mkTrainingNode(Dataset<T> examples,
+                                                              AbstractTrainingNode.LeafDeterminer leafDeterminer);
 
     protected static abstract class AbstractCARTTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
@@ -231,5 +234,4 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
             super(map);
         }
     }
-
 }
