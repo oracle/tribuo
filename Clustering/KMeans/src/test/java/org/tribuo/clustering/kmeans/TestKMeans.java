@@ -26,6 +26,7 @@ import org.tribuo.clustering.example.ClusteringDataGenerator;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,7 +61,7 @@ public class TestKMeans {
         runEvaluation(plusPlus);
     }
 
-    public void runEvaluation(KMeansTrainer trainer) {
+    public static void runEvaluation(KMeansTrainer trainer) {
         Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(500, 1L);
         Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
         ClusteringEvaluator eval = new ClusteringEvaluator();
@@ -76,20 +77,22 @@ public class TestKMeans {
         assertFalse(Double.isNaN(testEvaluation.normalizedMI()));
     }
 
-    public void testTrainer(Pair<Dataset<ClusterID>, Dataset<ClusterID>> p, KMeansTrainer trainer) {
+    public static Model<ClusterID> testTrainer(Pair<Dataset<ClusterID>, Dataset<ClusterID>> p, KMeansTrainer trainer) {
         Model<ClusterID> m = trainer.train(p.getA());
         ClusteringEvaluator e = new ClusteringEvaluator();
         e.evaluate(m,p.getB());
+        return m;
     }
 
-    public void runDenseData(KMeansTrainer trainer) {
+    public static Model<ClusterID> runDenseData(KMeansTrainer trainer) {
         Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
-        testTrainer(p, trainer);
+        return testTrainer(p, trainer);
     }
 
     @Test
     public void testDenseData() {
-        runDenseData(t);
+        Model<ClusterID> model = runDenseData(t);
+        Helpers.testModelSerialization(model,ClusterID.class);
     }
 
     @Test

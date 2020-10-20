@@ -27,6 +27,7 @@ import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class TestCARTRegressionTrainer {
         true,
             new MeanSquaredError(), Trainer.DEFAULT_SEED);
 
-    public void testIndependentRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p,
+    public static Model<Regressor> testIndependentRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p,
                                               CARTRegressionTrainer trainer) {
         Model<Regressor> m = trainer.train(p.getA());
         RegressionEvaluator e = new RegressionEvaluator();
@@ -51,16 +52,18 @@ public class TestCARTRegressionTrainer {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
-    public void runDenseData(CARTRegressionTrainer trainer) {
+    public static Model<Regressor> runDenseData(CARTRegressionTrainer trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testIndependentRegressionTree(p, trainer);
+        return testIndependentRegressionTree(p, trainer);
     }
 
     @Test
     public void testDenseData() {
-        runDenseData(t);
+        Model<Regressor> model = runDenseData(t);
+        Helpers.testModelSerialization(model,Regressor.class);
     }
 
     @Test

@@ -43,6 +43,7 @@ import org.tribuo.impl.ListExample;
 import de.bwaldvogel.liblinear.FeatureNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.File;
@@ -170,7 +171,7 @@ public class TestLibLinearModel {
         }
     }
 
-    public void testLibLinear(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public Model<Label> testLibLinear(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -180,12 +181,16 @@ public class TestLibLinearModel {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testLibLinear(p);
+        Model<Label> model = testLibLinear(p);
+
+        // Test serialization
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test

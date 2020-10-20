@@ -28,6 +28,7 @@ import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -41,7 +42,7 @@ public class TestCARTJointRegressionTrainer {
     private static final CARTJointRegressionTrainer randomt = new CARTJointRegressionTrainer(Integer.MAX_VALUE, 5, 0.0f,
             0.75f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
 
-    public void testJointRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p, CARTJointRegressionTrainer trainer) {
+    public static Model<Regressor> testJointRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p, CARTJointRegressionTrainer trainer) {
         TreeModel<Regressor> m = trainer.train(p.getA());
         RegressionEvaluator e = new RegressionEvaluator();
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
@@ -52,12 +53,15 @@ public class TestCARTJointRegressionTrainer {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testJointRegressionTree(p, t);
+        Model<Regressor> model = testJointRegressionTree(p, t);
+        Helpers.testModelSerialization(model, Regressor.class);
     }
 
     @Test

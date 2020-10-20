@@ -30,6 +30,7 @@ import org.tribuo.common.tree.TreeModel;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class TestCART {
     private static final CARTClassificationTrainer randomt = new CARTClassificationTrainer(5,2, 0.0f,1.0f, true,
             new GiniIndex(), Trainer.DEFAULT_SEED);
 
-    public void testCART(Pair<Dataset<Label>,Dataset<Label>> p, CARTClassificationTrainer trainer) {
+    public static Model<Label> testCART(Pair<Dataset<Label>,Dataset<Label>> p, CARTClassificationTrainer trainer) {
         TreeModel<Label> m = trainer.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -53,9 +54,11 @@ public class TestCART {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+
+        return m;
     }
 
-    public void runSingleClassTraining(CARTClassificationTrainer trainer) {
+    public static void runSingleClassTraining(CARTClassificationTrainer trainer) {
         Pair<Dataset<Label>,Dataset<Label>> data = LabelledDataGenerator.denseTrainTest();
 
         DatasetView<Label> trainingData = DatasetView.createView(data.getA(),(Example<Label> e) -> e.getOutput().getLabel().equals("Foo"), "Foo selector");
@@ -77,14 +80,15 @@ public class TestCART {
         runSingleClassTraining(randomt);
     }
 
-    public void runDenseData(CARTClassificationTrainer trainer) {
+    public Model<Label> runDenseData(CARTClassificationTrainer trainer) {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testCART(p, trainer);
+        return testCART(p, trainer);
     }
 
     @Test
     public void testDenseData() {
-        runDenseData(t);
+        Model<Label> model = runDenseData(t);
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test
@@ -122,7 +126,7 @@ public class TestCART {
         runSparseBinaryData(randomt);
     }
 
-    public void runInvalidExample(CARTClassificationTrainer trainer) {
+    public static void runInvalidExample(CARTClassificationTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
             Model<Label> m = trainer.train(p.getA());
@@ -140,7 +144,7 @@ public class TestCART {
         runInvalidExample(randomt);
     }
 
-    public void runEmptyExample(CARTClassificationTrainer trainer) {
+    public static void runEmptyExample(CARTClassificationTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
             Model<Label> m = trainer.train(p.getA());
