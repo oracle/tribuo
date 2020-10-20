@@ -36,6 +36,7 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -229,7 +230,7 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
         return trainer;
     }
 
-    public static class DummyRegressionTrainerProvenance implements TrainerProvenance {
+    public final static class DummyRegressionTrainerProvenance implements TrainerProvenance {
         private static final long serialVersionUID = 1L;
 
         private final String className;
@@ -266,6 +267,23 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
         @Override
         public String toString() {
             return generateString("Trainer");
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DummyRegressionTrainerProvenance pairs = (DummyRegressionTrainerProvenance) o;
+            return seed == pairs.seed &&
+                    Double.compare(pairs.constantValue, constantValue) == 0 &&
+                    Double.compare(pairs.quartile, quartile) == 0 &&
+                    className.equals(pairs.className) &&
+                    dummyType == pairs.dummyType;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(className, dummyType, seed, constantValue, quartile);
         }
     }
 }
