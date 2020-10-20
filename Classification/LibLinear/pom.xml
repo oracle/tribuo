@@ -42,6 +42,14 @@
             <artifactId>tribuo-common-liblinear</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <!-- test time dependencies -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tribuo-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

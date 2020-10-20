@@ -31,6 +31,7 @@ import org.tribuo.math.optimisers.AdaGrad;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,7 @@ public class TestSGDLinear {
         logger.setLevel(Level.WARNING);
     }
 
-    public void testSGDLinear(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public static Model<Label> testSGDLinear(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -60,6 +61,7 @@ public class TestSGDLinear {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
     @Test
@@ -79,7 +81,8 @@ public class TestSGDLinear {
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testSGDLinear(p);
+        Model<Label> model = testSGDLinear(p);
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test

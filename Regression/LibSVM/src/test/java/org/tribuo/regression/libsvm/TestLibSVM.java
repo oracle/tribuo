@@ -29,6 +29,7 @@ import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.libsvm.SVMRegressionType.SVMMode;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,18 +49,20 @@ public class TestLibSVM {
         logger.setLevel(Level.WARNING);
     }
 
-    public static void testLibSVM(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testLibSVM(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         RegressionEvaluator eval = new RegressionEvaluator();
         Model<Regressor> linearModel = linear.train(p.getA());
         RegressionEvaluation linearEval = eval.evaluate(linearModel,p.getB());
         Model<Regressor> rbfModel = rbf.train(p.getA());
         RegressionEvaluation rbfEval = eval.evaluate(rbfModel,p.getB());
+        return rbfModel;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testLibSVM(p);
+        Model<Regressor> model = testLibSVM(p);
+        Helpers.testModelSerialization(model,Regressor.class);
     }
 
     @Test

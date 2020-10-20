@@ -34,6 +34,7 @@ import org.tribuo.ensemble.BaggingTrainer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,7 @@ public class TestClassificationEnsembles {
         assertEquals(1.0,evaluation.recall(new Label("Foo")));
     }
 
-    public void testAdaBoost(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public Model<Label> testAdaBoost(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = adaT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -91,9 +92,10 @@ public class TestClassificationEnsembles {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
-    public void testBagging(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public Model<Label> testBagging(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = bagT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -103,9 +105,10 @@ public class TestClassificationEnsembles {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
-    public void testRandomForest(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public Model<Label> testRandomForest(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = rfT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -115,14 +118,21 @@ public class TestClassificationEnsembles {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testAdaBoost(p);
-        testBagging(p);
-        testRandomForest(p);
+
+        Model<Label> boost = testAdaBoost(p);
+        Helpers.testModelSerialization(boost,Label.class);
+
+        Model<Label> bag = testBagging(p);
+        Helpers.testModelSerialization(bag,Label.class);
+
+        Model<Label> rf = testRandomForest(p);
+        Helpers.testModelSerialization(rf,Label.class);
     }
 
     @Test

@@ -31,6 +31,7 @@ import org.tribuo.regression.sgd.objectives.SquaredLoss;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.Collections;
 import java.util.List;
@@ -53,7 +54,7 @@ public class TestSGDLinear {
         logger.setLevel(Level.WARNING);
     }
 
-    public void testSGDLinear(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testSGDLinear(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = t.train(p.getA());
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
@@ -62,12 +63,14 @@ public class TestSGDLinear {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testSGDLinear(p);
+        Model<Regressor> model = testSGDLinear(p);
+        Helpers.testModelSerialization(model,Regressor.class);
     }
 
     @Test

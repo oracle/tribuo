@@ -25,6 +25,7 @@ import org.tribuo.classification.sequence.example.SequenceDataGenerator;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceModel;
+import org.tribuo.test.Helpers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +42,14 @@ public class CRFTrainerTest {
     public static void setup() {
         Logger logger = Logger.getLogger(CRFTrainer.class.getName());
         logger.setLevel(Level.WARNING);
+    }
+
+    @Test
+    public void testValidExample() {
+        SequenceDataset<Label> p = SequenceDataGenerator.generateGorillaDataset(5);
+        SequenceModel<Label> m = t.train(p);
+        m.predict(p.getExample(0));
+        Helpers.testSequenceModelSerialization(m,Label.class);
     }
 
     @Test

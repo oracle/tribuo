@@ -26,6 +26,7 @@ import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.evaluation.Evaluator;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,30 +40,33 @@ public class TestDummyClassifier {
 
     private static final List<Trainer<Label>> trainers = Arrays.asList(constant,uniform,stratified,mostFrequent);
 
-    public void testDummyClassifier(Pair<Dataset<Label>, Dataset<Label>> p) {
+    public static void testDummyClassifier(Pair<Dataset<Label>, Dataset<Label>> p, boolean testModelSave) {
         for (Trainer<Label> t : trainers) {
             Model<Label> m = t.train(p.getA());
             Evaluator<Label, LabelEvaluation> evaluator = new LabelEvaluator();
             LabelEvaluation evaluation = evaluator.evaluate(m,p.getB());
+            if (testModelSave) {
+                Helpers.testModelSerialization(m,Label.class);
+            }
         }
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testDummyClassifier(p);
+        testDummyClassifier(p,true);
     }
 
     @Test
     public void testSparseData() {
         Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.sparseTrainTest();
-        testDummyClassifier(p);
+        testDummyClassifier(p,false);
     }
 
     @Test
     public void testSparseBinaryData() {
         Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.binarySparseTrainTest();
-        testDummyClassifier(p);
+        testDummyClassifier(p,false);
     }
 
 }

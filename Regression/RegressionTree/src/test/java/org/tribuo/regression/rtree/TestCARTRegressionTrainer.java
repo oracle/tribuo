@@ -25,6 +25,7 @@ import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ public class TestCARTRegressionTrainer {
 
     private static final CARTRegressionTrainer t = new CARTRegressionTrainer();
 
-    public void testIndependentRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testIndependentRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = t.train(p.getA());
         RegressionEvaluator e = new RegressionEvaluator();
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
@@ -45,12 +46,14 @@ public class TestCARTRegressionTrainer {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testIndependentRegressionTree(p);
+        Model<Regressor> model = testIndependentRegressionTree(p);
+        Helpers.testModelSerialization(model,Regressor.class);
     }
 
     @Test

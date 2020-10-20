@@ -26,6 +26,7 @@ import org.tribuo.clustering.example.ClusteringDataGenerator;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,16 +66,18 @@ public class TestKMeans {
         assertFalse(Double.isNaN(testEvaluation.normalizedMI()));
     }
 
-    public void testKMeans(Pair<Dataset<ClusterID>,Dataset<ClusterID>> p) {
+    public static Model<ClusterID> testKMeans(Pair<Dataset<ClusterID>, Dataset<ClusterID>> p) {
         Model<ClusterID> m = t.train(p.getA());
         ClusteringEvaluator e = new ClusteringEvaluator();
         e.evaluate(m,p.getB());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
-        testKMeans(p);
+        Model<ClusterID> model = testKMeans(p);
+        Helpers.testModelSerialization(model,ClusterID.class);
     }
 
     @Test

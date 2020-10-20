@@ -27,6 +27,7 @@ import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.liblinear.LinearRegressionType.LinearType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,16 +44,18 @@ public class TestLibLinear {
         logger.setLevel(Level.WARNING);
     }
 
-    public void testLibLinear(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testLibLinear(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> linearModel = t.train(p.getA());
         RegressionEvaluator evaluator = new RegressionEvaluator();
         RegressionEvaluation evaluation = evaluator.evaluate(linearModel,p.getB());
+        return linearModel;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testLibLinear(p);
+        Model<Regressor> model = testLibLinear(p);
+        Helpers.testModelSerialization(model,Regressor.class);
     }
 
     @Test

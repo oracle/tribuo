@@ -28,6 +28,7 @@ import org.tribuo.common.tree.TreeModel;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class TestCART {
 
     private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
 
-    public void testCART(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public static Model<Label> testCART(Pair<Dataset<Label>,Dataset<Label>> p) {
         TreeModel<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -49,6 +50,8 @@ public class TestCART {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+
+        return m;
     }
 
     @Test
@@ -67,7 +70,8 @@ public class TestCART {
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testCART(p);
+        Model<Label> model = testCART(p);
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test

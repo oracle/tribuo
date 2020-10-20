@@ -30,6 +30,7 @@ import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,23 +57,29 @@ public class TestRegressionEnsembles {
         logger.setLevel(Level.WARNING);
     }
 
-    public void testBagging(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testBagging(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = bagT.train(p.getA());
         evaluator.evaluate(m,p.getB());
+        return m;
     }
 
-    public void testRandomForest(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testRandomForest(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = rfT.train(p.getA());
         evaluator.evaluate(m,p.getB());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testBagging(p);
-        testRandomForest(p);
-        testMultiBagging(p);
-        testMultiRandomForest(p);
+        Model<Regressor> bagging = testBagging(p);
+        Helpers.testModelSerialization(bagging,Regressor.class);
+        Model<Regressor> mBagging = testMultiBagging(p);
+        Helpers.testModelSerialization(mBagging,Regressor.class);
+        Model<Regressor> rf = testRandomForest(p);
+        Helpers.testModelSerialization(rf,Regressor.class);
+        Model<Regressor> mRF = testMultiRandomForest(p);
+        Helpers.testModelSerialization(mRF,Regressor.class);
     }
 
     @Test
@@ -84,14 +91,16 @@ public class TestRegressionEnsembles {
         testMultiRandomForest(p);
     }
 
-    public void testMultiBagging(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testMultiBagging(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = mBagT.train(p.getA());
         evaluator.evaluate(m,p.getB());
+        return m;
     }
 
-    public void testMultiRandomForest(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testMultiRandomForest(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = mRfT.train(p.getA());
         evaluator.evaluate(m,p.getB());
+        return m;
     }
 
     @Test

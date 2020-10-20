@@ -27,6 +27,7 @@ import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,7 @@ public class TestMNB {
 
     private static final MultinomialNaiveBayesTrainer t = new MultinomialNaiveBayesTrainer();
 
-    public static void testMNB(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public static Model<Label> testMNB(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -48,6 +49,7 @@ public class TestMNB {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
     @Test
@@ -66,7 +68,8 @@ public class TestMNB {
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
-        testMNB(p);
+        Model<Label> model = testMNB(p);
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test

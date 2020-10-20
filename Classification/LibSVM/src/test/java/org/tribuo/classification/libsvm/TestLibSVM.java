@@ -47,6 +47,7 @@ import org.tribuo.impl.ListExample;
 import libsvm.svm_node;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.File;
@@ -172,7 +173,7 @@ public class TestLibSVM {
         }
     }
 
-    public void testLibSVM(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public Model<Label> testLibSVM(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -182,12 +183,14 @@ public class TestLibSVM {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertTrue(features.isEmpty());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testLibSVM(p);
+        Model<Label> model = testLibSVM(p);
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test
