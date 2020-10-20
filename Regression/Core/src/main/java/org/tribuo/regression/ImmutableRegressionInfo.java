@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -94,16 +95,21 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
     /**
      * Generates the domain for this regression info.
      * @param minMap The set of minimum values per dimension.
-     * @return The domain.
+     * @return the domain, sorted lexicographically by name
      */
-    private static SortedSet<Regressor> calculateDomain(Map<String, MutableDouble> minMap) {
+    private static Set<Regressor> calculateDomain(Map<String, MutableDouble> minMap) {
         TreeSet<Regressor.DimensionTuple> outputs = new TreeSet<>(Comparator.comparing(Regressor.DimensionTuple::getName));
         for (Map.Entry<String,MutableDouble> e : minMap.entrySet()) {
             outputs.add(new Regressor.DimensionTuple(e.getKey(),e.getValue().doubleValue()));
         }
+        //
+        // Now that we're sorted, simplify our output into a LinkedHashSet so we don't hang on to
+        // the comparator we used above in the TreeSet
+        LinkedHashSet<Regressor.DimensionTuple> preSortedOutputs = new LinkedHashSet<>();
+        preSortedOutputs.addAll(outputs);
         @SuppressWarnings("unchecked") // DimensionTuple is a subtype of Regressor, and this set is immutable.
-        SortedSet<Regressor> setOutputs = (SortedSet<Regressor>) (SortedSet) Collections.unmodifiableSortedSet(outputs);
-        return setOutputs;
+        Set<Regressor> immutableOutputs = (Set<Regressor>) (Set) Collections.unmodifiableSet(preSortedOutputs);
+        return immutableOutputs;
     }
 
     @Override
