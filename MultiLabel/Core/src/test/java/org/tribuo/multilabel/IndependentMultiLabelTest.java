@@ -27,6 +27,7 @@ import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,8 @@ public class IndependentMultiLabelTest {
         Map<String, List<Pair<String,Double>>> features = model.getTopFeatures(2);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+
+        Helpers.testModelSerialization(model,MultiLabel.class);
     }
 
 }

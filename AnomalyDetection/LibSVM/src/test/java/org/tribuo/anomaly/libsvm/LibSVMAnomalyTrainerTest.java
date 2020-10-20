@@ -26,6 +26,7 @@ import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.SVMParameters;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.logging.Logger;
 
@@ -61,6 +62,9 @@ public class LibSVMAnomalyTrainerTest {
         // logging a few outputs for easy checking, and to prevent dead code elimination.
         logger.finer(confusion);
         logger.finer(output);
+
+        // Test serialization
+        Helpers.testModelSerialization(model,Event.class);
     }
 
 }

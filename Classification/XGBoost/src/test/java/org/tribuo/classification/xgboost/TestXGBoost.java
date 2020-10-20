@@ -38,6 +38,7 @@ import org.tribuo.data.text.impl.TextFeatureExtractorImpl;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.File;
@@ -167,7 +168,7 @@ public class TestXGBoost {
         }
     }
 
-    public void testXGBoost(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public Model<Label> testXGBoost(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -177,6 +178,7 @@ public class TestXGBoost {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        return m;
     }
 
     @Test
@@ -203,7 +205,8 @@ public class TestXGBoost {
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testXGBoost(p);
+        Model<Label> model = testXGBoost(p);
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test

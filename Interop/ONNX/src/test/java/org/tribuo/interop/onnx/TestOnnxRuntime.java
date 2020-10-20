@@ -27,6 +27,7 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.datasource.LibSVMDataSource;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -79,6 +80,8 @@ public class TestOnnxRuntime {
             LabelEvaluation evaluation = labelFactory.getEvaluator().evaluate(transposedMNISTLR, transposedMNIST);
             assertEquals(0.967741, evaluation.accuracy(), 1e-6);
             assertEquals(0.024285, evaluation.balancedErrorRate(), 1e-6);
+
+            Helpers.testModelSerialization(transposedMNISTLR,Label.class);
         }
     }
 

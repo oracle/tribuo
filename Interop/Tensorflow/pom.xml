@@ -58,6 +58,7 @@
             <version>${tensorflow.version}</version>
         </dependency>
 
+        <!-- test time dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-core</artifactId>
