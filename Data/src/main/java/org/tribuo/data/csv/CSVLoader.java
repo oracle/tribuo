@@ -35,15 +35,19 @@ import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,6 +61,8 @@ import java.util.logging.Logger;
 
 /**
  * Load a DataSource/Dataset from a CSV file.
+ * <p>
+ * CSVLoader is thread safe and immutable.
  * @param <T> The type of the output generated.
  */
 public class CSVLoader<T extends Output<T>> {
@@ -67,16 +73,33 @@ public class CSVLoader<T extends Output<T>> {
     private final char quote;
     private final OutputFactory<T> outputFactory;
 
+    /**
+     * Creates a CSVLoader using the supplied separator, quote and output factory.
+     * @param separator The separator character.
+     * @param quote The quote character.
+     * @param outputFactory The output factory.
+     */
     public CSVLoader(char separator, char quote, OutputFactory<T> outputFactory) {
         this.separator = separator;
         this.quote = quote;
         this.outputFactory = outputFactory;
     }
 
+    /**
+     * Creates a CSVLoader using the supplied separator and output factory.
+     * Sets the quote to {@link CSVIterator#QUOTE}.
+     * @param separator The separator character.
+     * @param outputFactory The output factory.
+     */
     public CSVLoader(char separator, OutputFactory<T> outputFactory) {
         this(separator, CSVIterator.QUOTE,outputFactory);
     }
 
+    /**
+     * Creates a CSVLoader using the supplied output factory.
+     * Sets the separator to {@link CSVIterator#SEPARATOR} and the quote to {@link CSVIterator#QUOTE}.
+     * @param outputFactory The output factory.
+     */
     public CSVLoader(OutputFactory<T> outputFactory) {
     this(CSVIterator.SEPARATOR,CSVIterator.QUOTE,outputFactory);
     }
@@ -204,10 +227,7 @@ public class CSVLoader<T extends Output<T>> {
      * @throws IOException If the disk read failed.
      */
     public ListDataSource<T> loadDataSource(Path csvPath, Set<String> responseNames, String[] header) throws IOException {
-        try (BufferedReader reader = Files.newBufferedReader(csvPath)) {
-            URL url = csvPath.toUri().toURL();
-            return loadDataSource(reader,url,responseNames,header);
-        }
+        return loadDataSource(csvPath.toUri().toURL(),responseNames,header);
     }
 
     /**
@@ -219,24 +239,21 @@ public class CSVLoader<T extends Output<T>> {
      * @throws IOException If the disk read failed.
      */
     public ListDataSource<T> loadDataSource(URL csvPath, Set<String> responseNames, String[] header) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(csvPath.openStream(), StandardCharsets.UTF_8))) {
-            return loadDataSource(reader,csvPath,responseNames,header);
-        }
-    }
-
-    private ListDataSource<T> loadDataSource(Reader reader, URL path, Set<String> responseNames, String[] header) throws IOException {
-        try (CSVIterator itr = new CSVIterator(reader, separator, quote, header)) {
+        List<String> headerList = header == null ? Collections.emptyList() : Arrays.asList(header);
+        try (CSVIterator itr = new CSVIterator(csvPath.toURI(), separator, quote, headerList)) {
             //
             // CSVInteropProvenance constructor throws an exception on FileNotFound, so we include in the try/catch
             DataSourceProvenance provenance = new CSVLoaderProvenance(
-                    path,
+                    csvPath,
                     outputFactory.getProvenance(),
                     String.join(",", responseNames), // If there are multiple responses, join them
                     separator,
                     quote
             );
-            List<Example<T>> list = innerLoadFromCSV(itr, responseNames, path.toString());
+            List<Example<T>> list = innerLoadFromCSV(itr, responseNames, csvPath.toString());
             return new ListDataSource<>(list, outputFactory, provenance);
+        } catch (URISyntaxException e) {
+            throw new FileNotFoundException("Failed to read from URL '" + csvPath + "' as it could not be converted to a URI");
         }
     }
 
@@ -296,17 +313,18 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Build a Output for a multi-output CSV file formatted like:
-     *
+     * <pre>
      * Attr1,Attr2,...,Class1,Class2,Class3
      * 1.0,0.5,...,true,true,false
      * 1.0,0.5,...,true,false,false
      * 1.0,0.5,...,false,true,true
-     *
+     * </pre>
      * Or for multivariate regression,
-     *
+     * <pre>
      * Attr1,Attr2,...,Var1,Var2,Var3
      * 1.0,0.5,...,0.1,0.1,0.3
      * 1.0,0.5,...,0.2,0.0,0.8
+     * </pre>
      * @param responseNames The response dimension names
      * @param row The row to process.
      */

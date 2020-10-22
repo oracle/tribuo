@@ -35,6 +35,10 @@ import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PushbackInputStream;
+import java.io.PushbackReader;
+import java.io.Reader;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -194,6 +198,41 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     @Override
     public ConfiguredDataSourceProvenance getProvenance() {
         return provenance;
+    }
+
+    /**
+     * Removes a UTF-8 byte order mark if it exists.
+     * <p>
+     * Note Tribuo only supports UTF-8 inputs, so the other BOMs are not checked for.
+     * @param stream The stream to check.
+     * @return An input stream with the BOM consumed (if present).
+     * @throws IOException If the stream failed to read.
+     */
+    static InputStream removeBOM(InputStream stream) throws IOException {
+        PushbackInputStream pushbackStream = new PushbackInputStream(stream,3);
+        byte[] bomBytes = new byte[3];
+        int bytesRead = pushbackStream.read(bomBytes,0,3);
+        if (!((bomBytes[0] == (byte)0xEF) && (bomBytes[1] == (byte)0xBB) && (bomBytes[2] == (byte)0xBF))) {
+            pushbackStream.unread(bomBytes);
+        }
+        return pushbackStream;
+    }
+
+    /**
+     * Removes a UTF-8 byte order mark if it exists.
+     * <p>
+     * Note Tribuo only supports UTF-8 inputs, so the other BOMs are not checked for.
+     * @param reader The reader to check.
+     * @return A reader with the BOM consumed (if present).
+     * @throws IOException If the reader failed to read.
+     */
+    static Reader removeBOM(Reader reader) throws IOException {
+        PushbackReader pushbackStream = new PushbackReader(reader,1);
+        int bomChar = pushbackStream.read();
+        if (!(bomChar == 0xFEFF)) {
+            pushbackStream.unread(bomChar);
+        }
+        return pushbackStream;
     }
 
     public static class CSVDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
