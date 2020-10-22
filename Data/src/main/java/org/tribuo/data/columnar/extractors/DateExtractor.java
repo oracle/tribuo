@@ -50,20 +50,20 @@ public class DateExtractor extends SimpleFieldExtractor<LocalDate> {
         postConfig();
     }
 
+    @Deprecated
     public DateExtractor(String fieldName, String metadataName, DateTimeFormatter formatter) {
         super(fieldName, metadataName);
         this.formatter = formatter;
+        this.dateFormat = formatter.toString();
     }
 
     @Override
     public void postConfig() {
+        super.postConfig();
         if (dateFormat != null) {
             formatter = DateTimeFormatter.ofPattern(dateFormat);
         } else {
             formatter = DateTimeFormatter.BASIC_ISO_DATE;
-        }
-        if (metadataName == null || metadataName.isEmpty()) {
-            metadataName = fieldName;
         }
     }
 
