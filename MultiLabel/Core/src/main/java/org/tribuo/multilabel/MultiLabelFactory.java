@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A factory for generating MultiLabel objects and their associated OutputInfo.
+ * A factory for generating MultiLabel objects and their associated OutputInfo and Evaluator objects.
  */
 public final class MultiLabelFactory implements OutputFactory<MultiLabel> {
     private static final long serialVersionUID = 1L;
@@ -46,11 +46,14 @@ public final class MultiLabelFactory implements OutputFactory<MultiLabel> {
 
     private static final MultiLabelEvaluator evaluator = new MultiLabelEvaluator();
 
+    /**
+     * Construct a MultiLabelFactory.
+     */
     public MultiLabelFactory() {}
 
     /**
      * Parses the MultiLabel value either by toStringing the input and calling {@link MultiLabel#parseString}
-     * or if it's a collection iterating over the elements calling toString on each element in turn and using
+     * or if it's a {@link Collection} iterating over the elements calling toString on each element in turn and using
      * {@link MultiLabel#parseElement}.
      * @param label An input value.
      * @param <V> The type of the input value.

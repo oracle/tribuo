@@ -43,11 +43,18 @@ public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
 
     protected int totalCount = 0;
 
+    /**
+     * Construct a MultiLabelInfo, initializing the various count variables.
+     */
     MultiLabelInfo() {
         labelCounts = new HashMap<>();
         labels = new HashMap<>();
     }
 
+    /**
+     * Copy the MultiLabelInfo. The copy ignores the unknown count.
+     * @param other The MultiLabelInfo to copy.
+     */
     MultiLabelInfo(MultiLabelInfo other) {
         labelCounts = MutableNumber.copyMap(other.labelCounts);
         labels = new HashMap<>(other.labels);
