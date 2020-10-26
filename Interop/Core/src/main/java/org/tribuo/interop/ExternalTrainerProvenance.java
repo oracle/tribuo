@@ -46,6 +46,11 @@ public final class ExternalTrainerProvenance implements TrainerProvenance {
     private final DateTimeProvenance fileModifiedTime;
     private final HashProvenance modelHash;
 
+    /**
+     * Creates an external trainer provenance, storing the location
+     * and pulling in the timestamp and file hash.
+     * @param location The location to use.
+     */
     public ExternalTrainerProvenance(URL location) {
         this.location = new URLProvenance("location",location);
         Optional<OffsetDateTime> time = ProvenanceUtil.getModifiedTime(location);
@@ -53,6 +58,10 @@ public final class ExternalTrainerProvenance implements TrainerProvenance {
         this.modelHash = new HashProvenance(DEFAULT_HASH_TYPE,"modelHash", ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,location));
     }
 
+    /**
+     * Used by the provenance serialization system.
+     * @param provenance The provenance to reconstruct.
+     */
     public ExternalTrainerProvenance(Map<String,Provenance> provenance) {
         this.location = ObjectProvenance.checkAndExtractProvenance(provenance,"location",URLProvenance.class,ExternalTrainerProvenance.class.getSimpleName());
         this.fileModifiedTime = ObjectProvenance.checkAndExtractProvenance(provenance,"fileModifiedTime",DateTimeProvenance.class,ExternalTrainerProvenance.class.getSimpleName());
