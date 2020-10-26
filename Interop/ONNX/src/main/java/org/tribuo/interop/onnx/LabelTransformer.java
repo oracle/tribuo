@@ -103,7 +103,7 @@ public class LabelTransformer implements OutputTransformer<Label> {
                 // Single OnnxTensor [batchSize][numOutputDims]
                 if (inputs.get(0) instanceof OnnxTensor) {
                     OnnxTensor output = (OnnxTensor) inputs.get(0);
-                    if (output.getInfo().type != OnnxJavaType.FLOAT) {
+                    if (output.getInfo().type == OnnxJavaType.FLOAT) {
                         long[] shape = output.getInfo().getShape();
                         if ((shape.length == 2) && (shape[1] == outputIDInfo.size())) {
                             return (float[][]) output.getValue();
