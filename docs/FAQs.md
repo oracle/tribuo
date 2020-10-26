@@ -169,6 +169,21 @@ contrast, the configuration cannot be converted into a provenance without
 executing the code (e.g. loading the dataset or training the model) as,
 otherwise, it won't know the run-specific information.
 
+### How do I know what I can configure in a class?
+
+Tribuo's configurable classes all implement 
+`com.oracle.labs.mlrg.olcut.config.Configurable` and classes which implement
+this can have (possibly private) fields annotated with 
+`@com.oracle.labs.mlrg.olcut.config.Config` denoting they can be set by
+the configuration system. Fields in superclasses can also be set by the 
+configuration provided the superclass also implements `Configurable`.
+You can find out what fields are configurable either by inspecting the source
+on [GitHub](https://github.com/oracle/tribuo) or by running the 
+`com.oracle.labs.mlrg.olcut.config.DescribeConfigurable` utility and handing it
+a configurable class name. This utility can produce an example configuration 
+snippet in any of OLCUT's supported configuration languages. For more
+details see Tribuo's configuration tutorial.
+
 ### What's the difference between a DataSource and a Dataset?
 
 A `DataSource` performs the inbound ETL step from the source data on disk or

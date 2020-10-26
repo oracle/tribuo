@@ -97,6 +97,21 @@ provenance (perhaps to store some different hash or key, or to only remove
 paths from a model) then this class should form a useful skeleton for building
 such functionality.
 
+### DescribeConfigurable
+
+Found in the olcut-core artifact, 
+`com.oracle.labs.mlrg.olcut.config.DescribeConfigurable` prints a description 
+of a configurable class. It shows the default values for each field, whether 
+each field is mandatory, whether each field should be redacted from stored 
+configuration or provenance, and a short string describing each field. While 
+this is part of OLCUT rather than Tribuo we mention it here as it's useful 
+when working with the configuration system. In addition to describing a 
+configurable class, it can also provide a configuration snippet for that class 
+in any supported OLCUT config file format. Note these snippets are not 
+recursive, they don't include configurations for all the fields of the class if
+ those fields are subclasses of `Configurable` as it's not possible to know 
+ what an appropriate instance is just from the configuration.
+
 ## Example train/test programs
 
 Each Tribuo backend for a given prediction type includes a program called
