@@ -52,9 +52,9 @@ examples, or examples which didn't have suitable features for the model).
 
 ## New ML algorithms or parameters
 
-- Add K-Means++ initialisation for K-Means.
-- Add extra parameters to the tree trainers to allow for an ExtraTrees style ensemble, and to 
-specify a minimum purity decrease requirement.
+- ~~Add K-Means++ initialisation for K-Means.~~ Integrated and arriving in Tribuo 4.1.
+- ~~Add extra parameters to the tree trainers to allow for an ExtraTrees style ensemble, and to 
+specify a minimum purity decrease requirement.~~ Integrated and arriving in Tribuo 4.1.
 - Gaussian Processes.
 - Vowpal Wabbit interface.
 - Feature selection. We already have several feature selection algorithms implemented 
@@ -71,8 +71,8 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
     - Support parallel training of trees and forests (this is mostly supported at the tree level, 
     but needs some work at the ensemble level).
     - Reduce repeated work in the regression impurity metrics.
-    - Prevent wasted computation when computing leaves (leaf nodes have their statistics computed 
- as if they were going to be split, even when it is known they won't due to their size).
+    - ~~Prevent wasted computation when computing leaves (leaf nodes have their statistics computed 
+ as if they were going to be split, even when it is known they won't due to their size).~~ Integrated and arriving in Tribuo 4.1.
 - Multithreading the various SGD based trainers using a Hogwild approach.
 - Incorporate support for a BLAS.
 - Investigate use of the Java Vector API to improve performance critical math operations.
@@ -80,4 +80,4 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 ## Documentation
 
 - Fill out the javadoc so it exists for all public and protected methods, including constructors.
-- Add more tutorials.
+- Add more tutorials. Note: Tribuo 4.0.2 adds tutorials for external model loading and columnar data processing.
