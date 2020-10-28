@@ -57,6 +57,14 @@ import java.util.logging.Logger;
 
 /**
  * Load a DataSource/Dataset from a CSV file.
+ * <p>
+ * The delimiter and quote characters are user controlled, so this class can parse TSVs,
+ * CSVs, semi-colon separated data and other types of single character delimiter separated data.
+ * <p>
+ * This class is a simple loader *only* for numerical CSV files with a String response field.
+ * If you need more complex processing, the response field isn't present, or you don't wish to
+ * use all of the columns as features then you should use {@link CSVDataSource} and build a
+ * {@link org.tribuo.data.columnar.RowProcessor} to cope with your specific input format.
  * @param <T> The type of the output generated.
  */
 public class CSVLoader<T extends Output<T>> {

@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- * Saves a Dataset in CSV format.
+ * Saves a Dataset in CSV format suitable for loading by {@link CSVLoader}.
  * <p>
  * CSVSaver is thread safe and immutable.
  */
