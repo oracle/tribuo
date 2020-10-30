@@ -221,7 +221,7 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
      * @return The svm_parameters to use for training.
      */
     protected svm_parameter setupParameters(ImmutableOutputInfo<T> info) {
-        return parameters;
+        return SVMParameters.copyParameters(parameters);
     }
 
     @Override
