@@ -16,6 +16,7 @@
 
 package org.tribuo.regression.libsvm;
 
+import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -31,6 +32,7 @@ import libsvm.svm_model;
 import libsvm.svm_node;
 import libsvm.svm_parameter;
 import libsvm.svm_problem;
+import org.tribuo.util.Util;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,13 +64,30 @@ import java.util.logging.Logger;
 public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
     private static final Logger logger = Logger.getLogger(LibSVMRegressionTrainer.class.getName());
 
+    @Config(description="Standardise the regression outputs before training.")
+    private boolean standardize = false;
+
     /**
      * For olcut.
      */
     protected LibSVMRegressionTrainer() {}
 
+    /**
+     * Constructs a LibSVMRegressionTrainer using the supplied parameters without standardizing the regression variables.
+     * @param parameters The SVM parameters.
+     */
     public LibSVMRegressionTrainer(SVMParameters<Regressor> parameters) {
+        this(parameters, false);
+    }
+
+    /**
+     * Constructs a LibSVMRegressionTrainer using the supplied parameters.
+     * @param parameters The SVM parameters.
+     * @param standardize Standardize the regression outputs before training.
+     */
+    public LibSVMRegressionTrainer(SVMParameters<Regressor> parameters, boolean standardize) {
         super(parameters);
+        this.standardize = standardize;
     }
 
     /**
@@ -84,7 +103,21 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
 
     @Override
     protected LibSVMModel<Regressor> createModel(ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo, List<svm_model> models) {
-        return new LibSVMRegressionModel("svm-regression-model", provenance, featureIDMap, outputIDInfo, models);
+        if (models.get(0) instanceof ModelWithMeanVar) {
+            // models have been standardized, unpick and use standardized constructor
+            double[] means = new double[models.size()];
+            double[] variances = new double[models.size()];
+            List<svm_model> unpickedModels = new ArrayList<>(models.size());
+            for (int i = 0; i < models.size(); i++) {
+                ModelWithMeanVar curModel = (ModelWithMeanVar) models.get(0);
+                means[i] = curModel.mean;
+                variances[i] = curModel.variance;
+                unpickedModels.add(curModel.innerModel);
+            }
+            return new LibSVMRegressionModel("svm-regression-model", provenance, featureIDMap, outputIDInfo, unpickedModels, means, variances);
+        } else {
+            return new LibSVMRegressionModel("svm-regression-model", provenance, featureIDMap, outputIDInfo, models);
+        }
     }
 
     @Override
@@ -99,11 +132,24 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
             if (curParams.gamma == 0) {
                 curParams.gamma = 1.0 / numFeatures;
             }
-            String checkString = svm.svm_check_parameter(problem, curParams);
-            if(checkString != null) {
-                throw new IllegalArgumentException("Error checking SVM parameters: " + checkString);
+            if (standardize) {
+                Pair<Double,Double> meanVar = Util.meanAndVariance(outputs[i]);
+                double mean = meanVar.getA();
+                double variance = meanVar.getB();
+                Util.standardizeInPlace(outputs[i],mean,variance);
+                String checkString = svm.svm_check_parameter(problem, curParams);
+                if(checkString != null) {
+                    throw new IllegalArgumentException("Error checking SVM parameters: " + checkString);
+                }
+                svm_model trained = svm.svm_train(problem, curParams);
+                models.add(new ModelWithMeanVar(trained, mean, variance));
+            } else {
+                String checkString = svm.svm_check_parameter(problem, curParams);
+                if(checkString != null) {
+                    throw new IllegalArgumentException("Error checking SVM parameters: " + checkString);
+                }
+                models.add(svm.svm_train(problem, curParams));
             }
-            models.add(svm.svm_train(problem, curParams));
         }
 
         return Collections.unmodifiableList(models);
@@ -125,5 +171,41 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
             i++;
         }
         return new Pair<>(features,outputs);
+    }
+
+    /**
+     * Wrapper class to pass the means & variances through with the svm_models
+     * <p>
+     * Should not be persisted outside of the trainer.
+     */
+    private static class ModelWithMeanVar extends svm_model {
+        final double mean;
+        final double variance;
+        final svm_model innerModel;
+
+        /**
+         * Note this doesn't copy the model, it essentially wraps it.
+         * @param model The model to wrap.
+         * @param mean The mean.
+         * @param variance The variance.
+         */
+        private ModelWithMeanVar(svm_model model, double mean, double variance) {
+            this.mean = mean;
+            this.variance = variance;
+
+            this.param = model.param;
+            this.l = model.l;
+            this.nr_class = model.nr_class;
+            this.rho = model.rho;
+            this.probA = model.probA;
+            this.probB = model.probB;
+            this.label = model.label;
+            this.sv_indices = model.sv_indices;
+            this.nSV = model.nSV;
+            this.SV = model.SV;
+            this.sv_coef = model.sv_coef;
+
+            this.innerModel = model;
+        }
     }
 }

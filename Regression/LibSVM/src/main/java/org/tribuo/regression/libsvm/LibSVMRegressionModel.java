@@ -61,9 +61,44 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
 
     private final String[] dimensionNames;
 
+    private final double[] means;
+
+    private final double[] variances;
+
+    private final boolean standardized;
+
+    /**
+     * Constructs a LibSVMRegressionModel with regular outputs.
+     * @param name The model name.
+     * @param description The model provenance.
+     * @param featureIDMap The features this model knows about.
+     * @param outputIDInfo The outputs this model can produce.
+     * @param models The svm_models themselves.
+     */
     LibSVMRegressionModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo, List<svm_model> models) {
         super(name, description, featureIDMap, outputIDInfo, false, models);
         this.dimensionNames = Regressor.extractNames(outputIDInfo);
+        this.means = null;
+        this.variances = null;
+        this.standardized = false;
+    }
+
+    /**
+     * Constructs a LibSVMRegressionModel with standardized outputs that must be upscaled during prediction.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The features this model knows about.
+     * @param outputIDInfo The outputs this model can produce.
+     * @param models The svm_models themselves.
+     * @param means The output dimension means.
+     * @param variances The output dimension variances.
+     */
+    LibSVMRegressionModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo, List<svm_model> models, double[] means, double[] variances) {
+        super(name, provenance, featureIDMap, outputIDInfo, false, models);
+        this.dimensionNames = Regressor.extractNames(outputIDInfo);
+        this.means = means;
+        this.variances = variances;
+        this.standardized = true;
     }
 
     /**
@@ -83,7 +118,6 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
     @Override
     public Prediction<Regressor> predict(Example<Regressor> example) {
         svm_node[] features = LibSVMTrainer.exampleToNodes(example, featureIDMap, null);
-        // Bias feature is always set
         if (features.length == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
@@ -92,6 +126,9 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
 
         for (int i = 0; i < regressedValues.length; i++) {
             regressedValues[i] = svm.svm_predict_values(models.get(i), features, scores);
+            if (standardized) {
+                regressedValues[i] = (regressedValues[i] * variances[i]) + means[i];
+            }
         }
 
         Regressor regressor = new Regressor(dimensionNames,regressedValues);

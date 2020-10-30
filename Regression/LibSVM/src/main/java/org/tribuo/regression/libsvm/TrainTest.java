@@ -61,6 +61,8 @@ public class TrainTest {
         public KernelType kernelType = KernelType.LINEAR;
         @Option(charName='t',longName="type",usage="Type of SVM.")
         public SVMRegressionType.SVMMode svmType = SVMMode.EPSILON_SVR;
+        @Option(longName="standardize",usage="Standardize the regression outputs internally to the SVM")
+        public boolean standardize = false;
     }
 
     /**
@@ -97,7 +99,7 @@ public class TrainTest {
         parameters.setGamma(o.gamma);
         parameters.setCoeff(o.coeff);
         parameters.setDegree(o.degree);
-        Trainer<Regressor> trainer = new LibSVMRegressionTrainer(parameters);
+        Trainer<Regressor> trainer = new LibSVMRegressionTrainer(parameters, o.standardize);
         logger.info("Training using " + trainer.toString());
 
         final long trainStart = System.currentTimeMillis();

@@ -1055,4 +1055,36 @@ public final class Util {
         return diffIndicesList.stream().mapToInt(Integer::intValue).toArray();
     }
 
+    /**
+     * Standardizes the input, i.e. divides it by the variance and subtracts the mean.
+     * @param input The input to standardize.
+     * @param mean The mean.
+     * @param variance The variance.
+     * @return The standardized input.
+     */
+    public static double[] standardize(double[] input, double mean, double variance) {
+        if (variance <= 0.0) {
+            throw new IllegalArgumentException("Variance must be positive, found " + variance);
+        }
+        double[] output = new double[input.length];
+        for (int i = 0; i < input.length; i++) {
+            output[i] = (input[i] - mean) / variance;
+        }
+        return output;
+    }
+
+    /**
+     * Standardizes the input, i.e. divides it by the variance and subtracts the mean.
+     * @param input The input to standardize.
+     * @param mean The mean.
+     * @param variance The variance.
+     */
+    public static void standardizeInPlace(double[] input, double mean, double variance) {
+        if (variance <= 0.0) {
+            throw new IllegalArgumentException("Variance must be positive, found " + variance);
+        }
+        for (int i = 0; i < input.length; i++) {
+            input[i] = (input[i] - mean) / variance;
+        }
+    }
 }
