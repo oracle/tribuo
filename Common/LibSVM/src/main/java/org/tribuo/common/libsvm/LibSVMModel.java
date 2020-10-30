@@ -28,6 +28,7 @@ import libsvm.svm_model;
 import libsvm.svm_node;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -71,11 +72,28 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
     }
 
     /**
-     * Gets the underlying list of libsvm models.
+     * Returns an unmodifiable copy of the underlying list of libsvm models.
+     * <p>
+     * Deprecated to unify the names across LibLinear, LibSVM and XGBoost.
      * @return The underlying model list.
      */
+    @Deprecated
     public List<svm_model> getModel() {
-        return models;
+        return getInnerModels();
+    }
+
+    /**
+     * Returns an unmodifiable copy of the underlying list of libsvm models.
+     * @return The underlying model list.
+     */
+    public List<svm_model> getInnerModels() {
+        List<svm_model> copy = new ArrayList<>();
+
+        for (svm_model m : models) {
+            copy.add(copyModel(m));
+        }
+
+        return Collections.unmodifiableList(copy);
     }
 
     @Override

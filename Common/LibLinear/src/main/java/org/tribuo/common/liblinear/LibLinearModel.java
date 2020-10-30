@@ -16,6 +16,7 @@
 
 package org.tribuo.common.liblinear;
 
+import de.bwaldvogel.liblinear.Linear;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
@@ -23,12 +24,12 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.provenance.ModelProvenance;
-import de.bwaldvogel.liblinear.Linear;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -56,12 +57,42 @@ public abstract class LibLinearModel<T extends Output<T>> extends Model<T> {
 
     private static final Logger logger = Logger.getLogger(LibLinearModel.class.getName());
 
+    /**
+     * The list of LibLinear models. Multiple models are used by multi-label and multidimensional regression outputs.
+     */
     protected final List<de.bwaldvogel.liblinear.Model> models;
 
+    /**
+     * Constructs a LibLinear model from the supplied arguments.
+     * @param name The model name.
+     * @param description The model provenance.
+     * @param featureIDMap The features this model knows about.
+     * @param labelIDMap The outputs this model produces.
+     * @param generatesProbabilities Does this model generate probabilities?
+     * @param models The liblinear models themselves.
+     */
     protected LibLinearModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> labelIDMap, boolean generatesProbabilities, List<de.bwaldvogel.liblinear.Model> models) {
         super(name, description, featureIDMap, labelIDMap, generatesProbabilities);
         this.models = models;
         Linear.disableDebugOutput();
+    }
+
+    /**
+     * Returns an unmodifiable list containing a copy of each model.
+     * <p>
+     * As liblinear-java models don't expose a copy constructor this requires
+     * serializing each model to a String and rebuilding it, and is thus quite expensive.
+     *
+     * @return A copy of all of the models.
+     */
+    public List<de.bwaldvogel.liblinear.Model> getInnerModels() {
+        List<de.bwaldvogel.liblinear.Model> copy = new ArrayList<>();
+
+        for (de.bwaldvogel.liblinear.Model m : models) {
+            copy.add(copyModel(m));
+        }
+
+        return Collections.unmodifiableList(copy);
     }
 
     /**
@@ -96,7 +127,7 @@ public abstract class LibLinearModel<T extends Output<T>> extends Model<T> {
      * Copies the model by writing it out to a String and loading it back in.
      * <p>
      * Unfortunately liblinear-java doesn't have a copy constructor on it's model.
-     * @param model THe model to copy.
+     * @param model The model to copy.
      * @return A deep copy of the model.
      */
     protected static de.bwaldvogel.liblinear.Model copyModel(de.bwaldvogel.liblinear.Model model) {
