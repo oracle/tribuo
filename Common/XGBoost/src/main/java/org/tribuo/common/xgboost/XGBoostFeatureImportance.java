@@ -60,30 +60,55 @@ public class XGBoostFeatureImportance {
             this.totalCover = totalCover;
         }
 
+        /**
+         * The feature name.
+         * @return The feature name.
+         */
         public String getFeatureName() {
             return featureName;
         }
 
+        /**
+         * The information gain a feature provides when split on.
+         * @return The gain.
+         */
         public double getGain() {
             return gain;
         }
 
+        /**
+         * The number of examples a feature discriminates between.
+         * @return The cover.
+         */
         public double getCover() {
             return cover;
         }
 
+        /**
+         * The number of times a feature is used in the model.
+         * @return The number of times the feature is used to split.
+         */
         public double getWeight() {
             return weight;
         }
 
+        /**
+         * The total gain across all times the feature is used to split.
+         * @return The total gain.
+         */
         public double getTotalGain() {
             return totalGain;
         }
 
+        /**
+         * The total number of examples a feature discrimnates between.
+         * @return The total cover.
+         */
         public double getTotalCover() {
             return totalCover;
         }
 
+        @Override
         public String toString() {
             return String.format("XGBoostFeatureImportanceRecord(feature=%s, gain=%.2f, cover=%.2f, weight=%.2f, totalGain=%.2f, totalCover=%.2f)",
                     featureName, gain, cover, weight, totalGain, totalCover);
@@ -213,6 +238,7 @@ public class XGBoostFeatureImportance {
     }
 
     /**
+     * Gets all the feature importances for all the features.
      * @return records of all importance metrics for each feature, sorted by gain.
      */
     public List<XGBoostFeatureImportanceInstance> getImportances() {
@@ -231,6 +257,7 @@ public class XGBoostFeatureImportance {
     }
 
     /**
+     * Gets the feature importances for the top n features sorted by gain.
      * @param numFeatures number of features to return
      * @return records of all importance metrics for each feature, sorted by gain.
      */
@@ -249,6 +276,7 @@ public class XGBoostFeatureImportance {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public String toString() {
         return String.format("XGBoostFeatureImportance(model=%s)", model.toString());
     }
