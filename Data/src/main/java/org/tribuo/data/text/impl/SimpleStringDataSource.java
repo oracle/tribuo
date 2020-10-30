@@ -104,6 +104,9 @@ public class SimpleStringDataSource<T extends Output<T>> extends SimpleTextDataS
         return new SimpleStringDataSourceProvenance(this);
     }
 
+    /**
+     * Provenance for {@link SimpleStringDataSource}.
+     */
     public static class SimpleStringDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

@@ -30,6 +30,9 @@ import java.util.logging.Logger;
 public class HashingOptions implements Options {
     private static final Logger logger = Logger.getLogger(HashingOptions.class.getName());
 
+    /**
+     * Supported types of hashes in CLI programs.
+     */
     public enum ModelHashingType { NONE, MOD, HC, SHA1, SHA256 }
 
     @Option(longName="model-hashing-algorithm",usage="Hash the model during training, options are {NONE,MOD,HC,SHA1,SHA256}")

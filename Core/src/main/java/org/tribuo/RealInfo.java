@@ -29,10 +29,24 @@ import java.util.SplittableRandom;
 public class RealInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The maximum observed feature value.
+     */
     protected double max = Double.NEGATIVE_INFINITY;
+
+    /**
+     * The minimum observed feature value.
+     */
     protected double min = Double.POSITIVE_INFINITY;
 
+    /**
+     * The feature mean.
+     */
     protected double mean = 0.0;
+
+    /**
+     * The sum of the squared feature values (used to compute the variance).
+     */
     protected double sumSquares = 0.0;
 
     /**

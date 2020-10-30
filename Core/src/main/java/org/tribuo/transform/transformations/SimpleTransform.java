@@ -186,6 +186,9 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
         return provenance;
     }
 
+    /**
+     * Provenance for {@link SimpleTransform}.
+     */
     public final static class SimpleTransformProvenance implements TransformationProvenance {
         private static final long serialVersionUID = 1L;
 

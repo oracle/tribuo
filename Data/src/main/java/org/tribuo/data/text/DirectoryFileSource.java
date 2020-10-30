@@ -253,6 +253,9 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
         return new DirectoryFileSourceProvenance(this);
     }
 
+    /**
+     * Provenance for {@link DirectoryFileSource}.
+     */
     public static class DirectoryFileSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

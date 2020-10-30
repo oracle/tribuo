@@ -84,6 +84,9 @@ public final class MeanStdDevTransformation implements Transformation {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link MeanStdDevTransformation}.
+     */
     public final static class MeanStdDevTransformationProvenance implements TransformationProvenance {
         private static final long serialVersionUID = 1L;
 

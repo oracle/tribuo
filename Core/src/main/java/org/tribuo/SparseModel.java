@@ -32,11 +32,20 @@ public abstract class SparseModel<T extends Output<T>> extends Model<T> {
 
     private final Map<String,List<String>> activeFeatures;
 
+    /**
+     * Constructs a sparse model from the supplied arguments.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The features the model knows.
+     * @param outputIDInfo The outputs the model can produce.
+     * @param generatesProbabilities Does this model generate probabilistic outputs.
+     * @param activeFeatures The active features in this model.
+     */
     public SparseModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, boolean generatesProbabilities, Map<String,List<String>> activeFeatures) {
         super(name, provenance, featureIDMap, outputIDInfo, generatesProbabilities);
         Map<String,List<String>> tmpActiveFeatures = new HashMap<>();
         for (Map.Entry<String,List<String>> e : activeFeatures.entrySet()) {
-            ArrayList<String> features = new ArrayList<>(e.getValue());
+            List<String> features = new ArrayList<>(e.getValue());
             Collections.sort(features);
             tmpActiveFeatures.put(e.getKey(),Collections.unmodifiableList(features));
         }

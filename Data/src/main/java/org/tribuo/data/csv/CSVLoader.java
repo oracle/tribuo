@@ -343,6 +343,9 @@ public class CSVLoader<T extends Output<T>> {
         return output;
     }
 
+    /**
+     * Provenance for CSVs loaded by {@link CSVLoader}.
+     */
     public final static class CSVLoaderProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

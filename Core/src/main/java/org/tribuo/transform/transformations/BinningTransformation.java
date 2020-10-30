@@ -106,6 +106,9 @@ public final class BinningTransformation implements Transformation {
         return new BinningTransformationProvenance(this);
     }
 
+    /**
+     * Provenance for {@link BinningTransformation}.
+     */
     public final static class BinningTransformationProvenance implements TransformationProvenance {
         private static final long serialVersionUID = 1L;
 

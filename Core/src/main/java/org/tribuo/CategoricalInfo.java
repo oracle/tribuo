@@ -54,25 +54,56 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     public static final int THRESHOLD = 50;
     private static final double COMPARISON_THRESHOLD = 1e-10;
 
+    /**
+     * The occurrence counts of each value.
+     */
     protected Map<Double,MutableLong> valueCounts = null;
 
+    /**
+     * The observed value if it's only seen a single one.
+     */
     protected double observedValue = Double.NaN;
 
+    /**
+     * The count of the observed value if it's only seen a single one.
+     */
     protected long observedCount = 0;
 
     // These variables are used in the sampling methods, and regenerated after serialization if a sample is required.
+    /**
+     * The values array.
+     */
     protected transient double[] values = null;
+    /**
+     * The total number of observations (including zeros).
+     */
     protected transient long totalObservations = -1;
+    /**
+     * The CDF to sample from.
+     */
     protected transient double[] cdf = null;
 
+    /**
+     * Constructs a new empty categorical info for the supplied feature name.
+     * @param name The feature name.
+     */
     public CategoricalInfo(String name) {
         super(name);
     }
 
+    /**
+     * Constructs a deep copy of the supplied categorical info.
+     * @param info The info to copy.
+     */
     protected CategoricalInfo(CategoricalInfo info) {
         this(info,info.name);
     }
 
+    /**
+     * Constructs a deep copy of the supplied categorical info, with the new feature name.
+     * @param info The info to copy.
+     * @param newName The new feature name.
+     */
     protected CategoricalInfo(CategoricalInfo info, String newName) {
         super(newName,info.count);
         if (info.valueCounts != null) {

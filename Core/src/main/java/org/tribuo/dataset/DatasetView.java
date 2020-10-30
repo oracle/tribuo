@@ -365,6 +365,9 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
 
     }
 
+    /**
+     * Provenance for the {@link DatasetView}.
+     */
     public static final class DatasetViewProvenance extends DatasetProvenance {
         private static final long serialVersionUID = 1L;
 

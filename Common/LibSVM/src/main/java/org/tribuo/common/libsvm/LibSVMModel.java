@@ -62,9 +62,21 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
     private static final long serialVersionUID = 3L;
 
     private static final Logger logger = Logger.getLogger(LibSVMModel.class.getName());
-    
+
+    /**
+     * The LibSVM models. Multiple models are used for multi-label or multidimensional regression outputs.
+     */
     protected final List<svm_model> models;
 
+    /**
+     * Constructs a LibSVMModel from the supplied arguments.
+     * @param name The model name.
+     * @param description The model provenance.
+     * @param featureIDMap The features the model knows about.
+     * @param outputIDInfo The outputs the model can produce.
+     * @param generatesProbabilities Does the model generate probabilities or not?
+     * @param models The svm models themselves.
+     */
     protected LibSVMModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, boolean generatesProbabilities, List<svm_model> models) {
         super(name, description, featureIDMap, outputIDInfo, generatesProbabilities);
         this.models = models;

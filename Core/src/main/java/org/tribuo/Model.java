@@ -51,18 +51,46 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
      */
     public static final String BIAS_FEATURE = "BIAS";
 
+    /**
+     * The model's name.
+     */
     protected String name;
 
+    /**
+     * The model provenance.
+     */
     protected final ModelProvenance provenance;
 
+    /**
+     * The cached toString of the model provenance.
+     * <p>
+     * Mostly cached so it appears in the serialized output and can be read by grepping the binary.
+     */
     protected final String provenanceOutput;
-    
+
+    /**
+     * The features this model knows about.
+     */
     protected final ImmutableFeatureMap featureIDMap;
-    
+
+    /**
+     * The outputs this model predicts.
+     */
     protected final ImmutableOutputInfo<T> outputIDInfo;
 
+    /**
+     * Does this model generate probability distributions in the output.
+     */
     protected final boolean generatesProbabilities;
-    
+
+    /**
+     * Constructs a new model, storing the supplied fields.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The features.
+     * @param outputIDInfo The possible outputs.
+     * @param generatesProbabilities Does this model emit probabilistic outputs.
+     */
     protected Model(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, boolean generatesProbabilities) {
         this.name = name;
         this.provenance = provenance;

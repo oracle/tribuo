@@ -126,6 +126,9 @@ public class JsonDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link JsonDataSource}.
+     */
     public static class JsonDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

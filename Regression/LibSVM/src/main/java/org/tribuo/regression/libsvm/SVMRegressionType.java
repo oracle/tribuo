@@ -30,6 +30,9 @@ import org.tribuo.regression.Regressor;
 public class SVMRegressionType implements SVMType<Regressor> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Type of regression SVM.
+     */
     public enum SVMMode {
         /**
          * epsilon-insensitive SVR.

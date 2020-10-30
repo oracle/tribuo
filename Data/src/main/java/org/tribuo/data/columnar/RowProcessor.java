@@ -496,7 +496,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     /**
      * @deprecated In a future release this API will change, in the meantime this is the correct way to get a row
      *   processor with clean state.
-     * <p/>
+     * <p>
      * When using regexMappingProcessors, RowProcessor is stateful in a way that can sometimes make it fail the second
      * time it is used. Concretely:
      * <pre>

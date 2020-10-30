@@ -199,6 +199,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link CSVDataSource}.
+     */
     public static class CSVDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

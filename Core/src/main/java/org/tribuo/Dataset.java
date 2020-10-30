@@ -75,6 +75,9 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      */
     protected final OutputFactory<T> outputFactory;
 
+    /**
+     * The indices of the shuffled order.
+     */
     protected int[] indices = null;
 
     /**
@@ -103,6 +106,10 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         return "Dataset(source="+ sourceProvenance.toString() +")";
     }
 
+    /**
+     * The provenance of the data this Dataset contains.
+     * @return The data provenance.
+     */
     public DataProvenance getSourceProvenance() {
         return sourceProvenance;
     }

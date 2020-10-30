@@ -524,6 +524,12 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         return new DMatrix(headers, indices, data, DMatrix.SparseType.CSR, numFeatures);
     }
 
+    /**
+     * Tuple of a DMatrix, the number of valid features in each example, and the examples themselves.
+     * <p>
+     * One day it'll be a record.
+     * @param <T> The output type.
+     */
     protected static class DMatrixTuple<T extends Output<T>> {
         public final DMatrix data;
         public final int[] numValidFeatures;
@@ -536,6 +542,10 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         }
     }
 
+    /**
+     * Provenance for {@link XGBoostTrainer}. No longer used.
+     */
+    @Deprecated
     protected static class XGBoostTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 

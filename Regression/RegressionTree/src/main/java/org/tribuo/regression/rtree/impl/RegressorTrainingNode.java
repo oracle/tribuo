@@ -383,6 +383,9 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         return new InvertedData(data,indices,targets,weights);
     }
 
+    /**
+     * Tuple containing an inverted dataset (i.e. feature-wise not exmaple-wise).
+     */
     public static class InvertedData {
         final ArrayList<TreeFeature> data;
         final int[] indices;

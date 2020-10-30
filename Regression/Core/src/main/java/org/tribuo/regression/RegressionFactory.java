@@ -150,15 +150,26 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link RegressionFactory}.
+     */
     public final static class RegressionFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 
         private final char splitChar;
 
+        /**
+         * Constructs a provenance for the factory, reading it's split character.
+         * @param splitChar The split character used by the factory.
+         */
         RegressionFactoryProvenance(char splitChar) {
             this.splitChar = splitChar;
         }
 
+        /**
+         * Constructs a provenance from it's marshalled form.
+         * @param map The provenance map, containing a splitChar field.
+         */
         public RegressionFactoryProvenance(Map<String,Provenance> map) {
             this.splitChar = ((CharProvenance)map.get("splitChar")).getValue();
         }

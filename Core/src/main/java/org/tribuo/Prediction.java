@@ -63,6 +63,15 @@ public class Prediction<T extends Output<T>> implements Serializable {
      */
     private final Map<String,T> outputScores;
 
+    /**
+     * Constructs a prediction from the supplied arguments.
+     * @param output The predicted output (i.e. the one with the maximum score).
+     * @param outputScores The output score distribution.
+     * @param numUsed The number of features used to make the prediction.
+     * @param exampleSize The size of the input example.
+     * @param example The input example.
+     * @param probability Are the scores probabilities?
+     */
     private Prediction(T output, Map<String,T> outputScores, int numUsed, int exampleSize, Example<T> example, boolean probability) {
         this.example = example;
         this.outputScores = outputScores;
@@ -72,14 +81,34 @@ public class Prediction<T extends Output<T>> implements Serializable {
         this.probability = probability;
     }
 
+    /**
+     * Constructs a prediction from the supplied arguments.
+     * @param output The predicted output (i.e. the one with the maximum score).
+     * @param outputScores The output score distribution.
+     * @param numUsed The number of features used to make the prediction.
+     * @param example The input example.
+     * @param probability Are the scores probabilities?
+     */
     public Prediction(T output, Map<String,T> outputScores, int numUsed, Example<T> example, boolean probability) {
         this(output,outputScores,numUsed,example.size(),example,probability);
     }
 
+    /**
+     * Constructs a prediction from the supplied arguments.
+     * @param output The predicted output.
+     * @param numUsed The number of features used to make the prediction.
+     * @param example The input example.
+     */
     public Prediction(T output, int numUsed, Example<T> example) {
         this(output,Collections.emptyMap(),numUsed,example.size(),example,false);
     }
 
+    /**
+     * Constructs a prediction from the supplied arguments.
+     * @param other The prediction to copy.
+     * @param numUsed The number of features used to make the prediction.
+     * @param example The input example.
+     */
     public Prediction(Prediction<T> other, int numUsed, Example<T> example) {
         this(other.output,new LinkedHashMap<>(other.outputScores),numUsed,example.size(),example,other.probability);
     }

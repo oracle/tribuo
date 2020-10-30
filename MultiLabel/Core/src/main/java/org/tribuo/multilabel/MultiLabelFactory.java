@@ -143,11 +143,21 @@ public final class MultiLabelFactory implements OutputFactory<MultiLabel> {
         return builder.toString();
     }
 
+    /**
+     * Provenance for {@link MultiLabelFactory}.
+     */
     public final static class MultiLabelFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Constructs a multi-label factory provenance.
+         */
         MultiLabelFactoryProvenance() {}
 
+        /**
+         * Constructs a multi-label factory provenance from the empty marshalled form.
+         * @param map An empty map.
+         */
         public MultiLabelFactoryProvenance(Map<String, Provenance> map) { }
 
         @Override

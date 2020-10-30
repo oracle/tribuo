@@ -85,6 +85,9 @@ public final class LinearScalingTransformation implements Transformation {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link LinearScalingTransformation}.
+     */
     public final static class LinearScalingTransformationProvenance implements TransformationProvenance {
         private static final long serialVersionUID = 1L;
 

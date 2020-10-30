@@ -55,6 +55,12 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
     private final DatasetProvenance datasetProvenance;
     private final ConfiguredObjectProvenance transformationMapProvenance;
 
+    /**
+     * Constructs a transformer map which encapsulates a set of transformers that can be applied to features.
+     * @param map The transformers, one per transformed feature.
+     * @param datasetProvenance The provenance of the dataset the transformers were fit against.
+     * @param transformationMapProvenance The provenance of the transformation map that was fit.
+     */
     public TransformerMap(Map<String,List<Transformer>> map, DatasetProvenance datasetProvenance, ConfiguredObjectProvenance transformationMapProvenance) {
         this.map = map;
         this.datasetProvenance = datasetProvenance;
@@ -152,6 +158,9 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
         return new TransformerMapProvenance(this);
     }
 
+    /**
+     * Provenance for {@link TransformerMap}.
+     */
     public final static class TransformerMapProvenance implements ObjectProvenance {
         private static final long serialVersionUID = 1L;
 

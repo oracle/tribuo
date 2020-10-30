@@ -33,7 +33,7 @@ import java.util.logging.Logger;
  * <p>
  * See:
  * <pre>
- * P. Geurts, D. Ernst, &amp L. Wehenkel.
+ * P. Geurts, D. Ernst, L. Wehenkel.
  * "Extremely Randomized Trees"
  * March 2006. <a href="https://link.springer.com/article/10.1007/s10994-006-6226-1">PDF</a>
  * </pre>

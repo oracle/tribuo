@@ -101,6 +101,9 @@ public final class ModHashCodeHasher extends Hasher {
         salt = null;
     }
 
+    /**
+     * Provenance for the {@link ModHashCodeHasher}.
+     */
     public final static class ModHashCodeHasherProvenance implements ConfiguredObjectProvenance {
         private static final long serialVersionUID = 1L;
 

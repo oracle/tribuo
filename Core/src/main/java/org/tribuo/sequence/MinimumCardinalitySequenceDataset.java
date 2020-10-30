@@ -172,6 +172,9 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
         return new MinimumCardinalitySequenceDatasetProvenance(this);
     }
 
+    /**
+     * Provenance for {@link MinimumCardinalitySequenceDataset}.
+     */
     public static class MinimumCardinalitySequenceDatasetProvenance extends DatasetProvenance {
         private static final long serialVersionUID = 1L;
 
