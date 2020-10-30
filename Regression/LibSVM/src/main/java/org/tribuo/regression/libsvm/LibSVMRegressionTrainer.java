@@ -93,8 +93,8 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
             problem.l = outputs[i].length;
             problem.x = features;
             problem.y = outputs[i];
-            if (parameters.gamma == 0) {
-                parameters.gamma = 1.0 / numFeatures;
+            if (curParams.gamma == 0) {
+                curParams.gamma = 1.0 / numFeatures;
             }
             String checkString = svm.svm_check_parameter(problem, curParams);
             if(checkString != null) {
