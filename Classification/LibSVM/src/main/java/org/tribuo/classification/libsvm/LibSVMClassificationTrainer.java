@@ -120,9 +120,8 @@ public class LibSVMClassificationTrainer extends LibSVMTrainer<Label> implements
 
     @Override
     protected svm_parameter setupParameters(ImmutableOutputInfo<Label> outputIDInfo) {
-        svm_parameter curParams;
+        svm_parameter curParams = SVMParameters.copyParameters(parameters);
         if (!labelWeights.isEmpty()) {
-            curParams = (svm_parameter) parameters.clone();
             double[] weights = new double[outputIDInfo.size()];
             int[] indices = new int[outputIDInfo.size()];
             int i = 0;
@@ -141,8 +140,6 @@ public class LibSVMClassificationTrainer extends LibSVMTrainer<Label> implements
             curParams.weight = weights;
             curParams.weight_label = indices;
             //logger.info("Weights = " + Arrays.toString(weights) + ", labels = " + Arrays.toString(indices) + ", outputIDInfo = " + outputIDInfo);
-        } else {
-            curParams = parameters;
         }
         return curParams;
     }
