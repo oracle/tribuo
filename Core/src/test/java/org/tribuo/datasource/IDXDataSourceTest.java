@@ -219,6 +219,7 @@ public class IDXDataSourceTest {
         ConfigurationManager cm = new ConfigurationManager("/org/tribuo/datasource/config.xml");
 
         try {
+            @SuppressWarnings("unchecked") // this config file is in the tests, we know the type
             IDXDataSource<MockOutput> tmp = (IDXDataSource<MockOutput>) cm.lookup("train");
             fail("Should have thrown PropertyException");
         } catch (PropertyException e) {
