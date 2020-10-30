@@ -18,6 +18,9 @@ package org.tribuo.common.xgboost;
 
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import ml.dmlc.xgboost4j.java.Booster;
+import ml.dmlc.xgboost4j.java.XGBoost;
+import ml.dmlc.xgboost4j.java.XGBoostError;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -28,9 +31,6 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.common.xgboost.XGBoostTrainer.DMatrixTuple;
 import org.tribuo.provenance.ModelProvenance;
-import ml.dmlc.xgboost4j.java.Booster;
-import ml.dmlc.xgboost4j.java.XGBoost;
-import ml.dmlc.xgboost4j.java.XGBoostError;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -74,6 +74,9 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
 
     private final XGBoostOutputConverter<T> converter;
 
+    /**
+     * The XGBoost4J Boosters.
+     */
     protected transient List<Booster> models;
 
     XGBoostModel(String name, ModelProvenance description,
@@ -82,6 +85,23 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
         super(name,description,featureIDMap,labelIDMap,converter.generatesProbabilities());
         this.converter = converter;
         this.models = models;
+    }
+
+    /**
+     * Returns an unmodifiable list containing a copy of each model.
+     * <p>
+     * As XGBoost4J models don't expose a copy constructor this requires
+     * serializing each model to a byte array and rebuilding it, and is thus quite expensive.
+     * @return A copy of all of the models.
+     */
+    public List<Booster> getInnerModels() {
+        List<Booster> copy = new ArrayList<>();
+
+        for (Booster m : models) {
+            copy.add(copyModel(m));
+        }
+
+        return Collections.unmodifiableList(copy);
     }
 
     /**
@@ -222,18 +242,27 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
         return Optional.empty();
     }
 
-    @Override
-    protected Model<T> copy(String newName, ModelProvenance newProvenance) {
+    /**
+     * Copies a single XGBoost Booster by serializing and deserializing it.
+     * @param booster The booster to copy.
+     * @return A deep copy of the booster.
+     */
+    static Booster copyModel(Booster booster) {
         try {
-            List<Booster> newModels = new ArrayList<>();
-            for (Booster model : models) {
-                byte[] serialisedBooster = model.toByteArray();
-                newModels.add(XGBoost.loadModel(new ByteArrayInputStream(serialisedBooster)));
-            }
-            return new XGBoostModel<>(newName,newProvenance,featureIDMap,outputIDInfo,newModels,converter);
+            byte[] serialisedBooster = booster.toByteArray();
+            return XGBoost.loadModel(new ByteArrayInputStream(serialisedBooster));
         } catch (XGBoostError | IOException e) {
             throw new IllegalStateException("Unable to copy XGBoost model.",e);
         }
+    }
+
+    @Override
+    protected Model<T> copy(String newName, ModelProvenance newProvenance) {
+        List<Booster> newModels = new ArrayList<>();
+        for (Booster model : models) {
+            newModels.add(copyModel(model));
+        }
+        return new XGBoostModel<>(newName, newProvenance, featureIDMap, outputIDInfo, newModels, converter);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

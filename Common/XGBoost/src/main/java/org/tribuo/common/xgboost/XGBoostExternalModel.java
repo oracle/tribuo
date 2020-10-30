@@ -17,6 +17,10 @@
 package org.tribuo.common.xgboost;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import ml.dmlc.xgboost4j.java.Booster;
+import ml.dmlc.xgboost4j.java.DMatrix;
+import ml.dmlc.xgboost4j.java.XGBoost;
+import ml.dmlc.xgboost4j.java.XGBoostError;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -30,10 +34,6 @@ import org.tribuo.interop.ExternalTrainerProvenance;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
-import ml.dmlc.xgboost4j.java.Booster;
-import ml.dmlc.xgboost4j.java.DMatrix;
-import ml.dmlc.xgboost4j.java.XGBoost;
-import ml.dmlc.xgboost4j.java.XGBoostError;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -185,15 +185,9 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
 
     @Override
     protected XGBoostExternalModel<T> copy(String newName, ModelProvenance newProvenance) {
-        try {
-            byte[] serialisedBooster = model.toByteArray();
-            Booster newModel = XGBoost.loadModel(new ByteArrayInputStream(serialisedBooster));
-            return new XGBoostExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
-                                              featureForwardMapping, featureBackwardMapping,
-                                              newModel,converter);
-        } catch (XGBoostError | IOException e) {
-            throw new IllegalStateException("Unable to copy XGBoost model.",e);
-        }
+        return new XGBoostExternalModel<>(newName, newProvenance, featureIDMap, outputIDInfo,
+                                          featureForwardMapping, featureBackwardMapping,
+                                          XGBoostModel.copyModel(model), converter);
     }
 
     /**
