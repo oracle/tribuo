@@ -32,16 +32,36 @@ public final class Event implements Output<Event> {
     private static final long serialVersionUID = 1L;
 
     /**
+     * The default score of events.
+     */
+    public static final double DEFAULT_SCORE = Double.NaN;
+
+    /**
      * The type of event.
      */
     public enum EventType {
-        ANOMALOUS(1), EXPECTED(0), UNKNOWN(-1);
+        /**
+         * An anomalous event, with id 1.
+         */
+        ANOMALOUS(1),
+        /**
+         * An expected event, with id 0.
+         */
+        EXPECTED(0),
+        /**
+         * An unknown (i.e. unlabelled) event, with id -1.
+         */
+        UNKNOWN(-1);
         private final int value;
 
         EventType(int value) {
             this.value = value;
         }
 
+        /**
+         * Returns the id of the event.
+         * @return The event id.
+         */
         protected int getID() {
             return value;
         }
@@ -51,19 +71,28 @@ public final class Event implements Output<Event> {
 
     private final double score;
 
+    /**
+     * Constructs a new event of the specified type and score.
+     * @param type The event type.
+     * @param score The event score.
+     */
     public Event(EventType type, double score) {
         this.type = type;
         this.score = score;
     }
 
+    /**
+     * Constructs a new event of the specified type with the default score of {@link Event#DEFAULT_SCORE}.
+     * @param type The event type.
+     */
     public Event(EventType type) {
-        this(type,Double.NaN);
+        this(type,DEFAULT_SCORE);
     }
 
     /**
      * Get a real valued score for this label.
-     *
-     * If the score is not set then it returns Double.NaN.
+     * <p>
+     * If the score is not set then it returns {@link Event#DEFAULT_SCORE}.
      * @return The predicted score for this label.
      */
     public double getScore() {
@@ -83,13 +112,12 @@ public final class Event implements Output<Event> {
         if (this == o) return true;
         if (!(o instanceof Event)) return false;
         Event event = (Event) o;
-        return Double.compare(event.score, score) == 0 &&
-                type == event.type;
+        return type == event.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, score);
+        return Objects.hash(type);
     }
 
     @Override
