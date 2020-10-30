@@ -32,6 +32,11 @@ public final class HTMLOutput {
 
     private HTMLOutput() { }
 
+    /**
+     * Formats a pair as a HTML table entry.
+     * @param p The pair to format.
+     * @return A string containing the HTML representation of the input.
+     */
     public static String toHTML(Pair<String, Double> p) {
         String cleanName = p.getA().replace("&", "&amp;")
                 .replace("<", "&lt;")
@@ -41,6 +46,12 @@ public final class HTMLOutput {
                 cleanName, p.getB());
     }
 
+    /**
+     * Formats a feature ranking as a HTML table.
+     * @param m The ranking to format.
+     * @param keys The classes to format.
+     * @param s The stream to write to.
+     */
     public static void printFeatureMap(Map<String, List<Pair<String, Double>>> m, List<String> keys, PrintStream s) {
         List<String> realKeys = new ArrayList<>(keys);
         realKeys.add(Model.ALL_OUTPUTS);

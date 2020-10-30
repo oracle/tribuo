@@ -17,15 +17,28 @@
 package org.tribuo.util;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * A Pair of a primitive int and a primitive double.
  */
 public final class IntDoublePair {
 
+    /**
+     * The key.
+     */
     public final int index;
+
+    /**
+     * The value.
+     */
     public final double value;
 
+    /**
+     * Constructs a tuple out of an int and a double.
+     * @param index The int.
+     * @param value The double
+     */
     public IntDoublePair(int index, double value) {
         this.index = index;
         this.value = value;
@@ -53,6 +66,20 @@ public final class IntDoublePair {
      */
     public static Comparator<IntDoublePair> pairDescendingValueComparator() {
         return (IntDoublePair a, IntDoublePair b) -> Double.compare(Math.abs(b.value), Math.abs(a.value));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IntDoublePair that = (IntDoublePair) o;
+        return index == that.index &&
+                Double.compare(that.value, value) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(index, value);
     }
 
     @Override

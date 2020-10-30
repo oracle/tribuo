@@ -191,6 +191,21 @@ public final class Util {
     }
 
     /**
+     * Shuffles the input.
+     * @param input The array to shuffle.
+     * @param rng The random number generator to use.
+     */
+    public static void randpermInPlace(double[] input, SplittableRandom rng) {
+        // Shuffle array
+        for (int i = input.length; i > 1; i--) {
+            int j = rng.nextInt(i);
+            double tmp = input[i-1];
+            input[i-1] = input[j];
+            input[j] = tmp;
+        }
+    }
+
+    /**
      * Draws a bootstrap sample of indices.
      * @param size Size of the sample to generate.
      * @param rng The RNG to use.
