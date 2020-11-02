@@ -22,9 +22,12 @@ import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.tribuo.data.columnar.ColumnarIterator;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -52,9 +55,9 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
      */
     public final static char QUOTE = '"';
 
-
     private final CSVReader reader;
-    // We read numRows for idx from the CSVReader
+
+    // Used as the row index
     private int recordNum = 0;
 
     /**
@@ -83,7 +86,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
      * @throws IOException thrown if the file is not readable in some way.
      */
     public CSVIterator(URI dataFile) throws IOException {
-        this(Files.newBufferedReader(Paths.get(dataFile)));
+        this(new InputStreamReader(Files.newInputStream(Paths.get(dataFile)), StandardCharsets.UTF_8));
     }
 
     /**
@@ -94,7 +97,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
      * @throws IOException thrown if the file is not readable in some way.
      */
     public CSVIterator(URI dataFile, char separator, char quote) throws IOException {
-        this(Files.newBufferedReader(Paths.get(dataFile)), separator, quote);
+        this(new InputStreamReader(Files.newInputStream(Paths.get(dataFile)), StandardCharsets.UTF_8), separator, quote);
     }
 
     /**
@@ -106,7 +109,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
      * @throws IOException thrown if the file is not readable in some way.
      */
     public CSVIterator(URI dataFile, char separator, char quote, String[] fields) throws IOException {
-        this(Files.newBufferedReader(Paths.get(dataFile)), separator, quote, Arrays.asList(fields));
+        this(new InputStreamReader(Files.newInputStream(Paths.get(dataFile)), StandardCharsets.UTF_8), separator, quote, Arrays.asList(fields));
     }
 
     /**
@@ -118,7 +121,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
      * @throws IOException thrown if the file is not readable in some way.
      */
     public CSVIterator(URI dataFile, char separator, char quote, List<String> fields) throws IOException {
-        this(Files.newBufferedReader(Paths.get(dataFile)), separator, quote, fields);
+        this(new InputStreamReader(Files.newInputStream(Paths.get(dataFile)), StandardCharsets.UTF_8), separator, quote, fields);
     }
 
     /**
@@ -140,24 +143,30 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
      * @param fields The headers to use.
      */
     public CSVIterator(Reader rdr, char separator, char quote, List<String> fields) {
-        reader = new CSVReaderBuilder(rdr).withCSVParser(new RFC4180ParserBuilder().withSeparator(separator).withQuoteChar(quote).build()).build();
         try {
-            if (fields == null || fields.isEmpty()) {
-                String[] inducedHeader = reader.readNext();
-                if(inducedHeader == null) {
-                    logger.warning("Given an empty CSV");
-                } else {
-                    this.fields = Collections.unmodifiableList(Arrays.asList(inducedHeader));
-                }
-            } else {
-                this.fields = Collections.unmodifiableList(fields);
-            }
-        } catch (CsvValidationException | IOException e) {
+            // If someone hands us a BufferedReader, then we'll double buffer it here.
+            Reader bomRemoved = new BufferedReader(CSVDataSource.removeBOM(rdr));
+            reader = new CSVReaderBuilder(bomRemoved).withCSVParser(new RFC4180ParserBuilder().withSeparator(separator).withQuoteChar(quote).build()).build();
             try {
-                reader.close();
-            } catch (IOException e2) {
-                logger.log(Level.WARNING, "Error closing reader in another error", e2);
+                if (fields == null || fields.isEmpty()) {
+                    String[] inducedHeader = reader.readNext();
+                    if(inducedHeader == null) {
+                        logger.warning("Given an empty CSV");
+                    } else {
+                        this.fields = Collections.unmodifiableList(Arrays.asList(inducedHeader));
+                    }
+                } else {
+                    this.fields = Collections.unmodifiableList(fields);
+                }
+            } catch (CsvValidationException | IOException e) {
+                try {
+                    reader.close();
+                } catch (IOException e2) {
+                    logger.log(Level.WARNING, "Error closing reader in another error", e2);
+                }
+                throw new IllegalArgumentException("Error reading file caused by: " + e.getMessage());
             }
+        } catch (IOException e) {
             throw new IllegalArgumentException("Error reading file caused by: " + e.getMessage());
         }
     }

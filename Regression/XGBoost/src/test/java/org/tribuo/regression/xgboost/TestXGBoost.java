@@ -23,6 +23,7 @@ import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -32,15 +33,17 @@ public class TestXGBoost {
 
     private static final RegressionEvaluator e = new RegressionEvaluator();
 
-    public void testXGBoost(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testXGBoost(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = t.train(p.getA());
         e.evaluate(m,p.getB());
+        return m;
     }
 
     @Test
     public void testMultiDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
-        testXGBoost(p);
+        Model<Regressor> model = testXGBoost(p);
+        Helpers.testModelSerialization(model,Regressor.class);
     }
 
     @Test

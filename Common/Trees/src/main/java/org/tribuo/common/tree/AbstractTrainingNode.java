@@ -36,6 +36,8 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
 
     protected final int numExamples;
 
+    protected final LeafDeterminer leafDeterminer;
+
     protected boolean split;
 
     protected int splitID;
@@ -44,18 +46,20 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
 
     protected double impurityScore;
     
-    protected AbstractTrainingNode<T> greaterThan;
+    protected Node<T> greaterThan;
     
-    protected AbstractTrainingNode<T> lessThanOrEqual;
+    protected Node<T> lessThanOrEqual;
 
     /**
      * Builds an abstract training node.
      * @param depth The depth of this node.
      * @param numExamples The number of examples in this node.
+     * @param leafDeterminer The parameters which determine if the node forms a leaf.
      */
-    protected AbstractTrainingNode(int depth, int numExamples) {
+    protected AbstractTrainingNode(int depth, int numExamples, LeafDeterminer leafDeterminer) {
         this.depth = depth;
         this.numExamples = numExamples;
+        this.leafDeterminer = leafDeterminer;
     }
 
     /**
@@ -63,12 +67,10 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
      * @param featureIDs Indices of the features available in this split.
      * @param rng Splittable random number generator.
      * @param useRandomSplitPoints Whether to choose split points for features at random.
-     * @param scaledMinImpurityDecrease The product of the weight sum of the original examples and the
-     *                                  minImpurityDecrease.
      * @return A possibly empty list of TrainingNodes.
      */
     public abstract List<AbstractTrainingNode<T>> buildTree(int[] featureIDs, SplittableRandom rng,
-                                                            boolean useRandomSplitPoints, float scaledMinImpurityDecrease);
+                                                            boolean useRandomSplitPoints);
 
     /**
      * Converts a tree from a training representation to the final inference time representation.
@@ -77,11 +79,50 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     public abstract Node<T> convertTree();
 
     /**
+     * The sum of the weights associated with this node's examples.
+     * @return the sum of the weights associated with this node's examples.
+     */
+    public abstract float getWeightSum();
+
+    /**
      * The depth of this node in the tree.
      * @return The depth.
      */
     public int getDepth() {
         return depth;
+    }
+
+    /**
+     * Determines whether the node to be created should be a {@link LeafNode}.
+     * @param impurityScore impurity score for the new node.
+     * @param weightSum total example weight for the new node.
+     * @return Whether the new node should be a {@link LeafNode}.
+     */
+    public boolean shouldMakeLeaf(double impurityScore, float weightSum) {
+        return ((impurityScore == 0.0) ||
+                (depth + 1 >= leafDeterminer.getMaxDepth()) ||
+                (weightSum < leafDeterminer.getMinChildWeight()));
+    }
+
+    /**
+     * Transforms an {@link AbstractTrainingNode} into a {@link SplitNode}
+     * @return A {@link SplitNode}
+     */
+    public SplitNode<T> mkSplitNode() {
+        Node<T> newGreaterThan = greaterThan;
+        Node<T> newLessThan = lessThanOrEqual;
+
+        // split node
+        if (greaterThan instanceof AbstractTrainingNode) {
+            AbstractTrainingNode<T> abstractGreaterThan = (AbstractTrainingNode<T>) greaterThan;
+            newGreaterThan = abstractGreaterThan.convertTree();
+        }
+
+        if (lessThanOrEqual instanceof AbstractTrainingNode) {
+            AbstractTrainingNode<T> abstractLessThan = (AbstractTrainingNode<T>) lessThanOrEqual;
+            newLessThan = abstractLessThan.convertTree();
+        }
+        return new SplitNode<>(splitValue,splitID,getImpurity(),newGreaterThan,newLessThan);
     }
 
     @Override
@@ -115,4 +156,32 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     public Node<T> copy() {
         throw new UnsupportedOperationException("Copy is not supported on training nodes.");
     }
+
+    /**
+     * Contains parameters needed to determine whether a node is a leaf.
+     */
+    public static class LeafDeterminer {
+        private final int maxDepth;
+        private final float minChildWeight;
+        private final float scaledMinImpurityDecrease;
+
+        public LeafDeterminer(int maxDepth, float minChildWeight, float scaledMinImpurityDecrease) {
+            this.maxDepth = maxDepth;
+            this.minChildWeight = minChildWeight;
+            this.scaledMinImpurityDecrease = scaledMinImpurityDecrease;
+        }
+
+        public int getMaxDepth() {
+            return maxDepth;
+        }
+
+        public float getMinChildWeight() {
+            return minChildWeight;
+        }
+
+        public float getScaledMinImpurityDecrease() {
+            return scaledMinImpurityDecrease;
+        }
+    }
+
 }

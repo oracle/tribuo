@@ -28,6 +28,7 @@ import org.tribuo.math.kernel.RBF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ public class TestSGDKernel {
         logger.setLevel(Level.WARNING);
     }
 
-    public void testSGDKernel(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public static Model<Label> testSGDKernel(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -56,12 +57,14 @@ public class TestSGDKernel {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertTrue(features.isEmpty());
+        return m;
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        testSGDKernel(p);
+        Model<Label> model = testSGDKernel(p);
+        Helpers.testModelSerialization(model,Label.class);
     }
 
     @Test

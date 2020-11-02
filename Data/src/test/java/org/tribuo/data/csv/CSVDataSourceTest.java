@@ -77,7 +77,6 @@ public class CSVDataSourceTest {
 
     @Test
     public void testBasic() {
-
         CSVDataSource<MockOutput> dataSource = new CSVDataSource<>(dataFile, rowProcessor, true);
 
         MutableDataset<MockOutput> dataset = new MutableDataset<>(dataSource);
@@ -93,6 +92,31 @@ public class CSVDataSourceTest {
         ObjectProvenance unmarshalledProvenance = ProvenanceUtil.unmarshalProvenance(datasetProvenance);
 
         assertEquals(prov,unmarshalledProvenance);
+    }
+
+    @Test
+    public void testBOM() throws URISyntaxException {
+        // Excel inserts a BOM into UTF-8 formatted CSV files, this test checks that Tribuo correctly ignores it.
+        URI bomDataFile = CSVDataSourceTest.class.getResource("/org/tribuo/data/csv/test-bom.csv").toURI();
+
+        // Load the file with the BOM
+        CSVDataSource<MockOutput> bomSource = new CSVDataSource<>(bomDataFile, rowProcessor, true);
+        MutableDataset<MockOutput> bomDataset = new MutableDataset<>(bomSource);
+
+        // Check the rows loaded correctly
+        assertEquals(6,bomDataset.size(),"Found an incorrect number of rows when loading the csv.");
+
+        // Check the feature space is the same
+        assertEquals(13,bomDataset.getFeatureMap().size());
+
+        // Load the clean file
+        CSVDataSource<MockOutput> dataSource = new CSVDataSource<>(dataFile, rowProcessor, true);
+        MutableDataset<MockOutput> dataset = new MutableDataset<>(dataSource);
+
+        // Check the data is the same
+        for (int i = 0; i < 6; i++) {
+            assertEquals(dataset.getExample(i), bomDataset.getExample(i));
+        }
     }
 
     @Test

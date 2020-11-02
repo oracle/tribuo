@@ -58,13 +58,17 @@ public class DateExtractor extends SimpleFieldExtractor<LocalDate> {
 
     /**
      * Constructs a date extractor that emits a LocalDate by applying the supplied format to the specified field.
+     * <p>
+     * Deprecated as it does not allow recovery of the formatter pattern for the provenance.
      * @param fieldName The field to read.
      * @param metadataName The metadata field to write.
      * @param formatter The date format (supplied to {@link DateTimeFormatter}.
      */
+    @Deprecated
     public DateExtractor(String fieldName, String metadataName, DateTimeFormatter formatter) {
         super(fieldName, metadataName);
         this.formatter = formatter;
+        this.dateFormat = formatter.toString();
     }
 
     /**
@@ -72,13 +76,11 @@ public class DateExtractor extends SimpleFieldExtractor<LocalDate> {
      */
     @Override
     public void postConfig() {
+        super.postConfig();
         if (dateFormat != null) {
             formatter = DateTimeFormatter.ofPattern(dateFormat);
         } else {
             formatter = DateTimeFormatter.BASIC_ISO_DATE;
-        }
-        if (metadataName == null || metadataName.isEmpty()) {
-            metadataName = fieldName;
         }
     }
 

@@ -110,8 +110,9 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
     }
 
     @Override
-    protected AbstractTrainingNode<Label> mkTrainingNode(Dataset<Label> examples) {
-        return new ClassifierTrainingNode(impurity, examples);
+    protected AbstractTrainingNode<Label> mkTrainingNode(Dataset<Label> examples,
+                                                         AbstractTrainingNode.LeafDeterminer leafDeterminer) {
+        return new ClassifierTrainingNode(impurity, examples, leafDeterminer);
     }
 
     @Override

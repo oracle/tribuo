@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.tribuo.regression;
+package org.tribuo.regression.baseline;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
+import org.tribuo.regression.Regressor;
 import org.tribuo.regression.baseline.DummyRegressionTrainer;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,11 +46,14 @@ public class TestDummyRegression {
 
     private static final List<Trainer<Regressor>> trainers = Arrays.asList(constant,mean,median,quartile,gaussian);
 
-    public void testDummyRegression(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public void testDummyRegression(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testModelSave) {
         for (Trainer<Regressor> t : trainers) {
             Model<Regressor> m = t.train(p.getA());
             RegressionEvaluator evaluator = new RegressionEvaluator();
             RegressionEvaluation evaluation = evaluator.evaluate(m,p.getB());
+            if (testModelSave) {
+                Helpers.testModelSerialization(m,Regressor.class);
+            }
         }
     }
 
@@ -70,18 +75,17 @@ public class TestDummyRegression {
             Trainer<Regressor> t = DummyRegressionTrainer.createQuartileTrainer(Double.NaN);
             fail("Should have thrown IllegalArgumentException");
         } catch (IllegalArgumentException e) { }
-
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        testDummyRegression(p);
+        testDummyRegression(p,true);
     }
 
     @Test
     public void testSparseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
-        testDummyRegression(p);
+        testDummyRegression(p,false);
     }
 }

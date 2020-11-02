@@ -27,6 +27,7 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.datasource.LibSVMDataSource;
 import org.junit.jupiter.api.Test;
+import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -39,6 +40,46 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestOnnxRuntime {
+
+    /**
+     * This test checks that the ImageTransformer works and we can process float matrices through the LabelTransformer.
+     * @throws IOException If it failed to read the file.
+     * @throws OrtException If onnx-runtime failed.
+     * @throws URISyntaxException If the URL failed to parse.
+     */
+    @Test
+    public void testCNNMNIST() throws IOException, OrtException, URISyntaxException {
+        LabelFactory labelFactory = new LabelFactory();
+        try (OrtEnvironment env = OrtEnvironment.getEnvironment("tribuo-onnx-runtime-test")) {
+            OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
+
+            // Loads regular MNIST
+            URL data = TestOnnxRuntime.class.getResource("/org/tribuo/interop/onnx/mnist_test_head.libsvm");
+            DataSource<Label> mnistTest = new LibSVMDataSource<>(data, labelFactory, false, 784);
+            Dataset<Label> dataset = new MutableDataset<>(mnistTest);
+
+            Map<String, Integer> featureMapping = new HashMap<>();
+            for (int i = 0; i < 784; i++) {
+                featureMapping.put(String.format("%03d", i), i);
+            }
+            Map<Label, Integer> outputMapping = new HashMap<>();
+            for (Label l : dataset.getOutputInfo().getDomain()) {
+                outputMapping.put(l, Integer.parseInt(l.getLabel()));
+            }
+
+            ImageTransformer imageTransformer = new ImageTransformer(1,28,28);
+            LabelTransformer labelTransformer = new LabelTransformer();
+            Path testResource = Paths.get(TestOnnxRuntime.class.getResource("/org/tribuo/interop/onnx/cnn_mnist.onnx").toURI());
+            ONNXExternalModel<Label> cnnModel = ONNXExternalModel.createOnnxModel(
+                    labelFactory, featureMapping, outputMapping, imageTransformer,
+                    labelTransformer, sessionOptions, testResource, "input_image");
+
+            LabelEvaluation evaluation = labelFactory.getEvaluator().evaluate(cnnModel, mnistTest);
+            // CNNs are good at MNIST
+            assertEquals(1.0, evaluation.accuracy(), 1e-6);
+            assertEquals(0.0, evaluation.balancedErrorRate(), 1e-6);
+        }
+    }
 
     /**
      * This test checks that the model works when using the feature mapping logic as the model was trained with
@@ -79,6 +120,8 @@ public class TestOnnxRuntime {
             LabelEvaluation evaluation = labelFactory.getEvaluator().evaluate(transposedMNISTLR, transposedMNIST);
             assertEquals(0.967741, evaluation.accuracy(), 1e-6);
             assertEquals(0.024285, evaluation.balancedErrorRate(), 1e-6);
+
+            Helpers.testModelSerialization(transposedMNISTLR,Label.class);
         }
     }
 
