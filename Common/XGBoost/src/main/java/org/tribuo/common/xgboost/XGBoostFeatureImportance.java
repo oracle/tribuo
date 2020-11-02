@@ -206,6 +206,7 @@ public class XGBoostFeatureImportance {
     /**
      * Total Cover is similar to cover, but not locally averaged by weight, and thus not skewed in the way that
      * weight can be skewed. Returns only top numFeatures features.
+     * @param numFeatures number of features to return
      * @return Ordered map where the keys are feature names and the value is the total gain, sorted descending
      */
     public LinkedHashMap<String, Double> getTotalCover(int numFeatures) {
