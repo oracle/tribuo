@@ -19,6 +19,7 @@ package org.tribuo.clustering.evaluation;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
+import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.evaluation.metrics.EvaluationMetric;
 import org.tribuo.evaluation.metrics.MetricContext;
 import org.tribuo.evaluation.metrics.MetricTarget;
@@ -78,9 +79,16 @@ public class ClusteringMetric implements EvaluationMetric<ClusterID, ClusteringM
 
         Context(Model<ClusterID> model, List<Prediction<ClusterID>> predictions) {
             super(model, predictions);
+            int i = 0;
             for (Prediction<ClusterID> pred : predictions) {
+                if (pred.getOutput().equals(ClusteringFactory.UNASSIGNED_CLUSTER_ID)) {
+                    throw new IllegalArgumentException("The sentinel unassigned cluster id was used as a ground truth output at prediction number " + i);
+                } else if (pred.getExample().getOutput().equals(ClusteringFactory.UNASSIGNED_CLUSTER_ID)) {
+                    throw new IllegalArgumentException("The sentinel unassigned cluster id was predicted by the model at prediction number " + i);
+                }
                 predictedIDs.add(pred.getOutput().getID());
                 trueIDs.add(pred.getExample().getOutput().getID());
+                i++;
             }
         }
 
@@ -96,6 +104,5 @@ public class ClusteringMetric implements EvaluationMetric<ClusterID, ClusteringM
     static Context buildContext(Model<ClusterID> model, List<Prediction<ClusterID>> predictions) {
         return new Context(model, predictions);
     }
-
 
 }
