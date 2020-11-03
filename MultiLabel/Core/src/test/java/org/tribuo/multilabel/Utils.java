@@ -29,6 +29,10 @@ public class Utils {
 
     private static final MultiLabelFactory outputFactory = new MultiLabelFactory();
 
+    public static MultiLabel getUnknown() {
+        return outputFactory.getUnknownOutput();
+    }
+
     public static MultiLabel label(String... values) {
         String csv = String.join(",", Arrays.asList(values));
         MultiLabel output = outputFactory.generateOutput(csv);
@@ -39,6 +43,14 @@ public class Utils {
         Example<MultiLabel> example = new ListExample<>(trueVal);
         example.add(new Feature("noop", 1d));
         return new Prediction<>(predVal, 0, example);
+    }
+
+    public static ImmutableOutputInfo<MultiLabel> mkDomain(MultiLabel... values) {
+        MutableMultiLabelInfo info = new MutableMultiLabelInfo();
+        for (MultiLabel value : values) {
+            info.observe(value);
+        }
+        return info.generateImmutableOutputInfo();
     }
 
     public static ImmutableOutputInfo<MultiLabel> mkDomain(List<Prediction<MultiLabel>> predictions) {
