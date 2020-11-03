@@ -25,12 +25,70 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.tribuo.multilabel.Utils.getUnknown;
 import static org.tribuo.multilabel.Utils.label;
 import static org.tribuo.multilabel.Utils.mkDomain;
 import static org.tribuo.multilabel.Utils.mkPrediction;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MultiLabelConfusionMatrixTest {
+
+    @Test
+    public void testTabulateUnexpectedMultiLabel() {
+        MultiLabel a = label("a");
+        MultiLabel bc = label("b","c");
+        MultiLabel abd = label("a","b","d");
+        ImmutableOutputInfo<MultiLabel> domain = mkDomain(a,bc,abd);
+
+        List<Prediction<MultiLabel>> predictions = Arrays.asList(
+                mkPrediction(label("a"), label("a")),
+                mkPrediction(label("c"), label("b")),
+                mkPrediction(label("b"), label("b")),
+                //Note "e" is not in the domain.
+                mkPrediction(label("e"), label("a", "c"))
+        );
+
+        try {
+            MultiLabelConfusionMatrix.ConfusionMatrixTuple t = MultiLabelConfusionMatrix.tabulate(domain, predictions);
+            fail("Should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("Unknown label 'e' found"));
+        }
+    }
+
+    @Test
+    public void testTabulateUnknownMultiLabel() {
+        List<Prediction<MultiLabel>> predictions = Arrays.asList(
+                mkPrediction(getUnknown(), label("a")),
+                mkPrediction(label("c"), label("b")),
+                mkPrediction(label("b"), label("b")),
+                mkPrediction(label("b"), label("c"))
+        );
+        ImmutableOutputInfo<MultiLabel> domain = mkDomain(label("a"),label("b"),label("c"));
+
+        try {
+            MultiLabelConfusionMatrix.ConfusionMatrixTuple t = MultiLabelConfusionMatrix.tabulate(domain, predictions);
+            fail("Should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("sentinel Unknown MultiLabel"));
+        }
+
+        predictions = Arrays.asList(
+                mkPrediction(label("a"), label("a")),
+                mkPrediction(label("c"), getUnknown()),
+                mkPrediction(label("b"), label("b")),
+                mkPrediction(label("b"), label("c"))
+        );
+
+        try {
+            MultiLabelConfusionMatrix.ConfusionMatrixTuple t = MultiLabelConfusionMatrix.tabulate(domain, predictions);
+            fail("Should have thrown IllegalArgumentException");
+        } catch (IllegalArgumentException e) {
+            assertTrue(e.getMessage().contains("sentinel Unknown MultiLabel"));
+        }
+    }
 
     @Test
     public void testTabulateSingleLabel() {

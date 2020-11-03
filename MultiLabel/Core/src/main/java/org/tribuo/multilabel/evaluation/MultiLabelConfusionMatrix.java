@@ -23,6 +23,7 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.ConfusionMatrix;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.multilabel.MultiLabelFactory;
 
 import java.util.List;
 import java.util.Set;
@@ -177,9 +178,15 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
             mcm[i] = new DenseMatrix(2, 2);
         }
 
+        int predIndex = 0;
         for (Prediction<MultiLabel> prediction : predictions) {
             MultiLabel predictedOutput = prediction.getOutput();
             MultiLabel trueOutput = prediction.getExample().getOutput();
+            if (trueOutput.equals(MultiLabelFactory.UNKNOWN_MULTILABEL)) {
+                throw new IllegalArgumentException("The sentinel Unknown MultiLabel was used as a ground truth label at prediction number " + predIndex);
+            } else if (predictedOutput.equals(MultiLabelFactory.UNKNOWN_MULTILABEL)) {
+                throw new IllegalArgumentException("The sentinel Unknown MultiLabel was predicted by the model at prediction number " + predIndex);
+            }
 
             Set<Label> trueSet = trueOutput.getLabelSet();
             Set<Label> predSet = predictedOutput.getLabelSet();
@@ -203,6 +210,10 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
             // Count false negatives and populate the confusion table
             for (Label trueLabel : trueSet) {
                 int idx = domain.getID(new MultiLabel(trueLabel.getLabel()));
+                if (idx < 0) {
+                    throw new IllegalArgumentException("Unknown label '" + trueLabel.getLabel() + "' found in the ground truth labels at prediction number " + predIndex
+                            + ", this label is not known by the model which made the predictions.");
+                }
 
                 //
                 // Doing two things in this loop:
@@ -237,6 +248,7 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
                     }
                 }
             }
+            predIndex++;
         }
 
         return new ConfusionMatrixTuple(mcm, confusion);
