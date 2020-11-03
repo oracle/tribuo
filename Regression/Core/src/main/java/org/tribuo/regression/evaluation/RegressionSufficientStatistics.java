@@ -19,6 +19,7 @@ package org.tribuo.regression.evaluation;
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
+import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 
 import java.util.Arrays;
@@ -71,6 +72,11 @@ public final class RegressionSufficientStatistics {
 
             Regressor pred = prediction.getOutput();
             Regressor truth = prediction.getExample().getOutput();
+            if (truth.equals(RegressionFactory.UNKNOWN_REGRESSOR)) {
+                throw new IllegalArgumentException("The sentinel Unknown Regressor was used as a ground truth output at prediction number " + i);
+            } else if (pred.equals(RegressionFactory.UNKNOWN_REGRESSOR)) {
+                throw new IllegalArgumentException("The sentinel Unknown Regressor was predicted by the model at prediction number " + i);
+            }
 
             for (int j = 0; j < truth.size(); j++) {
                 String name = truth.getNames()[j];
