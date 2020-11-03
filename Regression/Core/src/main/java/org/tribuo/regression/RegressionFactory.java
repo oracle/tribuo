@@ -52,7 +52,9 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
     @Config(description="The character to split the dimensions on.")
     private char splitChar = DEFAULT_SPLIT_CHAR;
 
-    public static final Regressor UNKNOWN_MULTIPLE_REGRESSOR = new Regressor(new String[]{"UNKNOWN"}, new double[]{Double.NaN});
+    public static final Regressor UNKNOWN_REGRESSOR = new Regressor(new String[]{"UNKNOWN"}, new double[]{Double.NaN});
+
+    public static final Regressor UNKNOWN_MULTIPLE_REGRESSOR = UNKNOWN_REGRESSOR;
 
     private RegressionFactoryProvenance provenance;
 
@@ -108,7 +110,7 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
 
     @Override
     public Regressor getUnknownOutput() {
-        return UNKNOWN_MULTIPLE_REGRESSOR;
+        return UNKNOWN_REGRESSOR;
     }
 
     @Override
