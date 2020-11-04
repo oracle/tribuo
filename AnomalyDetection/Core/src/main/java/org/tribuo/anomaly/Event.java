@@ -49,7 +49,7 @@ public final class Event implements Output<Event> {
          */
         EXPECTED(0),
         /**
-         * An unknown (i.e. unlabelled) event, with id -1.
+         * An unknown (i.e., unlabelled) event, with id -1.
          */
         UNKNOWN(-1);
         private final int value;

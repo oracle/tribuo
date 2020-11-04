@@ -22,7 +22,7 @@
  * It provides full control over featurisation, output processing and metadata extraction.
  * {@link org.tribuo.data.csv.CSVLoader} is for simple numerical CSV files where all the
  * non-response columns should be treated as features. {@link org.tribuo.data.csv.CSVSaver} writes
- * out a * Tribuo {@link org.tribuo.Dataset} in CSV format suitable for loading via
+ * out a Tribuo {@link org.tribuo.Dataset} in CSV format suitable for loading via
  * {@link org.tribuo.data.csv.CSVLoader} or some external tool
  */
 package org.tribuo.data.csv;

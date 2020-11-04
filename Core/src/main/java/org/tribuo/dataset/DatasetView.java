@@ -88,7 +88,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
      * Creates a DatasetView which includes the supplied indices from the dataset.
      * <p>
      * This takes the ImmutableFeatureMap and ImmutableOutputInfo parameters to save them being
-     * regenerated (e.g. in BaggingTrainer).
+     * regenerated (e.g., in BaggingTrainer).
      *
      * @param dataset The dataset to sample from.
      * @param exampleIndices The indices of this view in the wrapped dataset.

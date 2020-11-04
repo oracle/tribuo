@@ -28,7 +28,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
- * A {@link ConfigurableDataSource} base class which takes columnar data (e.g. csv or DB table rows) and generates {@link Example}s.
+ * A {@link ConfigurableDataSource} base class which takes columnar data (e.g., csv or DB table rows) and generates {@link Example}s.
  */
 public abstract class ColumnarDataSource<T extends Output<T>> implements ConfigurableDataSource<T> {
 

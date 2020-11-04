@@ -165,8 +165,8 @@ Maven:
 or from Gradle:
 ```groovy
 implementation ("org.tribuo:tribuo-all:4.0.1@pom") {
-    transitive = true // for build.gradle (i.e. Groovy)
-    // isTransitive = true // for build.gradle.kts (i.e. Kotlin)
+    transitive = true // for build.gradle (i.e., Groovy)
+    // isTransitive = true // for build.gradle.kts (i.e., Kotlin)
 }
 ```
 

@@ -30,7 +30,7 @@ public final class Label implements Classifiable<Label> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The name of the unknown label (i.e. an unlabelled output).
+     * The name of the unknown label (i.e., an unlabelled output).
      */
     public static final String UNKNOWN = "LABEL##UNKNOWN";
 

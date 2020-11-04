@@ -205,7 +205,7 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     /**
      * Converts a Tribuo {@link Example} into a liblinear {@code FeatureNode} array, including a bias feature.
      * <p>
-     * If there is a collision between feature ids (i.e. if there is feature hashing or some other mechanism changing
+     * If there is a collision between feature ids (i.e., if there is feature hashing or some other mechanism changing
      * the feature ids) then the feature values are summed.
      * @param example The input example.
      * @param featureIDMap The feature id map which contains the example's indices.

@@ -47,7 +47,7 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
     protected long anomalyCount = 0;
 
     /**
-     * The number of unknown events observed (i.e. those without labels).
+     * The number of unknown events observed (i.e., those without labels).
      */
     protected int unknownCount = 0;
 
@@ -127,7 +127,7 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
     }
 
     /**
-     * The number of possible event types (i.e. 2).
+     * The number of possible event types (i.e., 2).
      * @return The number of possible event types.
      */
     @Override

@@ -227,7 +227,7 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
     }
 
     /**
-     * Returns true if this dataset is zero indexed, false otherwise (i.e. it starts from 1).
+     * Returns true if this dataset is zero indexed, false otherwise (i.e., it starts from 1).
      * @return True if zero indexed.
      */
     public boolean isZeroIndexed() {

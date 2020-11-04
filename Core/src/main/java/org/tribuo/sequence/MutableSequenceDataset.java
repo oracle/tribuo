@@ -94,7 +94,7 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
     /**
      * Adds a {@link SequenceExample} to this dataset.
      * <p>
-     * It also canonicalises the reference to each feature's name (i.e. replacing the reference
+     * It also canonicalises the reference to each feature's name (i.e., replacing the reference
      * to a feature's name with the canonical one stored in this Dataset's {@link org.tribuo.VariableInfo}).
      * This greatly reduces the memory footprint.
      * @param ex The example to add.

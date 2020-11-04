@@ -50,7 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * A {@link DataSource} for loading separable data from a text file (e.g. CSV, TSV)
+ * A {@link DataSource} for loading separable data from a text file (e.g., CSV, TSV)
  * and applying {@link FieldProcessor}s to it.
  */
 public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {

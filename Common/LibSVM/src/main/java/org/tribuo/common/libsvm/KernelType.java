@@ -23,7 +23,7 @@ import java.io.Serializable;
  */
 public enum KernelType implements Serializable {
     /**
-     * A linear kernel function (i.e. a dot product).
+     * A linear kernel function (i.e., a dot product).
      */
     LINEAR(0),
     /**

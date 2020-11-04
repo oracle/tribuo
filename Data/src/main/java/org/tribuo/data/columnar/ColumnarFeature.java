@@ -122,7 +122,7 @@ public class ColumnarFeature extends Feature {
     }
 
     /**
-     * Gets the columnEntry (i.e. the feature name produced by the {@link FieldExtractor}
+     * Gets the columnEntry (i.e., the feature name produced by the {@link FieldExtractor}
      * without the fieldName).
      * @return The feature's column entry.
      */

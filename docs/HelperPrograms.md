@@ -74,7 +74,7 @@ validate the SQL query in any way, so use it carefully.
 ### SplitTextData
 
 Found in tribuo-data, `org.tribuo.data.text.SplitTextData` splits a text file
-in Tribuo's default text input format (i.e. each line is of the form 
+in Tribuo's default text input format (i.e., each line is of the form 
 `<output> ## <input-text>`) into two files, one for training and one for 
 testing. It validates each line before splitting, and logs any odd lines.
 
@@ -118,7 +118,7 @@ Each Tribuo backend for a given prediction type includes a program called
 `TrainTest`. This provides a simple way to train and test a model on a dataset
 supplied on the command line. They show how to use the particular backend, what
 configuration options it has, and occasionally exposes any extra information
-produced by that specific model implementation (e.g. the TrainTest programs
+produced by that specific model implementation (e.g., the TrainTest programs
 based on LibSVM can print out the number of support vectors used). Each of
 these programs can load from a specific subset of Tribuo's supported input
 types, and allows moderate configuration through the command line arguments.

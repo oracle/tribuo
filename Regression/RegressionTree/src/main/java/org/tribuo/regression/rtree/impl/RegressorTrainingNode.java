@@ -448,7 +448,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
     }
 
     /**
-     * Tuple containing an inverted dataset (i.e. feature-wise not exmaple-wise).
+     * Tuple containing an inverted dataset (i.e., feature-wise not exmaple-wise).
      */
     public static class InvertedData {
         final ArrayList<TreeFeature> data;

@@ -89,7 +89,7 @@ public class LIMEBase implements TabularExplainer<Regressor> {
     private final ImmutableFeatureMap fMap;
 
     /**
-     * Constructs a LIME explainer for a model which uses tabular data (i.e. no special treatment for text features).
+     * Constructs a LIME explainer for a model which uses tabular data (i.e., no special treatment for text features).
      * @param rng The rng to use for sampling.
      * @param innerModel The model to explain.
      * @param explanationTrainer The sparse trainer used to explain predictions.

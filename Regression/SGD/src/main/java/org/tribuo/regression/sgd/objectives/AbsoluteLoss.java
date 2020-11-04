@@ -24,7 +24,7 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.regression.sgd.RegressionObjective;
 
 /**
- * Absolute loss (i.e. l1).
+ * Absolute loss (i.e., l1).
  */
 public class AbsoluteLoss implements RegressionObjective {
     @Override

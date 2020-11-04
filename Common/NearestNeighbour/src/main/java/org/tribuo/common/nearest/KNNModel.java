@@ -68,11 +68,11 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
          */
         STREAMS,
         /**
-         * Uses a thread pool at the outer level (i.e. one thread per prediction).
+         * Uses a thread pool at the outer level (i.e., one thread per prediction).
          */
         THREADPOOL,
         /**
-         * Uses a thread pool at the inner level (i.e. the whole thread pool works on each prediction).
+         * Uses a thread pool at the inner level (i.e., the whole thread pool works on each prediction).
          */
         INNERTHREADPOOL
     }

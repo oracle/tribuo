@@ -35,7 +35,7 @@ import java.util.Queue;
  * in other kinds of text processing / NLP tasks.
  * <p>
  * This tokenizer has some specific behavior in how it handles "ngram"
- * characters - i.e. those characters for which {@link #isNgram(char)} returns
+ * characters - i.e., those characters for which {@link #isNgram(char)} returns
  * true (CJK characters and others). For these characters, it will generate
  * tokens corresponding to character bigrams in addition to tokens corresponding
  * to token unigrams. Most of the other tokenizers will generate tokens that
@@ -49,7 +49,7 @@ import java.util.Queue;
  * corresponding to two adjacent characters in addition to tokens corresponding
  * to each character. The tokens corresponding to character bigrams may overlap
  * with the previous and next token. An end-of-line between two 'ngram'
- * characters is ignored (i.e. a character bigram token will be created.)
+ * characters is ignored (i.e., a character bigram token will be created.)
  * <p>
  * For example, a sequence of three Chinese characters, 非常感, would tokenize as
  * three WORD type tokens: 非, 常, and 感 and two NGRAM type tokens: 非常 and 常感.

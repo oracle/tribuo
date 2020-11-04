@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * construction. Optionally metadata and weights can be extracted using {@link FieldExtractor}s
  * and written into each example as they are constructed.
  * <p>
- * If the metadata extractors are invalid (i.e. two extractors write to the same metadata key),
+ * If the metadata extractors are invalid (i.e., two extractors write to the same metadata key),
  * the RowProcessor throws {@link PropertyException}.
  */
 public class RowProcessor<T extends Output<T>> implements Configurable, Provenancable<ConfiguredObjectProvenance> {
@@ -127,7 +127,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * multiple features appear, or to filter out unnecessary features.
      * <p>
      * Additionally this processor can extract a weight from each row and insert it into the example, along
-     * with more general metadata fields (e.g. the row number, date stamps). The weightExtractor can be null,
+     * with more general metadata fields (e.g., the row number, date stamps). The weightExtractor can be null,
      * and if so the weights are left unset.
      * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
      *                           the same metadata name then the constructor throws a PropertyException.
@@ -155,7 +155,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * multiple features appear, or to filter out unnecessary features.
      * <p>
      * Additionally this processor can extract a weight from each row and insert it into the example, along
-     * with more general metadata fields (e.g. the row number, date stamps). The weightExtractor can be null,
+     * with more general metadata fields (e.g., the row number, date stamps). The weightExtractor can be null,
      * and if so the weights are left unset.
      * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
      *                           the same metadata name then the constructor throws a PropertyException.

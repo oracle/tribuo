@@ -64,7 +64,7 @@ public final class HashingTrainer<T extends Output<T>> implements Trainer<T> {
      * This ensures the Trainer sees the data after the collisions, and thus
      * builds the correct size data structures.
      * @param dataset The input dataset.
-     * @param instanceProvenance Provenance information specific to this execution of train (e.g. cross validation fold number).
+     * @param instanceProvenance Provenance information specific to this execution of train (e.g., cross validation fold number).
      * @return A trained {@link Model}.
      */
     @Override

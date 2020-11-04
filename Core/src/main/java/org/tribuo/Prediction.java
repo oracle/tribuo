@@ -65,7 +65,7 @@ public class Prediction<T extends Output<T>> implements Serializable {
 
     /**
      * Constructs a prediction from the supplied arguments.
-     * @param output The predicted output (i.e. the one with the maximum score).
+     * @param output The predicted output (i.e., the one with the maximum score).
      * @param outputScores The output score distribution.
      * @param numUsed The number of features used to make the prediction.
      * @param exampleSize The size of the input example.
@@ -83,7 +83,7 @@ public class Prediction<T extends Output<T>> implements Serializable {
 
     /**
      * Constructs a prediction from the supplied arguments.
-     * @param output The predicted output (i.e. the one with the maximum score).
+     * @param output The predicted output (i.e., the one with the maximum score).
      * @param outputScores The output score distribution.
      * @param numUsed The number of features used to make the prediction.
      * @param example The input example.

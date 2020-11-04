@@ -39,7 +39,7 @@ import java.util.Set;
  * <p>
  * Within a {@link org.tribuo.DataSource} or {@link org.tribuo.Dataset}
  * each Regressor must contain the same set of named dimensions. The dimensions stored in a
- * Regressor are sorted by the natural ordering of their names (i.e. using the String comparator).
+ * Regressor are sorted by the natural ordering of their names (i.e., using the String comparator).
  * This allows the use of direct indexing into the elements.
  * </p>
  * <p>

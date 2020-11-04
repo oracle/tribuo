@@ -44,7 +44,7 @@ import com.oracle.labs.mlrg.olcut.util.SortUtil;
 /**
  * An {@link Example} backed by a single array of feature names. This
  * implementation is modeled after {@link ArrayExample} but does not store
- * feature values because it assumes only binary features - i.e. features with a
+ * feature values because it assumes only binary features - i.e., features with a
  * feature value of 1.0. The following methods throw an
  * {@link UnsupportedOperationException}:
  * <ul>
@@ -143,7 +143,7 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
      * will throw an {@link IllegalArgumentException} if any of the features have a
      * feature value that does not equal 1.0.
      * 
-     * @param output   The output (e.g. label) of the example
+     * @param output   The output (e.g., label) of the example
      * @param features The list of features.
      */
     public BinaryFeaturesExample(T output, List<? extends Feature> features) {

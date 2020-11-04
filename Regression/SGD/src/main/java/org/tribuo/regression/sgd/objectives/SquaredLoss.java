@@ -24,7 +24,7 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.regression.sgd.RegressionObjective;
 
 /**
- * Squared loss, i.e. l2.
+ * Squared loss, i.e., l2.
  */
 public class SquaredLoss implements RegressionObjective {
 

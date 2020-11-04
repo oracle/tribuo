@@ -29,7 +29,7 @@ import java.util.Optional;
  * An Extractor with special casing for loading the index from a Row.
  * The index is written out as a Long.
  * <p>
- * This is the row wise count, i.e. the number of examples that the data
+ * This is the row wise count, i.e., the number of examples that the data
  * source has processed, rather than anything extracted from the data.
  */
 public class IndexExtractor implements FieldExtractor<Long> {
