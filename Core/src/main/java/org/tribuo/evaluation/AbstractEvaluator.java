@@ -18,8 +18,10 @@ package org.tribuo.evaluation;
 
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
+import org.tribuo.Example;
 import org.tribuo.Model;
 import org.tribuo.Output;
+import org.tribuo.OutputFactory;
 import org.tribuo.Prediction;
 import org.tribuo.evaluation.metrics.EvaluationMetric;
 import org.tribuo.evaluation.metrics.MetricContext;
@@ -27,6 +29,7 @@ import org.tribuo.evaluation.metrics.MetricID;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.EvaluationProvenance;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,14 @@ public abstract class AbstractEvaluator<
      */
     @Override
     public final E evaluate(Model<T> model, Dataset<T> dataset) {
+        OutputFactory<T> factory = dataset.getOutputFactory();
+        int i = 0;
+        for (Example<T> example : dataset) {
+            if (factory.getUnknownOutput().equals(example.getOutput())) {
+                throw new IllegalArgumentException("The sentinel Unknown Output was used as a ground truth label in example number " + i);
+            }
+            i++;
+        }
         //
         // Run the model against the dataset to get predictions
         List<Prediction<T>> predictions = model.predict(dataset);
@@ -65,9 +76,17 @@ public abstract class AbstractEvaluator<
      */
     @Override
     public final E evaluate(Model<T> model, DataSource<T> datasource) {
+        OutputFactory<T> factory = datasource.getOutputFactory();
+        List<Example<T>> examples = new ArrayList<>();
+        for (Example<T> example : datasource) {
+            if (factory.getUnknownOutput().equals(example.getOutput())) {
+                throw new IllegalArgumentException("The sentinel Unknown Output was used as a ground truth label in example number " + examples.size());
+            }
+            examples.add(example);
+        }
         //
         // Run the model against the dataset to get predictions
-        List<Prediction<T>> predictions = model.predict(datasource);
+        List<Prediction<T>> predictions = model.predict(examples);
         return evaluate(model, predictions, datasource.getProvenance());
     }
 
