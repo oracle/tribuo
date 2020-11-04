@@ -496,7 +496,7 @@ public final class WeightedInformationTheory {
     }
 
     /**
-     * Normalizes the weights in the map, i.e. divides each weight by it's count.
+     * Normalizes the weights in the map, i.e., divides each weight by it's count.
      * @param map The map to normalize.
      * @param <T> The type of the variable that was counted.
      */

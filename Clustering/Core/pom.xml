@@ -22,7 +22,7 @@
         <groupId>org.tribuo</groupId>
         <artifactId>tribuo-clustering</artifactId>
         <version>4.0.2-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <name>Clustering-Core</name>
     <artifactId>tribuo-clustering-core</artifactId>

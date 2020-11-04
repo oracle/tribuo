@@ -123,7 +123,7 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
     /**
      * Parses a string of the form:
      * <pre>
-     * dimension-name=output-boolean (e.g. "Class1=FALSE")
+     * dimension-name=output-boolean (e.g., "Class1=FALSE")
      * </pre>
      * where the output must be readable by {@link Double#parseDouble}.
      * @param s The string form of a single dimension from a multilabel input.

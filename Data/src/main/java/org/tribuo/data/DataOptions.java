@@ -54,10 +54,16 @@ import java.util.logging.Logger;
 public final class DataOptions implements Options {
     private static final Logger logger = Logger.getLogger(DataOptions.class.getName());
 
+    /**
+     * The input formats supported by this options object.
+     */
     public enum InputFormat {
         SERIALIZED, LIBSVM, TEXT, CSV, COLUMNAR
     }
 
+    /**
+     * The delimiters supported by CSV files in this options object.
+     */
     public enum Delimiter {
         COMMA(','), TAB('\t'), SEMICOLON(';');
 

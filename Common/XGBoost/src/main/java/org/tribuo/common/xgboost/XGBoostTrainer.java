@@ -63,7 +63,8 @@ import java.util.logging.Logger;
  * </pre>
  * N.B.: This uses a native C implementation of xgboost that links to various C libraries, including libgomp
  * and glibc. If you're running on Alpine, which does not natively use glibc, you'll need to install glibc
- * into the container.
+ * into the container. On Windows this binary is not available in the Maven Central release, you'll need
+ * to compile it from source.
  */
 public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>, WeightedExamples {
     /* Alpine install command
@@ -211,6 +212,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
      */
     protected XGBoostTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         parameters.put("eta", eta);
@@ -520,6 +524,12 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         return new DMatrix(headers, indices, data, DMatrix.SparseType.CSR, numFeatures);
     }
 
+    /**
+     * Tuple of a DMatrix, the number of valid features in each example, and the examples themselves.
+     * <p>
+     * One day it'll be a record.
+     * @param <T> The output type.
+     */
     protected static class DMatrixTuple<T extends Output<T>> {
         public final DMatrix data;
         public final int[] numValidFeatures;
@@ -532,6 +542,10 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         }
     }
 
+    /**
+     * Provenance for {@link XGBoostTrainer}. No longer used.
+     */
+    @Deprecated
     protected static class XGBoostTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 

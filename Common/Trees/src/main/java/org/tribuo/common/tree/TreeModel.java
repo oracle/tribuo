@@ -50,11 +50,32 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
 
     private final Node<T> root;
 
+    /**
+     * Constructs a trained decision tree model.
+     * @param name The model name.
+     * @param description The model provenance.
+     * @param featureIDMap The feature id map.
+     * @param outputIDInfo The output info.
+     * @param generatesProbabilities Does this model emit probabilities.
+     * @param root The root node of the tree.
+     */
     TreeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, boolean generatesProbabilities, Node<T> root) {
         super(name, description, featureIDMap, outputIDInfo, generatesProbabilities, gatherActiveFeatures(featureIDMap,root));
         this.root = root;
     }
 
+    /**
+     * Constructs a trained decision tree model.
+     * <p>
+     * Only used when the tree has multiple roots, should only be called from
+     * subclassed when *all* other methods are overridden.
+     * @param name The model name.
+     * @param description The model provenance.
+     * @param featureIDMap The feature id map.
+     * @param outputIDInfo The output info.
+     * @param generatesProbabilities Does this model emit probabilities.
+     * @param activeFeatures The active feature set of the model.
+     */
     protected TreeModel(String name, ModelProvenance description,
                         ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                         boolean generatesProbabilities, Map<String,List<String>> activeFeatures) {
@@ -187,6 +208,10 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         return new TreeModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,root.copy());
     }
 
+    /**
+     * Returns the set of features which are split on in this tree.
+     * @return The feature names used by this tree.
+     */
     public Set<String> getFeatures() {
         Set<String> features = new HashSet<>();
 

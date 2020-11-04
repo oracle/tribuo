@@ -73,6 +73,9 @@ public final class MessageDigestHasher extends Hasher {
         this.provenance = new MessageDigestHasherProvenance(hashType);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() throws PropertyException {
         if (saltStr != null) {
@@ -136,6 +139,9 @@ public final class MessageDigestHasher extends Hasher {
         return () -> { try { return MessageDigest.getInstance(hashType); } catch (NoSuchAlgorithmException e) { throw new IllegalArgumentException("Unsupported hashType = " + hashType,e);}};
     }
 
+    /**
+     * Provenance for {@link MessageDigestHasher}.
+     */
     public final static class MessageDigestHasherProvenance implements ConfiguredObjectProvenance {
         private static final long serialVersionUID = 1L;
 

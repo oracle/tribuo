@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides an implementation of multinomial naive bayes (i.e. naive bayes for non-negative count data).
+ * Provides an implementation of multinomial naive bayes (i.e., naive bayes for non-negative count data).
  */
 package org.tribuo.classification.mnb;

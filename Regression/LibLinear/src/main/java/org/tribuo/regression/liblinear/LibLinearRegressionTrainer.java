@@ -82,6 +82,9 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
         super(trainerType,cost,maxIterations,terminationCriterion,epsilon);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         super.postConfig();

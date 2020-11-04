@@ -26,6 +26,9 @@ import java.util.List;
  */
 public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<T> {
 
+    /**
+     * Default buffer size used in the split operation.
+     */
     protected static final int DEFAULT_SIZE = 16;
 
     protected final int depth;
@@ -42,6 +45,11 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     
     protected AbstractTrainingNode<T> lessThanOrEqual;
 
+    /**
+     * Builds an abstract training node.
+     * @param depth The depth of this node.
+     * @param numExamples The number of examples in this node.
+     */
     protected AbstractTrainingNode(int depth, int numExamples) {
         this.depth = depth;
         this.numExamples = numExamples;
@@ -49,9 +57,19 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
 
     public abstract List<AbstractTrainingNode<T>> buildTree(int[] indices);
 
+    /**
+     * Converts a tree from a training representation to the final inference time representation.
+     * @return The converted subtree.
+     */
     public abstract Node<T> convertTree();
 
-    public int getDepth() { return depth; }
+    /**
+     * The depth of this node in the tree.
+     * @return The depth.
+     */
+    public int getDepth() {
+        return depth;
+    }
 
     @Override
     public Node<T> getNextNode(SparseVector example) {
@@ -67,7 +85,13 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         }
     }
 
-    public int getNumExamples() { return numExamples; }
+    /**
+     * The number of training examples in this node.
+     * @return The number of training examples in this node.
+     */
+    public int getNumExamples() {
+        return numExamples;
+    }
 
     @Override
     public boolean isLeaf() {

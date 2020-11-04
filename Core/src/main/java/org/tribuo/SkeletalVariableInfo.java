@@ -38,10 +38,19 @@ public abstract class SkeletalVariableInfo implements VariableInfo {
      */
     protected int count;
 
+    /**
+     * Constructs a variable info with the supplied name.
+     * @param name The feature name.
+     */
     protected SkeletalVariableInfo(String name) {
         this.name = name;
     }
 
+    /**
+     * Constructs a variable info with the supplied name and initial count.
+     * @param name The feature name.
+     * @param count The initial occurrence count.
+     */
     protected SkeletalVariableInfo(String name, int count) {
         this.name = name;
         this.count = count;

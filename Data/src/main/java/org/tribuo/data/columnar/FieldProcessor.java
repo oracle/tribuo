@@ -27,6 +27,9 @@ import java.util.List;
  */
 public interface FieldProcessor extends Configurable, Provenancable<ConfiguredObjectProvenance> {
 
+    /**
+     * The namespacing separator.
+     */
     public static final String NAMESPACE = "#";
 
     /**

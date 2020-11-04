@@ -42,7 +42,7 @@ to the developers of those libraries.
 
 * [Library Architecture](docs/Architecture.md)
 * [Package Overview](docs/PackageOverview.md)
-* [Javadoc](https://tribuo.org/javadoc/4.0.0/index.html)
+* [Javadoc](https://tribuo.org/learn/4.0/javadoc/)
 * [Helper Programs](docs/HelperPrograms.md)
 * [Developer Documentation](docs/Internals.md)
 * [Roadmap](docs/Roadmap.md)
@@ -53,8 +53,8 @@ to the developers of those libraries.
 Tutorial notebooks, including examples of Classification, Clustering,
 Regression, Anomaly Detection and the configuration system, can be found in the
 [tutorials](tutorials). These use the [IJava](https://github.com/SpencerPark/IJava) 
-Jupyter notebook kernel, and work with Java 10+. To convert
-the tutorials' code back to Java 8, simply replace the `var` keyword with the
+Jupyter notebook kernel, and work with Java 10+. To convert the tutorials' code 
+back to Java 8, in most cases simply replace the `var` keyword with the
 appropriate types.
 
 ## Algorithms
@@ -158,13 +158,16 @@ Maven:
 <dependency>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
-    <version>4.0.0</version>
+    <version>4.0.1</version>
     <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-api 'org.tribuo:tribuo-all:4.0.0@pom'
+implementation ("org.tribuo:tribuo-all:4.0.1@pom") {
+    transitive = true // for build.gradle (i.e., Groovy)
+    // isTransitive = true // for build.gradle.kts (i.e., Kotlin)
+}
 ```
 
 The `tribuo-all` dependency is a pom which depends on all the Tribuo
@@ -210,6 +213,7 @@ Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
+- v4.0.1 - Bugfix for CSVReader to cope with blank lines, added IDXDataSource to allow loading of native MNIST format data.
 - v4.0.0 - Initial public release.
 - v3 - Added provenance system, the external model support and onnx integrations.
 - v2 - Expanded beyond a classification system, to support regression, clustering and multi-label classification.

@@ -18,10 +18,12 @@ package org.tribuo.regression.baseline;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -29,6 +31,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
+import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.regression.Regressor;
 import org.tribuo.util.Util;
 
@@ -45,7 +48,31 @@ import java.util.Set;
  */
 public final class DummyRegressionTrainer implements Trainer<Regressor> {
 
-    public enum DummyType { MEAN, MEDIAN, QUARTILE, CONSTANT, GAUSSIAN }
+    /**
+     * Types of dummy regression model.
+     */
+    public enum DummyType {
+        /**
+         * Returns the mean of the training data outputs.
+         */
+        MEAN,
+        /**
+         * Returns the median of the training data outputs.
+         */
+        MEDIAN,
+        /**
+         * Returns the training data output at the specified fraction of the sorted output.
+         */
+        QUARTILE,
+        /**
+         * Returns the specified constant value.
+         */
+        CONSTANT,
+        /**
+         * Samples from a Gaussian using the means and variances from the training data.
+         */
+        GAUSSIAN
+    }
 
     @Config(mandatory = true, description="Type of dummy regressor.")
     private DummyType dummyType;
@@ -63,10 +90,16 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
 
     private DummyRegressionTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if ((dummyType == DummyType.CONSTANT) && (Double.isNaN(constantValue))) {
             throw new PropertyException("","constantValue","Please supply a constant value when using the type CONSTANT.");
+        }
+        if ((dummyType == DummyType.QUARTILE) && ((quartile < 0.) || (quartile > 1.0))) {
+            throw new PropertyException("","quartile","Please supply a quartile between zero and one when using the type QUARTILE.");
         }
     }
 
@@ -168,7 +201,7 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
 
     @Override
     public TrainerProvenance getProvenance() {
-        return new DummyRegressionTrainerProvenance(this);
+        return new TrainerProvenanceImpl(this);
     }
 
     /**
@@ -230,6 +263,10 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
         return trainer;
     }
 
+    /**
+     * Provenance for {@link DummyRegressionTrainer}.
+     */
+    @Deprecated
     public final static class DummyRegressionTrainerProvenance implements TrainerProvenance {
         private static final long serialVersionUID = 1L;
 
@@ -239,12 +276,28 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
         private final double constantValue;
         private final double quartile;
 
+        /**
+         * Constructs a provenance from the host.
+         * @param host The host trainer.
+         */
         public DummyRegressionTrainerProvenance(DummyRegressionTrainer host) {
             this.className = host.getClass().getName();
             this.dummyType = host.dummyType;
             this.seed = host.seed;
             this.constantValue = host.constantValue;
             this.quartile = host.quartile;
+        }
+
+        /**
+         * Constructs a provenance from the marshalled form.
+         * @param map The map of field values.
+         */
+        public DummyRegressionTrainerProvenance(Map<String, Provenance> map) {
+            className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME, StringProvenance.class, DummyRegressionTrainerProvenance.class.getSimpleName()).getValue();
+            dummyType = (DummyType) ObjectProvenance.checkAndExtractProvenance(map,"dummyType", EnumProvenance.class, DummyRegressionTrainerProvenance.class.getSimpleName()).getValue();
+            seed = ObjectProvenance.checkAndExtractProvenance(map,"seed", LongProvenance.class, DummyRegressionTrainerProvenance.class.getSimpleName()).getValue();
+            constantValue = ObjectProvenance.checkAndExtractProvenance(map,"constantValue", DoubleProvenance.class, DummyRegressionTrainerProvenance.class.getSimpleName()).getValue();
+            quartile = ObjectProvenance.checkAndExtractProvenance(map,"quartile", DoubleProvenance.class, DummyRegressionTrainerProvenance.class.getSimpleName()).getValue();
         }
 
         @Override

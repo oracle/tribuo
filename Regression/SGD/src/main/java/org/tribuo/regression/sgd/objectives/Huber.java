@@ -27,7 +27,7 @@ import org.tribuo.regression.sgd.RegressionObjective;
 import java.util.function.DoubleUnaryOperator;
 
 /**
- * Huber loss, i.e. a mixture of l2 and l1 losses.
+ * Huber loss, i.e., a mixture of l2 and l1 losses.
  */
 public class Huber implements RegressionObjective {
 
@@ -45,6 +45,9 @@ public class Huber implements RegressionObjective {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         lossFunc = (a) -> {

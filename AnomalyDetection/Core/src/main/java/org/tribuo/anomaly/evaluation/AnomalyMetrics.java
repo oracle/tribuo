@@ -45,15 +45,15 @@ public enum AnomalyMetrics {
      */
     FN((t, c) -> (double) c.getFalseNegative()),
     /**
-     * The precision, i.e. the true positives divided by the predicted positives.
+     * The precision, i.e., the true positives divided by the predicted positives.
      */
     PRECISION((t,c) -> ((double) c.getTruePositive()) / (c.getTruePositive() + c.getFalsePositive())),
     /**
-     * The recall, i.e. the true positives divided by the ground truth positives.
+     * The recall, i.e., the true positives divided by the ground truth positives.
      */
     RECALL((t,c) -> ((double) c.getTruePositive()) / (c.getTruePositive() + c.getFalseNegative())),
     /**
-     * The F_1 score, i.e. the harmonic mean of the precision and the recall.
+     * The F_1 score, i.e., the harmonic mean of the precision and the recall.
      */
     F1((t,c) -> (2.0 * c.getTruePositive()) / ((2.0 * c.getTruePositive()) + c.getFalseNegative() + c.getFalsePositive()));
 

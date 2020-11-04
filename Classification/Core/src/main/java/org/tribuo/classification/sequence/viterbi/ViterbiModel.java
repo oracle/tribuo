@@ -43,6 +43,9 @@ public class ViterbiModel extends SequenceModel<Label> {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Types of label score aggregation.
+     */
     public enum ScoreAggregation {
         ADD, MULTIPLY
     }

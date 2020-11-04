@@ -238,7 +238,7 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
         sb.append(String.format(labelFormatString, "Total"));
         sb.append(String.format("%,12d%,12d%,12d%,12d%n", n, tp, fn, fp));
         sb.append(String.format(labelFormatString, "Accuracy"));
-        sb.append(String.format("%60.3f%n", (double) tp / n));
+        sb.append(String.format("%60.3f%n", ((double) tp) / n));
         sb.append(String.format(labelFormatString, "Micro Average"));
         sb.append(String.format("%60.3f%12.3f%12.3f%n", microAveragedRecall(), microAveragedPrecision(), microAveragedF1()));
         sb.append(String.format(labelFormatString, "Macro Average"));

@@ -29,7 +29,7 @@ import java.util.Arrays;
  * characters that are considered split characters. That is, the split
  * characters define where to split the input text. It's a very simplistic
  * tokenizer that has one simple exceptional case that it handles: how to deal
- * with split characters that appear in between digits (e.g. 3/5 and 3.1415).
+ * with split characters that appear in between digits (e.g., 3/5 and 3.1415).
  * It's not really very general purpose, but may suffice for some use cases.
  * <p>
  * In addition to the split characters specified it also splits on anything
@@ -65,10 +65,10 @@ public class SplitCharactersTokenizer implements Tokenizer {
 
     /**
      * @param splitCharacters        characters to be replaced with a space in the
-     *                               input text (e.g. "abc|def" becomes "abc def")
+     *                               input text (e.g., "abc|def" becomes "abc def")
      * @param splitXDigitsCharacters characters to be replaced with a space in
      *                               the input text except in the circumstance where the character immediately
-     *                               adjacent to the left and right are digits (e.g. "abc.def" becomes "abc
+     *                               adjacent to the left and right are digits (e.g., "abc.def" becomes "abc
      *                               def" but "3.1415" remains "3.1415").
      */
     public SplitCharactersTokenizer(char[] splitCharacters, char[] splitXDigitsCharacters) {

@@ -20,7 +20,7 @@ import org.tribuo.Output;
 import org.tribuo.math.la.SparseVector;
 
 /**
- * A {@link Node} with a split and two child nodes.
+ * An immutable {@link Node} with a split and two child nodes.
  */
 public class SplitNode<T extends Output<T>> implements Node<T> {
     private static final long serialVersionUID = 3L;
@@ -35,6 +35,14 @@ public class SplitNode<T extends Output<T>> implements Node<T> {
 
     private final double impurity;
 
+    /**
+     * Constructs a split node with the specified split value, feature id, impurity and child nodes.
+     * @param splitValue The feature value to split on.
+     * @param featureID The feature id number.
+     * @param impurity The impurity of this node at training time.
+     * @param greaterThan The node to take if the feature value is greater than the split value.
+     * @param lessThanOrEqual The node to take if the feature value is less than or equal to the split value.
+     */
     public SplitNode(double splitValue, int featureID, double impurity, Node<T> greaterThan, Node<T> lessThanOrEqual) {
         this.splitValue = splitValue;
         this.splitFeature = featureID;

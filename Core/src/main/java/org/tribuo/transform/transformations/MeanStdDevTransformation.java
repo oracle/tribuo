@@ -61,6 +61,9 @@ public final class MeanStdDevTransformation implements Transformation {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if (targetStdDev < SimpleTransform.EPSILON) {
@@ -81,6 +84,9 @@ public final class MeanStdDevTransformation implements Transformation {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link MeanStdDevTransformation}.
+     */
     public final static class MeanStdDevTransformationProvenance implements TransformationProvenance {
         private static final long serialVersionUID = 1L;
 

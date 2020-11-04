@@ -42,7 +42,7 @@ public interface SequenceTrainer<T extends Output<T>> extends Configurable, Prov
     /**
      * Trains a sequence prediction model using the examples in the given data set.
      * @param examples the data set containing the examples.
-     * @param runProvenance Training run specific provenance (e.g. fold number).
+     * @param runProvenance Training run specific provenance (e.g., fold number).
      * @return a predictive model that can be used to generate predictions for new examples.
      */
     public SequenceModel<T> train(SequenceDataset<T> examples, Map<String, Provenance> runProvenance);

@@ -43,6 +43,12 @@ public class TextFieldProcessor implements FieldProcessor {
     @Config(mandatory = true,description="Text processing pipeline to use.")
     private TextPipeline pipeline;
 
+    /**
+     * Constructs a field processor which uses the supplied text pipeline to process
+     * the field value.
+     * @param fieldName The field name to read.
+     * @param pipeline The text processing pipeline to use.
+     */
     public TextFieldProcessor(String fieldName, TextPipeline pipeline) {
         this.fieldName = fieldName;
         this.pipeline = pipeline;
@@ -83,6 +89,12 @@ public class TextFieldProcessor implements FieldProcessor {
         return new TextFieldProcessor(newFieldName,pipeline);
     }
 
+    /**
+     * Convert the {@link Feature}s from a text pipeline into {@link ColumnarFeature}s with the right field name.
+     * @param fieldName The field name to prepend.
+     * @param inputFeatures The features to convert.
+     * @return A list of columnar features.
+     */
     public static List<ColumnarFeature> wrapFeatures(String fieldName, List<Feature> inputFeatures) {
         if (inputFeatures.isEmpty()) {
             return Collections.emptyList();

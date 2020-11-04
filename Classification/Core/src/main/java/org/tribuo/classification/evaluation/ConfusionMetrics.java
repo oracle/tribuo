@@ -97,7 +97,7 @@ public final class ConfusionMetrics {
     }
 
     /**
-     * Calculates the balanced error rate, i.e. the mean of the recalls.
+     * Calculates the balanced error rate, i.e., the mean of the recalls.
      *
      * @param <T> the type parameter
      * @param cm  The confusion matrix

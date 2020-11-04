@@ -39,7 +39,7 @@ import java.util.Set;
  * <p>
  * Within a {@link org.tribuo.DataSource} or {@link org.tribuo.Dataset}
  * each Regressor must contain the same set of named dimensions. The dimensions stored in a
- * Regressor are sorted by the natural ordering of their names (i.e. using the String comparator).
+ * Regressor are sorted by the natural ordering of their names (i.e., using the String comparator).
  * This allows the use of direct indexing into the elements.
  * </p>
  * <p>
@@ -436,6 +436,11 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
         return new Regressor(names,values);
     }
 
+    /**
+     * A {@link Regressor} which contains a single dimension, used internally
+     * when the model implementation doesn't natively support multi-dimensional
+     * regression outputs.
+     */
     public final static class DimensionTuple extends Regressor {
         private static final long serialVersionUID = 1L;
 
@@ -443,6 +448,12 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
         private final double value;
         private final double variance;
 
+        /**
+         * Creates a dimension tuple from the supplied name, value and variance.
+         * @param name The dimension name.
+         * @param value The dimension value.
+         * @param variance The variance of the value, if known. Otherwise {@link Double#NaN}.
+         */
         public DimensionTuple(String name, double value, double variance) {
             super(name,value,variance);
             this.name = name;
@@ -450,6 +461,12 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
             this.variance = variance;
         }
 
+        /**
+         * Creates a dimension tuple from the supplied name and value.
+         * Sets the variance to {@link Double#NaN}.
+         * @param name The dimension name.
+         * @param value The dimension value.
+         */
         public DimensionTuple(String name, double value) {
             this(name,value,Double.NaN);
         }
@@ -487,14 +504,26 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
             return new DimensionTuple(name,value,variance);
         }
 
+        /**
+         * Returns the name.
+         * @return The name.
+         */
         public String getName() {
             return name;
         }
 
+        /**
+         * Returns the value.
+         * @return The value.
+         */
         public double getValue() {
             return value;
         }
 
+        /**
+         * Returns the variance.
+         * @return The variance.
+         */
         public double getVariance() {
             return variance;
         }

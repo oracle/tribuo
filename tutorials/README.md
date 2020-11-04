@@ -14,3 +14,5 @@ The tutorials cover:
 - [Configuration files, provenance and feature transformations on MNIST](configuration-tribuo-v4.ipynb)
 - [Clustering with K-Means](clustering-tribuo-v4.ipynb)
 - [Anomaly Detection with LibSVM](anomaly-tribuo-v4.ipynb)
+- [Loading columnar data](columnar-tribuo-v4.ipynb)
+- [Importing third-party models](external-models-tribuo-v4.ipynb)

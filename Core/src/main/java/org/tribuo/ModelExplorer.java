@@ -41,10 +41,16 @@ import java.util.logging.Logger;
 public class ModelExplorer implements CommandGroup {
     private static final Logger logger = Logger.getLogger(ModelExplorer.class.getName());
 
+    /**
+     * The command shell instance.
+     */
     protected CommandInterpreter shell;
 
     private Model<?> model;
 
+    /**
+     * Builds a new model explorer shell.
+     */
     public ModelExplorer() {
         shell = new CommandInterpreter();
         shell.setPrompt("model sh% ");
@@ -60,6 +66,10 @@ public class ModelExplorer implements CommandGroup {
         return "Commands for inspecting a Model.";
     }
 
+    /**
+     * Completers for files.
+     * @return The completers for file commands.
+     */
     public Completer[] fileCompleter() {
         return new Completer[]{
                 new Completers.FileNameCompleter(),
@@ -75,6 +85,12 @@ public class ModelExplorer implements CommandGroup {
         shell.start();
     }
 
+    /**
+     * Loads a model.
+     * @param ci The shell instance.
+     * @param path The path to load.
+     * @return A status string.
+     */
     @Command(usage = "<filename> - Load a model from disk.", completers="fileCompleter")
     public String loadModel(CommandInterpreter ci, File path) {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
@@ -93,16 +109,32 @@ public class ModelExplorer implements CommandGroup {
         return "Loaded model from path " + path.toString();
     }
 
+    /**
+     * Checks if the model generates probabilities.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(usage="Does the model generate probabilities")
     public String generatesProbabilities(CommandInterpreter ci) {
         return ""+model.generatesProbabilities();
     }
 
+    /**
+     * Displays the model provenance.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(usage="Shows the model provenance")
     public String modelProvenance(CommandInterpreter ci) {
         return model.getProvenance().toString();
     }
 
+    /**
+     * Shows a specific feature's information.
+     * @param ci The command shell.
+     * @param featureName The feature name.
+     * @return A status string.
+     */
     @Command(usage="Shows the information on a particular feature")
     public String featureInfo(CommandInterpreter ci, String featureName) {
         VariableInfo f = model.getFeatureIDMap().get(featureName);
@@ -113,21 +145,43 @@ public class ModelExplorer implements CommandGroup {
         }
     }
 
+    /**
+     * Displays the output info.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(usage="Shows the output information.")
     public String outputInfo(CommandInterpreter ci) {
         return model.getOutputIDInfo().toReadableString();
     }
 
+    /**
+     * Displays the top n features.
+     * @param ci The command shell
+     * @param numFeatures The number of features to display.
+     * @return A status string.
+     */
     @Command(usage="<int> - Shows the top N features in the model")
     public String topFeatures(CommandInterpreter ci, int numFeatures) {
         return ""+ model.getTopFeatures(numFeatures);
     }
 
+    /**
+     * Displays the number of features.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(usage="Shows the number of features in the model")
     public String numFeatures(CommandInterpreter ci) {
         return ""+ model.getFeatureIDMap().size();
     }
 
+    /**
+     * Shows the number of features which occurred more than min count times.
+     * @param ci The command shell.
+     * @param minCount The minimum occurrence count.
+     * @return A status string.
+     */
     @Command(usage="<min count> - Shows the number of features that occurred more than min count times.")
     public String minCount(CommandInterpreter ci, int minCount) {
         int counter = 0;
@@ -139,11 +193,21 @@ public class ModelExplorer implements CommandGroup {
         return counter + " features occurred more than " + minCount + " times.";
     }
 
+    /**
+     * CLI options for {@link ModelExplorer}.
+     */
     public static class ModelExplorerOptions implements Options {
+        /**
+         * Model file to load.
+         */
         @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
         public String modelFilename;
     }
 
+    /**
+     * Entry point.
+     * @param args CLI args.
+     */
     public static void main(String[] args) {
         ModelExplorerOptions options = new ModelExplorerOptions();
         ConfigurationManager cm = new ConfigurationManager(args,options,false);

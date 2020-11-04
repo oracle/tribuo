@@ -61,6 +61,12 @@ public class RegexFieldProcessor implements FieldProcessor {
      */
     private RegexFieldProcessor() {}
 
+    /**
+     * Constructs a field processor which emits features when the field value matches the supplied regex.
+     * @param fieldName The field name to read.
+     * @param regex The regex to use for matching.
+     * @param modes The matching mode.
+     */
     public RegexFieldProcessor(String fieldName, Pattern regex, EnumSet<Mode> modes) {
         this.regex = regex;
         this.fieldName = fieldName;
@@ -68,10 +74,21 @@ public class RegexFieldProcessor implements FieldProcessor {
         this.modes = modes;
     }
 
+    /**
+     * Constructs a field processor which emits features when the field value matches the supplied regex.
+     * <p>
+     * The regex is compiled on construction.
+     * @param fieldName The field name to read.
+     * @param regex The regex to use for matching.
+     * @param modes The matching mode.
+     */
     public RegexFieldProcessor(String fieldName, String regex, EnumSet<Mode> modes) {
         this(fieldName,Pattern.compile(regex),modes);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.regex = Pattern.compile(regexString);

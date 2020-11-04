@@ -75,6 +75,10 @@ import java.util.logging.Logger;
  * "Greedy Function Approximation: a Gradient Boosting Machine"
  * Annals of statistics, 2001.
  * </pre>
+ * <p>
+ * Note: XGBoost requires a native library, on macOS this library requires libomp (which can be installed via homebrew),
+ * on Windows this native library must be compiled into a jar as it's not contained in the official XGBoost binary
+ * on Maven Central.
  */
 public final class XGBoostExternalModel<T extends Output<T>> extends ExternalModel<T,DMatrix,float[][]> {
     private static final long serialVersionUID = 1L;
@@ -230,6 +234,13 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
 
     /**
      * Creates an {@code XGBoostExternalModel} from the supplied model.
+     * <p>
+     * Note: the provenance system requires that the URL point to a valid local file and
+     * will throw an exception if it is not. However it doesn't check that the file is
+     * where the Booster was created from.
+     * We will replace this entry point with one that accepts useful provenance information
+     * for an in-memory {@code Booster} object in a future release, and deprecate this
+     * endpoint at that time.
      * @param factory The output factory to use.
      * @param featureMapping The feature mapping between Tribuo names and XGBoost integer ids.
      * @param outputMapping The output mapping between Tribuo outputs and XGBoost integer ids.
@@ -240,6 +251,7 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
      * @return An XGBoostExternalModel ready to score new inputs.
      */
     public static <T extends Output<T>> XGBoostExternalModel<T> createXGBoostModel(OutputFactory<T> factory, Map<String,Integer> featureMapping, Map<T,Integer> outputMapping, XGBoostOutputConverter<T> outputFunc, Booster model, URL provenanceLocation) {
+        //TODO: add a new version of this method which accepts useful instance provenance information and deprecate this one
         ImmutableFeatureMap featureMap = ExternalModel.createFeatureMap(featureMapping.keySet());
         ImmutableOutputInfo<T> outputInfo = ExternalModel.createOutputInfo(factory,outputMapping);
         OffsetDateTime now = OffsetDateTime.now();

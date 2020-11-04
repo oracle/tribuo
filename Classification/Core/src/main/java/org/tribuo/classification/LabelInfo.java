@@ -36,15 +36,31 @@ import java.util.Set;
 public abstract class LabelInfo implements OutputInfo<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The occurrence counts of each label.
+     */
     protected final Map<String,MutableLong> labelCounts;
+    /**
+     * The number of unknown labels this LabelInfo has seen.
+     */
     protected int unknownCount = 0;
+    /**
+     * The label domain.
+     */
     protected transient Map<String,Label> labels;
 
+    /**
+     * Constructs an empty label info.
+     */
     LabelInfo() {
         labelCounts = new HashMap<>();
         labels = new HashMap<>();
     }
 
+    /**
+     * Copies the label info apart from the unknown count.
+     * @param other The label info to copy.
+     */
     LabelInfo(LabelInfo other) {
         labelCounts = MutableNumber.copyMap(other.labelCounts);
         labels = new HashMap<>();
@@ -58,7 +74,7 @@ public abstract class LabelInfo implements OutputInfo<Label> {
 
     /**
      * Returns the set of possible {@link Label}s that this LabelInfo has seen.
-     *
+     * <p>
      * Each label has the default score of Double.NaN.
      * @return The set of possible labels.
      */

@@ -126,6 +126,9 @@ public class TrainTestSplitter<T extends Output<T>> {
         return test;
     }
 
+    /**
+     * Provenance for a split data source.
+     */
     public static class SplitDataSourceProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

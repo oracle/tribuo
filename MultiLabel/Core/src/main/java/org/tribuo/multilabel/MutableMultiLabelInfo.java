@@ -27,10 +27,18 @@ import java.util.Map;
 public class MutableMultiLabelInfo extends MultiLabelInfo implements MutableOutputInfo<MultiLabel> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Package private constructor for building MutableMultiLabelInfo, used by {@link MultiLabelFactory}.
+     */
     MutableMultiLabelInfo() {
         super();
     }
 
+    /**
+     * Construct a MutableMultiLabelInfo with it's state copied from another
+     * MultiLabelInfo.
+     * @param info The info to copy.
+     */
     public MutableMultiLabelInfo(MultiLabelInfo info) {
         super(info);
     }

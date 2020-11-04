@@ -71,7 +71,7 @@ public interface RegressionEvaluation extends Evaluation<Regressor> {
     double averageRMSE();
 
     /**
-     * Calculates the Root Mean Squared Error (i.e. the square root of the average squared errors across all data points) for the supplied dimension.
+     * Calculates the Root Mean Squared Error (i.e., the square root of the average squared errors across all data points) for the supplied dimension.
      * @param variable The regression dimension to use.
      * @return The RMSE.
      */

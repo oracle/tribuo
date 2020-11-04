@@ -30,6 +30,10 @@ public class IntArrayContainer {
     public int[] array;
     public int size;
 
+    /**
+     * Constructs a new int array container with the specified initial backing array size.
+     * @param initialCapacity The initial capacity of the backing array.
+     */
     public IntArrayContainer(int initialCapacity) {
         array = new int[initialCapacity];
         size = 0;

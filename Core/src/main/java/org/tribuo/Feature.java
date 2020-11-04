@@ -33,8 +33,14 @@ public class Feature implements Serializable, Cloneable, Comparable<Feature> {
 
     private static final Logger logger = Logger.getLogger(Feature.class.getName());
 
+    /**
+     * The feature name.
+     */
     protected final String name;
-    
+
+    /**
+     * The feature value.
+     */
     protected final double value;
 
     /**

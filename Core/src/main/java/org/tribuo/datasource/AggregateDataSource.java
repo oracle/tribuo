@@ -99,6 +99,9 @@ public class AggregateDataSource<T extends Output<T>> implements DataSource<T> {
         }
     }
 
+    /**
+     * Provenance for the {@link AggregateDataSource}.
+     */
     public static class AggregateDataSourceProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

@@ -22,7 +22,7 @@
         <groupId>org.tribuo</groupId>
         <artifactId>tribuo-common</artifactId>
         <version>4.0.2-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <name>Common-LibSVM</name>
     <artifactId>tribuo-common-libsvm</artifactId>

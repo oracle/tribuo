@@ -105,7 +105,7 @@ public final class LabelEvaluationUtil {
 
     /**
      * Calculates the area under the receiver operator characteristic curve,
-     * i.e. the AUC of the ROC curve.
+     * i.e., the AUC of the ROC curve.
      * @param yPos Is the associated index a positive label.
      * @param yScore The score of the positive class.
      * @return The auc (a value bounded 0.0-1.0).

@@ -45,7 +45,7 @@ public final class Tribuo {
     public static final int POINT_VERSION;
 
     /**
-     * Any tag on the version number, e.g. SNAPSHOT, ALPHA, etc.
+     * Any tag on the version number, e.g., SNAPSHOT, ALPHA, etc.
      */
     public static final String TAG_VERSION;
 

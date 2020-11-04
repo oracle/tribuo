@@ -62,6 +62,14 @@ import java.util.logging.Logger;
 /**
  * Load a DataSource/Dataset from a CSV file.
  * <p>
+ * The delimiter and quote characters are user controlled, so this class can parse TSVs,
+ * CSVs, semi-colon separated data and other types of single character delimiter separated data.
+ * <p>
+ * This class is a simple loader *only* for numerical CSV files with a String response field.
+ * If you need more complex processing, the response field isn't present, or you don't wish to
+ * use all of the columns as features then you should use {@link CSVDataSource} and build a
+ * {@link org.tribuo.data.columnar.RowProcessor} to cope with your specific input format.
+ * <p>
  * CSVLoader is thread safe and immutable.
  * @param <T> The type of the output generated.
  */
@@ -92,7 +100,7 @@ public class CSVLoader<T extends Output<T>> {
      * @param outputFactory The output factory.
      */
     public CSVLoader(char separator, OutputFactory<T> outputFactory) {
-        this(separator, CSVIterator.QUOTE,outputFactory);
+        this(separator, CSVIterator.QUOTE, outputFactory);
     }
 
     /**
@@ -101,12 +109,13 @@ public class CSVLoader<T extends Output<T>> {
      * @param outputFactory The output factory.
      */
     public CSVLoader(OutputFactory<T> outputFactory) {
-    this(CSVIterator.SEPARATOR,CSVIterator.QUOTE,outputFactory);
+        this(CSVIterator.SEPARATOR, CSVIterator.QUOTE, outputFactory);
     }
 
     /**
      * Loads a DataSource from the specified csv file then wraps it in a dataset.
-     * @param csvPath The path to load.
+     *
+     * @param csvPath      The path to load.
      * @param responseName The name of the response variable.
      * @return A dataset containing the csv data.
      * @throws IOException If the read failed.
@@ -117,9 +126,10 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv file then wraps it in a dataset.
-     * @param csvPath The path to load.
+     *
+     * @param csvPath      The path to load.
      * @param responseName The name of the response variable.
-     * @param header The header of the CSV if it's not present in the file.
+     * @param header       The header of the CSV if it's not present in the file.
      * @return A dataset containing the csv data.
      * @throws IOException If the read failed.
      */
@@ -129,7 +139,8 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv file then wraps it in a dataset.
-     * @param csvPath The path to load.
+     *
+     * @param csvPath       The path to load.
      * @param responseNames The names of the response variables.
      * @return A dataset containing the csv data.
      * @throws IOException If the read failed.
@@ -140,9 +151,10 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv file then wraps it in a dataset.
-     * @param csvPath The path to load.
+     *
+     * @param csvPath       The path to load.
      * @param responseNames The names of the response variables.
-     * @param header The header of the CSV if it's not present in the file.
+     * @param header        The header of the CSV if it's not present in the file.
      * @return A dataset containing the csv data.
      * @throws IOException If the read failed.
      */
@@ -152,7 +164,8 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath      The csv to load from.
      * @param responseName The name of the response variable.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
@@ -163,7 +176,8 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath      The csv to load from.
      * @param responseName The name of the response variable.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
@@ -174,9 +188,10 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath      The csv to load from.
      * @param responseName The name of the response variable.
-     * @param header The header of the CSV if it's not present in the file.
+     * @param header       The header of the CSV if it's not present in the file.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
@@ -186,9 +201,10 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath      The csv to load from.
      * @param responseName The name of the response variable.
-     * @param header The header of the CSV if it's not present in the file.
+     * @param header       The header of the CSV if it's not present in the file.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
@@ -198,31 +214,34 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
     public ListDataSource<T> loadDataSource(Path csvPath, Set<String> responseNames) throws IOException {
-        return loadDataSource(csvPath,responseNames,null);
+        return loadDataSource(csvPath, responseNames, null);
     }
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
     public ListDataSource<T> loadDataSource(URL csvPath, Set<String> responseNames) throws IOException {
-        return loadDataSource(csvPath,responseNames,null);
+        return loadDataSource(csvPath, responseNames, null);
     }
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
-     * @param header The header of the CSV if it's not present in the file.
+     * @param header        The header of the CSV if it's not present in the file.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
@@ -232,9 +251,10 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
-     * @param csvPath The csv to load from.
+     *
+     * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
-     * @param header The header of the CSV if it's not present in the file.
+     * @param header        The header of the CSV if it's not present in the file.
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
@@ -326,7 +346,7 @@ public class CSVLoader<T extends Output<T>> {
      * 1.0,0.5,...,0.2,0.0,0.8
      * </pre>
      * @param responseNames The response dimension names
-     * @param row The row to process.
+     * @param row           The row to process.
      */
     private T buildMultiOutput(Set<String> responseNames, Map<String, String> row) {
         Set<String> pairs = new HashSet<>();
@@ -339,6 +359,9 @@ public class CSVLoader<T extends Output<T>> {
         return output;
     }
 
+    /**
+     * Provenance for CSVs loaded by {@link CSVLoader}.
+     */
     public final static class CSVLoaderProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
@@ -359,26 +382,26 @@ public class CSVLoader<T extends Output<T>> {
         private final HashProvenance sha256Hash;
 
         CSVLoaderProvenance(URL path, OutputFactoryProvenance factoryProvenance, String responseName, char separator, char quote) {
-            this.className = new StringProvenance(CLASS_NAME,CSVLoader.class.getName());
+            this.className = new StringProvenance(CLASS_NAME, CSVLoader.class.getName());
             this.factoryProvenance = factoryProvenance;
-            this.responseName = new StringProvenance(RESPONSE_NAME,responseName);
-            this.separator = new CharProvenance(SEP_PROV,separator);
-            this.quote = new CharProvenance(QUOTE_PROV,quote);
-            this.path = new URLProvenance(PATH,path);
+            this.responseName = new StringProvenance(RESPONSE_NAME, responseName);
+            this.separator = new CharProvenance(SEP_PROV, separator);
+            this.quote = new CharProvenance(QUOTE_PROV, quote);
+            this.path = new URLProvenance(PATH, path);
             Optional<OffsetDateTime> time = ProvenanceUtil.getModifiedTime(path);
             this.fileModifiedTime = time.map(offsetDateTime -> new DateTimeProvenance(FILE_MODIFIED_TIME, offsetDateTime)).orElseGet(() -> new DateTimeProvenance(FILE_MODIFIED_TIME, OffsetDateTime.MIN));
-            this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE,RESOURCE_HASH, ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,path));
+            this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE, RESOURCE_HASH, ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE, path));
         }
 
         public CSVLoaderProvenance(Map<String, Provenance> map) {
-            this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME,StringProvenance.class,CSVLoaderProvenance.class.getSimpleName());
-            this.factoryProvenance = ObjectProvenance.checkAndExtractProvenance(map,OUTPUT_FACTORY,OutputFactoryProvenance.class,CSVLoaderProvenance.class.getSimpleName());
-            this.responseName = ObjectProvenance.checkAndExtractProvenance(map,RESPONSE_NAME,StringProvenance.class,CSVLoaderProvenance.class.getSimpleName());
-            this.separator = ObjectProvenance.checkAndExtractProvenance(map,SEP_PROV,CharProvenance.class,CSVLoaderProvenance.class.getSimpleName());
-            this.quote = ObjectProvenance.checkAndExtractProvenance(map,QUOTE_PROV,CharProvenance.class,CSVLoaderProvenance.class.getSimpleName());
-            this.path = ObjectProvenance.checkAndExtractProvenance(map,PATH,URLProvenance.class,CSVLoaderProvenance.class.getSimpleName());
-            this.fileModifiedTime = ObjectProvenance.checkAndExtractProvenance(map,FILE_MODIFIED_TIME,DateTimeProvenance.class,CSVLoaderProvenance.class.getSimpleName());
-            this.sha256Hash = ObjectProvenance.checkAndExtractProvenance(map,RESOURCE_HASH,HashProvenance.class,CSVLoaderProvenance.class.getSimpleName());
+            this.className = ObjectProvenance.checkAndExtractProvenance(map, CLASS_NAME, StringProvenance.class, CSVLoaderProvenance.class.getSimpleName());
+            this.factoryProvenance = ObjectProvenance.checkAndExtractProvenance(map, OUTPUT_FACTORY, OutputFactoryProvenance.class, CSVLoaderProvenance.class.getSimpleName());
+            this.responseName = ObjectProvenance.checkAndExtractProvenance(map, RESPONSE_NAME, StringProvenance.class, CSVLoaderProvenance.class.getSimpleName());
+            this.separator = ObjectProvenance.checkAndExtractProvenance(map, SEP_PROV, CharProvenance.class, CSVLoaderProvenance.class.getSimpleName());
+            this.quote = ObjectProvenance.checkAndExtractProvenance(map, QUOTE_PROV, CharProvenance.class, CSVLoaderProvenance.class.getSimpleName());
+            this.path = ObjectProvenance.checkAndExtractProvenance(map, PATH, URLProvenance.class, CSVLoaderProvenance.class.getSimpleName());
+            this.fileModifiedTime = ObjectProvenance.checkAndExtractProvenance(map, FILE_MODIFIED_TIME, DateTimeProvenance.class, CSVLoaderProvenance.class.getSimpleName());
+            this.sha256Hash = ObjectProvenance.checkAndExtractProvenance(map, RESOURCE_HASH, HashProvenance.class, CSVLoaderProvenance.class.getSimpleName());
         }
 
         @Override
@@ -388,16 +411,16 @@ public class CSVLoader<T extends Output<T>> {
 
         @Override
         public Iterator<Pair<String, Provenance>> iterator() {
-            ArrayList<Pair<String,Provenance>> list = new ArrayList<>();
+            ArrayList<Pair<String, Provenance>> list = new ArrayList<>();
 
-            list.add(new Pair<>(CLASS_NAME,className));
-            list.add(new Pair<>(OUTPUT_FACTORY,factoryProvenance));
-            list.add(new Pair<>(RESPONSE_NAME,responseName));
-            list.add(new Pair<>(SEP_PROV,separator));
-            list.add(new Pair<>(QUOTE_PROV,quote));
-            list.add(new Pair<>(PATH,path));
-            list.add(new Pair<>(FILE_MODIFIED_TIME,fileModifiedTime));
-            list.add(new Pair<>(RESOURCE_HASH,sha256Hash));
+            list.add(new Pair<>(CLASS_NAME, className));
+            list.add(new Pair<>(OUTPUT_FACTORY, factoryProvenance));
+            list.add(new Pair<>(RESPONSE_NAME, responseName));
+            list.add(new Pair<>(SEP_PROV, separator));
+            list.add(new Pair<>(QUOTE_PROV, quote));
+            list.add(new Pair<>(PATH, path));
+            list.add(new Pair<>(FILE_MODIFIED_TIME, fileModifiedTime));
+            list.add(new Pair<>(RESOURCE_HASH, sha256Hash));
 
             return list.iterator();
         }

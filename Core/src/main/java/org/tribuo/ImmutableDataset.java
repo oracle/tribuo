@@ -233,12 +233,16 @@ public class ImmutableDataset<T extends Output<T>> extends Dataset<T> implements
         return outputIDInfo;
     }
 
+    /**
+     * Returns true if this immutable dataset dropped any invalid examples on construction.
+     * @return True if it drops invalid examples.
+     */
     public boolean getDropInvalidExamples() {
         return dropInvalidExamples;
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return String.format("ImmutableDataset(source=%s,dropInvalidExamples=%b)", sourceProvenance, dropInvalidExamples);
     }
 

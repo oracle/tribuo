@@ -109,6 +109,9 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
         return new SQLDataSourceProvenance(this);
     }
 
+    /**
+     * Provenance for {@link SQLDataSource}.
+     */
     public static class SQLDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

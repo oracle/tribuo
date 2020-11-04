@@ -21,7 +21,7 @@
         <groupId>org.tribuo</groupId>
         <artifactId>tribuo-classification</artifactId>
         <version>4.0.2-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <name>Classification-SGD</name>
     <artifactId>tribuo-classification-sgd</artifactId>

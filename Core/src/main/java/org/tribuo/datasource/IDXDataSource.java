@@ -57,7 +57,7 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 
 /**
- * A DataSource which can read IDX formatted data (i.e. MNIST).
+ * A DataSource which can read IDX formatted data (i.e., MNIST).
  * <p>
  * Transparently reads GZipped files.
  * <p>
@@ -138,6 +138,9 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
         read();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() throws IOException {
         read();

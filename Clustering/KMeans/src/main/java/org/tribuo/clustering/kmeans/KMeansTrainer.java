@@ -89,7 +89,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         L1
     }
 
-    @Config(mandatory = true,description="Number of centroids (i.e. the \"k\" in k-means).")
+    @Config(mandatory = true, description = "Number of centroids (i.e., the \"k\" in k-means).")
     private int centroids;
 
     @Config(mandatory = true,description="The number of iterations to run.")

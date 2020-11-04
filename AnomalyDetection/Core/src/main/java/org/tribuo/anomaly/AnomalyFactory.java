@@ -34,8 +34,19 @@ import java.util.Map;
 public final class AnomalyFactory implements OutputFactory<Event> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The unknown event. Used at inference time.
+     */
     public static final Event UNKNOWN_EVENT = new Event(EventType.UNKNOWN);
+
+    /**
+     * The expected event. Used for things which are not anomalous.
+     */
     public static final Event EXPECTED_EVENT = new Event(EventType.EXPECTED);
+
+    /**
+     * The anomalous event. It's anomalous.
+     */
     public static final Event ANOMALOUS_EVENT = new Event(EventType.ANOMALOUS);
 
     private static final AnomalyEvaluator evaluator = new AnomalyEvaluator();
@@ -86,11 +97,21 @@ public final class AnomalyFactory implements OutputFactory<Event> {
         return new AnomalyFactoryProvenance();
     }
 
+    /**
+     * Provenance for {@link AnomalyFactory}.
+     */
     public final static class AnomalyFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Constructs an anomaly factory provenance.
+         */
         AnomalyFactoryProvenance() {}
 
+        /**
+         * Constructs an anomaly factory provenance from the marshalled form.
+         * @param map An empty map.
+         */
         public AnomalyFactoryProvenance(Map<String, Provenance> map) { }
 
         @Override

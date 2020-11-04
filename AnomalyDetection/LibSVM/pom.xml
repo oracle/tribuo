@@ -22,7 +22,7 @@
         <groupId>org.tribuo</groupId>
         <artifactId>tribuo-anomaly</artifactId>
         <version>4.0.2-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <name>AnomalyDetection-LibSVM</name>
     <artifactId>tribuo-anomaly-libsvm</artifactId>

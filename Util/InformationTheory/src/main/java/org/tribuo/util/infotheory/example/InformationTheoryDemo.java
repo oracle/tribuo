@@ -41,7 +41,7 @@ public class InformationTheoryDemo {
     /**
      * Generates a sample from a uniform distribution over the integers.
      * @param length The number of samples.
-     * @param alphabetSize The alphabet size (i.e. the number of unique values).
+     * @param alphabetSize The alphabet size (i.e., the number of unique values).
      * @return A sample from a uniform distribution.
      */
     public static List<Integer> generateUniform(int length, int alphabetSize) {
@@ -83,7 +83,7 @@ public class InformationTheoryDemo {
      * <p>
      * To make it generate correlations of a specific mutual information then it needs to specify the full joint distribution and draw from that.
      * @param length The number of samples.
-     * @param alphabetSize The alphabet size (i.e. the number of unique values).
+     * @param alphabetSize The alphabet size (i.e., the number of unique values).
      * @param xyCorrelation Value between 0.0 and 1.0 specifying how likely it is that Y has the same value as X.
      * @param xzCorrelation Value between 0.0 and 1.0 specifying how likely it is that Z has the same value as X.
      * @return A triple of samples drawn from correlated random variables.

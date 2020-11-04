@@ -70,7 +70,7 @@ public interface Evaluator<T extends Output<T>, E extends Evaluation<T>> {
      * Evaluates the model performance using the supplied predictions, returning an immutable {@link Evaluation}
      * of the appropriate type.
      * <p>
-     * This method is used when the predictions do not contain the correct ground truth labels (e.g. if they
+     * This method is used when the predictions do not contain the correct ground truth labels (e.g., if they
      * were collected separately from the examples constructed for prediction). First it creates a new set of
      * predictions, containing the same examples with the matched ground truth prediction.
      * Then it calls {@link Evaluator#evaluate(Model, List, DataProvenance)} with the updated predictions.

@@ -17,5 +17,12 @@
 /**
  * Provides classes which can load columnar data (using a {@link org.tribuo.data.columnar.RowProcessor})
  * from a CSV (or other character delimited format) file.
+ * <p>
+ * {@link org.tribuo.data.csv.CSVDataSource} is the main way of loading CSV format data into Tribuo.
+ * It provides full control over featurisation, output processing and metadata extraction.
+ * {@link org.tribuo.data.csv.CSVLoader} is for simple numerical CSV files where all the
+ * non-response columns should be treated as features. {@link org.tribuo.data.csv.CSVSaver} writes
+ * out a Tribuo {@link org.tribuo.Dataset} in CSV format suitable for loading via
+ * {@link org.tribuo.data.csv.CSVLoader} or some external tool
  */
 package org.tribuo.data.csv;

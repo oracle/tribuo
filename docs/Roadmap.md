@@ -17,7 +17,7 @@ for structured prediction on text, but doesn't integrate well with the rest of t
 We'd like to refactor it to make the structure flexible and user controlled, and then extend
 out support for ranking tasks and other multi-example tasks.
 - Online learning. Tribuo doesn't currently support online learning, and it could be simply
-extended to support it when the feature and output domains do not change size (i.e. observing 
+extended to support it when the feature and output domains do not change size (i.e., observing 
 new data drawn i.i.d. from the same training distribution). We'd also like to support
 online learning in environments with concept drift and dataset shift, but those problems are
 harder and so further down the roadmap.
@@ -45,16 +45,16 @@ this feature yet, but we're in need of it for some internal work.
 to refactor out the shared code (while maintaining serialization compatibility).
 - Allow `DatasetView` to regenerate it's feature and output domains. Currently all views of a dataset
 share the same immutable feature domain, but in some cases this can leak information from test time
-to train (e.g. when using the unselected data as an out of bag sample).
+to train (e.g., when using the unselected data as an out of bag sample).
 - Fix batch prediction methods so they don't throw `IllegalArgumentException` in the middle of a batch,
-and instead return all the valid predictions and a list of the invalid predictions (i.e. ones with invalid 
+and instead return all the valid predictions and a list of the invalid predictions (i.e., ones with invalid 
 examples, or examples which didn't have suitable features for the model).
 
 ## New ML algorithms or parameters
 
-- Add K-Means++ initialisation for K-Means.
-- Add extra parameters to the tree trainers to allow for an ExtraTrees style ensemble, and to 
-specify a minimum purity decrease requirement.
+- ~~Add K-Means++ initialisation for K-Means.~~ Integrated and arriving in Tribuo 4.1.
+- ~~Add extra parameters to the tree trainers to allow for an ExtraTrees style ensemble, and to 
+specify a minimum purity decrease requirement.~~ Integrated and arriving in Tribuo 4.1.
 - Gaussian Processes.
 - Vowpal Wabbit interface.
 - Feature selection. We already have several feature selection algorithms implemented 
@@ -71,8 +71,8 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
     - Support parallel training of trees and forests (this is mostly supported at the tree level, 
     but needs some work at the ensemble level).
     - Reduce repeated work in the regression impurity metrics.
-    - Prevent wasted computation when computing leaves (leaf nodes have their statistics computed 
- as if they were going to be split, even when it is known they won't due to their size).
+    - ~~Prevent wasted computation when computing leaves (leaf nodes have their statistics computed 
+ as if they were going to be split, even when it is known they won't due to their size).~~ Integrated and arriving in Tribuo 4.1.
 - Multithreading the various SGD based trainers using a Hogwild approach.
 - Incorporate support for a BLAS.
 - Investigate use of the Java Vector API to improve performance critical math operations.
@@ -80,4 +80,4 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 ## Documentation
 
 - Fill out the javadoc so it exists for all public and protected methods, including constructors.
-- Add more tutorials.
+- Add more tutorials. Note: Tribuo 4.0.2 adds tutorials for external model loading and columnar data processing.

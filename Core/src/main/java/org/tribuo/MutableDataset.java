@@ -96,7 +96,7 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
     /**
      * Adds an example to the dataset, which observes the output and each feature value.
      * <p>
-     * It also canonicalises the reference to each feature's name (i.e. replacing the reference
+     * It also canonicalises the reference to each feature's name (i.e., replacing the reference
      * to a feature's name with the canonical one stored in this Dataset's {@link VariableInfo}).
      * This greatly reduces the memory footprint.
      * @param ex The example to add.
@@ -180,7 +180,7 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
     }
 
     /**
-     * Is the dataset dense (i.e. do all features in the domain have a value in each example).
+     * Is the dataset dense (i.e., do all features in the domain have a value in each example).
      * @return True if the dataset is dense.
      */
     public boolean isDense() {

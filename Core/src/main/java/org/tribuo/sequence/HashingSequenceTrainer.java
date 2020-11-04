@@ -93,6 +93,9 @@ public final class HashingSequenceTrainer<T extends Output<T>> implements Sequen
         return new HashingSequenceTrainerProvenance(this);
     }
 
+    /**
+     * Provenance for {@link HashingSequenceTrainer}.
+     */
     public static class HashingSequenceTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 

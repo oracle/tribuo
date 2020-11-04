@@ -60,6 +60,9 @@ public final class ModHashCodeHasher extends Hasher {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.provenance = new ModHashCodeHasherProvenance(dimension);
@@ -98,6 +101,9 @@ public final class ModHashCodeHasher extends Hasher {
         salt = null;
     }
 
+    /**
+     * Provenance for the {@link ModHashCodeHasher}.
+     */
     public final static class ModHashCodeHasherProvenance implements ConfiguredObjectProvenance {
         private static final long serialVersionUID = 1L;
 

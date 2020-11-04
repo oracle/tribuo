@@ -306,7 +306,7 @@ public class LIMEColumnar extends LIMEBase implements ColumnarExplainer<Regresso
      * there are in the text fields, and how many tabular features there are.
      *
      * This weight calculation is subject to change, as it's not necessarily optimal.
-     * @param tabularVector The tabular (i.e. non-text) features.
+     * @param tabularVector The tabular (i.e., non-text) features.
      * @param text A map from the field names to the field values for the text fields.
      * @param textTokens A map from the field names to lists of tokens for those fields.
      * @return A sampled dataset.

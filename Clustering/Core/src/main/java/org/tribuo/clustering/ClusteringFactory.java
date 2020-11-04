@@ -109,11 +109,21 @@ public final class ClusteringFactory implements OutputFactory<ClusterID> {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link ClusteringFactory}.
+     */
     public final static class ClusteringFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Creates a clustering factory provenance.
+         */
         ClusteringFactoryProvenance() {}
 
+        /**
+         * Rebuilds a clustering factory provenance from the marshalled form.
+         * @param map The map (which should be empty).
+         */
         public ClusteringFactoryProvenance(Map<String, Provenance> map) { }
 
         @Override

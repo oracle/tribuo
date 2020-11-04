@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 
 /**
  * Extracts a value from a single field to be placed in an {@link org.tribuo.Example}'s metadata field.
- *
  */
 public abstract class SimpleFieldExtractor<T> implements FieldExtractor<T> {
 
@@ -37,17 +36,33 @@ public abstract class SimpleFieldExtractor<T> implements FieldExtractor<T> {
     @Config(description="The metadata key to emit, defaults to field name if unpopulated")
     protected String metadataName;
 
+    /**
+     * Constructs a simple field extractor which reads from the supplied field name and
+     * writes out to a metadata field with the same name.
+     * @param fieldName The field name to read from.
+     */
     protected SimpleFieldExtractor(String fieldName) {
         this(fieldName, fieldName);
     }
 
+    /**
+     * Constructs a simple field extractor with the supplied field name and metadata field name.
+     * @param fieldName The field name to read.
+     * @param metadataName The metadata field name to write to.
+     */
     protected SimpleFieldExtractor(String fieldName, String metadataName) {
         this.fieldName = fieldName;
         this.metadataName = metadataName;
     }
 
+    /**
+     * For olcut.
+     */
     protected SimpleFieldExtractor() {}
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if (metadataName == null || metadataName.isEmpty()) {
@@ -65,8 +80,8 @@ public abstract class SimpleFieldExtractor<T> implements FieldExtractor<T> {
 
     /**
      * Gets the metadata key name. This is the key into which this value will be written in an {@link org.tribuo.Example}
-     * if it is given to {@link org.tribuo.data.columnar.RowProcessor#metadataExtractors}.
-     *
+     * if it is given to {@link org.tribuo.data.columnar.RowProcessor}.
+     * <p>
      * Defaults to the field name.
      * @return The metadata key name.
      */
@@ -75,6 +90,11 @@ public abstract class SimpleFieldExtractor<T> implements FieldExtractor<T> {
         return metadataName;
     }
 
+    /**
+     * Extracts the field value, or returns {@link Optional#empty} if it failed to parse.
+     * @param fieldValue The field value to read.
+     * @return The extracted value.
+     */
     protected abstract Optional<T> extractField(String fieldValue);
 
     @Override

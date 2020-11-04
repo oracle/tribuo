@@ -23,6 +23,7 @@
         <groupId>org.tribuo</groupId>
         <artifactId>tribuo-classification</artifactId>
         <version>4.0.2-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <name>Classification-MultinomialNaiveBayes</name>
     <artifactId>tribuo-classification-mnnaivebayes</artifactId>

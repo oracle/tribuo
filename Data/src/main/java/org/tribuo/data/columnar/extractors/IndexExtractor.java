@@ -25,18 +25,29 @@ import org.tribuo.data.columnar.FieldExtractor;
 
 import java.util.Optional;
 
-/*
- * An Extractor with special casing for loading the index
+/**
+ * An Extractor with special casing for loading the index from a Row.
+ * The index is written out as a Long.
+ * <p>
+ * This is the row wise count, i.e., the number of examples that the data
+ * source has processed, rather than anything extracted from the data.
  */
 public class IndexExtractor implements FieldExtractor<Long> {
 
     @Config(description = "The metadata key to emit, defaults to Example.NAME")
     private String metadataName = Example.NAME;
 
+    /**
+     * Extracts the index, writing to the supplied metadata field name.
+     * @param metadataName The metadata field to write to.
+     */
     public IndexExtractor(String metadataName) {
         this.metadataName = metadataName;
     }
 
+    /**
+     * Extracts the index writing to the default metadata field name {@link Example#NAME}.
+     */
     public IndexExtractor() {}
 
     @Override

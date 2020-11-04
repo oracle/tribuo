@@ -25,9 +25,9 @@ If applicable, add screenshots to help explain your problem.
 
 **System information:**
 
- - OS: [e.g. Windows/macOS/Linux]
- - Java Version: [e.g. 8, 11, 14 etc]
- - JDK Vendor: [e.g. Oracle, OpenJDK etc]
+ - OS: [e.g., Windows/macOS/Linux]
+ - Java Version: [e.g., 8, 11, 14 etc]
+ - JDK Vendor: [e.g., Oracle, OpenJDK etc]
 
 **Additional context**
 

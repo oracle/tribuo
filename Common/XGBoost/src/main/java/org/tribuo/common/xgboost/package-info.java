@@ -17,5 +17,9 @@
 /**
  * Provides abstract classes for interfacing with XGBoost abstracting away all the {@link org.tribuo.Output}
  * dependent parts.
+ * <p>
+ * Note: XGBoost requires a native library, on macOS this library requires libomp (which can be installed via homebrew),
+ * on Windows this native library must be compiled into a jar as it's not contained in the official XGBoost binary
+ * on Maven Central.
  */
 package org.tribuo.common.xgboost;

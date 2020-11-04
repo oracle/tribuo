@@ -37,6 +37,9 @@ import java.util.Map;
 public final class LabelFactory implements OutputFactory<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The singleton unknown label, used for unlablled examples.
+     */
     public static final Label UNKNOWN_LABEL = new Label(Label.UNKNOWN);
 
     private static final OutputFactoryProvenance provenance = new LabelFactoryProvenance();
@@ -108,6 +111,9 @@ public final class LabelFactory implements OutputFactory<Label> {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link LabelFactory}.
+     */
     public final static class LabelFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 

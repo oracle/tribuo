@@ -49,7 +49,7 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
     private RegressorImpurity impurity = new MeanSquaredError();
 
     /**
-     * Normalizes the output of each leaf so it sums to one (i.e. is a probability distribution).
+     * Normalizes the output of each leaf so it sums to one (i.e., is a probability distribution).
      */
     @Config(description="Normalize the output of each leaf so it sums to one.")
     private boolean normalize = false;

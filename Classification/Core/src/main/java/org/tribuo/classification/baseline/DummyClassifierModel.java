@@ -40,7 +40,7 @@ import java.util.Random;
 import static org.tribuo.Trainer.DEFAULT_SEED;
 
 /**
- * A model which performs dummy classifications (e.g. constant output, uniform sampled labels, stratified sampled labels).
+ * A model which performs dummy classifications (e.g., constant output, uniform sampled labels, stratified sampled labels).
  */
 public class DummyClassifierModel extends Model<Label> {
     private static final long serialVersionUID = 1L;
