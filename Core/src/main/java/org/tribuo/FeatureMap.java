@@ -30,12 +30,22 @@ import java.util.TreeMap;
 public abstract class FeatureMap implements Serializable, Iterable<VariableInfo> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Map from the feature names to their info.
+     */
     protected final Map<String, VariableInfo> m;
 
+    /**
+     * Constructs an empty feature map.
+     */
     protected FeatureMap() {
         m = new HashMap<>();
     }
 
+    /**
+     * Constructs a deep copy of the supplied feature map.
+     * @param map The map to copy.
+     */
     protected FeatureMap(FeatureMap map) {
         m = new HashMap<>();
         for (Map.Entry<String,VariableInfo> e : map.m.entrySet()) {
@@ -45,6 +55,12 @@ public abstract class FeatureMap implements Serializable, Iterable<VariableInfo>
         }
     }
 
+    /**
+     * Constructs a feature map wrapping the supplied map.
+     * <p>
+     * Note the map is not defensively copied.
+     * @param m The map to wrap.
+     */
     @SuppressWarnings("unchecked") // upcasting off the wildcard.
     protected FeatureMap(Map<String, ? extends VariableInfo> m) {
         this.m = (Map<String,VariableInfo>) m;

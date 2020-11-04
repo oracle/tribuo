@@ -25,7 +25,7 @@ public final class JsonUtil {
      * Converts a Json node into a Map from String to String for use in
      * downstream processing by {@link org.tribuo.data.columnar.RowProcessor}.
      * <p>
-     * This method ignores any fields which are not primitives (i.e. it ignores
+     * This method ignores any fields which are not primitives (i.e., it ignores
      * fields which are arrays and objects) as those are not supported
      * by the columnar processing infrastructure.
      * <p>

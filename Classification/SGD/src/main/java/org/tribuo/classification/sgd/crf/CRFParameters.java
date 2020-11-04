@@ -77,7 +77,7 @@ public class CRFParameters implements Parameters, Serializable {
     }
 
     /**
-     * Generate the local scores (i.e. the linear classifier for each token).
+     * Generate the local scores (i.e., the linear classifier for each token).
      * @param features An array of {@link SparseVector}s, one per token.
      * @return An array of DenseVectors representing the scores per label for each token.
      */

@@ -44,12 +44,26 @@ public class DateExtractor extends SimpleFieldExtractor<LocalDate> {
      */
     private DateExtractor() {}
 
+    /**
+     * Constructs a date extractor that emits a LocalDate by applying the supplied format to the specified field.
+     * @param fieldName The field to read.
+     * @param metadataName The metadata field to write.
+     * @param dateFormat The date format (supplied to {@link DateTimeFormatter}.
+     */
     public DateExtractor(String fieldName, String metadataName, String dateFormat) {
         super(fieldName, metadataName);
         this.dateFormat = dateFormat;
         postConfig();
     }
 
+    /**
+     * Constructs a date extractor that emits a LocalDate by applying the supplied format to the specified field.
+     * <p>
+     * Deprecated as it does not allow recovery of the formatter pattern for the provenance.
+     * @param fieldName The field to read.
+     * @param metadataName The metadata field to write.
+     * @param formatter The date format (supplied to {@link DateTimeFormatter}.
+     */
     @Deprecated
     public DateExtractor(String fieldName, String metadataName, DateTimeFormatter formatter) {
         super(fieldName, metadataName);
@@ -57,6 +71,9 @@ public class DateExtractor extends SimpleFieldExtractor<LocalDate> {
         this.dateFormat = formatter.toString();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         super.postConfig();

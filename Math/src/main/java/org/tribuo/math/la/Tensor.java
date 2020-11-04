@@ -78,7 +78,7 @@ public interface Tensor extends Serializable {
 
     /**
      * Updates this {@link Tensor} with the Hadamard product
-     * (i.e. a term by term multiply) of this and {@code other}.
+     * (i.e., a term by term multiply) of this and {@code other}.
      * <p>
      * The function {@code f} is applied to all values from {@code other} before the addition.
      * <p>

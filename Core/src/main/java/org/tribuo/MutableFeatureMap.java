@@ -26,11 +26,19 @@ public class MutableFeatureMap extends FeatureMap {
 
     /**
      * Creates an empty feature map which converts high cardinality categorical variable infos into reals.
+     * <p>
+     * The conversion threshold is {@link CategoricalInfo#THRESHOLD}.
      */
     public MutableFeatureMap() {
         this(true);
     }
 
+    /**
+     * Creates an empty feature map which can optionally convert high cardinality categorical variable infos into reals.
+     * <p>
+     * The conversion threshold is {@link CategoricalInfo#THRESHOLD}.
+     * @param convertHighCardinality Should this feature map convert high cardinality categorical variables into real variables?
+     */
     public MutableFeatureMap(boolean convertHighCardinality) {
         super();
         this.convertHighCardinality = convertHighCardinality;

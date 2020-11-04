@@ -19,7 +19,7 @@
  * <p>
  * There are two interfaces: {@link org.tribuo.math.util.Merger} and
  * {@link org.tribuo.math.util.VectorNormalizer}. Merger is used to combine gradient tensors
- * produced across different examples (i.e. to combine the gradients within a minibatch). VectorNormalizer is
+ * produced across different examples (i.e., to combine the gradients within a minibatch). VectorNormalizer is
  * used to normalize an array, usually into a probability distribution.
  */
 package org.tribuo.math.util;

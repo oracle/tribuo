@@ -124,6 +124,12 @@ public abstract class AnomalyDataGenerator {
         return features;
     }
 
+    /**
+     * Makes a simple dataset for training and testing.
+     * <p>
+     * Used for smoke testing, doesn't have a real boundary.
+     * @return A pair containing a training dataset and a testing dataset.
+     */
     public static Pair<Dataset<Event>,Dataset<Event>> denseTrainTest() {
         return denseTrainTest(-1.0);
     }
@@ -181,6 +187,12 @@ public abstract class AnomalyDataGenerator {
         return new Pair<>(train,test);
     }
 
+    /**
+     * Makes a simple dataset for training and testing.
+     * <p>
+     * Used for smoke testing, doesn't have a real boundary.
+     * @return A pair containing a training dataset and a testing dataset.
+     */
     public static Pair<Dataset<Event>,Dataset<Event>> sparseTrainTest() {
         return sparseTrainTest(-1.0);
     }

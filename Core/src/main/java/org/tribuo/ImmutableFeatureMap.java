@@ -35,14 +35,30 @@ import java.util.TreeMap;
 public class ImmutableFeatureMap extends FeatureMap implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The map from id numbers to the feature infos.
+     */
     protected final Map<Integer,VariableIDInfo> idMap;
 
+    /**
+     * The number of features.
+     */
     protected int size;
 
+    /**
+     * Constructs a new immutable version which is a deep copy of the supplied feature map, generating new ID numbers.
+     * <p>
+     * The new id numbers will be the same as the old ones (if they existed) assuming this is a regular feature map.
+     * @param map The map to copy.
+     */
     public ImmutableFeatureMap(FeatureMap map) {
         this(generateIDs(map));
     }
 
+    /**
+     * Constructs a new immutable feature map copying the supplied variable infos and generating appropriate ID numbers.
+     * @param infoList The variable infos.
+     */
     public ImmutableFeatureMap(List<VariableInfo> infoList) {
         this(generateIDs(infoList));
     }
@@ -57,6 +73,11 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
         size = m.size();
     }
 
+    /**
+     * Constructs a new empty immutable feature map.
+     * <p>
+     * Used for mocking feature domains in tests.
+     */
     protected ImmutableFeatureMap() {
         super();
         idMap = new HashMap<>();

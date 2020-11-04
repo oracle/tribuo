@@ -29,7 +29,7 @@ signed the OCA can be accepted.
 
 1. Fork this repository
 1. Create a branch in your fork to implement the changes. We recommend using
-the issue number as part of your branch name, e.g. `1234-fixes`
+the issue number as part of your branch name, e.g., `1234-fixes`
 1. Ensure that any Javadoc and/or documentation is updated with the changes.
 1. Add a test for the new behaviour (or that exercises the bug if a bug fix).
 1. Submit the pull request. *Do not leave the pull request text blank*. Explain exactly

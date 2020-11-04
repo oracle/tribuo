@@ -89,7 +89,7 @@ public abstract class AbstractEvaluator<
         EvaluationProvenance provenance = new EvaluationProvenance(model.getProvenance(), dataProvenance);
         //
         // Create an evaluation context. The context stores all the information needed by the list of metrics plus might
-        // cache intermediate computation relevant to multiple metrics (e.g. a pre-computed confusion matrix might be stored in 'context')
+        // cache intermediate computation relevant to multiple metrics (e.g., a pre-computed confusion matrix might be stored in 'context')
         C context = createContext(model, predictions);
         //
         // "MODEL": Build the list of metrics to compute.
@@ -104,7 +104,7 @@ public abstract class AbstractEvaluator<
 
     /**
      * Computes each metric given the context.
-     * @param ctx The metric context (i.e. the sufficient statistics).
+     * @param ctx The metric context (i.e., the sufficient statistics).
      * @param metrics The metrics to compute.
      * @return The value of each requested metric.
      */

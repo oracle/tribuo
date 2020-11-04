@@ -105,6 +105,9 @@ public class GaussianDataSource implements ConfigurableDataSource<Regressor> {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         Random rng = new Random(seed);
@@ -160,13 +163,24 @@ public class GaussianDataSource implements ConfigurableDataSource<Regressor> {
         return new MutableDataset<>(source);
     }
 
+    /**
+     * Provenance for {@link GaussianDataSource}.
+     */
     public static class GaussianDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Constructs a provenance from the host data source.
+         * @param host The host to read.
+         */
         GaussianDataSourceProvenance(GaussianDataSource host) {
             super(host,"DataSource");
         }
 
+        /**
+         * Constructs a provenance from the marshalled form.
+         * @param map The map of field values.
+         */
         public GaussianDataSourceProvenance(Map<String, Provenance> map) {
             this(extractProvenanceInfo(map));
         }
@@ -175,6 +189,11 @@ public class GaussianDataSource implements ConfigurableDataSource<Regressor> {
             super(info);
         }
 
+        /**
+         * Extracts the relevant provenance information fields for this class.
+         * @param map The map to remove values from.
+         * @return The extracted information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, GaussianDataSourceProvenance.class.getSimpleName()).getValue();

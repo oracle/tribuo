@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A leaf {@link Node} that can create a prediction.
+ * An immutable leaf {@link Node} that can create a prediction.
  */
 public class LeafNode<T extends Output<T>> implements Node<T> {
     private static final long serialVersionUID = 4L;
@@ -36,6 +36,13 @@ public class LeafNode<T extends Output<T>> implements Node<T> {
     private final Map<String,T> scores;
     private final boolean generatesProbabilities;
 
+    /**
+     * Constructs a leaf node.
+     * @param impurity The impurity value calculated at training time.
+     * @param output The output value from this node.
+     * @param scores The score map for the other outputs.
+     * @param generatesProbabilities If the scores are probabilities.
+     */
     public LeafNode(double impurity, T output, Map<String,T> scores, boolean generatesProbabilities) {
         this.impurity = impurity;
         this.output = output;
@@ -63,14 +70,28 @@ public class LeafNode<T extends Output<T>> implements Node<T> {
         return new LeafNode<>(impurity,output.copy(),new HashMap<>(scores),generatesProbabilities);
     }
 
+    /**
+     * Gets the output in this node.
+     * @return The output.
+     */
     public T getOutput() {
         return output;
     }
 
+    /**
+     * Gets the distribution over scores in this node.
+     * @return The score distribution.
+     */
     public Map<String,T> getDistribution() {
         return scores;
     }
 
+    /**
+     * Constructs a new prediction object based on this node's scores.
+     * @param numUsed The number of features used.
+     * @param example The example to be scored.
+     * @return The prediction for the supplied example.
+     */
     public Prediction<T> getPrediction(int numUsed, Example<T> example) {
         return new Prediction<>(output,scores,numUsed,example,generatesProbabilities);
     }

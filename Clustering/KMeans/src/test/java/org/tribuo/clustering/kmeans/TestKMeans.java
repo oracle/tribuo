@@ -49,6 +49,8 @@ public class TestKMeans {
     public static void setup() {
         Logger logger = Logger.getLogger(KMeansTrainer.class.getName());
         logger.setLevel(Level.WARNING);
+        logger = Logger.getLogger(org.tribuo.util.infotheory.InformationTheory.class.getName());
+        logger.setLevel(Level.WARNING);
     }
 
     @Test

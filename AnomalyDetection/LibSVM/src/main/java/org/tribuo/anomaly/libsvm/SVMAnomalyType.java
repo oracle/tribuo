@@ -30,6 +30,9 @@ import org.tribuo.common.libsvm.SVMType;
 public class SVMAnomalyType implements SVMType<Event> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Valid SVM modes for anomaly detection.
+     */
     public enum SVMMode {
         /**
          * Anomaly detection SVM.
@@ -51,6 +54,10 @@ public class SVMAnomalyType implements SVMType<Event> {
      */
     private SVMAnomalyType() {}
 
+    /**
+     * Constructs an SVM anomaly type wrapping the SVM algorithm choice.
+     * @param type The svm algorithm type.
+     */
     public SVMAnomalyType(SVMMode type) {
         this.type = type;
     }

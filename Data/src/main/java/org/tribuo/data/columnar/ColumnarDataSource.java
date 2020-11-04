@@ -28,7 +28,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 /**
- * A {@link ConfigurableDataSource} base class which takes columnar data (e.g. csv or DB table rows) and generates {@link Example}s.
+ * A {@link ConfigurableDataSource} base class which takes columnar data (e.g., csv or DB table rows) and generates {@link Example}s.
  */
 public abstract class ColumnarDataSource<T extends Output<T>> implements ConfigurableDataSource<T> {
 
@@ -46,7 +46,13 @@ public abstract class ColumnarDataSource<T extends Output<T>> implements Configu
      */
     protected ColumnarDataSource() {}
 
-    public ColumnarDataSource(OutputFactory<T> outputFactory, RowProcessor<T> rowProcessor, boolean outputRequired) {
+    /**
+     * Constructs a columnar data source with the specified parameters.
+     * @param outputFactory The output factory.
+     * @param rowProcessor The row processor which converts rows into examples.
+     * @param outputRequired Is an output required for each example.
+     */
+    protected ColumnarDataSource(OutputFactory<T> outputFactory, RowProcessor<T> rowProcessor, boolean outputRequired) {
         this.outputFactory = outputFactory;
         this.rowProcessor = rowProcessor;
         this.outputRequired = outputRequired;
@@ -66,12 +72,23 @@ public abstract class ColumnarDataSource<T extends Output<T>> implements Configu
         return outputFactory;
     }
 
+    @Override
     public Iterator<Example<T>> iterator() {
         return new InnerIterator<>(rowProcessor,rowIterator(),outputRequired);
     }
 
+    /**
+     * The iterator that emits {@link ColumnarIterator.Row} objects from the
+     * underlying data source.
+     * @return The row level iterator.
+     */
     protected abstract ColumnarIterator rowIterator();
 
+    /**
+     * Wraps the columnar iterator and converts it into an iterator of example.
+     * Copies the RowProcessor and expands it's regexes first.
+     * @param <T> The output type.
+     */
     private static class InnerIterator<T extends Output<T>> implements Iterator<Example<T>> {
         private final boolean outputRequired;
         private final ColumnarIterator iterator;

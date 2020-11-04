@@ -47,7 +47,7 @@ def main():
     # The variables below hold all the trainable weights. They are passed an
     # initial value which will be assigned when we call:
     # {tf.global_variables_initializer().run()}
-    # 2D convolution, with 'SAME' padding (i.e. the output feature map has
+    # 2D convolution, with 'SAME' padding (i.e., the output feature map has
     # the same size as the input). Note that {strides} is a 4D array whose
     # shape matches the data layout: [image index, y, x, depth].
 

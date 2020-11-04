@@ -61,14 +61,14 @@ can only bump the versions of existing dependencies (to newer patch releases of
 those dependencies), and minor releases can only add new dependencies and bump
 the versions of existing ones.
 
-Anything considered part of the internal API (e.g. the innards of the tree
+Anything considered part of the internal API (e.g., the innards of the tree
 builders and the classes in `impl` packages outside of Core) can change in any
 version, but these are usually marked in the javadoc as internal classes and
 will be closed off in the module system when we adopt it.
 
 ## Project Overview 
 
-### Why is the code broken out by prediction task (e.g. Classification, Regression, etc.)?
+### Why is the code broken out by prediction task (e.g., Classification, Regression, etc.)?
 
 We designed Tribuo to be as modular as possible. Users are able to depend
 exclusively on the pieces they need without additional unnecessary components
@@ -114,7 +114,7 @@ makes it easy to understand if there is a feature space mismatch (as commonly
 occurs in NLP when there are out-of-vocabulary terms). Since a Tribuo model
 knows the names of all the features, it can tell when it encounters an
 unexpected feature name. This prevents the possibility of loading a model and
-applying it to data from a completely different domain (i.e. applying an MNIST
+applying it to data from a completely different domain (i.e., applying an MNIST
 model to text classification) as the feature spaces will be misaligned: not
 only will there be a different number of features, but they'll have different
 names, too.  Since this situation results in an absence of valid features in
@@ -125,11 +125,11 @@ the supplied Example, Tribuo's predict methods will throw a RuntimeException.
 The model's `Prediction` contains a set of *named* outputs. These names make it
 easy to understand which score goes with which output. Returning an array means
 the user has to manually maintain the mapping between the array index and the
-name of the output (e.g. "hire" = 0, "re-interview" = 1, "reject" = 2) in a
+name of the output (e.g., "hire" = 0, "re-interview" = 1, "reject" = 2) in a
 separate location from the model file itself. This leads to bugs and mismatches
 when the user loads the wrong model or uses the wrong mapping. With Tribuo's
 approach *this can never happen*; the model knows what it's output domain is,
-and can describe it to the user in the form the user expects (i.e. Strings).
+and can describe it to the user in the form the user expects (i.e., Strings).
 
 ### Why don't features or outputs have id numbers?
 
@@ -159,20 +159,35 @@ the future).
 In short, the configuration sets the parameters for an object (e.g.
 hyperparameters, data scaling, and random seed). The provenance is the
 configuration plus the information gathered from the specific run that created
-the model/dataset/evaluation (e.g. the number of features, the number of
+the model/dataset/evaluation (e.g., the number of features, the number of
 samples, the timestamp of the data file, and the number of times that the
 Trainer's RNG has been used).
 
 The provenance is a superset of configurations. You can convert a provenance
 object into a set of configurations, one for each of its constituent parts. In
 contrast, the configuration cannot be converted into a provenance without
-executing the code (e.g. loading the dataset or training the model) as,
+executing the code (e.g., loading the dataset or training the model) as,
 otherwise, it won't know the run-specific information.
+
+### How do I know what I can configure in a class?
+
+Tribuo's configurable classes all implement 
+`com.oracle.labs.mlrg.olcut.config.Configurable` and classes which implement
+this can have (possibly private) fields annotated with 
+`@com.oracle.labs.mlrg.olcut.config.Config` denoting they can be set by
+the configuration system. Fields in superclasses can also be set by the 
+configuration provided the superclass also implements `Configurable`.
+You can find out what fields are configurable either by inspecting the source
+on [GitHub](https://github.com/oracle/tribuo) or by running the 
+`com.oracle.labs.mlrg.olcut.config.DescribeConfigurable` utility and handing it
+a configurable class name. This utility can produce an example configuration 
+snippet in any of OLCUT's supported configuration languages. For more
+details see Tribuo's configuration tutorial.
 
 ### What's the difference between a DataSource and a Dataset?
 
 A `DataSource` performs the inbound ETL step from the source data on disk or
-from a database.  It's responsible for featurising the data (e.g. converting
+from a database.  It's responsible for featurising the data (e.g., converting
 text into bigram counts), reading the ground truth outputs, and creating the
 `Example`s to contain the features and outputs. A `DataSource` can be lazy; it
 doesn't require that all examples be in memory at once (although in practice

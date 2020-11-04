@@ -62,6 +62,9 @@ public final class LinearScalingTransformation implements Transformation {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if (targetMax < targetMin) {
@@ -82,6 +85,9 @@ public final class LinearScalingTransformation implements Transformation {
         return provenance;
     }
 
+    /**
+     * Provenance for {@link LinearScalingTransformation}.
+     */
     public final static class LinearScalingTransformationProvenance implements TransformationProvenance {
         private static final long serialVersionUID = 1L;
 

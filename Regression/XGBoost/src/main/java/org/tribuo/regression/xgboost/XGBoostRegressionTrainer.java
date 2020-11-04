@@ -60,6 +60,10 @@ import java.util.logging.Logger;
  * "Greedy Function Approximation: a Gradient Boosting Machine"
  * Annals of statistics, 2001.
  * </pre>
+ * <p>
+ * Note: XGBoost requires a native library, on macOS this library requires libomp (which can be installed via homebrew),
+ * on Windows this native library must be compiled into a jar as it's not contained in the official XGBoost binary
+ * on Maven Central.
  */
 public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
 
@@ -152,6 +156,9 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
      */
     private XGBoostRegressionTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         super.postConfig();

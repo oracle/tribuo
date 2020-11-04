@@ -19,10 +19,10 @@
  *
  * <P>
  *
- * The {@link org.tribuo.data.columnar.FieldExtractor#getMetadataName()} values of "name"
+ * The {@link org.tribuo.data.columnar.FieldExtractor#getMetadataName()} values of "name" {@link org.tribuo.Example#NAME}
  * and "weight" (case-sensitive) are special. In particular, "name" is used throughout the {@link org.tribuo.Example}
  * environment to uniquely identify Examples within a {@link org.tribuo.Dataset}. "weight" should only
- * be used for the {@link org.tribuo.data.columnar.FieldExtractor} supplied to {@link org.tribuo.data.columnar.RowProcessor#weightExtractor}
- * which is used by the system to weight {@link org.tribuo.Example}s.
+ * be used for the {@link org.tribuo.data.columnar.FieldExtractor} supplied to {@link org.tribuo.data.columnar.RowProcessor}
+ * as the {@code weightExtractor} which is used by the system to weight {@link org.tribuo.Example}s.
  */
 package org.tribuo.data.columnar.extractors;

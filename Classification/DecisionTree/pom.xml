@@ -22,7 +22,7 @@
         <groupId>org.tribuo</groupId>
         <artifactId>tribuo-classification</artifactId>
         <version>4.1.0-SNAPSHOT</version>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <name>Classification-Tree</name>
     <artifactId>tribuo-classification-tree</artifactId>

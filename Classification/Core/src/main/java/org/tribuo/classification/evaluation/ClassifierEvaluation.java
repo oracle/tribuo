@@ -38,7 +38,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     // TODO add support(), support(label)
 
     /**
-     * Returns the number of true positives, i.e. the number of times the label was correctly predicted.
+     * Returns the number of true positives, i.e., the number of times the label was correctly predicted.
      *
      * @param label The label to calculate.
      * @return The number of true positives for that label.
@@ -46,7 +46,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double tp(T label);
 
     /**
-     * Returns the micro average of the number of true positives across all the labels, i.e. the total
+     * Returns the micro average of the number of true positives across all the labels, i.e., the total
      * number of true positives.
      *
      * @return The micro averaged number of true positives.
@@ -61,7 +61,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double macroTP();
 
     /**
-     * Returns the number of false positives, i.e. the number of times this label was predicted but it was not the true label..
+     * Returns the number of false positives, i.e., the number of times this label was predicted but it was not the true label..
      *
      * @param label the label to calculate.
      * @return The number of false positives for that label.
@@ -69,7 +69,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double fp(T label);
 
     /**
-     * Returns the micro average of the number of false positives across all the labels, i.e. the total
+     * Returns the micro average of the number of false positives across all the labels, i.e., the total
      * number of false positives.
      *
      * @return The micro averaged number of false positives.
@@ -84,7 +84,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double macroFP();
 
     /**
-     * Returns the number of true negatives for that label, i.e. the number of times it wasn't predicted, and was not the true label.
+     * Returns the number of true negatives for that label, i.e., the number of times it wasn't predicted, and was not the true label.
      *
      * @param label The label to use.
      * @return the number of true negatives.
@@ -106,7 +106,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double macroTN();
 
     /**
-     * Returns the number of false negatives, i.e. the number of times the true label was incorrectly predicted as another label.
+     * Returns the number of false negatives, i.e., the number of times the true label was incorrectly predicted as another label.
      *
      * @param label The true label.
      * @return The number of false negatives.
@@ -128,7 +128,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double macroFN();
 
     /**
-     * Returns the precision of this label, i.e. the number of true positives divided by the number of true positives plus false positives.
+     * Returns the precision of this label, i.e., the number of true positives divided by the number of true positives plus false positives.
      *
      * @param label The label.
      * @return The precision.
@@ -150,7 +150,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double macroAveragedPrecision();
 
     /**
-     * Returns the recall of this label, i.e. the number of true positives divided by the number of true positives plus false negatives.
+     * Returns the recall of this label, i.e., the number of true positives divided by the number of true positives plus false negatives.
      *
      * @param label The label.
      * @return The recall.
@@ -172,7 +172,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double macroAveragedRecall();
 
     /**
-     * Returns the F_1 score, i.e. the harmonic mean of the precision and recall.
+     * Returns the F_1 score, i.e., the harmonic mean of the precision and recall.
      *
      * @param label The label.
      * @return The F_1 score.
@@ -194,7 +194,7 @@ public interface ClassifierEvaluation<T extends Classifiable<T>> extends Evaluat
     public double macroAveragedF1();
 
     /**
-     * Returns the balanced error rate, i.e. the mean of the per label recalls.
+     * Returns the balanced error rate, i.e., the mean of the per label recalls.
      *
      * @return The balanced error rate.
      */

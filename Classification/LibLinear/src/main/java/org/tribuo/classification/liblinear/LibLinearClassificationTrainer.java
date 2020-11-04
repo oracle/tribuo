@@ -93,6 +93,9 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
         super(trainerType,cost,maxIterations,terminationCriterion);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         super.postConfig();

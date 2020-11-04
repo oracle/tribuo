@@ -41,7 +41,10 @@ import java.util.logging.Logger;
 public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
-    
+
+    /**
+     * Options for the K-Means CLI.
+     */
     public static class KMeansOptions implements Options {
         @Override
         public String getOptionsDescription() {

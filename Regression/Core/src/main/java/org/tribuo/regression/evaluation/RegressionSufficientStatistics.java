@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The sufficient statistics for regression metrics (i.e. each prediction and each true value).
+ * The sufficient statistics for regression metrics (i.e., each prediction and each true value).
  */
 public final class RegressionSufficientStatistics {
 

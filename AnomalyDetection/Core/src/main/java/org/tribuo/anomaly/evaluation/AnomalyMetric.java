@@ -42,7 +42,7 @@ public class AnomalyMetric implements EvaluationMetric<Event, AnomalyMetric.Cont
 
     /**
      * Creates an anomaly detection metric, with a specific name, using the supplied evaluation function.
-     * @param target The target of the metric (i.e. the event type or an average).
+     * @param target The target of the metric (i.e., the event type or an average).
      * @param name The name of the metric.
      * @param impl The implementation function.
      */

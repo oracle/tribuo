@@ -28,6 +28,9 @@ import java.util.logging.Logger;
 public class GradientOptimiserOptions implements Options {
     private static final Logger logger = Logger.getLogger(GradientOptimiserOptions.class.getName());
 
+    /**
+     * Type of the gradient optimisers available in CLIs.
+     */
     public enum StochasticGradientOptimiserType {
         ADADELTA,
         ADAGRAD,

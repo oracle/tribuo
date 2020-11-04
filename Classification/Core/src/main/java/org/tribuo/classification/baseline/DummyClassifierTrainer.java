@@ -39,7 +39,27 @@ import java.util.Map;
  */
 public final class DummyClassifierTrainer implements Trainer<Label> {
 
-    public enum DummyType { STRATIFIED, MOST_FREQUENT, UNIFORM, CONSTANT }
+    /**
+     * Types of dummy classifier.
+     */
+    public enum DummyType {
+        /**
+         * Samples the label proprotional to the training label frequencies.
+         */
+        STRATIFIED,
+        /**
+         * Returns the most frequent training label.
+         */
+        MOST_FREQUENT,
+        /**
+         * Samples uniformly from the label domain.
+         */
+        UNIFORM,
+        /**
+         * Returns the supplied label for all inputs.
+         */
+        CONSTANT
+    }
 
     @Config(mandatory = true,description="Type of dummy classifier.")
     private DummyType dummyType;
@@ -54,6 +74,9 @@ public final class DummyClassifierTrainer implements Trainer<Label> {
 
     private DummyClassifierTrainer() {}
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         if ((dummyType == DummyType.CONSTANT) && (constantLabel == null)) {

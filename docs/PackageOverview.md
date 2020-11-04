@@ -30,7 +30,7 @@ a math library, and common modules shared across prediction types.
   - Prediction - A class that stores the output of a Model when presented
     with an Example for labeling. It contains scores for each of the predicted
     labels. These scores may optionally be a probability distribution.
-  - VariableInfo - A class representing information about the feature, e.g. the 
+  - VariableInfo - A class representing information about the feature, e.g., the 
     number of times it occurred in the dataset.
 - Core contains several other packages.
   - dataset - Datasets which provide a view on another dataset, either

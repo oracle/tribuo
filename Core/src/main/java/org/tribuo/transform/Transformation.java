@@ -24,7 +24,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
  * which can be applied to a feature.
  * <p>
  * Transformations first have to be fitted, where they
- * gather the appropriate data statistics (e.g. min and max value).
+ * gather the appropriate data statistics (e.g., min and max value).
  * The {@link TransformStatistics} can then be converted
  * into a {@link Transformer} which can apply the transform
  * to a feature value.

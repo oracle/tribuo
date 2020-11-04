@@ -242,13 +242,13 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * For a MultiLabel with label set = {a, b, c}, outputs a string of the form:
-     *
+     * <pre>
      * "a=true,b=true,c=true"
-     *
+     * </pre>
      * If includeConfidence is set to true, outputs a string of the form:
-     *
+     * <pre>
      * "a=true,b=true,c=true:0.5"
-     *
+     * </pre>
      * where the last element after the colon is this label's score.
      *
      * @param includeConfidence Include whatever confidence score the label contains, if known.
@@ -276,8 +276,8 @@ public class MultiLabel implements Classifiable<MultiLabel> {
      * Parses a string of the form:
      * dimension-name=output,...,dimension-name=output
      * where output must be readable by {@link Boolean#parseBoolean(String)}.
-     * @param s The string form of a multiple regressor.
-     * @return A multiple regressor parsed from the input string.
+     * @param s The string form of a multi-label example.
+     * @return A {@link MultiLabel} parsed from the input string.
      */
     public static MultiLabel parseString(String s) {
         return parseString(s,',');
@@ -291,7 +291,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
      * where output must be readable by {@link Boolean#parseBoolean}.
      * @param s The string form of a multilabel output.
      * @param splitChar The char to split on.
-     * @return A multilabel output parsed from the input string.
+     * @return A {@link MultiLabel} output parsed from the input string.
      */
     public static MultiLabel parseString(String s, char splitChar) {
         if (splitChar == '=') {
@@ -309,13 +309,13 @@ public class MultiLabel implements Classifiable<MultiLabel> {
      * Parses a string of the form:
      *
      * <pre>
-     *     class1=true,class2=false,...
+     *     class1=true
      * </pre>
      *
      * OR of the form:
      *
      * <pre>
-     *     class1,class2,...
+     *     class1
      * </pre>
      *
      * In the first case, the value in the "key=value" pair must be parseable by {@link Boolean#parseBoolean(String)}.
@@ -344,7 +344,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
     }
 
     /**
-     * Creates a MultiLabel from a list of dimension tuples.
+     * Creates a MultiLabel from a list of dimensions.
      * @param dimensions The dimensions to use.
      * @return A MultiLabel representing these dimensions.
      */

@@ -45,19 +45,19 @@ public enum MultiLabelMetrics {
      */
     FN((tgt, ctx) -> ConfusionMetrics.fn(tgt, ctx.getCM())),
     /**
-     * The precision, i.e. the number of true positives divided by the number of predicted positives.
+     * The precision, i.e., the number of true positives divided by the number of predicted positives.
      */
     PRECISION((tgt, ctx) -> ConfusionMetrics.precision(tgt, ctx.getCM())),
     /**
-     * The recall, i.e. the number of true positives divided by the number of ground truth positives.
+     * The recall, i.e., the number of true positives divided by the number of ground truth positives.
      */
     RECALL((tgt, ctx) -> ConfusionMetrics.recall(tgt, ctx.getCM())),
     /**
-     * The F_1 score, i.e. the harmonic mean of the precision and the recall.
+     * The F_1 score, i.e., the harmonic mean of the precision and the recall.
      */
     F1((tgt, ctx) -> ConfusionMetrics.f1(tgt, ctx.getCM())),
     /**
-     * The balanced error rate, i.e. the mean of the per class recalls.
+     * The balanced error rate, i.e., the mean of the per class recalls.
      */
     BALANCED_ERROR_RATE((tgt, ctx) -> ConfusionMetrics.balancedErrorRate(ctx.getCM()));
 

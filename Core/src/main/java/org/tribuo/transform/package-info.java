@@ -23,7 +23,7 @@
  * {@link org.tribuo.Feature}. This can be applied to a Dataset to produce a
  * {@link org.tribuo.transform.TransformerMap} which contains a fitted set of
  * {@link org.tribuo.transform.Transformer}s which can be used to apply the transformation to any
- * other Dataset (e.g. to apply the same transformation to training and test sets), or to be used at prediction
+ * other Dataset (e.g., to apply the same transformation to training and test sets), or to be used at prediction
  * time to stream data through.
  * <p>
  * It also provides a {@link org.tribuo.transform.TransformTrainer} which accepts a

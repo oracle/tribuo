@@ -13,9 +13,9 @@ to a `Dataset`, and that metadata is used to inform the training procedure,
 along with providing the basis for explanation systems like LIME.
 
 The main invariant is that features are stored in `Example`s in
-*lexicographically sorted order* (i.e. using String's natural ordering). This
+*lexicographically sorted order* (i.e., using String's natural ordering). This
 filters down into the internal feature maps, where the id numbers are assigned
-using the same lexicographic ordering (i.e. `AA` = 1, `AB` = 2, ... ,`BA` = 27
+using the same lexicographic ordering (i.e., `AA` = 1, `AB` = 2, ... ,`BA` = 27
 etc). Output dimensions are *not ordered*, they usually have ids assigned based
 on presentation order in the dataset.  However output dimension ids are less
 visible to developers using Tribuo. The feature order invariant is maintained
@@ -30,7 +30,7 @@ only care about the Strings stored in each `Output`. This is so that a
 `Label(name="POSITIVE",value=0.6)` is considered equal to a 
 `Label(name="POSITIVE",value=1.0)`, and so the `OutputInfo` which stores
 the `Output`s in a hashmap has a consistent view of the world. Comparing
-two outputs for total equality (i.e. including any values) should be done
+two outputs for total equality (i.e., including any values) should be done
 using `Output.fullEquals()`. This approach works well for classification,
 anomaly detection and clustering, but for regression tasks, any `Regressor`
 is considered equal to any other `Regressor` if they share the same
@@ -104,12 +104,12 @@ perform rescaling or binning, but not Principle Component Analysis (PCA).  The
 `TransformationMap` gathers the necessary statistics about the features, and
 then rewrites each `Example` according to the transformation, generating a
 `TransformerMap` which can be used to apply that specific transformations to
-other `Dataset`s (e.g. to fit the transformation on the training data, and
+other `Dataset`s (e.g., to fit the transformation on the training data, and
 apply it to the test data), and recording the transformations in the
 `Dataset`'s `DataProvenance`. This can also be done at training time using the
 `TransformTrainer` which wraps the trained `Model` so the transformations are
 always applied.  Transformations which depend on all features and can change
-the feature space itself (e.g. PCA or feature selection) are planned for a
+the feature space itself (e.g., PCA or feature selection) are planned for a
 future release. 
 
 ### Training
@@ -136,7 +136,7 @@ The `Trainer` then executes it's training algorithm to produce the model
 parameters.
 
 Finally, the `Trainer` constructs the `ModelProvenance` incorporating the
-`Dataset`'s `DataProvenance`, the `Trainer`'s `TrainerProvenance` (i.e.
+`Dataset`'s `DataProvenance`, the `Trainer`'s `TrainerProvenance` (i.e.,
 training hyperparameters), and any run specific `Provenance` that the user
 provided. The `ModelProvenance` along with the `ImmutableFeatureMap`,
 `ImmutableOutputInfo`, and the model parameters are supplied to the appropriate
@@ -158,7 +158,7 @@ elements then there is no feature overlap and an exception is thrown.  The
 `Prediction` object is created which maps the predicted values to their
 dimensions or labels. The `Evaluator` aggregates all the `Prediction`s, checks
 if the `Example`s have ground truth labels (if not it throws an exception), and
-then calculates the appropriate evaluation statistics (e.g. accuracy & F1 for
+then calculates the appropriate evaluation statistics (e.g., accuracy & F1 for
 classification, RMSE for regression etc). Finally, the input data's
 `DataProvenance` and the `Model`'s `ModelProvenance` are queried, and the
 evaluation statistics, provenances and predictions are passed to the

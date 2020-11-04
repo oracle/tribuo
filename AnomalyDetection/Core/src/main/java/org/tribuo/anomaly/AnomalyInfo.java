@@ -36,12 +36,30 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
 
     private static final Set<Event> DOMAIN = makeDomain();
 
+    /**
+     * The number of expected events observed.
+     */
     protected long expectedCount = 0;
+
+    /**
+     * The number of anomalous events observed.
+     */
     protected long anomalyCount = 0;
+
+    /**
+     * The number of unknown events observed (i.e., those without labels).
+     */
     protected int unknownCount = 0;
 
+    /**
+     * Constructs a new empty anomaly info.
+     */
     protected AnomalyInfo() { }
 
+    /**
+     * Copies the supplied anomaly info.
+     * @param other The info to copy.
+     */
     protected AnomalyInfo(AnomalyInfo other) {
         this.expectedCount = other.expectedCount;
         this.anomalyCount = other.anomalyCount;
@@ -53,17 +71,25 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
         return unknownCount;
     }
 
+    /**
+     * The number of anomalous events observed.
+     * @return The number of anomalies.
+     */
     public long getAnomalyCount() {
         return anomalyCount;
     }
 
+    /**
+     * The number of expected events observed.
+     * @return The number of normal events.
+     */
     public long getExpectedCount() {
         return expectedCount;
     }
 
     /**
      * Returns the set of possible {@link Event}s.
-     *
+     * <p>
      * Each event has the default score of Double.NaN.
      * @return The set of possible events.
      */
@@ -101,7 +127,7 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
     }
 
     /**
-     * The number of possible event types (i.e. 2).
+     * The number of possible event types (i.e., 2).
      * @return The number of possible event types.
      */
     @Override

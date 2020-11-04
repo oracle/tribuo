@@ -47,8 +47,14 @@ import java.util.Optional;
 public abstract class Example<T extends Output<T>> implements Iterable<Feature>, Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The default initial size of the metadata map.
+     */
     protected static final int DEFAULT_METADATA_SIZE = 2;
 
+    /**
+     * The default weight.
+     */
     public static final float DEFAULT_WEIGHT = 1.0f;
 
     /**
@@ -68,6 +74,9 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
      */
     protected float weight = DEFAULT_WEIGHT;
 
+    /**
+     * The example metadata.
+     */
     protected Map<String,Object> metadata = null;
 
     /**
@@ -317,6 +326,13 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
         return null;
     }
 
+    /**
+     * Overwrites the feature with the matching name.
+     * <p>
+     * Throws {@link IllegalArgumentException} if there isn't a feature with that
+     * name in this example.
+     * @param feature The new feature value.
+     */
     public abstract void set(Feature feature);
 
     /**

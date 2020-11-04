@@ -27,6 +27,8 @@ import java.util.Optional;
 
 /**
  * Processes the response into quartiles and emits them as classification outputs.
+ * <p>
+ * The emitted outputs are of the form {@code {<name>:first, <name>:second, <name>:third, <name>:fourth} }.
  */
 public class QuartileResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
@@ -47,6 +49,16 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
      */
     private QuartileResponseProcessor() {}
 
+    /**
+     * Constructs a repsonse processor which emits 4 distinct bins for the output factory to process.
+     * <p>
+     * This works best with classification outputs as the discrete binning is tricky to do in other output
+     * types.
+     * @param name The output string to emit.
+     * @param fieldName The field to read.
+     * @param quartile The quartile range to use.
+     * @param outputFactory The output factory to use.
+     */
     public QuartileResponseProcessor(String name, String fieldName, Quartile quartile, OutputFactory<T> outputFactory) {
         this.name = name;
         this.fieldName = fieldName;

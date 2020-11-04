@@ -70,7 +70,7 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
     /**
      * Constructs a trainer for a sparse linear model using sequential forward selection.
      *
-     * @param normalize Normalizes the data first (i.e. removes the bias term).
+     * @param normalize Normalizes the data first (i.e., removes the bias term).
      * @param maxNumFeatures The maximum number of features to select. Supply -1 to select all features.
      */
     public SLMTrainer(boolean normalize, int maxNumFeatures) {
@@ -83,7 +83,7 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
      * <p>
      * Selects all the features.
      *
-     * @param normalize Normalizes the data first (i.e. removes the bias term).
+     * @param normalize Normalizes the data first (i.e., removes the bias term).
      */
     public SLMTrainer(boolean normalize) {
         this(normalize,-1);

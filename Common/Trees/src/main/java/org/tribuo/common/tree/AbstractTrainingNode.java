@@ -27,6 +27,9 @@ import java.util.SplittableRandom;
  */
 public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<T> {
 
+    /**
+     * Default buffer size used in the split operation.
+     */
     protected static final int DEFAULT_SIZE = 16;
 
     protected final int depth;
@@ -47,6 +50,12 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     
     protected Node<T> lessThanOrEqual;
 
+    /**
+     * Builds an abstract training node.
+     * @param depth The depth of this node.
+     * @param numExamples The number of examples in this node.
+     * @param leafDeterminer The parameters which determine if the node forms a leaf.
+     */
     protected AbstractTrainingNode(int depth, int numExamples, LeafDeterminer leafDeterminer) {
         this.depth = depth;
         this.numExamples = numExamples;
@@ -63,6 +72,10 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     public abstract List<AbstractTrainingNode<T>> buildTree(int[] featureIDs, SplittableRandom rng,
                                                             boolean useRandomSplitPoints);
 
+    /**
+     * Converts a tree from a training representation to the final inference time representation.
+     * @return The converted subtree.
+     */
     public abstract Node<T> convertTree();
 
     /**
@@ -71,6 +84,10 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
      */
     public abstract float getWeightSum();
 
+    /**
+     * The depth of this node in the tree.
+     * @return The depth.
+     */
     public int getDepth() {
         return depth;
     }
@@ -122,6 +139,10 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
         }
     }
 
+    /**
+     * The number of training examples in this node.
+     * @return The number of training examples in this node.
+     */
     public int getNumExamples() {
         return numExamples;
     }

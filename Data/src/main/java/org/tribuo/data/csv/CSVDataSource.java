@@ -50,7 +50,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * A {@link DataSource} for loading separable data from a text file (e.g. CSV, TSV)
+ * A {@link DataSource} for loading separable data from a text file (e.g., CSV, TSV)
  * and applying {@link FieldProcessor}s to it.
  */
 public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
@@ -175,6 +175,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
         this.provenance = new CSVDataSourceProvenance(this);
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.dataFile = dataPath.toUri();
@@ -235,6 +238,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
         return pushbackStream;
     }
 
+    /**
+     * Provenance for {@link CSVDataSource}.
+     */
     public static class CSVDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

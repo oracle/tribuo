@@ -223,6 +223,10 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     protected abstract AbstractTrainingNode<T> mkTrainingNode(Dataset<T> examples,
                                                               AbstractTrainingNode.LeafDeterminer leafDeterminer);
 
+    /**
+     * Provenance for {@link AbstractCARTTrainer}. No longer used.
+     */
+    @Deprecated
     protected static abstract class AbstractCARTTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 

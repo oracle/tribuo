@@ -251,7 +251,7 @@ public class EvaluationAggregationTests {
     }
 
     /**
-     * Use EvaluationAggregator to summarize model outputs across several metrics (you can compute e.g. macro precision this way)
+     * Use EvaluationAggregator to summarize model outputs across several metrics (you can compute e.g., macro precision this way)
      */
     @Test
     public void macroPrec() {

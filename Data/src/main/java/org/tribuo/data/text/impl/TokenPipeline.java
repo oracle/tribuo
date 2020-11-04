@@ -106,6 +106,9 @@ public class TokenPipeline implements TextPipeline {
      */
     private TokenPipeline() {}
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         for (int i = 1; i <= ngram; ++i) {

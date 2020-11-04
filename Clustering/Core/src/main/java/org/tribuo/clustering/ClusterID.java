@@ -29,7 +29,7 @@ import java.util.Objects;
  * with that cluster, if available.
  * <p>
  * The id is {@link ClusterID#UNASSIGNED} if the output is not assigned to a
- * cluster (e.g. before the {@link Model} has been trained).
+ * cluster (e.g., before the {@link Model} has been trained).
  */
 public class ClusterID implements Output<ClusterID> {
     private static final long serialVersionUID = 1L;

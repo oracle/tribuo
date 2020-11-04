@@ -31,6 +31,12 @@ public class Excuse<T extends Output<T>> {
     private final Prediction<T> prediction;
     private final Map<String,List<Pair<String,Double>>> weights;
 
+    /**
+     * Constructs an excuse for the prediction of the supplied example, using the feature weights.
+     * @param example The example to excuse.
+     * @param prediction The prediction to excuse.
+     * @param weights The feature weights involved.
+     */
     public Excuse(Example<T> example, Prediction<T> prediction, Map<String,List<Pair<String,Double>>> weights) {
         this.example = example;
         this.prediction = prediction;

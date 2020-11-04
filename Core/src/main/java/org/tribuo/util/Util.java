@@ -368,7 +368,7 @@ public final class Util {
 
     /**
      * Generates a cumulative distribution function from the supplied probability mass function.
-     * @param pmf The probability mass function (i.e. the probability distribution).
+     * @param pmf The probability mass function (i.e., the probability distribution).
      * @return The CDF.
      */
     public static double[] generateCDF(double[] pmf) {
@@ -411,7 +411,7 @@ public final class Util {
 
     /**
      * Generates a cumulative distribution function from the supplied probability mass function.
-     * @param pmf The probability mass function (i.e. the probability distribution).
+     * @param pmf The probability mass function (i.e., the probability distribution).
      * @return The CDF.
      */
     public static double[] generateCDF(float[] pmf) {
@@ -815,7 +815,7 @@ public final class Util {
      * Calculates the area under the curve, bounded below by the x axis.
      * <p>
      * Uses linear interpolation between the points on the x axis,
-     * i.e. trapezoidal integration.
+     * i.e., trapezoidal integration.
      * <p>
      * The x axis must be increasing.
      * @param x The x points to evaluate.

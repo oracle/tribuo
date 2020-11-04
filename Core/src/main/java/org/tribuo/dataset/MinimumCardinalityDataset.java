@@ -151,6 +151,9 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
         return new MinimumCardinalityDatasetProvenance(this);
     }
 
+    /**
+     * Provenance for {@link MinimumCardinalityDataset}.
+     */
     public static class MinimumCardinalityDatasetProvenance extends DatasetProvenance {
         private static final long serialVersionUID = 1L;
 

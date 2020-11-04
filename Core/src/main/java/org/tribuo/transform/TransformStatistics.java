@@ -34,7 +34,7 @@ public interface TransformStatistics {
     public void observeValue(double value);
 
     /**
-     * Observes a sparse (i.e. zero) value.
+     * Observes a sparse (i.e., zero) value.
      */
     public void observeSparse();
 

@@ -45,6 +45,10 @@ public class DoubleFieldProcessor implements FieldProcessor {
      */
     private DoubleFieldProcessor() {}
 
+    /**
+     * Constructs a field processor which extracts a single double valued feature from the specified field name.
+     * @param fieldName The field name to read.
+     */
     public DoubleFieldProcessor(String fieldName) {
         this.fieldName = fieldName;
     }

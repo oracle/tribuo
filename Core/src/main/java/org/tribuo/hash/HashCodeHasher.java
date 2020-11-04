@@ -79,6 +79,9 @@ public final class HashCodeHasher extends Hasher {
         salt = null;
     }
 
+    /**
+     * Provenance for the {@link HashCodeHasher}.
+     */
     public final static class HashCodeHasherProvenance implements ConfiguredObjectProvenance {
         private static final long serialVersionUID = 1L;
 

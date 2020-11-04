@@ -206,6 +206,54 @@ learning rate](https://twitter.com/karpathy/status/801621764144971776) and an
 adjusted beta one parameter (note these parameters are just demonstration
 values, we're not recommending these specific values).
 
+As configuration is part of the class file rather than the public documented API
+(because it operates on private fields), OLCUT ships with a CLI utility for 
+inspecting a configurable class and generating an example configuration in any 
+supported configuration format. To use this utility from the command line you 
+can run:
+```shell
+$ java -cp <path-to-jars-including-olcut-core> com.oracle.labs.mlrg.olcut.config.DescribeConfigurable -n <class-name> -o -e xml
+```
+where the `-n` argument denotes what class to describe, `-o` denotes that an 
+example configuration should be generated, and `-e` gives the file format to 
+emit the example configuration in.
+
+For example, running `DescribeConfigurable` on `LinearSGDTrainer` gives:
+```shell
+$ java -cp <path-to-tribuo-jars> com.oracle.labs.mlrg.olcut.config.DescribeConfigurable -n org.tribuo.classification.sgd.linear.LinearSGDTrainer -o -e xml
+```
+```
+Class: org.tribuo.classification.sgd.linear.LinearSGDTrainer
+
+Field Name      Type                                         Mandatory Redact Default                                                       Description
+epochs          int                                          false     false  5                                                             The number of gradient descent epochs.
+loggingInterval int                                          false     false  -1                                                            Log values after this many updates.
+minibatchSize   int                                          false     false  1                                                             Minibatch size in SGD.
+objective       org.tribuo.classification.sgd.LabelObjective false     false  LogMulticlass                                                 The classification objective function to use.
+optimiser       org.tribuo.math.StochasticGradientOptimiser  false     false  AdaGrad(initialLearningRate=1.0,epsilon=0.1,initialValue=0.0) The gradient optimiser to use.
+seed            long                                         false     false  12345                                                         Seed for the RNG used to shuffle elements.
+shuffle         boolean                                      false     false  true                                                          Shuffle the data before each epoch. Only turn off for debugging.
+
+Example :
+<?xml version="1.0" encoding="utf-8"?>
+<!--OLCUT configuration file-->
+<config>
+<component name="example" type="org.tribuo.classification.sgd.linear.LinearSGDTrainer" export="false" import="false">
+	<property name="seed" value="0"/>
+	<property name="minibatchSize" value="0"/>
+	<property name="shuffle" value="false"/>
+	<property name="epochs" value="0"/>
+	<property name="optimiser" value="StochasticGradientOptimiser-instance"/>
+	<property name="loggingInterval" value="0"/>
+	<property name="objective" value="LabelObjective-instance"/>
+</component>
+</config>
+```
+
+It's also possible to access this information programmatically, but there are several ways of doing that in OLCUT
+each appropriate to different use cases.
+
+
 ## Data Loading
 
 ### Built-in formats

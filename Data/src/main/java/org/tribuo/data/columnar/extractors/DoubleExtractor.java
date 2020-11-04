@@ -30,11 +30,21 @@ import java.util.logging.Logger;
 public class DoubleExtractor extends SimpleFieldExtractor<Double> {
     private static final Logger logger = Logger.getLogger(DoubleExtractor.class.getName());
 
-
+    /**
+     * Extracts a double value from the supplied field name.
+     * Writes the metadata out using the field name as the key.
+     * @param fieldName The field name to inspect.
+     */
     public DoubleExtractor(String fieldName) {
         super(fieldName);
     }
 
+    /**
+     * Extracts a double value from the supplied field name.
+     * Writes the metadata out using the metadataName as the key.
+     * @param fieldName The field name to inspect.
+     * @param metadataName The metadata name to emit.
+     */
     public DoubleExtractor(String fieldName, String metadataName) {
         super(fieldName, metadataName);
     }

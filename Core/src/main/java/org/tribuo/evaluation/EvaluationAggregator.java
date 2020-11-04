@@ -193,7 +193,7 @@ public final class EvaluationAggregator {
     }
 
     /**
-     * Calculates the argmax of a metric across the supplied models (i.e. the index of the model which performed the best).
+     * Calculates the argmax of a metric across the supplied models (i.e., the index of the model which performed the best).
      * @param metric The metric to evaluate.
      * @param models The models to evaluate across.
      * @param dataset The dataset to evaluate on.

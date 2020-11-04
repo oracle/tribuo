@@ -28,11 +28,23 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
 
     private final int id;
 
+    /**
+     * Constructs a categorical id info copying the information from the supplied info, with the specified id.
+     * @param info The info to copy.
+     * @param id The id number to use.
+     */
     public CategoricalIDInfo(CategoricalInfo info, int id) {
         super(info);
         this.id = id;
     }
 
+    /**
+     * Constructs a copy of the supplied categorical id info with the new name.
+     * <p>
+     * Used in the feature hashing system.
+     * @param info The info to copy.
+     * @param newName The new feature name.
+     */
     private CategoricalIDInfo(CategoricalIDInfo info, String newName) {
         super(info,newName);
         this.id = info.id;

@@ -24,16 +24,36 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
 
     private final int id;
 
+    /**
+     * Constructs a real id info from the supplied arguments.
+     * @param name The feature name.
+     * @param count The feature occurrence count.
+     * @param max The maximum observed value.
+     * @param min The minimum observed value.
+     * @param mean The observed mean.
+     * @param sumSquares The observed sum of squared values.
+     * @param id The id number.
+     */
     public RealIDInfo(String name, int count, double max, double min, double mean, double sumSquares, int id) {
         super(name,count,max,min,mean,sumSquares);
         this.id = id;
     }
 
+    /**
+     * Constructs a deep copy of the supplied real info and id.
+     * @param info The info to copy.
+     * @param id The new id number.
+     */
     public RealIDInfo(RealInfo info, int id) {
         super(info);
         this.id = id;
     }
 
+    /**
+     * Copies the supplied real id info, renaming the feature.
+     * @param info The info to copy.
+     * @param newName The new name.
+     */
     private RealIDInfo(RealIDInfo info, String newName) {
         super(info,newName);
         this.id = info.id;

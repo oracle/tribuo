@@ -29,10 +29,19 @@ package org.tribuo.classification;
 public final class Label implements Classifiable<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The name of the unknown label (i.e., an unlabelled output).
+     */
     public static final String UNKNOWN = "LABEL##UNKNOWN";
 
+    /**
+     * The name of the label.
+     */
     protected final String label;
 
+    /**
+     * The score of the label.
+     */
     protected final double score;
 
     /**

@@ -17,6 +17,6 @@
 /**
  * Provides common functionality for building decision trees, irrespective
  * of the predicted {@link org.tribuo.Output}. Also
- * has an implementation of Random Forests.
+ * has implementations of Random Forests and Extra Trees.
  */
 package org.tribuo.common.tree;

@@ -68,8 +68,14 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
     
     private static final Logger logger = Logger.getLogger(LibSVMTrainer.class.getName());
 
+    /**
+     * The SVM parameters suitable for use by LibSVM.
+     */
     protected svm_parameter parameters;
 
+    /**
+     * The type of SVM algorithm.
+     */
     @Config(mandatory=true,description="Type of SVM algorithm.")
     protected SVMType<T> svmType;
 
@@ -113,6 +119,10 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
      */
     protected LibSVMTrainer() {}
 
+    /**
+     * Constructs a LibSVMTrainer from the parameters.
+     * @param parameters The SVM parameters.
+     */
     protected LibSVMTrainer(SVMParameters<T> parameters) {
         this.parameters = parameters.getParameters();
         // Unpack the parameters for the provenance system.
@@ -130,6 +140,9 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         this.probability = this.parameters.probability == 1;
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         parameters = new svm_parameter();
