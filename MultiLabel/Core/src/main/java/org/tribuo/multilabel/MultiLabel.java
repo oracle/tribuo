@@ -17,8 +17,10 @@
 package org.tribuo.multilabel;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 import org.tribuo.classification.Label;
+import org.tribuo.math.la.SparseVector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -270,6 +272,35 @@ public class MultiLabel implements Classifiable<MultiLabel> {
             return str + ":" + score;
         }
         return str;
+    }
+
+    /**
+     * Converts this MultiLabel into a SparseVector using the indices from the output info.
+     * The label score is used as the value for that index.
+     * @param info The info to use for the ids.
+     * @return A SparseVector representing this MultiLabel.
+     */
+    public SparseVector convertToSparseVector(ImmutableOutputInfo<MultiLabel> info) {
+        if (!(info instanceof ImmutableMultiLabelInfo)) {
+            throw new IllegalStateException("Unexpected info type, found " + info.getClass().getName() + ", expected " + ImmutableMultiLabelInfo.class.getName());
+        } else {
+            ImmutableMultiLabelInfo imInfo = (ImmutableMultiLabelInfo) info;
+            Map<Integer, Double> values = new HashMap<>();
+
+            for (Label l : labels) {
+                int i = imInfo.getID(l.getLabel());
+                if (i != -1) {
+                    Double t = values.put(i,l.getScore());
+                    if (t != null) {
+                        throw new IllegalArgumentException("Duplicate label ids found for id " + i + ", mapping to Label '" + l.getLabel() + "'");
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unknown label '" + l.getLabel() + "' which was not recognised by the supplied info object, info = " + info.toString());
+                }
+            }
+
+            return SparseVector.createSparseVector(info.size(), values);
+        }
     }
 
     /**
