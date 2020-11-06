@@ -129,10 +129,12 @@ public class DenseVector implements SGDVector {
      * @param reduction The reduction operation (should be commutative).
      * @return The reduced value.
      */
+    @Override
     public double reduce(double initialValue, DoubleUnaryOperator op, DoubleBinaryOperator reduction) {
         double output = initialValue;
         for (int i = 0; i < elements.length; i++) {
-            output = reduction.applyAsDouble(output,get(i));
+            double transformed = op.applyAsDouble(get(i));
+            output = reduction.applyAsDouble(transformed,output);
         }
         return output;
     }

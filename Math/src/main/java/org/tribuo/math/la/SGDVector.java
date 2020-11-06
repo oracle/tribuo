@@ -18,6 +18,9 @@ package org.tribuo.math.la;
 
 import org.tribuo.math.util.VectorNormalizer;
 
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
+
 /**
  * Interface for 1 dimensional {@link Tensor}s.
  * <p>
@@ -148,6 +151,18 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
     public void normalize(VectorNormalizer normalizer);
 
     /**
+     * Reduces the vector, applying the transformation to every value (including the implicit zeros)
+     * and reducing the output by applying the supplied reduction operator (where the right argument is
+     * the current reduction value, and the left argument is the transformed value). The reduction
+     * operation is seeded with the initial value.
+     * @param initial The initial value for the reduction.
+     * @param transform The transformation operator.
+     * @param reduction The reduction operator.
+     * @return The reduction of this vector.
+     */
+    public double reduce(double initial, DoubleUnaryOperator transform, DoubleBinaryOperator reduction);
+
+    /**
      * Synonym for euclideanDistance.
      * @param other The other vector.
      * @return The l2 norm of the difference between the two vectors.
@@ -210,4 +225,10 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
      * @return The variance of the vector.
      */
     public double variance(double mean);
+
+    /**
+     * Returns an array containing all the values in the vector (including any implicit zeros).
+     * @return An array copy.
+     */
+    public double[] toArray();
 }

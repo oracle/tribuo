@@ -19,6 +19,8 @@ package org.tribuo.multilabel.sgd.objectives;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.util.SigmoidNormalizer;
 import org.tribuo.multilabel.sgd.MultiLabelObjective;
 import org.tribuo.math.la.SGDVector;
@@ -29,9 +31,9 @@ import org.tribuo.math.util.VectorNormalizer;
  * <p>
  * Generates a probabilistic model, and uses a {@link SigmoidNormalizer}.
  */
-public class Sigmoid implements MultiLabelObjective {
+public final class BinaryCrossEntropy implements MultiLabelObjective {
 
-    private final VectorNormalizer normalizer = new SigmoidNormalizer();
+    private static final VectorNormalizer normalizer = new SigmoidNormalizer();
 
     /**
      * Returns a {@link Pair} of {@link Double} and the supplied prediction vector.
@@ -43,18 +45,33 @@ public class Sigmoid implements MultiLabelObjective {
      */
     @Override
     public Pair<Double,SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
-        prediction.normalize(normalizer);
-        /*
-        double loss = Math.log(prediction.get(truth));
-        prediction.scaleInPlace(-1.0);
-        prediction.add(truth,1.0);
-        */
-        return new Pair<>(0.0,prediction);
+        DenseVector labels, densePred;
+        if (truth instanceof SparseVector) {
+            labels = ((SparseVector) truth).densify();
+        } else {
+            labels = (DenseVector) truth;
+        }
+        if (prediction instanceof SparseVector) {
+            densePred = ((SparseVector) prediction).densify();
+        } else {
+            densePred = (DenseVector) prediction;
+        }
+
+        double loss = 0.0;
+        for (int i = 0; i < prediction.size(); i++) {
+            double label = labels.get(i);
+            double pred = densePred.get(i);
+            double yhat = SigmoidNormalizer.sigmoid(pred);
+            // numerically stable form of loss computation
+            loss += Math.max(pred, 0) - (pred * label) + Math.log1p(Math.exp(-Math.abs(pred)));
+            densePred.set(i,-(yhat - label));
+        }
+        return new Pair<>(loss,densePred);
     }
 
     @Override
     public VectorNormalizer getNormalizer() {
-        return new SigmoidNormalizer();
+        return normalizer;
     }
 
     /**
@@ -67,8 +84,13 @@ public class Sigmoid implements MultiLabelObjective {
     }
 
     @Override
+    public double threshold() {
+        return 0.5;
+    }
+
+    @Override
     public String toString() {
-        return "Sigmoid";
+        return "BinaryCrossEntropy";
     }
 
     @Override

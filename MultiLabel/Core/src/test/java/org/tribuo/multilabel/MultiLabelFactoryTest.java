@@ -121,5 +121,4 @@ public class MultiLabelFactoryTest {
         assertThrows(NullPointerException.class, () -> factory.generateOutput(new HashSet<>(Arrays.asList("a", null, "b"))));
     }
 
-
 }

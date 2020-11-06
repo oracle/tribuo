@@ -33,7 +33,7 @@ import org.tribuo.math.util.VectorNormalizer;
  * <p>
  * The Hinge loss does not generate a probabilistic model, and uses a {@link NoopNormalizer}.
  */
-public class Hinge implements MultiLabelObjective {
+public final class Hinge implements MultiLabelObjective {
 
     @Config(description="The classification margin.")
     private double margin = 1.0;
@@ -61,15 +61,30 @@ public class Hinge implements MultiLabelObjective {
      */
     @Override
     public Pair<Double,SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
-        DenseVector diff;
+        DenseVector labels, densePred;
         if (truth instanceof SparseVector) {
-            diff = DenseVector.createDenseVector(((SparseVector)truth).toDenseArray());
+            labels = ((SparseVector) truth).densify();
         } else {
-            diff = ((DenseVector) truth).copy();
+            labels = (DenseVector) truth;
         }
-        diff.hadamardProductInPlace(prediction);
-        diff.foreachInPlace(value -> { if (value > margin) { return 0.0; } else if (value <= 0) { return -margin; } else { return margin; }});
-        return new Pair<>(0.0,diff);
+        if (prediction instanceof SparseVector) {
+            densePred = ((SparseVector) prediction).densify();
+        } else {
+            densePred = (DenseVector) prediction;
+        }
+        double loss = 0.0;
+        for (int i = 0; i < labels.size(); i++) {
+           double lbl = labels.get(i) == 0.0 ? -1 : 1.0;
+           double pred = densePred.get(i);
+           double score = lbl * pred;
+           if (score < margin) {
+               densePred.set(i, lbl);
+           } else {
+               densePred.set(i, 0.0);
+           }
+           loss += Math.max(0.0,margin - score);
+        }
+        return new Pair<>(loss,densePred);
     }
 
     /**
@@ -88,6 +103,11 @@ public class Hinge implements MultiLabelObjective {
     @Override
     public boolean isProbabilistic() {
         return false;
+    }
+
+    @Override
+    public double threshold() {
+        return 0;
     }
 
     @Override

@@ -21,24 +21,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
-import org.tribuo.Example;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
-import org.tribuo.classification.Label;
-import org.tribuo.classification.evaluation.LabelEvaluation;
-import org.tribuo.classification.evaluation.LabelEvaluator;
-import org.tribuo.classification.example.LabelledDataGenerator;
-import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
-import org.tribuo.dataset.DatasetView;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.multilabel.MultiLabel;
-import org.tribuo.multilabel.MultiLabelFactory;
-import org.tribuo.multilabel.baseline.IndependentMultiLabelTrainer;
 import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.tribuo.multilabel.sgd.objectives.Hinge;
-import org.tribuo.multilabel.sgd.objectives.Sigmoid;
+import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.test.Helpers;
 
 import java.util.List;
@@ -52,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class TestSGDLinear {
 
     private static final LinearSGDTrainer hinge = new LinearSGDTrainer(new Hinge(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
-    private static final LinearSGDTrainer sigmoid = new LinearSGDTrainer(new Sigmoid(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
+    private static final LinearSGDTrainer sigmoid = new LinearSGDTrainer(new BinaryCrossEntropy(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
 
     @BeforeAll
     public static void setup() {

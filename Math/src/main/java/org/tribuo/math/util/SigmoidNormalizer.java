@@ -25,11 +25,20 @@ import java.io.Serializable;
 public class SigmoidNormalizer implements VectorNormalizer, Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * A logistic sigmoid function.
+     * @param input The input to sigmoid.
+     * @return The logistic function applied to the input.
+     */
+    public static double sigmoid(double input) {
+        return 1.0 / (1.0 + Math.exp(-input));
+    }
+
     @Override
     public double[] normalize(double[] input) {
         double[] output = new double[input.length];
         for (int i = 0; i < input.length; i++) {
-            output[i] = 1.0 / (1.0 + Math.exp(input[i]));
+            output[i] = sigmoid(input[i]);
         }
         return output;
     }

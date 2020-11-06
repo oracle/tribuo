@@ -33,6 +33,7 @@ public interface MultiLabelObjective extends Configurable, Provenancable<Configu
 
     /**
      * Scores a prediction, returning the loss and a vector of per label gradients.
+     * May mutate the prediction and return it as the gradient.
      * @param truth The true label ids.
      * @param prediction The prediction for each label id.
      * @return The score and per label gradient.
@@ -50,5 +51,11 @@ public interface MultiLabelObjective extends Configurable, Provenancable<Configu
      * @return boolean.
      */
     public boolean isProbabilistic();
+
+    /**
+     * The default prediction threshold for creating the output.
+     * @return The threshold.
+     */
+    public double threshold();
 
 }

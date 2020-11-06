@@ -33,7 +33,7 @@
         <property name="seed" value="1"/>
     </component>
 
-    <component name="sigmoid" type="org.tribuo.multilabel.sgd.objectives.Sigmoid"/>
+    <component name="sigmoid" type="org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy"/>
 
     <component name="adagradparam" type="org.tribuo.math.optimisers.ParameterAveraging">
         <property name="optimiser" value="adagrad"/>

@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Collectors;
 
@@ -757,6 +758,30 @@ public class SparseVector implements SGDVector {
     }
 
     @Override
+    public double reduce(double initial, DoubleUnaryOperator transform, DoubleBinaryOperator reduction) {
+        double output = initial;
+
+        double transformedZero = transform.applyAsDouble(0.0f);
+
+        int i = 0;
+        for (VectorTuple tuple : this) {
+            while (i < tuple.index) {
+                output = reduction.applyAsDouble(transformedZero,output);
+                i++;
+            }
+            double transformed = transform.applyAsDouble(tuple.value);
+            output = reduction.applyAsDouble(transformed,output);
+            i++;
+        }
+        while (i < size) {
+            output = reduction.applyAsDouble(transformedZero,output);
+            i++;
+        }
+
+        return output;
+    }
+
+    @Override
     public double euclideanDistance(SGDVector other) {
         return distance(other,(double a) -> a*a, Math::sqrt);
     }
@@ -851,7 +876,25 @@ public class SparseVector implements SGDVector {
         return buffer.toString();
     }
 
+    /**
+     * Returns a dense vector copying this sparse vector.
+     * @return A dense copy of this vector.
+     */
+    public DenseVector densify() {
+        return new DenseVector(toArray());
+    }
+
+    /**
+     * Generates a dense array copy of this SparseVector.
+     * @return A dense array containing this vector along with the implicit zeros.
+     */
+    @Deprecated
     public double[] toDenseArray() {
+        return toArray();
+    }
+
+    @Override
+    public double[] toArray() {
         double[] output = new double[size];
         for (int i = 0; i < values.length; i++) {
             output[indices[i]] = values[i];

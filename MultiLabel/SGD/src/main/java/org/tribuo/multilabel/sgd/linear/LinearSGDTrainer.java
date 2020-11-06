@@ -34,7 +34,7 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.optimisers.AdaGrad;
-import org.tribuo.multilabel.sgd.objectives.Sigmoid;
+import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -58,7 +58,7 @@ public class LinearSGDTrainer implements Trainer<MultiLabel>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(description="The classification objective function to use.")
-    private MultiLabelObjective objective = new Sigmoid();
+    private MultiLabelObjective objective = new BinaryCrossEntropy();
 
     @Config(description="The gradient optimiser to use.")
     private StochasticGradientOptimiser optimiser = new AdaGrad(1.0,0.1);
@@ -234,7 +234,7 @@ public class LinearSGDTrainer implements Trainer<MultiLabel>, WeightedExamples {
         localOptimiser.finalise();
         ModelProvenance provenance = new ModelProvenance(LinearSGDModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
         //public LinearSGDModel(String name, String description, ImmutableInfoMap featureIDMap, ImmutableInfoMap outputIDInfo, LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities) {
-        Model<MultiLabel> model = new LinearSGDModel("linear-sgd-model",provenance,featureIDMap,labelIDMap,linearParameters,objective.getNormalizer(),objective.isProbabilistic());
+        Model<MultiLabel> model = new LinearSGDModel("linear-sgd-model",provenance,featureIDMap,labelIDMap,linearParameters,objective.getNormalizer(),objective.isProbabilistic(),objective.threshold());
         localOptimiser.reset();
         return model;
     }

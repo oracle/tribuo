@@ -60,21 +60,24 @@ public class LinearSGDModel extends Model<MultiLabel> {
 
     private final DenseMatrix weights;
     private final VectorNormalizer normalizer;
+    private final double threshold;
 
     LinearSGDModel(String name, ModelProvenance description,
                    ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> labelIDMap,
-                   LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities) {
+                   LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities, double threshold) {
         super(name, description, featureIDMap, labelIDMap, generatesProbabilities);
         this.weights = parameters.getWeightMatrix();
         this.normalizer = normalizer;
+        this.threshold = threshold;
     }
 
     private LinearSGDModel(String name, ModelProvenance description,
                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> labelIDMap,
-                          DenseMatrix weights, VectorNormalizer normalizer, boolean generatesProbabilities) {
+                          DenseMatrix weights, VectorNormalizer normalizer, boolean generatesProbabilities, double threshold) {
         super(name, description, featureIDMap, labelIDMap, generatesProbabilities);
         this.weights = weights;
         this.normalizer = normalizer;
+        this.threshold = threshold;
     }
 
     @Override
@@ -85,12 +88,18 @@ public class LinearSGDModel extends Model<MultiLabel> {
         }
         DenseVector prediction = weights.leftMultiply(features);
         double[] outputs = normalizer.normalize(prediction.toArray());
+        Map<String,MultiLabel> fullLabels = new HashMap<>();
         Set<Label> predictedLabels = new HashSet<>();
         for (int i = 0; i < outputs.length; i++) {
-            Label score = new Label(outputIDInfo.getOutput(i).getLabelString(),outputs[i]);
-            predictedLabels.add(score);
+            String labelName = outputIDInfo.getOutput(i).getLabelString();
+            double labelScore = outputs[i];
+            Label score = new Label(outputIDInfo.getOutput(i).getLabelString(),labelScore);
+            if (labelScore > threshold) {
+                predictedLabels.add(score);
+            }
+            fullLabels.put(labelName,new MultiLabel(score));
         }
-        return new Prediction<>(new MultiLabel(predictedLabels), features.numActiveElements(), example);
+        return new Prediction<>(new MultiLabel(predictedLabels), fullLabels, features.numActiveElements(), example, generatesProbabilities);
     }
 
     @Override
@@ -162,6 +171,6 @@ public class LinearSGDModel extends Model<MultiLabel> {
 
     @Override
     protected LinearSGDModel copy(String newName, ModelProvenance newProvenance) {
-        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(weights),normalizer,generatesProbabilities);
+        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(weights),normalizer,generatesProbabilities,threshold);
     }
 }

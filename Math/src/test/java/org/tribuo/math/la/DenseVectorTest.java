@@ -19,6 +19,8 @@ package org.tribuo.math.la;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.function.DoubleUnaryOperator;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -26,90 +28,113 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class DenseVectorTest {
 
-    private DenseVector generateVectorA() {
+    private static DenseVector generateVectorA() {
         //int[] indices = new int[]{0,1,4,5,8};
         double[] values = new double[]{1.0,2.0,0.0,0.0,3.0,4.0,0.0,0.0,5.0,0.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorB() {
+    private static DenseVector generateVectorB() {
         //int[] indices = new int[]{0,1,4,5,8};
         double[] values = new double[]{-1.0,2.0,0.0,0.0,-3.0,4.0,0.0,0.0,-5.0,0.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorC() {
+    private static DenseVector generateVectorC() {
         //int[] indices = new int[]{1,5,6,7,9};
         double[] values = new double[]{0.0,2.0,0.0,0.0,0.0,3.0,4.0,5.0,0.0,6.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorASubB() {
+    private static DenseVector generateVectorASubB() {
         //int[] indices = new int[]{0,1,4,5,8};
         double[] values = new double[]{2.0,0.0,0.0,0.0,6.0,0.0,0.0,0.0,10.0,0.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorASubC() {
+    private static DenseVector generateVectorASubC() {
         //int[] indices = new int[]{0,1,4,5,6,7,8,9};
         double[] values = new double[]{1.0,0.0,0.0,0.0,3.0,1.0,-4.0,-5.0,5.0,-6.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorBSubA() {
+    private static DenseVector generateVectorBSubA() {
         //int[] indices = new int[]{0,1,4,5,8};
         double[] values = new double[]{-2.0,0.0,0.0,0.0,-6.0,0.0,0.0,0.0,-10.0,0.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorBSubC() {
+    private static DenseVector generateVectorBSubC() {
         //int[] indices = new int[]{0,1,4,5,6,7,8,9};
         double[] values = new double[]{-1.0,0.0,0.0,0.0,-3.0,1.0,-4.0,-5.0,-5.0,-6.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorCSubA() {
+    private static DenseVector generateVectorCSubA() {
         //int[] indices = new int[]{0,1,4,5,6,7,8,9};
         double[] values = new double[]{-1.0,0.0,0.0,0.0,-3.0,-1.0,4.0,5.0,-5.0,6.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorCSubB() {
+    private static DenseVector generateVectorCSubB() {
         //int[] indices = new int[]{0,1,4,5,6,7,8,9};
         double[] values = new double[]{1.0,0.0,0.0,0.0,3.0,-1.0,4.0,5.0,5.0,6.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateEmptyVector() {
+    private static DenseVector generateEmptyVector() {
         return new DenseVector(10);
     }
 
-    private DenseVector generateVectorAAddB() {
+    private static DenseVector generateVectorAAddB() {
         //int[] indices = new int[]{0,1,4,5,8};
         double[] values = new double[]{0.0,4.0,0.0,0.0,0.0,8.0,0.0,0.0,0.0,0.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorAAddC() {
+    private static DenseVector generateVectorAAddC() {
         //int[] indices = new int[]{0,1,4,5,6,7,8,9};
         double[] values = new double[]{1.0,4.0,0.0,0.0,3.0,7.0,4.0,5.0,5.0,6.0};
         return DenseVector.createDenseVector(values);
     }
 
-    private DenseVector generateVectorBAddC() {
+    private static DenseVector generateVectorBAddC() {
         //int[] indices = new int[]{0,1,4,5,6,7,8,9};
         double[] values = new double[]{-1.0,4.0,0.0,0.0,-3.0,7.0,4.0,5.0,-5.0,6.0};
         return DenseVector.createDenseVector(values);
     }
 
     @Test
-    public void size() throws Exception {
+    public void testReduction() {
+        DenseVector a = generateVectorA();
+        DenseVector b = generateVectorB();
+        DenseVector c = generateVectorC();
+
+        assertEquals(a.maxValue(),a.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), Double::max));
+        assertEquals(b.maxValue(),b.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), Double::max));
+        assertEquals(c.maxValue(),c.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), Double::max));
+
+        assertEquals(a.minValue(),a.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), Double::min));
+        assertEquals(b.minValue(),b.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), Double::min));
+        assertEquals(c.minValue(),c.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), Double::min));
+
+        assertEquals(a.sum(),a.reduce(0, DoubleUnaryOperator.identity(), Double::sum));
+        assertEquals(b.sum(),b.reduce(0, DoubleUnaryOperator.identity(), Double::sum));
+        assertEquals(c.sum(),c.reduce(0, DoubleUnaryOperator.identity(), Double::sum));
+
+        assertEquals(a.sum(i -> i * i),a.reduce(0, i -> i * i, Double::sum));
+        assertEquals(b.sum(Math::abs),b.reduce(0, Math::abs, Double::sum));
+        assertEquals(c.sum(Math::exp),c.reduce(0, Math::exp, Double::sum));
+    }
+
+    @Test
+    public void size() {
         DenseVector s = generateVectorA();
         assertEquals(10, s.size());
     }
 
     @Test
-    public void overlappingDot() throws Exception {
+    public void overlappingDot() {
         DenseVector a = generateVectorA();
         DenseVector b = generateVectorB();
 
@@ -118,7 +143,7 @@ public class DenseVectorTest {
     }
 
     @Test
-    public void dot() throws Exception {
+    public void dot() {
         DenseVector a = generateVectorA();
         DenseVector c = generateVectorC();
 
@@ -127,7 +152,7 @@ public class DenseVectorTest {
     }
 
     @Test
-    public void emptyDot() throws Exception {
+    public void emptyDot() {
         DenseVector a = generateVectorA();
         DenseVector b = generateVectorB();
         DenseVector c = generateVectorC();
@@ -142,13 +167,13 @@ public class DenseVectorTest {
     }
 
     @Test
-    public void maxIndex() throws Exception {
+    public void maxIndex() {
         DenseVector s = generateVectorB();
         assertEquals(5,s.indexOfMax());
     }
 
     @Test
-    public void add() throws Exception {
+    public void add() {
         DenseVector a = generateVectorA();
         DenseVector b = generateVectorB();
         DenseVector c = generateVectorC();
@@ -175,7 +200,7 @@ public class DenseVectorTest {
     }
 
     @Test
-    public void subtract() throws Exception {
+    public void subtract() {
         DenseVector a = generateVectorA();
         DenseVector b = generateVectorB();
         DenseVector c = generateVectorC();
@@ -207,15 +232,15 @@ public class DenseVectorTest {
         assertEquals(cSubB, c.subtract(b), "C - B");
     }
 
-    public DenseVector invert(DenseVector input) {
+    public static DenseVector invert(DenseVector input) {
         return scale(input,-1.0);
     }
 
-    public DenseVector zero(DenseVector input) {
+    public static DenseVector zero(DenseVector input) {
         return scale(input,0.0);
     }
 
-    public DenseVector scale(DenseVector input, double scale) {
+    public static DenseVector scale(DenseVector input, double scale) {
         DenseVector inverse = new DenseVector(input);
         inverse.scaleInPlace(scale);
         return inverse;

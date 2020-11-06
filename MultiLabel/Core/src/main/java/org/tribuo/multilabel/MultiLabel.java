@@ -276,7 +276,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * Converts this MultiLabel into a SparseVector using the indices from the output info.
-     * The label score is used as the value for that index.
+     * The label score is used as the value for that index if it's non-NaN, and is 1.0 otherwise.
      * @param info The info to use for the ids.
      * @return A SparseVector representing this MultiLabel.
      */
@@ -290,7 +290,11 @@ public class MultiLabel implements Classifiable<MultiLabel> {
             for (Label l : labels) {
                 int i = imInfo.getID(l.getLabel());
                 if (i != -1) {
-                    Double t = values.put(i,l.getScore());
+                    double score = l.getScore();
+                    if (Double.isNaN(score)) {
+                        score = 1.0;
+                    }
+                    Double t = values.put(i,score);
                     if (t != null) {
                         throw new IllegalArgumentException("Duplicate label ids found for id " + i + ", mapping to Label '" + l.getLabel() + "'");
                     }

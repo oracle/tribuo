@@ -22,7 +22,7 @@ import com.oracle.labs.mlrg.olcut.config.Options;
 import org.tribuo.Trainer;
 import org.tribuo.multilabel.sgd.MultiLabelObjective;
 import org.tribuo.multilabel.sgd.objectives.Hinge;
-import org.tribuo.multilabel.sgd.objectives.Sigmoid;
+import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.math.optimisers.GradientOptimiserOptions;
 
 import java.util.logging.Logger;
@@ -60,7 +60,7 @@ public class LinearSGDOptions implements Options {
             case HINGE:
                 return new Hinge();
             case SIGMOID:
-                return new Sigmoid();
+                return new BinaryCrossEntropy();
             default:
                 throw new ArgumentException("sgd-objective", "Unknown loss function " + sgdObjective);
         }
