@@ -25,7 +25,7 @@
     <component name="multi-label-factory" type="org.tribuo.multilabel.MultiLabelFactory"/>
 
     <component name="logistic" type="org.tribuo.multilabel.sgd.linear.LinearSGDTrainer">
-        <property name="objective" value="sigmoid"/>
+        <property name="objective" value="bce"/>
         <property name="optimiser" value="adagradparam"/>
         <property name="epochs" value="10"/>
         <property name="loggingInterval" value="100"/>
@@ -33,7 +33,7 @@
         <property name="seed" value="1"/>
     </component>
 
-    <component name="sigmoid" type="org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy"/>
+    <component name="bce" type="org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy"/>
 
     <component name="adagradparam" type="org.tribuo.math.optimisers.ParameterAveraging">
         <property name="optimiser" value="adagrad"/>

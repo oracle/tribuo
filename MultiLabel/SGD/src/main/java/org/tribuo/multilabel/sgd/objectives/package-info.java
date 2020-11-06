@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides classification loss functions for Stochastic Gradient Descent.
+ * Provides multi-label classification loss functions for Stochastic Gradient Descent.
  */
 package org.tribuo.multilabel.sgd.objectives;

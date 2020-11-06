@@ -27,13 +27,18 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.VectorNormalizer;
 
 /**
- * A multilabel version of binary-cross entropy loss, which incorporates the sigmoid.
+ * A multilabel version of binary cross entropy loss which expects logits.
  * <p>
  * Generates a probabilistic model, and uses a {@link SigmoidNormalizer}.
  */
 public final class BinaryCrossEntropy implements MultiLabelObjective {
 
     private static final VectorNormalizer normalizer = new SigmoidNormalizer();
+
+    /**
+     * Constructs a BinaryCrossEntropy objective.
+     */
+    public BinaryCrossEntropy() {}
 
     /**
      * Returns a {@link Pair} of {@link Double} and the supplied prediction vector.
