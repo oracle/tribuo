@@ -108,7 +108,7 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
      * Transforms an {@link AbstractTrainingNode} into a {@link SplitNode}
      * @return A {@link SplitNode}
      */
-    public SplitNode<T> mkSplitNode() {
+    public SplitNode<T> createSplitNode() {
         Node<T> newGreaterThan = greaterThan;
         Node<T> newLessThan = lessThanOrEqual;
 

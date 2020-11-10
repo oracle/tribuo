@@ -68,7 +68,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * Constructs a trained decision tree model.
      * <p>
      * Only used when the tree has multiple roots, should only be called from
-     * subclassed when *all* other methods are overridden.
+     * subclasses when *all* other methods are overridden.
      * @param name The model name.
      * @param description The model provenance.
      * @param featureIDMap The feature id map.
@@ -101,6 +101,48 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
             }
         }
         return Collections.singletonMap(Model.ALL_OUTPUTS,new ArrayList<>(activeFeatures));
+    }
+
+    /**
+     * Probes the tree to find the depth.
+     * @return The depth of the tree.
+     */
+    public int getDepth() {
+        return computeDepth(0,root);
+    }
+
+    protected static <T extends Output<T>> int computeDepth(int initialDepth, Node<T> root) {
+        int maxDepth = initialDepth;
+        Queue<Pair<Integer,Node<T>>> nodeQueue = new LinkedList<>();
+
+        nodeQueue.offer(new Pair<>(initialDepth,root));
+
+        while (!nodeQueue.isEmpty()) {
+            Pair<Integer,Node<T>> nodePair = nodeQueue.poll();
+            int curDepth = nodePair.getA() + 1;
+            Node<T> node = nodePair.getB();
+            if ((node != null) && !node.isLeaf()) {
+                SplitNode<T> splitNode = (SplitNode<T>) node;
+                Node<T> greaterThan = splitNode.getGreaterThan();
+                Node<T> lessThan = splitNode.getLessThanOrEqual();
+                if (greaterThan instanceof LeafNode) {
+                    if (maxDepth < curDepth) {
+                        maxDepth = curDepth;
+                    }
+                } else {
+                    nodeQueue.offer(new Pair<>(curDepth,greaterThan));
+                }
+                if (lessThan instanceof LeafNode) {
+                    if (maxDepth < curDepth) {
+                        maxDepth = curDepth;
+                    }
+                } else {
+                    nodeQueue.offer(new Pair<>(curDepth,lessThan));
+                }
+            }
+        }
+
+        return maxDepth;
     }
 
     @Override
