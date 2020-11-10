@@ -46,7 +46,7 @@
         <property name="outputFactory" value="label-factory"/>
     </component>
 
-    <component name="mnist-test" type="org.tribuo.datasource.LibSVMDataSource">
+    <component name="mnist-test" type="org.tribuo.datasource.IDXDataSource">
         <property name="featuresPath" value="t10k-images-idx3-ubyte.gz"/>
         <property name="outputPath" value="t10k-labels-idx1-ubyte.gz"/>
         <property name="outputFactory" value="label-factory"/>
