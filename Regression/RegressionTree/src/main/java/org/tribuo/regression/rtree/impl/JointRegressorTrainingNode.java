@@ -338,8 +338,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         boolean shouldMakeRightLeaf = shouldMakeLeaf(rightImpurityScore, rightWeightSum);
 
         if (shouldMakeLeftLeaf && shouldMakeRightLeaf) {
-            lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
-            greaterThan = mkLeaf(rightImpurityScore, rightIndices);
+            lessThanOrEqual = createLeaf(leftImpurityScore, leftIndices);
+            greaterThan = createLeaf(rightImpurityScore, rightIndices);
             return Collections.emptyList();
         }
         //logger.info("Splitting on feature " + bestID + " with value " + bestSplitValue + " at depth " + depth + ", " + numExamples + " examples in node.");
@@ -355,7 +355,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         List<AbstractTrainingNode<Regressor>> output = new ArrayList<>(2);
         AbstractTrainingNode<Regressor> tmpNode;
         if (shouldMakeLeftLeaf) {
-            lessThanOrEqual = mkLeaf(leftImpurityScore, leftIndices);
+            lessThanOrEqual = createLeaf(leftImpurityScore, leftIndices);
         } else {
             tmpNode = new JointRegressorTrainingNode(impurity, lessThanData, leftIndices, targets,
                     weights, leftIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer,
@@ -365,7 +365,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         }
 
         if (shouldMakeRightLeaf) {
-            greaterThan = mkLeaf(rightImpurityScore, rightIndices);
+            greaterThan = createLeaf(rightImpurityScore, rightIndices);
         } else {
             tmpNode = new JointRegressorTrainingNode(impurity, greaterThanData, rightIndices, targets,
                     weights, rightIndices.length, depth + 1, featureIDMap, labelIDMap, normalize, leafDeterminer,
@@ -383,9 +383,9 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
     @Override
     public Node<Regressor> convertTree() {
         if (split) {
-            return mkSplitNode();
+            return createSplitNode();
         } else {
-            return mkLeaf(getImpurity(), indices);
+            return createLeaf(getImpurity(), indices);
         }
     }
 
@@ -395,7 +395,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * @param leafIndices the indices of the examples to be placed in the node.
      * @return A {@link LeafNode}
      */
-    private LeafNode<Regressor> mkLeaf(double impurityScore, int[] leafIndices) {
+    private LeafNode<Regressor> createLeaf(double impurityScore, int[] leafIndices) {
         double leafWeightSum = 0.0;
         double[] mean = new double[targets.length];
         Regressor leafPred;

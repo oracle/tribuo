@@ -21,11 +21,16 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.math.la.SparseVector;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * An immutable leaf {@link Node} that can create a prediction.
+ * <p>
+ * {@link LeafNode#equals} uses the {@link Output#fullEquals(Output)} method
+ * to determine equality of two leaves.
  */
 public class LeafNode<T extends Output<T>> implements Node<T> {
     private static final long serialVersionUID = 4L;
@@ -46,8 +51,38 @@ public class LeafNode<T extends Output<T>> implements Node<T> {
     public LeafNode(double impurity, T output, Map<String,T> scores, boolean generatesProbabilities) {
         this.impurity = impurity;
         this.output = output;
-        this.scores = scores;
+        this.scores = Collections.unmodifiableMap(scores);
         this.generatesProbabilities = generatesProbabilities;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LeafNode<?> leafNode = (LeafNode<?>) o;
+        if (output.getClass().equals(leafNode.output.getClass())) {
+            @SuppressWarnings("unchecked") //guarded by class check
+            LeafNode<T> typedLeafNode = (LeafNode<T>) leafNode;
+            // If the scores have the same keys.
+            if (scores.keySet().equals(typedLeafNode.scores.keySet())) {
+                // Check the values are the same.
+                boolean valueEquals = true;
+                for (Map.Entry<String,T> e : scores.entrySet()) {
+                    valueEquals &= e.getValue().fullEquals(typedLeafNode.scores.get(e.getKey()));
+                }
+                // Check the rest of the object.
+                return valueEquals &&
+                        Double.compare(typedLeafNode.impurity, impurity) == 0 &&
+                        generatesProbabilities == typedLeafNode.generatesProbabilities &&
+                        output.fullEquals(typedLeafNode.output);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(impurity, output, scores, generatesProbabilities);
     }
 
     @Override

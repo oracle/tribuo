@@ -19,6 +19,8 @@ package org.tribuo.common.tree;
 import org.tribuo.Output;
 import org.tribuo.math.la.SparseVector;
 
+import java.util.Objects;
+
 /**
  * An immutable {@link Node} with a split and two child nodes.
  */
@@ -119,6 +121,22 @@ public class SplitNode<T extends Output<T>> implements Node<T> {
     public String toString() {
         return "SplitNode(feature="+splitFeature+",value="+splitValue+",impurity="+impurity+",\n\t\tleft="+lessThanOrEqual.toString()+",\n\t\tright="+greaterThan.toString()+")";
     }
-    
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SplitNode<?> splitNode = (SplitNode<?>) o;
+        return splitFeature == splitNode.splitFeature &&
+                Double.compare(splitNode.splitValue, splitValue) == 0 &&
+                Double.compare(splitNode.impurity, impurity) == 0 &&
+                greaterThan.equals(splitNode.greaterThan) &&
+                lessThanOrEqual.equals(splitNode.lessThanOrEqual);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(greaterThan, lessThanOrEqual, splitFeature, splitValue, impurity);
+    }
 }
 
