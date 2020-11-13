@@ -57,7 +57,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * Builds a MultiLabel object from a Set of Labels.
-     *
+     * <p>
      * Sets the whole set score to {@link Double#NaN}.
      * @param labels A set of (possibly scored) labels.
      */
@@ -76,7 +76,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
         this.label = MultiLabelFactory.generateLabelString(labels);
         this.score = score;
         this.labels = Collections.unmodifiableSet(new HashSet<>(labels));
-        Set<String> temp = new HashSet<>();
+        Set<String> temp = new HashSet<>(labels.size());
         for (Label l : labels) {
             temp.add(l.getLabel());
         }
@@ -85,9 +85,9 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * Builds a MultiLabel with a single String label.
-     *
+     * <p>
      * The created {@link Label} is unscored and used by MultiLabelInfo.
-     *
+     * <p>
      * Sets the whole set score to {@link Double#NaN}.
      * @param label The label.
      */
@@ -97,12 +97,15 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * Builds a MultiLabel from a single Label.
-     *
+     * <p>
      * Sets the whole set score to {@link Double#NaN}.
      * @param label The label.
      */
     public MultiLabel(Label label) {
-        this(Collections.singleton(label));
+        this.label = label.getLabel();
+        this.score = Double.NaN;
+        this.labels = Collections.singleton(label);
+        this.labelStrings = Collections.singleton(label.getLabel());
     }
 
     /**
