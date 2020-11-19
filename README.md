@@ -87,13 +87,16 @@ Tribuo has implementations or interfaces for:
 |SVM-SGD|Tribuo|An implementation of the Pegasos algorithm|
 |Adaboost.SAMME|Tribuo|Can use any Tribuo classification trainer as the base learner|
 |Multinomial Naive Bayes|Tribuo|
-|LIME|Tribuo|Our LIME implementation allows mixing of text and tabular data, but does not support images||
 |Regularised Linear Models|LibLinear||
 |SVM|LibSVM or LibLinear|LibLinear only supports linear SVMs|
 |Gradient Boosted Decision Trees|XGBoost||
 
 Tribuo also supplies a linear chain CRF for sequence classification tasks. This
 CRF is trained via SGD using any of Tribuo's gradient optimizers.
+
+To explain classifier predictions there is an implementation of the LIME algorithm. Tribuo's
+implementation allows the mixing of text and tabular data, along with the use of any sparse model
+as an explainer (e.g., regression trees, lasso etc), however it does not support images.
 
 ### Regression
 
@@ -145,7 +148,7 @@ Currently we have interfaces to:
 * [TensorFlow](https://tensorflow.org) - Using the 1.14 Java API. We're participating in the Tensorflow JVM SIG, 
 and the upcoming TensorFlow 2 Java API will support training models without Python, which we'll incorporate into Tribuo 
 when it's released.
-* [XGBoost](https://xgboost.ai)
+* [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API.
 
 ## Binaries
 
@@ -193,6 +196,16 @@ dependencies should be available on Maven Central. Please file an issue for
 build-related issues if you're having trouble (though do check if you're
 missing proxy settings for Maven first, as that's a common cause of build
 failures, and out of our control).
+
+## Repository Layout
+
+Development happens on the `main` branch, which has the version number of the
+next Tribuo release with "-SNAPSHOT" appended to it. Tribuo major and minor
+releases will be tagged on the `main` branch, and then have a branch named
+`vA.B.X-release-branch` (for release `vA.B.0`) branched from the tagged release
+commit for any point releases (i.e., `vA.B.1`, `vA.B.2` etc) following from
+that major/minor release. Those point releases are tagged on the specific
+release branch e.g., `v4.0.2` is tagged on the `v4.0.X-release-branch`.
 
 ## Contributing
 
