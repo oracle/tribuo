@@ -67,6 +67,13 @@ public class KMeansModel extends Model<ClusterID> {
 
     /**
      * Returns a copy of the centroids.
+     * <p>
+     * In most cases you should prefer {@link #getCentroids} as
+     * it performs the mapping from Tribuo's internal feature ids
+     * to the externally visible feature names for you.
+     * This method provides direct access to the centroid vectors
+     * for use in downstream processing if the ids are not relevant
+     * (or are known to match).
      * @return The centroids.
      */
     public DenseVector[] getCentroidVectors() {
