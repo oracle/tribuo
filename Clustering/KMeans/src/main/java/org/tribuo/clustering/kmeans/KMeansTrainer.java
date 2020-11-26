@@ -142,6 +142,19 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     }
 
     /**
+     * Constructs a K-Means trainer using the supplied parameters and the default random initialisation.
+     *
+     * @param centroids The number of centroids to use.
+     * @param iterations The maximum number of iterations.
+     * @param distanceType The distance function.
+     * @param numThreads The number of threads.
+     * @param seed The random seed.
+     */
+    public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, long seed) {
+        this(centroids,iterations,distanceType,Initialisation.RANDOM,numThreads,seed);
+    }
+
+    /**
      * Constructs a K-Means trainer using the supplied parameters.
      *
      * @param centroids The number of centroids to use.
