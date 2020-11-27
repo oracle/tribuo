@@ -16,5 +16,10 @@
 
 /**
  * Provides implementations of {@link org.tribuo.data.columnar.ResponseProcessor}.
+ * <p>
+ * Note that the {@link org.tribuo.data.columnar.processors.response.EmptyResponseProcessor}
+ * should only be used when the columnar data source will never contain a response, and so
+ * the {@link org.tribuo.data.columnar.RowProcessor} should always return the unknown
+ * output of the appropriate type.
  */
 package org.tribuo.data.columnar.processors.response;
