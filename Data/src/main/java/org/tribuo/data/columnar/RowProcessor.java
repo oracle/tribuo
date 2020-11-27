@@ -122,6 +122,21 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
      * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
      * <p>
+     * Additionally this processor can extract and populate metadata fields on the generated examples
+     * (e.g., the row number, date stamps).
+     * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
+     *                           the same metadata name then the constructor throws a PropertyException.
+     * @param responseProcessor The response processor to use.
+     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     */
+    public RowProcessor(List<FieldExtractor<?>> metadataExtractors, ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap) {
+        this(metadataExtractors,null,responseProcessor,fieldProcessorMap,Collections.emptySet());
+    }
+
+    /**
+     * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
+     * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
+     * <p>
      * After extraction the features are then processed using the supplied set of feature processors.
      * These processors can be used to insert conjunction features which are triggered when
      * multiple features appear, or to filter out unnecessary features.
