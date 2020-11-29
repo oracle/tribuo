@@ -122,8 +122,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     @Config(mandatory = true, description = "The distance function to use.")
     private Distance distanceType;
 
-    @Config(mandatory = true, description = "The centroid initialisation method to use.")
-    private Initialisation initialisationType;
+    @Config(description = "The centroid initialisation method to use.")
+    private Initialisation initialisationType = Initialisation.RANDOM;
 
     @Config(description = "The number of threads to use for training.")
     private int numThreads = 1;
