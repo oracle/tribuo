@@ -16,6 +16,10 @@
 
 package org.tribuo.math.la;
 
+import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.Output;
 import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.util.Util;
 
@@ -54,6 +58,10 @@ public class DenseVector implements SGDVector {
         this.shape = new int[]{elements.length};
     }
 
+    /**
+     * Copy constructor, doesn't defensively copy the input as it's used internally.
+     * @param other The vector to copy.
+     */
     protected DenseVector(DenseVector other) {
         this(other.toArray());
     }
@@ -65,6 +73,36 @@ public class DenseVector implements SGDVector {
      */
     public static DenseVector createDenseVector(double[] values) {
         return new DenseVector(Arrays.copyOf(values,values.length));
+    }
+
+    /**
+     * Builds a {@link DenseVector} from an {@link Example}.
+     * <p>
+     * Used in training and inference.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the Example contains NaN-valued features.
+     * <p>
+     * Unspecified features are set to zero.
+     * @param example     The example to convert.
+     * @param featureInfo The feature information, used to calculate the dimension of this DenseVector.
+     * @param addBias     Add a bias feature.
+     * @param <T>         The type parameter of the {@code example}.
+     * @return A DenseVector representing the example's features.
+     */
+    public static <T extends Output<T>> DenseVector createDenseVector(Example<T> example, ImmutableFeatureMap featureInfo, boolean addBias) {
+        int numFeatures = addBias ? featureInfo.size() + 1 : featureInfo.size();
+        double[] values = new double[numFeatures];
+        for (Feature f : example) {
+            int index = featureInfo.getID(f.getName());
+            values[index] = f.getValue();
+            if (Double.isNaN(values[index])) {
+                throw new IllegalArgumentException("Example contained a NaN feature, " + f.toString());
+            }
+        }
+        if (addBias) {
+            values[numFeatures-1] = 1.0;
+        }
+        return new DenseVector(values);
     }
 
     /**
@@ -219,8 +257,16 @@ public class DenseVector implements SGDVector {
             if (otherVec.size() != elements.length) {
                 throw new IllegalArgumentException("Can't intersect two vectors of different dimension, this = " + elements.length + ", other = " + otherVec.size());
             }
-            for (VectorTuple tuple : otherVec) {
-                elements[tuple.index] += f.applyAsDouble(tuple.value);
+            if (otherVec instanceof DenseVector) {
+                // If dense, use get as it requires fewer objects
+                for (int i = 0; i < elements.length; i++) {
+                    elements[i] += f.applyAsDouble(otherVec.get(i));
+                }
+            } else {
+                // Assume sparse
+                for (VectorTuple tuple : otherVec) {
+                    elements[tuple.index] += f.applyAsDouble(tuple.value);
+                }
             }
         } else {
             throw new IllegalArgumentException("Adding a non-Vector to a Vector");
@@ -234,8 +280,16 @@ public class DenseVector implements SGDVector {
             if (otherVec.size() != elements.length) {
                 throw new IllegalArgumentException("Can't hadamard product two vectors of different dimension, this = " + elements.length + ", other = " + otherVec.size());
             }
-            for (VectorTuple tuple : otherVec) {
-                elements[tuple.index] *= f.applyAsDouble(tuple.value);
+            if (otherVec instanceof DenseVector) {
+                // If dense, use get as it requires fewer objects
+                for (int i = 0; i < elements.length; i++) {
+                    elements[i] *= f.applyAsDouble(otherVec.get(i));
+                }
+            } else {
+                // Assume sparse
+                for (VectorTuple tuple : otherVec) {
+                    elements[tuple.index] *= f.applyAsDouble(tuple.value);
+                }
             }
         } else {
             throw new IllegalArgumentException("Scaling a Vector by a non-Vector");
@@ -267,11 +321,16 @@ public class DenseVector implements SGDVector {
             throw new IllegalArgumentException("Can't dot two vectors of different dimension, this = " + elements.length + ", other = " + other.size());
         }
         double score = 0.0;
-
-        for (VectorTuple tuple : other) {
-            score += elements[tuple.index] * tuple.value;
+        if (other instanceof DenseVector) {
+            for (int i = 0; i < elements.length; i++) {
+                score += get(i) * other.get(i);
+            }
+        } else {
+            // else must be sparse
+            for (VectorTuple tuple : other) {
+                score += elements[tuple.index] * tuple.value;
+            }
         }
-
         return score;
     }
 

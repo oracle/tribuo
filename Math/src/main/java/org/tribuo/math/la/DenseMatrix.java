@@ -39,6 +39,11 @@ public class DenseMatrix implements Matrix {
 
     private final int numElements;
 
+    /**
+     * Creates a dense matrix full of zeros.
+     * @param dim1 The first dimension.
+     * @param dim2 The second dimension.
+     */
     public DenseMatrix(int dim1, int dim2) {
         this.values = new double[dim1][dim2];
         this.dim1 = dim1;
@@ -47,6 +52,10 @@ public class DenseMatrix implements Matrix {
         this.numElements = dim1*dim2;
     }
 
+    /**
+     * Copies the supplied matrix.
+     * @param other The matrix to copy.
+     */
     public DenseMatrix(DenseMatrix other) {
         this.values = new double[other.values.length][];
         for (int i = 0; i < values.length; i++) {
@@ -61,6 +70,10 @@ public class DenseMatrix implements Matrix {
         this.numElements = dim1*dim2;
     }
 
+    /**
+     * Copies the supplied matrix, densifying it if it's sparse.
+     * @param other The matrix to copy.
+     */
     public DenseMatrix(Matrix other) {
         this.dim1 = other.getDimension1Size();
         this.dim2 = other.getDimension2Size();
@@ -184,12 +197,16 @@ public class DenseMatrix implements Matrix {
         return new DenseVector(outputValues);
     }
 
+    /**
+     * Returns a transposed copy of this matrix.
+     * @return A transposed copy.
+     */
     public DenseMatrix transpose() {
         double[][] newValues = new double[dim2][dim1];
 
         for (int i = 0; i < dim1; i++) {
             for (int j = 0; j < dim2; j++) {
-                newValues[j][i] = values[i][j];
+                newValues[j][i] = get(i,j);
             }
         }
 
@@ -242,13 +259,21 @@ public class DenseMatrix implements Matrix {
     public DenseVector leftMultiply(SGDVector input) {
         if (input.size() == dim2) {
             double[] output = new double[dim1];
-
-            for (VectorTuple tuple : input) {
-                for (int i = 0; i < output.length; i++) {
-                    output[i] += values[i][tuple.index] * tuple.value;
+            if (input instanceof DenseVector) {
+                // If it's dense we can use loops
+                for (int i = 0; i < dim1; i++) {
+                    for (int j = 0; j < dim2; j++) {
+                        output[i] += get(i,j) * input.get(j);
+                    }
+                }
+            } else {
+                // If it's sparse we iterate the tuples
+                for (VectorTuple tuple : input) {
+                    for (int i = 0; i < output.length; i++) {
+                        output[i] += values[i][tuple.index] * tuple.value;
+                    }
                 }
             }
-
             return new DenseVector(output);
         } else {
             throw new IllegalArgumentException("input.size() != dim2, input.size() = " + input.size() + ", dim1,dim2 = " + dim1+","+dim2);
@@ -259,13 +284,22 @@ public class DenseMatrix implements Matrix {
     public DenseVector rightMultiply(SGDVector input) {
         if (input.size() == dim1) {
             double[] output = new double[dim2];
-
-            for (VectorTuple tuple : input) {
-                for (int i = 0; i < output.length; i++) {
-                    output[i] += values[tuple.index][i] * tuple.value;
+            if (input instanceof DenseVector) {
+                // If it's dense we can use loops
+                for (int i = 0; i < dim1; i++) {
+                    double curValue = input.get(i);
+                    for (int j = 0; j < dim2; j++) {
+                        output[j] += get(i,j) * curValue;
+                    }
+                }
+            } else {
+                // If it's sparse we iterate the tuples
+                for (VectorTuple tuple : input) {
+                    for (int i = 0; i < output.length; i++) {
+                        output[i] += values[tuple.index][i] * tuple.value;
+                    }
                 }
             }
-
             return new DenseVector(output);
         } else {
             throw new IllegalArgumentException("input.size() != dim1");
@@ -501,8 +535,18 @@ public class DenseMatrix implements Matrix {
         if (other instanceof Matrix) {
             Matrix otherMat = (Matrix) other;
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
-                for (MatrixTuple tuple : otherMat) {
-                    values[tuple.i][tuple.j] += f.applyAsDouble(tuple.value);
+                if (otherMat instanceof DenseMatrix) {
+                    // Get is efficient on DenseMatrix
+                    for (int i = 0; i < dim1; i++) {
+                        for (int j = 0; j < dim2; j++) {
+                            values[i][j] += f.applyAsDouble(otherMat.get(i,j));
+                        }
+                    }
+                } else {
+                    // Fall back to tuple based iteration
+                    for (MatrixTuple tuple : otherMat) {
+                        values[tuple.i][tuple.j] += f.applyAsDouble(tuple.value);
+                    }
                 }
             } else {
                 throw new IllegalArgumentException("Matrices are not the same size, this("+dim1+","+dim2+"), other("+otherMat.getDimension1Size()+","+otherMat.getDimension2Size()+")");
@@ -517,8 +561,18 @@ public class DenseMatrix implements Matrix {
         if (other instanceof Matrix) {
             Matrix otherMat = (Matrix) other;
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
-                for (MatrixTuple tuple : otherMat) {
-                    values[tuple.i][tuple.j] *= f.applyAsDouble(tuple.value);
+                if (otherMat instanceof DenseMatrix) {
+                    // Get is efficient on DenseMatrix
+                    for (int i = 0; i < dim1; i++) {
+                        for (int j = 0; j < dim2; j++) {
+                            values[i][j] *= f.applyAsDouble(otherMat.get(i,j));
+                        }
+                    }
+                } else {
+                    // Fall back to tuple based iteration
+                    for (MatrixTuple tuple : otherMat) {
+                        values[tuple.i][tuple.j] *= f.applyAsDouble(tuple.value);
+                    }
                 }
             } else {
                 throw new IllegalArgumentException("Matrices are not the same size, this("+dim1+","+dim2+"), other("+otherMat.getDimension1Size()+","+otherMat.getDimension2Size()+")");
@@ -604,6 +658,11 @@ public class DenseMatrix implements Matrix {
         return new DenseVector(values[i]);
     }
 
+    /**
+     * Returns a copy of the specified column.
+     * @param index The column index.
+     * @return A copy of the column.
+     */
     public DenseVector getColumn(int index) {
         double[] output = new double[dim1];
         for (int i = 0; i < dim1; i++) {
@@ -612,6 +671,11 @@ public class DenseMatrix implements Matrix {
         return new DenseVector(output);
     }
 
+    /**
+     * Calculates the sum of the specified row.
+     * @param rowIndex The index of the row to sum.
+     * @return The row sum.
+     */
     public double rowSum(int rowIndex) {
         double[] row = values[rowIndex];
         double sum = 0d;
@@ -621,6 +685,11 @@ public class DenseMatrix implements Matrix {
         return sum;
     }
 
+    /**
+     * Calculates the sum of the specified column.
+     * @param columnIndex The index of the column to sum.
+     * @return The column sum.
+     */
     public double columnSum(int columnIndex) {
         double sum = 0d;
         for (int i = 0; i < dim1; i++) {
@@ -675,6 +744,10 @@ public class DenseMatrix implements Matrix {
         return new DenseMatrixIterator(this);
     }
 
+    /**
+     * Normalizes each row using the supplied normalizer in place.
+     * @param normalizer The vector normalizer to use.
+     */
     public void normalizeRows(VectorNormalizer normalizer) {
         for (int i = 0; i < dim1; i++) {
             double[] normalizedRow = normalizer.normalize(values[i]);
@@ -682,6 +755,10 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * Returns the dense vector containing each column sum.
+     * @return The column sums.
+     */
     public DenseVector columnSum() {
         double[] columnSum = new double[dim2];
         for (int i = 0; i < dim1; i++) {
