@@ -750,8 +750,7 @@ public class DenseMatrix implements Matrix {
      */
     public void normalizeRows(VectorNormalizer normalizer) {
         for (int i = 0; i < dim1; i++) {
-            double[] normalizedRow = normalizer.normalize(values[i]);
-            System.arraycopy(normalizedRow, 0, values[i], 0, dim2);
+            normalizer.normalizeInPlace(values[i]);
         }
     }
 
