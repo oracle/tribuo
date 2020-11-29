@@ -94,9 +94,12 @@ public class DenseVector implements SGDVector {
         double[] values = new double[numFeatures];
         for (Feature f : example) {
             int index = featureInfo.getID(f.getName());
-            values[index] = f.getValue();
-            if (Double.isNaN(values[index])) {
-                throw new IllegalArgumentException("Example contained a NaN feature, " + f.toString());
+            // If it's a valid feature for this feature map.
+            if (index != -1) {
+                values[index] = f.getValue();
+                if (Double.isNaN(values[index])) {
+                    throw new IllegalArgumentException("Example contained a NaN feature, " + f.toString());
+                }
             }
         }
         if (addBias) {
