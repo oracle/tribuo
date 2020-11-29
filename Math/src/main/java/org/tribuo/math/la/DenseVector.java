@@ -464,8 +464,7 @@ public class DenseVector implements SGDVector {
 
     @Override
     public void normalize(VectorNormalizer normalizer) {
-        double[] normed = normalizer.normalize(elements);
-        System.arraycopy(normed, 0, elements, 0, normed.length);
+        normalizer.normalizeInPlace(elements);
     }
 
     /**

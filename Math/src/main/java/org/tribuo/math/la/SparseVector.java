@@ -754,7 +754,7 @@ public class SparseVector implements SGDVector {
 
     @Override
     public void normalize(VectorNormalizer normalizer) {
-        throw new IllegalStateException("Can't normalize a sparse array");
+        throw new UnsupportedOperationException("Can't normalize a sparse array");
     }
 
     @Override

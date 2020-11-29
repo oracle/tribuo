@@ -17,6 +17,7 @@
 package org.tribuo.math.util;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Normalizes the input by applying a logistic sigmoid to each element.
@@ -36,11 +37,16 @@ public class SigmoidNormalizer implements VectorNormalizer, Serializable {
 
     @Override
     public double[] normalize(double[] input) {
-        double[] output = new double[input.length];
-        for (int i = 0; i < input.length; i++) {
-            output[i] = sigmoid(input[i]);
-        }
+        double[] output = Arrays.copyOf(input,input.length);
+        normalizeInPlace(output);
         return output;
+    }
+
+    @Override
+    public void normalizeInPlace(double[] input) {
+        for (int i = 0; i < input.length; i++) {
+            input[i] = sigmoid(input[i]);
+        }
     }
 
 }
