@@ -122,8 +122,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     @Config(mandatory = true, description = "The distance function to use.")
     private Distance distanceType;
 
-    @Config(mandatory = true, description = "The centroid initialisation method to use.")
-    private Initialisation initialisationType;
+    @Config(description = "The centroid initialisation method to use.")
+    private Initialisation initialisationType = Initialisation.RANDOM;
 
     @Config(description = "The number of threads to use for training.")
     private int numThreads = 1;
@@ -139,6 +139,19 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * for olcut.
      */
     private KMeansTrainer() {
+    }
+
+    /**
+     * Constructs a K-Means trainer using the supplied parameters and the default random initialisation.
+     *
+     * @param centroids The number of centroids to use.
+     * @param iterations The maximum number of iterations.
+     * @param distanceType The distance function.
+     * @param numThreads The number of threads.
+     * @param seed The random seed.
+     */
+    public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, long seed) {
+        this(centroids,iterations,distanceType,Initialisation.RANDOM,numThreads,seed);
     }
 
     /**

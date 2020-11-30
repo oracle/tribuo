@@ -19,6 +19,7 @@ package org.tribuo.clustering.kmeans;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
+import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
@@ -27,8 +28,10 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.VectorTuple;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,13 @@ public class KMeansModel extends Model<ClusterID> {
 
     /**
      * Returns a copy of the centroids.
+     * <p>
+     * In most cases you should prefer {@link #getCentroids} as
+     * it performs the mapping from Tribuo's internal feature ids
+     * to the externally visible feature names for you.
+     * This method provides direct access to the centroid vectors
+     * for use in downstream processing if the ids are not relevant
+     * (or are known to match).
      * @return The centroids.
      */
     public DenseVector[] getCentroidVectors() {
@@ -74,6 +84,32 @@ public class KMeansModel extends Model<ClusterID> {
         }
 
         return copies;
+    }
+
+    /**
+     * Returns a list of features, one per centroid.
+     * <p>
+     * This should be used in preference to {@link #getCentroidVectors()}
+     * as it performs the mapping from Tribuo's internal feature ids to
+     * the externally visible feature names.
+     * </p>
+     * @return A list containing all the centroids.
+     */
+    public List<List<Feature>> getCentroids() {
+        List<List<Feature>> output = new ArrayList<>(centroidVectors.length);
+
+        for (int i = 0; i < centroidVectors.length; i++) {
+            List<Feature> features = new ArrayList<>(featureIDMap.size());
+
+            for (VectorTuple v : centroidVectors[i]) {
+                Feature f = new Feature(featureIDMap.get(v.index).getName(),v.value);
+                features.add(f);
+            }
+
+            output.add(features);
+        }
+
+        return output;
     }
 
     @Override
