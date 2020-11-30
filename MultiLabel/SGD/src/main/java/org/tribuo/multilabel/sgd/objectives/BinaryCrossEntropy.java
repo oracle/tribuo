@@ -40,6 +40,12 @@ public final class BinaryCrossEntropy implements MultiLabelObjective {
      */
     public BinaryCrossEntropy() {}
 
+    @Deprecated
+    @Override
+    public Pair<Double, SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
+        return lossAndGradient(truth, prediction);
+    }
+
     /**
      * Returns a {@link Pair} of {@link Double} and the supplied prediction vector.
      * <p>
@@ -49,7 +55,7 @@ public final class BinaryCrossEntropy implements MultiLabelObjective {
      * @return A Pair of the score and per label gradient.
      */
     @Override
-    public Pair<Double,SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
+    public Pair<Double,SGDVector> lossAndGradient(SGDVector truth, SGDVector prediction) {
         DenseVector labels, densePred;
         if (truth instanceof SparseVector) {
             labels = ((SparseVector) truth).densify();

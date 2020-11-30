@@ -34,6 +34,17 @@ public class LogMulticlass implements LabelObjective {
     private final VectorNormalizer normalizer = new ExpNormalizer();
 
     /**
+     * Constructs a multiclass log loss.
+     */
+    public LogMulticlass() {}
+
+    @Deprecated
+    @Override
+    public Pair<Double, SGDVector> valueAndGradient(int truth, SGDVector prediction) {
+        return lossAndGradient(truth, prediction);
+    }
+
+    /**
      * Returns a {@link Pair} of {@link Double} and the supplied prediction vector.
      * <p>
      * The prediction vector is transformed to produce the per label gradient.
@@ -42,7 +53,7 @@ public class LogMulticlass implements LabelObjective {
      * @return A Pair of the score and per label gradient.
      */
     @Override
-    public Pair<Double,SGDVector> valueAndGradient(int truth, SGDVector prediction) {
+    public Pair<Double,SGDVector> lossAndGradient(Integer truth, SGDVector prediction) {
         prediction.normalize(normalizer);
         double loss = Math.log(prediction.get(truth));
         prediction.scaleInPlace(-1.0);

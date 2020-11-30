@@ -53,6 +53,12 @@ public final class Hinge implements MultiLabelObjective {
         this(1.0);
     }
 
+    @Deprecated
+    @Override
+    public Pair<Double, SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
+        return lossAndGradient(truth, prediction);
+    }
+
     /**
      * Returns a {@link Pair} of {@link Double} and {@link SparseVector}.
      * @param truth The true label id.
@@ -60,7 +66,7 @@ public final class Hinge implements MultiLabelObjective {
      * @return The loss and per label gradient.
      */
     @Override
-    public Pair<Double,SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
+    public Pair<Double,SGDVector> lossAndGradient(SGDVector truth, SGDVector prediction) {
         DenseVector labels, densePred;
         if (truth instanceof SparseVector) {
             labels = ((SparseVector) truth).densify();

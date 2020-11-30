@@ -16,10 +16,8 @@
 
 package org.tribuo.classification.sgd;
 
-import com.oracle.labs.mlrg.olcut.config.Configurable;
-import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.VectorNormalizer;
 
@@ -29,15 +27,23 @@ import org.tribuo.math.util.VectorNormalizer;
  * An objective knows if it generates a probabilistic model or not,
  * and what kind of normalization needs to be applied to produce probability values.
  */
-public interface LabelObjective extends Configurable, Provenancable<ConfiguredObjectProvenance> {
+public interface LabelObjective extends SGDObjective<Integer> {
 
     /**
      * Scores a prediction, returning the loss and a vector of per label gradients.
-     * @param truth The true label id.
+     *
+     * @deprecated In 4.1, to migrate to the new name {@link #lossAndGradient}.
+     * @param truth      The true label id.
      * @param prediction The prediction for each label id.
      * @return The score and per label gradient.
      */
-    public Pair<Double,SGDVector> valueAndGradient(int truth, SGDVector prediction);
+    @Deprecated
+    Pair<Double, SGDVector> valueAndGradient(int truth, SGDVector prediction);
+
+    @Override
+    default Pair<Double, SGDVector> lossAndGradient(Integer truth, SGDVector prediction) {
+        return valueAndGradient(truth, prediction);
+    }
 
     /**
      * Generates a new {@link VectorNormalizer} which normalizes the predictions into [0,1].
