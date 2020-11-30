@@ -34,7 +34,7 @@ import java.util.Optional;
  *  It still requires an output factory, even though it's never used to generate
  *  an output, because the output factory provides the type for the columnar infrastructure.
  */
-public class EmptyResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
+public final class EmptyResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
     public static final String FIELD_NAME = "TRIBUO##NULL_RESPONSE_PROCESSOR";
 
