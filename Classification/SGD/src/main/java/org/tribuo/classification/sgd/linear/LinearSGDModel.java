@@ -46,17 +46,17 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
 
     private final VectorNormalizer normalizer;
 
-    LinearSGDModel(String name, ModelProvenance description,
-                   ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap,
+    LinearSGDModel(String name, ModelProvenance provenance,
+                   ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo,
                    LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities) {
-        super(name, description, featureIDMap, labelIDMap, parameters.getWeightMatrix(), generatesProbabilities);
+        super(name, provenance, featureIDMap, outputIDInfo, parameters.getWeightMatrix(), generatesProbabilities);
         this.normalizer = normalizer;
     }
 
-    private LinearSGDModel(String name, ModelProvenance description,
-                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap,
+    private LinearSGDModel(String name, ModelProvenance provenance,
+                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo,
                           DenseMatrix weights, VectorNormalizer normalizer, boolean generatesProbabilities) {
-        super(name, description, featureIDMap, labelIDMap, weights, generatesProbabilities);
+        super(name, provenance, featureIDMap, outputIDInfo, weights, generatesProbabilities);
         this.normalizer = normalizer;
     }
 

@@ -45,17 +45,17 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
 
     private final String[] dimensionNames;
 
-    LinearSGDModel(String name, String[] dimensionNames, ModelProvenance description,
-                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
+    LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
+                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
                           LinearParameters parameters) {
-        super(name, description, featureIDMap, labelIDMap, parameters.getWeightMatrix(), false);
+        super(name, provenance, featureIDMap, outputIDInfo, parameters.getWeightMatrix(), false);
         this.dimensionNames = dimensionNames;
     }
 
-    private LinearSGDModel(String name, String[] dimensionNames, ModelProvenance description,
-                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
+    private LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
+                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
                           DenseMatrix weights) {
-        super(name, description, featureIDMap, labelIDMap, weights, false);
+        super(name, provenance, featureIDMap, outputIDInfo, weights, false);
         this.dimensionNames = dimensionNames;
     }
 

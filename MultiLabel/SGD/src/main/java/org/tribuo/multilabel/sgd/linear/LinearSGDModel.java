@@ -50,18 +50,18 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> {
     private final VectorNormalizer normalizer;
     private final double threshold;
 
-    LinearSGDModel(String name, ModelProvenance description,
-                   ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> labelIDMap,
+    LinearSGDModel(String name, ModelProvenance provenance,
+                   ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> outputIDInfo,
                    LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities, double threshold) {
-        super(name, description, featureIDMap, labelIDMap, parameters.getWeightMatrix(), generatesProbabilities);
+        super(name, provenance, featureIDMap, outputIDInfo, parameters.getWeightMatrix(), generatesProbabilities);
         this.normalizer = normalizer;
         this.threshold = threshold;
     }
 
-    private LinearSGDModel(String name, ModelProvenance description,
-                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> labelIDMap,
+    private LinearSGDModel(String name, ModelProvenance provenance,
+                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> outputIDInfo,
                           DenseMatrix weights, VectorNormalizer normalizer, boolean generatesProbabilities, double threshold) {
-        super(name, description, featureIDMap, labelIDMap, weights, generatesProbabilities);
+        super(name, provenance, featureIDMap, outputIDInfo, weights, generatesProbabilities);
         this.normalizer = normalizer;
         this.threshold = threshold;
     }
