@@ -17,31 +17,17 @@
 package org.tribuo.regression.sgd.linear;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
-import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.Dataset;
-import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.Trainer;
-import org.tribuo.WeightedExamples;
+import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
+import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.DenseVector;
-import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
-import org.tribuo.math.la.Tensor;
 import org.tribuo.provenance.ModelProvenance;
-import org.tribuo.provenance.TrainerProvenance;
-import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.sgd.RegressionObjective;
-import org.tribuo.regression.sgd.Util;
 
-import java.time.OffsetDateTime;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -56,33 +42,11 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDTrainer implements Trainer<Regressor>, WeightedExamples {
+public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor,DenseVector> {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(mandatory = true,description="The regression objective to use.")
     private RegressionObjective objective;
-
-    @Config(mandatory = true,description="The gradient optimiser to use.")
-    private StochasticGradientOptimiser optimiser;
-
-    @Config(description="The number of gradient descent epochs.")
-    private int epochs = 5;
-
-    @Config(description="Log values after this many updates.")
-    private int loggingInterval = -1;
-
-    @Config(description="Minibatch size in SGD.")
-    private int minibatchSize = 1;
-
-    @Config(mandatory = true,description="Seed for the RNG used to shuffle elements.")
-    private long seed;
-
-    @Config(description="Shuffle the data before each epoch. Only turn off for debugging.")
-    private boolean shuffle = true;
-
-    private SplittableRandom rng;
-
-    private int trainInvocationCounter;
 
     /**
      * Constructs an SGD trainer for a linear model.
@@ -94,13 +58,8 @@ public class LinearSGDTrainer implements Trainer<Regressor>, WeightedExamples {
      * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
      */
     public LinearSGDTrainer(RegressionObjective objective, StochasticGradientOptimiser optimiser, int epochs, int loggingInterval, int minibatchSize, long seed) {
+        super(optimiser,epochs,loggingInterval,minibatchSize,seed);
         this.objective = objective;
-        this.optimiser = optimiser;
-        this.epochs = epochs;
-        this.loggingInterval = loggingInterval;
-        this.minibatchSize = minibatchSize;
-        this.seed = seed;
-        postConfig();
     }
 
     /**
@@ -129,140 +88,42 @@ public class LinearSGDTrainer implements Trainer<Regressor>, WeightedExamples {
     /**
      * For olcut.
      */
-    private LinearSGDTrainer() { }
-
-    @Override
-    public synchronized void postConfig() {
-        this.rng = new SplittableRandom(seed);
-    }
-
-    /**
-     * Turn on or off shuffling of examples.
-     * <p>
-     * This isn't exposed in the constructor as it defaults to on.
-     * This method should be used for debugging.
-     * @param shuffle If true shuffle the examples, if false leave them in their current order.
-     */
-    public void setShuffle(boolean shuffle) {
-        this.shuffle = shuffle;
+    private LinearSGDTrainer() {
+        super();
     }
 
     @Override
-    public LinearSGDModel train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance) {
-        if (examples.getOutputInfo().getUnknownCount() > 0) {
-            throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
+    protected DenseVector getTarget(ImmutableOutputInfo<Regressor> outputInfo, Regressor output) {
+        double[] regressorsBuffer = new double[outputInfo.size()];
+        for (Regressor.DimensionTuple r : output) {
+            int id = outputInfo.getID(r);
+            regressorsBuffer[id] = r.getValue();
         }
-        // Creates a new RNG, adds one to the invocation count, generates a local optimiser.
-        TrainerProvenance trainerProvenance;
-        SplittableRandom localRNG;
-        StochasticGradientOptimiser localOptimiser;
-        synchronized(this) {
-            localRNG = rng.split();
-            localOptimiser = optimiser.copy();
-            trainerProvenance = getProvenance();
-            trainInvocationCounter++;
-        }
-        ImmutableOutputInfo<Regressor> outputInfo = examples.getOutputIDInfo();
-        ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
-        int numOutputs = outputInfo.size();
-        SparseVector[] sgdFeatures = new SparseVector[examples.size()];
-        DenseVector[] sgdLabels = new DenseVector[examples.size()];
-        double[] weights = new double[examples.size()];
-        int n = 0;
-        double[] regressorsBuffer = new double[numOutputs];
-        for (Example<Regressor> example : examples) {
-            weights[n] = example.getWeight();
-            sgdFeatures[n] = SparseVector.createSparseVector(example,featureIDMap,true);
-            Arrays.fill(regressorsBuffer,0.0);
-            for (Regressor.DimensionTuple r : example.getOutput()) {
-                int id = outputInfo.getID(r);
-                regressorsBuffer[id] = r.getValue();
-            }
-            sgdLabels[n] = DenseVector.createDenseVector(regressorsBuffer);
-            n++;
-        }
-        String[] dimensionNames = new String[numOutputs];
+        return DenseVector.createDenseVector(regressorsBuffer);
+    }
+
+    @Override
+    protected SGDObjective<DenseVector> getObjective() {
+        return objective;
+    }
+
+    @Override
+    protected LinearSGDModel createModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureMap, ImmutableOutputInfo<Regressor> outputInfo, LinearParameters parameters) {
+        String[] dimensionNames = new String[outputInfo.size()];
         for (Regressor r : outputInfo.getDomain()) {
             int id = outputInfo.getID(r);
             dimensionNames[id] = r.getNames()[0];
         }
-        logger.info(String.format("Training SGD regressor with %d examples", n));
-        logger.info("Output variable " + outputInfo.toReadableString());
-
-        // featureIDMap.size()+1 adds the bias feature.
-        LinearParameters linearParameters = new LinearParameters(featureIDMap.size()+1,dimensionNames.length);
-
-        localOptimiser.initialise(linearParameters);
-        double loss = 0.0;
-        int iteration = 0;
-
-        for (int i = 0; i < epochs; i++) {
-            if (shuffle) {
-                Util.shuffleInPlace(sgdFeatures, sgdLabels, weights, localRNG);
-            }
-            if (minibatchSize == 1) {
-                for (int j = 0; j < sgdFeatures.length; j++) {
-                    SGDVector pred = linearParameters.predict(sgdFeatures[j]);
-                    Pair<Double,SGDVector> output = objective.loss(sgdLabels[j],pred);
-                    loss += output.getA()*weights[j];
-
-                    Tensor[] updates = localOptimiser.step(linearParameters.gradients(output,sgdFeatures[j]),weights[j]);
-                    linearParameters.update(updates);
-
-                    iteration++;
-                    if ((iteration % loggingInterval == 0) && (loggingInterval != -1)) {
-                        logger.info("At iteration " + iteration + ", average loss = " + loss/loggingInterval);
-                        loss = 0.0;
-                    }
-                }
-            } else {
-                Tensor[][] gradients = new Tensor[minibatchSize][];
-                for (int j = 0; j < sgdFeatures.length; j += minibatchSize) {
-                    double tempWeight = 0.0;
-                    int curSize = 0;
-                    for (int k = j; k < j+minibatchSize && k < sgdFeatures.length; k++) {
-                        SGDVector pred = linearParameters.predict(sgdFeatures[k]);
-                        Pair<Double,SGDVector> output = objective.loss(sgdLabels[k],pred);
-                        loss += output.getA()*weights[k];
-                        tempWeight += weights[k];
-
-                        gradients[k-j] = linearParameters.gradients(output,sgdFeatures[k]);
-                        curSize++;
-                    }
-                    Tensor[] updates = linearParameters.merge(gradients,curSize);
-                    for (int k = 0; k < updates.length; k++) {
-                        updates[k].scaleInPlace(minibatchSize);
-                    }
-                    tempWeight /= minibatchSize;
-                    updates = localOptimiser.step(updates,tempWeight);
-                    linearParameters.update(updates);
-
-                    iteration++;
-                    if ((loggingInterval != -1) && (iteration % loggingInterval == 0)) {
-                        logger.info("At iteration " + iteration + ", average loss = " + loss/loggingInterval);
-                        loss = 0.0;
-                    }
-                }
-            }
-        }
-        localOptimiser.finalise();
-        ModelProvenance provenance = new ModelProvenance(LinearSGDModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
-        LinearSGDModel model = new LinearSGDModel("linear-sgd-model",dimensionNames,provenance,featureIDMap,outputInfo,linearParameters);
-        return model;
+        return new LinearSGDModel("linear-sgd-model",dimensionNames,provenance,featureMap,outputInfo,parameters);
     }
 
     @Override
-    public int getInvocationCount() {
-        return trainInvocationCounter;
+    protected String getModelClassName() {
+        return LinearSGDModel.class.getName();
     }
 
     @Override
     public String toString() {
         return "LinearSGDTrainer(objective="+objective.toString()+",optimiser="+optimiser.toString()+",epochs="+epochs+",minibatchSize="+minibatchSize+",seed="+seed+")";
-    }
-
-    @Override
-    public TrainerProvenance getProvenance() {
-        return new TrainerProvenanceImpl(this);
     }
 }
