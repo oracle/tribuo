@@ -30,6 +30,7 @@
         <module>LibLinear</module>
         <module>LibSVM</module>
         <module>NearestNeighbour</module>
+        <module>SGD</module>
         <module>Trees</module>
         <module>XGBoost</module>
     </modules>
