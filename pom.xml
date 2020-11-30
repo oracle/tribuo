@@ -61,6 +61,7 @@
              XGBoost 1.0.0 binary on Maven Central doesn't
              include Windows support -->
         <skipXGBoostTests>false</skipXGBoostTests>
+        <skipONNXTests>false</skipONNXTests>
     </properties>
 
     <name>Tribuo</name>
