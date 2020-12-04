@@ -18,7 +18,6 @@ package org.tribuo.transform;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
-import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -50,10 +49,10 @@ import java.util.regex.Pattern;
 public class TransformationMap implements Configurable, Provenancable<ConfiguredObjectProvenance> {
 
     @Config(mandatory = true,description="Global transformations to apply after the feature specific transforms.")
-    private List<Transformation> globalTransformations = Collections.EMPTY_LIST;
+    private List<Transformation> globalTransformations;
 
-    @Config(description="Feature specific transformations. Accepts regexes for feature names.")
-    private Map<String,TransformationList> featureTransformationList = Collections.EMPTY_MAP;
+    @Config(mandatory = true,description="Feature specific transformations. Accepts regexes for feature names.")
+    private Map<String,TransformationList> featureTransformationList = new HashMap<>();
 
     private final Map<String,List<Transformation>> featureTransformations = new HashMap<>();
 
@@ -87,11 +86,6 @@ public class TransformationMap implements Configurable, Provenancable<Configured
      */
     @Override
     public void postConfig() {
-        if(globalTransformations.isEmpty() && featureTransformationList.isEmpty()) {
-            throw new PropertyException("TransformationMap", 
-                    "Both global transformations and feature transformations can't be empty!");
-        }
-        
         for (Map.Entry<String,TransformationList> e : featureTransformationList.entrySet()) {
             featureTransformations.put(e.getKey(),e.getValue().list);
         }

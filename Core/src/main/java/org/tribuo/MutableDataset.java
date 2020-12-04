@@ -28,8 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A MutableDataset is a {@link Dataset} with a {@link MutableFeatureMap} which grows over time.
@@ -37,9 +35,6 @@ import java.util.logging.Logger;
  * keeping appropriate statistics in the {@link FeatureMap} and {@link OutputInfo}.
  */
 public class MutableDataset<T extends Output<T>> extends Dataset<T> {
-    
-    private static final Logger logger = Logger.getLogger(MutableDataset.class.getName());
-    
     private static final long serialVersionUID = 1L;
 
     /**
@@ -198,16 +193,10 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
      */
     public void transform(TransformerMap transformerMap) {
         featureMap.clear();
-        logger.fine(String.format("Transforming %,d examples", data.size()));
-        int nt = 0;
         for (Example<T> example : data) {
             example.transform(transformerMap);
             for (Feature f : example) {
                 featureMap.add(f.getName(),f.getValue());
-            }
-            nt++;
-            if(logger.isLoggable(Level.FINE) && nt % 10000 == 0) {
-                logger.fine(String.format("Transformed %,d/%,d", nt, data.size()));
             }
         }
         transformProvenances.add(transformerMap.getProvenance());

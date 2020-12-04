@@ -159,19 +159,12 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
      */
     public ArrayExample(Example<T> other) {
         super(other);
-        if(other instanceof ArrayExample) {
-            ArrayExample< T> otherArr = (ArrayExample<T>) other;
-            featureNames = Arrays.copyOf(otherArr.featureNames, otherArr.featureNames.length);
-            featureValues = Arrays.copyOf(otherArr.featureValues, otherArr.featureValues.length);
-            size = otherArr.size;
-        } else {
-            featureNames = new String[other.size()];
-            featureValues = new double[other.size()];
-            for(Feature f : other) {
-                featureNames[size] = f.getName();
-                featureValues[size] = f.getValue();
-                size++;
-            }
+        featureNames = new String[other.size()];
+        featureValues = new double[other.size()];
+        for (Feature f : other) {
+            featureNames[size] = f.getName();
+            featureValues[size] = f.getValue();
+            size++;
         }
     }
 
@@ -415,33 +408,14 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
 
     @Override
     public void transform(TransformerMap transformerMap) {
-        if(transformerMap.size() < featureNames.length) {
-            //
-            // We have transformers than feature names, so let's
-            // iterate through the map and find the features.
-            for(Map.Entry<String, List<Transformer>> e : transformerMap.entrySet()) {
-                int index = Arrays.binarySearch(featureNames, 0, size, e.getKey());
-                if(index >= 0) {
-                    double value = featureValues[index];
-                    for(Transformer t : e.getValue()) {
-                        value = t.transform(value);
-                    }
-                    featureValues[index] = value;
-                }
-            }
-        } else {
-            //
-            // We have more transformers, so let's fetch them by name.
-            for(int i = 0; i < size; i++) {
-                List<Transformer> l = transformerMap.get(featureNames[i]);
-                if(l == null) {
-                    continue;
-                }
-                double value = featureValues[i];
-                for(Transformer t : l) {
+        for (Map.Entry<String,List<Transformer>> e : transformerMap.entrySet()) {
+            int index = Arrays.binarySearch(featureNames,0,size,e.getKey());
+            if (index >= 0) {
+                double value = featureValues[index];
+                for (Transformer t : e.getValue()) {
                     value = t.transform(value);
                 }
-                featureValues[i] = value;
+                featureValues[index] = value;
             }
         }
     }
