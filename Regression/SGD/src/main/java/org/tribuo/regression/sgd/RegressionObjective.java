@@ -16,24 +16,29 @@
 
 package org.tribuo.regression.sgd;
 
-import com.oracle.labs.mlrg.olcut.config.Configurable;
-import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 
 /**
  * An interface for regression objectives.
  */
-public interface RegressionObjective extends Configurable, Provenancable<ConfiguredObjectProvenance> {
+public interface RegressionObjective extends SGDObjective<DenseVector> {
 
     /**
      * Scores a prediction, returning the loss.
+     * @deprecated In 4.1 to move to the new name, lossAndGradient.
      * @param truth The true regression value.
      * @param prediction The predicted regression value.
      * @return A pair with the loss and gradient.
      */
+    @Deprecated
     public Pair<Double, SGDVector> loss(DenseVector truth, SGDVector prediction);
+
+    @Override
+    default public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
+        return loss(truth, prediction);
+    }
 
 }

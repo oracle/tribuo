@@ -17,6 +17,7 @@
 package org.tribuo.math.util;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Normalizes, but first subtracts the minimum value (to ensure positivity).
@@ -26,24 +27,28 @@ public class Normalizer implements VectorNormalizer, Serializable {
 
     @Override
     public double[] normalize(double[] input) {
-        double[] output = new double[input.length];
+        double[] output = Arrays.copyOf(input, input.length);
+        normalizeInPlace(output);
+        return output;
+    }
+
+    @Override
+    public void normalizeInPlace(double[] input) {
         double min = Double.MAX_VALUE;
         for (int i = 0; i < input.length; i++) {
-            output[i] = input[i];
             if (min > input[i]) {
                 min = input[i];
             }
         }
         min -= 0.01;
         double sum = 0.0;
-        for (int i = 0; i < output.length; i++) {
-            output[i] -= min;
-            sum += output[i];
+        for (int i = 0; i < input.length; i++) {
+            input[i] -= min;
+            sum += input[i];
         }
-        for (int i = 0; i < output.length; i++) {
-            output[i] /= sum;
+        for (int i = 0; i < input.length; i++) {
+            input[i] /= sum;
         }
-        return output;
     }
 
 }

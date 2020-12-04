@@ -27,8 +27,20 @@ import org.tribuo.regression.sgd.RegressionObjective;
  * Absolute loss (i.e., l1).
  */
 public class AbsoluteLoss implements RegressionObjective {
+
+    /**
+     * Constructs an absolute loss.
+     */
+    public AbsoluteLoss() {}
+
+    @Deprecated
     @Override
     public Pair<Double, SGDVector> loss(DenseVector truth, SGDVector prediction) {
+        return lossAndGradient(truth, prediction);
+    }
+
+    @Override
+    public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
         DenseVector difference = truth.subtract(prediction);
         DenseVector absoluteDifference = difference.copy();
         absoluteDifference.foreachInPlace(Math::abs);

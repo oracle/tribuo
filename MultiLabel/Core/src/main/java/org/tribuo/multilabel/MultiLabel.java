@@ -17,8 +17,10 @@
 package org.tribuo.multilabel;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 import org.tribuo.classification.Label;
+import org.tribuo.math.la.SparseVector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +57,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * Builds a MultiLabel object from a Set of Labels.
-     *
+     * <p>
      * Sets the whole set score to {@link Double#NaN}.
      * @param labels A set of (possibly scored) labels.
      */
@@ -74,7 +76,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
         this.label = MultiLabelFactory.generateLabelString(labels);
         this.score = score;
         this.labels = Collections.unmodifiableSet(new HashSet<>(labels));
-        Set<String> temp = new HashSet<>();
+        Set<String> temp = new HashSet<>(labels.size());
         for (Label l : labels) {
             temp.add(l.getLabel());
         }
@@ -83,9 +85,9 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * Builds a MultiLabel with a single String label.
-     *
+     * <p>
      * The created {@link Label} is unscored and used by MultiLabelInfo.
-     *
+     * <p>
      * Sets the whole set score to {@link Double#NaN}.
      * @param label The label.
      */
@@ -95,12 +97,15 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     /**
      * Builds a MultiLabel from a single Label.
-     *
+     * <p>
      * Sets the whole set score to {@link Double#NaN}.
      * @param label The label.
      */
     public MultiLabel(Label label) {
-        this(Collections.singleton(label));
+        this.label = label.getLabel();
+        this.score = Double.NaN;
+        this.labels = Collections.singleton(label);
+        this.labelStrings = Collections.singleton(label.getLabel());
     }
 
     /**
@@ -270,6 +275,39 @@ public class MultiLabel implements Classifiable<MultiLabel> {
             return str + ":" + score;
         }
         return str;
+    }
+
+    /**
+     * Converts this MultiLabel into a SparseVector using the indices from the output info.
+     * The label score is used as the value for that index if it's non-NaN, and is 1.0 otherwise.
+     * @param info The info to use for the ids.
+     * @return A SparseVector representing this MultiLabel.
+     */
+    public SparseVector convertToSparseVector(ImmutableOutputInfo<MultiLabel> info) {
+        if (!(info instanceof ImmutableMultiLabelInfo)) {
+            throw new IllegalStateException("Unexpected info type, found " + info.getClass().getName() + ", expected " + ImmutableMultiLabelInfo.class.getName());
+        } else {
+            ImmutableMultiLabelInfo imInfo = (ImmutableMultiLabelInfo) info;
+            Map<Integer, Double> values = new HashMap<>();
+
+            for (Label l : labels) {
+                int i = imInfo.getID(l.getLabel());
+                if (i != -1) {
+                    double score = l.getScore();
+                    if (Double.isNaN(score)) {
+                        score = 1.0;
+                    }
+                    Double t = values.put(i,score);
+                    if (t != null) {
+                        throw new IllegalArgumentException("Duplicate label ids found for id " + i + ", mapping to Label '" + l.getLabel() + "'");
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unknown label '" + l.getLabel() + "' which was not recognised by the supplied info object, info = " + info.toString());
+                }
+            }
+
+            return SparseVector.createSparseVector(info.size(), values);
+        }
     }
 
     /**

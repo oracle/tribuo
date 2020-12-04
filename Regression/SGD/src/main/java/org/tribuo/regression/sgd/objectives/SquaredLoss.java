@@ -28,8 +28,19 @@ import org.tribuo.regression.sgd.RegressionObjective;
  */
 public class SquaredLoss implements RegressionObjective {
 
+    /**
+     * Constructs a SquaredLoss.
+     */
+    public SquaredLoss() {}
+
+    @Deprecated
     @Override
     public Pair<Double, SGDVector> loss(DenseVector truth, SGDVector prediction) {
+        return lossAndGradient(truth, prediction);
+    }
+
+    @Override
+    public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
         DenseVector difference = truth.subtract(prediction);
         double loss = difference.reduce(0.0,(a) -> 0.5*a*a,Double::sum);
         return new Pair<>(loss,difference);

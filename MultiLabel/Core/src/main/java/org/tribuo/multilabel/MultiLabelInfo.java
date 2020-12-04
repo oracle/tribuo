@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -139,6 +140,21 @@ public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
 
     @Override
     public abstract MultiLabelInfo copy();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MultiLabelInfo that = (MultiLabelInfo) o;
+        return unknownCount == that.unknownCount &&
+                totalCount == that.totalCount &&
+                labelCounts.equals(that.labelCounts);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(labelCounts, unknownCount, totalCount);
+    }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();

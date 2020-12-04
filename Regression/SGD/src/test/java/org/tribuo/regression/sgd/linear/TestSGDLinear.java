@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
+import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.optimisers.AdaGrad;
@@ -101,7 +102,7 @@ public class TestSGDLinear {
         // Turning off shuffle is important, otherwise the presentation order results in different models.
         t.setShuffle(false);
 
-        LinearSGDModel m = t.train(p.getA(), Collections.emptyMap());
+        AbstractLinearSGDModel<Regressor> m = t.train(p.getA());
         RegressionEvaluator e = new RegressionEvaluator();
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
 

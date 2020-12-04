@@ -93,4 +93,9 @@ public class MutableMultiLabelInfo extends MultiLabelInfo implements MutableOutp
         }
         return builder.toString();
     }
+
+    @Override
+    public String toString() {
+        return toReadableString();
+    }
 }
