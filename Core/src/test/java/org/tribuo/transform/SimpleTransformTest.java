@@ -232,7 +232,7 @@ public class SimpleTransformTest {
         map.put("F6",Arrays.asList(SimpleTransform.exp(),SimpleTransform.log(),SimpleTransform.add(5)));
         map.put("F8",Arrays.asList(SimpleTransform.exp(),SimpleTransform.log()));
 
-        TransformationMap t = new TransformationMap(new ArrayList<>(),map);
+        TransformationMap t = new TransformationMap(new ArrayList<Transformation>(),map);
 
         TransformerMap transMap = dataset.createTransformers(t);
 

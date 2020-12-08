@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SplittableRandom;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -248,6 +249,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         ArrayList<String> featureNames = new ArrayList<>(getFeatureMap().keySet());
 
         // Validate map by checking no regex applies to multiple features.
+        logger.fine(String.format("Processing %d feature specific transforms", transformations.getFeatureTransformations().size()));
         Map<String,List<Transformation>> featureTransformations = new HashMap<>();
         for (Map.Entry<String,List<Transformation>> entry : transformations.getFeatureTransformations().entrySet()) {
             // Compile the regex.
@@ -283,6 +285,9 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         }
         if (!transformations.getGlobalTransformations().isEmpty()) {
             // Append all the global transformations
+            int ntransform = featureNames.size();
+            logger.fine(String.format("Starting %,d global transformations", ntransform));
+            int ndone = 0;
             for (String v : featureNames) {
                 // Create the queue of feature transformations for this feature
                 Queue<TransformStatistics> l = featureStats.computeIfAbsent(v, (k) -> new LinkedList<>());
@@ -293,6 +298,10 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
                 featureStats.put(v, l);
                 // Generate the sparse count initialised to the number of features.
                 sparseCount.putIfAbsent(v, new MutableLong(data.size()));
+                ndone++;
+                if(logger.isLoggable(Level.FINE) && ndone % 10000 == 0) {
+                    logger.fine(String.format("Completed %,d of %,d global transformations", ndone, ntransform));
+                }
             }
         }
 
