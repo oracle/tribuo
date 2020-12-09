@@ -45,7 +45,8 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
     /**
      * The weights for this linear model.
      */
-    protected final DenseMatrix weights;
+    // Note this is not final to allow backwards compatibility for 4.0 models which need to rewrite the field on load.
+    protected DenseMatrix baseWeights;
 
     /**
      * Constructs a linear model trained via SGD.
@@ -60,7 +61,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
                            ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                            DenseMatrix weights, boolean generatesProbabilities) {
         super(name, provenance, featureIDMap, outputIDInfo, generatesProbabilities);
-        this.weights = weights;
+        this.baseWeights = weights;
     }
 
     /**
@@ -73,7 +74,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
         if (features.numActiveElements() == 1) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
-        return new PredAndActive(weights.leftMultiply(features),features.numActiveElements());
+        return new PredAndActive(baseWeights.leftMultiply(features),features.numActiveElements());
     }
 
     @Override
@@ -84,14 +85,14 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
 
         //
         // Use a priority queue to find the top N features.
-        int numClasses = weights.getDimension1Size();
-        int numFeatures = weights.getDimension2Size()-1; //Removing the bias feature.
+        int numClasses = baseWeights.getDimension1Size();
+        int numFeatures = baseWeights.getDimension2Size()-1; //Removing the bias feature.
         Map<String, List<Pair<String,Double>>> map = new HashMap<>();
         for (int i = 0; i < numClasses; i++) {
             PriorityQueue<Pair<String,Double>> q = new PriorityQueue<>(maxFeatures, comparator);
 
             for (int j = 0; j < numFeatures; j++) {
-                Pair<String,Double> curr = new Pair<>(featureIDMap.get(j).getName(), weights.get(i,j));
+                Pair<String,Double> curr = new Pair<>(featureIDMap.get(j).getName(), baseWeights.get(i,j));
 
                 if (q.size() < maxFeatures) {
                     q.offer(curr);
@@ -100,7 +101,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
                     q.offer(curr);
                 }
             }
-            Pair<String,Double> curr = new Pair<>(BIAS_FEATURE, weights.get(i,numFeatures));
+            Pair<String,Double> curr = new Pair<>(BIAS_FEATURE, baseWeights.get(i,numFeatures));
 
             if (q.size() < maxFeatures) {
                 q.offer(curr);
@@ -108,7 +109,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
                 q.poll();
                 q.offer(curr);
             }
-            ArrayList<Pair<String,Double>> b = new ArrayList<>();
+            List<Pair<String,Double>> b = new ArrayList<>();
             while (q.size() > 0) {
                 b.add(q.poll());
             }
@@ -123,19 +124,19 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
     public Optional<Excuse<T>> getExcuse(Example<T> example) {
         Prediction<T> prediction = predict(example);
         Map<String, List<Pair<String, Double>>> weightMap = new HashMap<>();
-        int numClasses = weights.getDimension1Size();
-        int numFeatures = weights.getDimension2Size()-1;
+        int numClasses = baseWeights.getDimension1Size();
+        int numFeatures = baseWeights.getDimension2Size()-1;
 
         for (int i = 0; i < numClasses; i++) {
             List<Pair<String, Double>> classScores = new ArrayList<>();
             for (Feature f : example) {
                 int id = featureIDMap.getID(f.getName());
                 if (id > -1) {
-                    double score = weights.get(i,id) * f.getValue();
+                    double score = baseWeights.get(i,id) * f.getValue();
                     classScores.add(new Pair<>(f.getName(), score));
                 }
             }
-            classScores.add(new Pair<>(Model.BIAS_FEATURE,weights.get(i,numFeatures)));
+            classScores.add(new Pair<>(Model.BIAS_FEATURE, baseWeights.get(i,numFeatures)));
             classScores.sort((Pair<String, Double> o1, Pair<String, Double> o2) -> o2.getB().compareTo(o1.getB()));
             weightMap.put(getDimensionName(i), classScores);
         }
@@ -155,12 +156,16 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
      * @return A copy of the weights.
      */
     public DenseMatrix getWeightsCopy() {
-        return weights.copy();
+        return baseWeights.copy();
     }
 
+    /**
+     * A nominal tuple used to capture the prediction and the number of active features used by the model.
+     */
     protected static final class PredAndActive {
         public final DenseVector prediction;
         public final int numActiveFeatures;
+
         PredAndActive(DenseVector prediction, int numActiveFeatures) {
             this.prediction = prediction;
             this.numActiveFeatures = numActiveFeatures;

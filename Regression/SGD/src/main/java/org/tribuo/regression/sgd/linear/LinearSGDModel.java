@@ -26,6 +26,7 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -44,6 +45,10 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
     private static final long serialVersionUID = 3L;
 
     private final String[] dimensionNames;
+
+    // Unused as the weights now live in AbstractLinearSGDModel
+    // It remains for serialization compatibility with Tribuo 4.0
+    private DenseMatrix weights = null;
 
     LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
@@ -73,5 +78,15 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
     @Override
     protected String getDimensionName(int index) {
         return dimensionNames[index];
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        // Bounce old 4.0 style models into the new 4.1 style models
+        if (weights != null && baseWeights == null) {
+            baseWeights = weights;
+            weights = null;
+        }
     }
 }

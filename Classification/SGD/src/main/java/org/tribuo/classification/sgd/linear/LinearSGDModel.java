@@ -28,6 +28,7 @@ import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -45,6 +46,10 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
     private static final long serialVersionUID = 2L;
 
     private final VectorNormalizer normalizer;
+
+    // Unused as the weights now live in AbstractLinearSGDModel
+    // It remains for serialization compatibility with Tribuo 4.0
+    private DenseMatrix weights = null;
 
     LinearSGDModel(String name, ModelProvenance provenance,
                    ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo,
@@ -84,11 +89,21 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
 
     @Override
     protected LinearSGDModel copy(String newName, ModelProvenance newProvenance) {
-        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(weights),normalizer,generatesProbabilities);
+        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(baseWeights),normalizer,generatesProbabilities);
     }
 
     @Override
     protected String getDimensionName(int index) {
         return outputIDInfo.getOutput(index).getLabel();
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        // Bounce old 4.0 style models into the new 4.1 style models
+        if (weights != null && baseWeights == null) {
+            baseWeights = weights;
+            weights = null;
+        }
     }
 }

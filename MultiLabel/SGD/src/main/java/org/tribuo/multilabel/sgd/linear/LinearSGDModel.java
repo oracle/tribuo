@@ -92,6 +92,6 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> {
 
     @Override
     protected LinearSGDModel copy(String newName, ModelProvenance newProvenance) {
-        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(weights),normalizer,generatesProbabilities,threshold);
+        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(baseWeights),normalizer,generatesProbabilities,threshold);
     }
 }
