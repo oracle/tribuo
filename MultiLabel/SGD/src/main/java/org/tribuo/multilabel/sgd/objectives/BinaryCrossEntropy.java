@@ -40,12 +40,6 @@ public final class BinaryCrossEntropy implements MultiLabelObjective {
      */
     public BinaryCrossEntropy() {}
 
-    @Deprecated
-    @Override
-    public Pair<Double, SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
-        return lossAndGradient(truth, prediction);
-    }
-
     /**
      * Returns a {@link Pair} of {@link Double} and the supplied prediction vector.
      * <p>

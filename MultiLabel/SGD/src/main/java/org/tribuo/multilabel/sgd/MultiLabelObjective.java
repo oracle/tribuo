@@ -16,7 +16,6 @@
 
 package org.tribuo.multilabel.sgd;
 
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.VectorNormalizer;
@@ -28,21 +27,6 @@ import org.tribuo.math.util.VectorNormalizer;
  * and what kind of normalization needs to be applied to produce probability values.
  */
 public interface MultiLabelObjective extends SGDObjective<SGDVector> {
-
-    /**
-     * Scores a prediction, returning the loss and a vector of per label gradients.
-     *
-     * @deprecated In 4.1, to migrate to the new name {@link #lossAndGradient}.
-     * @param truth      The true labels.
-     * @param prediction The prediction for each label id.
-     * @return The score and per label gradient.
-     */
-    @Deprecated
-    Pair<Double, SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction);
-
-    default Pair<Double, SGDVector> lossAndGradient(SGDVector truth, SGDVector prediction) {
-        return lossAndGradient(truth, prediction);
-    }
 
     /**
      * Generates a new {@link VectorNormalizer} which normalizes the predictions into a suitable format.

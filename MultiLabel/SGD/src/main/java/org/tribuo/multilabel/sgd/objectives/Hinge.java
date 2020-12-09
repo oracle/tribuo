@@ -53,12 +53,6 @@ public final class Hinge implements MultiLabelObjective {
         this(1.0);
     }
 
-    @Deprecated
-    @Override
-    public Pair<Double, SGDVector> valueAndGradient(SGDVector truth, SGDVector prediction) {
-        return lossAndGradient(truth, prediction);
-    }
-
     /**
      * Returns a {@link Pair} of {@link Double} and {@link SparseVector}.
      * @param truth The true label id.
