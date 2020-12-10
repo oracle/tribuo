@@ -29,6 +29,7 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * A {@link Trainer} which encapsulates another trainer plus a {@link TransformationMap} object
@@ -38,6 +39,8 @@ import java.util.Map;
  * first call {@link MutableDataset#densify} on the datasets.
  */
 public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
+    
+    private static final Logger logger = Logger.getLogger(TransformTrainer.class.getName());
 
     @Config(mandatory = true,description="Trainer to use.")
     private Trainer<T> innerTrainer;
@@ -81,10 +84,16 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Override
     public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance) {
+        
+        logger.fine(String.format("Creating transformers"));
         TransformerMap transformerMap = examples.createTransformers(transformations);
 
+        logger.fine("Transforming data set");
+        
         Dataset<T> transformedDataset = transformerMap.transformDataset(examples,densify);
 
+        logger.fine("Running inner trainer");
+        
         Model<T> innerModel = innerTrainer.train(transformedDataset);
 
         ModelProvenance provenance = new ModelProvenance(TransformedModel.class.getName(), OffsetDateTime.now(), transformedDataset.getProvenance(), getProvenance(), instanceProvenance);

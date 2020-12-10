@@ -18,6 +18,7 @@ package org.tribuo.transform;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -32,6 +33,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -51,7 +54,7 @@ public class TransformationMap implements Configurable, Provenancable<Configured
     @Config(mandatory = true,description="Global transformations to apply after the feature specific transforms.")
     private List<Transformation> globalTransformations;
 
-    @Config(mandatory = true,description="Feature specific transformations. Accepts regexes for feature names.")
+    @Config(description="Feature specific transformations. Accepts regexes for feature names.")
     private Map<String,TransformationList> featureTransformationList = new HashMap<>();
 
     private final Map<String,List<Transformation>> featureTransformations = new HashMap<>();
@@ -64,13 +67,14 @@ public class TransformationMap implements Configurable, Provenancable<Configured
     private TransformationMap() {}
 
     public TransformationMap(List<Transformation> globalTransformations, Map<String,List<Transformation>> featureTransformations) {
-        this.globalTransformations = globalTransformations;
+        this.globalTransformations = new ArrayList<>(globalTransformations);
         this.featureTransformations.putAll(featureTransformations);
 
         // Copy values out for provenance
         for (Map.Entry<String,List<Transformation>> e : featureTransformations.entrySet()) {
             featureTransformationList.put(e.getKey(),new TransformationList(e.getValue()));
         }
+        
     }
 
     public TransformationMap(List<Transformation> globalTransformations) {
@@ -86,6 +90,11 @@ public class TransformationMap implements Configurable, Provenancable<Configured
      */
     @Override
     public void postConfig() {
+        if(globalTransformations.isEmpty() && featureTransformationList.isEmpty()) {
+            throw new PropertyException("TransformationMap", 
+                    "Both global transformations and feature transformations can't be empty!");
+        }
+        
         for (Map.Entry<String,TransformationList> e : featureTransformationList.entrySet()) {
             featureTransformations.put(e.getKey(),e.getValue().list);
         }

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * A collection of {@link Transformer}s which can be applied to a {@link Dataset}
@@ -49,6 +50,9 @@ import java.util.Set;
  * first call {@link MutableDataset#densify} on the datasets.
  */
 public final class TransformerMap implements Provenancable<TransformerMapProvenance>, Serializable {
+    
+    private static final Logger logger = Logger.getLogger(TransformerMap.class.getName());
+    
     private static final long serialVersionUID = 2L;
 
     private final Map<String, List<Transformer>> map;
@@ -129,15 +133,39 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
      * @return A deep copy of the dataset (and it's examples) with the transformers applied to it's features.
      */
     public <T extends Output<T>> MutableDataset<T> transformDataset(Dataset<T> dataset, boolean densify) {
+        
+        logger.fine("Creating deep copy of data set");
+        
         MutableDataset<T> newDataset = MutableDataset.createDeepCopy(dataset);
 
         if (densify) {
             newDataset.densify();
         }
 
+        logger.fine(String.format("Transforming data set copy"));
+        
         newDataset.transform(this);
 
         return newDataset;
+    }
+    
+    /**
+     * Gets the size of the map.
+     * 
+     * @return the size of the map of feature names to transformers.
+     */
+    public int size() {
+        return map.size();
+    }
+    
+    /**
+     * Gets the transformer associated with a given feature name.
+     * @param featureName the name of the feature for which we want the transformer
+     * @return the transformer associated with the feature name, which may be <code>null</code> 
+     * if there is no feature with that name.
+     */
+    public List<Transformer> get(String featureName) {
+        return map.get(featureName);
     }
 
     @Override
