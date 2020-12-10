@@ -62,6 +62,7 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 - Support word embedding features.
 - Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).
 - More complex Multi-Label prediction algorithms.
+    - A Multi-Label linear SGD is integrated and arriving in Tribuo 4.1.
 - More anomaly detection algorithms.
 - More clustering algorithms.
 
