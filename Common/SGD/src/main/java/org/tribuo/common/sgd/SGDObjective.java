@@ -51,14 +51,29 @@ public interface SGDObjective<T> extends Configurable, Provenancable<ConfiguredO
          */
         public final SGDVector gradient;
 
+        /**
+         * Construct a LossAndGradient tuple.
+         * @param loss The loss value.
+         * @param gradient The gradient for this loss.
+         */
         public LossAndGradient(double loss, SGDVector gradient) {
             this.loss = loss;
             this.gradient = gradient;
         }
 
         /**
+         * Builds a LossAndGradient tuple from the pair.
+         * @param pair The loss and gradient pair.
+         */
+        @Deprecated
+        public LossAndGradient(Pair<Double,SGDVector> pair) {
+            this.loss = pair.getA();
+            this.gradient = pair.getB();
+        }
+
+        /**
          * For migration.
-         * @return The loss & gradient pair.
+         * @return The loss and gradient pair.
          */
         @Deprecated
         public Pair<Double,SGDVector> getPair() {

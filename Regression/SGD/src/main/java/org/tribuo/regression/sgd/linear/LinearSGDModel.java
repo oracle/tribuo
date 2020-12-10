@@ -51,6 +51,14 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
     @Deprecated
     private DenseMatrix weights = null;
 
+    /**
+     * Constructs a linear regression model trained via SGD.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param parameters The model parameters (i.e., the weight matrix).
+     */
     LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
                           LinearParameters parameters) {
@@ -58,6 +66,14 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
         this.dimensionNames = dimensionNames;
     }
 
+    /**
+     * Constructs a linear regression model trained via SGD.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param weights The model parameters (i.e., the weight matrix).
+     */
     private LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
                           DenseMatrix weights) {

@@ -32,8 +32,16 @@ import java.util.logging.Logger;
  */
 public class LogisticRegressionTrainer extends LinearSGDTrainer {
     private static final Logger logger = Logger.getLogger(LogisticRegressionTrainer.class.getName());
-    
+
+    /**
+     * Constructs a simple logistic regression, using {@link AdaGrad} with a learning rate of 1.0 as
+     * the gradient optimizer, training for 5 epochs.
+     *
+     * It's equivalent to this:
+     * {@code new LinearSGDTrainer(new LogMulticlass(), new AdaGrad(1.0, 0.1), 5, Trainer.DEFAULT_SEED); }
+     */
     public LogisticRegressionTrainer() {
         super(new LogMulticlass(), new AdaGrad(1.0, 0.1), 5, Trainer.DEFAULT_SEED);
     }
+
 }

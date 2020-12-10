@@ -52,6 +52,16 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
     @Deprecated
     private DenseMatrix weights = null;
 
+    /**
+     * Constructs a linear classification model trained via SGD.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param parameters The model parameters (i.e., the weight matrix).
+     * @param normalizer The normalization function.
+     * @param generatesProbabilities Does this model generate probabilities?
+     */
     LinearSGDModel(String name, ModelProvenance provenance,
                    ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo,
                    LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities) {
@@ -59,6 +69,16 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
         this.normalizer = normalizer;
     }
 
+    /**
+     * Constructs a linear classification model trained via SGD.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param weights The model parameters (i.e., the weight matrix).
+     * @param normalizer The normalization function.
+     * @param generatesProbabilities Does this model generate probabilities?
+     */
     private LinearSGDModel(String name, ModelProvenance provenance,
                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo,
                           DenseMatrix weights, VectorNormalizer normalizer, boolean generatesProbabilities) {
