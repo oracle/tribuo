@@ -162,6 +162,7 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> implements
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
         SparseVector[] sgdFeatures = new SparseVector[examples.size()];
+        @SuppressWarnings("unchecked")
         U[] sgdTargets = (U[]) new Object[examples.size()];
         double[] weights = new double[examples.size()];
         int n = 0;

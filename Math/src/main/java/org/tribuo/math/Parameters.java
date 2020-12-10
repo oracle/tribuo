@@ -23,8 +23,8 @@ import org.tribuo.math.la.Tensor;
  * <p>
  * Parameters is essentially an SGD model at training time.
  * <p>
- * Subclasses of this should add methods for calculating gradients for
- * their prediction task.
+ * Subclasses of this can add methods for calculating gradients for
+ * their prediction task, or use an external objective class.
  */
 public interface Parameters {
 

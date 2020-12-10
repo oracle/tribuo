@@ -26,7 +26,7 @@ import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
 
 /**
- * A Parameters for producing single label linear models.
+ * A {@link Parameters} for producing linear models.
  */
 public class LinearParameters implements Parameters {
 

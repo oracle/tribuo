@@ -48,6 +48,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
 
     // Unused as the weights now live in AbstractLinearSGDModel
     // It remains for serialization compatibility with Tribuo 4.0
+    @Deprecated
     private DenseMatrix weights = null;
 
     LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
