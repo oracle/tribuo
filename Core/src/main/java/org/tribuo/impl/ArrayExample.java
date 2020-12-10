@@ -161,8 +161,8 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         super(other);
         if(other instanceof ArrayExample) {
             ArrayExample< T> otherArr = (ArrayExample<T>) other;
-            featureNames = Arrays.copyOf(otherArr.featureNames, otherArr.featureNames.length);
-            featureValues = Arrays.copyOf(otherArr.featureValues, otherArr.featureValues.length);
+            featureNames = Arrays.copyOf(otherArr.featureNames, otherArr.size);
+            featureValues = Arrays.copyOf(otherArr.featureValues, otherArr.size);
             size = otherArr.size;
         } else {
             featureNames = new String[other.size()];
@@ -417,7 +417,7 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
     public void transform(TransformerMap transformerMap) {
         if(transformerMap.size() < featureNames.length) {
             //
-            // We have transformers than feature names, so let's
+            // We have fewer transformers than feature names, so let's
             // iterate through the map and find the features.
             for(Map.Entry<String, List<Transformer>> e : transformerMap.entrySet()) {
                 int index = Arrays.binarySearch(featureNames, 0, size, e.getKey());
@@ -434,14 +434,13 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
             // We have more transformers, so let's fetch them by name.
             for(int i = 0; i < size; i++) {
                 List<Transformer> l = transformerMap.get(featureNames[i]);
-                if(l == null) {
-                    continue;
+                if(l != null) {
+                    double value = featureValues[i];
+                    for(Transformer t : l) {
+                        value = t.transform(value);
+                    }
+                    featureValues[i] = value;
                 }
-                double value = featureValues[i];
-                for(Transformer t : l) {
-                    value = t.transform(value);
-                }
-                featureValues[i] = value;
             }
         }
     }

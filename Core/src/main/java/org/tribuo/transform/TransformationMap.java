@@ -52,7 +52,7 @@ import java.util.regex.Pattern;
 public class TransformationMap implements Configurable, Provenancable<ConfiguredObjectProvenance> {
 
     @Config(mandatory = true,description="Global transformations to apply after the feature specific transforms.")
-    private List<Transformation> globalTransformations = new ArrayList<>();
+    private List<Transformation> globalTransformations;
 
     @Config(description="Feature specific transformations. Accepts regexes for feature names.")
     private Map<String,TransformationList> featureTransformationList = new HashMap<>();
@@ -67,7 +67,7 @@ public class TransformationMap implements Configurable, Provenancable<Configured
     private TransformationMap() {}
 
     public TransformationMap(List<Transformation> globalTransformations, Map<String,List<Transformation>> featureTransformations) {
-        this.globalTransformations = globalTransformations;
+        this.globalTransformations = new ArrayList<>(globalTransformations);
         this.featureTransformations.putAll(featureTransformations);
 
         // Copy values out for provenance

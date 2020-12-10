@@ -29,8 +29,6 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
-import java.util.logging.Handler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -87,15 +85,7 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     @Override
     public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance) {
         
-        logger.info(String.format("%s %s", TransformTrainer.class.getName(), logger.getLevel()));
-        if(logger.isLoggable(Level.FINE)) {
-            logger.info(String.format("It says fine is loggable?"));
-        }
         logger.fine(String.format("Creating transformers"));
-        logger.fine("Really doing it, though. Like for real");
-        for(Handler h : logger.getHandlers()) {
-            h.flush();
-        }
         TransformerMap transformerMap = examples.createTransformers(transformations);
 
         logger.fine("Transforming data set");

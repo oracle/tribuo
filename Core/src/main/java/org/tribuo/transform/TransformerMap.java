@@ -149,10 +149,21 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
         return newDataset;
     }
     
+    /**
+     * Gets the size of the map.
+     * 
+     * @return the size of the map of feature names to transformers.
+     */
     public int size() {
         return map.size();
     }
     
+    /**
+     * Gets the transformer associated with a given feature name.
+     * @param featureName the name of the feature for which we want the transformer
+     * @return the transformer associated with the feature name, which may be <code>null</code> 
+     * if there is no feature with that name.
+     */
     public List<Transformer> get(String featureName) {
         return map.get(featureName);
     }
