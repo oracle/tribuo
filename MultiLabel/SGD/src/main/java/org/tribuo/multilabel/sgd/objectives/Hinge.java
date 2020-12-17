@@ -54,7 +54,8 @@ public final class Hinge implements MultiLabelObjective {
     }
 
     /**
-     * Returns a {@link Pair} of {@link Double} and {@link SparseVector}.
+     * Returns a {@link Pair} of {@link Double} and {@link SGDVector} representing the loss
+     * and per label gradients respectively.
      * @param truth The true label id.
      * @param prediction The prediction for each label id.
      * @return The loss and per label gradient.

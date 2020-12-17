@@ -63,6 +63,8 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<MultiLabel,SGDVec
     }
 
     /**
+     * Constructs an SGD trainer for a linear model.
+     * <p>
      * Sets the minibatch size to 1.
      * @param objective The objective function to optimise.
      * @param optimiser The gradient optimiser to use.
@@ -75,6 +77,8 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<MultiLabel,SGDVec
     }
 
     /**
+     * Constructs an SGD trainer for a linear model.
+     * <p>
      * Sets the minibatch size to 1 and the logging interval to 1000.
      * @param objective The objective function to optimise.
      * @param optimiser The gradient optimiser to use.

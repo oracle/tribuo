@@ -45,9 +45,10 @@ public class LogMulticlass implements LabelObjective {
     }
 
     /**
-     * Returns a {@link Pair} of {@link Double} and the supplied prediction vector.
+     * Returns a {@link Pair} of {@link Double} and {@link SGDVector} representing the loss
+     * and per label gradients respectively.
      * <p>
-     * The prediction vector is transformed to produce the per label gradient.
+     * The prediction vector is transformed to produce the per label gradient and returned.
      * @param truth The true label id
      * @param prediction The prediction for each label id
      * @return A Pair of the score and per label gradient.

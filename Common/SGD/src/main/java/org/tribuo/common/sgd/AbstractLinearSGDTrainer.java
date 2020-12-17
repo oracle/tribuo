@@ -96,6 +96,8 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> implements
     }
 
     /**
+     * Constructs an SGD trainer for a linear model.
+     * <p>
      * Sets the minibatch size to 1.
      * @param optimiser The gradient optimiser to use.
      * @param epochs The number of epochs (complete passes through the training data).
@@ -107,6 +109,8 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> implements
     }
 
     /**
+     * Constructs an SGD trainer for a linear model.
+     * <p>
      * Sets the minibatch size to 1 and the logging interval to 1000.
      * @param optimiser The gradient optimiser to use.
      * @param epochs The number of epochs (complete passes through the training data).
@@ -121,6 +125,9 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> implements
      */
     protected AbstractLinearSGDTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
@@ -196,7 +203,7 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> implements
                     linearParameters.update(updates);
 
                     iteration++;
-                    if ((iteration % loggingInterval == 0) && (loggingInterval != -1)) {
+                    if ((loggingInterval != -1) && (iteration % loggingInterval == 0)) {
                         logger.info("At iteration " + iteration + ", average loss = " + loss/loggingInterval);
                         loss = 0.0;
                     }
@@ -280,7 +287,7 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> implements
     }
 
     /**
-     * In place shuffle of the features, outputs and weights.
+     * Shuffles the features, outputs and weights in place.
      * @param features Feature array.
      * @param labels Output array.
      * @param weights Weight array.
