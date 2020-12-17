@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -118,6 +119,15 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
     }
 
     /**
+     * Gets the id for the supplied label string.
+     * @param label The label string.
+     * @return The id number, or -1 if the label is unknown.
+     */
+    public int getID(String label) {
+        return labelIDMap.getOrDefault(label,-1);
+    }
+
+    /**
      * Gets the count of the label occurrence for the specified id number, or 0 if it's unknown.
      * @param id The label id.
      * @return The label count.
@@ -153,6 +163,26 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
             builder.append(')');
         }
         return builder.toString();
+    }
+
+    @Override
+    public String toString() {
+        return toReadableString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ImmutableMultiLabelInfo pairs = (ImmutableMultiLabelInfo) o;
+        return super.equals(o) &&
+                idLabelMap.equals(pairs.idLabelMap) &&
+                labelIDMap.equals(pairs.labelIDMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(labelCounts, idLabelMap, labelIDMap);
     }
 
     @Override

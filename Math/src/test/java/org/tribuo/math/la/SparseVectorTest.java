@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.function.DoubleUnaryOperator;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -122,19 +123,38 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void size() throws Exception {
+    public void testReduction() {
+        SparseVector a = generateVectorA();
+        SparseVector b = generateVectorB();
+        SparseVector c = generateVectorC();
+
+        assertEquals(a.maxValue(),a.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), Double::max));
+        assertEquals(b.maxValue(),b.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), Double::max));
+        assertEquals(c.maxValue(),c.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), Double::max));
+
+        assertEquals(0.0,a.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), Double::min));
+        assertEquals(-5.0,b.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), Double::min));
+        assertEquals(0.0,c.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), Double::min));
+
+        assertEquals(a.sum(),a.reduce(0, DoubleUnaryOperator.identity(), Double::sum));
+        assertEquals(b.sum(),b.reduce(0, DoubleUnaryOperator.identity(), Double::sum));
+        assertEquals(c.sum(),c.reduce(0, DoubleUnaryOperator.identity(), Double::sum));
+    }
+
+    @Test
+    public void size() {
         SparseVector s = generateVectorA();
         assertEquals(10, s.size());
     }
 
     @Test
-    public void activeElements() throws Exception {
+    public void activeElements() {
         SparseVector s = generateVectorA();
         assertEquals(5, s.numActiveElements());
     }
 
     @Test
-    public void overlappingDot() throws Exception {
+    public void overlappingDot() {
         SparseVector a = generateVectorA();
         SparseVector b = generateVectorB();
 
@@ -143,7 +163,7 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void dot() throws Exception {
+    public void dot() {
         SparseVector a = generateVectorA();
         SparseVector c = generateVectorC();
 
@@ -152,7 +172,7 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void emptyDot() throws Exception {
+    public void emptyDot() {
         SparseVector a = generateVectorA();
         SparseVector b = generateVectorB();
         SparseVector c = generateVectorC();
@@ -167,13 +187,13 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void maxIndex() throws Exception {
+    public void maxIndex() {
         SparseVector s = generateVectorB();
         assertEquals(5,s.indexOfMax());
     }
 
     @Test
-    public void difference() throws Exception {
+    public void difference() {
         SparseVector a = generateVectorA();
         SparseVector b = generateVectorB();
         SparseVector c = generateVectorC();
@@ -184,7 +204,7 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void intersection() throws Exception {
+    public void intersection() {
         SparseVector a = generateVectorA();
         SparseVector b = generateVectorB();
         SparseVector c = generateVectorC();
@@ -196,7 +216,7 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void add() throws Exception {
+    public void add() {
         SparseVector a = generateVectorA();
         SparseVector b = generateVectorB();
         SparseVector c = generateVectorC();
@@ -223,7 +243,7 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void subtract() throws Exception {
+    public void subtract() {
         SparseVector a = generateVectorA();
         SparseVector b = generateVectorB();
         SparseVector c = generateVectorC();
@@ -255,15 +275,15 @@ public class SparseVectorTest {
         assertEquals(cSubB, c.subtract(b), "C - B");
     }
 
-    public SparseVector invert(SparseVector input) {
+    public static SparseVector invert(SparseVector input) {
         return scale(input,-1.0);
     }
 
-    public SparseVector zero(SparseVector input) {
+    public static SparseVector zero(SparseVector input) {
         return scale(input,0.0);
     }
 
-    public SparseVector scale(SparseVector input, double scale) {
+    public static SparseVector scale(SparseVector input, double scale) {
         SparseVector inverse = input.copy();
         inverse.scaleInPlace(scale);
         return inverse;

@@ -159,6 +159,11 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
     }
 
     @Override
+    public String toString() {
+        return toReadableString();
+    }
+
+    @Override
     public Iterator<Pair<Integer, Label>> iterator() {
         return new ImmutableInfoIterator(idLabelMap);
     }

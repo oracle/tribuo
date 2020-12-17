@@ -20,7 +20,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * NoopNormalizer returns a copy of the input, without normalizing it.
+ * NoopNormalizer returns a copy in {@link NoopNormalizer#normalize} and is a no-op in place.
  */
 public class NoopNormalizer implements VectorNormalizer, Serializable {
     private static final long serialVersionUID = 1L;
@@ -30,4 +30,6 @@ public class NoopNormalizer implements VectorNormalizer, Serializable {
         return Arrays.copyOf(input,input.length);
     }
 
+    @Override
+    public void normalizeInPlace(double[] input) {}
 }

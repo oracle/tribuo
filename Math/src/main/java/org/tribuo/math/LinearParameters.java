@@ -26,13 +26,14 @@ import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
 
 /**
- * A Parameters for producing single label linear models.
+ * A {@link Parameters} for producing linear models.
  */
 public class LinearParameters implements Parameters {
 
     private static final Merger merger = new HeapMerger();
 
-    // Last row in this DenseMatrix is the bias, added by calling new SparseVector(example,featureInfo,true);
+    // Last row in this DenseMatrix is the bias, added by
+    // calling SparseVector.createSparseVector(example,featureInfo,true);
     private Tensor[] weights;
     private DenseMatrix weightMatrix;
 
@@ -52,7 +53,7 @@ public class LinearParameters implements Parameters {
      * @param example A feature vector
      * @return A {@link org.tribuo.math.la.DenseVector} containing a score for each label.
      */
-    public SGDVector predict(SparseVector example) {
+    public SGDVector predict(SGDVector example) {
         return weightMatrix.leftMultiply(example);
     }
 
@@ -113,13 +114,22 @@ public class LinearParameters implements Parameters {
 
     @Override
     public Tensor[] merge(Tensor[][] gradients, int size) {
-        DenseSparseMatrix[] updates = new DenseSparseMatrix[size];
-        for (int j = 0; j < updates.length; j++) {
-            updates[j] = (DenseSparseMatrix) gradients[j][0];
+        if (gradients[0][0] instanceof DenseMatrix) {
+            for (int i = 1; i < size; i++) {
+                gradients[0][0].intersectAndAddInPlace(gradients[i][0]);
+            }
+            return new Tensor[]{gradients[0][0]};
+        } else if (gradients[0][0] instanceof DenseSparseMatrix) {
+            DenseSparseMatrix[] updates = new DenseSparseMatrix[size];
+            for (int j = 0; j < updates.length; j++) {
+                updates[j] = (DenseSparseMatrix) gradients[j][0];
+            }
+
+            DenseSparseMatrix update = merger.merge(updates);
+
+            return new Tensor[]{update};
+        } else {
+            throw new IllegalStateException("Unexpected gradient type, expected DenseMatrix or DenseSparseMatrix, received " + gradients[0][0].getClass().getName());
         }
-
-        DenseSparseMatrix update = merger.merge(updates);
-
-        return new Tensor[]{update};
     }
 }

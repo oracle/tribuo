@@ -17,6 +17,7 @@
 package org.tribuo.regression.sgd.objectives;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -31,15 +32,24 @@ import java.util.function.DoubleUnaryOperator;
  */
 public class Huber implements RegressionObjective {
 
+    public static final double DEFAULT_COST = 5;
+
     @Config(description="Cost beyond which the loss function is linear.")
-    private double cost = 5;
+    private double cost = DEFAULT_COST;
 
     private DoubleUnaryOperator lossFunc;
 
+    /**
+     * Huber Loss using the default cost {@link #DEFAULT_COST}.
+     */
     public Huber() {
         postConfig();
     }
 
+    /**
+     * Huber loss using the supplied cost. Cost must be positive.
+     * @param cost The cost.
+     */
     public Huber(double cost) {
         this.cost = cost;
         postConfig();
@@ -50,6 +60,9 @@ public class Huber implements RegressionObjective {
      */
     @Override
     public void postConfig() {
+        if (cost <= 0) {
+            throw new PropertyException("","cost","Cost must be a positive value, found " + cost);
+        }
         lossFunc = (a) -> {
             if (a > cost) {
                 return (cost * a) - (0.5 * cost * cost);
@@ -59,8 +72,14 @@ public class Huber implements RegressionObjective {
         };
     }
 
+    @Deprecated
     @Override
     public Pair<Double, SGDVector> loss(DenseVector truth, SGDVector prediction) {
+        return lossAndGradient(truth, prediction);
+    }
+
+    @Override
+    public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
         DenseVector difference = truth.subtract(prediction);
         DenseVector absoluteDifference = difference.copy();
         absoluteDifference.foreachInPlace(Math::abs);

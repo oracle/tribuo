@@ -47,6 +47,11 @@
             <artifactId>tribuo-math</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>tribuo-common-sgd</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- test time dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>

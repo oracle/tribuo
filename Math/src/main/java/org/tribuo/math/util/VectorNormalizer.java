@@ -30,4 +30,17 @@ public interface VectorNormalizer extends Serializable {
      */
     public double[] normalize(double[] input);
 
+    /**
+     * In place normalization of the array.
+     * <p>
+     * Note: This default implementation performs a copy by calling the standard normalize method.
+     * @param input The input to normalize.
+     */
+    default public void normalizeInPlace(double[] input) {
+        double[] output = normalize(input);
+        for (int i = 0; i < input.length; i++) {
+            input[i] = output[i];
+        }
+    }
+
 }

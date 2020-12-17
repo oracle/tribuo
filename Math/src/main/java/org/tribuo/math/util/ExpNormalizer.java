@@ -17,6 +17,7 @@
 package org.tribuo.math.util;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Normalizes the exponential values of the input array. Used when the input is in log space.
@@ -26,7 +27,13 @@ public class ExpNormalizer implements VectorNormalizer, Serializable {
 
     @Override
     public double[] normalize(double[] input) {
-        double[] output = new double[input.length];
+        double[] output = Arrays.copyOf(input, input.length);
+        normalizeInPlace(output);
+        return output;
+    }
+
+    @Override
+    public void normalizeInPlace(double[] input) {
         double max = -Double.MAX_VALUE;
         for (int i = 0; i < input.length; i++) {
             if (max < input[i]) {
@@ -35,13 +42,12 @@ public class ExpNormalizer implements VectorNormalizer, Serializable {
         }
         double sum = 0.0;
         for (int i = 0; i < input.length; i++) {
-            output[i] = Math.exp(input[i] - max);
-            sum += output[i];
+            input[i] = Math.exp(input[i] - max);
+            sum += input[i];
         }
-        for (int i = 0; i < output.length; i++) {
-            output[i] /= sum;
+        for (int i = 0; i < input.length; i++) {
+            input[i] /= sum;
         }
-        return output;
     }
 
 }

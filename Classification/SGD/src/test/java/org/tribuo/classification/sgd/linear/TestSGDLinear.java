@@ -17,6 +17,8 @@
 package org.tribuo.classification.sgd.linear;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
@@ -33,6 +35,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -40,6 +44,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {
 
@@ -113,5 +118,27 @@ public class TestSGDLinear {
             Model<Label> m = t.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"label-linear-sgd-4.0.2.model"})
+    public void testSerializedModel(String resourceName) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(TestSGDLinear.class.getResource(resourceName).openStream())) {
+           Model<?> model = (Model<?>) ois.readObject();
+           if (model.validate(Label.class)) {
+               @SuppressWarnings("unchecked") // Guarded by validate call.
+               Model<Label> m = (Model<Label>) model;
+               LabelEvaluator e = new LabelEvaluator();
+               LabelEvaluation evaluation = e.evaluate(m,LabelledDataGenerator.denseTrainTest().getB());
+               Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+               Assertions.assertNotNull(features);
+               Assertions.assertFalse(features.isEmpty());
+               features = m.getTopFeatures(-1);
+               Assertions.assertNotNull(features);
+               Assertions.assertFalse(features.isEmpty());
+           } else {
+               fail("Invalid model type found, expected Label");
+           }
+        }
     }
 }

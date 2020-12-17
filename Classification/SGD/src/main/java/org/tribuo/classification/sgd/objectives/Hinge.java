@@ -52,14 +52,21 @@ public class Hinge implements LabelObjective {
         this(1.0);
     }
 
+    @Deprecated
+    @Override
+    public Pair<Double, SGDVector> valueAndGradient(int truth, SGDVector prediction) {
+        return lossAndGradient(truth, prediction);
+    }
+
     /**
-     * Returns a {@link Pair} of {@link Double} and {@link SparseVector}.
+     * Returns a {@link Pair} of {@link Double} and {@link SGDVector} representing the loss
+     * and per label gradients respectively.
      * @param truth The true label id.
      * @param prediction The prediction for each label id.
      * @return The loss and per label gradient.
      */
     @Override
-    public Pair<Double,SGDVector> valueAndGradient(int truth, SGDVector prediction) {
+    public Pair<Double,SGDVector> lossAndGradient(Integer truth, SGDVector prediction) {
         prediction.add(truth,-margin);
         int predIndex = prediction.indexOfMax();
 

@@ -16,13 +16,19 @@
 
 package org.tribuo.multilabel;
 
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Label;
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.la.SparseVector;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.tribuo.multilabel.Utils.label;
+import static org.tribuo.multilabel.Utils.mkDomain;
+import static org.tribuo.multilabel.Utils.mkPrediction;
 
 public class MultiLabelTest {
 
@@ -45,6 +51,37 @@ public class MultiLabelTest {
         assertEquals(a.hashCode(), b.hashCode());
     }
 
+    @Test
+    public void testToSparseVector() {
+        MultiLabel ab = label("a","b");
+        MultiLabel abc = label("c","b","a");
+        MultiLabel empty = label();
+        MultiLabel d = label("d");
+        MultiLabel e = label("e");
+        MultiLabel de = label("d","e");
+
+        ImmutableOutputInfo<MultiLabel> domain = mkDomain(ab,abc,d);
+
+        SparseVector abVec = ab.convertToSparseVector(domain);
+        assertEquals(4,abVec.size());
+        assertEquals(2,abVec.numActiveElements());
+
+        SparseVector abcVec = abc.convertToSparseVector(domain);
+        assertEquals(4,abcVec.size());
+        assertEquals(3,abcVec.numActiveElements());
+
+        SparseVector emptyVec = empty.convertToSparseVector(domain);
+        assertEquals(4,emptyVec.size());
+        assertEquals(0,emptyVec.numActiveElements());
+
+        SparseVector dVec = d.convertToSparseVector(domain);
+        assertEquals(4,dVec.size());
+        assertEquals(1,dVec.numActiveElements());
+
+        assertThrows(IllegalArgumentException.class,() -> e.convertToSparseVector(domain));
+        assertThrows(IllegalArgumentException.class,() -> de.convertToSparseVector(domain));
+    }
+
     Set<Label> mkLabelSet(String... labels) {
         Set<Label> set = new HashSet<>();
         for (String s : labels) {
@@ -52,6 +89,5 @@ public class MultiLabelTest {
         }
         return set;
     }
-
 
 }
