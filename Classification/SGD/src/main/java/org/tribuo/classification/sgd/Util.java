@@ -16,6 +16,7 @@
 
 package org.tribuo.classification.sgd;
 
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 
 import java.util.SplittableRandom;
@@ -142,13 +143,13 @@ public class Util {
      * @param weights Input weights.
      * @param rng SplittableRandom number generator.
      */
-    public static void shuffleInPlace(SparseVector[][] features, int[][] labels, double[] weights, SplittableRandom rng) {
+    public static void shuffleInPlace(SGDVector[][] features, int[][] labels, double[] weights, SplittableRandom rng) {
         int size = features.length;
         // Shuffle array
         for (int i = size; i > 1; i--) {
             int j = rng.nextInt(i);
             //swap features
-            SparseVector[] tmpFeature = features[i-1];
+            SGDVector[] tmpFeature = features[i-1];
             features[i-1] = features[j];
             features[j] = tmpFeature;
             //swap labels
@@ -170,9 +171,9 @@ public class Util {
      * @param rng SplittableRandom number generator.
      * @return A tuple of shuffled features, labels and weights.
      */
-    public static SequenceExampleArray shuffle(SparseVector[][] features, int[][] labels, double[] weights, SplittableRandom rng) {
+    public static SequenceExampleArray shuffle(SGDVector[][] features, int[][] labels, double[] weights, SplittableRandom rng) {
         int size = features.length;
-        SparseVector[][] newFeatures = new SparseVector[size][];
+        SGDVector[][] newFeatures = new SGDVector[size][];
         int[][] newLabels = new int[size][];
         double[] newWeights = new double[size];
         for (int i = 0; i < newFeatures.length; i++) {
@@ -184,7 +185,7 @@ public class Util {
         for (int i = size; i > 1; i--) {
             int j = rng.nextInt(i);
             //swap features
-            SparseVector[] tmpFeature = newFeatures[i-1];
+            SGDVector[] tmpFeature = newFeatures[i-1];
             newFeatures[i-1] = newFeatures[j];
             newFeatures[j] = tmpFeature;
             //swap labels
@@ -203,11 +204,11 @@ public class Util {
      * A nominal tuple. One day it'll be a record, but not today.
      */
     public static class SequenceExampleArray {
-        public final SparseVector[][] features;
+        public final SGDVector[][] features;
         public final int[][] labels;
         public final double[] weights;
 
-        public SequenceExampleArray(SparseVector[][] features, int[][] labels, double[] weights) {
+        SequenceExampleArray(SGDVector[][] features, int[][] labels, double[] weights) {
             this.features = features;
             this.labels = labels;
             this.weights = weights;

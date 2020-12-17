@@ -25,6 +25,7 @@ import org.tribuo.WeightedExamples;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.sgd.Util;
 import org.tribuo.math.StochasticGradientOptimiser;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.provenance.ModelProvenance;
@@ -150,13 +151,13 @@ public class CRFTrainer implements SequenceTrainer<Label>, WeightedExamples {
         }
         ImmutableOutputInfo<Label> labelIDMap = sequenceExamples.getOutputIDInfo();
         ImmutableFeatureMap featureIDMap = sequenceExamples.getFeatureIDMap();
-        SparseVector[][] sgdFeatures = new SparseVector[sequenceExamples.size()][];
+        SGDVector[][] sgdFeatures = new SGDVector[sequenceExamples.size()][];
         int[][] sgdLabels = new int[sequenceExamples.size()][];
         double[] weights = new double[sequenceExamples.size()];
         int n = 0;
         for (SequenceExample<Label> example : sequenceExamples) {
             weights[n] = example.getWeight();
-            Pair<int[],SparseVector[]> pair = CRFModel.convert(example,featureIDMap,labelIDMap);
+            Pair<int[],SGDVector[]> pair = CRFModel.convertToVector(example,featureIDMap,labelIDMap);
             sgdFeatures[n] = pair.getB();
             sgdLabels[n] = pair.getA();
             n++;

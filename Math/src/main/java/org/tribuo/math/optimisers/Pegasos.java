@@ -116,6 +116,7 @@ public class Pegasos implements StochasticGradientOptimiser {
 
     @Override
     public void reset() {
+        parameters = null;
         iteration = 1;
     }
 
