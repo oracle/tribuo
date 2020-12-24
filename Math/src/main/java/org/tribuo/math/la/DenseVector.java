@@ -331,7 +331,7 @@ public class DenseVector implements SGDVector {
         } else {
             // else must be sparse
             for (VectorTuple tuple : other) {
-                score += elements[tuple.index] * tuple.value;
+                score += get(tuple.index) * tuple.value;
             }
         }
         return score;
@@ -344,7 +344,7 @@ public class DenseVector implements SGDVector {
             DenseVector otherVec = (DenseVector) other;
             double[][] output = new double[elements.length][];
             for (int i = 0; i < elements.length; i++) {
-                DenseVector tmp = otherVec.scale(elements[i]);
+                DenseVector tmp = otherVec.scale(get(i));
                 output[i] = tmp.elements;
             }
             return new DenseMatrix(output);
@@ -353,7 +353,7 @@ public class DenseVector implements SGDVector {
             SparseVector otherVec = (SparseVector) other;
             SparseVector[] output = new SparseVector[elements.length];
             for (int i = 0; i < elements.length; i++) {
-                output[i] = otherVec.scale(elements[i]);
+                output[i] = otherVec.scale(get(i));
             }
             return new DenseSparseMatrix(output);
         } else {
@@ -365,7 +365,7 @@ public class DenseVector implements SGDVector {
     public double sum() {
         double sum = 0.0;
         for (int i = 0; i < elements.length; i++) {
-            sum += elements[i];
+            sum += get(i);
         }
         return sum;
     }
@@ -373,7 +373,7 @@ public class DenseVector implements SGDVector {
     public double sum(DoubleUnaryOperator f) {
         double sum = 0.0;
         for (int i = 0; i < elements.length; i++) {
-            sum += f.applyAsDouble(elements[i]);
+            sum += f.applyAsDouble(get(i));
         }
         return sum;
     }
@@ -382,7 +382,8 @@ public class DenseVector implements SGDVector {
     public double twoNorm() {
         double sum = 0.0;
         for (int i = 0; i < elements.length; i++) {
-            sum += elements[i] * elements[i];
+            double value = get(i);
+            sum += value * value;
         }
         return Math.sqrt(sum);
     }
@@ -391,7 +392,7 @@ public class DenseVector implements SGDVector {
     public double oneNorm() {
         double sum = 0.0;
         for (int i = 0; i < elements.length; i++) {
-            sum += Math.abs(elements[i]);
+            sum += Math.abs(get(i));
         }
         return sum;
     }
@@ -429,7 +430,7 @@ public class DenseVector implements SGDVector {
         int index = 0;
         double value = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < elements.length; i++) {
-            double tmp = elements[i];
+            double tmp = get(i);
             if (tmp > value) {
                 index = i;
                 value = tmp;
@@ -442,7 +443,7 @@ public class DenseVector implements SGDVector {
     public double maxValue() {
         double value = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < elements.length; i++) {
-            double tmp = elements[i];
+            double tmp = get(i);
             if (tmp > value) {
                 value = tmp;
             }
@@ -454,7 +455,7 @@ public class DenseVector implements SGDVector {
     public double minValue() {
         double value = Double.POSITIVE_INFINITY;
         for (int i = 0; i < elements.length; i++) {
-            double tmp = elements[i];
+            double tmp = get(i);
             if (tmp < value) {
                 value = tmp;
             }
@@ -489,7 +490,7 @@ public class DenseVector implements SGDVector {
         buffer.append(",values=[");
 
         for (int i = 0; i < elements.length; i++) {
-            buffer.append(elements[i]);
+            buffer.append(get(i));
             buffer.append(",");
         }
         buffer.setCharAt(buffer.length()-1,']');
@@ -502,7 +503,8 @@ public class DenseVector implements SGDVector {
     public double variance(double mean) {
         double variance = 0.0;
         for (int i = 0; i < elements.length; i++) {
-            variance += (elements[i] - mean) * (elements[i] - mean);
+            double value = get(i) - mean;
+            variance += value * value;
         }
         return variance;
     }
@@ -555,7 +557,7 @@ public class DenseVector implements SGDVector {
             double score = 0.0;
 
             for (int i = 0; i < elements.length; i++) {
-                double tmp = elements[i] - other.get(i);
+                double tmp = get(i) - other.get(i);
                 score += tmp * tmp;
             }
 
@@ -571,17 +573,19 @@ public class DenseVector implements SGDVector {
                 //after this loop, either itr is out or tuple.index >= otherTuple.index
                 while (i < elements.length && (i < otherTuple.index)) {
                     // as the other vector contains a zero.
-                    score += elements[i]*elements[i];
+                    double value = get(i);
+                    score += value*value;
                     i++;
                 }
                 if (i == otherTuple.index) {
-                    double tmp = elements[i] - otherTuple.value;
+                    double tmp = get(i) - otherTuple.value;
                     score += tmp * tmp;
                     i++;
                 }
             }
             for (; i < elements.length; i++) {
-                score += elements[i]*elements[i];
+                double value = get(i);
+                score += value*value;
             }
 
             return Math.sqrt(score);
@@ -603,7 +607,7 @@ public class DenseVector implements SGDVector {
             double score = 0.0;
 
             for (int i = 0; i < elements.length; i++) {
-                score += Math.abs(elements[i] - other.get(i));
+                score += Math.abs(get(i) - other.get(i));
             }
 
             return score;
@@ -618,16 +622,16 @@ public class DenseVector implements SGDVector {
                 //after this loop, either itr is out or tuple.index >= otherTuple.index
                 while (i < elements.length && (i < otherTuple.index)) {
                     // as the other vector contains a zero.
-                    score += Math.abs(elements[i]);
+                    score += Math.abs(get(i));
                     i++;
                 }
                 if (i == otherTuple.index) {
-                    score += Math.abs(elements[i] - otherTuple.value);
+                    score += Math.abs(get(i) - otherTuple.value);
                     i++;
                 }
             }
             for (; i < elements.length; i++) {
-                score += Math.abs(elements[i]);
+                score += Math.abs(get(i));
             }
 
             return score;
