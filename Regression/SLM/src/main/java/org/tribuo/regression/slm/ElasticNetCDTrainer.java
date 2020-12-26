@@ -106,6 +106,9 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public synchronized void postConfig() {
         if ((l1Ratio < DELTA) || (l1Ratio > 1.0 + DELTA)) {

@@ -111,6 +111,9 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         this.seed = seed;
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
