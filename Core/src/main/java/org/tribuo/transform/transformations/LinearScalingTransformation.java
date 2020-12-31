@@ -161,10 +161,15 @@ public final class LinearScalingTransformation implements Transformation {
         }
 
         @Override
-        public void observeSparse() { }
+        public void observeSparse() {
+            observeValue(0.0);
+        }
 
         @Override
-        public void observeSparse(int count) { }
+        public void observeSparse(int count) {
+            // This just tracks max and min, so seeing many 0.0 is the same as one 0.0.
+            observeValue(0.0);
+        }
 
         @Override
         public Transformer generateTransformer() {

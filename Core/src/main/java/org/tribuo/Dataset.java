@@ -246,6 +246,23 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * @return A TransformerMap which can apply the transformations to a dataset.
      */
     public TransformerMap createTransformers(TransformationMap transformations) {
+        return createTransformers(transformations, false);
+    }
+
+    /**
+     * Takes a {@link TransformationMap} and converts it into a {@link TransformerMap} by
+     * observing all the values in this dataset.
+     * <p>
+     * Does not mutate the dataset, if you wish to apply the TransformerMap, use
+     * {@link MutableDataset#transform} or {@link TransformerMap#transformDataset}.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the TransformationMap object has
+     * regexes which apply to multiple features.
+     * @param transformations The transformations to fit.
+     * @param observeSparse Observes the implicit zeros if true.
+     * @return A TransformerMap which can apply the transformations to a dataset.
+     */
+    public TransformerMap createTransformers(TransformationMap transformations, boolean observeSparse) {
         ArrayList<String> featureNames = new ArrayList<>(getFeatureMap().keySet());
 
         // Validate map by checking no regex applies to multiple features.
@@ -330,10 +347,12 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
             removeSet.clear();
             // Emit the new transformers onto the end of the list in the output map.
             for (Map.Entry<String,Queue<TransformStatistics>> entry : featureStats.entrySet()) {
-                // Observe all the sparse feature values
-                int unobservedFeatures = sparseCount.get(entry.getKey()).intValue();
                 TransformStatistics currentStats = entry.getValue().poll();
-                currentStats.observeSparse(unobservedFeatures);
+                if (observeSparse) {
+                    // Observe all the sparse feature values
+                    int unobservedFeatures = sparseCount.get(entry.getKey()).intValue();
+                    currentStats.observeSparse(unobservedFeatures);
+                }
                 // Get the transformer list for that feature (if absent)
                 List<Transformer> l = output.computeIfAbsent(entry.getKey(), (k) -> new ArrayList<>());
                 // Generate the transformer and add it to the appropriate list.

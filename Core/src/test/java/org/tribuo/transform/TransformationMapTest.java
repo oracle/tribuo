@@ -185,7 +185,7 @@ public class TransformationMapTest {
         MutableDataset<MockOutput> dataset = generateSparseDataset();
         TransformationMap t = new TransformationMap(Collections.singletonList(new CountTransformation()),new HashMap<>());
 
-        TransformerMap tMap = dataset.createTransformers(t);
+        TransformerMap tMap = dataset.createTransformers(t,true);
 
         for (Map.Entry<String,List<Transformer>> e : tMap.entrySet()) {
             CountTransformer countTransformer = (CountTransformer) e.getValue().get(0);

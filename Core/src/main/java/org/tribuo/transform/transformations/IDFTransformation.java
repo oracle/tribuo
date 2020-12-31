@@ -2,7 +2,6 @@ package org.tribuo.transform.transformations;
 
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
@@ -24,7 +23,7 @@ public class IDFTransformation implements Transformation {
 
     @Override
     public TransformationProvenance getProvenance() {
-        if(provenance == null) {
+        if (provenance == null) {
             provenance = new IDFTransformationProvenance();
         }
         return provenance;
@@ -54,6 +53,7 @@ public class IDFTransformation implements Transformation {
 
         @Override
         public void observeSparse() {
+            sparseObservances++;
         }
 
         @Override
@@ -69,7 +69,8 @@ public class IDFTransformation implements Transformation {
     }
     
     private static class IDFTransformer implements Transformer {
-        
+        private static final long serialVersionUID = 1L;
+
         private double df;
         
         private double N;
@@ -87,10 +88,11 @@ public class IDFTransformation implements Transformation {
     }
     
     public final static class IDFTransformationProvenance implements TransformationProvenance {
+        private static final long serialVersionUID = 1L;
 
         @Override
         public Map<String, Provenance> getConfiguredParameters() {
-            return Collections.unmodifiableMap(new HashMap<>());
+            return Collections.emptyMap();
         }
 
         @Override

@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * A Transformation which bins values.
@@ -53,7 +54,20 @@ public final class BinningTransformation implements Transformation {
     /**
      * The allowed binning types.
      */
-    public enum BinningType { EQUAL_WIDTH, EQUAL_FREQUENCY, STD_DEVS }
+    public enum BinningType {
+        /**
+         * Creates bins of equal width over the data range.
+         */
+        EQUAL_WIDTH,
+        /**
+         * Creates bins of equal frequency (i.e., equal numbers of data points).
+         */
+        EQUAL_FREQUENCY,
+        /**
+         * Creates bins based on the mean and then +/- multiples of standard deviations.
+         */
+        STD_DEVS
+    }
 
     private static final String NUM_BINS = "numBins";
     private static final String TYPE = "type";
@@ -229,10 +243,15 @@ public final class BinningTransformation implements Transformation {
         }
 
         @Override
-        public void observeSparse() { }
+        public void observeSparse() {
+            observeValue(0.0);
+        }
 
         @Override
-        public void observeSparse(int count) { }
+        public void observeSparse(int count) {
+            // This just tracks max and min, so seeing many 0.0 is the same as one 0.0.
+            observeValue(0.0);
+        }
 
         @Override
         public Transformer generateTransformer() {
@@ -308,10 +327,18 @@ public final class BinningTransformation implements Transformation {
         }
 
         @Override
-        public void observeSparse() { }
+        public void observeSparse() {
+            observeValue(0.0);
+        }
 
         @Override
-        public void observeSparse(int count) { }
+        public void observeSparse(int sparseCount) {
+            if (observedValues.length < (count + sparseCount)) {
+                growArray(count + sparseCount);
+            }
+            count += sparseCount;
+            // Java initializes the array to zero so we don't need to write the values in.
+        }
 
         @Override
         public Transformer generateTransformer() {
@@ -338,6 +365,8 @@ public final class BinningTransformation implements Transformation {
     }
 
     private static class StdDevStats implements TransformStatistics {
+        private static final Logger logger = Logger.getLogger(StdDevStats.class.getName());
+
         private final int numBins;
 
         private double mean = 0;
@@ -358,13 +387,24 @@ public final class BinningTransformation implements Transformation {
         }
 
         @Override
-        public void observeSparse() { }
+        public void observeSparse() {
+            observeValue(0.0);
+        }
 
         @Override
-        public void observeSparse(int count) { }
+        public void observeSparse(int sparseCount) {
+            count += sparseCount;
+            double delta = -mean;
+            mean += delta; // implicit zero for delta = 0 - mean;
+            double delta2 = -mean;
+            sumSquares += sparseCount * (delta * delta2);
+        }
 
         @Override
         public Transformer generateTransformer() {
+            if (sumSquares == 0.0) {
+                logger.info("Only observed a single value (" + mean + ") when building a BinningTransformer using standard deviation bins.");
+            }
             double[] bins = new double[numBins];
             double[] values = new double[numBins];
 

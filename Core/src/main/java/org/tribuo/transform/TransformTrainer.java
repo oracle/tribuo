@@ -51,6 +51,9 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     @Config(description="Densify all the features before applying transformations.")
     private boolean densify;
 
+    @Config(description="Include the implicit zeros in the transformation statistics collection")
+    private boolean observeSparse;
+
     /**
      * For OLCUT.
      */
@@ -60,7 +63,8 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
      * Creates a trainer which transforms the data before training, and stores
      * the transformers along with the trained model in a {@link TransformedModel}.
      * <p>
-     * This constructor makes a trainer which keeps the data sparse.
+     * This constructor makes a trainer which keeps the data sparse, and does not use
+     * the implicit zeros to construct the transformations.
      * @param innerTrainer The trainer to use.
      * @param transformations The transformations to apply to the data first.
      */
@@ -71,22 +75,39 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     /**
      * Creates a trainer which transforms the data before training, and stores
      * the transformers along with the trained model in a {@link TransformedModel}.
+     * <p>
+     * Sets {@code observeSparse} to false.
      *
      * @param innerTrainer The trainer to use.
      * @param transformations The transformations to apply to the data first.
      * @param densify Densify the dataset (and any predict time data) before training/prediction.
      */
     public TransformTrainer(Trainer<T> innerTrainer, TransformationMap transformations, boolean densify) {
+        this(innerTrainer,transformations,false,false);
+    }
+
+    /**
+     * Creates a trainer which transforms the data before training, and stores
+     * the transformers along with the trained model in a {@link TransformedModel}.
+     *
+     * @param innerTrainer The trainer to use.
+     * @param transformations The transformations to apply to the data first.
+     * @param densify Densify the dataset (and any predict time data) before training/prediction.
+     * @param observeSparse Use the implicit zeros to construct the transformations.
+     */
+    public TransformTrainer(Trainer<T> innerTrainer, TransformationMap transformations, boolean densify, boolean observeSparse) {
         this.innerTrainer = innerTrainer;
         this.transformations = transformations;
         this.densify = densify;
+        this.observeSparse = observeSparse;
     }
 
     @Override
     public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance) {
         
         logger.fine(String.format("Creating transformers"));
-        TransformerMap transformerMap = examples.createTransformers(transformations);
+
+        TransformerMap transformerMap = examples.createTransformers(transformations,observeSparse);
 
         logger.fine("Transforming data set");
         

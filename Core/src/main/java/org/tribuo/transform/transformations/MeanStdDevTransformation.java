@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * A Transformation which takes an observed distribution and rescales
@@ -137,6 +138,7 @@ public final class MeanStdDevTransformation implements Transformation {
     }
 
     private static class MeanStdDevStatistics implements TransformStatistics {
+        private static final Logger logger = Logger.getLogger(MeanStdDevStatistics.class.getName());
 
         private final double targetMean;
         private final double targetStdDev;
@@ -160,13 +162,24 @@ public final class MeanStdDevTransformation implements Transformation {
         }
 
         @Override
-        public void observeSparse() { }
+        public void observeSparse() {
+            observeValue(0.0);
+        }
 
         @Override
-        public void observeSparse(int count) { }
+        public void observeSparse(int sparseCount) {
+            count += sparseCount;
+            double delta = -mean;
+            mean += delta; // implicit zero for delta = 0 - mean;
+            double delta2 = -mean;
+            sumSquares += sparseCount * (delta * delta2);
+        }
 
         @Override
         public Transformer generateTransformer() {
+            if (sumSquares == 0.0) {
+                logger.info("Only observed a single value (" + mean + ") when building a MeanStdDevTransformation");
+            }
             return new MeanStdDevTransformer(mean,Math.sqrt(sumSquares/(count-1)),targetMean,targetStdDev);
         }
 
