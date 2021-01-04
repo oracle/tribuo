@@ -34,6 +34,7 @@ import org.tribuo.sequence.HashingSequenceTrainer;
 import org.tribuo.sequence.ImmutableSequenceDataset;
 import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceTrainer;
+import org.tribuo.util.Util;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -156,8 +157,10 @@ public class SeqTest {
         }
 
         logger.info("Training using " + trainer.toString());
+        final long trainStart = System.currentTimeMillis();
         CRFModel model = (CRFModel) trainer.train(train);
-        logger.info("Finished training");
+        final long trainStop = System.currentTimeMillis();
+        logger.info("Finished training classifier " + Util.formatDuration(trainStart, trainStop));
 
         if (o.logModel) {
             System.out.println("FeatureMap = " + model.getFeatureIDMap().toString());
@@ -166,8 +169,10 @@ public class SeqTest {
         }
 
         LabelSequenceEvaluator labelEvaluator = new LabelSequenceEvaluator();
+        final long testStart = System.currentTimeMillis();
         LabelSequenceEvaluation evaluation = labelEvaluator.evaluate(model,test);
-        logger.info("Finished evaluating model");
+        final long testStop = System.currentTimeMillis();
+        logger.info("Finished evaluating model " + Util.formatDuration(testStart, testStop));
         System.out.println(evaluation.toString());
         System.out.println();
         System.out.println(evaluation.getConfusionMatrix().toString());

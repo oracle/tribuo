@@ -27,11 +27,13 @@ import java.util.SplittableRandom;
 public class Util {
     /**
      * In place shuffle of the features, labels and weights.
+     * @deprecated In favour of {@link org.tribuo.common.sgd.AbstractLinearSGDTrainer#shuffleInPlace}.
      * @param features Input features.
      * @param labels Input labels.
      * @param weights Input weights.
      * @param rng SplittableRandom number generator.
      */
+    @Deprecated
     public static void shuffleInPlace(SparseVector[] features, int[] labels, double[] weights, SplittableRandom rng) {
         int size = features.length;
         // Shuffle array
