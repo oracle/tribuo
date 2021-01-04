@@ -84,7 +84,11 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
         /**
          * Tweedie loss function.
          */
-        TWEEDIE("reg:tweedie");
+        TWEEDIE("reg:tweedie"),
+        /**
+         * Pseudo-huber loss, a differentiable approximation to absolute error
+         */
+        PSEUDOHUBER("reg:pseudohubererror");
 
         public final String paramName;
 
