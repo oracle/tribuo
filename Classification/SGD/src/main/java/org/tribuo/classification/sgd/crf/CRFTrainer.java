@@ -26,7 +26,6 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.sgd.Util;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
