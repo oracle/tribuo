@@ -16,13 +16,13 @@
 
 package org.tribuo.util.tokens.impl;
 
+import java.util.Arrays;
+
+import org.tribuo.util.tokens.Tokenizer;
+
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.util.tokens.Token.TokenType;
-import org.tribuo.util.tokens.Tokenizer;
-
-import java.util.Arrays;
 
 /**
  * This implementation of {@link Tokenizer} is instantiated with an array of
@@ -36,34 +36,64 @@ import java.util.Arrays;
  * that is considered whitespace by {@link Character#isWhitespace(char)}.
  * @author Philip Ogren
  */
-public class SplitCharactersTokenizer implements Tokenizer {
+public class SplitCharactersTokenizer extends SplitFunctionTokenizer {
 
     public static final char[] DEFAULT_SPLIT_CHARACTERS = new char[]{'*', '(', ')', '&', '[', ']', '{', '}', '`',
             '\'', '|', ';', ':', '\\', '!', '-', '?'};
     public static final char[] DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS = new char[]{'.', ',', '/',};
 
+	public static class SplitCharactersSplitterFunction implements SplitFunction {
+
+	    private char[] splitCharacters = DEFAULT_SPLIT_CHARACTERS;
+
+	    private char[] splitXDigitsCharacters = DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS;
+
+		public SplitCharactersSplitterFunction(char[] splitCharacters, char[] splitXDigitsCharacters) {
+			this.splitCharacters = splitCharacters;
+			this.splitXDigitsCharacters = splitXDigitsCharacters;
+		}
+		
+		public SplitResult apply(int codepoint, int index, CharSequence cs) {
+            if(isSplitCharacter((char)codepoint)) {
+            	return SplitResult.SPLIT_AT;
+            }
+            if(isSplitXDigitCharacter((char) codepoint)) {
+            	if(index == 0 || 
+            	   index == cs.length() - 1 || 
+            	   !Character.isDigit(cs.charAt(index - 1)) || 
+            	   !Character.isDigit(cs.charAt(index + 1))) {
+            		return SplitResult.SPLIT_AT;
+            	}
+            }
+            return SplitResult.NO_SPLIT_WORD;
+		}
+		
+	    public boolean isSplitCharacter(char c) {
+	        return isCharacter(c, splitCharacters) || Character.isWhitespace(c);
+	    }
+
+	    public boolean isSplitXDigitCharacter(char c) {
+	        return isCharacter(c, splitXDigitsCharacters);
+	    }
+
+	}
+	
     @Config(description="The characters to split on.")
     private char[] splitCharacters = DEFAULT_SPLIT_CHARACTERS;
 
     @Config(description="The characters to split on unless we're in a number.")
     private char[] splitXDigitsCharacters = DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS;
 
-    private CharSequence cs;
-
-    private int start;
-
-    private int end;
-
-    private int p;
-
-    private StringBuilder token = new StringBuilder();
-
-    private boolean ready;
-
     public SplitCharactersTokenizer() {
+    	this.postConfig();  // I feel like I need to call this explicitly in case someone uses the default constructor
     }
 
-    /**
+    @Override
+	public void postConfig() {
+    	this.setSplitFunction(new SplitCharactersSplitterFunction(splitCharacters, splitXDigitsCharacters));
+    }
+
+	/**
      * @param splitCharacters        characters to be replaced with a space in the
      *                               input text (e.g., "abc|def" becomes "abc def")
      * @param splitXDigitsCharacters characters to be replaced with a space in
@@ -74,6 +104,7 @@ public class SplitCharactersTokenizer implements Tokenizer {
     public SplitCharactersTokenizer(char[] splitCharacters, char[] splitXDigitsCharacters) {
         this.splitCharacters = splitCharacters;
         this.splitXDigitsCharacters = splitXDigitsCharacters;
+        this.postConfig();
     }
 
     /**
@@ -89,128 +120,12 @@ public class SplitCharactersTokenizer implements Tokenizer {
         return new ConfiguredObjectProvenanceImpl(this, "Tokenizer");
     }
 
-    @Override
-    public void reset(CharSequence cs) {
-        this.cs = cs;
-        start = -1;
-        end = -1;
-        p = 0;
-        token.delete(0, token.length());
-        ready = false;
-    }
-
-    @Override
-    public boolean advance() {
-        if (cs == null) {
-            throw new IllegalStateException("SplitCharactersTokenizer has not been reset.");
-        }
-        if (p >= cs.length()) {
-            return false;
-        }
-        token.delete(0, token.length());
-        while (p < cs.length()) {
-            char c = cs.charAt(p);
-            //
-            // First, let's figure out if this is a character that we
-            // want to keep in a token. We want to keep a character if it's
-            // not one of our split characters or if it's one of the "keep in
-            // digits" characters and it's surrounded by digits.
-            boolean keepCharacter = !(isSplitCharacter(c) || (isSplitXDigitCharacter(c) && (p == 0
-                    || p == cs.length() - 1
-                    || !Character.isDigit(cs.charAt(p - 1))
-                    || !Character.isDigit(cs.charAt(p + 1)))));
-
-            p++;
-            //
-            // If we want to keep it, then go ahead and do that and remember
-            // where the end of the token is.
-            if (keepCharacter) {
-                //
-                // If this is the first character that we're keeping, remember
-                // where the token started.
-                if (token.length() == 0) {
-                    start = p - 1;
-                }
-                token.append(c);
-                end = p;
-            }
-
-            //
-            // OK, if we didnt want to keep this character, and we've already
-            // collected some stuff, then we've got a token to send, so let's
-            // break out of the loop. This should allow us to skip runs of
-            // breaking characters.
-            if (!keepCharacter && token.length() > 0) {
-                break;
-            }
-        }
-
-        //
-        // We advanced if we have some stuff collected.
-        if (token.length() > 0) {
-            ready = true;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public String getText() {
-        if (ready) {
-            return token.toString();
-        } else {
-            throw new IllegalStateException("SplitCharactersTokenizer is not ready.");
-        }
-    }
-
-    @Override
-    public int getStart() {
-        if (ready) {
-            return start;
-        } else {
-            throw new IllegalStateException("SplitCharactersTokenizer is not ready.");
-        }
-    }
-
-    @Override
-    public int getEnd() {
-        if (ready) {
-            return end;
-        } else {
-            throw new IllegalStateException("SplitCharactersTokenizer is not ready.");
-        }
-    }
-
-    @Override
-    public TokenType getType() {
-        if (ready) {
-            return TokenType.WORD;
-        } else {
-            throw new IllegalStateException("SplitCharactersTokenizer is not ready.");
-        }
-    }
-
-    @Override
-    public SplitCharactersTokenizer clone() {
-        try {
-            SplitCharactersTokenizer copy = (SplitCharactersTokenizer) super.clone();
-            copy.token = new StringBuilder();
-            copy.splitCharacters = splitCharacters == null ? null : Arrays.copyOf(splitCharacters, splitCharacters.length);
-            copy.splitXDigitsCharacters = splitXDigitsCharacters == null ? null : Arrays.copyOf(splitXDigitsCharacters, splitXDigitsCharacters.length);
-            copy.ready = false;
-            copy.cs = null;
-            return copy;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError("SplitCharactersTokenizer is Cloneable, but clone call failed");
-        }
-    }
-
     /**
      * Is this character a split character for this tokenizer instance.
      * @param c The character to check.
      * @return True if it's a split character.
      */
+    @Deprecated
     public boolean isSplitCharacter(char c) {
         return isCharacter(c, splitCharacters) || Character.isWhitespace(c);
     }
@@ -220,11 +135,12 @@ public class SplitCharactersTokenizer implements Tokenizer {
      * @param c The character to check.
      * @return True if it's a split character.
      */
+    @Deprecated
     public boolean isSplitXDigitCharacter(char c) {
         return isCharacter(c, splitXDigitsCharacters);
     }
 
-    private boolean isCharacter(char c, char[] chars) {
+    private static boolean isCharacter(char c, char[] chars) {
         if (chars == null) {
             return false;
         }
@@ -240,6 +156,7 @@ public class SplitCharactersTokenizer implements Tokenizer {
      * Returns a copy of the split characters.
      * @return A copy of the split characters.
      */
+    @Deprecated
     public char[] getSplitCharacters() {
         return Arrays.copyOf(splitCharacters,splitCharacters.length);
     }
@@ -248,8 +165,17 @@ public class SplitCharactersTokenizer implements Tokenizer {
      * Returns a copy of the split characters except inside digits.
      * @return A copy of the split characters.
      */
+    @Deprecated
     public char[] getSplitXDigitsCharacters() {
         return Arrays.copyOf(splitXDigitsCharacters,splitXDigitsCharacters.length);
     }
+
+    @Override
+    public SplitCharactersTokenizer clone() {
+        char[] sc = splitCharacters == null ? null : Arrays.copyOf(splitCharacters,splitCharacters.length);
+        char[] sxc = splitXDigitsCharacters == null ? null : Arrays.copyOf(splitXDigitsCharacters,splitXDigitsCharacters.length);
+        SplitCharactersTokenizer copy = new SplitCharactersTokenizer(sc, sxc);
+        return copy;
+   }
 
 }
