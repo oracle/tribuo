@@ -76,10 +76,20 @@ public class Token {
      * tokens.
      */
     public enum TokenType {
-        WORD,
-        NGRAM,
-        PUNCTUATION,
-        WHITESPACE
+        WORD, 
+        NGRAM, 
+        PUNCTUATION, 
+        WHITESPACE,
+        // some tokenizers produce "sub-word" tokens. a PREFIX could correspond to a
+        // sub-word prefix token
+        PREFIX,
+        // some tokenizers produce "sub-word" tokens. a SUFFIX could correspond to a
+        // sub-word prefix token
+        SUFFIX,
+        // some tokenizers produce "sub-word" tokens. a SUFFIX could correspond to a
+        // sub-word "infix" token (i.e. from the middle)
+        INFIX, 
+        UNKNOWN
     }
 
 }
