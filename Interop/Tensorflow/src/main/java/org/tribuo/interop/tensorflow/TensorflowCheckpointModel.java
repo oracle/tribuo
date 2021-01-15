@@ -17,6 +17,7 @@
 package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
@@ -138,7 +139,7 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        byte[] modelBytes = modelGraph.toGraphDef();
+        byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
         out.writeObject(modelBytes);
     }
 
@@ -146,7 +147,7 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         in.defaultReadObject();
         byte[] modelBytes = (byte[]) in.readObject();
         this.modelGraph = new Graph();
-        this.modelGraph.importGraphDef(modelBytes);
+        this.modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         this.session = new Session(modelGraph);
 
         try (Tensor<String> checkpointPrefix = Tensors.create(Paths.get(checkpointDirectory+"/"+TensorflowCheckpointTrainer.MODEL_FILENAME).toString())) {

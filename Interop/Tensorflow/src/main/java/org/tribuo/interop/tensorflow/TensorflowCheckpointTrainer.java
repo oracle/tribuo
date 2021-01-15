@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -159,7 +160,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
              Tensor<?> isTraining = Tensor.create(true);
              Tensor<String> checkpointPathTensor = Tensors.create(checkpointPath.toString()+"/"+MODEL_FILENAME) ) {
             // Load in the graph definition
-            graph.importGraphDef(graphDef);
+            graph.importGraphDef(GraphDef.parseFrom(graphDef));
 
             // Initialises the parameters.
             session.runner().addTarget(TensorflowTrainer.INIT).run();
@@ -198,7 +199,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
 
             session.runner().feed("save/Const", checkpointPathTensor).addTarget("save/control_dependency").run();
 
-            byte[] trainedGraphDef = graph.toGraphDef();
+            byte[] trainedGraphDef = graph.toGraphDef().toByteArray();
 
             ModelProvenance modelProvenance = new ModelProvenance(TensorflowCheckpointModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
             TensorflowCheckpointModel<T> tfModel = new TensorflowCheckpointModel<>("tf-model", modelProvenance, featureMap,

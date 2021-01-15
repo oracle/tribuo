@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -169,7 +170,7 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
              Session session = new Session(graph);
              Tensor<?> isTraining = Tensor.create(true)) {
             // Load in the graph definition
-            graph.importGraphDef(graphDef);
+            graph.importGraphDef(GraphDef.parseFrom(graphDef));
 
             // Initialises the parameters.
             session.runner().addTarget(INIT).run();
@@ -212,7 +213,7 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
             // This call **must** happen before the trainedGraphDef is generated.
             TensorflowUtil.annotateGraph(graph,session);
 
-            byte[] trainedGraphDef = graph.toGraphDef();
+            byte[] trainedGraphDef = graph.toGraphDef().toByteArray();
 
             Map<String,Object> tensorMap = TensorflowUtil.serialise(graph,session);
 

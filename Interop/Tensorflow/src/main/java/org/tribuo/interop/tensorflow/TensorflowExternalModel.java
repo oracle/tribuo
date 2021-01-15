@@ -17,6 +17,7 @@
 package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -157,7 +158,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
 
     @Override
     protected Model<T> copy(String newName, ModelProvenance newProvenance) {
-        byte[] modelBytes = model.toGraphDef();
+        GraphDef modelBytes = model.toGraphDef();
         Graph newGraph = new Graph();
         newGraph.importGraphDef(modelBytes);
         return new TensorflowExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
@@ -200,7 +201,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
             Path path = Paths.get(filename);
             byte[] model = Files.readAllBytes(path);
             Graph graph = new Graph();
-            graph.importGraphDef(model);
+            graph.importGraphDef(GraphDef.parseFrom(model));
             URL provenanceLocation = path.toUri().toURL();
             ImmutableFeatureMap featureMap = ExternalModel.createFeatureMap(featureMapping.keySet());
             ImmutableOutputInfo<T> outputInfo = ExternalModel.createOutputInfo(factory,outputMapping);
@@ -217,15 +218,15 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        byte[] modelBytes = model.toGraphDef();
-        out.writeObject(modelBytes);
+        GraphDef modelBytes = model.toGraphDef();
+        out.writeObject(modelBytes.toByteArray());
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         byte[] modelBytes = (byte[]) in.readObject();
         model = new Graph();
-        model.importGraphDef(modelBytes);
+        model.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(model);
     }
 

@@ -17,6 +17,7 @@
 package org.tribuo.interop.tensorflow.sequence;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
@@ -68,7 +69,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
         this.initOp = initOp;
         this.predictOp = predictOp;
         this.modelGraph = new Graph();
-        this.modelGraph.importGraphDef(graphDef);
+        this.modelGraph.importGraphDef(GraphDef.parseFrom(graphDef));
         this.session = new Session(modelGraph);
 
         // Initialises the parameters.
@@ -120,7 +121,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        byte[] modelBytes = modelGraph.toGraphDef();
+        byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
         out.writeObject(modelBytes);
         Map<String,Object> tensorMap = TensorflowUtil.serialise(modelGraph, session);
         out.writeObject(tensorMap);
@@ -132,7 +133,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
         byte[] modelBytes = (byte[]) in.readObject();
         Map<String,Object> tensorMap = (Map<String,Object>) in.readObject();
         modelGraph = new Graph();
-        modelGraph.importGraphDef(modelBytes);
+        modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(modelGraph);
         // Initialises the parameters.
         session.runner().addTarget(initOp).run();
