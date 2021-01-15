@@ -50,7 +50,7 @@ public class TestOnnxRuntime {
     @Test
     public void testCNNMNIST() throws IOException, OrtException, URISyntaxException {
         LabelFactory labelFactory = new LabelFactory();
-        try (OrtEnvironment env = OrtEnvironment.getEnvironment("tribuo-onnx-runtime-test")) {
+        try (OrtEnvironment env = OrtEnvironment.getEnvironment()) {
             OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
 
             // Loads regular MNIST
@@ -91,7 +91,7 @@ public class TestOnnxRuntime {
     @Test
     public void testMNIST() throws IOException, OrtException, URISyntaxException {
         LabelFactory labelFactory = new LabelFactory();
-        try (OrtEnvironment env = OrtEnvironment.getEnvironment("tribuo-onnx-runtime-test")) {
+        try (OrtEnvironment env = OrtEnvironment.getEnvironment()) {
             OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
 
             // Loads regular MNIST
@@ -134,7 +134,7 @@ public class TestOnnxRuntime {
     @Test
     public void testTransposedMNIST() throws IOException, OrtException, URISyntaxException {
         LabelFactory labelFactory = new LabelFactory();
-        try (OrtEnvironment env = OrtEnvironment.getEnvironment("tribuo-onnx-runtime-test")) {
+        try (OrtEnvironment env = OrtEnvironment.getEnvironment()) {
             OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
 
             // Loads transposed MNIST
