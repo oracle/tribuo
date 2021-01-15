@@ -92,6 +92,7 @@ public class ImageTransformer implements ExampleTransformer {
     public OnnxTensor transform(OrtEnvironment env, SparseVector vector) throws OrtException {
         FloatBuffer buffer = ByteBuffer.allocateDirect(vector.size()*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         innerTransform(buffer,0,vector);
+        buffer.rewind(); // rewind the buffer as createTensor now reads from the current position.
         return OnnxTensor.createTensor(env,buffer,new long[]{1,channels,height,width});
     }
 
@@ -110,6 +111,7 @@ public class ImageTransformer implements ExampleTransformer {
                     throw new IllegalArgumentException("Vectors are not all the same dimension, expected " + initialSize + ", found " + v.size());
                 }
             }
+            buffer.rewind(); // rewind the buffer as createTensor now reads from the current position.
             return OnnxTensor.createTensor(env, buffer, new long[]{vectors.size(), channels, height, width});
         }
     }
