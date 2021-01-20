@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -290,10 +290,20 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
     }
 
     /**
+     * Is this example dense wrt the supplied feature map.
+     * <p>
+     * An example is "dense" if it contains all the features in the map,
+     * and only those features.
+     * @param fMap The feature map to check against.
+     * @return True if this example contains only the features in the map, and all the features in the map.
+     */
+    public abstract boolean isDense(FeatureMap fMap);
+
+    /**
      * Converts all implicit zeros into explicit zeros based on the supplied feature map.
      * @param fMap The feature map to use for densification.
      */
-    protected void densify(FeatureMap fMap) {
+    public void densify(FeatureMap fMap) {
         // Densify! - guitar solo
         List<String> featureNames = new ArrayList<>(fMap.keySet());
         Collections.sort(featureNames);

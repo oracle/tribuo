@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.tribuo.Dataset;
 import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.Tribuo;
+import org.tribuo.sequence.MutableSequenceDataset;
 import org.tribuo.sequence.SequenceDataset;
 
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class DatasetProvenance implements DataProvenance, ObjectProvenance {
     }
 
     public <T extends Output<T>> DatasetProvenance(DataProvenance sourceProvenance, ListProvenance<ObjectProvenance> transformationProvenance, SequenceDataset<T> dataset) {
-        this(sourceProvenance,transformationProvenance,dataset.getClass().getName(),false,true,dataset.size(),dataset.getFeatureMap().size(),dataset.getOutputInfo().size());
+        this(sourceProvenance,transformationProvenance,dataset.getClass().getName(),dataset instanceof MutableSequenceDataset && ((MutableSequenceDataset<T>) dataset).isDense(),true,dataset.size(),dataset.getFeatureMap().size(),dataset.getOutputInfo().size());
     }
 
     protected DatasetProvenance(DataProvenance sourceProvenance, ListProvenance<ObjectProvenance> transformationProvenance, String datasetClassName, boolean isDense, boolean isSequence, int numExamples, int numFeatures, int numOutputs) {
