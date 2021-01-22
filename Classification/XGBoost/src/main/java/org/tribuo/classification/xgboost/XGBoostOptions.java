@@ -19,32 +19,44 @@ package org.tribuo.classification.xgboost;
 import com.oracle.labs.mlrg.olcut.config.Option;
 import org.tribuo.Trainer;
 import org.tribuo.classification.ClassificationOptions;
+import org.tribuo.common.xgboost.XGBoostTrainer;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * CLI options for training an XGBoost classifier.
  */
 public class XGBoostOptions implements ClassificationOptions<XGBoostClassificationTrainer> {
+    private static final Logger logger = Logger.getLogger(XGBoostOptions.class.getName());
+
+    @Option(longName = "xgb-booster-type", usage = "Weak learning algorithm.")
+    public XGBoostTrainer.BoosterType xgbBoosterType = XGBoostTrainer.BoosterType.GBTREE;
+    @Option(longName = "xgb-tree-method", usage = "Tree building algorithm.")
+    public XGBoostTrainer.TreeMethod xgbTreeMethod = XGBoostTrainer.TreeMethod.AUTO;
     @Option(longName = "xgb-ensemble-size", usage = "Number of trees in the ensemble.")
     public int xgbEnsembleSize = -1;
-    @Option(longName = "xgb-alpha", usage = "L1 regularization term for weights (default 0).")
+    @Option(longName = "xgb-alpha", usage = "L1 regularization term for weights.")
     public float xbgAlpha = 0.0f;
-    @Option(longName = "xgb-min-weight", usage = "Minimum sum of instance weights needed in a leaf (default 1, range [0,inf]).")
+    @Option(longName = "xgb-min-weight", usage = "Minimum sum of instance weights needed in a leaf (range [0,inf]).")
     public float xgbMinWeight = 1;
-    @Option(longName = "xgb-max-depth", usage = "Max tree depth (default 6, range (0,inf]).")
+    @Option(longName = "xgb-max-depth", usage = "Max tree depth (range (0,inf]).")
     public int xgbMaxDepth = 6;
-    @Option(longName = "xgb-eta", usage = "Step size shrinkage parameter (default 0.3, range [0,1]).")
+    @Option(longName = "xgb-eta", usage = "Step size shrinkage parameter (range [0,1]).")
     public float xgbEta = 0.3f;
-    @Option(longName = "xgb-subsample-features", usage = "Subsample features for each tree (default 1, range (0,1]).")
+    @Option(longName = "xgb-subsample-features", usage = "Subsample features for each tree (range (0,1]).")
     public float xgbSubsampleFeatures;
-    @Option(longName = "xgb-gamma", usage = "Minimum loss reduction to make a split (default 0, range [0,inf]).")
+    @Option(longName = "xgb-gamma", usage = "Minimum loss reduction to make a split (range [0,inf]).")
     public float xgbGamma = 0.0f;
-    @Option(longName = "xgb-lambda", usage = "L2 regularization term for weights (default 1).")
+    @Option(longName = "xgb-lambda", usage = "L2 regularization term for weights.")
     public float xgbLambda = 1.0f;
-    @Option(longName = "xgb-quiet", usage = "Make the XGBoost training procedure quiet.")
+    @Option(longName = "xgb-quiet", usage = "Deprecated, use xgb-loglevel.")
     public boolean xgbQuiet;
-    @Option(longName = "xgb-subsample", usage = "Subsample size for each tree (default 1, range (0,1]).")
+    @Option(longName = "xgb-loglevel", usage = "Make the XGBoost training procedure quiet.")
+    public XGBoostTrainer.LoggingVerbosity xgbLogLevel = XGBoostTrainer.LoggingVerbosity.WARNING;
+    @Option(longName = "xgb-subsample", usage = "Subsample size for each tree (range (0,1]).")
     public float xgbSubsample = 1.0f;
-    @Option(longName = "xgb-num-threads", usage = "Number of threads to use (default 4, range (1, num hw threads)).")
+    @Option(longName = "xgb-num-threads", usage = "Number of threads to use (range (1, num hw threads)).")
     public int xgbNumThreads;
     @Option(longName = "xgb-seed", usage = "Sets the random seed for XGBoost.")
     private long xgbSeed = Trainer.DEFAULT_SEED;
@@ -54,6 +66,10 @@ public class XGBoostOptions implements ClassificationOptions<XGBoostClassificati
         if (xgbEnsembleSize == -1) {
             throw new IllegalArgumentException("Please supply the number of trees.");
         }
-        return new XGBoostClassificationTrainer(xgbEnsembleSize, xgbEta, xgbGamma, xgbMaxDepth, xgbMinWeight, xgbSubsample, xgbSubsampleFeatures, xgbLambda, xbgAlpha, xgbNumThreads, xgbQuiet, xgbSeed);
+        if (xgbQuiet) {
+            logger.log(Level.WARNING,"Silencing XGBoost, overriding logging verbosity. Please switch to the 'xgb-loglevel' argument.");
+            xgbLogLevel = XGBoostTrainer.LoggingVerbosity.SILENT;
+        }
+        return new XGBoostClassificationTrainer(xgbBoosterType, xgbTreeMethod, xgbEnsembleSize, xgbEta, xgbGamma, xgbMaxDepth, xgbMinWeight, xgbSubsample, xgbSubsampleFeatures, xgbLambda, xbgAlpha, xgbNumThreads, xgbLogLevel, xgbSeed);
     }
 }

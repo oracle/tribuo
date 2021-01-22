@@ -30,6 +30,7 @@ import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.common.xgboost.XGBoostFeatureImportance;
 import org.tribuo.common.xgboost.XGBoostModel;
+import org.tribuo.common.xgboost.XGBoostTrainer;
 import org.tribuo.data.text.TextDataSource;
 import org.tribuo.data.text.TextFeatureExtractor;
 import org.tribuo.data.text.impl.BasicPipeline;
@@ -60,6 +61,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestXGBoost {
 
     private static final XGBoostClassificationTrainer t = new XGBoostClassificationTrainer(50);
+
+    private static final XGBoostClassificationTrainer dart = new XGBoostClassificationTrainer(
+            XGBoostTrainer.BoosterType.DART,XGBoostTrainer.TreeMethod.AUTO,50,0.3,0,6,1,1,1,1,0,1, XGBoostTrainer.LoggingVerbosity.SILENT,42);
+
+    private static final XGBoostClassificationTrainer linear = new XGBoostClassificationTrainer(
+            XGBoostTrainer.BoosterType.LINEAR,XGBoostTrainer.TreeMethod.AUTO,50,0.3,0,6,1,1,1,1,0,1, XGBoostTrainer.LoggingVerbosity.SILENT,42);
+
+    private static final XGBoostClassificationTrainer gbtree = new XGBoostClassificationTrainer(
+            XGBoostTrainer.BoosterType.GBTREE,XGBoostTrainer.TreeMethod.HIST,50,0.3,0,6,1,1,1,1,0,1, XGBoostTrainer.LoggingVerbosity.SILENT,42);
 
     private static final int[] NUM_TREES = new int[]{1,5,10,50};
 
@@ -168,8 +178,8 @@ public class TestXGBoost {
         }
     }
 
-    public Model<Label> testXGBoost(Pair<Dataset<Label>,Dataset<Label>> p) {
-        Model<Label> m = t.train(p.getA());
+    public static Model<Label> testXGBoost(XGBoostClassificationTrainer trainer, Pair<Dataset<Label>,Dataset<Label>> p) {
+        Model<Label> m = trainer.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
@@ -205,20 +215,23 @@ public class TestXGBoost {
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        Model<Label> model = testXGBoost(p);
+        Model<Label> model = testXGBoost(t,p);
         Helpers.testModelSerialization(model,Label.class);
+        testXGBoost(dart,p);
+        testXGBoost(linear,p);
+        testXGBoost(gbtree,p);
     }
 
     @Test
     public void testSparseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.sparseTrainTest();
-        testXGBoost(p);
+        testXGBoost(t,p);
     }
 
     @Test
     public void testSparseBinaryData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.binarySparseTrainTest();
-        testXGBoost(p);
+        testXGBoost(t,p);
     }
 
     @Test
