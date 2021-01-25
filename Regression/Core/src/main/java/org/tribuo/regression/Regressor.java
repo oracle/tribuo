@@ -50,8 +50,15 @@ import java.util.Set;
  */
 public class Regressor implements Output<Regressor>, Iterable<Regressor.DimensionTuple> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * The tolerance value for determining if two regressed values are equal.
+     */
     public static final double TOLERANCE = 1e-12;
 
+    /**
+     * Default name used for dimensions which are unnamed when parsed from Strings.
+     */
     public static final String DEFAULT_NAME = "DIM";
 
     private final String[] names;
@@ -203,8 +210,8 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
     }
 
     /**
-     *  Returns a dimension tuple for the requested dimension, or optional empty if
-     *  it's not valid.
+     * Returns a dimension tuple for the requested dimension, or optional empty if
+     * it's not valid.
      * @param name The dimension name.
      * @return A tuple representing that dimension.
      */
@@ -354,7 +361,13 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
      * <pre>
      * dimension-name=output,...,dimension-name=output
      * </pre>
+     * or
+     * <pre>
+     * output,...,output
+     * </pre>
      * where output must be readable by {@link Double#parseDouble}.
+     * If there are no dimension names specified then they are automatically generated based on the
+     * position in the string.
      * @param s The string form of a multiple regressor.
      * @return A regressor parsed from the input string.
      */
@@ -367,7 +380,13 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
      * <pre>
      * dimension-name=output&lt;splitChar&gt;...&lt;splitChar&gt;dimension-name=output
      * </pre>
+     * or
+     * <pre>
+     * output&lt;splitChar&gt;...&lt;splitChar&gt;output
+     * </pre>
      * where output must be readable by {@link Double#parseDouble}.
+     * If there are no dimension names specified then they are automatically generated based on the
+     * position in the string.
      * @param s The string form of a regressor.
      * @param splitChar The char to split on.
      * @return A regressor parsed from the input string.
@@ -402,7 +421,13 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
      * <pre>
      * dimension-name=output-double
      * </pre>
+     * or
+     * <pre>
+     * output-double
+     * </pre>
      * where the output must be readable by {@link Double#parseDouble}.
+     * If there is no dimension name then one is constructed by appending idx to
+     * {@link #DEFAULT_NAME}.
      * @param idx The index of this string in a list.
      * @param s The string form of a single dimension from a regressor.
      * @return A tuple representing the dimension name and the value.

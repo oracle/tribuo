@@ -47,13 +47,24 @@ import java.util.Objects;
 public final class RegressionFactory implements OutputFactory<Regressor> {
     private static final long serialVersionUID = 2L;
 
+    /**
+     * The default character to split the string form of a multidimensional regressor.
+     */
     public static final char DEFAULT_SPLIT_CHAR = ',';
 
     @Config(description="The character to split the dimensions on.")
     private char splitChar = DEFAULT_SPLIT_CHAR;
 
+    /**
+     * The sentinel unknown regressor, used when there is no ground truth regressor value.
+     */
     public static final Regressor UNKNOWN_REGRESSOR = new Regressor(new String[]{"UNKNOWN"}, new double[]{Double.NaN});
 
+    /**
+     * @deprecated Deprecated when regression was made multidimensional by default.
+     * Use {@link #UNKNOWN_REGRESSOR} instead.
+     */
+    @Deprecated
     public static final Regressor UNKNOWN_MULTIPLE_REGRESSOR = UNKNOWN_REGRESSOR;
 
     private RegressionFactoryProvenance provenance;
@@ -85,7 +96,7 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
     }
 
     /**
-     * Parses the MultipleRegression value either by toStringing the input and calling {@link Regressor#parseString}
+     * Parses the Regressor value either by toStringing the input and calling {@link Regressor#parseString}
      * or if it's a collection iterating over the elements calling toString on each element in turn and using
      * {@link Regressor#parseElement}.
      * @param label An input value.
