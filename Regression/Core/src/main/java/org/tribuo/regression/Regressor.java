@@ -168,6 +168,10 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
 
     /**
      * Returns the regression values.
+     * <p>
+     * The index corresponds to the index of the name.
+     * <p>
+     * In a single dimensional regression this is a single element array.
      * @return The regression values.
      */
     public double[] getValues() {
@@ -176,8 +180,12 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
 
     /**
      * The variances of the regressed values, if known.
-     *
-     * Returns Double.NaN otherwise.
+     * If the variances are unknown (or not set by the model)
+     * they are filled with {@link Double#NaN}.
+     * <p>
+     * The index corresponds to the index of the name.
+     * <p>
+     * In a single dimensional regression this is a single element array.
      * @return The variance of the regressed values.
      */
     public double[] getVariances() {
@@ -216,6 +224,7 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
      * @return A tuple representing that dimension.
      */
     public Optional<DimensionTuple> getDimension(String name) {
+        // We could binary search this as the dimensions are ordered.
         int i = 0;
         while (i < names.length) {
             if (names[i].equals(name)) {
@@ -224,6 +233,20 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
             i++;
         }
         return Optional.empty();
+    }
+
+    /**
+     * Returns a dimension tuple for the requested dimension index.
+     * <p>
+     * @throws IndexOutOfBoundsException if the index is outside the range.
+     * @param idx The dimension index.
+     * @return A tuple representing that dimension.
+     */
+    public DimensionTuple getDimension(int idx) {
+        if (idx < 0 || idx >= values.length) {
+            throw new IndexOutOfBoundsException("Index " + idx + " is out of bounds for range [0,"+values.length+"]");
+        }
+        return new DimensionTuple(names[idx],values[idx],variances[idx]);
     }
 
     @Override
