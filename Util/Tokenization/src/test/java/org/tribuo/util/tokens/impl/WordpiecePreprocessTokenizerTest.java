@@ -22,7 +22,6 @@ public class WordpiecePreprocessTokenizerTest extends TokenizerTestBase {
         test(tokenizer, "8 km", "8", "km");
         test(tokenizer, "238.8 km", "238", ".", "8", "km");
         test(tokenizer, "金泰均", "金", "泰", "均");
-        test(tokenizer, "का प्रयोग", "क", "ा", "प", "र", "य", "ो", "ग");
     }
 
 }

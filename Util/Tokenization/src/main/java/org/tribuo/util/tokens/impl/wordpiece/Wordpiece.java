@@ -20,38 +20,94 @@ import com.oracle.labs.mlrg.olcut.util.IOUtil;
  * https://github.com/huggingface/transformers/blob/master/src/transformers/models/bert/tokenization_bert.py</a>
  * 
  * <p>
- * Please refer to the class definition for <code>WordpieceTokenizer</code>.
- * It does not include any of the tokenization work that is typically performed
+ * Please refer to the class definition for <code>WordpieceTokenizer</code>. It
+ * does not include any of the tokenization work that is typically performed
  * before wordpiece is called as is done in the above-referenced implementation.
  * That functionality is provided by {@link WordpieceTokenizer} and
  * {@link WordpiecePreprocessTokenizer}.
  * 
  */
-public class Wordpiece {
+public class Wordpiece implements Configurable {
 
-	private Set<String> vocab;
-	private String unknownToken;
-	private int maxInputCharactersPerWord;
+    @Config
+    private String vocabPath;
+    @Config
+    private String unknownToken = "[UNK]";
+    @Config
+    private int maxInputCharactersPerWord = 100;
 
-	public Wordpiece(Set<String> vocab) {
-		this(vocab, "[UNK]");
-	}
+    private Set<String> vocab;
 
-	public Wordpiece(Set<String> vocab, String unknownToken) {
-		this(vocab, unknownToken, 100);
-	}
+    // for OLCUT
+    @SuppressWarnings("unused")
+    private Wordpiece() {
 
-	/**
-	 * Initializes an instance of Wordpiece with the given vocabulary, unknown token, and max word length.
-	 * @param vocab the pre-trained wordpiece vocabulary.  See the contents of e.g. https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
-	 * @param unknownToken a string used to indicate a token was not found in the vocabulary - typically "[UNK]"
-	 * @param maxInputCharactersPerWord a maximum to shield against looping over character-by-character pathologically long "tokens"
-	 */
-	public Wordpiece(Set<String> vocab, String unknownToken, int maxInputCharactersPerWord) {
-		this.vocab = vocab;
-		this.unknownToken = unknownToken;
-		this.maxInputCharactersPerWord = maxInputCharactersPerWord;
-	}
+    }
+
+    public Wordpiece(Set<String> vocab) {
+        this(vocab, "[UNK]");
+    }
+
+    public Wordpiece(Set<String> vocab, String unknownToken) {
+        this(vocab, unknownToken, 100);
+    }
+
+    /**
+     * Initializes an instance of Wordpiece with the given vocabulary, unknown
+     * token, and max word length.
+     * 
+     * @param vocab                     the pre-trained wordpiece vocabulary. See
+     *                                  the contents of e.g.
+     *                                  https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
+     * @param unknownToken              a string used to indicate a token was not
+     *                                  found in the vocabulary - typically "[UNK]"
+     * @param maxInputCharactersPerWord a maximum to shield against looping over
+     *                                  character-by-character pathologically long
+     *                                  "tokens"
+     */
+    public Wordpiece(Set<String> vocab, String unknownToken, int maxInputCharactersPerWord) {
+        this.vocab = vocab;
+        this.unknownToken = unknownToken;
+        this.maxInputCharactersPerWord = maxInputCharactersPerWord;
+    }
+
+    public Wordpiece(String vocabPath) {
+        this.vocabPath = vocabPath;
+        try {
+            this.postConfig();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Initializes an instance of Wordpiece with the given vocabulary, unknown
+     * token, and max word length.
+     * 
+     * @param vocab                     the pre-trained wordpiece vocabulary. See
+     *                                  the contents of e.g.
+     *                                  https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
+     * @param unknownToken              a string used to indicate a token was not
+     *                                  found in the vocabulary - typically "[UNK]"
+     * @param maxInputCharactersPerWord a maximum to shield against looping over
+     *                                  character-by-character pathologically long
+     *                                  "tokens"
+     */
+    public Wordpiece(String vocabPath, String unknownToken, int maxInputCharactersPerWord) {
+        this.vocabPath = vocabPath;
+        this.unknownToken = unknownToken;
+        this.maxInputCharactersPerWord = maxInputCharactersPerWord;
+        try {
+            this.postConfig();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void postConfig() throws IOException {
+        this.vocab = new HashSet<>(IOUtil.getLines(this.vocabPath));
+    }
 
     /**
      * A simple whitespace tokenization method that is not used by
@@ -60,12 +116,12 @@ public class Wordpiece {
      * @param text the text to tokenize
      * @return
      */
-	public static List<String> whitespaceTokenize(String text){
-		if(text.isEmpty()) {
-			return Collections.emptyList();
-		}
-		return Arrays.asList(text.split("\\s+"));
-	}
+    public static List<String> whitespaceTokenize(String text) {
+        if (text.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Arrays.asList(text.split("\\s+"));
+    }
 
     /**
      * Executes Wordpiece tokenization on the provided text after performing
@@ -82,14 +138,14 @@ public class Wordpiece {
      *         tokens may correspond to an unknown token as specified during
      *         initialization (default "[UNK]")
      */
-	public List<String> tokenize(String text){
-		List<String> outputTokens = new ArrayList<>();
+    public List<String> tokenize(String text) {
+        List<String> outputTokens = new ArrayList<>();
 
-		for(String token : whitespaceTokenize(text)) {
-			outputTokens.addAll(wordpiece(token));
-		}
-		return outputTokens;
-	}
+        for (String token : whitespaceTokenize(text)) {
+            outputTokens.addAll(wordpiece(token));
+        }
+        return outputTokens;
+    }
 
     /**
      * Executes Wordpiece tokenization on the provided token. Note that tokens
@@ -105,51 +161,51 @@ public class Wordpiece {
      *         tokens may correspond to an unknown token as specified during
      *         initialization (default "[UNK]")
      */
-	public List<String> wordpiece(String token) {
-		if(token.length() > this.maxInputCharactersPerWord) {
-			return Collections.singletonList(this.unknownToken);
-		}
-
-		List<String> subTokens = new ArrayList<>();
-
-		boolean isBad = false;
-		int start = 0;
-		while(start < token.length()) {
-			int end = token.length();
-			String currentSubstring = null;
-			while(start < end) {
-				String substring = token.substring(start, end);
-				if(start > 0) {
-					substring = "##" + substring;
-				}
-				if(this.vocab.contains(substring)) {
-					currentSubstring = substring;
-					break;
-				}
-				end--;
-			}
-			if(currentSubstring == null) {
-				isBad = true;
-				break;
-			}
-			subTokens.add(currentSubstring);
-			start = end;
-		}
-        if(isBad) {
+    public List<String> wordpiece(String token) {
+        if (token.length() > this.maxInputCharactersPerWord) {
             return Collections.singletonList(this.unknownToken);
         }
-        else {
+
+        List<String> subTokens = new ArrayList<>();
+
+        boolean isBad = false;
+        int start = 0;
+        while (start < token.length()) {
+            int end = token.length();
+            String currentSubstring = null;
+            while (start < end) {
+                String substring = token.substring(start, end);
+                if (start > 0) {
+                    substring = "##" + substring;
+                }
+                if (this.vocab.contains(substring)) {
+                    currentSubstring = substring;
+                    break;
+                }
+                end--;
+            }
+            if (currentSubstring == null) {
+                isBad = true;
+                break;
+            }
+            subTokens.add(currentSubstring);
+            start = end;
+        }
+        if (isBad) {
+            return Collections.singletonList(this.unknownToken);
+        } else {
             return subTokens;
         }
-	}
+    }
 
-	/**
-	 * a getter for the "unknown" token specified during initialization.
-	 * @return the "unknown" token name - defaults to "[UNK]"
-	 */
-	public String getUnknownToken() {
-		return unknownToken;
-	}
+    /**
+     * a getter for the "unknown" token specified during initialization.
+     * 
+     * @return the "unknown" token name - defaults to "[UNK]"
+     */
+    public String getUnknownToken() {
+        return unknownToken;
+    }
 
     /**
      * a getter for the maximum character count for a token to consider when
@@ -161,48 +217,8 @@ public class Wordpiece {
      * @return the maximum length of a token that will be analyzed by
      *         {@link #wordpiece(String)}.
      */
-	public int getMaxInputCharactersPerWord() {
-		return maxInputCharactersPerWord;
-	}
-
-	/**
-	 * An OLCUT configurable Wordpiece builder
-	 */
-    public static final class WordpieceBuilder implements Configurable {
-        @Config
-        private String vocabPath;
-        @Config
-        private String unknownToken = "[UNK]";
-        @Config
-        private int maxInputCharactersPerWord = 100;
-        
-        public WordpieceBuilder() {}
-        
-        public WordpieceBuilder(String vocabPath, String unknownToken, int maxInputCharactersPerWord) {
-            this.vocabPath = vocabPath;
-            this.unknownToken = unknownToken;
-            this.maxInputCharactersPerWord = maxInputCharactersPerWord;
-        }
-        
-        public WordpieceBuilder setVocabPath(String vocabPath) {
-            this.vocabPath = vocabPath;
-            return this;
-        }
- 
-        public WordpieceBuilder setUnknownToken(String unknownToken) {
-            this.unknownToken = unknownToken;
-            return this;
-        }
-
-        public WordpieceBuilder setMaxInputCharactersPerWord(int maxInputCharactersPerWord) {
-            this.maxInputCharactersPerWord = maxInputCharactersPerWord;
-            return this;
-        }
-
-        public Wordpiece build() throws IOException {
-            Set<String> vocab = new HashSet<>(IOUtil.getLines(this.vocabPath));
-            return new Wordpiece(vocab, this.unknownToken, this.maxInputCharactersPerWord);
-        }
+    public int getMaxInputCharactersPerWord() {
+        return maxInputCharactersPerWord;
     }
 
 }

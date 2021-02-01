@@ -7,9 +7,11 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -17,7 +19,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.tribuo.util.tokens.Tokenizer;
 import org.tribuo.util.tokens.TokenizerTestBase;
 import org.tribuo.util.tokens.impl.wordpiece.Wordpiece;
-import org.tribuo.util.tokens.impl.wordpiece.Wordpiece.WordpieceBuilder;
 import org.tribuo.util.tokens.impl.wordpiece.WordpiecePreprocessTokenizer;
 import org.tribuo.util.tokens.impl.wordpiece.WordpieceTokenizer;
 
@@ -25,6 +26,7 @@ import com.oracle.labs.mlrg.olcut.util.IOUtil;
 
 public class WordpieceTokenizerTest extends TokenizerTestBase {
 
+    @Disabled
     @Test
     void testSoftDash() throws Exception {
         String s = "\u00ad";
@@ -32,9 +34,8 @@ public class WordpieceTokenizerTest extends TokenizerTestBase {
         System.out.println(WordpiecePreprocessTokenizer.isPunctuation(s.codePointAt(0)));
     }
     
-    
     public static Stream<Arguments> testWordpiece() throws Exception {
-        Wordpiece wordpiece = new WordpieceBuilder().setVocabPath("src/test/resources/co/huggingface/bert-base-uncased.txt").build();
+        Wordpiece wordpiece = new Wordpiece("src/test/resources/co/huggingface/bert-base-uncased.txt");
         Tokenizer tokenizer = new WordpieceTokenizer(wordpiece, new WordpiecePreprocessTokenizer(), true, true, Collections.emptySet());
 
         return Stream.of(arguments(tokenizer, "", Collections.emptyList()),
@@ -48,9 +49,7 @@ public class WordpieceTokenizerTest extends TokenizerTestBase {
                 arguments(tokenizer, "      ", Collections.emptyList()),
                 arguments(tokenizer, "官", Arrays.asList("[UNK]")),
                 arguments(tokenizer, "𧩙", Arrays.asList("[UNK]")),
-                arguments(tokenizer, "官𧩙", Arrays.asList("[UNK]", "[UNK]")),
-                arguments(tokenizer, "us­ti", Arrays.asList("[UNK]")));
-        
+                arguments(tokenizer, "官𧩙", Arrays.asList("[UNK]", "[UNK]")));
         
     }
 
@@ -63,22 +62,22 @@ public class WordpieceTokenizerTest extends TokenizerTestBase {
 
     @Test
     public void regressionTest() throws Exception {
-        Wordpiece wordpiece = new WordpieceBuilder().setVocabPath("src/test/resources/co/huggingface/bert-base-uncased.txt").build();
+        Wordpiece wordpiece = new Wordpiece("src/test/resources/co/huggingface/bert-base-uncased.txt");
         Tokenizer tokenizer = new WordpieceTokenizer(wordpiece, new WordpiecePreprocessTokenizer(), true, true, Collections.emptySet());
 
         List<String> lines = IOUtil
                 .getLines("src/test/resources/org/tribuo/util/tokens/impl/test/regression-text_bert-base-uncased.txt");
 
+        final AtomicInteger progress = new AtomicInteger(0);
         assertAll(lines.stream().map(line -> {
+            int p = progress.incrementAndGet();
             String[] data = line.split("\\t");
             String text = data[0];
             String[] expectedTokens = new String[data.length - 1];
             System.arraycopy(data, 1, expectedTokens, 0, data.length - 1);
             List<String> expectedTokensList = Arrays.asList(expectedTokens);
             List<String> actualTokensList = tokenizer.split(text);
-            return () -> assertEquals(expectedTokensList, actualTokensList, text);
+            return () -> assertEquals(expectedTokensList, actualTokensList, "line="+p+": "+text);
         }));
-
     }
-
 }
