@@ -1,8 +1,23 @@
+/*
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tribuo.util.tokens.impl.wordpiece;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -24,16 +39,16 @@ import com.oracle.labs.mlrg.olcut.util.IOUtil;
  * does not include any of the tokenization work that is typically performed
  * before wordpiece is called as is done in the above-referenced implementation.
  * That functionality is provided by {@link WordpieceTokenizer} and
- * {@link WordpiecePreprocessTokenizer}.
+ * {@link WordpieceBasicTokenizer}.
  * 
  */
 public class Wordpiece implements Configurable {
 
-    @Config
+    @Config(mandatory=true, description="path to a vocabulary data file.")
     private String vocabPath;
-    @Config
+    @Config(mandatory=false, description="the value to use for 'UNKNOWN' tokens. Defaults to '[UNK]' which is a common default in BERT-based solutions.")
     private String unknownToken = "[UNK]";
-    @Config
+    @Config(mandatory=false, description="the maximum number of characters per word to consider.  This helps eliminate doing extra work on pathological cases.  Defaults to 100.")
     private int maxInputCharactersPerWord = 100;
 
     private Set<String> vocab;
@@ -66,7 +81,7 @@ public class Wordpiece implements Configurable {
      *                                  "tokens"
      */
     public Wordpiece(Set<String> vocab, String unknownToken, int maxInputCharactersPerWord) {
-        this.vocab = vocab;
+        this.vocab = Collections.unmodifiableSet(vocab);
         this.unknownToken = unknownToken;
         this.maxInputCharactersPerWord = maxInputCharactersPerWord;
     }
@@ -106,45 +121,7 @@ public class Wordpiece implements Configurable {
 
     @Override
     public void postConfig() throws IOException {
-        this.vocab = new HashSet<>(IOUtil.getLines(this.vocabPath));
-    }
-
-    /**
-     * A simple whitespace tokenization method that is not used by
-     * {@link WordpieceTokenizer}.
-     * 
-     * @param text the text to tokenize
-     * @return
-     */
-    public static List<String> whitespaceTokenize(String text) {
-        if (text.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return Arrays.asList(text.split("\\s+"));
-    }
-
-    /**
-     * Executes Wordpiece tokenization on the provided text after performing
-     * whitespace tokenization. This method is not called by
-     * {@link WordpieceTokenizer} which calls {@link #wordpiece(String)} directly.
-     * Note that tokens corresponding to word suffixes as indicated in the provided
-     * vocabulary with the sequence "##" prepended to the entry may be returned by
-     * this method. This method does not lowercase the input text or otherwise
-     * modify it in any way.
-     * 
-     * @param text the text to tokenize
-     * @return tokens corresponding to Wordpiece tokenization applied to the input
-     *         text. Some tokens may have a prefix "##" as described above. Some
-     *         tokens may correspond to an unknown token as specified during
-     *         initialization (default "[UNK]")
-     */
-    public List<String> tokenize(String text) {
-        List<String> outputTokens = new ArrayList<>();
-
-        for (String token : whitespaceTokenize(text)) {
-            outputTokens.addAll(wordpiece(token));
-        }
-        return outputTokens;
+        this.vocab = Collections.unmodifiableSet(new HashSet<>(IOUtil.getLines(this.vocabPath)));
     }
 
     /**

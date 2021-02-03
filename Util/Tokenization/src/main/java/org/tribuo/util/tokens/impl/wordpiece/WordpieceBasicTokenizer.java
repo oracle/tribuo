@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.tribuo.util.tokens.impl.wordpiece;
 
 import org.tribuo.util.tokens.impl.SplitFunctionTokenizer;
@@ -7,11 +22,24 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 
 /**
- *  
+ * This is a tokenizer that is used "upstream" of {@link WordpieceTokenizer} and
+ * implements much of the functionality of the '<a href=
+ * "https://github.com/huggingface/transformers/blob/master/src/transformers/models/bert/tokenization_bert.py#L355">BasicTokenizer</a>'
+ * implementation in huggingface. One minor difference in this implementation is
+ * that there is no set of "never_split" tokens used here. Those are handled by
+ * {@link WordpieceTokenizer}
  */
-public class WordpiecePreprocessTokenizer extends SplitFunctionTokenizer {
+public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
 
-    public static SplitFunction createSplitFunctionTokenizer(boolean tokenizeChineseChars) {
+    /**
+     * Creates a {@link SplitFunction} that is used by the super class
+     * {@link SplitFunctionTokenizer} to determine how and where the tokenizer
+     * splits the input.
+     * 
+     * @param tokenizeChineseChars split Chinese characters into separate tokens?
+     * @return
+     */
+    public static SplitFunction createSplitFunction(boolean tokenizeChineseChars) {
 
         return (codepoint, index, cs) -> {
             if (Character.isWhitespace(codepoint)) {
@@ -31,16 +59,18 @@ public class WordpiecePreprocessTokenizer extends SplitFunctionTokenizer {
                 return SplitResult.SPLIT_AT;
             }
 
-//          int charType = Character.getType(codepoint);
-            // if(charType == Character.OTHER_LETTER) { //charType ==
-            // Character.COMBINING_SPACING_MARK ||
-//              return SplitType.SPLIT_BEFORE_AND_AFTER;
-//          }
             return SplitResult.NO_SPLIT_WORD;
         };
 
     }
 
+    /**
+     * Determines if the input code point should be considered a character that is punctuation.
+     * This will return true for all ascii characters that are not letters or digits and for any
+     * character whose Character type is defined as punctuation.  See {@link Character#getType(int)}
+     * @param codepoint
+     * @return
+     */
     public static boolean isPunctuation(int codepoint) {
         if (codepoint >= 33 && codepoint <= 47) {
             return true;
@@ -66,6 +96,11 @@ public class WordpiecePreprocessTokenizer extends SplitFunctionTokenizer {
         return false;
     }
 
+    /**
+     * Determines if the provided codepoint is a Chinese character or not.
+     * @param codepoint a codepoint
+     * @return
+     */
     public static boolean isChinese(int codepoint) {
         if ((codepoint >= 0x4E00 && codepoint <= 0x9FFF) || (codepoint >= 0x3400 && codepoint <= 0x4DBF)
                 || (codepoint >= 0x20000 && codepoint <= 0x2A6DF) || (codepoint >= 0x2A700 && codepoint <= 0x2B73F)
@@ -76,17 +111,13 @@ public class WordpiecePreprocessTokenizer extends SplitFunctionTokenizer {
         return false;
     }
 
+    /**
+     * Determines if the provided codepoint is a control character or not.
+     * @param codepoint
+     * @return
+     */
     public static boolean isControl(int codepoint) {
         char c = Character.toChars(codepoint)[0];
-
-        // this is a soft-hyphen that isn't caught as a format character in the python
-        // implementation. You can experiment with adding these lines back in if you are
-        // getting
-        // hyphen related regressions between the two tokenizers
-//      if(c == '­') {
-//          return false;
-//      }
-
         if (c == '\t' || c == '\n' || c == '\r') {
             return false;
         }
@@ -98,28 +129,21 @@ public class WordpiecePreprocessTokenizer extends SplitFunctionTokenizer {
         return false;
     }
 
-//    if char == "\t" or char == "\n" or char == "\r":
-//        return False
-//    cat = unicodedata.category(char)
-//    if cat.startswith("C"):
-//        return True
-//    return False
-
     @Config(description = "split on Chinese tokens?")
     private boolean tokenizeChineseChars = true;
-
-    public WordpiecePreprocessTokenizer() {
+    
+    public WordpieceBasicTokenizer() {
         this.postConfig();
     }
 
-    public WordpiecePreprocessTokenizer(boolean tokenizeChineseChars) {
+    public WordpieceBasicTokenizer(boolean tokenizeChineseChars) {
         this.tokenizeChineseChars = tokenizeChineseChars;
         this.postConfig();
     }
 
     @Override
     public void postConfig() {
-        this.setSplitFunction(createSplitFunctionTokenizer(this.tokenizeChineseChars));
+        this.splitFunction = createSplitFunction(this.tokenizeChineseChars);
     }
 
     @Override
@@ -128,8 +152,7 @@ public class WordpiecePreprocessTokenizer extends SplitFunctionTokenizer {
     }
 
     @Override
-    public WordpiecePreprocessTokenizer clone() {
-        return new WordpiecePreprocessTokenizer();
+    public WordpieceBasicTokenizer clone() {
+        return new WordpieceBasicTokenizer(this.tokenizeChineseChars);
     }
-
 }

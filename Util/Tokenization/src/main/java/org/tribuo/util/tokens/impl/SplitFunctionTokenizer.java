@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tribuo.util.tokens.impl;
 
 import org.tribuo.util.tokens.Token;
@@ -5,15 +21,18 @@ import org.tribuo.util.tokens.Token.TokenType;
 import org.tribuo.util.tokens.Tokenizer;
 
 /**
- * This class supports character-by-character (well, codepoint-by-codepoint)
+ * This class supports character-by-character (that is, codepoint-by-codepoint)
  * iteration over input text to create tokens. Extensions of this class are
- * initialized with a SplitFunction which will be called for each character and
- * a SplitResult consisting of a SplitType and a TokenType will be returned.
- * Tokenization is achieved based on the SplitResult returned for each
- * character. Please see notes below for each SplitType and SplitResult.
+ * initialized with a {@link SplitFunction} which will be called for each character and
+ * a {@link SplitResult} consisting of a {@link SplitType} and a {@link TokenType} will be returned.
+ * Tokenization is achieved based on the {@link SplitResult} returned for each
+ * character. Please see notes below for each {@link SplitType} and {@link SplitResult}.
  */
 public abstract class SplitFunctionTokenizer implements Tokenizer {
 
+    /**
+     * Defines different ways that a tokenizer can split the input text at a given character.
+     */
     public enum SplitType {
         /**
          * the current character is added to the in-progress token (i.e. do not split on
@@ -23,14 +42,14 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         /**
          * The current character will cause the in-progress token to be completed. the
          * current character will not be included in any returned token and the token
-         * type of the corresponding SplitResult is ignored (See SplitResult.SPLIT_AT).
+         * type of the corresponding SplitResult is ignored (See {@link SplitResult#SPLIT_AT}).
          * This SplitType may be useful for whitespace.
          */
         SPLIT_AT,
         /**
          * The current character will cause the in-progress token to be completed the
          * current character will be included in the next token. The token type of the
-         * corresponding SplitResult is ignored (See SplitResults.SPLIT_BEFORE). This
+         * corresponding SplitResult is ignored (See {@link SplitResults#SPLIT_BEFORE}). This
          * SplitType may be useful for e.g. capitalized letters when CamelCase splitting
          * of digits when separating out a currency symbol.
          */
@@ -39,7 +58,7 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
          * The current character will cause the in-progress token to be completed after
          * the current character is appended to the in-progress token. The token type of
          * the created token (that includes the current character) will be assigned the
-         * type included with the SplitResult
+         * type included with the {@link SplitResult}.
          */
         SPLIT_AFTER,
         /**
@@ -47,16 +66,16 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
          * token assigned to the in-progress token will be whatever was previously
          * assigned to the previous character. This token will be followed by a second
          * single-character token consisting of the current character. The token type
-         * assigned to this second token will be provided with the SplitResult.
+         * assigned to this second token will be provided with the {@link SplitResult}.
          */
         SPLIT_BEFORE_AND_AFTER
     }
 
     /**
-     * A combination of a SplitType and a TokenType. The TokenType of some
+     * A combination of a {@link SplitType} and a {@link TokenType}. The TokenType of some
      * SplitResult values are ignored and so not every combination of SplitType and
-     * TokenType is provided. For example, SplitType.SPLIT_AT and
-     * SplitType.SPLIT_BEFORE (as described above) create tokens whose types have
+     * TokenType is provided. For example, {@link SplitType#SPLIT_AT} and
+     * {@link SplitType#SPLIT_BEFORE} (as described above) create tokens whose types have
      * already been determined.
      */
     public enum SplitResult {
@@ -112,10 +131,6 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         this.splitFunction = splitFunction;
     }
 
-    public void setSplitFunction(SplitFunction splitFunction) {
-        this.splitFunction = splitFunction;
-    }
-
     private String cs;
 
     private int start;
@@ -144,7 +159,7 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
     @Override
     public boolean advance() {
         if (cs == null) {
-            throw new IllegalStateException("SplitCharactersTokenizer has not been reset.");
+            throw new IllegalStateException("SplitFunctionTokenizer has not been reset.");
         }
         if (nextToken != null) {
             currentToken = nextToken;
@@ -245,7 +260,7 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         if (ready) {
             return currentToken.text;
         } else {
-            throw new IllegalStateException("PredicateTokenizer is not ready.");
+            throw new IllegalStateException("SplitFunctionTokenizer is not ready.");
         }
     }
 
@@ -254,7 +269,7 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         if (ready) {
             return currentToken.start;
         } else {
-            throw new IllegalStateException("PredicateTokenizer is not ready.");
+            throw new IllegalStateException("SplitFunctionTokenizer is not ready.");
         }
     }
 
@@ -263,7 +278,7 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         if (ready) {
             return currentToken.end;
         } else {
-            throw new IllegalStateException("PredicateTokenizer is not ready.");
+            throw new IllegalStateException("SplitFunctionTokenizer is not ready.");
         }
     }
 
