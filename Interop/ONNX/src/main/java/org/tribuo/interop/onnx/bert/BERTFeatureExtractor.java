@@ -24,7 +24,7 @@ import org.tribuo.data.text.TextFeatureExtractor;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.sequence.SequenceExample;
 import org.tribuo.util.tokens.impl.wordpiece.Wordpiece;
-import org.tribuo.util.tokens.impl.wordpiece.WordpiecePreprocessTokenizer;
+import org.tribuo.util.tokens.impl.wordpiece.WordpieceBasicTokenizer;
 import org.tribuo.util.tokens.impl.wordpiece.WordpieceTokenizer;
 
 import java.io.BufferedWriter;
@@ -42,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Builds examples and sequence examples using features from BERT.
@@ -53,6 +54,7 @@ import java.util.Set;
  * @param <T> The output type.
  */
 public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExtractor<T>, AutoCloseable {
+    private static final Logger logger = Logger.getLogger(BERTFeatureExtractor.class.getName());
 
     /**
      * The type of output pooling to perform.
@@ -108,32 +110,40 @@ public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExt
     @Config(description="Type of pooling to use when returning a single embedding for the input sequence")
     private OutputPooling pooling = OutputPooling.CLS;
 
-    //@Config(description = "Sets the classification token.")
-    private String classificationToken = CLASSIFICATION_TOKEN;
-
-    //@Config(description = "Sets the separator token.")
-    private String separatorToken = SEPARATOR_TOKEN;
-
-    //@Config(description = "Sets the unknown token.")
-    private String unknownToken = UNKNOWN_TOKEN;
-
     @Config(description = "Use CUDA")
     private boolean useCUDA = false;
 
+    // Vocab and special terms
+    private Map<String,Integer> tokenIDs;
+    private String classificationToken = CLASSIFICATION_TOKEN;
+    private String separatorToken = SEPARATOR_TOKEN;
+    private String unknownToken = UNKNOWN_TOKEN;
+
+    // Tokenizer
     private WordpieceTokenizer tokenizer;
 
-    private Map<String,Integer> tokenIDs;
+    // BERT embedding dimensionality
     private int bertDim;
+
+    // Cached feature names
     private String[] featureNames;
 
+    // ONNX Runtime variables
     private OrtEnvironment env;
     private OrtSession session;
+    private boolean closed = false;
 
     /**
      * For OLCUT
      */
     private BERTFeatureExtractor() { }
 
+    /**
+     * Constructs a BERTFeatureExtractor.
+     * @param outputFactory The output factory to use for building any unknown outputs.
+     * @param modelPath The path to BERT in onnx format.
+     * @param tokenizerPath The path to a Huggingface tokenizer json file.
+     */
     public BERTFeatureExtractor(OutputFactory<T> outputFactory, Path modelPath, Path tokenizerPath) {
         this.outputFactory = outputFactory;
         this.modelPath = modelPath;
@@ -205,7 +215,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExt
             unknownToken = config.unknownToken;
             classificationToken = config.classificationToken;
             separatorToken = config.separatorToken;
-            tokenizer = new WordpieceTokenizer(wordpiece,new WordpiecePreprocessTokenizer(),config.lowercase,config.stripAccents,Collections.emptySet());
+            tokenizer = new WordpieceTokenizer(wordpiece,new WordpieceBasicTokenizer(),config.lowercase,config.stripAccents,Collections.emptySet());
         } catch (OrtException e) {
             throw new PropertyException(e,"","modelPath","Failed to load model, ORT threw: ");
         } catch (IOException e) {
@@ -216,6 +226,26 @@ public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExt
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"FeatureExtractor");
+    }
+
+    /**
+     * Reconstructs the OrtSession using the supplied options.
+     * This allows the use of different computation backends and
+     * configurations.
+     * @param options The new session options.
+     * @throws OrtException If the native runtime failed to rebuild itself.
+     */
+    public void reconfigureOrtSession(OrtSession.SessionOptions options) throws OrtException {
+        session.close();
+        session = env.createSession(modelPath.toString(),options);
+    }
+
+    /**
+     * Returns the maximum length this BERT will accept.
+     * @return The maximum number of tokens (including [CLS] and [SEP], so the maximum is effectively 2 less than this).
+     */
+    public int getMaxLength() {
+        return maxLength;
     }
 
     /**
@@ -726,18 +756,44 @@ public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExt
 
     @Override
     public void close() throws OrtException {
-        session.close();
-        env.close();
+        if (!closed) {
+            session.close();
+            env.close();
+            closed = true;
+        }
     }
 
+    /**
+     * Tokenizes the input using the loaded tokenizer, truncates the
+     * token list if it's longer than {@code maxLength} - 2 (to account
+     * for [CLS] and [SEP] tokens), and then passes the token
+     * list to {@link #extractExample}.
+     * @param output The output object.
+     * @param data The input text.
+     * @return An example containing BERT embedding features and the requested output.
+     */
     @Override
     public Example<T> extract(T output, String data) {
         List<String> tokens = tokenizer.split(data);
+        if (tokens.size() > (maxLength - 2)) {
+            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
+            tokens = tokens.subList(0,maxLength-2);
+        }
         return extractExample(tokens,output);
     }
 
+    /**
+     * Runs BERT on the input, returning the tokens, ids, masks and embeddings.
+     * @param data The input text.
+     * @return The tokens, the token ids, the token types, the masks, the cls embedding and the token embeddings.
+     * @throws OrtException If the native runtime failed.
+     */
     private BERTResult bert(String data) throws OrtException {
         List<String> tokens = tokenizer.split(data);
+        if (tokens.size() > (maxLength - 2)) {
+            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
+            tokens = tokens.subList(0,maxLength-2);
+        }
         try (OnnxTensor idsTensor = convertTokens(tokens);
              OnnxTensor maskTensor = createTensor(tokens.size()+2,MASK_VALUE);
              OnnxTensor tokenTypesTensor = createTensor(tokens.size()+2,TOKEN_TYPE_VALUE)) {

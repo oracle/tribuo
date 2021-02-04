@@ -30,7 +30,7 @@ public class BERTFeatureExtractorTest {
 
         Assertions.assertEquals(100, config.maxInputCharsPerWord);
         Assertions.assertEquals(false, config.lowercase);
-        Assertions.assertEquals(false, config.lowercase);
+        Assertions.assertEquals(false, config.stripAccents);
         Assertions.assertEquals("[UNK]",config.unknownToken);
         Assertions.assertEquals("[CLS]",config.classificationToken);
         Assertions.assertEquals("[SEP]",config.separatorToken);

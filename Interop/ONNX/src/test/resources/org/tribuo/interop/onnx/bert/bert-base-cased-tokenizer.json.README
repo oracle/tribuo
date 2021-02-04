@@ -1,0 +1,5 @@
+The bert-base-cased-tokenizer.json file is licensed under Apache 2.0 and copyright Huggingface.
+It is from the Huggingface Transformers library and represents a trained Wordpiece tokenizer
+which is based on the one released by Google with the original bert-base-cased model.
+
+More details on the bert-base-cased model and tokenizer are available here - https://huggingface.co/bert-base-cased
