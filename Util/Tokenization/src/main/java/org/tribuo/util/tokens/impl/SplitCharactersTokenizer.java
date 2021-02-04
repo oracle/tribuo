@@ -180,11 +180,7 @@ public class SplitCharactersTokenizer extends SplitFunctionTokenizer {
 
     @Override
     public SplitCharactersTokenizer clone() {
-        char[] sc = splitCharacters == null ? null : Arrays.copyOf(splitCharacters, splitCharacters.length);
-        char[] sxc = splitXDigitsCharacters == null ? null
-                : Arrays.copyOf(splitXDigitsCharacters, splitXDigitsCharacters.length);
-        SplitCharactersTokenizer copy = new SplitCharactersTokenizer(sc, sxc);
-        return copy;
+        return new SplitCharactersTokenizer(splitCharacters, splitXDigitsCharacters);
     }
 
 }

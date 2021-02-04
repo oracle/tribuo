@@ -55,13 +55,13 @@ public class WordpieceTokenizer implements Tokenizer {
     private Wordpiece wordpiece;
     @Config(description="determines whether or not to lowercase the input text")
     private boolean toLowerCase = true;
-    @Config(description="performs whitespace tokenization before 'basic' tokenizer is applied (see next)")
+    @Config(description="performs whitespace tokenization before 'basic' tokenizer is applied (see basicTokenizer)")
     private Tokenizer whitespaceTokenizer = new WhitespaceTokenizer();
     @Config(description="performs some tokenization work on the input text before the wordpiece algorithm is applied to each resulting token.")
     private Tokenizer basicTokenizer = new WordpieceBasicTokenizer();
-    @Config(description="determins whether ornot to strip accents/diacritics from the input text")
+    @Config(description="determines whether or not to strip accents/diacritics from the input text")
     private boolean stripAccents = true;
-    @Config(description="a set of 'token' strings that should never be split regardless of whether they have e.g. punctuation in the middle.  No entries should have whitespace in them.")
+    @Config(description="a set of 'token' strings that should never be split regardless of whether they have e.g., punctuation in the middle.  No entries should have whitespace in them.")
     private Set<String> neverSplitTokens = Collections.emptySet();
 
     // internal state member variables
@@ -227,6 +227,10 @@ public class WordpieceTokenizer implements Tokenizer {
     public WordpieceTokenizer clone() {
       try {
           WordpieceTokenizer copy = (WordpieceTokenizer) super.clone();
+          copy.reset = false;
+          copy.currentToken = null;
+          copy.currentWordpieceTokens.clear();
+          copy.currentWordpieceIndex = -1;
           return copy;
       } catch (CloneNotSupportedException e) {
           throw new AssertionError("WordpieceTokenizer is Cloneable, but clone call failed");
