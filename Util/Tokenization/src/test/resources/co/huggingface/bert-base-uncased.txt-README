@@ -1,0 +1,15 @@
+The file bert-base-uncased.txt was obtained from here:
+
+https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
+
+It is a copy of the one Google released with BERT under Apache 2.0 which was generated from Wiki + book corpus.
+
+It is available via apache-2.0
+
+You can read more about this file here:
+
+https://huggingface.co/bert-base-uncased/resolve/main/README.md
+
+https://huggingface.co/bert-base-uncased
+
+	

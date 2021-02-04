@@ -1,0 +1,8 @@
+test	test
+partyg	party	##g
+whitecastleburgers	white	##castle	##burg	##ers
+hello world!	hello	world	##!
+prince humperdink	prince	hum	##per	##din	##k
+prince४०८	[UNK]
+the ४०८	the	[UNK]
+the	the
