@@ -59,7 +59,7 @@ public class DenseVector implements SGDVector {
     }
 
     /**
-     * Copy constructor, doesn't defensively copy the input as it's used internally.
+     * Copy constructor.
      * @param other The vector to copy.
      */
     protected DenseVector(DenseVector other) {
@@ -80,7 +80,8 @@ public class DenseVector implements SGDVector {
      * <p>
      * Used in training and inference.
      * <p>
-     * Throws {@link IllegalArgumentException} if the Example contains NaN-valued features.
+     * Throws {@link IllegalArgumentException} if the Example contains NaN-valued features or
+     * if no features in this Example are present in the feature map..
      * <p>
      * Unspecified features are set to zero.
      * @param example     The example to convert.
@@ -92,15 +93,20 @@ public class DenseVector implements SGDVector {
     public static <T extends Output<T>> DenseVector createDenseVector(Example<T> example, ImmutableFeatureMap featureInfo, boolean addBias) {
         int numFeatures = addBias ? featureInfo.size() + 1 : featureInfo.size();
         double[] values = new double[numFeatures];
+        boolean found = false;
         for (Feature f : example) {
             int index = featureInfo.getID(f.getName());
             // If it's a valid feature for this feature map.
             if (index != -1) {
                 values[index] = f.getValue();
+                found = true;
                 if (Double.isNaN(values[index])) {
                     throw new IllegalArgumentException("Example contained a NaN feature, " + f.toString());
                 }
             }
+        }
+        if (!found) {
+            throw new IllegalArgumentException("No features in this example were found in the feature map. Example - " + example.toString());
         }
         if (addBias) {
             values[numFeatures-1] = 1.0;

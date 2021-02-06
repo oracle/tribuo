@@ -19,7 +19,9 @@ package org.tribuo.test;
 import org.junit.jupiter.api.Assertions;
 import org.tribuo.Example;
 import org.tribuo.Feature;
+import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
+import org.tribuo.MutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.impl.ListExample;
 import org.tribuo.sequence.SequenceModel;
@@ -46,6 +48,19 @@ public final class Helpers {
     private static final Logger logger = Logger.getLogger(Helpers.class.getName());
 
     private Helpers() {}
+
+    /**
+     * Makes a feature map by observing each feature once with the value 1.0.
+     * @param features The feature names.
+     * @return An immutable feature map with all the features observed.
+     */
+    public static ImmutableFeatureMap mkFeatureMap(String... features) {
+        MutableFeatureMap fmap = new MutableFeatureMap();
+        for (String s : features) {
+            fmap.add(s,1.0);
+        }
+        return new ImmutableFeatureMap(fmap);
+    }
 
     public static Example<MockOutput> mkExample(MockOutput label, String... features) {
         Example<MockOutput> ex = new ListExample<>(label);

@@ -17,7 +17,14 @@
 package org.tribuo.math.la;
 
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.Example;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.impl.ArrayExample;
+import org.tribuo.test.Helpers;
+import org.tribuo.test.MockOutput;
+import org.tribuo.test.MockOutputFactory;
 
 import java.util.function.DoubleUnaryOperator;
 
@@ -230,6 +237,66 @@ public class DenseVectorTest {
         assertEquals(bSubC, b.subtract(c), "B - C");
         assertEquals(cSubA, c.subtract(a), "C - A");
         assertEquals(cSubB, c.subtract(b), "C - B");
+    }
+
+    @Test
+    public void testExampleCreation() {
+        ImmutableFeatureMap fmap = Helpers.mkFeatureMap("F0","F1","F2","F3","F4");
+
+        MockOutput output = MockOutputFactory.UNKNOWN_TEST_OUTPUT;
+
+        // Check without bias
+        Example<MockOutput> dense = Helpers.mkExample(output,"F0","F1","F2","F3","F4");
+        DenseVector vector = DenseVector.createDenseVector(dense,fmap,false);
+        Assertions.assertEquals(5,vector.size());
+        Assertions.assertEquals(5,vector.numActiveElements());
+
+        // Check bias
+        vector = DenseVector.createDenseVector(dense,fmap,true);
+        Assertions.assertEquals(6,vector.size());
+        Assertions.assertEquals(6,vector.numActiveElements());
+
+        // Check sparse is made dense
+        Example<MockOutput> sparse = Helpers.mkExample(output,"F1","F3");
+        vector = DenseVector.createDenseVector(sparse,fmap,false);
+        Assertions.assertEquals(2,sparse.size());
+        Assertions.assertEquals(5,vector.size());
+        Assertions.assertEquals(5,vector.numActiveElements());
+
+        // Check extra features are ignored
+        Example<MockOutput> extraFeatures = Helpers.mkExample(output,"F0","F1","F2","F3","F4","F5");
+        vector = DenseVector.createDenseVector(extraFeatures,fmap,false);
+        Assertions.assertEquals(5,vector.size());
+        Assertions.assertEquals(5,vector.numActiveElements());
+
+        // Check the right values are present
+        Example<MockOutput> values = new ArrayExample<>(output,
+                new String[]{"F0","F1","F2","F3","F4"},
+                new double[]{-1,2,-3,4,-5});
+        vector = DenseVector.createDenseVector(values,fmap,true);
+        Assertions.assertEquals(6,vector.size());
+        Assertions.assertEquals(6,vector.numActiveElements());
+        Assertions.assertEquals(-1,vector.get(0));
+        Assertions.assertEquals(2,vector.get(1));
+        Assertions.assertEquals(-3,vector.get(2));
+        Assertions.assertEquals(4,vector.get(3));
+        Assertions.assertEquals(-5,vector.get(4));
+        Assertions.assertEquals(1,vector.get(5));
+
+        // Check empty example throws
+        Example<MockOutput> empty = Helpers.mkExample(output,new String[0]);
+        Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(empty,fmap,true));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(empty,fmap,false));
+
+        // Check example with no feature overlap throws
+        Example<MockOutput> noOverlap = Helpers.mkExample(output, "A0","A1");
+        Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(noOverlap,fmap,true));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(noOverlap,fmap,false));
+
+        // Check NaN valued feature throws
+        Example<MockOutput> nanFeatures = new ArrayExample<MockOutput>(output,new String[]{"F0"},new double[]{Double.NaN});
+        Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(nanFeatures,fmap,true));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(nanFeatures,fmap,false));
     }
 
     public static DenseVector invert(DenseVector input) {
