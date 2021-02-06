@@ -35,9 +35,15 @@ import java.util.logging.Logger;
 class BinaryExample extends Example<Label> {
     private static final Logger logger = Logger.getLogger(BinaryExample.class.getName());
 
-    private Example<MultiLabel> innerExample;
+    private final Example<MultiLabel> innerExample;
 
-    public BinaryExample(Example<MultiLabel> innerExample, Label newLabel) {
+    /**
+     * Creates a BinaryExample, which wraps a MultiLabel example and
+     * has a single Label inside.
+     * @param innerExample The example to wrap.
+     * @param newLabel The new Label.
+     */
+    BinaryExample(Example<MultiLabel> innerExample, Label newLabel) {
         super(newLabel);
         this.innerExample = innerExample;
     }
@@ -75,6 +81,11 @@ class BinaryExample extends Example<Label> {
     @Override
     public boolean validateExample() {
         return innerExample.validateExample();
+    }
+
+    @Override
+    public boolean isDense(FeatureMap fMap) {
+        return innerExample.isDense(fMap);
     }
 
     @Override
