@@ -33,8 +33,7 @@ import java.util.stream.Collectors;
 
 /**
  * A prediction model, which is used to predict outputs for unseen instances.
- * @param <T> the type of the outputs used to train the model. SequenceModel implementations
- * must be serializable!
+ * @param <T> the type of the outputs used to train the model.
  */
 public abstract class SequenceModel<T extends Output<T>> implements Provenancable<ModelProvenance>, Serializable {
     private static final long serialVersionUID = 1L;
