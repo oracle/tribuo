@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+    Description:
+        An example configuration file for the example data generators used to test out regression models.
+-->
+<config>
+    <component name="single-gauss-train" type="org.tribuo.regression.example.GaussianDataSource">
+        <property name="numSamples" value="1000"/>
+        <property name="slope" value="5.0"/>
+        <property name="intercept" value="0.0"/>
+        <property name="variance" value="1.0"/>
+        <property name="xMin" value="-5.0"/>
+        <property name="xMax" value="5.0"/>
+        <property name="seed" value="1234"/>
+    </component>
+
+    <component name="single-gauss-test" type="org.tribuo.regression.example.GaussianDataSource"
+               inherit="single-gauss-train">
+        <property name="seed" value="4"/>
+    </component>
+
+    <component name="multi-gauss-train" type="org.tribuo.regression.example.NonlinearGaussianDataSource">
+        <property name="numSamples" value="1000"/>
+        <propertylist name="weights">
+            <item>1.0</item>
+            <item>1.0</item>
+            <item>1.0</item>
+            <item>1.0</item>
+        </propertylist>
+        <property name="intercept" value="0.0"/>
+        <property name="variance" value="1.0"/>
+        <property name="xZeroMin" value="-5.0"/>
+        <property name="xZeroMax" value="5.0"/>
+        <property name="xOneMin" value="-3.0"/>
+        <property name="xOneMax" value="3.0"/>
+        <property name="seed" value="1234"/>
+    </component>
+
+    <component name="multi-gauss-test" type="org.tribuo.regression.example.NonlinearGaussianDataSource"
+               inherit="multi-gauss-train">
+        <property name="seed" value="4"/>
+    </component>
+
+    <component name="non-uniform-multi-gauss-train" type="org.tribuo.regression.example.NonlinearGaussianDataSource">
+        <property name="numSamples" value="1000"/>
+        <propertylist name="weights">
+            <item>4.0</item>
+            <item>-5.0</item>
+            <item>10.0</item>
+            <item>1.0</item>
+        </propertylist>
+        <property name="intercept" value="0.0"/>
+        <property name="variance" value="1.0"/>
+        <property name="xZeroMin" value="-5.0"/>
+        <property name="xZeroMax" value="5.0"/>
+        <property name="xOneMin" value="-3.0"/>
+        <property name="xOneMax" value="3.0"/>
+        <property name="seed" value="1234"/>
+    </component>
+
+    <component name="non-uniform-multi-gauss-test" type="org.tribuo.regression.example.NonlinearGaussianDataSource"
+               inherit="non-uniform-multi-gauss-train">
+        <property name="seed" value="4"/>
+    </component>
+</config>
