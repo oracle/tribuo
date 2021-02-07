@@ -54,10 +54,10 @@ public class GaussianDataSource implements ConfigurableDataSource<Regressor> {
     private int numSamples;
 
     @Config
-    private float slope;
+    private float slope = 0.0f;
 
     @Config
-    private float intercept;
+    private float intercept = 0.0f;
 
     @Config
     private float variance = 1.0f;
