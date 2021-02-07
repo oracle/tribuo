@@ -60,10 +60,10 @@ public final class CompletelyConfigurableTrainTest {
         @Option(charName='f',longName="model-output-path",usage="Path to serialize model to.")
         public Path outputPath;
 
-        @Option(charName='u',longName="train-source",usage="Load the training DataSource from the config file. Overrides the training path.")
+        @Option(charName='u',longName="train-source",usage="Load the training DataSource from the config file.")
         public ConfigurableDataSource<?> trainSource;
 
-        @Option(charName='v',longName="test-source",usage="Load the testing DataSource from the config file. Overrides the testing path.")
+        @Option(charName='v',longName="test-source",usage="Load the testing DataSource from the config file.")
         public ConfigurableDataSource<?> testSource;
 
         @Option(charName='t',longName="trainer",usage="Load a trainer from the config file.")

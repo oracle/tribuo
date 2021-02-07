@@ -101,7 +101,7 @@ public class MutableRegressionInfo extends RegressionInfo implements MutableOutp
         for (Map.Entry<String,MutableLong> e : countMap.entrySet()) {
             String name = e.getKey();
             long count = e.getValue().longValue();
-            builder.append(String.format("{name=%s,count=%d,maxMap=%f,min=%f,mean=%f,variance=%f},",
+            builder.append(String.format("{name=%s,count=%d,max=%f,min=%f,mean=%f,variance=%f},",
                     name,
                     count,
                     maxMap.get(name).doubleValue(),
