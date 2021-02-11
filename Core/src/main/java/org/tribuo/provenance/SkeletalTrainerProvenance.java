@@ -92,6 +92,7 @@ public abstract class SkeletalTrainerProvenance extends SkeletalConfiguredObject
 
         map.put(TRAIN_INVOCATION_COUNT, invocationCount);
         map.put(IS_SEQUENCE, isSequence);
+        map.put(TRIBUO_VERSION_STRING, version);
 
         return map;
     }
