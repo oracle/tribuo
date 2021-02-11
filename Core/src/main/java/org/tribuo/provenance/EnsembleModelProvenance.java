@@ -19,13 +19,10 @@ package org.tribuo.provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,14 +61,9 @@ public class EnsembleModelProvenance extends ModelProvenance {
     }
 
     @Override
-    public Iterator<Pair<String, Provenance>> iterator() {
-        ArrayList<Pair<String,Provenance>> iterable = new ArrayList<>();
-        iterable.add(new Pair<>(CLASS_NAME,new StringProvenance(CLASS_NAME,className)));
-        iterable.add(new Pair<>(DATASET,datasetProvenance));
-        iterable.add(new Pair<>(TRAINER,trainerProvenance));
-        iterable.add(new Pair<>(TRAINING_TIME,new DateTimeProvenance(TRAINING_TIME,time)));
-        iterable.add(new Pair<>(INSTANCE_VALUES,instanceProvenance));
-        iterable.add(new Pair<>(MEMBERS,memberProvenance));
-        return iterable.iterator();
+    protected List<Pair<String, Provenance>> internalProvenances() {
+        List<Pair<String, Provenance>> superList = super.internalProvenances();
+        superList.add(new Pair<>(MEMBERS,memberProvenance));
+        return superList;
     }
 }

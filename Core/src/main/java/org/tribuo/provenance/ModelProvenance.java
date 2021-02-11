@@ -27,6 +27,7 @@ import org.tribuo.Tribuo;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -43,7 +44,7 @@ public class ModelProvenance implements ObjectProvenance {
     protected static final String TRAINER = "trainer";
     protected static final String TRAINING_TIME = "trained-at";
     protected static final String INSTANCE_VALUES = "instance-values";
-    private static final String TRIBUO_VERSION_STRING = "tribuo-version";
+    protected static final String TRIBUO_VERSION_STRING = "tribuo-version";
 
     protected final String className;
 
@@ -81,7 +82,7 @@ public class ModelProvenance implements ObjectProvenance {
         this.trainerProvenance = ObjectProvenance.checkAndExtractProvenance(map,TRAINER,TrainerProvenance.class, ModelProvenance.class.getSimpleName());
         this.time = ObjectProvenance.checkAndExtractProvenance(map,TRAINING_TIME,DateTimeProvenance.class, ModelProvenance.class.getSimpleName()).getValue();
         this.instanceProvenance = (MapProvenance<?>) ObjectProvenance.checkAndExtractProvenance(map,INSTANCE_VALUES,MapProvenance.class, ModelProvenance.class.getSimpleName());
-        this.versionString = ObjectProvenance.checkAndExtractProvenance(map, TRIBUO_VERSION_STRING,StringProvenance.class, DatasetProvenance.class.getSimpleName()).getValue();
+        this.versionString = ObjectProvenance.checkAndExtractProvenance(map,TRIBUO_VERSION_STRING,StringProvenance.class,ModelProvenance.class.getSimpleName()).getValue();
     }
 
     /**
@@ -152,8 +153,12 @@ public class ModelProvenance implements ObjectProvenance {
         return Objects.hash(className, time, datasetProvenance, trainerProvenance, instanceProvenance, versionString);
     }
 
-    @Override
-    public Iterator<Pair<String, Provenance>> iterator() {
+    /**
+     * Returns a list of all the provenances in this model provenance so subclasses
+     * can append to the list.
+     * @return A list of all the provenances in this class.
+     */
+    protected List<Pair<String,Provenance>> internalProvenances() {
         ArrayList<Pair<String,Provenance>> iterable = new ArrayList<>();
         iterable.add(new Pair<>(CLASS_NAME,new StringProvenance(CLASS_NAME,className)));
         iterable.add(new Pair<>(DATASET,datasetProvenance));
@@ -161,6 +166,15 @@ public class ModelProvenance implements ObjectProvenance {
         iterable.add(new Pair<>(TRAINING_TIME,new DateTimeProvenance(TRAINING_TIME,time)));
         iterable.add(new Pair<>(INSTANCE_VALUES,instanceProvenance));
         iterable.add(new Pair<>(TRIBUO_VERSION_STRING,new StringProvenance(TRIBUO_VERSION_STRING,versionString)));
-        return iterable.iterator();
+        return iterable;
+    }
+
+    /**
+     * Calls {@link #internalProvenances()} and returns the iterator from that list.
+     * @return An iterator over all the provenances.
+     */
+    @Override
+    public Iterator<Pair<String, Provenance>> iterator() {
+        return internalProvenances().iterator();
     }
 }

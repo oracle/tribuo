@@ -16,25 +16,26 @@
 
 package org.tribuo.test;
 
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
+import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import org.junit.jupiter.api.Assertions;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.impl.ListExample;
+import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceModel;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -60,6 +61,11 @@ public final class Helpers {
     }
 
     public static <T extends Output<T>> void testModelSerialization(Model<T> model, Class<T> outputClazz) {
+        // test provenance marshalling
+        List<ObjectMarshalledProvenance> provenanceList = ProvenanceUtil.marshalProvenance(model.getProvenance());
+        ModelProvenance provenance = (ModelProvenance) ProvenanceUtil.unmarshalProvenance(provenanceList);
+        Assertions.assertEquals(provenance,model.getProvenance());
+
         // write to byte array
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(baos))) {
