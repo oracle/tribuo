@@ -30,7 +30,7 @@ import java.io.Serializable;
  * <p>
  * Supports: L1R_L2LOSS_SVC, L2R_L2LOSS_SVC, L2R_L2LOSS_SVC_DUAL, L2R_L1LOSS_SVC_DUAL, MCSVM_CS, L1R_LR, L2R_LR, L2R_LR_DUAL.
  */
-public class LinearClassificationType implements LibLinearType<Label> {
+public final class LinearClassificationType implements LibLinearType<Label> {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -100,6 +100,11 @@ public class LinearClassificationType implements LibLinearType<Label> {
 
     @Override
     public boolean isRegression() {
+        return false;
+    }
+
+    @Override
+    public boolean isAnomaly() {
         return false;
     }
 

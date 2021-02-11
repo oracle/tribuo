@@ -14,41 +14,33 @@
  * limitations under the License.
  */
 
-package org.tribuo.regression.liblinear;
+package org.tribuo.anomaly.liblinear;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.anomaly.Event;
 import org.tribuo.common.liblinear.LibLinearType;
-import org.tribuo.regression.Regressor;
 import de.bwaldvogel.liblinear.SolverType;
 
 import java.io.Serializable;
 
 /**
- * The carrier type for liblinear linear regression modes.
+ * The carrier type for liblinear anomaly detection modes.
  * <p>
- * Supports: L2R_L2LOSS_SVR, L2R_L2LOSS_SVR_DUAL, L2R_L1LOSS_SVR_DUAL.
+ * Supports: ONECLASS_SVM
  */
-public final class LinearRegressionType implements LibLinearType<Regressor> {
+public final class LinearAnomalyType implements LibLinearType<Event> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * The type of linear regression algorithm.
+     * The different model types available for classification.
      */
     public enum LinearType implements Serializable {
         /**
-         * L2-regularized L2-loss support vector regression (primal)
+         * Linear one-class SVM
          */
-        L2R_L2LOSS_SVR(SolverType.L2R_L2LOSS_SVR),
-        /**
-         * L2-regularized L2-loss support vector regression (dual)
-         */
-        L2R_L2LOSS_SVR_DUAL(SolverType.L2R_L2LOSS_SVR_DUAL),
-        /**
-         * L2-regularized L1-loss support vector regression (dual)
-         */
-        L2R_L1LOSS_SVR_DUAL(SolverType.L2R_L1LOSS_SVR_DUAL);
+        ONECLASS_SVM(SolverType.ONECLASS_SVM);
 
         private final SolverType type;
 
@@ -56,30 +48,26 @@ public final class LinearRegressionType implements LibLinearType<Regressor> {
             this.type = type;
         }
 
-        /**
-         * Returns the liblinear enum.
-         * @return The liblinear enum.
-         */
         public SolverType getSolverType() {
             return type;
         }
     }
 
-    @Config(description="The type of regression algorithm.",mandatory = true)
+    @Config(mandatory=true, description = "The type of classification model")
     private LinearType type;
 
     /**
      * For olcut.
      */
-    private LinearRegressionType() {}
+    private LinearAnomalyType() {}
 
-    public LinearRegressionType(LinearType type) {
+    public LinearAnomalyType(LinearType type) {
         this.type = type;
     }
 
     @Override
     public boolean isClassification() {
-        return true;
+        return false;
     }
 
     @Override
@@ -89,7 +77,7 @@ public final class LinearRegressionType implements LibLinearType<Regressor> {
 
     @Override
     public boolean isAnomaly() {
-        return false;
+        return true;
     }
 
     @Override

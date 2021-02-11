@@ -36,6 +36,7 @@ import de.bwaldvogel.liblinear.Parameter;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -116,6 +117,11 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     public void postConfig() {
         libLinearParams = new Parameter(trainerType.getSolverType(),cost,terminationCriterion,maxIterations,epsilon);
         Linear.disableDebugOutput();
+    }
+
+    @Override
+    public LibLinearModel<T> train(Dataset<T> examples) {
+        return train(examples, Collections.emptyMap());
     }
 
     @Override

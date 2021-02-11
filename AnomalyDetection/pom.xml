@@ -28,6 +28,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
+        <module>LibLinear</module>
         <module>LibSVM</module>
     </modules>
     <properties>

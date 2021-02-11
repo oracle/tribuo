@@ -89,7 +89,7 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     public void postConfig() {
         super.postConfig();
         if (!trainerType.isClassification()) {
-            throw new IllegalArgumentException("Supplied regression parameters to a classification linear model.");
+            throw new IllegalArgumentException("Supplied classification or anomaly detection parameters to a regression linear model.");
         }
     }
 
