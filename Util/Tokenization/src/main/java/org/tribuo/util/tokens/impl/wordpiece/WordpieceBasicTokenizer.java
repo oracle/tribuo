@@ -147,6 +147,9 @@ public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
         this.postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() {
         this.splitFunction = createSplitFunction(this.tokenizeChineseChars);

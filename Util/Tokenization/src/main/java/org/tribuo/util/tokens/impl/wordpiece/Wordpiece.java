@@ -138,6 +138,9 @@ public class Wordpiece implements Configurable {
         }
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public void postConfig() throws IOException {
         this.vocab = Collections.unmodifiableSet(new HashSet<>(IOUtil.getLines(this.vocabPath)));
