@@ -19,6 +19,7 @@ package org.tribuo.provenance;
 import com.oracle.labs.mlrg.olcut.provenance.MapProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceException;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -26,16 +27,21 @@ import org.tribuo.Tribuo;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Contains provenance information for an instance of a {@link org.tribuo.Model}.
  * <p>
  * Made up of the class name of the model object, the date and time it was trained, the provenance of
  * the training data, and the provenance of the trainer.
+ * <p>
+ * In addition by default it collects the Java version, OS name and system architecture, along
+ * with the running Tribuo version.
  */
 public class ModelProvenance implements ObjectProvenance {
     private static final long serialVersionUID = 1L;
@@ -45,6 +51,16 @@ public class ModelProvenance implements ObjectProvenance {
     protected static final String TRAINING_TIME = "trained-at";
     protected static final String INSTANCE_VALUES = "instance-values";
     protected static final String TRIBUO_VERSION_STRING = "tribuo-version";
+
+    // Note these have been added due to a discrepancy between java.lang.Math
+    // and java.lang.StrictMath on x64 and aarch64 platforms (and between Java 8 and 9+).
+    // Training a linear SGD predictor can create different models on different platforms
+    // due to this discrepancy.
+    protected static final String JAVA_VERSION_STRING = "java-version";
+    protected static final String OS_STRING = "os-name";
+    protected static final String ARCH_STRING = "os-arch";
+
+    protected static final String UNKNOWN_VERSION = "unknown-version";
 
     protected final String className;
 
@@ -58,24 +74,81 @@ public class ModelProvenance implements ObjectProvenance {
 
     protected final String versionString;
 
-    public ModelProvenance(String className, OffsetDateTime time, DatasetProvenance datasetProvenance, TrainerProvenance trainerProvenance) {
+    protected final String javaVersionString;
+
+    protected final String osString;
+
+    protected final String archString;
+
+    /**
+     * Creates a model provenance tracking the class name, creation time, dataset provenance and trainer provenance.
+     * <p>
+     * Also tracks system details like the os name, os architecture, java version, and Tribuo version.
+     * @param className The model class name.
+     * @param time The model creation time.
+     * @param datasetProvenance The dataset provenance.
+     * @param trainerProvenance The trainer provenance.
+     */
+    public ModelProvenance(String className, OffsetDateTime time, DatasetProvenance datasetProvenance,
+                           TrainerProvenance trainerProvenance) {
+        this(className,time,datasetProvenance,trainerProvenance,Collections.emptyMap());
+    }
+
+    /**
+     * Creates a model provenance tracking the class name, creation time, dataset provenance,
+     * trainer provenance and any instance specific provenance.
+     * <p>
+     * Also tracks system details like the os name, os architecture, java version, and Tribuo version.
+     * @param className The model class name.
+     * @param time The model creation time.
+     * @param datasetProvenance The dataset provenance.
+     * @param trainerProvenance The trainer provenance.
+     * @param instanceProvenance Provenance for this specific model training run.
+     */
+    public ModelProvenance(String className, OffsetDateTime time, DatasetProvenance datasetProvenance,
+                           TrainerProvenance trainerProvenance, Map<String,Provenance> instanceProvenance) {
+        this(className,time,datasetProvenance,trainerProvenance,instanceProvenance,true);
+    }
+
+    /**
+     * Creates a model provenance tracking the class name, creation time, dataset provenance,
+     * trainer provenance and any instance specific provenance.
+     * <p>
+     * Also optionally tracks system details like the os name, os architecture, java version, and Tribuo version.
+     * @param className The model class name.
+     * @param time The model creation time.
+     * @param datasetProvenance The dataset provenance.
+     * @param trainerProvenance The trainer provenance.
+     * @param instanceProvenance Provenance for this specific model training run.
+     * @param trackSystem If true then store the java version, os name and os arch in the provenance.
+     */
+    public ModelProvenance(String className, OffsetDateTime time, DatasetProvenance datasetProvenance,
+                           TrainerProvenance trainerProvenance, Map<String,Provenance> instanceProvenance,
+                           boolean trackSystem) {
         this.className = className;
         this.time = time;
         this.datasetProvenance = datasetProvenance;
         this.trainerProvenance = trainerProvenance;
-        this.instanceProvenance = new MapProvenance<>();
+        this.instanceProvenance = instanceProvenance.isEmpty() ? new MapProvenance<>() : new MapProvenance<>(instanceProvenance);
         this.versionString = Tribuo.VERSION;
+        if (trackSystem) {
+            this.javaVersionString = System.getProperty("java.version");
+            this.osString = System.getProperty("os.name");
+            this.archString = System.getProperty("os.arch");
+        } else {
+            this.javaVersionString = UNKNOWN_VERSION;
+            this.osString = UNKNOWN_VERSION;
+            this.archString = UNKNOWN_VERSION;
+        }
     }
 
-    public ModelProvenance(String className, OffsetDateTime time, DatasetProvenance datasetProvenance, TrainerProvenance trainerProvenance, Map<String,Provenance> instanceProvenance) {
-        this.className = className;
-        this.time = time;
-        this.datasetProvenance = datasetProvenance;
-        this.trainerProvenance = trainerProvenance;
-        this.instanceProvenance = new MapProvenance<>(instanceProvenance);
-        this.versionString = Tribuo.VERSION;
-    }
-
+    /**
+     * Used by the provenance unmarshalling system.
+     * <p>
+     * Throws {@link com.oracle.labs.mlrg.olcut.provenance.ProvenanceException} if there are missing
+     * fields.
+     * @param map The provenance map.
+     */
     public ModelProvenance(Map<String,Provenance> map) {
         this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME,StringProvenance.class, ModelProvenance.class.getSimpleName()).getValue();
         this.datasetProvenance = ObjectProvenance.checkAndExtractProvenance(map,DATASET,DatasetProvenance.class, ModelProvenance.class.getSimpleName());
@@ -83,6 +156,33 @@ public class ModelProvenance implements ObjectProvenance {
         this.time = ObjectProvenance.checkAndExtractProvenance(map,TRAINING_TIME,DateTimeProvenance.class, ModelProvenance.class.getSimpleName()).getValue();
         this.instanceProvenance = (MapProvenance<?>) ObjectProvenance.checkAndExtractProvenance(map,INSTANCE_VALUES,MapProvenance.class, ModelProvenance.class.getSimpleName());
         this.versionString = ObjectProvenance.checkAndExtractProvenance(map,TRIBUO_VERSION_STRING,StringProvenance.class,ModelProvenance.class.getSimpleName()).getValue();
+        this.javaVersionString = maybeExtractProvenance(map,JAVA_VERSION_STRING,StringProvenance.class).map(StringProvenance::getValue).orElse(UNKNOWN_VERSION);
+        this.osString = maybeExtractProvenance(map,OS_STRING,StringProvenance.class).map(StringProvenance::getValue).orElse(UNKNOWN_VERSION);
+        this.archString = maybeExtractProvenance(map,ARCH_STRING,StringProvenance.class).map(StringProvenance::getValue).orElse(UNKNOWN_VERSION);
+    }
+
+    /**
+     * Like {@link ObjectProvenance#checkAndExtractProvenance(Map, String, Class, String)} but doesn't
+     * throw if it fails to find the key, only if the value is of the wrong type.
+     * @param map The map to inspect.
+     * @param key The key to find.
+     * @param type The class of the value.
+     * @param <T> The type of the value.
+     * @return An optional containing the value if present.
+     * @throws ProvenanceException If the value is the wrong type.
+     */
+    @SuppressWarnings("unchecked") // Guarded by isInstance check
+    private static <T extends Provenance> Optional<T> maybeExtractProvenance(Map<String,Provenance> map, String key, Class<T> type) throws ProvenanceException {
+        Provenance tmp = map.remove(key);
+        if (tmp != null) {
+            if (type.isInstance(tmp)) {
+                return Optional.of((T) tmp);
+            } else {
+                throw new ProvenanceException("Failed to cast " + key + " when constructing ModelProvenance, found " + tmp);
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     /**
@@ -125,6 +225,30 @@ public class ModelProvenance implements ObjectProvenance {
         return versionString;
     }
 
+    /**
+     * The Java version used to create this model.
+     * @return The Java version.
+     */
+    public String getJavaVersion() {
+        return javaVersionString;
+    }
+
+    /**
+     * The name of the OS used to create this model.
+     * @return The OS name.
+     */
+    public String getOS() {
+        return osString;
+    }
+
+    /**
+     * The CPU architecture used to create this model.
+     * @return The CPU architecture.
+     */
+    public String getArch() {
+        return archString;
+    }
+
     @Override
     public String toString() {
         return generateString("Model");
@@ -145,7 +269,10 @@ public class ModelProvenance implements ObjectProvenance {
                 datasetProvenance.equals(pairs.datasetProvenance) &&
                 trainerProvenance.equals(pairs.trainerProvenance) &&
                 instanceProvenance.equals(pairs.instanceProvenance) &&
-                versionString.equals(pairs.versionString);
+                versionString.equals(pairs.versionString) &&
+                javaVersionString.equals(pairs.javaVersionString) &&
+                osString.equals(pairs.osString) &&
+                archString.equals(pairs.archString);
     }
 
     @Override
@@ -166,6 +293,9 @@ public class ModelProvenance implements ObjectProvenance {
         iterable.add(new Pair<>(TRAINING_TIME,new DateTimeProvenance(TRAINING_TIME,time)));
         iterable.add(new Pair<>(INSTANCE_VALUES,instanceProvenance));
         iterable.add(new Pair<>(TRIBUO_VERSION_STRING,new StringProvenance(TRIBUO_VERSION_STRING,versionString)));
+        iterable.add(new Pair<>(JAVA_VERSION_STRING,new StringProvenance(JAVA_VERSION_STRING,javaVersionString)));
+        iterable.add(new Pair<>(OS_STRING,new StringProvenance(OS_STRING,osString)));
+        iterable.add(new Pair<>(ARCH_STRING,new StringProvenance(ARCH_STRING,archString)));
         return iterable;
     }
 

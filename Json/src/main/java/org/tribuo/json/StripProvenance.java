@@ -66,6 +66,7 @@ import java.util.logging.Logger;
 import static org.tribuo.json.StripProvenance.ProvenanceTypes.ALL;
 import static org.tribuo.json.StripProvenance.ProvenanceTypes.DATASET;
 import static org.tribuo.json.StripProvenance.ProvenanceTypes.INSTANCE;
+import static org.tribuo.json.StripProvenance.ProvenanceTypes.SYSTEM;
 import static org.tribuo.json.StripProvenance.ProvenanceTypes.TRAINER;
 
 /**
@@ -96,6 +97,10 @@ public final class StripProvenance {
          * Select any instance provenance from the specific training run that created this model.
          */
         INSTANCE,
+        /**
+         * Selects any system information provenance.
+         */
+        SYSTEM,
         /**
          * Selects all provenance stored in the model.
          */
@@ -139,7 +144,14 @@ public final class StripProvenance {
             instanceProvenance.put("original-provenance-hash",new HashProvenance(opt.hashType,"original-provenance-hash",provenanceHash));
         }
 
-        return new ModelProvenance(old.getClassName(),time,datasetProvenance,trainerProvenance,instanceProvenance);
+        boolean stripSystem;
+        if (opt.removeProvenances.contains(ALL) || opt.removeProvenances.contains(SYSTEM)) {
+            stripSystem = true;
+        } else {
+            stripSystem = false;
+        }
+
+        return new ModelProvenance(old.getClassName(),time,datasetProvenance,trainerProvenance,instanceProvenance,!stripSystem);
     }
 
     /**
