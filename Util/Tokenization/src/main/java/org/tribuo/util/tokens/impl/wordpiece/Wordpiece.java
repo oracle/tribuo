@@ -17,6 +17,7 @@
 package org.tribuo.util.tokens.impl.wordpiece;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -44,25 +45,38 @@ import com.oracle.labs.mlrg.olcut.util.IOUtil;
  */
 public class Wordpiece implements Configurable {
 
+    public static final String DEFAULT_UNKNOWN_TOKEN = "[UNK]";
+
     @Config(mandatory=true, description="path to a vocabulary data file.")
     private String vocabPath;
     @Config(mandatory=false, description="the value to use for 'UNKNOWN' tokens. Defaults to '[UNK]' which is a common default in BERT-based solutions.")
-    private String unknownToken = "[UNK]";
-    @Config(mandatory=false, description="the maximum number of characters per word to consider.  This helps eliminate doing extra work on pathological cases.  Defaults to 100.")
+    private String unknownToken = DEFAULT_UNKNOWN_TOKEN;
+    @Config(mandatory=false, description="the maximum number of characters per word to consider. This helps eliminate doing extra work on pathological cases.")
     private int maxInputCharactersPerWord = 100;
 
     private Set<String> vocab;
 
-    // for OLCUT
+    /**
+     * For OLCUT.
+     */
     @SuppressWarnings("unused")
-    private Wordpiece() {
+    private Wordpiece() { }
 
-    }
-
+    /**
+     * Constructs a Wordpiece using the supplied vocab.
+     * <p>
+     * Sets the unknown token to {@link #DEFAULT_UNKNOWN_TOKEN}.
+     * @param vocab The wordpiece vocabulary.
+     */
     public Wordpiece(Set<String> vocab) {
-        this(vocab, "[UNK]");
+        this(vocab, DEFAULT_UNKNOWN_TOKEN);
     }
 
+    /**
+     * Constructs a Wordpiece using the supplied vocabulary and unknown token.
+     * @param vocab The wordpiece vocabulary.
+     * @param unknownToken The unknown token.
+     */
     public Wordpiece(Set<String> vocab, String unknownToken) {
         this(vocab, unknownToken, 100);
     }
@@ -72,8 +86,9 @@ public class Wordpiece implements Configurable {
      * token, and max word length.
      * 
      * @param vocab                     the pre-trained wordpiece vocabulary. See
-     *                                  the contents of e.g.
-     *                                  https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
+     *                                  the contents of e.g.,
+     *                                  <a href="https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt">
+     *                                  https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt</a>
      * @param unknownToken              a string used to indicate a token was not
      *                                  found in the vocabulary - typically "[UNK]"
      * @param maxInputCharactersPerWord a maximum to shield against looping over
@@ -86,12 +101,16 @@ public class Wordpiece implements Configurable {
         this.maxInputCharactersPerWord = maxInputCharactersPerWord;
     }
 
+    /**
+     * Constructs a wordpiece by reading the vocabulary from the supplied path.
+     * @param vocabPath The path to the wordpiece vocabulary.
+     */
     public Wordpiece(String vocabPath) {
         this.vocabPath = vocabPath;
         try {
             this.postConfig();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -99,7 +118,7 @@ public class Wordpiece implements Configurable {
      * Initializes an instance of Wordpiece with the given vocabulary, unknown
      * token, and max word length.
      * 
-     * @param vocab                     the pre-trained wordpiece vocabulary. See
+     * @param vocabPath                 Path to the pre-trained wordpiece vocabulary. See
      *                                  the contents of e.g.
      *                                  https://huggingface.co/bert-base-uncased/resolve/main/vocab.txt
      * @param unknownToken              a string used to indicate a token was not
@@ -115,7 +134,7 @@ public class Wordpiece implements Configurable {
         try {
             this.postConfig();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

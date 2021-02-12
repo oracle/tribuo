@@ -27,7 +27,7 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
  * "https://github.com/huggingface/transformers/blob/master/src/transformers/models/bert/tokenization_bert.py#L355">BasicTokenizer</a>'
  * implementation in huggingface. One minor difference in this implementation is
  * that there is no set of "never_split" tokens used here. Those are handled by
- * {@link WordpieceTokenizer}
+ * {@link WordpieceTokenizer}.
  */
 public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
 
@@ -37,7 +37,7 @@ public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
      * splits the input.
      * 
      * @param tokenizeChineseChars split Chinese characters into separate tokens?
-     * @return
+     * @return The splitting function.
      */
     public static SplitFunction createSplitFunction(boolean tokenizeChineseChars) {
 
@@ -54,7 +54,6 @@ public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
             if (tokenizeChineseChars && isChinese(codepoint)) {
                 return SplitResult.SPLIT_BEFORE_AND_AFTER_WORD;
             }
-
             if (codepoint == 0 || codepoint == 0xFFFD || isControl(codepoint)) {
                 return SplitResult.SPLIT_AT;
             }
@@ -67,9 +66,9 @@ public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
     /**
      * Determines if the input code point should be considered a character that is punctuation.
      * This will return true for all ascii characters that are not letters or digits and for any
-     * character whose Character type is defined as punctuation.  See {@link Character#getType(int)}
-     * @param codepoint
-     * @return
+     * character whose Character type is defined as punctuation.  See {@link Character#getType(int)}.
+     * @param codepoint The codepoint to check.
+     * @return True if the codepoint is punctuation, false otherwise.
      */
     public static boolean isPunctuation(int codepoint) {
         if (codepoint >= 33 && codepoint <= 47) {
@@ -99,7 +98,7 @@ public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
     /**
      * Determines if the provided codepoint is a Chinese character or not.
      * @param codepoint a codepoint
-     * @return
+     * @return True if the codepoint is a Chinese character, false otherwise.
      */
     public static boolean isChinese(int codepoint) {
         if ((codepoint >= 0x4E00 && codepoint <= 0x9FFF) || (codepoint >= 0x3400 && codepoint <= 0x4DBF)
@@ -113,8 +112,8 @@ public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
 
     /**
      * Determines if the provided codepoint is a control character or not.
-     * @param codepoint
-     * @return
+     * @param codepoint The codepoint to check.
+     * @return True if it's a control character, false otherwise.
      */
     public static boolean isControl(int codepoint) {
         char c = Character.toChars(codepoint)[0];
@@ -131,11 +130,18 @@ public class WordpieceBasicTokenizer extends SplitFunctionTokenizer {
 
     @Config(description = "split on Chinese tokens?")
     private boolean tokenizeChineseChars = true;
-    
+
+    /**
+     * Constructs a default tokenizer which tokenizes Chinese characters.
+     */
     public WordpieceBasicTokenizer() {
         this.postConfig();
     }
 
+    /**
+     * Constructs a tokenizer.
+     * @param tokenizeChineseChars Should the Chinese characters be split into individual tokens.
+     */
     public WordpieceBasicTokenizer(boolean tokenizeChineseChars) {
         this.tokenizeChineseChars = tokenizeChineseChars;
         this.postConfig();

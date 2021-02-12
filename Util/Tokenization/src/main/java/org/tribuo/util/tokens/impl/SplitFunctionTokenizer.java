@@ -49,7 +49,7 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         /**
          * The current character will cause the in-progress token to be completed the
          * current character will be included in the next token. The token type of the
-         * corresponding SplitResult is ignored (See {@link SplitResults#SPLIT_BEFORE}). This
+         * corresponding SplitResult is ignored (See {@link SplitResult#SPLIT_BEFORE}). This
          * SplitType may be useful for e.g. capitalized letters when CamelCase splitting
          * of digits when separating out a currency symbol.
          */
