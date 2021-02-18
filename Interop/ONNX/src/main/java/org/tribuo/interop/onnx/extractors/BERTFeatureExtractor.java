@@ -1,4 +1,4 @@
-package org.tribuo.interop.onnx.bert;
+package org.tribuo.interop.onnx.extractors;
 
 import ai.onnxruntime.NodeInfo;
 import ai.onnxruntime.OnnxTensor;
