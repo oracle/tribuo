@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.proto.framework.GraphDef;
+import org.tensorflow.types.TBool;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
@@ -30,7 +32,6 @@ import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,11 +51,11 @@ import java.util.logging.Logger;
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
-public class TensorflowModel<T extends Output<T>> extends Model<T> implements Closeable {
+public class TensorflowModel<T extends Output<T>> extends Model<T> implements AutoCloseable {
 
     private static final Logger logger = Logger.getLogger(TensorflowModel.class.getName());
 
-    private static final long serialVersionUID = 100L;
+    private static final long serialVersionUID = 200L;
 
     public static final String INPUT_NAME = "input";
     public static final String OUTPUT_NAME = "output";
@@ -69,7 +70,7 @@ public class TensorflowModel<T extends Output<T>> extends Model<T> implements Cl
 
     private final OutputTransformer<T> outputTransformer;
 
-    TensorflowModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, byte[] trainedGraphDef, Map<String, Object> tensorMap, int batchSize, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
+    TensorflowModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorflowUtil.TensorTuple> tensorMap, int batchSize, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, description, featureIDMap, outputIDMap, outputTransformer.generatesProbabilities());
         this.exampleTransformer = exampleTransformer;
         this.outputTransformer = outputTransformer;
@@ -87,9 +88,9 @@ public class TensorflowModel<T extends Output<T>> extends Model<T> implements Cl
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
-        try (Tensor<?> transformedInput = exampleTransformer.transform(vec);
-             Tensor<?> isTraining = Tensor.create(false);
-             Tensor<?> outputTensor = session.runner()
+        try (Tensor transformedInput = exampleTransformer.transform(vec);
+             TBool isTraining = TBool.scalarOf(false);
+             Tensor outputTensor = session.runner()
                      .feed(INPUT_NAME,transformedInput)
                      .feed(TensorflowTrainer.IS_TRAINING,isTraining)
                      .fetch(OUTPUT_NAME).run().get(0)) {
@@ -129,9 +130,9 @@ public class TensorflowModel<T extends Output<T>> extends Model<T> implements Cl
         }
 
         // Send a batch to Tensorflow
-        try (Tensor<?> transformedInput = exampleTransformer.transform(vectors);
-             Tensor<?> isTraining = Tensor.create(false);
-             Tensor<?> outputTensor = session.runner()
+        try (Tensor transformedInput = exampleTransformer.transform(vectors);
+             Tensor isTraining = TBool.scalarOf(false);
+             Tensor outputTensor = session.runner()
                      .feed(INPUT_NAME,transformedInput)
                      .feed(TensorflowTrainer.IS_TRAINING,isTraining)
                      .fetch(OUTPUT_NAME).run().get(0)) {
@@ -203,9 +204,9 @@ public class TensorflowModel<T extends Output<T>> extends Model<T> implements Cl
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        byte[] modelBytes = modelGraph.toGraphDef();
+        byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
         out.writeObject(modelBytes);
-        Map<String,Object> tensorMap = TensorflowUtil.serialise(modelGraph, session);
+        Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(modelGraph, session);
         out.writeObject(tensorMap);
     }
 
@@ -213,9 +214,9 @@ public class TensorflowModel<T extends Output<T>> extends Model<T> implements Cl
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         byte[] modelBytes = (byte[]) in.readObject();
-        Map<String,Object> tensorMap = (Map<String,Object>) in.readObject();
+        Map<String, TensorflowUtil.TensorTuple> tensorMap = (Map<String, TensorflowUtil.TensorTuple>) in.readObject();
         modelGraph = new Graph();
-        modelGraph.importGraphDef(modelBytes);
+        modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(modelGraph);
         // Initialises the parameters.
         session.runner().addTarget(TensorflowTrainer.INIT).run();

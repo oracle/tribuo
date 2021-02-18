@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,8 @@ import java.util.Map;
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
-public final class TensorflowExternalModel<T extends Output<T>> extends ExternalModel<T, Tensor<?>, Tensor<?>> implements Closeable {
-    private static final long serialVersionUID = 100L;
+public final class TensorflowExternalModel<T extends Output<T>> extends ExternalModel<T, Tensor, Tensor> implements Closeable {
+    private static final long serialVersionUID = 200L;
 
     private transient Graph model;
 
@@ -98,12 +98,12 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
     }
 
     @Override
-    protected Tensor<?> convertFeatures(SparseVector input) {
+    protected Tensor convertFeatures(SparseVector input) {
         return featureTransformer.transform(input);
     }
 
     @Override
-    protected Tensor<?> convertFeaturesList(List<SparseVector> input) {
+    protected Tensor convertFeaturesList(List<SparseVector> input) {
         return featureTransformer.transform(input);
     }
 
@@ -115,8 +115,8 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
      * @return A tensor representing the output.
      */
     @Override
-    protected Tensor<?> externalPrediction(Tensor<?> input) {
-        Tensor<?> output = session.runner().feed(inputName,input).fetch(outputName).run().get(0);
+    protected Tensor externalPrediction(Tensor input) {
+        Tensor output = session.runner().feed(inputName,input).fetch(outputName).run().get(0);
         input.close();
         return output;
     }
@@ -130,7 +130,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
      * @return A {@link Prediction} representing this tensor output.
      */
     @Override
-    protected Prediction<T> convertOutput(Tensor<?> output, int numValidFeatures, Example<T> example) {
+    protected Prediction<T> convertOutput(Tensor output, int numValidFeatures, Example<T> example) {
         Prediction<T> pred = outputTransformer.transformToPrediction(output,outputIDInfo,numValidFeatures,example);
         output.close();
         return pred;
@@ -145,7 +145,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
      * @return A list of {@link Prediction} representing this tensor output.
      */
     @Override
-    protected List<Prediction<T>> convertOutput(Tensor<?> output, int[] numValidFeatures, List<Example<T>> examples) {
+    protected List<Prediction<T>> convertOutput(Tensor output, int[] numValidFeatures, List<Example<T>> examples) {
         List<Prediction<T>> predictions = outputTransformer.transformToBatchPrediction(output,outputIDInfo,numValidFeatures,examples);
         output.close();
         return predictions;

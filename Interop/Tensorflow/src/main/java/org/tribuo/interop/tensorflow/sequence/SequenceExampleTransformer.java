@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public interface SequenceExampleTransformer<T extends Output<T>> extends Configu
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor<?>> encode(SequenceExample<T> example, ImmutableFeatureMap featureMap);
+    Map<String, Tensor> encode(SequenceExample<T> example, ImmutableFeatureMap featureMap);
 
     /**
      * Encodes a batch of examples as a feed dict.
@@ -49,6 +49,6 @@ public interface SequenceExampleTransformer<T extends Output<T>> extends Configu
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor<?>> encode(List<SequenceExample<T>> batch, ImmutableFeatureMap featureMap);
+    Map<String, Tensor> encode(List<SequenceExample<T>> batch, ImmutableFeatureMap featureMap);
 
 }

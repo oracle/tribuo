@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ package org.tribuo.interop.tensorflow;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.ndarray.FloatNdArray;
+import org.tensorflow.ndarray.Shape;
+import org.tensorflow.ndarray.index.Indices;
+import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
@@ -30,52 +34,77 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Can convert a {@link Regressor} to a {@link Tensor} containing a 32-bit float and a Tensor into a
+ * Can convert a {@link Regressor} to a {@link TFloat32} vector and a {@link TFloat32} into a
  * {@link Prediction} or Regressor.
  */
 public class RegressorTransformer implements OutputTransformer<Regressor> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a RegressorTransformer.
+     */
+    public RegressorTransformer() {}
+
     @Override
-    public Prediction<Regressor> transformToPrediction(Tensor<?> tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int numValidFeatures, Example<Regressor> example) {
+    public Prediction<Regressor> transformToPrediction(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int numValidFeatures, Example<Regressor> example) {
         Regressor r = transformToOutput(tensor,outputIDInfo);
         return new Prediction<>(r,numValidFeatures,example);
     }
 
     @Override
-    public Regressor transformToOutput(Tensor<?> tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
-        float[][] predictions = getBatchPredictions(tensor);
-        if (predictions.length != 1) {
-            throw new IllegalArgumentException("Supplied tensor has too many results, predictions.length = " + predictions.length);
-        } else if (predictions[0].length != outputIDInfo.size()) {
-            throw new IllegalArgumentException("Supplied tensor has an incorrect number of dimensions, predictions[0].length = " + predictions[0].length + ", expected " + outputIDInfo.size());
+    public Regressor transformToOutput(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
+        FloatNdArray predictions = getBatchPredictions(tensor, outputIDInfo.size());
+        long[] shape = predictions.shape().asArray();
+        if (shape[0] != 1) {
+            throw new IllegalArgumentException("Supplied tensor has too many results, found " + shape[0]);
+        } else if (shape[1] != outputIDInfo.size()) {
+            throw new IllegalArgumentException("Supplied tensor has an incorrect number of dimensions, shape[1] = " + shape[1] + ", expected " + outputIDInfo.size());
         }
         String[] names = new String[outputIDInfo.size()];
         double[] values = new double[outputIDInfo.size()];
         for (Pair<Integer,Regressor> p : outputIDInfo) {
             int id = p.getA();
             names[id] = p.getB().getNames()[0];
-            values[id] = predictions[0][id];
+            values[id] = predictions.getFloat(0,id);
         }
         return new Regressor(names,values);
     }
 
-    float[][] getBatchPredictions(Tensor<?> tensor) {
-        long[] shape = tensor.shape();
-        if (shape.length != 2) {
-            throw new IllegalArgumentException("Supplied tensor has the wrong number of dimensions, shape = " + Arrays.toString(shape));
+    /**
+     * Converts a tensor into a 2d {@link FloatNdArray}.
+     * <p>
+     * It coerces a 1d array into a 2d array by adding a new dimension.
+     * <p>
+     * If the number of output dimensions in the tensor is not correct, or
+     * it's not a TFloat32, or it's not 1d or 2d then it throws {@link IllegalArgumentException}.
+     * @param tensor The tensor to convert.
+     * @param outputDims The number of output regression dimensions.
+     * @return A 2d FloatNdArray.
+     */
+    private FloatNdArray getBatchPredictions(Tensor tensor, int outputDims) {
+        if (tensor instanceof TFloat32) {
+            long[] shape = tensor.shape().asArray();
+            if ((shape.length != 2) && (shape.length != 1)) {
+                throw new IllegalArgumentException("Supplied tensor has the wrong number of dimensions, shape = " + Arrays.toString(shape));
+            }
+            if (shape.length == 1) {
+                TFloat32 floatTensor = (TFloat32) tensor;
+                // Make a new dimension to make it easier to process in downstream code
+                return floatTensor.slice(Indices.all(),Indices.newAxis());
+            } else {
+                if (shape[1] != outputDims) {
+                    throw new IllegalArgumentException("Supplied tensor has too many elements, tensor.shape = " + Arrays.toString(shape) + ", outputDims = " + outputDims);
+                }
+                // No reshaping necessary
+                return (TFloat32) tensor;
+            }
+        } else {
+            throw new IllegalArgumentException("Tensor is not a 32-bit float. Found type " + tensor.getClass().getName());
         }
-        int numValues = (int) shape[1];
-        if (numValues != 1) {
-            throw new IllegalArgumentException("Supplied tensor has too many elements, tensor.length = " + numValues);
-        }
-        int batchSize = (int) shape[0];
-        Tensor<Float> converted = tensor.expect(Float.class);
-        return converted.copyTo(new float[batchSize][numValues]);
     }
 
     @Override
-    public List<Prediction<Regressor>> transformToBatchPrediction(Tensor<?> tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int[] numValidFeatures, List<Example<Regressor>> examples) {
+    public List<Prediction<Regressor>> transformToBatchPrediction(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int[] numValidFeatures, List<Example<Regressor>> examples) {
         List<Regressor> regressors = transformToBatchOutput(tensor,outputIDInfo);
         List<Prediction<Regressor>> output = new ArrayList<>();
 
@@ -91,19 +120,20 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     }
 
     @Override
-    public List<Regressor> transformToBatchOutput(Tensor<?> tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
-        float[][] predictions = getBatchPredictions(tensor);
+    public List<Regressor> transformToBatchOutput(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
+        FloatNdArray predictions = getBatchPredictions(tensor, outputIDInfo.size());
         List<Regressor> output = new ArrayList<>();
+        int batchSize = (int) predictions.shape().asArray()[0];
 
         String[] names = new String[outputIDInfo.size()];
         for (Pair<Integer,Regressor> p : outputIDInfo) {
             int id = p.getA();
             names[id] = p.getB().getNames()[0];
         }
-        for (int i = 0; i < predictions.length; i++) {
+        for (int i = 0; i < batchSize; i++) {
             double[] values = new double[names.length];
             for (int j = 0; j < names.length; j++) {
-                values[j] = predictions[i][j];
+                values[j] = predictions.getFloat(i,j);
             }
             output.add(new Regressor(names,values));
         }
@@ -112,27 +142,27 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     }
 
     @Override
-    public Tensor<?> transform(Regressor example, ImmutableOutputInfo<Regressor> outputIDInfo) {
-        float[] output = new float[example.size()];
+    public Tensor transform(Regressor example, ImmutableOutputInfo<Regressor> outputIDInfo) {
+        TFloat32 output = TFloat32.tensorOf(Shape.of(1,outputIDInfo.size()));
         double[] values = example.getValues();
-        for (int i = 0; i < output.length; i++) {
-            output[i] = (float) values[i];
+        for (int i = 0; i < values.length; i++) {
+            output.setFloat((float) values[i],i);
         }
-        return Tensor.create(output);
+        return output;
     }
 
     @Override
-    public Tensor<?> transform(List<Example<Regressor>> examples, ImmutableOutputInfo<Regressor> outputIDInfo) {
-        float[][] output = new float[examples.size()][outputIDInfo.size()];
+    public Tensor transform(List<Example<Regressor>> examples, ImmutableOutputInfo<Regressor> outputIDInfo) {
+        TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),outputIDInfo.size()));
         int i = 0;
         for (Example<Regressor> e : examples) {
             double[] values = e.getOutput().getValues();
-            for (int j = 0; j < output.length; j++) {
-                output[i][j] = (float) values[j];
+            for (int j = 0; j < outputIDInfo.size(); j++) {
+                output.setFloat((float)values[j],i,j);
             }
             i++;
         }
-        return Tensor.create(output);
+        return output;
     }
 
     @Override

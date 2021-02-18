@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public interface SequenceOutputTransformer<T extends Output<T>> extends Configur
      * @param labelMap label domain
      * @return the model's decoded prediction for the input sequence.
      */
-    List<Prediction<T>> decode(Tensor<?> output, SequenceExample<T> input, ImmutableOutputInfo<T> labelMap);
+    List<Prediction<T>> decode(Tensor output, SequenceExample<T> input, ImmutableOutputInfo<T> labelMap);
 
     /**
      * Decode graph output tensors corresponding to a batch of input sequences.
@@ -53,7 +53,7 @@ public interface SequenceOutputTransformer<T extends Output<T>> extends Configur
      * @param labelMap label domain
      * @return the model's decoded predictions, one for each example in the input batch.
      */
-    List<List<Prediction<T>>> decode(Tensor<?> outputs, List<SequenceExample<T>> inputBatch, ImmutableOutputInfo<T> labelMap);
+    List<List<Prediction<T>>> decode(Tensor outputs, List<SequenceExample<T>> inputBatch, ImmutableOutputInfo<T> labelMap);
 
     /**
      * Encodes an example's label as a feed dict.
@@ -62,7 +62,7 @@ public interface SequenceOutputTransformer<T extends Output<T>> extends Configur
      * @param labelMap label domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor<?>> encode(SequenceExample<T> example, ImmutableOutputInfo<T> labelMap);
+    Map<String, Tensor> encode(SequenceExample<T> example, ImmutableOutputInfo<T> labelMap);
 
     /**
      * Encodes a batch of labels as a feed dict.
@@ -71,6 +71,6 @@ public interface SequenceOutputTransformer<T extends Output<T>> extends Configur
      * @param labelMap label domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor<?>> encode(List<SequenceExample<T>> batch, ImmutableOutputInfo<T> labelMap);
+    Map<String, Tensor> encode(List<SequenceExample<T>> batch, ImmutableOutputInfo<T> labelMap);
 
 }

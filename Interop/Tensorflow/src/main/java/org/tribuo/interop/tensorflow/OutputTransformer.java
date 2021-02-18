@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param example The example to insert into the prediction.
      * @return A prediction object.
      */
-    public Prediction<T> transformToPrediction(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo, int numValidFeatures, Example<T> example);
+    public Prediction<T> transformToPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int numValidFeatures, Example<T> example);
 
     /**
      * Converts a {@link Tensor} into the specified output type.
@@ -51,7 +51,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A output.
      */
-    public T transformToOutput(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo);
+    public T transformToOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts a {@link Tensor} containing multiple outputs into a list of {@link Prediction}s.
@@ -61,7 +61,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param examples The example to insert into the prediction.
      * @return A list of predictions.
      */
-    public List<Prediction<T>> transformToBatchPrediction(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo, int[] numValidFeatures, List<Example<T>> examples);
+    public List<Prediction<T>> transformToBatchPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int[] numValidFeatures, List<Example<T>> examples);
 
     /**
      * Converts a {@link Tensor} containing multiple outputs into a list of {@link Output}s.
@@ -69,7 +69,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A list of outputs.
      */
-    public List<T> transformToBatchOutput(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo);
+    public List<T> transformToBatchOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts an {@link Output} into a {@link Tensor} representing it's output.
@@ -77,7 +77,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A Tensor representing this output.
      */
-    public Tensor<?> transform(T output, ImmutableOutputInfo<T> outputIDInfo);
+    public Tensor transform(T output, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts a list of {@link Example} into a {@link Tensor} representing all the outputs
@@ -86,7 +86,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A Tensor representing all the supplied Outputs.
      */
-    public Tensor<?> transform(List<Example<T>> examples, ImmutableOutputInfo<T> outputIDInfo);
+    public Tensor transform(List<Example<T>> examples, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Does this OutputTransformer generate probabilities.

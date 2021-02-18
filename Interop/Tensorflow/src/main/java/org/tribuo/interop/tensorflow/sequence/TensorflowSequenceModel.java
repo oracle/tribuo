@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -39,9 +38,9 @@ import java.util.Map;
 /**
  * A Tensorflow model which implements SequenceModel, suitable for use in sequential prediction tasks.
  */
-public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<T> implements Closeable {
+public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<T> implements AutoCloseable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 200L;
 
     private transient Graph modelGraph = null;
     private transient Session session = null;
@@ -53,15 +52,15 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
     protected final String predictOp;
 
     TensorflowSequenceModel(String name,
-                                   ModelProvenance description,
-                                   ImmutableFeatureMap featureIDMap,
-                                   ImmutableOutputInfo<T> outputIDMap,
-                                   byte[] graphDef,
-                                   SequenceExampleTransformer<T> exampleTransformer,
-                                   SequenceOutputTransformer<T> outputTransformer,
-                                   String initOp,
-                                   String predictOp,
-                                   Map<String, Object> tensorMap
+                            ModelProvenance description,
+                            ImmutableFeatureMap featureIDMap,
+                            ImmutableOutputInfo<T> outputIDMap,
+                            GraphDef graphDef,
+                            SequenceExampleTransformer<T> exampleTransformer,
+                            SequenceOutputTransformer<T> outputTransformer,
+                            String initOp,
+                            String predictOp,
+                            Map<String, TensorflowUtil.TensorTuple> tensorMap
     ) {
         super(name, description, featureIDMap, outputIDMap);
         this.exampleTransformer = exampleTransformer;
@@ -69,7 +68,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
         this.initOp = initOp;
         this.predictOp = predictOp;
         this.modelGraph = new Graph();
-        this.modelGraph.importGraphDef(GraphDef.parseFrom(graphDef));
+        this.modelGraph.importGraphDef(graphDef);
         this.session = new Session(modelGraph);
 
         // Initialises the parameters.
@@ -79,23 +78,21 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
 
     @Override
     public List<Prediction<T>> predict(SequenceExample<T> example) {
-        Map<String, Tensor<?>> feed = exampleTransformer.encode(example, featureIDMap);
+        Map<String, Tensor> feed = exampleTransformer.encode(example, featureIDMap);
         Session.Runner runner = session.runner();
-        for (Map.Entry<String, Tensor<?>> item : feed.entrySet()) {
+        for (Map.Entry<String, Tensor> item : feed.entrySet()) {
             runner.feed(item.getKey(), item.getValue());
         }
-        Tensor<?> outputTensor = runner
+        try (Tensor outputTensor = runner
                 .fetch(predictOp)
                 .run()
-                .get(0);
-        List<Prediction<T>> prediction = outputTransformer.decode(outputTensor, example, outputIDMap);
-        //
-        // Close all the open tensors
-        outputTensor.close();
-        for (Tensor<?> tensor : feed.values()) {
-            tensor.close();
+                .get(0)) {
+            List<Prediction<T>> prediction = outputTransformer.decode(outputTensor, example, outputIDMap);
+            //
+            // Close all the open tensors
+            TensorflowUtil.closeTensorCollection(feed.values());
+            return prediction;
         }
-        return prediction;
     }
 
     /**
@@ -123,7 +120,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
         out.defaultWriteObject();
         byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
         out.writeObject(modelBytes);
-        Map<String,Object> tensorMap = TensorflowUtil.serialise(modelGraph, session);
+        Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(modelGraph, session);
         out.writeObject(tensorMap);
     }
 
@@ -131,7 +128,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         byte[] modelBytes = (byte[]) in.readObject();
-        Map<String,Object> tensorMap = (Map<String,Object>) in.readObject();
+        Map<String, TensorflowUtil.TensorTuple> tensorMap = (Map<String,TensorflowUtil.TensorTuple>) in.readObject();
         modelGraph = new Graph();
         modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(modelGraph);

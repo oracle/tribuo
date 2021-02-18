@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.tensorflow.exceptions.TensorFlowException;
+import org.tensorflow.proto.framework.GraphDef;
+import org.tensorflow.types.TFloat32;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
@@ -39,8 +42,9 @@ import org.tribuo.util.Util;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
-import org.tensorflow.TensorFlowException;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,7 +68,7 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
     @Config(mandatory=true,description="Path to the protobuf containing the Tensorflow graph.")
     protected Path graphPath;
 
-    private byte[] graphDef;
+    private GraphDef graphDef;
 
     @Config(mandatory=true,description="Sequence feature extractor.")
     protected SequenceExampleTransformer<T> exampleTransformer;
@@ -124,7 +128,7 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
     @Override
     public synchronized void postConfig() throws IOException {
         rng = new SplittableRandom(seed);
-        graphDef = Files.readAllBytes(graphPath);
+        graphDef = GraphDef.parseFrom(new BufferedInputStream(new FileInputStream(graphPath.toFile())));
     }
 
     @Override
@@ -171,7 +175,7 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
                     }
                     //
                     // Transform examples to tensors
-                    Map<String, Tensor<?>> feed = exampleTransformer.encode(batch, featureMap);
+                    Map<String, Tensor> feed = exampleTransformer.encode(batch, featureMap);
                     //
                     // Add supervision
                     feed.putAll(outputTransformer.encode(batch, labelMap));
@@ -181,27 +185,26 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
                     //
                     // Populate the runner.
                     Session.Runner runner = session.runner();
-                    for (Map.Entry<String, Tensor<?>> item : feed.entrySet()) {
+                    for (Map.Entry<String, Tensor> item : feed.entrySet()) {
                         runner.feed(item.getKey(), item.getValue());
                     }
                     //
                     // Run a training batch.
-                    Tensor<?> loss = runner
+                    try (Tensor loss = runner
                             .addTarget(trainOp)
                             .fetch(getLossOp)
                             .run()
-                            .get(0);
-                    if (interval % loggingInterval == 0) {
-                        log.info(String.format("loss %-5.6f [epoch %-2d batch %-4d #(%d - %d)/%d]",
-                                loss.floatValue(), i, interval, j, Math.min(examples.size(), j+minibatchSize), examples.size()));
+                            .get(0)) {
+                        if (interval % loggingInterval == 0) {
+                            float lossVal = ((TFloat32) loss).getFloat(0);
+                            log.info(String.format("loss %-5.6f [epoch %-2d batch %-4d #(%d - %d)/%d]",
+                                    lossVal, i, interval, j, Math.min(examples.size(), j + minibatchSize), examples.size()));
+                        }
+                        interval++;
                     }
-                    interval++;
                     //
                     // Cleanup: close the tensors.
-                    loss.close();
-                    for (Tensor<?> tns : feed.values()) {
-                        tns.close();
-                    }
+                    TensorflowUtil.closeTensorCollection(feed.values());
                 }
             }
             
@@ -209,8 +212,8 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
             TensorflowUtil.annotateGraph(graph,session);
             //
             // Generate the trained graph def.
-            byte[] trainedGraphDef = graph.toGraphDef();
-            Map<String,Object> tensorMap = TensorflowUtil.serialise(graph,session);
+            GraphDef trainedGraphDef = graph.toGraphDef();
+            Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(graph,session);
             ModelProvenance modelProvenance = new ModelProvenance(TensorflowSequenceModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), provenance, runProvenance);
             return new TensorflowSequenceModel<>(
                     "tf-sequence-model",
@@ -245,7 +248,7 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
 
     protected void preTrainingHook(Session session, SequenceDataset<T> examples) {}
 
-    protected Map<String, Tensor<?>> getHyperparameterFeed() {
+    protected Map<String, Tensor> getHyperparameterFeed() {
         return Collections.emptyMap();
     }
 

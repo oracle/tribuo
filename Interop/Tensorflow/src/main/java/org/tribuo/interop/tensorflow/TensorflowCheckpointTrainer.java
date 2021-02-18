@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,12 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
+import org.tensorflow.exceptions.TensorFlowException;
 import org.tensorflow.proto.framework.GraphDef;
+import org.tensorflow.types.TBool;
+import org.tensorflow.types.TFloat32;
+import org.tensorflow.types.TInt32;
+import org.tensorflow.types.TString;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -38,9 +43,9 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
-import org.tensorflow.TensorFlowException;
-import org.tensorflow.Tensors;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -85,7 +90,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
     @Config(mandatory=true,description="Path to the protobuf containing the graph.")
     private Path graphPath;
 
-    private byte[] graphDef;
+    private GraphDef graphDef;
 
     @Config(mandatory=true,description="Feature extractor.")
     private ExampleTransformer<T> exampleTransformer;
@@ -137,7 +142,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
      */
     @Override
     public void postConfig() throws IOException {
-        graphDef = Files.readAllBytes(graphPath);
+        graphDef = GraphDef.parseFrom(new BufferedInputStream(new FileInputStream(graphPath.toFile())));
     }
 
     @Override
@@ -157,10 +162,10 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
 
         try (Graph graph = new Graph();
              Session session = new Session(graph);
-             Tensor<?> isTraining = Tensor.create(true);
-             Tensor<String> checkpointPathTensor = Tensors.create(checkpointPath.toString()+"/"+MODEL_FILENAME) ) {
+             Tensor isTraining = TBool.scalarOf(true);
+             TString checkpointPathTensor = TString.scalarOf(checkpointPath.toString()+"/"+MODEL_FILENAME) ) {
             // Load in the graph definition
-            graph.importGraphDef(GraphDef.parseFrom(graphDef));
+            graph.importGraphDef(graphDef);
 
             // Initialises the parameters.
             session.runner().addTarget(TensorflowTrainer.INIT).run();
@@ -168,17 +173,17 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
 
             int interval = 0;
             for (int i = 0; i < epochs; i++) {
-                logger.log(Level.INFO,"Starting epoch " + i);
-                Tensor<?> epoch = Tensor.create(i);
+                logger.log(Level.INFO, "Starting epoch " + i);
+                TInt32 epoch = TInt32.scalarOf(i);
                 for (int j = 0; j < examples.size(); j += minibatchSize) {
                     batch.clear();
-                    for (int k = j; k < (j+ minibatchSize) && k < examples.size(); k++) {
+                    for (int k = j; k < (j + minibatchSize) && k < examples.size(); k++) {
                         batch.add(examples.getExample(k));
                     }
                     //logger.info("Batch = " + batch.size());
-                    Tensor<?> input = exampleTransformer.transform(batch,featureMap);
-                    Tensor<?> target = outputTransformer.transform(batch,outputInfo);
-                    Tensor<?> loss = session.runner()
+                    Tensor input = exampleTransformer.transform(batch, featureMap);
+                    Tensor target = outputTransformer.transform(batch, outputInfo);
+                    Tensor loss = session.runner()
                             .feed(TensorflowModel.INPUT_NAME, input)
                             .feed(TensorflowTrainer.TARGET, target)
                             .feed(TensorflowTrainer.EPOCH, epoch)
@@ -187,7 +192,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
                             .fetch(TensorflowTrainer.TRAINING_LOSS)
                             .run().get(0);
                     if (interval % loggingInterval == 0) {
-                        logger.log(Level.INFO, "Training loss = " + loss.floatValue());
+                        logger.log(Level.INFO, "Training loss = " + ((TFloat32) loss).getFloat(0));
                     }
                     input.close();
                     target.close();
@@ -199,7 +204,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
 
             session.runner().feed("save/Const", checkpointPathTensor).addTarget("save/control_dependency").run();
 
-            byte[] trainedGraphDef = graph.toGraphDef().toByteArray();
+            GraphDef trainedGraphDef = graph.toGraphDef();
 
             ModelProvenance modelProvenance = new ModelProvenance(TensorflowCheckpointModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
             TensorflowCheckpointModel<T> tfModel = new TensorflowCheckpointModel<>("tf-model", modelProvenance, featureMap,

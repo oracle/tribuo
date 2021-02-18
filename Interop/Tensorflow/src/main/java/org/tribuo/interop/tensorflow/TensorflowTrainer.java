@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,11 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
+import org.tensorflow.exceptions.TensorFlowException;
 import org.tensorflow.proto.framework.GraphDef;
+import org.tensorflow.types.TBool;
+import org.tensorflow.types.TFloat32;
+import org.tensorflow.types.TInt32;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -37,8 +41,9 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
-import org.tensorflow.TensorFlowException;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -85,7 +90,7 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
     @Config(mandatory=true,description="Path to the protobuf containing the graph.")
     private Path graphPath;
 
-    private byte[] graphDef;
+    private GraphDef graphDef;
 
     @Config(description="Test time batch size.")
     private int testBatchSize = 16;
@@ -141,7 +146,7 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
      * @param epochs The number of SGD epochs to run.
      * @param testBatchSize The minibatch size to use at test time.
      */
-    public TensorflowTrainer(byte[] graphDef, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer, int minibatchSize, int epochs, int testBatchSize) {
+    public TensorflowTrainer(GraphDef graphDef, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer, int minibatchSize, int epochs, int testBatchSize) {
         this.graphPath = null;
         this.graphDef = graphDef;
         this.exampleTransformer = exampleTransformer;
@@ -156,7 +161,7 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
      */
     @Override
     public void postConfig() throws IOException {
-        graphDef = Files.readAllBytes(graphPath);
+        graphDef = GraphDef.parseFrom(new BufferedInputStream(new FileInputStream(graphPath.toFile())));
     }
 
     @Override
@@ -168,9 +173,9 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
 
         try (Graph graph = new Graph();
              Session session = new Session(graph);
-             Tensor<?> isTraining = Tensor.create(true)) {
+             TBool isTraining = TBool.scalarOf(true)) {
             // Load in the graph definition
-            graph.importGraphDef(GraphDef.parseFrom(graphDef));
+            graph.importGraphDef(graphDef);
 
             // Initialises the parameters.
             session.runner().addTarget(INIT).run();
@@ -179,16 +184,16 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
             int interval = 0;
             for (int i = 0; i < epochs; i++) {
                 logger.log(Level.INFO,"Starting epoch " + i);
-                Tensor<?> epoch = Tensor.create(i);
+                TInt32 epoch = TInt32.scalarOf(i);
                 for (int j = 0; j < examples.size(); j += minibatchSize) {
                     batch.clear();
                     for (int k = j; k < (j+ minibatchSize) && k < examples.size(); k++) {
                         batch.add(examples.getExample(k));
                     }
                     //logger.info("Batch = " + batch.size());
-                    Tensor<?> input = exampleTransformer.transform(batch,featureMap);
-                    Tensor<?> target = outputTransformer.transform(batch,outputInfo);
-                    Tensor<?> loss = session.runner()
+                    Tensor input = exampleTransformer.transform(batch,featureMap);
+                    Tensor target = outputTransformer.transform(batch,outputInfo);
+                    Tensor loss = session.runner()
                             .feed(TensorflowModel.INPUT_NAME, input)
                             .feed(TARGET, target)
                             .feed(EPOCH, epoch)
@@ -197,7 +202,7 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
                             .fetch(TRAINING_LOSS)
                             .run().get(0);
                     if (interval % loggingInterval == 0) {
-                        logger.log(Level.INFO, "Training loss = " + loss.floatValue());
+                        logger.log(Level.INFO, "Training loss = " + ((TFloat32) loss).getFloat(0));
                     }
                     input.close();
                     target.close();
@@ -213,9 +218,9 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
             // This call **must** happen before the trainedGraphDef is generated.
             TensorflowUtil.annotateGraph(graph,session);
 
-            byte[] trainedGraphDef = graph.toGraphDef().toByteArray();
+            GraphDef trainedGraphDef = graph.toGraphDef();
 
-            Map<String,Object> tensorMap = TensorflowUtil.serialise(graph,session);
+            Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(graph,session);
 
             ModelProvenance modelProvenance = new ModelProvenance(TensorflowModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
             TensorflowModel<T> tfModel = new TensorflowModel<>("tf-model", modelProvenance, featureMap,
@@ -262,7 +267,7 @@ public final class TensorflowTrainer<T extends Output<T>> implements Trainer<T> 
                 this.graphHash = new HashProvenance(DEFAULT_HASH_TYPE,GRAPH_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.graphPath));
                 this.graphLastModified = new DateTimeProvenance(GRAPH_LAST_MOD, OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.graphPath.toFile().lastModified()), ZoneId.systemDefault()));
             } else {
-                this.graphHash = new HashProvenance(DEFAULT_HASH_TYPE,GRAPH_HASH,hashArray(DEFAULT_HASH_TYPE,host.graphDef));
+                this.graphHash = new HashProvenance(DEFAULT_HASH_TYPE,GRAPH_HASH,hashArray(DEFAULT_HASH_TYPE,host.graphDef.toByteArray()));
                 this.graphLastModified = new DateTimeProvenance(GRAPH_LAST_MOD, OffsetDateTime.now());
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.proto.framework.GraphDef;
+import org.tensorflow.types.TBool;
+import org.tensorflow.types.TString;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
@@ -30,7 +32,6 @@ import org.tribuo.provenance.ModelProvenance;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
-import org.tensorflow.Tensors;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -55,7 +56,7 @@ import java.util.Optional;
  */
 public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> implements Closeable {
 
-    private static final long serialVersionUID = 100L;
+    private static final long serialVersionUID = 200L;
 
     private transient Graph modelGraph = null;
 
@@ -67,7 +68,7 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
 
     private final OutputTransformer<T> outputTransformer;
 
-    TensorflowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, byte[] graphDef, String checkpointDirectory, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
+    TensorflowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, description, featureIDMap, outputIDMap, outputTransformer.generatesProbabilities());
         this.exampleTransformer = exampleTransformer;
         this.outputTransformer = outputTransformer;
@@ -76,7 +77,7 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         this.modelGraph.importGraphDef(graphDef);
         this.session = new Session(modelGraph);
 
-        try (Tensor<String> checkpointPrefix = Tensors.create(Paths.get(checkpointDirectory+"/"+TensorflowCheckpointTrainer.MODEL_FILENAME).toString())) {
+        try (TString checkpointPrefix = TString.scalarOf(Paths.get(checkpointDirectory+"/"+TensorflowCheckpointTrainer.MODEL_FILENAME).toString())) {
             // Initialises the parameters.
             session.runner().feed("save/Const", checkpointPrefix).addTarget("save/restore_all").run();
         }
@@ -87,9 +88,9 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
-        try (Tensor<?> transformedInput = exampleTransformer.transform(example,featureIDMap);
-             Tensor<?> isTraining = Tensor.create(false);
-             Tensor<?> outputTensor = session.runner()
+        try (Tensor transformedInput = exampleTransformer.transform(example,featureIDMap);
+             Tensor isTraining = TBool.scalarOf(false);
+             Tensor outputTensor = session.runner()
                      .feed(TensorflowModel.INPUT_NAME,transformedInput)
                      .feed(TensorflowTrainer.IS_TRAINING,isTraining)
                      .fetch(TensorflowModel.OUTPUT_NAME).run().get(0)) {
@@ -150,7 +151,7 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         this.modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         this.session = new Session(modelGraph);
 
-        try (Tensor<String> checkpointPrefix = Tensors.create(Paths.get(checkpointDirectory+"/"+TensorflowCheckpointTrainer.MODEL_FILENAME).toString())) {
+        try (TString checkpointPrefix = TString.scalarOf(Paths.get(checkpointDirectory+"/"+TensorflowCheckpointTrainer.MODEL_FILENAME).toString())) {
             // Initialises the parameters.
             session.runner().feed("save/Const", checkpointPrefix).addTarget("save/restore_all").run();
         }

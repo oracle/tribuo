@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,16 @@ package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tensorflow.ndarray.NdArrays;
+import org.tensorflow.ndarray.Shape;
+import org.tensorflow.ndarray.buffer.DataBuffers;
+import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tensorflow.Tensor;
 
@@ -37,7 +42,7 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
     private static final Logger logger = Logger.getLogger(DenseTransformer.class.getName());
 
     /**
-     * Feature size beyond which a warning is generated (as ONNX requires dense features and large feature spaces are memory hungry).
+     * Feature size beyond which a warning is generated (as TensorFlow requires dense features and large feature spaces are memory hungry).
      */
     public static final int THRESHOLD = 1000000;
 
@@ -67,58 +72,66 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
         return output;
     }
 
-    float[] innerTransform(SparseVector vector) {
+    private float[] innerTransform(SGDVector vector) {
         if ((warningCount < WARNING_THRESHOLD) && (vector.size() > THRESHOLD)) {
             logger.warning("Large dense example requested, dimension = " + vector.size() + ", numActiveElements = " + vector.numActiveElements());
             warningCount++;
         }
         float[] output = new float[vector.size()];
 
-        for (VectorTuple f : vector) {
-            output[f.index] = (float) f.value;
+        if (vector instanceof DenseVector) {
+            DenseVector denseVec = (DenseVector) vector;
+            for (int i = 0; i < output.length; i++) {
+                output[i] = (float) denseVec.get(i);
+            }
+        } else {
+            // must be sparse
+            for (VectorTuple f : vector) {
+                output[f.index] = (float) f.value;
+            }
         }
 
         return output;
     }
 
     @Override
-    public Tensor<?> transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
-        float[][] output = new float[1][];
-        output[0] = innerTransform(example,featureIDMap);
-        return Tensor.create(output);
+    public Tensor transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+        float[] output = innerTransform(example,featureIDMap);
+        return TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output));
     }
 
     @Override
-    public Tensor<?> transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
-        float[][] output = new float[examples.size()][];
+    public Tensor transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+        TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),featureIDMap.size()));
 
         int i = 0;
         for (Example<T> example : examples) {
-            output[i] = innerTransform(example,featureIDMap);
+            float[] features = innerTransform(example,featureIDMap);
+            output.set(NdArrays.vectorOf(features),i);
             i++;
         }
 
-        return Tensor.create(output);
+        return output;
     }
 
     @Override
-    public Tensor<?> transform(SparseVector vector) {
-        float[][] output = new float[1][];
-        output[0] = innerTransform(vector);
-        return Tensor.create(output);
+    public Tensor transform(SGDVector vector) {
+        float[] output = innerTransform(vector);
+        return TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output));
     }
 
     @Override
-    public Tensor<?> transform(List<SparseVector> vectors) {
-        float[][] output = new float[vectors.size()][];
+    public Tensor transform(List<? extends SGDVector> vectors) {
+        TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),vectors.get(0).size()));
 
         int i = 0;
-        for (SparseVector vector : vectors) {
-            output[i] = innerTransform(vector);
+        for (SGDVector vector : vectors) {
+            float[] features = innerTransform(vector);
+            output.set(NdArrays.vectorOf(features),i);
             i++;
         }
 
-        return Tensor.create(output);
+        return output;
     }
 
     @Override

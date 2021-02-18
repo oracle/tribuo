@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tensorflow.Tensor;
 
@@ -45,7 +46,7 @@ public interface ExampleTransformer<T extends Output<T>> extends Configurable, P
      * @param featureIDMap The id map to convert feature names into id numbers.
      * @return A dense Tensor representing this example.
      */
-    public Tensor<?> transform(Example<T> example, ImmutableFeatureMap featureIDMap);
+    public Tensor transform(Example<T> example, ImmutableFeatureMap featureIDMap);
 
     /**
      * Converts a batch of {@link Example}s into a single {@link Tensor} suitable for supplying as
@@ -54,23 +55,23 @@ public interface ExampleTransformer<T extends Output<T>> extends Configurable, P
      * @param featureIDMap THe id map to convert feature names into id numbers.
      * @return A dense Tensor representing this minibatch.
      */
-    public Tensor<?> transform(List<Example<T>> example, ImmutableFeatureMap featureIDMap);
+    public Tensor transform(List<Example<T>> example, ImmutableFeatureMap featureIDMap);
 
     /**
-     * Converts a {@link SparseVector} representing the features into a {@link Tensor}.
+     * Converts a {@link SGDVector} representing the features into a {@link Tensor}.
      * <p>
      * It generates it as a single example minibatch.
      * @param vector The features to convert.
      * @return A dense Tensor representing this vector.
      */
-    public Tensor<?> transform(SparseVector vector);
+    public Tensor transform(SGDVector vector);
 
     /**
-     * Converts a list of {@link SparseVector}s representing a batch of features into a {@link Tensor}.
+     * Converts a list of {@link SGDVector}s representing a batch of features into a {@link Tensor}.
      * <p>
      * @param vectors The batch of features to convert.
      * @return A dense Tensor representing this minibatch.
      */
-    public Tensor<?> transform(List<SparseVector> vectors);
+    public Tensor transform(List<? extends SGDVector> vectors);
 
 }

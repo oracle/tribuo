@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,20 +20,26 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tensorflow.ndarray.NdArrays;
+import org.tensorflow.ndarray.Shape;
+import org.tensorflow.ndarray.buffer.DataBuffers;
+import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tensorflow.Tensor;
 
 import java.util.List;
 
 /**
- * Image transformer. Assumes the feature id numbers are linearised ids of the form
- * [0,0,0] = 0, [1,0,0] = 1, ..., [i,0,0] = i, [0,1,0] = i+1, ..., [i,j,0] = i*j, ...
- * [0,0,1] = (i*j)+1, ..., [i,j,k] = i*j*k.
+ * Image transformer. Assumes the feature id numbers are linearised ids of the form:
+ * <pre>
+ * [0,0,0] = 0, [0,0,1] = 1, [0,1,0] = k, [1,0,0] = j*k, ..., [i,0,0] = i*j*k,
+ * </pre>
+ * That is, they are in multidimensional row major order.
  */
 public class ImageTransformer<T extends Output<T>> implements ExampleTransformer<T> {
     private static final long serialVersionUID = 1L;
@@ -47,15 +53,28 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
     @Config(mandatory=true,description="Number of channels.")
     private int channels;
 
+    private int totalPixels;
+
     /**
      * For olcut.
      */
     private ImageTransformer() {}
 
+    /**
+     * Builds an image transformer for images of the supplied size.
+     * @param width The image width.
+     * @param height The image height.
+     * @param channels The number of colour channels.
+     */
     public ImageTransformer(int width, int height, int channels) {
         if (width < 1 || height < 1 || channels < 1) {
             throw new IllegalArgumentException("Inputs must be positive integers, found ["+width+","+height+","+channels+"]");
         }
+        long values = ((long)width)*height*channels;
+        if (values > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException("Image size must be less than 2^31, found " + values);
+        }
+        this.totalPixels = (int) values;
         this.width = width;
         this.height = height;
         this.channels = channels;
@@ -69,6 +88,11 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
         if (width < 1 || height < 1 || channels < 1) {
             throw new PropertyException("","Inputs must be positive integers, found ["+width+","+height+","+channels+"]");
         }
+        long values = ((long)width)*height*channels;
+        if (values > Integer.MAX_VALUE) {
+            throw new PropertyException("","Image size must be less than 2^31, found " + values);
+        }
+        this.totalPixels = (int) values;
     }
 
     /**
@@ -78,10 +102,9 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 3d tensor, (width, height, channels) for this example.
      */
     @Override
-    public Tensor<?> transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
-        float[][][][] image = new float[1][][][];
-        image[0] = innerTransform(example,featureIDMap);
-        return Tensor.create(image);
+    public Tensor transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+        float[] image = innerTransform(example,featureIDMap);
+        return TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image));
     }
 
     /**
@@ -89,20 +112,21 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * with zero.
      * @param example The example to transform.
      * @param featureIDMap The feature id mapping to use.
-     * @return A 3d array, (width,height,channels) representing the example.
+     * @return A 1d array stored in multdimensional column-major order representing the example.
      */
-    float[][][] innerTransform(Example<T> example, ImmutableFeatureMap featureIDMap) {
-        float[][][] image = new float[width][height][channels];
+    float[] innerTransform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+        if (featureIDMap.size() > totalPixels) {
+            throw new IllegalArgumentException("Found more values than expected, expected " + totalPixels + ", found " + featureIDMap.size());
+        }
+
+        float[] output = new float[totalPixels];
 
         for (Feature f : example) {
             int id = featureIDMap.getID(f.getName());
-            int curWidth = id % width;
-            int curHeight = (id / width) % height;
-            int curChannel = id / (width * height);
-            image[curWidth][curHeight][curChannel] = (float) f.getValue();
+            output[id] = (float) f.getValue();
         }
 
-        return image;
+        return output;
     }
 
     /**
@@ -111,18 +135,17 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @param vector The vector to transform.
      * @return A 3d array, (width,height,channels) representing the vector.
      */
-    float[][][] innerTransform(SparseVector vector) {
-        float[][][] image = new float[width][height][channels];
+    float[] innerTransform(SGDVector vector) {
+        if (vector.size() > totalPixels) {
+            throw new IllegalArgumentException("Found more values than expected, expected " + totalPixels + ", found " + vector.size());
+        }
+        float[] output = new float[totalPixels];
 
         for (VectorTuple f : vector) {
-            int id = f.index;
-            int curWidth = id % width;
-            int curHeight = (id / width) % height;
-            int curChannel = id / (width * height);
-            image[curWidth][curHeight][curChannel] = (float) f.value;
+            output[f.index] = (float) f.value;
         }
 
-        return image;
+        return output;
     }
 
     /**
@@ -134,36 +157,37 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 4d tensor, (batch-id, width, height, channels) for this example.
      */
     @Override
-    public Tensor<?> transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
-        float[][][][] image = new float[examples.size()][][][];
+    public Tensor transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+        TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),width,height,channels));
 
         int i = 0;
         for (Example<T> example : examples) {
-            image[i] = innerTransform(example,featureIDMap);
+            float[] features = innerTransform(example,featureIDMap);
+            output.set(NdArrays.vectorOf(features),i);
             i++;
         }
 
-        return Tensor.create(image);
+        return output;
     }
 
     @Override
-    public Tensor<?> transform(SparseVector vector) {
-        float[][][][] image = new float[1][][][];
-        image[0] = innerTransform(vector);
-        return Tensor.create(image);
+    public Tensor transform(SGDVector vector) {
+        float[] image = innerTransform(vector);
+        return TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image));
     }
 
     @Override
-    public Tensor<?> transform(List<SparseVector> vectors) {
-        float[][][][] image = new float[vectors.size()][][][];
+    public Tensor transform(List<? extends SGDVector> vectors) {
+        TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),width,height,channels));
 
         int i = 0;
-        for (SparseVector vector : vectors) {
-            image[i] = innerTransform(vector);
+        for (SGDVector vector : vectors) {
+            float[] features = innerTransform(vector);
+            output.set(NdArrays.vectorOf(features),i);
             i++;
         }
 
-        return Tensor.create(image);
+        return output;
     }
 
     @Override
