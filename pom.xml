@@ -60,6 +60,7 @@
         <!-- Turn off tests which rely on native code -->
         <skipXGBoostTests>false</skipXGBoostTests>
         <skipONNXTests>false</skipONNXTests>
+        <skipTFTests>false</skipTFTests>
     </properties>
 
     <name>Tribuo</name>
