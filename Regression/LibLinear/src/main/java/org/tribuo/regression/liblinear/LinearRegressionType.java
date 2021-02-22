@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.io.Serializable;
  * <p>
  * Supports: L2R_L2LOSS_SVR, L2R_L2LOSS_SVR_DUAL, L2R_L1LOSS_SVR_DUAL.
  */
-public class LinearRegressionType implements LibLinearType<Regressor> {
+public final class LinearRegressionType implements LibLinearType<Regressor> {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -84,6 +84,11 @@ public class LinearRegressionType implements LibLinearType<Regressor> {
 
     @Override
     public boolean isRegression() {
+        return false;
+    }
+
+    @Override
+    public boolean isAnomaly() {
         return false;
     }
 

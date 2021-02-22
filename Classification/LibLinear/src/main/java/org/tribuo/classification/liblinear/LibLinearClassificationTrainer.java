@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
     public void postConfig() {
         super.postConfig();
         if (!trainerType.isClassification()) {
-            throw new IllegalArgumentException("Supplied regression parameters to a classification linear model.");
+            throw new IllegalArgumentException("Supplied regression or anomaly detection parameters to a classification linear model.");
         }
     }
 

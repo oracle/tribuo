@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.tribuo.classification.liblinear;
+package org.tribuo.anomaly.liblinear;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.classification.Label;
+import org.tribuo.anomaly.Event;
 import org.tribuo.common.liblinear.LibLinearType;
 import de.bwaldvogel.liblinear.SolverType;
 
 import java.io.Serializable;
 
 /**
- * The carrier type for liblinear classification modes.
+ * The carrier type for liblinear anomaly detection modes.
  * <p>
- * Supports: L1R_L2LOSS_SVC, L2R_L2LOSS_SVC, L2R_L2LOSS_SVC_DUAL, L2R_L1LOSS_SVC_DUAL, MCSVM_CS, L1R_LR, L2R_LR, L2R_LR_DUAL.
+ * Supports: ONECLASS_SVM
  */
-public final class LinearClassificationType implements LibLinearType<Label> {
+public final class LinearAnomalyType implements LibLinearType<Event> {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -38,37 +38,9 @@ public final class LinearClassificationType implements LibLinearType<Label> {
      */
     public enum LinearType implements Serializable {
         /**
-         * L1-regularized L2-loss support vector classification
+         * Linear one-class SVM
          */
-        L1R_L2LOSS_SVC(SolverType.L1R_L2LOSS_SVC),
-        /**
-         * L2-regularized L2-loss support vector classification (primal)
-         */
-        L2R_L2LOSS_SVC(SolverType.L2R_L2LOSS_SVC),
-        /**
-         * L2-regularized L2-loss support vector classification (dual)
-         */
-        L2R_L2LOSS_SVC_DUAL(SolverType.L2R_L2LOSS_SVC_DUAL),
-        /**
-         * L2-regularized L1-loss support vector classification (dual)
-         */
-        L2R_L1LOSS_SVC_DUAL(SolverType.L2R_L1LOSS_SVC_DUAL),
-        /**
-         * multi-class support vector classification by Crammer and Singer
-         */
-        MCSVM_CS(SolverType.MCSVM_CS),
-        /**
-         * L1-regularized logistic regression
-         */
-        L1R_LR(SolverType.L1R_LR),
-        /**
-         * L2-regularized logistic regression (primal)
-         */
-        L2R_LR(SolverType.L2R_LR),
-        /**
-         * L2-regularized logistic regression (dual)
-         */
-        L2R_LR_DUAL(SolverType.L2R_LR_DUAL);
+        ONECLASS_SVM(SolverType.ONECLASS_SVM);
 
         private final SolverType type;
 
@@ -87,15 +59,15 @@ public final class LinearClassificationType implements LibLinearType<Label> {
     /**
      * For olcut.
      */
-    private LinearClassificationType() {}
+    private LinearAnomalyType() {}
 
-    public LinearClassificationType(LinearType type) {
+    public LinearAnomalyType(LinearType type) {
         this.type = type;
     }
 
     @Override
     public boolean isClassification() {
-        return true;
+        return false;
     }
 
     @Override
@@ -105,7 +77,7 @@ public final class LinearClassificationType implements LibLinearType<Label> {
 
     @Override
     public boolean isAnomaly() {
-        return false;
+        return true;
     }
 
     @Override

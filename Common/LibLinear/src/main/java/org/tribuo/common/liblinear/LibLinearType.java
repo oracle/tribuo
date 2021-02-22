@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,9 @@ public interface LibLinearType<T extends Output<T>> extends Configurable, Proven
     // L2-regularized L2-loss support vector regression (dual)
     L2R_L2LOSS_SVR_DUAL,
     // L2-regularized L1-loss support vector regression (dual)
-    L2R_L1LOSS_SVR_DUAL;
+    L2R_L1LOSS_SVR_DUAL,
+    // One-class SVM
+    ONECLASS_SVM;
     */
 
     /**
@@ -82,6 +84,12 @@ public interface LibLinearType<T extends Output<T>> extends Configurable, Proven
      * @return True if it's a regression algorithm.
      */
     public boolean isRegression();
+
+    /**
+     * Is this class an anomaly detection algorithm?
+     * @return True if it's an anomaly detection algorithm.
+     */
+    public boolean isAnomaly();
 
     /**
      * Returns the liblinear enum type.

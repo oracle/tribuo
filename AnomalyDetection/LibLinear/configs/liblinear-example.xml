@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+    Description:
+        An example configuration file for a one-class linear SVM.
+-->
+
+<config>
+    <component name="anomaly-factory" type="org.tribuo.anomaly.AnomalyFactory"/>
+
+    <component name="liblinear" type="org.tribuo.anomaly.liblinear.LibLinearAnomalyTrainer">
+        <property name="trainerType" value="liblinear-algorithm"/>
+        <property name="cost" value="1.0"/>
+        <property name="nu" value="0.1"/>
+        <property name="terminationCriterion" value="0.1"/>
+    </component>
+
+    <component name="liblinear-algorithm" type="org.tribuo.anomaly.liblinear.LinearAnomalyType">
+        <property name="type" value="ONECLASS_SVM"/>
+    </component>
+</config>
