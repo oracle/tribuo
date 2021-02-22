@@ -63,14 +63,14 @@ public class LibLinearAnomalyTrainer extends LibLinearTrainer<Event> {
     private double nu = 0.5;
 
     /**
-     * Creates a trainer using the default values (ONECLASS_SVM, 1, 0.1, 0.5).
+     * Creates a trainer using the default values (type:ONECLASS_SVM, cost:1, maxIterations:1000, terminationCriterion:0.1, nu:0.5).
      */
     public LibLinearAnomalyTrainer() {
         this(new LinearAnomalyType(LinearType.ONECLASS_SVM),1,1000,0.1, 0.5);
     }
 
     /**
-     * Creates a trainer using the default values (ONECLASS_SVM, 1, 0.1).
+     * Creates a trainer using the default values (type:ONECLASS_SVM, cost:1, maxIterations:1000, terminationCriterion:0.1) and the specified nu.
      * @param nu The nu parameter in the one-class SVM.
      */
     public LibLinearAnomalyTrainer(double nu) {

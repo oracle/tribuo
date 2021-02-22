@@ -18,7 +18,7 @@
 
 <!--
     Description:
-        An example configuration file for a one-class SVM optimized in the dual.
+        An example configuration file for a one-class linear SVM.
 -->
 
 <config>
