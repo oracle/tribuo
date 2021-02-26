@@ -148,22 +148,17 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
     @Override
     public Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
         Path checkpointPath;
-        try {
-            checkpointPath = Files.createTempDirectory(checkpointRootPath,"tensorflow-checkpoint");
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, "Failed to create checkpoint directory at path " + checkpointRootPath,e);
-            throw new IllegalStateException("Failed to create checkpoint directory at path " + checkpointRootPath,e);
+        synchronized (this) {
+            checkpointPath = Paths.get(checkpointRootPath.toString(),"invocation-"+trainInvocationCounter);
+            trainInvocationCounter++;
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputInfo = examples.getOutputIDInfo();
         ArrayList<Example<T>> batch = new ArrayList<>();
 
-        trainInvocationCounter++;
-
         try (Graph graph = new Graph();
              Session session = new Session(graph);
-             Tensor isTraining = TBool.scalarOf(true);
-             TString checkpointPathTensor = TString.scalarOf(checkpointPath.toString()+"/"+MODEL_FILENAME) ) {
+             Tensor isTraining = TBool.scalarOf(true)) {
             // Load in the graph definition
             graph.importGraphDef(graphDef);
 
@@ -202,7 +197,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
                 epoch.close();
             }
 
-            session.runner().feed("save/Const", checkpointPathTensor).addTarget("save/control_dependency").run();
+            session.save(checkpointPath.toString());
 
             GraphDef trainedGraphDef = graph.toGraphDef();
 

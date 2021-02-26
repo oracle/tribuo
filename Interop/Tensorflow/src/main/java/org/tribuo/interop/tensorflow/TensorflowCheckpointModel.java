@@ -77,7 +77,7 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         this.modelGraph.importGraphDef(graphDef);
         this.session = new Session(modelGraph);
 
-        try (TString checkpointPrefix = TString.scalarOf(Paths.get(checkpointDirectory+"/"+TensorflowCheckpointTrainer.MODEL_FILENAME).toString())) {
+        try (TString checkpointPrefix = TString.scalarOf(Paths.get(checkpointDirectory).toString())) {
             // Initialises the parameters.
             session.runner().feed("save/Const", checkpointPrefix).addTarget("save/restore_all").run();
         }
