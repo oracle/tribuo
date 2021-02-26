@@ -27,6 +27,7 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import org.tribuo.Example;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
+import org.tribuo.data.text.DocumentPreprocessor;
 import org.tribuo.data.text.TextDataSource;
 import org.tribuo.data.text.TextFeatureExtractor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
@@ -108,6 +109,14 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
             logger.warning(String.format("Bad line in %s at %d: %s",
                     path, n, line.substring(Math.min(50, line.length()))));
             return Optional.empty();
+        }
+        String document = fields[1];
+        for (DocumentPreprocessor preproc : preprocessors) {
+            document = preproc.processDoc(document);
+            if (document == null) {
+                // We processed the document away
+                return Optional.empty();
+            }
         }
         T label = outputFactory.generateOutput(fields[0].trim().toUpperCase());
         return Optional.of(extractor.extract(label, handleDoc(fields[1].trim())));
