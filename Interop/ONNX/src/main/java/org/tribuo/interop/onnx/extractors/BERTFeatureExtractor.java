@@ -18,9 +18,11 @@ import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Example;
+import org.tribuo.Feature;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.text.TextFeatureExtractor;
+import org.tribuo.data.text.TextPipeline;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.sequence.SequenceExample;
 import org.tribuo.util.tokens.impl.wordpiece.Wordpiece;
@@ -53,7 +55,7 @@ import java.util.logging.Logger;
  * The tokenizer is expected to be a HuggingFace Transformers tokenizer config json file.
  * @param <T> The output type.
  */
-public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExtractor<T>, AutoCloseable {
+public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable, TextFeatureExtractor<T>, TextPipeline {
     private static final Logger logger = Logger.getLogger(BERTFeatureExtractor.class.getName());
 
     /**
@@ -574,6 +576,20 @@ public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExt
      * @return A dense example representing the pooled output from BERT for the input tokens.
      */
     public Example<T> extractExample(List<String> tokens, T output) {
+        double[] features = extractFeatures(tokens);
+        return new ArrayExample<>(output,featureNames,features);
+    }
+
+    /**
+     * Passes the tokens through BERT, replacing any unknown tokens with the [UNK] token.
+     * <p>
+     * The features returned are controlled by the output pooling field.
+     * <p>
+     * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
+     * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
+     * @return The feature values.
+     */
+    private double[] extractFeatures(List<String> tokens) {
         try (OnnxTensor tokenIds = convertTokens(tokens);
              OnnxTensor mask = createTensor(tokens.size()+2,MASK_VALUE);
              OnnxTensor tokenTypes = createTensor(tokens.size()+2,TOKEN_TYPE_VALUE)) {
@@ -601,7 +617,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExt
                     default:
                         throw new IllegalStateException("Unknown pooling type " + pooling);
                 }
-                return new ArrayExample<>(output, featureNames, featureValues);
+                return featureValues;
             }
         } catch (OrtException e) {
             throw new IllegalStateException("ORT failed to execute: ", e);
@@ -780,6 +796,29 @@ public class BERTFeatureExtractor<T extends Output<T>> implements TextFeatureExt
             tokens = tokens.subList(0,maxLength-2);
         }
         return extractExample(tokens,output);
+    }
+
+    /**
+     * Tokenizes the input using the loaded tokenizer, truncates the
+     * token list if it's longer than {@code maxLength} - 2 (to account
+     * for [CLS] and [SEP] tokens), and then passes the token
+     * list to {@link #extractExample}.
+     * @param data The input text.
+     * @return The BERT features for the supplied data.
+     */
+    @Override
+    public List<Feature> process(String tag, String data) {
+        List<String> tokens = tokenizer.split(data);
+        if (tokens.size() > (maxLength - 2)) {
+            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
+            tokens = tokens.subList(0,maxLength-2);
+        }
+        double[] featureValues = extractFeatures(tokens);
+        List<Feature> features = new ArrayList<>(featureValues.length);
+        for (int i = 0; i < featureValues.length; i++) {
+            features.add(new Feature(tag + "-" + featureNames[i],featureValues[i]));
+        }
+        return features;
     }
 
     /**
