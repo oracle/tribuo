@@ -169,6 +169,26 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
         postConfig();
     }
 
+    /**
+     * Constructs a BERTFeatureExtractor.
+     * @param outputFactory The output factory to use for building any unknown outputs.
+     * @param modelPath The path to BERT in onnx format.
+     * @param tokenizerPath The path to a Huggingface tokenizer json file.
+     * @param pooling The pooling type for extracted Examples.
+     * @param maxLength The maximum number of wordpieces.
+     * @param useCUDA Set to true to enable CUDA.
+     */
+    public BERTFeatureExtractor(OutputFactory<T> outputFactory, Path modelPath, Path tokenizerPath,
+                                OutputPooling pooling, int maxLength, boolean useCUDA) {
+        this.outputFactory = outputFactory;
+        this.modelPath = modelPath;
+        this.tokenizerPath = tokenizerPath;
+        this.pooling = pooling;
+        this.maxLength = maxLength;
+        this.useCUDA = useCUDA;
+        postConfig();
+    }
+
     @Override
     public void postConfig() throws PropertyException {
         try {
