@@ -25,6 +25,7 @@ import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.sequence.ConfidencePredictingSequenceModel;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.provenance.ModelProvenance;
@@ -43,9 +44,9 @@ import java.util.logging.Logger;
 import static org.tribuo.Model.BIAS_FEATURE;
 
 /**
- * An inference time model for a CRF trained using SGD.
+ * An inference time model for a linear chain CRF trained using SGD.
  * <p>
- * Can be switched to use belief propagation, or constrained BP, at test time instead of the standard Viterbi.
+ * Can be switched to use Viterbi, belief propagation, or constrained BP at test time. By default it uses Viterbi.
  * <p>
  * See:
  * <pre>
@@ -128,7 +129,7 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
 
     @Override
     public List<Prediction<Label>> predict(SequenceExample<Label> example) {
-        SparseVector[] features = convert(example,featureIDMap);
+        SGDVector[] features = convertToVector(example,featureIDMap);
         List<Prediction<Label>> output = new ArrayList<>();
         if (confidenceType == ConfidenceType.MULTIPLY) {
             DenseVector[] marginals = parameters.predictMarginals(features);
@@ -193,7 +194,7 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
                 q.poll();
                 q.offer(curr);
             }
-            ArrayList<Pair<String,Double>> b = new ArrayList<>();
+            List<Pair<String,Double>> b = new ArrayList<>();
             while (q.size() > 0) {
                 b.add(q.poll());
             }
@@ -228,7 +229,7 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
      * @return The scores.
      */
     public List<Double> scoreChunks(SequenceExample<Label> example, List<Chunk> chunks) {
-        SparseVector[] features = convert(example,featureIDMap);
+        SGDVector[] features = convertToVector(example,featureIDMap);
         return parameters.predictConfidenceUsingCBP(features,chunks);
     }
 
@@ -258,11 +259,13 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
 
     /**
      * Converts a {@link SequenceExample} into an array of {@link SparseVector}s suitable for CRF prediction.
+     * @deprecated As it's replaced with {@link #convertToVector} which is more flexible.
      * @param example The sequence example to convert
      * @param featureIDMap The feature id map, used to discover the number of features.
      * @param <T> The type parameter of the sequence example.
      * @return An array of {@link SparseVector}.
      */
+    @Deprecated
     public static <T extends Output<T>> SparseVector[] convert(SequenceExample<T> example, ImmutableFeatureMap featureIDMap) {
         int length = example.size();
         if (length == 0) {
@@ -282,11 +285,13 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
 
     /**
      * Converts a {@link SequenceExample} into an array of {@link SparseVector}s and labels suitable for CRF prediction.
+     * @deprecated As it's replaced with {@link #convertToVector} which is more flexible.
      * @param example The sequence example to convert
      * @param featureIDMap The feature id map, used to discover the number of features.
      * @param labelIDMap The label id map, used to get the index of the labels.
      * @return A {@link Pair} of an int array of labels and an array of {@link SparseVector}.
      */
+    @Deprecated
     public static Pair<int[],SparseVector[]> convert(SequenceExample<Label> example, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap) {
         int length = example.size();
         if (length == 0) {
@@ -298,6 +303,66 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
         for (Example<Label> e : example) {
             labels[i] = labelIDMap.getID(e.getOutput());
             features[i] = SparseVector.createSparseVector(e,featureIDMap,false);
+            if (features[i].numActiveElements() == 0) {
+                throw new IllegalArgumentException("No features found in Example " + e.toString());
+            }
+            i++;
+        }
+        return new Pair<>(labels,features);
+    }
+
+    /**
+     * Converts a {@link SequenceExample} into an array of {@link SGDVector}s suitable for CRF prediction.
+     * @param example The sequence example to convert
+     * @param featureIDMap The feature id map, used to discover the number of features.
+     * @param <T> The type parameter of the sequence example.
+     * @return An array of {@link SGDVector}.
+     */
+    public static <T extends Output<T>> SGDVector[] convertToVector(SequenceExample<T> example, ImmutableFeatureMap featureIDMap) {
+        int length = example.size();
+        if (length == 0) {
+            throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
+        }
+        int featureSpaceSize = featureIDMap.size();
+        SGDVector[] features = new SGDVector[length];
+        int i = 0;
+        for (Example<T> e : example) {
+            if (e.size() == featureSpaceSize) {
+                features[i] = DenseVector.createDenseVector(e, featureIDMap, false);
+            } else {
+                features[i] = SparseVector.createSparseVector(e, featureIDMap, false);
+            }
+            if (features[i].numActiveElements() == 0) {
+                throw new IllegalArgumentException("No features found in Example " + e.toString());
+            }
+            i++;
+        }
+        return features;
+    }
+
+    /**
+     * Converts a {@link SequenceExample} into an array of {@link SGDVector}s and labels suitable for CRF prediction.
+     * @param example The sequence example to convert
+     * @param featureIDMap The feature id map, used to discover the number of features.
+     * @param labelIDMap The label id map, used to get the index of the labels.
+     * @return A {@link Pair} of an int array of labels and an array of {@link SparseVector}.
+     */
+    public static Pair<int[],SGDVector[]> convertToVector(SequenceExample<Label> example, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap) {
+        int length = example.size();
+        if (length == 0) {
+            throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
+        }
+        int featureSpaceSize = featureIDMap.size();
+        int[] labels = new int[length];
+        SGDVector[] features = new SGDVector[length];
+        int i = 0;
+        for (Example<Label> e : example) {
+            labels[i] = labelIDMap.getID(e.getOutput());
+            if (e.size() == featureSpaceSize) {
+                features[i] = DenseVector.createDenseVector(e, featureIDMap, false);
+            } else {
+                features[i] = SparseVector.createSparseVector(e, featureIDMap, false);
+            }
             if (features[i].numActiveElements() == 0) {
                 throw new IllegalArgumentException("No features found in Example " + e.toString());
             }

@@ -250,13 +250,13 @@ public final class ChainHelper {
     /**
      * Belief Propagation results. One day it'll be a record, but not today.
      */
-    public static class ChainBPResults {
+    public static final class ChainBPResults {
         public final double logZ;
         public final DenseVector[] alphas;
         public final DenseVector[] betas;
         public final ChainCliqueValues scores;
 
-        public ChainBPResults(double logZ, DenseVector[] alphas, DenseVector[] betas, ChainCliqueValues scores) {
+        ChainBPResults(double logZ, DenseVector[] alphas, DenseVector[] betas, ChainCliqueValues scores) {
             this.logZ = logZ;
             this.alphas = alphas;
             this.betas = betas;
@@ -267,11 +267,11 @@ public final class ChainHelper {
     /**
      * Clique scores within a chain. One day it'll be a record, but not today.
      */
-    public static class ChainCliqueValues {
+    public static final class ChainCliqueValues {
         public final DenseVector[] localValues;
         public final DenseMatrix transitionValues;
 
-        public ChainCliqueValues(DenseVector[] localValues, DenseMatrix transitionValues) {
+        ChainCliqueValues(DenseVector[] localValues, DenseMatrix transitionValues) {
             this.localValues = localValues;
             this.transitionValues = transitionValues;
         }
@@ -280,12 +280,12 @@ public final class ChainHelper {
     /**
      * Viterbi output from a linear chain. One day it'll be a record, but not today.
      */
-    public static class ChainViterbiResults {
+    public static final class ChainViterbiResults {
         public final double mapScore;
         public final int[] mapValues;
         public final ChainCliqueValues scores;
 
-        public ChainViterbiResults(double mapScore, int[] mapValues, ChainCliqueValues scores) {
+        ChainViterbiResults(double mapScore, int[] mapValues, ChainCliqueValues scores) {
             this.mapScore = mapScore;
             this.mapValues = mapValues;
             this.scores = scores;

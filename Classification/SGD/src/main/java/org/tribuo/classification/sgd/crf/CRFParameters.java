@@ -22,6 +22,7 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.util.HeapMerger;
@@ -64,24 +65,40 @@ public class CRFParameters implements Parameters, Serializable {
         this.numFeatures = numFeatures;
     }
 
+    /**
+     * Gets a copy of the weights for the specified label id.
+     * @param id The label id.
+     * @return The feature weights.
+     */
     public DenseVector getFeatureWeights(int id) {
         return featureLabelWeights.getColumn(id);
     }
 
+    /**
+     * Returns the bias for the specified label id.
+     * @param id The label id.
+     * @return The bias.
+     */
     public double getBias(int id) {
         return biases.get(id);
     }
 
+    /**
+     * Returns the feature/label weight for the specified feature and label id.
+     * @param labelID The label id.
+     * @param featureID The feature id.
+     * @return The feature/label weight.
+     */
     public double getWeight(int labelID, int featureID) {
         return featureLabelWeights.get(labelID, featureID);
     }
 
     /**
      * Generate the local scores (i.e., the linear classifier for each token).
-     * @param features An array of {@link SparseVector}s, one per token.
+     * @param features An array of {@link SGDVector}s, one per token.
      * @return An array of DenseVectors representing the scores per label for each token.
      */
-    public DenseVector[] getLocalScores(SparseVector[] features) {
+    public DenseVector[] getLocalScores(SGDVector[] features) {
         DenseVector[] localScores = new DenseVector[features.length];
         for (int i = 0; i < features.length; i++) {
             DenseVector scores = featureLabelWeights.leftMultiply(features[i]);
@@ -93,30 +110,30 @@ public class CRFParameters implements Parameters, Serializable {
 
     /**
      * Generates the local scores and tuples them with the label - label transition weights.
-     * @param features The per token {@link SparseVector} of features.
+     * @param features The per token {@link SGDVector} of features.
      * @return A tuple containing the array of {@link DenseVector} scores and the label - label transition weights.
      */
-    public ChainHelper.ChainCliqueValues getCliqueValues(SparseVector[] features) {
+    public ChainHelper.ChainCliqueValues getCliqueValues(SGDVector[] features) {
         DenseVector[] localScores = getLocalScores(features);
         return new ChainHelper.ChainCliqueValues(localScores, labelLabelWeights);
     }
 
     /**
      * Generate a prediction using Viterbi.
-     * @param features The per token {@link SparseVector} of features.
+     * @param features The per token {@link SGDVector} of features.
      * @return An int array giving the predicted label per token.
      */
-    public int[] predict(SparseVector[] features) {
+    public int[] predict(SGDVector[] features) {
         ChainHelper.ChainViterbiResults result = ChainHelper.viterbi(getCliqueValues(features));
         return result.mapValues;
     }
 
     /**
      * Generate a prediction using Belief Propagation.
-     * @param features The per token {@link SparseVector} of features.
+     * @param features The per token {@link SGDVector} of features.
      * @return A {@link DenseVector} per token containing the marginal distribution over labels.
      */
-    public DenseVector[] predictMarginals(SparseVector[] features) {
+    public DenseVector[] predictMarginals(SGDVector[] features) {
         ChainHelper.ChainBPResults result = ChainHelper.beliefPropagation(getCliqueValues(features));
         DenseVector[] marginals = new DenseVector[features.length];
         for (int i = 0; i < features.length; i++) {
@@ -132,11 +149,11 @@ public class CRFParameters implements Parameters, Serializable {
      * <p>
      * Runs one pass of BP to get the normalizing constant, and then a further chunks.size() passes
      * of constrained forward backward.
-     * @param features The per token {@link SparseVector} of features.
+     * @param features The per token {@link SGDVector} of features.
      * @param chunks A list of extracted chunks to pin constrain the labels to.
      * @return A list containing the confidence value for each chunk.
      */
-    public List<Double> predictConfidenceUsingCBP(SparseVector[] features, List<Chunk> chunks) {
+    public List<Double> predictConfidenceUsingCBP(SGDVector[] features, List<Chunk> chunks) {
         ChainHelper.ChainCliqueValues cliqueValues = getCliqueValues(features);
         ChainHelper.ChainBPResults bpResult = ChainHelper.beliefPropagation(cliqueValues);
         double bpLogZ = bpResult.logZ;
@@ -157,11 +174,14 @@ public class CRFParameters implements Parameters, Serializable {
     /**
      * Generates predictions based on the input features and labels, then scores those predictions to
      * produce a loss for the example and a gradient update.
-     * @param features The per token {@link SparseVector} of features.
+     * <p>
+     * Assumes all the features in this example are either SparseVector or DenseVector.
+     * Mixing the two will cause undefined behaviour.
+     * @param features The per token {@link SGDVector} of features.
      * @param labels The per token ground truth labels.
      * @return A {@link Pair} containing the loss for this example and the associated gradient.
      */
-    public Pair<Double, Tensor[]> valueAndGradient(SparseVector[] features, int[] labels) {
+    public Pair<Double, Tensor[]> valueAndGradient(SGDVector[] features, int[] labels) {
         ChainHelper.ChainCliqueValues scores = getCliqueValues(features);
         // Infer the marginal distribution over labels for each token.
         ChainHelper.ChainBPResults bpResults = ChainHelper.beliefPropagation(scores);
@@ -172,6 +192,8 @@ public class CRFParameters implements Parameters, Serializable {
         //Calculate the gradients for the parameters.
         Tensor[] gradient = new Tensor[3];
         DenseSparseMatrix[] featureGradients = new DenseSparseMatrix[features.length];
+        DenseMatrix denseFeatureGradients = null;
+        boolean sparseFeatures = false;
         gradient[0] = new DenseVector(biases.size());
         Matrix transGradient = new DenseMatrix(numLabels, numLabels);
         gradient[2] = transGradient;
@@ -191,24 +213,44 @@ public class CRFParameters implements Parameters, Serializable {
             localMarginal.add(curLabel,1.0);
             gradient[0].intersectAndAddInPlace(localMarginal);
             // Generate the gradient for the feature - label weights
-            featureGradients[i] = (DenseSparseMatrix) localMarginal.outer(features[i]);
+            Matrix tmpFeatureGradient = localMarginal.outer(features[i]);
+            if (tmpFeatureGradient instanceof DenseSparseMatrix) {
+                featureGradients[i] = (DenseSparseMatrix) tmpFeatureGradient;
+                sparseFeatures = true;
+            } else {
+                if (denseFeatureGradients == null) {
+                    denseFeatureGradients = (DenseMatrix) tmpFeatureGradient;
+                } else {
+                    denseFeatureGradients.intersectAndAddInPlace(tmpFeatureGradient);
+                }
+            }
             // If the sequence has more than one token generate the gradient for the label - label transitions.
             if (i >= 1) {
                 DenseVector prevAlpha = alphas[i - 1];
                 for (int ii = 0; ii < numLabels; ii++) {
+                    double prevAlphaVal = prevAlpha.get(ii);
                     for (int jj = 0; jj < numLabels; jj++) {
-                        double update = -Math.exp(prevAlpha.get(ii) + labelLabelWeights.get(ii,jj) + curBeta.get(jj) + curLocalScores.get(jj) - logZ);
+                        double update = -Math.exp(prevAlphaVal + labelLabelWeights.get(ii,jj) + curBeta.get(jj) + curLocalScores.get(jj) - logZ);
                         transGradient.add(ii, jj, update);
                     }
                 }
                 int prevLabel = labels[i-1];
                 // Increment the loss based on the transition from the previous predicted label to the true label.
-                score += (labelLabelWeights.get(prevLabel,curLabel));
+                score += labelLabelWeights.get(prevLabel,curLabel);
                 transGradient.add(prevLabel, curLabel, 1.0);
             }
         }
-        // Merge together all the sparse feature - label gradients.
-        gradient[1] = merger.merge(featureGradients);
+
+        if (sparseFeatures) {
+            // Merge together all the sparse feature - label gradients.
+            gradient[1] = merger.merge(featureGradients);
+            // throw if we found any dense features as well as the sparse.
+            if (denseFeatureGradients != null) {
+                throw new IllegalStateException("Mixture of dense and sparse features found.");
+            }
+        } else {
+            gradient[1] = denseFeatureGradients;
+        }
 
         return new Pair<>(score,gradient);
     }
@@ -255,15 +297,36 @@ public class CRFParameters implements Parameters, Serializable {
     @Override
     public Tensor[] merge(Tensor[][] gradients, int size) {
         DenseVector biasUpdate = new DenseVector(biases.size());
-        DenseSparseMatrix[] updates = new DenseSparseMatrix[size];
+        List<DenseSparseMatrix> updates = new ArrayList<>(size);
+        DenseMatrix denseUpdates = null;
         DenseMatrix labelLabelUpdate = new DenseMatrix(labelLabelWeights.getDimension1Size(),labelLabelWeights.getDimension2Size());
-        for (int j = 0; j < updates.length; j++) {
+        for (int j = 0; j < gradients.length; j++) {
             biasUpdate.intersectAndAddInPlace(gradients[j][0]);
-            updates[j] = (DenseSparseMatrix) gradients[j][1];
+            Matrix tmpUpdate = (Matrix) gradients[j][1];
+            if (tmpUpdate instanceof DenseSparseMatrix) {
+                updates.add((DenseSparseMatrix)tmpUpdate);
+            } else {
+                // is dense
+                if (denseUpdates == null) {
+                    denseUpdates = (DenseMatrix) tmpUpdate;
+                } else {
+                    denseUpdates.intersectAndAddInPlace(tmpUpdate);
+                }
+            }
             labelLabelUpdate.intersectAndAddInPlace(gradients[j][2]);
         }
 
-        DenseSparseMatrix featureLabelUpdate = merger.merge(updates);
+        // Merge the combination of any dense and sparse updates
+        Matrix featureLabelUpdate;
+        if (updates.size() > 0) {
+            featureLabelUpdate = merger.merge(updates.toArray(new DenseSparseMatrix[0]));
+            if (denseUpdates != null) {
+                denseUpdates.intersectAndAddInPlace(featureLabelUpdate);
+                featureLabelUpdate = denseUpdates;
+            }
+        } else {
+            featureLabelUpdate = denseUpdates;
+        }
 
         return new Tensor[]{biasUpdate,featureLabelUpdate,labelLabelUpdate};
     }

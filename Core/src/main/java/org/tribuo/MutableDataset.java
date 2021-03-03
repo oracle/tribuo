@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
     /**
      * Denotes if this dataset contains implicit zeros or not.
      */
-    protected boolean dense = false;
+    protected boolean dense = true;
 
     /**
      * Creates an empty dataset.
@@ -112,11 +112,16 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
         }
         outputMap.observe(ex.getOutput());
         data.add(ex);
+        int oldNumFeatures = featureMap.size();
         for (Feature f : ex) {
             featureMap.add(f.getName(),f.getValue());
         }
         ex.canonicalize(featureMap);
-        dense = false;
+        // If we've observed a new feature, or this example doesn't contain all the features then
+        // the dataset stops being dense.
+        if ((oldNumFeatures != 0) && (oldNumFeatures < featureMap.size() || ex.size() != featureMap.size())) {
+            dense = false;
+        }
     }
 
     /**
@@ -233,6 +238,7 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
         featureMap.clear();
         data.clear();
         transformProvenances.clear();
+        dense = true;
     }
 
     @Override

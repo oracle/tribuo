@@ -74,6 +74,11 @@ public final class ViterbiTrainer implements SequenceTrainer<Label> {
     }
 
     /**
+     * For OLCUT.
+     */
+    private ViterbiTrainer() { }
+
+    /**
      * The viterbi train method is unique because it delegates to a regular
      * {@link Model} train method, but before it does, it adds features derived
      * from preceding labels. The pipeline upstream of this call should not care

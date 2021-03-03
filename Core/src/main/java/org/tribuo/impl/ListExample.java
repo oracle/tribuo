@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,6 +229,21 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
                 }
                 features.set(index,new Feature(e.getKey(),value));
             }
+        }
+    }
+
+    @Override
+    public boolean isDense(FeatureMap fMap) {
+        if (fMap.size() == size()) {
+            // We've got the right number of features
+            for (Feature feature : features) {
+                if (fMap.get(feature.getName()) == null) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 

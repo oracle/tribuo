@@ -29,6 +29,7 @@ import org.tribuo.Trainer;
 import org.tribuo.WeightedExamples;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
+import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
@@ -168,14 +169,20 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> implements
         SGDObjective<U> objective = getObjective();
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
-        SparseVector[] sgdFeatures = new SparseVector[examples.size()];
+        int featureSpaceSize = featureIDMap.size();
+
+        SGDVector[] sgdFeatures = new SGDVector[examples.size()];
         @SuppressWarnings("unchecked")
         U[] sgdTargets = (U[]) new Object[examples.size()];
         double[] weights = new double[examples.size()];
         int n = 0;
         for (Example<T> example : examples) {
             weights[n] = example.getWeight();
-            sgdFeatures[n] = SparseVector.createSparseVector(example,featureIDMap,true);
+            if (example.size() == featureSpaceSize) {
+                sgdFeatures[n] = DenseVector.createDenseVector(example, featureIDMap, true);
+            } else {
+                sgdFeatures[n] = SparseVector.createSparseVector(example, featureIDMap, true);
+            }
             sgdTargets[n] = getTarget(outputIDInfo,example.getOutput());
             n++;
         }

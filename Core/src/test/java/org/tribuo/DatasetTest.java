@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.tribuo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.tribuo.test.Helpers.mkExample;
 
 import java.util.logging.Level;
@@ -27,6 +29,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.dataset.MinimumCardinalityDataset;
+import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
@@ -116,6 +119,73 @@ public class DatasetTest {
         assertNull(infoMap.get("f3"));
         assertNull(infoMap.get("f4"));
         assertNull(infoMap.get("f5"));
+    }
 
+    @Test
+    public void testDense() {
+        MockOutputFactory mockFactory = new MockOutputFactory();
+        MockDataSourceProvenance mockProvenance = new MockDataSourceProvenance();
+        MockOutput mockOutput = new MockOutput("test");
+
+        MutableDataset<MockOutput> dataset = new MutableDataset<>(mockProvenance, mockFactory);
+
+        // Empty datasets are dense
+        assertTrue(dataset.isDense());
+
+        ArrayExample<MockOutput> first = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{1,1,1});
+        ArrayExample<MockOutput> second = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1});
+        ArrayExample<MockOutput> third = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{3,3,3});
+        ArrayExample<MockOutput> fourth = new ArrayExample<>(mockOutput,new String[]{"b","c"},new double[]{1,1});
+
+        dataset.add(first);
+
+        // This example is dense
+        assertTrue(dataset.isDense());
+
+        dataset.add(second);
+
+        // This example is dense, but it makes the previous one not dense as it adds a new feature
+        assertFalse(dataset.isDense());
+
+        // flush out the previous test
+        dataset.clear();
+
+        dataset.add(first);
+        dataset.add(third);
+
+        // These examples are both dense
+        assertTrue(dataset.isDense());
+
+        // flush out old test
+        dataset.clear();
+
+        // Add all the examples, making it sparse
+        dataset.add(first);
+        dataset.add(second);
+        dataset.add(third);
+        dataset.add(fourth);
+
+        // Should be sparse
+        assertFalse(dataset.isDense());
+
+        // Densify it
+        dataset.densify();
+
+        // Now it should be dense
+        assertTrue(dataset.isDense());
+
+        ArrayExample<MockOutput> fifth = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d","e"},new double[]{1,1,1,1,1});
+
+        // Makes the previous examples sparse
+        dataset.add(fifth);
+        assertFalse(dataset.isDense());
+
+        dataset.densify();
+
+        assertTrue(dataset.isDense());
+
+        for (Example<MockOutput> e : dataset) {
+            assertEquals(5,e.size());
+        }
     }
 }

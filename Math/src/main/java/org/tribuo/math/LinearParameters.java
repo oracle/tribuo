@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
@@ -66,7 +65,7 @@ public class LinearParameters implements Parameters {
      * @param features The feature vector.
      * @return A {@link Tensor} array with a single {@link DenseSparseMatrix} containing all gradients.
      */
-    public Tensor[] gradients(Pair<Double, SGDVector> score, SparseVector features) {
+    public Tensor[] gradients(Pair<Double, SGDVector> score, SGDVector features) {
         Tensor[] output = new Tensor[1];
         output[0] = score.getB().outer(features);
         return output;

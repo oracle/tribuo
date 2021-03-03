@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
      */
     protected final MutableFeatureMap featureMap;
 
+    protected boolean dense = true;
+
     /**
      * Creates an empty sequence dataset.
      * @param sourceProvenance A description of the input data, including preprocessing steps.
@@ -92,6 +94,16 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
     }
 
     /**
+     * Clears all the examples out of this dataset, and flushes the FeatureMap, OutputInfo, and transform provenances.
+     */
+    public void clear() {
+        outputInfo.clear();
+        featureMap.clear();
+        data.clear();
+        dense = true;
+    }
+
+    /**
      * Adds a {@link SequenceExample} to this dataset.
      * <p>
      * It also canonicalises the reference to each feature's name (i.e., replacing the reference
@@ -104,13 +116,23 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
             throw new IllegalArgumentException("SequenceExample had duplicate features, no features or no Examples.");
         }
         data.add(ex);
+        int oldNumFeatures = featureMap.size();
+        boolean exampleIsDense = true;
         for (Example<T> e : ex) {
             outputInfo.observe(e.getOutput());
             for (Feature f : e) {
                 featureMap.add(f.getName(),f.getValue());
             }
+            if (e.size() != featureMap.size()) {
+                exampleIsDense = false;
+            }
         }
         ex.canonicalise(featureMap);
+        // If we've observed a new feature, or this example doesn't contain all the features then
+        // the dataset stops being dense.
+        if (((oldNumFeatures != 0) && (oldNumFeatures < featureMap.size())) || !exampleIsDense) {
+            dense = false;
+        }
     }
 
     /**
@@ -146,6 +168,24 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
     @Override
     public OutputInfo<T> getOutputInfo() {
         return outputInfo;
+    }
+
+    /**
+     * Is the dataset dense (i.e., do all features in the domain have a value in each example).
+     * @return True if the dataset is dense.
+     */
+    public boolean isDense() {
+        return dense;
+    }
+
+    /**
+     * Iterates through the examples, converting implicit zeros into explicit zeros.
+     */
+    public void densify() {
+        for (SequenceExample<T> example : data) {
+            example.densify(featureMap);
+        }
+        dense = true;
     }
 
     @Override

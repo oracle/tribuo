@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -402,12 +402,27 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
     }
 
     @Override
-    public void densify(List<String> featureList) {
+    public boolean isDense(FeatureMap fMap) {
+        if (fMap.size() == size()) {
+            // We've got the right number of features
+            for (String name : featureNames) {
+                if (fMap.get(name) == null) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    protected void densify(List<String> featureList) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected void densify(FeatureMap fMap) {
+    public void densify(FeatureMap fMap) {
         throw new UnsupportedOperationException();
     }
 

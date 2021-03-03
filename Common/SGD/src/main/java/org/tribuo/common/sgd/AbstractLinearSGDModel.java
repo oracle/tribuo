@@ -27,6 +27,7 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
@@ -70,7 +71,12 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
      * @return The prediction and the number of features involved.
      */
     protected PredAndActive predictSingle(Example<T> example) {
-        SparseVector features = SparseVector.createSparseVector(example,featureIDMap,true);
+        SGDVector features;
+        if (example.size() == featureIDMap.size()) {
+            features = DenseVector.createDenseVector(example, featureIDMap, true);
+        } else {
+            features = SparseVector.createSparseVector(example, featureIDMap, true);
+        }
         if (features.numActiveElements() == 1) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }

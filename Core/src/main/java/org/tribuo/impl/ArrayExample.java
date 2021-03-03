@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -442,6 +442,21 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
                     featureValues[i] = value;
                 }
             }
+        }
+    }
+
+    @Override
+    public boolean isDense(FeatureMap fMap) {
+        if (fMap.size() == size()) {
+            // We've got the right number of features
+            for (String name : featureNames) {
+                if (fMap.get(name) == null) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 

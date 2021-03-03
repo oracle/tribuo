@@ -69,7 +69,7 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
     @Config(description="Number of examples to scale the l1 and l2 penalties by.")
     private int numExamples = 1;
 
-    private Parameters parameters;
+    private Parameters parameters = null;
 
     public AdaGradRDA(double initialLearningRate, double epsilon, double l1, double l2, int numExamples) {
         this.initialLearningRate = initialLearningRate;
@@ -134,7 +134,9 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
     }
 
     @Override
-    public void reset() { }
+    public void reset() {
+        parameters = null;
+    }
 
     @Override
     public AdaGradRDA copy() {

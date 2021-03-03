@@ -564,7 +564,26 @@ public class SparseVector implements SGDVector {
             //TODO this is suboptimal if there are lots of missing rows.
             return new DenseSparseMatrix(output);
         } else if (other instanceof DenseVector) {
-            throw new IllegalArgumentException("sparse.outer(dense) is currently not implemented.");
+            //Outer product is a DenseMatrix because DenseSparseMatrix is the wrong way around.
+            DenseVector otherVec = (DenseVector) other;
+            int otherSize = otherVec.size();
+            double[][] output = new double[size][];
+            int i = 0;
+            for (VectorTuple tuple : this) {
+                while (i < tuple.index) {
+                    output[i] = new double[otherSize];
+                    i++;
+                }
+                DenseVector tmp = otherVec.scale(tuple.value);
+                output[tuple.index] = tmp.elements;
+                i++;
+            }
+            while (i < output.length) {
+                output[i] = new double[otherSize];
+                i++;
+            }
+            //TODO this is also suboptimal if there are lots of missing rows.
+            return new DenseMatrix(output);
         } else {
             throw new IllegalArgumentException("Unknown vector subclass " + other.getClass().getCanonicalName() + " for input");
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
+import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.impl.ListExample;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
@@ -225,6 +226,74 @@ public class SequenceDatasetTest {
         assertNull(infoMap.get("F4"));
         assertNull(infoMap.get("F5"));
         assertEquals(1, minimumCardinalityDataset.size());
+    }
+
+    @Test
+    public void testDense() {
+        MockOutputFactory mockFactory = new MockOutputFactory();
+        MockDataSourceProvenance mockProvenance = new MockDataSourceProvenance();
+        MockOutput mockOutput = new MockOutput("test");
+
+        MutableSequenceDataset<MockOutput> dataset = new MutableSequenceDataset<>(mockProvenance, mockFactory);
+
+        // Empty datasets are dense
+        assertTrue(dataset.isDense());
+
+        ArrayExample<MockOutput> first = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{1,1,1});
+        ArrayExample<MockOutput> second = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{2,2,2});
+        ArrayExample<MockOutput> third = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{3,3,3});
+
+        SequenceExample<MockOutput> denseExample = new SequenceExample<>(Arrays.asList(first,second,third));
+
+        dataset.add(denseExample);
+
+        // This example is dense
+        assertTrue(dataset.isDense());
+
+        first = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1});
+        second = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1});
+        third = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1});
+
+        SequenceExample<MockOutput> newDenseExample = new SequenceExample<>(Arrays.asList(first,second,third));
+
+        dataset.add(newDenseExample);
+
+        // This example is dense, but it makes the previous one not dense as it adds a new feature
+        assertFalse(dataset.isDense());
+
+        // flush out the previous test
+        dataset.clear();
+
+        first = new ArrayExample<>(mockOutput,new String[]{"a"},new double[]{1});
+        second = new ArrayExample<>(mockOutput,new String[]{"a","b"},new double[]{1,1});
+        third = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{1,1,1});
+        ArrayExample<MockOutput> fourth = new ArrayExample<>(mockOutput,new String[]{"b","c"},new double[]{1,1});
+
+        SequenceExample<MockOutput> sparseExample = new SequenceExample<>(Arrays.asList(first,second,third,fourth));
+
+        dataset.add(sparseExample);
+
+        // This example is sparse
+        assertFalse(dataset.isDense());
+
+        dataset.densify();
+
+        // After densification it should be dense
+        assertTrue(dataset.isDense());
+
+        dataset.add(denseExample);
+
+        // should still be dense as they share a feature space
+        assertTrue(dataset.isDense());
+
+        dataset.add(newDenseExample);
+
+        // now it's sparse again
+        assertFalse(dataset.isDense());
+
+        dataset.densify();
+
+        assertTrue(dataset.isDense());
     }
 
     private ListExample<MockOutput> createExample(String outputLabel, String... featureNames) {

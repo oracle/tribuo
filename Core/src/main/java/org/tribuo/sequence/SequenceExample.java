@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -238,6 +238,34 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      */
     public Iterator<Feature> featureIterator() {
         return new FeatureIterator<>(iterator());
+    }
+
+    /**
+     * Is this sequence example dense wrt the supplied feature map.
+     * <p>
+     * A sequence example is "dense" if each example inside it contains all the features in the map,
+     * and only those features.
+     * @param fMap The feature map to check against.
+     * @return True if this sequence example contains only the features in the map, and all the features in the map.
+     */
+    public boolean isDense(FeatureMap fMap) {
+        for (Example<T> e : examples) {
+            if (!e.isDense(fMap)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Converts all implicit zeros into explicit zeros based on the supplied feature map.
+     * @param fMap The feature map to use for densification.
+     */
+    public void densify(FeatureMap fMap) {
+        // Densify! - guitar solo
+        for (Example<T> e : examples) {
+            e.densify(fMap);
+        }
     }
 
     /**
