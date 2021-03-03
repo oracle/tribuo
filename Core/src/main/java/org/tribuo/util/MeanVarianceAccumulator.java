@@ -72,7 +72,7 @@ public final class MeanVarianceAccumulator implements Serializable {
     }
 
     /**
-     * Observes a value, i.e. updates the mean, variance, max and min statistics.
+     * Observes a value, i.e., updates the sufficient statistics for computing mean, variance, max and min.
      * @param value The value to observe.
      */
     public void observe(double value) {
@@ -90,7 +90,7 @@ public final class MeanVarianceAccumulator implements Serializable {
     }
 
     /**
-     * Observes an array of values, i.e. updates the mean, variance, max and min statistics.
+     * Observes a value, i.e., updates the sufficient statistics for computing mean, variance, max and min.
      * @param values The values to observe.
      */
     public void observe(double[] values) {
@@ -166,6 +166,25 @@ public final class MeanVarianceAccumulator implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Variable(count=%d,max=%f,min=%f,mean=%f,variance=%f)",count,max,min,mean,getVariance());
+        return String.format("MeanVarianceAccumulator(count=%d,max=%f,min=%f,mean=%f,variance=%f)",count,max,min,mean,getVariance());
+    }
+
+    /**
+     * Standardizes the input using the computed mean and variance in this accumulator.
+     * Standardization means subtracting the mean and dividing by the variance.
+     * @param input The input to standardize.
+     * @return The standardized input.
+     */
+    public double[] standardize(double[] input) {
+        return Util.standardize(input,getMean(),getVariance());
+    }
+
+    /**
+     * Standardizes the input using the computed mean and variance in this accumulator.
+     * Standardization means subtracting the mean and dividing by the variance.
+     * @param input The input to standardize.
+     */
+    public void standardizeInPlace(double[] input) {
+        Util.standardizeInPlace(input,getMean(),getVariance());
     }
 }

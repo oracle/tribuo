@@ -1056,7 +1056,7 @@ public final class Util {
     }
 
     /**
-     * Standardizes the input, i.e. divides it by the variance and subtracts the mean.
+     * Standardizes the input so it has zero mean and unit variance, i.e., subtracts the mean and divides by the variance.
      * @param input The input to standardize.
      * @param mean The mean.
      * @param variance The variance.
@@ -1074,7 +1074,8 @@ public final class Util {
     }
 
     /**
-     * Standardizes the input, i.e. divides it by the variance and subtracts the mean.
+     * Standardizes the input so it has zero mean and unit variance, i.e., subtracts the mean and divides by the variance.
+     * Operates in place on the input array.
      * @param input The input to standardize.
      * @param mean The mean.
      * @param variance The variance.

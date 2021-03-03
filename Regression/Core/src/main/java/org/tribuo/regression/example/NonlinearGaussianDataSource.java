@@ -44,36 +44,36 @@ import java.util.Random;
 
 /**
  * Generates a single dimensional output drawn from
- * N(w_0*x_0 - w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
+ * N(w_0*x_0 + w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
  * <p>
  * The features are drawn from a uniform distribution over the range.
  */
 public class NonlinearGaussianDataSource implements ConfigurableDataSource<Regressor> {
-    @Config(mandatory=true)
+    @Config(mandatory=true,description = "The number of samples to draw.")
     private int numSamples;
 
-    @Config
+    @Config(description = "The feature weights. Must be a 4 element array.")
     private float[] weights = new float[]{1.0f,1.0f,1.0f,1.0f};
 
-    @Config
+    @Config(description="The y-intercept of the line.")
     private float intercept = 0.0f;
 
-    @Config
+    @Config(description="The variance of the noise gaussian.")
     private float variance = 1.0f;
 
-    @Config
+    @Config(description = "The minimum value of x_0.")
     private float xZeroMin = -2.0f;
 
-    @Config
+    @Config(description = "The maximum value of x_0.")
     private float xZeroMax = 2.0f;
 
-    @Config
+    @Config(description = "The minimum value of x_1.")
     private float xOneMin = -2.0f;
 
-    @Config
+    @Config(description = "The maximum value of x_1.")
     private float xOneMax = 2.0f;
 
-    @Config
+    @Config(description="The RNG seed.")
     private long seed = Trainer.DEFAULT_SEED;
 
     private List<Example<Regressor>> examples;
@@ -89,7 +89,7 @@ public class NonlinearGaussianDataSource implements ConfigurableDataSource<Regre
 
     /**
      * Generates a single dimensional output drawn from
-     * N(w_0*x_0 - w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
+     * N(w_0*x_0 + w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
      * <p>
      * The features are drawn from a uniform distribution over the range.
      * @param numSamples The size of the output dataset.
@@ -122,6 +122,7 @@ public class NonlinearGaussianDataSource implements ConfigurableDataSource<Regre
      */
     @Override
     public void postConfig() {
+        // We use java.util.Random here because SplittableRandom doesn't have nextGaussian yet.
         Random rng = new Random(seed);
         if (weights.length != 4) {
             throw new PropertyException("","weights","Must supply 4 weights, found " + weights.length);
@@ -141,7 +142,7 @@ public class NonlinearGaussianDataSource implements ConfigurableDataSource<Regre
         for (int i = 0; i < numSamples; i++) {
             double xZero = (rng.nextDouble() * zeroRange) + xZeroMin;
             double xOne = (rng.nextDouble() * oneRange) + xOneMin;
-            // N(w_0*x_0 - w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
+            // N(w_0*x_0 + w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
             double outputValue = (weights[0] * xZero) + (weights[1]*xOne) + (weights[2]*xZero*xOne) + (weights[3]*Math.pow(xOne,3)) + intercept;
             Regressor output = new Regressor("Y",(rng.nextGaussian() * variance) + outputValue);
             ArrayExample<Regressor> e = new ArrayExample<>(output,featureNames,new double[]{xZero,xOne});
