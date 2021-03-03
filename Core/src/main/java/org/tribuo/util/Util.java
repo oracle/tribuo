@@ -191,6 +191,21 @@ public final class Util {
     }
 
     /**
+     * Shuffles the input.
+     * @param input The array to shuffle.
+     * @param rng The random number generator to use.
+     */
+    public static void randpermInPlace(double[] input, SplittableRandom rng) {
+        // Shuffle array
+        for (int i = input.length; i > 1; i--) {
+            int j = rng.nextInt(i);
+            double tmp = input[i-1];
+            input[i-1] = input[j];
+            input[j] = tmp;
+        }
+    }
+
+    /**
      * Draws a bootstrap sample of indices.
      * @param size Size of the sample to generate.
      * @param rng The RNG to use.
@@ -1040,4 +1055,37 @@ public final class Util {
         return diffIndicesList.stream().mapToInt(Integer::intValue).toArray();
     }
 
+    /**
+     * Standardizes the input so it has zero mean and unit variance, i.e., subtracts the mean and divides by the variance.
+     * @param input The input to standardize.
+     * @param mean The mean.
+     * @param variance The variance.
+     * @return The standardized input.
+     */
+    public static double[] standardize(double[] input, double mean, double variance) {
+        if (variance <= 0.0) {
+            throw new IllegalArgumentException("Variance must be positive, found " + variance);
+        }
+        double[] output = new double[input.length];
+        for (int i = 0; i < input.length; i++) {
+            output[i] = (input[i] - mean) / variance;
+        }
+        return output;
+    }
+
+    /**
+     * Standardizes the input so it has zero mean and unit variance, i.e., subtracts the mean and divides by the variance.
+     * Operates in place on the input array.
+     * @param input The input to standardize.
+     * @param mean The mean.
+     * @param variance The variance.
+     */
+    public static void standardizeInPlace(double[] input, double mean, double variance) {
+        if (variance <= 0.0) {
+            throw new IllegalArgumentException("Variance must be positive, found " + variance);
+        }
+        for (int i = 0; i < input.length; i++) {
+            input[i] = (input[i] - mean) / variance;
+        }
+    }
 }

@@ -50,25 +50,25 @@ import java.util.Random;
  * Set slope to zero to draw from a gaussian.
  */
 public class GaussianDataSource implements ConfigurableDataSource<Regressor> {
-    @Config(mandatory=true)
+    @Config(mandatory=true,description = "The number of samples to draw.")
     private int numSamples;
 
-    @Config
-    private float slope;
+    @Config(description="The slope of the line.")
+    private float slope = 0.0f;
 
-    @Config
-    private float intercept;
+    @Config(description="The y-intercept of the line.")
+    private float intercept = 0.0f;
 
-    @Config
+    @Config(description="The variance of the gaussian.")
     private float variance = 1.0f;
 
-    @Config(mandatory=true)
+    @Config(mandatory=true,description="The minimum feature value.")
     private float xMin;
 
-    @Config(mandatory=true)
+    @Config(mandatory=true,description="The maximum feature value.")
     private float xMax;
 
-    @Config
+    @Config(description="The RNG seed.")
     private long seed = Trainer.DEFAULT_SEED;
 
     private List<Example<Regressor>> examples;
@@ -110,6 +110,7 @@ public class GaussianDataSource implements ConfigurableDataSource<Regressor> {
      */
     @Override
     public void postConfig() {
+        // We use java.util.Random here because SplittableRandom doesn't have nextGaussian yet.
         Random rng = new Random(seed);
         List<Example<Regressor>> examples = new ArrayList<>(numSamples);
         if (xMax <= xMin) {

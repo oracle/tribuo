@@ -150,7 +150,7 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
         for (Map.Entry<String,MutableLong> e : countMap.entrySet()) {
             String name = e.getKey();
             long count = e.getValue().longValue();
-            builder.append(String.format("{name=%s,id=%d,count=%d,maxMap=%f,min=%f,mean=%f,variance=%f},",
+            builder.append(String.format("{name=%s,id=%d,count=%d,max=%f,min=%f,mean=%f,variance=%f},",
                     name,
                     labelIDMap.get(name),
                     count,

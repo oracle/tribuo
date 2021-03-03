@@ -124,8 +124,24 @@ final class RegressionEvaluationImpl implements RegressionEvaluation {
 
     @Override
     public String toString() {
-        return "Multi-dimensional Regression Evaluation\nRMSE = " + rmse() + "\nMean Absolute Error = " + mae() +
-                "\nR^2 = " + r2() + "\nexplained variance = " + explainedVariance();
+        return "Multi-dimensional Regression Evaluation\nRMSE = " + convertKeys(rmse()) + "\nMean Absolute Error = " + convertKeys(mae()) +
+                "\nR^2 = " + convertKeys(r2()) + "\nexplained variance = " + convertKeys(explainedVariance());
+    }
+
+    /**
+     * The default toString on DimensionTuple emits the regressors minimum value.
+     * This tidies it up by using the name as the key.
+     * @param map The map to tidy.
+     * @return A map with the dimension names as keys.
+     */
+    private static Map<String, Double> convertKeys(Map<Regressor, Double> map) {
+        Map<String, Double> outputMap = new HashMap<>(map.size());
+
+        for (Map.Entry<Regressor, Double> e : map.entrySet()) {
+            outputMap.put(e.getKey().getDimensionNamesString(),e.getValue());
+        }
+
+        return outputMap;
     }
 
     private double get(MetricTarget<Regressor> target, RegressionMetrics metric) {

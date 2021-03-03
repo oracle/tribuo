@@ -45,6 +45,11 @@ public abstract class RegressionDataGenerator {
     private static final RegressionFactory REGRESSION_FACTORY = new RegressionFactory();
     private static final String[] dimensionNames = new String[]{firstDimensionName,secondDimensionName};
 
+    /**
+     * Abstract utility class with private constructor.
+     */
+    private RegressionDataGenerator() {}
+
     public static Pair<Dataset<Regressor>,Dataset<Regressor>> multiDimDenseTrainTest() {
         return multiDimDenseTrainTest(-1.0);
     }
