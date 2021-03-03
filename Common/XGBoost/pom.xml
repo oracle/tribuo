@@ -32,14 +32,6 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>XGBoost4J Release Repo</id>
-            <name>XGBoost4J Release Repo</name>
-            <url>https://s3-us-west-2.amazonaws.com/xgboost-maven-repo/release/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
