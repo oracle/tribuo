@@ -460,22 +460,40 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
         // Parse out classification and separator tokens
         JsonNode postProcessor = rootNode.get("post_processor");
         if (postProcessor != null) {
-            JsonNode specialTokens = postProcessor.get("special_tokens");
-            if (specialTokens != null) {
-                JsonNode sepNode = specialTokens.get(SEPARATOR_TOKEN);
+            String processorType = postProcessor.get("type").asText();
+            if (processorType != null && processorType.equals("TemplateProcessing")) {
+                JsonNode specialTokens = postProcessor.get("special_tokens");
+                if (specialTokens != null) {
+                    JsonNode sepNode = specialTokens.get(SEPARATOR_TOKEN);
+                    if (sepNode != null) {
+                        separatorToken = sepNode.get("tokens").get(0).asText();
+                    } else {
+                        throw new IllegalStateException("Failed to parse tokenizer json, did not find separator token.");
+                    }
+                    JsonNode classificationNode = specialTokens.get(CLASSIFICATION_TOKEN);
+                    if (classificationNode != null) {
+                        classificationToken = classificationNode.get("tokens").get(0).asText();
+                    } else {
+                        throw new IllegalStateException("Failed to parse tokenizer json, did not find classification token.");
+                    }
+                } else {
+                    throw new IllegalStateException("Failed to parse tokenizer json, did not find the special tokens.");
+                }
+            } else if (processorType != null && processorType.equals("BertProcessing")) {
+                JsonNode sepNode = postProcessor.get("sep");
                 if (sepNode != null) {
-                    separatorToken = sepNode.get("tokens").get(0).asText();
+                    separatorToken = sepNode.get(0).asText();
                 } else {
                     throw new IllegalStateException("Failed to parse tokenizer json, did not find separator token.");
                 }
-                JsonNode classificationNode = specialTokens.get(CLASSIFICATION_TOKEN);
-                if (classificationNode != null) {
-                    classificationToken = classificationNode.get("tokens").get(0).asText();
+                JsonNode clsNode = postProcessor.get("cls");
+                if (clsNode != null) {
+                    classificationToken = clsNode.get(0).asText();
                 } else {
                     throw new IllegalStateException("Failed to parse tokenizer json, did not find classification token.");
                 }
             } else {
-                throw new IllegalStateException("Failed to parse tokenizer json, did not find the special tokens.");
+                throw new IllegalStateException("Failed to parse tokenizer json, did not recognise post_processor:type " + processorType);
             }
         } else {
             throw new IllegalStateException("Failed to parse tokenizer json, did not find the post processor");
@@ -578,7 +596,6 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * @param buffer The float buffer to read.
      * @param bertDim The number of values to read.
      * @param values The values to add.
-     * @return The features.
      */
     private static void addFeatures(FloatBuffer buffer, int bertDim, double[] values) {
         float[] floatArr = new float[bertDim];
@@ -625,7 +642,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
      * @return The feature values.
      */
-    private double[] extractFeatures(List<String> tokens) {
+    double[] extractFeatures(List<String> tokens) {
         try (OnnxTensor tokenIds = convertTokens(tokens);
              OnnxTensor mask = createTensor(tokens.size()+2,MASK_VALUE);
              OnnxTensor tokenTypes = createTensor(tokens.size()+2,TOKEN_TYPE_VALUE)) {
@@ -677,7 +694,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
             } else {
                 throw new IllegalStateException("Expected a float tensor, found " + tensor.getInfo().toString());
             }
-        } else {
+        }  else {
             throw new IllegalStateException("Expected OnnxTensor, found " + value.getClass());
         }
     }
@@ -826,11 +843,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      */
     @Override
     public Example<T> extract(T output, String data) {
-        List<String> tokens = tokenizer.split(data);
-        if (tokens.size() > (maxLength - 2)) {
-            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
-            tokens = tokens.subList(0,maxLength-2);
-        }
+        List<String> tokens = tokenize(data);
         return extractExample(tokens,output);
     }
 
@@ -844,11 +857,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      */
     @Override
     public List<Feature> process(String tag, String data) {
-        List<String> tokens = tokenizer.split(data);
-        if (tokens.size() > (maxLength - 2)) {
-            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
-            tokens = tokens.subList(0,maxLength-2);
-        }
+        List<String> tokens = tokenize(data);
         double[] featureValues = extractFeatures(tokens);
         List<Feature> features = new ArrayList<>(featureValues.length);
         for (int i = 0; i < featureValues.length; i++) {
@@ -858,17 +867,29 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     }
 
     /**
+     * Tokenizes the input using the loaded tokenizer, truncates the
+     * token list if it's longer than {@code maxLength} - 2 (to account
+     * for [CLS] and [SEP] tokens).
+     * @param data The input text.
+     * @return The wordpiece tokens for the supplied data.
+     */
+    List<String> tokenize(String data) {
+        List<String> tokens = tokenizer.split(data);
+        if (tokens.size() > (maxLength - 2)) {
+            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
+            tokens = tokens.subList(0,maxLength-2);
+        }
+        return tokens;
+    }
+
+    /**
      * Runs BERT on the input, returning the tokens, ids, masks and embeddings.
      * @param data The input text.
      * @return The tokens, the token ids, the token types, the masks, the cls embedding and the token embeddings.
      * @throws OrtException If the native runtime failed.
      */
     private BERTResult bert(String data) throws OrtException {
-        List<String> tokens = tokenizer.split(data);
-        if (tokens.size() > (maxLength - 2)) {
-            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
-            tokens = tokens.subList(0,maxLength-2);
-        }
+        List<String> tokens = tokenize(data);
         try (OnnxTensor idsTensor = convertTokens(tokens);
              OnnxTensor maskTensor = createTensor(tokens.size()+2,MASK_VALUE);
              OnnxTensor tokenTypesTensor = createTensor(tokens.size()+2,TOKEN_TYPE_VALUE)) {
