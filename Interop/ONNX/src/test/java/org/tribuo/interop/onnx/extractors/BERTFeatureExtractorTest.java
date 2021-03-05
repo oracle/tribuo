@@ -88,7 +88,6 @@ public class BERTFeatureExtractorTest {
 
         // Test CLS token embedding
         try (BERTFeatureExtractor<Label> extractor = new BERTFeatureExtractor<>(factory,modelPath,tokenizerPath,BERTFeatureExtractor.OutputPooling.CLS,512,false)) {
-
             List<String> tokens = extractor.tokenize(input);
 
             // Check we got the right number of tokens
@@ -96,7 +95,7 @@ public class BERTFeatureExtractorTest {
 
             double[] clsEmbedding = extractor.extractFeatures(tokens);
             double[] expectedCLS = new double[]{-0.09987275302410126, -0.08381578326225281, -0.17915815114974976, 0.1595402956008911, 0.12995541095733643, 0.02285454422235489, 0.16443753242492676, -0.05802210792899132, 0.25674450397491455, -0.09596416354179382, 0.08692581206560135, -0.17145220935344696, 0.05614880844950676, 0.14230673015117645, 0.09240773320198059, 0.03262120857834816, 0.05173583701252937, 0.3492385447025299, -0.010329307056963444, 0.22916817665100098, 0.1269291639328003, 0.033620379865169525, 0.12352693825960159, 0.0520106665790081, -0.012766036204993725, 0.029396483674645424, -0.09637446701526642, 0.1646318882703781, -0.08488218486309052, -0.11151651293039322, -0.14075034856796265, -0.1965598613023758, -0.25300613045692444, 0.1736740618944168, 0.19785678386688232, -0.07669950276613235, 0.03425660356879234, 0.15457485616207123, 0.005061550531536341, 0.09869188815355301, -0.06988175213336945, -0.1692686229944229, -0.03754367679357529, -0.18752126395702362, -0.2161409854888916, -0.23712319135665894, 0.03122984990477562, 0.2796807289123535, -0.19152438640594482, -0.16166169941425323};
-            Assertions.assertArrayEquals(expectedCLS,clsEmbedding,1e-8);
+            Assertions.assertArrayEquals(expectedCLS,clsEmbedding,1e-7);
         }
 
         // Test average token embedding
@@ -130,7 +129,7 @@ public class BERTFeatureExtractorTest {
                 average[i] /= expectedTokens.length-2;
             }
 
-            Assertions.assertArrayEquals(average, aveEmbedding, 1e-8);
+            Assertions.assertArrayEquals(average, aveEmbedding, 1e-7);
         }
     }
 
