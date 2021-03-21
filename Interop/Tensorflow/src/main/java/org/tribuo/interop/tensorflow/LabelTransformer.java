@@ -18,11 +18,18 @@ package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tensorflow.Operand;
+import org.tensorflow.framework.losses.CategoricalCrossentropy;
+import org.tensorflow.framework.losses.Loss;
+import org.tensorflow.framework.losses.Reduction;
 import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.index.Indices;
+import org.tensorflow.op.Op;
+import org.tensorflow.op.Ops;
 import org.tensorflow.types.TFloat16;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TInt32;
+import org.tensorflow.types.family.TNumber;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
@@ -34,6 +41,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
@@ -48,6 +57,30 @@ public class LabelTransformer implements OutputTransformer<Label> {
      * Constructs a LabelTransformer.
      */
     public LabelTransformer() {}
+
+    /**
+     * Returns a cross-entropy loss.
+     * @return The cross-entropy loss.
+     */
+    @Override
+    public Function<Ops,Loss> loss() {
+        return (ops) -> new CategoricalCrossentropy(ops,
+                "tribuo-cross-entropy",
+                true,
+                CategoricalCrossentropy.LABEL_SMOOTHING_DEFAULT,
+                Reduction.SUM_OVER_BATCH_SIZE,
+                CategoricalCrossentropy.DEFAULT_AXIS);
+    }
+
+    /**
+     * Applies a softmax.
+     * @param <U> The softmax input type (should be TFloat32).
+     * @return A function which applies a softmax.
+     */
+    @Override
+    public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction() {
+        return (ops, logits) -> ops.nn.softmax(logits);
+    }
 
     @Override
     public Prediction<Label> transformToPrediction(Tensor tensor, ImmutableOutputInfo<Label> outputIDInfo, int numValidFeatures, Example<Label> example) {

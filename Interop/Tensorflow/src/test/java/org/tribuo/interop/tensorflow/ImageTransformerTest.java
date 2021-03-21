@@ -23,6 +23,8 @@ import org.tribuo.impl.ArrayExample;
 import org.tribuo.test.MockOutput;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Array;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -64,14 +66,52 @@ public class ImageTransformerTest {
         return e;
     }
 
+    /**
+     * Copies elements from the flat input array to the appropriate primitive array of the output.
+     * Recursively calls itself as it traverses the output array.
+     *
+     * @param input The input array.
+     * @param output The output multidimensional array.
+     * @param position The current position in the input array.
+     * @return The new position in the input array.
+     */
+    private static int reshape(Object input, Object output, int position) {
+        if (output.getClass().isArray()) {
+            Object[] outputArray = (Object[]) output;
+            for (Object outputElement : outputArray) {
+                Class<?> outputElementClass = outputElement.getClass();
+                if (outputElementClass.isArray()) {
+                    if (outputElementClass.getComponentType().isPrimitive()) {
+                        int length = Array.getLength(outputElement);
+                        System.arraycopy(input, position, outputElement, 0, length);
+                        position += length;
+                    } else {
+                        position = reshape(input, outputElement, position);
+                    }
+                } else {
+                    throw new IllegalStateException(
+                            "Found element type when expecting an array. Class " + outputElementClass);
+                }
+            }
+        } else {
+            throw new IllegalStateException(
+                    "Found element type when expecting an array. Class " + output.getClass());
+        }
+
+        return position;
+    }
+
     @Test
     public void testImageTransformer() {
         ImmutableFeatureMap fmap = constructFeatureMap();
         Example<MockOutput> e = constructExample();
+        float[][][] output;
 
         // 3,3,2
         ImageTransformer<MockOutput> first = new ImageTransformer<>(3,3,2);
-        float[][][] output = first.innerTransform(e,fmap);
+        float[] flat = first.innerTransform(e,fmap);
+        output = new float[3][3][2];
+        reshape(flat,output,0);
         assertEquals( 0, output[0][0][0], 1e-10);
         assertEquals( 1, output[1][0][0], 1e-10);
         assertEquals( 2, output[2][0][0], 1e-10);
@@ -93,7 +133,9 @@ public class ImageTransformerTest {
 
         // 3,2,3
         ImageTransformer<MockOutput> second = new ImageTransformer<>(3,2,3);
-        output = second.innerTransform(e,fmap);
+        flat = second.innerTransform(e,fmap);
+        output = new float[3][2][3];
+        reshape(flat,output,0);
         assertEquals( 0, output[0][0][0],1e-10);
         assertEquals( 1, output[1][0][0],1e-10);
         assertEquals( 2, output[2][0][0],1e-10);
@@ -115,7 +157,9 @@ public class ImageTransformerTest {
 
         // 3,2,3
         ImageTransformer<MockOutput> third = new ImageTransformer<>(2,3,3);
-        output = third.innerTransform(e,fmap);
+        flat = third.innerTransform(e,fmap);
+        output = new float[3][2][3];
+        reshape(flat,output,0);
         assertEquals( 0, output[0][0][0],1e-10);
         assertEquals( 1, output[1][0][0],1e-10);
         assertEquals( 2, output[0][1][0],1e-10);

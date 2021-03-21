@@ -19,6 +19,11 @@ package org.tribuo.interop.tensorflow;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import org.tensorflow.Operand;
+import org.tensorflow.framework.losses.Loss;
+import org.tensorflow.op.Op;
+import org.tensorflow.op.Ops;
+import org.tensorflow.types.family.TNumber;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
@@ -27,13 +32,37 @@ import org.tensorflow.Tensor;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * TensorFlow support is experimental, and may change without a major version bump.
  * <p>
  * Converts the {@link Output} into a {@link Tensor} and vice versa.
+ * <p>
+ * Also provides the loss function for this output type, along with the
+ * transformation function for converting the TF graph output into a
+ * well formed output float (e.g., a softmax for classification, a sigmoid
+ * for multi-label, or the identity function for regression).
  */
 public interface OutputTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+
+    /**
+     * The loss function associated with this prediction type.
+     * @return The TF loss function.
+     */
+    public Function<Ops,Loss> loss();
+
+    /**
+     * Produces an output transformation function that applies the operation to
+     * the graph from the supplied {@link Ops}, taking a graph output operation.
+     * <p>
+     * For example this function will apply a softmax for classification, a sigmoid
+     * for multi-label, or the identity function for regression.
+     * @param <U> The type of the graph output.
+     * @return A function which applies the appropriate transformation function.
+     */
+    public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction();
 
     /**
      * Converts a {@link Tensor} into a {@link Prediction}.

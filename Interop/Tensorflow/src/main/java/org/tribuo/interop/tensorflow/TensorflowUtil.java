@@ -187,6 +187,8 @@ public class TensorflowUtil {
      * It's almost a record.
      */
     public static final class TensorTuple implements Serializable {
+        private static final long serialVersionUID = 1L;
+
         public final String className;
         public final long[] shape;
         public final byte[] data;

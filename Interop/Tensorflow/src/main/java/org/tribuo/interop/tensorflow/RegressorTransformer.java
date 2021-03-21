@@ -19,10 +19,17 @@ package org.tribuo.interop.tensorflow;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.Operand;
+import org.tensorflow.framework.losses.Loss;
+import org.tensorflow.framework.losses.MeanSquaredError;
+import org.tensorflow.framework.losses.Reduction;
 import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.ndarray.index.Indices;
+import org.tensorflow.op.Op;
+import org.tensorflow.op.Ops;
 import org.tensorflow.types.TFloat32;
+import org.tensorflow.types.family.TNumber;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
@@ -32,6 +39,8 @@ import org.tensorflow.Tensor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Can convert a {@link Regressor} to a {@link TFloat32} vector and a {@link TFloat32} into a
@@ -44,6 +53,25 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
      * Constructs a RegressorTransformer.
      */
     public RegressorTransformer() {}
+
+    /**
+     * Returns a mean squared error loss.
+     * @return The mse loss.
+     */
+    @Override
+    public Function<Ops, Loss> loss() {
+        return (ops) -> new MeanSquaredError(ops, "tribuo-mse", Reduction.SUM_OVER_BATCH_SIZE);
+    }
+
+    /**
+     * Applies the identity function
+     * @param <U> The input type (should be TFloat32).
+     * @return A function which applies the identity function.
+     */
+    @Override
+    public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction() {
+        return (ops, input) -> ops.identity(input);
+    }
 
     @Override
     public Prediction<Regressor> transformToPrediction(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int numValidFeatures, Example<Regressor> example) {
