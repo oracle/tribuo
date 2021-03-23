@@ -40,12 +40,12 @@ public class XGBoostOptions implements ClassificationOptions<XGBoostClassificati
     public float xbgAlpha = 0.0f;
     @Option(longName = "xgb-min-weight", usage = "Minimum sum of instance weights needed in a leaf (range [0,inf]).")
     public float xgbMinWeight = 1;
-    @Option(longName = "xgb-max-depth", usage = "Max tree depth (range (0,inf]).")
+    @Option(longName = "xgb-max-depth", usage = "Max tree depth (range (0,Integer.MAX_VALUE]).")
     public int xgbMaxDepth = 6;
     @Option(longName = "xgb-eta", usage = "Step size shrinkage parameter (range [0,1]).")
     public float xgbEta = 0.3f;
     @Option(longName = "xgb-subsample-features", usage = "Subsample features for each tree (range (0,1]).")
-    public float xgbSubsampleFeatures;
+    public float xgbSubsampleFeatures = 0.0f;
     @Option(longName = "xgb-gamma", usage = "Minimum loss reduction to make a split (range [0,inf]).")
     public float xgbGamma = 0.0f;
     @Option(longName = "xgb-lambda", usage = "L2 regularization term for weights.")
@@ -56,8 +56,8 @@ public class XGBoostOptions implements ClassificationOptions<XGBoostClassificati
     public XGBoostTrainer.LoggingVerbosity xgbLogLevel = XGBoostTrainer.LoggingVerbosity.WARNING;
     @Option(longName = "xgb-subsample", usage = "Subsample size for each tree (range (0,1]).")
     public float xgbSubsample = 1.0f;
-    @Option(longName = "xgb-num-threads", usage = "Number of threads to use (range (1, num hw threads)).")
-    public int xgbNumThreads;
+    @Option(longName = "xgb-num-threads", usage = "Number of threads to use (range (1, num hw threads)). The default of 0 means use all hw threads.")
+    public int xgbNumThreads = 0;
     @Option(longName = "xgb-seed", usage = "Sets the random seed for XGBoost.")
     private long xgbSeed = Trainer.DEFAULT_SEED;
 
