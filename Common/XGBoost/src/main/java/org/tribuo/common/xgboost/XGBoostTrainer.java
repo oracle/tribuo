@@ -78,7 +78,56 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
 
     private static final Logger logger = Logger.getLogger(XGBoostTrainer.class.getName());
 
-    protected final Map<String, Object> parameters = new HashMap<>();
+    /**
+     * The tree building algorithm.
+     */
+    public enum TreeMethod {
+        /**
+         * XGBoost chooses between {@link TreeMethod#EXACT} and {@link TreeMethod#APPROX}
+         * depending on dataset size.
+         */
+        AUTO("auto"),
+        /**
+         * Exact greedy algorithm, enumerates all split candidates.
+         */
+        EXACT("exact"),
+        /**
+         * Approximate greedy algorithm, using a quantile sketch of the data and a gradient histogram.
+         */
+        APPROX("approx"),
+        /**
+         * Faster histogram optimized approximate algorithm.
+         */
+        HIST("hist"),
+        /**
+         * GPU implementation of the {@link TreeMethod#HIST} algorithm.
+         * <p>
+         * Note: GPU computation may not be supported on all platforms, and Tribuo is not tested with XGBoost GPU support.
+         */
+        GPU_HIST("gpu_hist");
+
+        public final String paramName;
+
+        TreeMethod(String paramName) {
+            this.paramName = paramName;
+        }
+    }
+
+    /**
+     * The logging verbosity of the native library.
+     */
+    public enum LoggingVerbosity {
+        SILENT(0),
+        WARNING(1),
+        INFO(2),
+        DEBUG(3);
+
+        public final int value;
+
+        LoggingVerbosity(int value) {
+            this.value = value;
+        }
+    }
 
     /**
      * The type of XGBoost model.
@@ -103,6 +152,8 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
             this.paramName = paramName;
         }
     }
+
+    protected final Map<String, Object> parameters = new HashMap<>();
 
     @Config(mandatory = true,description="The number of trees to build.")
     protected int numTrees;
@@ -134,11 +185,21 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
     @Config(description="The number of threads to use at training time.")
     private int nThread = 4;
 
-    @Config(description="Quiesce all the logging output from the XGBoost C library.")
+    /**
+     * Deprecated by XGBoost in favour of the verbosity field.
+     */
+    @Deprecated
+    @Config(description="Quiesce all the logging output from the XGBoost C library. Deprecated in favour of 'verbosity'.")
     private int silent = 1;
+
+    @Config(description="Logging verbosity, 0 is silent, 3 is debug.")
+    private LoggingVerbosity verbosity = LoggingVerbosity.SILENT;
 
     @Config(description="Type of the weak learner.")
     private BoosterType booster = BoosterType.GBTREE;
+
+    @Config(description="The tree building algorithm to use.")
+    private TreeMethod treeMethod = TreeMethod.AUTO;
 
     @Config(description="The RNG seed.")
     private long seed = Trainer.DEFAULT_SEED;
@@ -155,6 +216,8 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
 
     /**
      * Create an XGBoost trainer.
+     * <p>
+     * Sets the boosting algorithm to {@link BoosterType#GBTREE} and the tree building algorithm to {@link TreeMethod#AUTO}.
      *
      * @param numTrees Number of trees to boost.
      * @param eta Step size shrinkage parameter (default 0.3, range [0,1]).
@@ -173,9 +236,36 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
      * @param seed RNG seed.
      */
     protected XGBoostTrainer(int numTrees, double eta, double gamma, int maxDepth, double minChildWeight, double subsample, double featureSubsample, double lambda, double alpha, int nThread, boolean silent, long seed) {
+        this(BoosterType.GBTREE,TreeMethod.AUTO,numTrees,eta,gamma,maxDepth,minChildWeight,subsample,featureSubsample,lambda,alpha,nThread,silent ? LoggingVerbosity.SILENT : LoggingVerbosity.INFO,seed);
+    }
+
+    /**
+     * Create an XGBoost trainer.
+     *
+     * @param boosterType The base learning algorithm.
+     * @param treeMethod The tree building algorithm if using a tree booster.
+     * @param numTrees Number of trees to boost.
+     * @param eta Step size shrinkage parameter (default 0.3, range [0,1]).
+     * @param gamma Minimum loss reduction to make a split (default 0, range
+     * [0,inf]).
+     * @param maxDepth Maximum tree depth (default 6, range [1,inf]).
+     * @param minChildWeight Minimum sum of instance weights needed in a leaf
+     * (default 1, range [0, inf]).
+     * @param subsample Subsample size for each tree (default 1, range (0,1]).
+     * @param featureSubsample Subsample features for each tree (default 1,
+     * range (0,1]).
+     * @param lambda L2 regularization term on weights (default 1).
+     * @param alpha L1 regularization term on weights (default 0).
+     * @param nThread Number of threads to use (default 4).
+     * @param verbosity Set the logging verbosity of the native library.
+     * @param seed RNG seed.
+     */
+    protected XGBoostTrainer(BoosterType boosterType, TreeMethod treeMethod, int numTrees, double eta, double gamma, int maxDepth, double minChildWeight, double subsample, double featureSubsample, double lambda, double alpha, int nThread, LoggingVerbosity verbosity, long seed) {
         if (numTrees < 1) {
             throw new IllegalArgumentException("Must supply a positive number of trees. Received " + numTrees);
         }
+        this.booster = boosterType;
+        this.treeMethod = treeMethod;
         this.numTrees = numTrees;
         this.eta = eta;
         this.gamma = gamma;
@@ -186,7 +276,8 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         this.lambda = lambda;
         this.alpha = alpha;
         this.nThread = nThread;
-        this.silent = silent ? 1 : 0;
+        this.verbosity = verbosity;
+        this.silent = 0; // silent is deprecated
         this.seed = seed;
     }
 
@@ -227,8 +318,13 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         parameters.put("alpha", alpha);
         parameters.put("nthread", nThread);
         parameters.put("seed", seed);
-        parameters.put("silent", silent);
+        if (silent == 1) {
+            parameters.put("verbosity", 0);
+        } else {
+            parameters.put("verbosity", verbosity.value);
+        }
         parameters.put("booster", booster.paramName);
+        parameters.put("tree_method", treeMethod.paramName);
     }
 
     @Override

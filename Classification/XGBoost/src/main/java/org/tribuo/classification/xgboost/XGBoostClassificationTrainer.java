@@ -103,6 +103,32 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
     }
 
     /**
+     * Create an XGBoost trainer.
+     *
+     * @param boosterType The base learning algorithm.
+     * @param treeMethod The tree building algorithm if using a tree booster.
+     * @param numTrees Number of trees to boost.
+     * @param eta Step size shrinkage parameter (default 0.3, range [0,1]).
+     * @param gamma Minimum loss reduction to make a split (default 0, range
+     * [0,inf]).
+     * @param maxDepth Maximum tree depth (default 6, range [1,inf]).
+     * @param minChildWeight Minimum sum of instance weights needed in a leaf
+     * (default 1, range [0, inf]).
+     * @param subsample Subsample size for each tree (default 1, range (0,1]).
+     * @param featureSubsample Subsample features for each tree (default 1,
+     * range (0,1]).
+     * @param lambda L2 regularization term on weights (default 1).
+     * @param alpha L1 regularization term on weights (default 0).
+     * @param nThread Number of threads to use (default 4).
+     * @param verbosity Set the logging verbosity of the native library.
+     * @param seed RNG seed.
+     */
+    public XGBoostClassificationTrainer(BoosterType boosterType, TreeMethod treeMethod, int numTrees, double eta, double gamma, int maxDepth, double minChildWeight, double subsample, double featureSubsample, double lambda, double alpha, int nThread, LoggingVerbosity verbosity, long seed) {
+        super(boosterType,treeMethod,numTrees,eta,gamma,maxDepth,minChildWeight,subsample,featureSubsample,lambda,alpha,nThread,verbosity,seed);
+        postConfig();
+    }
+
+    /**
      * This gives direct access to the XGBoost parameter map.
      * <p>
      * It lets you pick things that we haven't exposed like dropout trees, binary classification etc.
@@ -128,7 +154,7 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
     public void postConfig() {
         super.postConfig();
         parameters.put("objective", "multi:softprob");
-        if(!evalMetric.isEmpty()) {
+        if (!evalMetric.isEmpty()) {
             parameters.put("eval_metric", evalMetric);
         }
     }
