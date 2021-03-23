@@ -38,7 +38,7 @@ public class XGBoostOptions implements ClassificationOptions<XGBoostClassificati
     public int xgbEnsembleSize = -1;
     @Option(longName = "xgb-alpha", usage = "L1 regularization term for weights.")
     public float xbgAlpha = 0.0f;
-    @Option(longName = "xgb-min-weight", usage = "Minimum sum of instance weights needed in a leaf (range [0,inf]).")
+    @Option(longName = "xgb-min-weight", usage = "Minimum sum of instance weights needed in a leaf (range [0,Infinity]).")
     public float xgbMinWeight = 1;
     @Option(longName = "xgb-max-depth", usage = "Max tree depth (range (0,Integer.MAX_VALUE]).")
     public int xgbMaxDepth = 6;
@@ -46,7 +46,7 @@ public class XGBoostOptions implements ClassificationOptions<XGBoostClassificati
     public float xgbEta = 0.3f;
     @Option(longName = "xgb-subsample-features", usage = "Subsample features for each tree (range (0,1]).")
     public float xgbSubsampleFeatures = 0.0f;
-    @Option(longName = "xgb-gamma", usage = "Minimum loss reduction to make a split (range [0,inf]).")
+    @Option(longName = "xgb-gamma", usage = "Minimum loss reduction to make a split (range [0,Infinity]).")
     public float xgbGamma = 0.0f;
     @Option(longName = "xgb-lambda", usage = "L2 regularization term for weights.")
     public float xgbLambda = 1.0f;
