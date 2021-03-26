@@ -128,7 +128,7 @@ public class TFTrainerTest {
                 imageTransformer,
                 outputTransformer,
                 16,
-                5,
+                2,
                 16);
 
         LabelFactory labelFactory = new LabelFactory();

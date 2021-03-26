@@ -264,9 +264,8 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
             Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(graph,session);
 
             ModelProvenance modelProvenance = new ModelProvenance(TensorflowModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
-            TensorflowModel<T> tfModel = new TensorflowModel<>("tf-model", modelProvenance, featureMap,
-                    outputInfo, trainedGraphDef, tensorMap, testBatchSize, exampleTransformer, outputTransformer);
-
+            TFModel<T> tfModel = new TFModel<>("tf-model", modelProvenance, featureMap,
+                    outputInfo, trainedGraphDef, tensorMap, testBatchSize, initName, inputName, outputOp.op().name(), exampleTransformer, outputTransformer);
             return tfModel;
         } catch (TensorFlowException e) {
             logger.log(Level.SEVERE, "TensorFlow threw an error", e);
