@@ -23,20 +23,19 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.Graph;
 import org.tensorflow.Operand;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 import org.tensorflow.exceptions.TensorFlowException;
-import org.tensorflow.framework.losses.Loss;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.op.Op;
 import org.tensorflow.op.Ops;
+import org.tensorflow.op.core.Init;
 import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.proto.framework.GraphDef;
-import org.tensorflow.types.TBool;
 import org.tensorflow.types.TFloat32;
-import org.tensorflow.types.TInt32;
 import org.tensorflow.types.family.TNumber;
 import org.tensorflow.types.family.TType;
 import org.tribuo.Dataset;
@@ -100,6 +99,9 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     @Config(description="Name of the output operation before the loss.")
     private String outputName = OUTPUT_NAME;
 
+    @Config(description="Name of the init operation.")
+    private String initName = Init.DEFAULT_NAME;
+
     @Config(mandatory=true,description="Feature extractor.")
     private ExampleTransformer<T> exampleTransformer;
 
@@ -160,6 +162,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     public TFTrainer(Graph graph,
                      String inputName,
                      String outputName,
+                     String initName,
                      GradientOptimiser optimizer,
                      Map<String,Float> gradientParams,
                      ExampleTransformer<T> exampleTransformer,
@@ -171,6 +174,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
         this.graphDef = graph.toGraphDef();
         this.inputName = inputName;
         this.outputName = outputName;
+        this.initName = initName;
         this.optimizerEnum = optimizer;
         this.gradientParams = Collections.unmodifiableMap(new HashMap<>(gradientParams));
         this.exampleTransformer = exampleTransformer;
@@ -199,23 +203,27 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
              Session session = new Session(graph)) {
             // Load in the graph definition
             graph.importGraphDef(graphDef);
-            Ops tf = Ops.create(graph);
+            Ops tf = Ops.create(graph).withName("tribuo-internal");
 
             // Lookup input and output ops
             Operand<TNumber> intermediateOutputOp = graph.operation(outputName).output(0);
             Operand<TType> inputOp = graph.operation(inputName).output(0);
 
             // Add target placeholder
-            Placeholder<TFloat32> targetPlaceholder = tf.placeholder(TFloat32.class,Placeholder.shape(Shape.of(minibatchSize,outputInfo.size())));
+            Placeholder<TNumber> targetPlaceholder = tf.placeholder(outputTransformer.placeholderType(),Placeholder.shape(Shape.of(minibatchSize,outputInfo.size())));
 
             // Add loss, optimizer and output
             Op outputOp = outputTransformer.outputTransformFunction().apply(tf,intermediateOutputOp);
-            Loss loss = outputTransformer.loss().apply(tf);
-            Operand<TNumber> lossOp = loss.call(targetPlaceholder,intermediateOutputOp);
+            Operand<TNumber> lossOp = outputTransformer.loss().apply(tf,new Pair<>(targetPlaceholder,intermediateOutputOp));
             Op optimizer = optimizerEnum.applyOptimizer(graph,lossOp,gradientParams);
 
+            Init tribuoInit = tf.init();
+
             // Initialises the parameters.
-            session.runInit();
+            session.run(initName);
+
+            // Initialise the gradient & output parameters.
+            session.run(tribuoInit);
             logger.info("Initialised the model parameters");
 
             int interval = 0;
@@ -236,7 +244,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
                             .fetch(lossOp)
                             .run().get(0);
                     if (interval % loggingInterval == 0) {
-                        logger.log(Level.INFO, "Training loss = " + ((TFloat32) lossTensor).getFloat(0));
+                        logger.log(Level.INFO, "Training loss = " + ((TFloat32) lossTensor).getFloat());
                     }
                     input.close();
                     target.close();

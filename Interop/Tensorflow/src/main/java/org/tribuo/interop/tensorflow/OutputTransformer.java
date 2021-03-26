@@ -19,11 +19,13 @@ package org.tribuo.interop.tensorflow;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.Operand;
-import org.tensorflow.framework.losses.Loss;
 import org.tensorflow.op.Op;
 import org.tensorflow.op.Ops;
+import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.types.family.TNumber;
+import org.tensorflow.types.family.TType;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
@@ -33,7 +35,6 @@ import org.tensorflow.Tensor;
 import java.io.Serializable;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * TensorFlow support is experimental, and may change without a major version bump.
@@ -51,7 +52,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * The loss function associated with this prediction type.
      * @return The TF loss function.
      */
-    public Function<Ops,Loss> loss();
+    public BiFunction<Ops, Pair<Placeholder<TNumber>,Operand<TNumber>>,Operand<TNumber>> loss();
 
     /**
      * Produces an output transformation function that applies the operation to
@@ -63,6 +64,13 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @return A function which applies the appropriate transformation function.
      */
     public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction();
+
+    /**
+     * Gets the class representing the placeholder type for this input.
+     * @param <U> The type.
+     * @return The class representing the type.
+     */
+    public <U extends TType> Class<U> placeholderType();
 
     /**
      * Converts a {@link Tensor} into a {@link Prediction}.

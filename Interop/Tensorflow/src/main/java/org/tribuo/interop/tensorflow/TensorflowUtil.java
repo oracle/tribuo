@@ -152,7 +152,7 @@ public class TensorflowUtil {
         for (int i = 0; i < variableNames.size(); i++) {
             String name = variableNames.get(i);
             Tensor tensor = output.get(i);
-            tensorMap.put(name, TensorTuple.of(tensor));
+            tensorMap.put(name, TensorTuple.of((TType)tensor));
         }
 
         closeTensorCollection(output);
@@ -231,13 +231,13 @@ public class TensorflowUtil {
          * @param tensor The tensor to serialize.
          * @return A serializable form of the Tensor.
          */
-        public static TensorTuple of(Tensor tensor) {
+        public static TensorTuple of(TType tensor) {
             ByteDataBuffer buffer = tensor.asRawTensor().data();
             long size = buffer.size();
             if (size > Integer.MAX_VALUE) {
                 throw new IllegalArgumentException("Cannot serialize Tensors bigger than Integer.MAX_VALUE, found " + size);
             }
-            String className = tensor.getClass().getName();
+            String className = tensor.type().getName();
             long[] shape = tensor.shape().asArray();
             byte[] data = new byte[(int)size];
             buffer.read(data);

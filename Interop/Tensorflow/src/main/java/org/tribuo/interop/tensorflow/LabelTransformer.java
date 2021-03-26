@@ -18,17 +18,16 @@ package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.Operand;
-import org.tensorflow.framework.losses.CategoricalCrossentropy;
-import org.tensorflow.framework.losses.Loss;
-import org.tensorflow.framework.losses.Reduction;
 import org.tensorflow.ndarray.FloatNdArray;
+import org.tensorflow.ndarray.Shape;
 import org.tensorflow.ndarray.index.Indices;
 import org.tensorflow.op.Op;
 import org.tensorflow.op.Ops;
+import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.types.TFloat16;
 import org.tensorflow.types.TFloat32;
-import org.tensorflow.types.TInt32;
 import org.tensorflow.types.family.TNumber;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
@@ -42,11 +41,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 /**
- * Can convert a {@link Label} into a {@link Tensor} containing a 32-bit integer and
+ * Can convert a {@link Label} into a {@link Tensor} containing one hot encoding of the label and
  * can convert a {@link TFloat16} or {@link TFloat32} into a {@link Prediction} or a {@link Label}.
  */
 public class LabelTransformer implements OutputTransformer<Label> {
@@ -63,13 +61,16 @@ public class LabelTransformer implements OutputTransformer<Label> {
      * @return The cross-entropy loss.
      */
     @Override
-    public Function<Ops,Loss> loss() {
-        return (ops) -> new CategoricalCrossentropy(ops,
+    public BiFunction<Ops, Pair<Placeholder<TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
+        return (ops,pair) -> ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),pair.getA()).loss(),ops.constant(0));
+        /*
+        return (ops,pair) -> new CategoricalCrossentropy(ops,
                 "tribuo-cross-entropy",
                 true,
                 CategoricalCrossentropy.LABEL_SMOOTHING_DEFAULT,
                 Reduction.SUM_OVER_BATCH_SIZE,
-                CategoricalCrossentropy.DEFAULT_AXIS);
+                CategoricalCrossentropy.DEFAULT_AXIS).call(pair.getA(),pair.getB());
+         */
     }
 
     /**
@@ -80,6 +81,11 @@ public class LabelTransformer implements OutputTransformer<Label> {
     @Override
     public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction() {
         return (ops, logits) -> ops.nn.softmax(logits);
+    }
+
+    @Override
+    public Class<TFloat32> placeholderType() {
+        return TFloat32.class;
     }
 
     @Override
@@ -206,20 +212,22 @@ public class LabelTransformer implements OutputTransformer<Label> {
 
     @Override
     public Tensor transform(Label example, ImmutableOutputInfo<Label> outputIDInfo) {
-        int[] output = new int[1];
-        output[0] = innerTransform(example, outputIDInfo);
-        return TInt32.vectorOf(output);
+        int output = innerTransform(example, outputIDInfo);
+        TFloat32 returnVal = TFloat32.tensorOf(Shape.of(1,outputIDInfo.size()));
+        returnVal.setFloat(1.0f,0,output);
+        return returnVal;
     }
 
     @Override
     public Tensor transform(List<Example<Label>> examples, ImmutableOutputInfo<Label> outputIDInfo) {
-        int[] output = new int[examples.size()];
+        TFloat32 returnVal = TFloat32.tensorOf(Shape.of(examples.size(),outputIDInfo.size()));
         int i = 0;
         for (Example<Label> e : examples) {
-            output[i] = innerTransform(e.getOutput(), outputIDInfo);
+            int output = innerTransform(e.getOutput(), outputIDInfo);
+            returnVal.setFloat(1.0f,i,output);
             i++;
         }
-        return TInt32.vectorOf(output);
+        return returnVal;
     }
 
     @Override

@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 import org.tensorflow.ndarray.NdArrays;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.ndarray.buffer.DataBuffers;
+import org.tensorflow.ndarray.buffer.FloatDataBuffer;
 import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -163,7 +164,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
         int i = 0;
         for (Example<T> example : examples) {
             float[] features = innerTransform(example,featureIDMap);
-            output.set(NdArrays.vectorOf(features),i);
+            output.set(NdArrays.wrap(Shape.of(width,height,channels), DataBuffers.of(features)),i);
             i++;
         }
 
@@ -183,7 +184,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
         int i = 0;
         for (SGDVector vector : vectors) {
             float[] features = innerTransform(vector);
-            output.set(NdArrays.vectorOf(features),i);
+            output.set(NdArrays.wrap(Shape.of(width,height,channels), DataBuffers.of(features)),i);
             i++;
         }
 
