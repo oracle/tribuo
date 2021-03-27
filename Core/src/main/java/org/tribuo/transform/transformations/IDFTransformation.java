@@ -52,6 +52,7 @@ public class IDFTransformation implements Transformation {
         }
 
         @Override
+        @Deprecated
         public void observeSparse() {
             sparseObservances++;
         }
@@ -86,9 +87,17 @@ public class IDFTransformation implements Transformation {
         }
         
     }
-    
+
+    /**
+     * Provenance for {@link IDFTransformation}.
+     */
     public final static class IDFTransformationProvenance implements TransformationProvenance {
         private static final long serialVersionUID = 1L;
+
+        IDFTransformationProvenance() { }
+
+        // IDFTransformation has no state to record.
+        public IDFTransformationProvenance(Map<String,Provenance> map) { }
 
         @Override
         public Map<String, Provenance> getConfiguredParameters() {

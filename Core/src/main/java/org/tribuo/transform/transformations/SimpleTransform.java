@@ -250,6 +250,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
      * No-op on this TransformStatistics.
      */
     @Override
+    @Deprecated
     public void observeSparse() { }
 
     /**

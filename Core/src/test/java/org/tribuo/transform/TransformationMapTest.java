@@ -254,6 +254,7 @@ public class TransformationMapTest {
         }
 
         @Override
+        @Deprecated
         public void observeSparse() {
             sparseCount++;
         }

@@ -243,6 +243,7 @@ public final class BinningTransformation implements Transformation {
         }
 
         @Override
+        @Deprecated
         public void observeSparse() {
             observeValue(0.0);
         }
@@ -327,6 +328,7 @@ public final class BinningTransformation implements Transformation {
         }
 
         @Override
+        @Deprecated
         public void observeSparse() {
             observeValue(0.0);
         }
@@ -387,6 +389,7 @@ public final class BinningTransformation implements Transformation {
         }
 
         @Override
+        @Deprecated
         public void observeSparse() {
             observeValue(0.0);
         }

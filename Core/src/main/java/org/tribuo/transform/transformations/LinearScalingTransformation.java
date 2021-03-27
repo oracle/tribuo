@@ -161,6 +161,7 @@ public final class LinearScalingTransformation implements Transformation {
         }
 
         @Override
+        @Deprecated
         public void observeSparse() {
             observeValue(0.0);
         }
