@@ -35,8 +35,9 @@ import java.util.logging.Logger;
  * A {@link Trainer} which encapsulates another trainer plus a {@link TransformationMap} object
  * to apply to each {@link Dataset} before training each {@link Model}.
  * <p>
- * Transformations only operate on observed values. To operate on implicit zeros then
- * first call {@link MutableDataset#densify} on the datasets.
+ * By default transformations only operate on explicit feature values. To include implicit zeros
+ * in transformation fitting then set {@code includeImplicitZeroFeatures}, and to convert implicit
+ * zeros to explicit zeros before applying the transformations set {@code densify}.
  */
 public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     
@@ -52,7 +53,7 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     private boolean densify;
 
     @Config(description="Include the implicit zeros in the transformation statistics collection")
-    private boolean observeSparse;
+    private boolean includeImplicitZeroFeatures;
 
     /**
      * For OLCUT.
@@ -63,8 +64,10 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
      * Creates a trainer which transforms the data before training, and stores
      * the transformers along with the trained model in a {@link TransformedModel}.
      * <p>
-     * This constructor makes a trainer which keeps the data sparse, and does not use
-     * the implicit zeros to construct the transformations.
+     * Sets {@code observeSparse} to false and so this constructor makes a trainer
+     * which keeps the data sparse, and does not use the implicit zeros to construct
+     * the transformations. Models produced by this trainer will not convert implicit
+     * zeros in the feature space to explicit zeros (i.e., densify is false).
      * @param innerTrainer The trainer to use.
      * @param transformations The transformations to apply to the data first.
      */
@@ -76,14 +79,16 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
      * Creates a trainer which transforms the data before training, and stores
      * the transformers along with the trained model in a {@link TransformedModel}.
      * <p>
-     * Sets {@code observeSparse} to false.
-     *
+     * Sets {@code observeSparse} to false and so this constructor makes a trainer
+     * which keeps the data sparse, and does not use the implicit zeros to construct
+     * the transformations.
      * @param innerTrainer The trainer to use.
      * @param transformations The transformations to apply to the data first.
-     * @param densify Densify the dataset (and any predict time data) before training/prediction.
+     * @param densify Convert the implicit zeros in each training and prediction example
+     *                to explicit zeros before training/prediction.
      */
     public TransformTrainer(Trainer<T> innerTrainer, TransformationMap transformations, boolean densify) {
-        this(innerTrainer,transformations,false,false);
+        this(innerTrainer,transformations,densify,false);
     }
 
     /**
@@ -92,14 +97,15 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
      *
      * @param innerTrainer The trainer to use.
      * @param transformations The transformations to apply to the data first.
-     * @param densify Densify the dataset (and any predict time data) before training/prediction.
-     * @param observeSparse Use the implicit zeros to construct the transformations.
+     * @param densify Convert the implicit zeros in each training and prediction example
+     *                to explicit zeros before training/prediction.
+     * @param includeImplicitZeroFeatures Use the implicit zero feature values to construct the transformations.
      */
-    public TransformTrainer(Trainer<T> innerTrainer, TransformationMap transformations, boolean densify, boolean observeSparse) {
+    public TransformTrainer(Trainer<T> innerTrainer, TransformationMap transformations, boolean densify, boolean includeImplicitZeroFeatures) {
         this.innerTrainer = innerTrainer;
         this.transformations = transformations;
         this.densify = densify;
-        this.observeSparse = observeSparse;
+        this.includeImplicitZeroFeatures = includeImplicitZeroFeatures;
     }
 
     @Override
@@ -107,7 +113,7 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
         
         logger.fine(String.format("Creating transformers"));
 
-        TransformerMap transformerMap = examples.createTransformers(transformations,observeSparse);
+        TransformerMap transformerMap = examples.createTransformers(transformations, includeImplicitZeroFeatures);
 
         logger.fine("Transforming data set");
         
