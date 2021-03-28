@@ -44,10 +44,10 @@ import java.util.Optional;
 /**
  * TensorFlow support is experimental, and may change without a major version bump.
  * <p>
- * This model encapsulates a simple model with a single input tensor (labelled {@link TensorflowModel#INPUT_NAME}),
- * and produces a single output tensor (labelled {@link TensorflowModel#OUTPUT_NAME}).
+ * This model encapsulates a simple model with an input feed dict,
+ * and produces a single output tensor (labelled {@link TensorflowCheckpointTrainer#OUTPUT_NAME}).
  * <p>
- * It accepts an {@link ExampleTransformer} that converts an example's features into a {@link Tensor}, and an
+ * It accepts an {@link ExampleTransformer} that converts an example's features into a {@link ExampleTransformer.FeedDict}, and an
  * {@link OutputTransformer} that converts a {@link Tensor} into a {@link Prediction}.
  * <p>
  * The model's serialVersionUID is set to the major Tensorflow version number times 100.
@@ -85,12 +85,11 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
-        try (Tensor transformedInput = exampleTransformer.transform(example,featureIDMap);
+        try (ExampleTransformer.FeedDict transformedInput = exampleTransformer.transform(example,featureIDMap);
              Tensor isTraining = TBool.scalarOf(false);
-             Tensor outputTensor = session.runner()
-                     .feed(TensorflowModel.INPUT_NAME,transformedInput)
-                     .feed(TensorflowTrainer.IS_TRAINING,isTraining)
-                     .fetch(TensorflowModel.OUTPUT_NAME).run().get(0)) {
+             Tensor outputTensor = transformedInput.feedInto(session.runner())
+                     .feed(TensorflowCheckpointTrainer.IS_TRAINING,isTraining)
+                     .fetch(TensorflowCheckpointTrainer.OUTPUT_NAME).run().get(0)) {
             // Transform the returned tensor into a Prediction.
             return outputTransformer.transformToPrediction(outputTensor,outputIDInfo,vec.numActiveElements(),example);
         }
@@ -148,9 +147,6 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         this.modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         this.session = new Session(modelGraph);
 
-        try (TString checkpointPrefix = TString.scalarOf(Paths.get(checkpointDirectory+"/"+TensorflowCheckpointTrainer.MODEL_FILENAME).toString())) {
-            // Initialises the parameters.
-            session.runner().feed("save/Const", checkpointPrefix).addTarget("save/restore_all").run();
-        }
+        session.restore(checkpointDirectory);
     }
 }

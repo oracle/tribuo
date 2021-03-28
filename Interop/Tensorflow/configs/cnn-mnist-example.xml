@@ -22,7 +22,7 @@
 -->
 
 <config>
-    <component name="cnn" type="org.tribuo.interop.tensorflow.TensorflowTrainer">
+    <component name="cnn" type="org.tribuo.interop.tensorflow.TFTrainer">
         <property name="graphPath" value="./configs/cnn-mnist-graph.pb"/>
         <property name="exampleTransformer" value="imageTransformer"/>
         <property name="outputTransformer" value="labelTransformer"/>

@@ -108,7 +108,7 @@ public class ImageTransformerTest {
         float[][][] output;
 
         // 3,3,2
-        ImageTransformer<MockOutput> first = new ImageTransformer<>(3,3,2);
+        ImageTransformer<MockOutput> first = new ImageTransformer<>("test",3,3,2);
         float[] flat = first.innerTransform(e,fmap);
         output = new float[3][3][2];
         reshape(flat,output,0);
@@ -132,7 +132,7 @@ public class ImageTransformerTest {
         assertEquals(17, output[2][2][1], 1e-10);
 
         // 3,2,3
-        ImageTransformer<MockOutput> second = new ImageTransformer<>(3,2,3);
+        ImageTransformer<MockOutput> second = new ImageTransformer<>("test",3,2,3);
         flat = second.innerTransform(e,fmap);
         output = new float[3][2][3];
         reshape(flat,output,0);
@@ -156,7 +156,7 @@ public class ImageTransformerTest {
         assertEquals(17, output[2][1][2],1e-10);
 
         // 3,2,3
-        ImageTransformer<MockOutput> third = new ImageTransformer<>(2,3,3);
+        ImageTransformer<MockOutput> third = new ImageTransformer<>("test",2,3,3);
         flat = third.innerTransform(e,fmap);
         output = new float[3][2][3];
         reshape(flat,output,0);

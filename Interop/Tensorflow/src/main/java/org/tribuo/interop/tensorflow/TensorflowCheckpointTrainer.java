@@ -28,7 +28,6 @@ import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TBool;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TInt32;
-import org.tensorflow.types.TString;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -36,7 +35,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Trainer;
-import org.tribuo.interop.tensorflow.TensorflowTrainer.TensorflowTrainerProvenance;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.SkeletalTrainerProvenance;
 import org.tribuo.provenance.TrainerProvenance;
@@ -47,7 +45,6 @@ import org.tensorflow.Tensor;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -58,25 +55,26 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.tribuo.interop.tensorflow.TFModel.INPUT_NAME;
+
 /**
  * Trainer for Tensorflow. Expects the underlying Tensorflow graph to have specific placeholders and
- * targets listed below.
+ * targets listed below. The input name is specified in the {@link ExampleTransformer}.
  *
  * <ul>
- * <li>{@link TensorflowModel#INPUT_NAME} - the input minibatch.</li>
- * <li>{@link TensorflowModel#OUTPUT_NAME} - the predicted output.</li>
- * <li>{@link TensorflowTrainer#TARGET} - the output to predict.</li>
- * <li>{@link TensorflowTrainer#TRAIN} - the train function to run (usually a single step of SGD).</li>
- * <li>{@link TensorflowTrainer#TRAINING_LOSS} - the loss tensor to extract for logging.</li>
- * <li>{@link TensorflowTrainer#EPOCH} - the current epoch number, used for gradient scaling.</li>
- * <li>{@link TensorflowTrainer#IS_TRAINING} - a boolean placeholder to turn on dropout or other training specific functionality.</li>
- * <li>{@link TensorflowTrainer#INIT} - the function to initialise the graph.</li>
+ * <li>{@link TensorflowCheckpointTrainer#OUTPUT_NAME} - the predicted output.</li>
+ * <li>{@link TensorflowCheckpointTrainer#TARGET} - the output to predict.</li>
+ * <li>{@link TensorflowCheckpointTrainer#TRAIN} - the train function to run (usually a single step of SGD).</li>
+ * <li>{@link TensorflowCheckpointTrainer#TRAINING_LOSS} - the loss tensor to extract for logging.</li>
+ * <li>{@link TensorflowCheckpointTrainer#EPOCH} - the current epoch number, used for gradient scaling.</li>
+ * <li>{@link TensorflowCheckpointTrainer#IS_TRAINING} - a boolean placeholder to turn on dropout or other training specific functionality.</li>
+ * <li>{@link TensorflowCheckpointTrainer#INIT} - the function to initialise the graph.</li>
  * </ul>
  *
  * This trainer only works with graphs setup for minibatches. To recover single example training just use a batch size of 1.
  * <p>
  * This trainer uses the native Tensorflow serialisation functionality and saves to a checkpoint on disk. It's much more
- * fragile than the {@link TensorflowTrainer}.
+ * fragile than the {@link TFTrainer}.
  * </p>
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
@@ -86,6 +84,14 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
     private static final Logger logger = Logger.getLogger(TensorflowCheckpointTrainer.class.getName());
 
     public static final String MODEL_FILENAME = "model";
+
+    public static final String OUTPUT_NAME = "output";
+    public static final String TARGET = "target";
+    public static final String TRAIN = "train";
+    public static final String TRAINING_LOSS = "training_loss";
+    public static final String EPOCH = "epoch";
+    public static final String IS_TRAINING = "is_training";
+    public static final String INIT = "init";
 
     @Config(mandatory=true,description="Path to the protobuf containing the graph.")
     private Path graphPath;
@@ -163,7 +169,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
             graph.importGraphDef(graphDef);
 
             // Initialises the parameters.
-            session.runner().addTarget(TensorflowTrainer.INIT).run();
+            session.runner().addTarget(INIT).run();
             logger.info("Initialised the model parameters");
 
             int interval = 0;
@@ -176,15 +182,14 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
                         batch.add(examples.getExample(k));
                     }
                     //logger.info("Batch = " + batch.size());
-                    Tensor input = exampleTransformer.transform(batch, featureMap);
+                    ExampleTransformer.FeedDict input = exampleTransformer.transform(batch, featureMap);
                     Tensor target = outputTransformer.transform(batch, outputInfo);
-                    Tensor loss = session.runner()
-                            .feed(TensorflowModel.INPUT_NAME, input)
-                            .feed(TensorflowTrainer.TARGET, target)
-                            .feed(TensorflowTrainer.EPOCH, epoch)
-                            .feed(TensorflowTrainer.IS_TRAINING, isTraining)
-                            .addTarget(TensorflowTrainer.TRAIN)
-                            .fetch(TensorflowTrainer.TRAINING_LOSS)
+                    Tensor loss = input.feedInto(session.runner())
+                            .feed(TARGET, target)
+                            .feed(EPOCH, epoch)
+                            .feed(IS_TRAINING, isTraining)
+                            .addTarget(TRAIN)
+                            .fetch(TRAINING_LOSS)
                             .run().get(0);
                     if (interval % loggingInterval == 0) {
                         logger.log(Level.INFO, "Training loss = " + ((TFloat32) loss).getFloat(0));
@@ -268,8 +273,8 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
 
         protected static ExtractedInfo extractTFProvenanceInfo(Map<String,Provenance> map) {
             ExtractedInfo info = SkeletalTrainerProvenance.extractProvenanceInfo(map);
-            info.instanceValues.put(GRAPH_HASH, ObjectProvenance.checkAndExtractProvenance(map,GRAPH_HASH,HashProvenance.class, TensorflowTrainerProvenance.class.getSimpleName()));
-            info.instanceValues.put(GRAPH_LAST_MOD,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_LAST_MOD,DateTimeProvenance.class,TensorflowTrainerProvenance.class.getSimpleName()));
+            info.instanceValues.put(GRAPH_HASH, ObjectProvenance.checkAndExtractProvenance(map,GRAPH_HASH,HashProvenance.class, TensorflowCheckpointTrainerProvenance.class.getSimpleName()));
+            info.instanceValues.put(GRAPH_LAST_MOD,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_LAST_MOD,DateTimeProvenance.class,TensorflowCheckpointTrainerProvenance.class.getSimpleName()));
             return info;
         }
     }

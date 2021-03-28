@@ -45,6 +45,9 @@ import java.util.List;
 public class ImageTransformer<T extends Output<T>> implements ExampleTransformer<T> {
     private static final long serialVersionUID = 1L;
 
+    @Config(mandatory=true,description="Input name.")
+    private String inputName;
+
     @Config(mandatory=true,description="Image width.")
     private int width;
 
@@ -63,18 +66,23 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
 
     /**
      * Builds an image transformer for images of the supplied size.
+     * @param inputName The input name.
      * @param width The image width.
      * @param height The image height.
      * @param channels The number of colour channels.
      */
-    public ImageTransformer(int width, int height, int channels) {
+    public ImageTransformer(String inputName, int width, int height, int channels) {
         if (width < 1 || height < 1 || channels < 1) {
             throw new IllegalArgumentException("Inputs must be positive integers, found ["+width+","+height+","+channels+"]");
+        }
+        if (inputName == null || inputName.isEmpty()) {
+            throw new IllegalArgumentException("The input name must be a valid String");
         }
         long values = ((long)width)*height*channels;
         if (values > Integer.MAX_VALUE) {
             throw new IllegalArgumentException("Image size must be less than 2^31, found " + values);
         }
+        this.inputName = inputName;
         this.totalPixels = (int) values;
         this.width = width;
         this.height = height;
@@ -103,9 +111,9 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 3d tensor, (width, height, channels) for this example.
      */
     @Override
-    public Tensor transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public FeedDict transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
         float[] image = innerTransform(example,featureIDMap);
-        return TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image));
+        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
     }
 
     /**
@@ -158,7 +166,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 4d tensor, (batch-id, width, height, channels) for this example.
      */
     @Override
-    public Tensor transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public FeedDict transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),width,height,channels));
 
         int i = 0;
@@ -168,17 +176,17 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return output;
+        return new FeedDict(inputName,output);
     }
 
     @Override
-    public Tensor transform(SGDVector vector) {
+    public FeedDict transform(SGDVector vector) {
         float[] image = innerTransform(vector);
-        return TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image));
+        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
     }
 
     @Override
-    public Tensor transform(List<? extends SGDVector> vectors) {
+    public FeedDict transform(List<? extends SGDVector> vectors) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),width,height,channels));
 
         int i = 0;
@@ -188,7 +196,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return output;
+        return new FeedDict(inputName,output);
     }
 
     @Override

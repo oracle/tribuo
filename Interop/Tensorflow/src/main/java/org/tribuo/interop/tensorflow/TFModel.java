@@ -41,10 +41,9 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * This model encapsulates a simple model with a single input tensor (labelled {@link TFModel#INPUT_NAME}),
- * and produces a single output tensor (labelled {@link TFModel#OUTPUT_NAME}).
+ * This model encapsulates a TensorFlow model running in graph mode with a single tensor output.
  * <p>
- * It accepts an {@link ExampleTransformer} that converts an example's features into a {@link Tensor}, and an
+ * It accepts an {@link ExampleTransformer} that converts an example's features into a set of {@link Tensor}s, and an
  * {@link OutputTransformer} that converts a {@link Tensor} into a {@link Prediction}.
  * <p>
  * The model's serialVersionUID is set to the major Tensorflow version number times 100.
@@ -67,15 +66,13 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
 
     private final String initName;
 
-    private final String inputName;
-
     private final String outputName;
 
     private final ExampleTransformer<T> exampleTransformer;
 
     private final OutputTransformer<T> outputTransformer;
 
-    TFModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorflowUtil.TensorTuple> tensorMap, int batchSize, String initName, String inputName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
+    TFModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorflowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, description, featureIDMap, outputIDMap, outputTransformer.generatesProbabilities());
         this.exampleTransformer = exampleTransformer;
         this.outputTransformer = outputTransformer;
@@ -84,7 +81,6 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         this.session = new Session(modelGraph);
         this.batchSize = batchSize;
         this.initName = initName;
-        this.inputName = inputName;
         this.outputName = outputName;
         // Initialises the parameters.
         session.runner().addTarget(initName).run();
@@ -96,9 +92,8 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
-        try (Tensor transformedInput = exampleTransformer.transform(vec);
-             Tensor outputTensor = session.runner()
-                     .feed(inputName,transformedInput)
+        try (ExampleTransformer.FeedDict transformedInput = exampleTransformer.transform(vec);
+             Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a Prediction.
             return outputTransformer.transformToPrediction(outputTensor,outputIDInfo,vec.numActiveElements(),example);
@@ -136,9 +131,8 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         }
 
         // Send a batch to Tensorflow
-        try (Tensor transformedInput = exampleTransformer.transform(vectors);
-             Tensor outputTensor = session.runner()
-                     .feed(inputName,transformedInput)
+        try (ExampleTransformer.FeedDict transformedInput = exampleTransformer.transform(vectors);
+             Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a list of Predictions.
             return outputTransformer.transformToBatchPrediction(outputTensor,outputIDInfo,numActiveElements,batchExamples);
@@ -193,7 +187,7 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
 
     @Override
     protected TFModel<T> copy(String newName, ModelProvenance newProvenance) {
-        return new TFModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),TensorflowUtil.serialise(modelGraph,session),batchSize,initName,inputName,outputName,exampleTransformer,outputTransformer);
+        return new TFModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),TensorflowUtil.serialise(modelGraph,session),batchSize,initName,outputName,exampleTransformer,outputTransformer);
     }
 
     @Override

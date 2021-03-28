@@ -95,6 +95,8 @@ public class TrainTest {
         public int batchSize = 128;
         @Option(charName='e',longName="num-epochs",usage="Number of gradient descent epochs.")
         public int epochs = 5;
+        @Option(charName='n',longName="input-name",usage="Name of the input placeholder.")
+        public String inputName;
         @Option(charName='i',longName="image-format",usage="Image format, in [W,H,C]. Defaults to MNIST.")
         public String imageFormat = "28,28,1";
         @Option(charName='t',longName="input-type",usage="Input type.")
@@ -144,10 +146,10 @@ public class TrainTest {
                 int width = Integer.parseInt(splitFormat[0]);
                 int height = Integer.parseInt(splitFormat[1]);
                 int channels = Integer.parseInt(splitFormat[2]);
-                inputTransformer = new ImageTransformer<>(width,height,channels);
+                inputTransformer = new ImageTransformer<>(o.inputName,width,height,channels);
                 break;
             case DENSE:
-                inputTransformer = new DenseTransformer<>();
+                inputTransformer = new DenseTransformer<>(o.inputName);
                 break;
             default:
                 logger.info(cm.usage());
@@ -160,7 +162,7 @@ public class TrainTest {
         Trainer<Label> trainer;
         if (o.checkpointPath == null) {
             logger.info("Using TensorflowTrainer");
-            trainer = new TensorflowTrainer<>(o.protobufPath, inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize);
+            trainer = new TFTrainer<>(o.protobufPath, inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize);
         } else {
             logger.info("Using TensorflowCheckpointTrainer, writing to path " + o.checkpointPath);
             trainer = new TensorflowCheckpointTrainer<>(o.protobufPath, o.checkpointPath, inputTransformer, labelTransformer, o.batchSize, o.epochs);
@@ -190,7 +192,7 @@ public class TrainTest {
         }
 
         if (o.checkpointPath == null) {
-            ((TensorflowModel<?>) model).close();
+            ((TFModel<?>) model).close();
         } else {
             ((TensorflowCheckpointModel<?>) model).close();
         }

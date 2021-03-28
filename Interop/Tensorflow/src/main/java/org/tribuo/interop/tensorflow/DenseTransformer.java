@@ -16,6 +16,7 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tensorflow.ndarray.NdArrays;
@@ -53,7 +54,21 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
 
     private int warningCount = 0;
 
-    public DenseTransformer() { }
+    @Config(mandatory=true,description="Input name.")
+    private String inputName;
+
+    /**
+     * For OLCUT.
+     */
+    private DenseTransformer() {}
+
+    /**
+     * Builds a DenseTransformer, setting the input name.
+     * @param inputName The placeholder input name.
+     */
+    public DenseTransformer(String inputName) {
+        this.inputName = inputName;
+    }
 
     float[] innerTransform(Example<T> example, ImmutableFeatureMap featureIDMap) {
         if ((warningCount < WARNING_THRESHOLD) && (featureIDMap.size() > THRESHOLD)) {
@@ -95,13 +110,13 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
     }
 
     @Override
-    public Tensor transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public FeedDict transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
         float[] output = innerTransform(example,featureIDMap);
-        return TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output));
+        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
     }
 
     @Override
-    public Tensor transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public FeedDict transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),featureIDMap.size()));
 
         int i = 0;
@@ -111,17 +126,17 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return output;
+        return new FeedDict(inputName,output);
     }
 
     @Override
-    public Tensor transform(SGDVector vector) {
+    public FeedDict transform(SGDVector vector) {
         float[] output = innerTransform(vector);
-        return TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output));
+        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
     }
 
     @Override
-    public Tensor transform(List<? extends SGDVector> vectors) {
+    public FeedDict transform(List<? extends SGDVector> vectors) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),vectors.get(0).size()));
 
         int i = 0;
@@ -131,7 +146,7 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return output;
+        return new FeedDict(inputName,output);
     }
 
     @Override

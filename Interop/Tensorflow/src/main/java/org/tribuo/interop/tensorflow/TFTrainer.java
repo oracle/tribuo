@@ -37,7 +37,6 @@ import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.family.TNumber;
-import org.tensorflow.types.family.TType;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -63,16 +62,15 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.tribuo.interop.tensorflow.TensorflowModel.INPUT_NAME;
-import static org.tribuo.interop.tensorflow.TensorflowModel.OUTPUT_NAME;
+import static org.tribuo.interop.tensorflow.TensorflowCheckpointTrainer.OUTPUT_NAME;
 
 /**
  * Trainer for Tensorflow. Expects the underlying Tensorflow graph to have specific placeholders and
  * targets listed below.
  *
  * <ul>
- * <li>{@link TensorflowModel#INPUT_NAME} - the input minibatch.</li>
- * <li>{@link TensorflowModel#OUTPUT_NAME} - the predicted output.</li>
+ * <li>{@link TensorflowCheckpointTrainer#INPUT_NAME} - the input minibatch.</li>
+ * <li>{@link TensorflowCheckpointTrainer#OUTPUT_NAME} - the predicted output.</li>
  * </ul>
  *
  * This trainer only works with graphs setup for minibatches. To recover single example training just use a batch size of 1.
@@ -92,9 +90,6 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Config(description="Test time batch size.")
     private int testBatchSize = 16;
-
-    @Config(description = "Name of the input placeholder.")
-    private String inputName = INPUT_NAME;
 
     @Config(description="Name of the output operation before the loss.")
     private String outputName = OUTPUT_NAME;
@@ -160,7 +155,6 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
      * @param testBatchSize The minibatch size to use at test time.
      */
     public TFTrainer(Graph graph,
-                     String inputName,
                      String outputName,
                      String initName,
                      GradientOptimiser optimizer,
@@ -172,7 +166,6 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
                      int testBatchSize) {
         this.graphPath = null;
         this.graphDef = graph.toGraphDef();
-        this.inputName = inputName;
         this.outputName = outputName;
         this.initName = initName;
         this.optimizerEnum = optimizer;
@@ -205,9 +198,8 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
             graph.importGraphDef(graphDef);
             Ops tf = Ops.create(graph).withName("tribuo-internal");
 
-            // Lookup input and output ops
+            // Lookup output op
             Operand<TNumber> intermediateOutputOp = graph.operation(outputName).output(0);
-            Operand<TType> inputOp = graph.operation(inputName).output(0);
 
             // Add target placeholder
             Placeholder<TNumber> targetPlaceholder = tf.placeholder(outputTransformer.placeholderType(),Placeholder.shape(Shape.of(minibatchSize,outputInfo.size())));
@@ -235,10 +227,9 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
                         batch.add(examples.getExample(k));
                     }
                     //logger.info("Batch = " + batch.size());
-                    Tensor input = exampleTransformer.transform(batch,featureMap);
+                    ExampleTransformer.FeedDict input = exampleTransformer.transform(batch,featureMap);
                     Tensor target = outputTransformer.transform(batch,outputInfo);
-                    Tensor lossTensor = session.runner()
-                            .feed(inputOp, input)
+                    Tensor lossTensor = input.feedInto(session.runner())
                             .feed(targetPlaceholder, target)
                             .addTarget(optimizer)
                             .fetch(lossOp)
@@ -263,9 +254,9 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
 
             Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(graph,session);
 
-            ModelProvenance modelProvenance = new ModelProvenance(TensorflowModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
+            ModelProvenance modelProvenance = new ModelProvenance(TFModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
             TFModel<T> tfModel = new TFModel<>("tf-model", modelProvenance, featureMap,
-                    outputInfo, trainedGraphDef, tensorMap, testBatchSize, initName, inputName, outputOp.op().name(), exampleTransformer, outputTransformer);
+                    outputInfo, trainedGraphDef, tensorMap, testBatchSize, initName, outputOp.op().name(), exampleTransformer, outputTransformer);
             return tfModel;
         } catch (TensorFlowException e) {
             logger.log(Level.SEVERE, "TensorFlow threw an error", e);
@@ -276,7 +267,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     @Override
     public String toString() {
         String path = graphPath==null?"":graphPath.toString();
-        return "TensorflowTrainer(graphPath="+path+",exampleTransformer="
+        return "TFTrainer(graphPath="+path+",exampleTransformer="
                 +exampleTransformer.toString()+",outputTransformer="+outputTransformer.toString()
                 +",minibatchSize="+ minibatchSize +",epochs="+ epochs +")";
     }
@@ -288,10 +279,10 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Override
     public TrainerProvenance getProvenance() {
-        return new TensorflowTrainerProvenance(this);
+        return new TFTrainerProvenance(this);
     }
 
-    public static final class TensorflowTrainerProvenance extends SkeletalTrainerProvenance {
+    public static final class TFTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 
         public static final String GRAPH_HASH = "graph-hash";
@@ -300,38 +291,26 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
         private final HashProvenance graphHash;
         private final DateTimeProvenance graphLastModified;
 
-        <T extends Output<T>> TensorflowTrainerProvenance(TFTrainer<T> host) {
+        <T extends Output<T>> TFTrainerProvenance(TFTrainer<T> host) {
             super(host);
             // instance parameters
             if (host.graphPath != null) {
                 this.graphHash = new HashProvenance(DEFAULT_HASH_TYPE,GRAPH_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.graphPath));
                 this.graphLastModified = new DateTimeProvenance(GRAPH_LAST_MOD, OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.graphPath.toFile().lastModified()), ZoneId.systemDefault()));
             } else {
-                this.graphHash = new HashProvenance(DEFAULT_HASH_TYPE,GRAPH_HASH,hashArray(DEFAULT_HASH_TYPE,host.graphDef.toByteArray()));
+                this.graphHash = new HashProvenance(DEFAULT_HASH_TYPE,GRAPH_HASH,ProvenanceUtil.hashArray(DEFAULT_HASH_TYPE,host.graphDef.toByteArray()));
                 this.graphLastModified = new DateTimeProvenance(GRAPH_LAST_MOD, OffsetDateTime.now());
             }
         }
 
-        public TensorflowTrainerProvenance(Map<String,Provenance> map) {
+        public TFTrainerProvenance(Map<String,Provenance> map) {
             this(extractTFProvenanceInfo(map));
         }
 
-        private TensorflowTrainerProvenance(ExtractedInfo info) {
+        private TFTrainerProvenance(ExtractedInfo info) {
             super(info);
             this.graphHash = (HashProvenance) info.instanceValues.get(GRAPH_HASH);
             this.graphLastModified = (DateTimeProvenance) info.instanceValues.get(GRAPH_LAST_MOD);
-        }
-
-        /**
-         * Hashes a byte array using the specified {@link ProvenanceUtil.HashType}.
-         * @param hashType The type of hash to perform.
-         * @param input The input array.
-         * @return A hexadecimal string representation of the hash.
-         */
-        private static String hashArray(ProvenanceUtil.HashType hashType, byte[] input) {
-            java.security.MessageDigest md = hashType.getDigest();
-            md.update(input);
-            return ProvenanceUtil.bytesToHexString(md.digest());
         }
 
         @Override
@@ -346,8 +325,8 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
 
         protected static ExtractedInfo extractTFProvenanceInfo(Map<String,Provenance> map) {
             ExtractedInfo info = SkeletalTrainerProvenance.extractProvenanceInfo(map);
-            info.instanceValues.put(GRAPH_HASH,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_HASH,HashProvenance.class,TensorflowTrainerProvenance.class.getSimpleName()));
-            info.instanceValues.put(GRAPH_LAST_MOD,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_LAST_MOD,DateTimeProvenance.class,TensorflowTrainerProvenance.class.getSimpleName()));
+            info.instanceValues.put(GRAPH_HASH,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_HASH,HashProvenance.class, TFTrainerProvenance.class.getSimpleName()));
+            info.instanceValues.put(GRAPH_LAST_MOD,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_LAST_MOD,DateTimeProvenance.class, TFTrainerProvenance.class.getSimpleName()));
             return info;
         }
     }

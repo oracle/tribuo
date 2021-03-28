@@ -33,7 +33,6 @@ import org.tensorflow.op.nn.MaxPool;
 import org.tensorflow.op.nn.Relu;
 import org.tensorflow.op.random.TruncatedNormal;
 import org.tensorflow.types.TFloat32;
-import org.tensorflow.types.TUint8;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
@@ -43,7 +42,6 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.datasource.IDXDataSource;
-import org.tribuo.datasource.LibSVMDataSource;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -51,15 +49,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.tribuo.interop.tensorflow.TensorflowModel.INPUT_NAME;
-
 public class TFTrainerTest {
 
     private static final int PIXEL_DEPTH = 255;
     private static final int IMAGE_SIZE = 28;
     private static final int NUM_LABELS = 10;
     private static final String PADDING_TYPE = "SAME";
-
+    private static final String INPUT_NAME = "inputplaceholder";
 
     public static Pair<Graph, String> buildGraph() {
         Graph graph = new Graph();
@@ -126,17 +122,27 @@ public class TFTrainerTest {
 
     @Test
     public void testCNN() throws IOException {
+        LabelFactory labelFactory = new LabelFactory();
+        String base = "./tutorials/";
+
+        System.out.println("Loading data");
+        IDXDataSource<Label> trainMNIST = new IDXDataSource<>(Paths.get(base,"train-images-idx3-ubyte.gz"),Paths.get(base,"train-labels-idx1-ubyte.gz"),labelFactory);
+        IDXDataSource<Label> testMNIST = new IDXDataSource<>(Paths.get(base,"t10k-images-idx3-ubyte.gz"),Paths.get(base,"t10k-labels-idx1-ubyte.gz"),labelFactory);
+
+        Dataset<Label> train = new MutableDataset<>(trainMNIST);
+        Dataset<Label> test = new MutableDataset<>(testMNIST);
+
+        System.out.println("Building graph");
         Pair<Graph, String> p = buildGraph();
 
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0f);
 
-        ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(28, 28, 1);
+        ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 28, 28, 1);
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
 
         TFTrainer<Label> trainer = new TFTrainer<>(p.getA(),
-                INPUT_NAME,
                 p.getB(),
                 Init.DEFAULT_NAME,
                 GradientOptimiser.ADAGRAD,
@@ -146,15 +152,6 @@ public class TFTrainerTest {
                 16,
                 2,
                 16);
-
-        LabelFactory labelFactory = new LabelFactory();
-        String base = "/Users/apocock/Development/Tribuo/tutorials/";
-        System.out.println("Loading data");
-        IDXDataSource<Label> trainMNIST = new IDXDataSource<>(Paths.get(base,"train-images-idx3-ubyte.gz"),Paths.get(base,"train-labels-idx1-ubyte.gz"),labelFactory);
-        IDXDataSource<Label> testMNIST = new IDXDataSource<>(Paths.get(base,"t10k-images-idx3-ubyte.gz"),Paths.get(base,"t10k-labels-idx1-ubyte.gz"),labelFactory);
-
-        Dataset<Label> train = new MutableDataset<>(trainMNIST);
-        Dataset<Label> test = new MutableDataset<>(testMNIST);
 
         System.out.println("Training model");
         Model<Label> model = trainer.train(train);

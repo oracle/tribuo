@@ -19,6 +19,8 @@ package org.tribuo.interop.tensorflow;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import org.tensorflow.Session;
+import org.tensorflow.types.family.TType;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
@@ -27,51 +29,100 @@ import org.tribuo.math.la.SparseVector;
 import org.tensorflow.Tensor;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * TensorFlow support is experimental, and may change without a major version bump.
  * <p>
- * Transforms an {@link Example}, extracting the features from it as a {@link Tensor}.
+ * Transforms an {@link Example}, extracting the features from it as a {@link FeedDict}.
  * <p>
  * This usually densifies the example, so can be a lot larger than the input example.
  */
 public interface ExampleTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
-     * Converts an {@link Example} into a {@link Tensor} suitable for supplying as an input to a graph.
+     * Converts an {@link Example} into a {@link FeedDict} suitable for supplying as an input to a graph.
      * <p>
      * It generates it as a single example minibatch.
      * @param example The example to convert.
      * @param featureIDMap The id map to convert feature names into id numbers.
-     * @return A dense Tensor representing this example.
+     * @return A FeedDict representing the features in this example.
      */
-    public Tensor transform(Example<T> example, ImmutableFeatureMap featureIDMap);
+    public FeedDict transform(Example<T> example, ImmutableFeatureMap featureIDMap);
 
     /**
-     * Converts a batch of {@link Example}s into a single {@link Tensor} suitable for supplying as
+     * Converts a batch of {@link Example}s into a single {@link FeedDict} suitable for supplying as
      * an input to a graph.
      * @param example The examples to convert.
      * @param featureIDMap THe id map to convert feature names into id numbers.
-     * @return A dense Tensor representing this minibatch.
+     * @return A FeedDict representing the features in this minibatch.
      */
-    public Tensor transform(List<Example<T>> example, ImmutableFeatureMap featureIDMap);
+    public FeedDict transform(List<Example<T>> example, ImmutableFeatureMap featureIDMap);
 
     /**
-     * Converts a {@link SGDVector} representing the features into a {@link Tensor}.
+     * Converts a {@link SGDVector} representing the features into a {@link FeedDict}.
      * <p>
      * It generates it as a single example minibatch.
      * @param vector The features to convert.
-     * @return A dense Tensor representing this vector.
+     * @return A FeedDict representing this vector.
      */
-    public Tensor transform(SGDVector vector);
+    public FeedDict transform(SGDVector vector);
 
     /**
-     * Converts a list of {@link SGDVector}s representing a batch of features into a {@link Tensor}.
+     * Converts a list of {@link SGDVector}s representing a batch of features into a {@link FeedDict}.
      * <p>
      * @param vectors The batch of features to convert.
-     * @return A dense Tensor representing this minibatch.
+     * @return A FeedDict representing this minibatch.
      */
-    public Tensor transform(List<? extends SGDVector> vectors);
+    public FeedDict transform(List<? extends SGDVector> vectors);
+
+    /**
+     * A map of names and tensors to feed into a session.
+     */
+    public static class FeedDict implements AutoCloseable {
+        private final Map<String, TType> map;
+        private boolean isClosed;
+
+        public FeedDict(String inputName, TType value) {
+            Map<String,TType> tmp = new HashMap<>(1);
+            tmp.put(inputName,value);
+            this.map = Collections.unmodifiableMap(tmp);
+            this.isClosed = false;
+        }
+
+        public FeedDict(Map<String, TType> map) {
+            this.map = Collections.unmodifiableMap(map);
+            this.isClosed = false;
+        }
+
+        public Map<String, TType> getMap() {
+            return map;
+        }
+
+        /**
+         * Feeds the tensors in this FeedDict into the runner.
+         * @param runner The session runner.
+         * @return
+         */
+        public Session.Runner feedInto(Session.Runner runner) {
+            if (isClosed) {
+                throw new IllegalStateException("Can't feed closed Tensors into a Runner.");
+            }
+            for (Map.Entry<String,TType> e : map.entrySet()) {
+                runner.feed(e.getKey(),e.getValue());
+            }
+            return runner;
+        }
+
+        public void close() {
+            isClosed = true;
+            for (TType t : map.values()) {
+                t.close();
+            }
+        }
+    }
 
 }
