@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  * to apply to each {@link Dataset} before training each {@link Model}.
  * <p>
  * By default transformations only operate on explicit feature values. To include implicit zeros
- * in transformation fitting then set {@code includeImplicitZeroFeatures}, and to convert implicit
+ * in transformation fitting set {@code includeImplicitZeroFeatures}. To convert implicit
  * zeros to explicit zeros before applying the transformations set {@code densify}.
  */
 public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
