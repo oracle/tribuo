@@ -56,23 +56,18 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.tribuo.interop.tensorflow.TensorflowCheckpointTrainer.OUTPUT_NAME;
-
 /**
- * Trainer for Tensorflow. Expects the underlying Tensorflow graph to have specific placeholders and
- * targets listed below.
- *
- * <ul>
- * <li>{@link TensorflowCheckpointTrainer#INPUT_NAME} - the input minibatch.</li>
- * <li>{@link TensorflowCheckpointTrainer#OUTPUT_NAME} - the predicted output.</li>
- * </ul>
- *
+ * Trainer for Tensorflow. Expects the underlying Tensorflow graph to have named placeholders for
+ * the inputs, ground truth outputs and a named output operation. The output operation should be
+ * before any softmax or sigmoid non-linearities to allow the use of more optimized loss functions.
+ * <p>
  * This trainer only works with graphs setup for minibatches. To recover single example training just use a batch size of 1.
  * <p>
  * This trainer uses the serialisation functionality in {@link TensorflowUtil}, as opposed to a SavedModel or a checkpoint.
@@ -92,7 +87,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     private int testBatchSize = 16;
 
     @Config(description="Name of the output operation before the loss.")
-    private String outputName = OUTPUT_NAME;
+    private String outputName = TensorflowCheckpointTrainer.OUTPUT_NAME;
 
     @Config(description="Name of the init operation.")
     private String initName = Init.DEFAULT_NAME;
@@ -175,6 +170,10 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
         this.minibatchSize = minibatchSize;
         this.epochs = epochs;
         this.testBatchSize = testBatchSize;
+        Shape outputShape = graph.operation(outputName).output(0).shape();
+        if (outputShape.numDimensions() != 2) {
+            throw new IllegalArgumentException("Expected a 2 dimensional output, found " + Arrays.toString(outputShape.asArray()));
+        }
     }
 
     /**
@@ -201,6 +200,13 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
             // Lookup output op
             Operand<TNumber> intermediateOutputOp = graph.operation(outputName).output(0);
 
+            // Validate that the output op is the right shape
+            Shape outputShape = intermediateOutputOp.shape();
+            Shape expectedShape = Shape.of(minibatchSize,outputInfo.size());
+            if (!outputShape.isCompatibleWith(expectedShape)) {
+                throw new IllegalArgumentException("Incompatible output shape, expected " + expectedShape.toString() + " found " + outputShape.toString());
+            }
+
             // Add target placeholder
             Placeholder<TNumber> targetPlaceholder = tf.placeholder(outputTransformer.placeholderType(),Placeholder.shape(Shape.of(minibatchSize,outputInfo.size())));
 
@@ -208,7 +214,6 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
             Op outputOp = outputTransformer.outputTransformFunction().apply(tf,intermediateOutputOp);
             Operand<TNumber> lossOp = outputTransformer.loss().apply(tf,new Pair<>(targetPlaceholder,intermediateOutputOp));
             Op optimizer = optimizerEnum.applyOptimizer(graph,lossOp,gradientParams);
-
             Init tribuoInit = tf.init();
 
             // Initialises the parameters.
