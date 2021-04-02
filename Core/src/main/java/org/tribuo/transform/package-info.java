@@ -31,7 +31,7 @@
  * {@link org.tribuo.transform.TransformedModel} which automatically transforms it's input data at
  * prediction time.
  * <p>
- * Transformations don't produces new {@link org.tribuo.Feature}s - they only modify the values of existing ones.
+ * Transformations don't produce new {@link org.tribuo.Feature}s - they only modify the values of existing ones.
  * When doing so they can be instructed to treat Features that are absent due to sparsity as zero or as
  * not existing at all. Independently, we can explicitly add zero-valued Features by densifying the dataset
  * before the transformation is fit or before it is applied. Once they exist these Features can be altered by
