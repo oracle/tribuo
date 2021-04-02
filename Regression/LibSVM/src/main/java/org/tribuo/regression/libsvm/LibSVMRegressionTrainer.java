@@ -174,7 +174,7 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
     }
 
     /**
-     * Wrapper class to pass the means & variances through with the svm_models
+     * Wrapper class to pass the means and variances through with the svm_models
      * <p>
      * Should not be persisted outside of the trainer.
      */
