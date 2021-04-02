@@ -246,6 +246,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * Tribuo 4.0, but causes erroneous behaviour in
      * {@link org.tribuo.transform.transformations.IDFTransformation} so should be
      * avoided with that transformation.
+     * See {@link org.tribuo.transform} for a more detailed discussion of densify and includeImplicitZeroFeatures.
      * <p>
      * Throws {@link IllegalArgumentException} if the TransformationMap object has
      * regexes which apply to multiple features.
@@ -266,6 +267,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * TransformerMaps operate on feature values which are present, sparse values
      * are ignored and not transformed. If the zeros should be transformed, call
      * {@link MutableDataset#densify} on the datasets before applying a transformer.
+     * See {@link org.tribuo.transform} for a more detailed discussion of densify and includeImplicitZeroFeatures.
      * <p>
      * Throws {@link IllegalArgumentException} if the TransformationMap object has
      * regexes which apply to multiple features.

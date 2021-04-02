@@ -30,5 +30,28 @@
  * TransformationMap and an inner {@link org.tribuo.Trainer} and produces a
  * {@link org.tribuo.transform.TransformedModel} which automatically transforms it's input data at
  * prediction time.
+ * <p>
+ * The transformation fitting methods have two parameters which alter their behaviour: {@code includeImplicitZeroFeatures}
+ * and {@code densify}. {@code includeImplicitZeroFeatures} controls if the transformation incorporates the implicit zero
+ * valued features (i.e., the ones not present in the example) when building the transformation statistics. This is
+ * important when working with {@link org.tribuo.transform.transformations.IDFTransformation} as it allows correct
+ * computation of the inverse document frequency, but can be detrimental to features which are one-hot encodings of
+ * categoricals (as they have many more implicit zeros). {@code densify} controls if the example or dataset should have
+ * it's implicit zero valued features converted into explicit zero valued features (i.e., it makes a sparse example into
+ * a dense one which contains an explicit value for every feature) before the transformation is applied, and
+ * transformations are only applied to feature values which are present.
+ * <p>
+ * These parameters interact to form 4 possibilities:
+ * <ul>
+ *     <li>Both false: transformations are only fit on explicit feature values, and only applied to explicit feature values</li>
+ *     <li>Both true: transformations include explicit features and implicit zeros, and implicit zeros are converted into explicit zeros and transformed</li>
+ *     <li>{@code includeImplicitZeroFeatures} is true, {@code densify} is false: the implicit zeroes are used to fit
+ *     the transformation, but not modified when the transformation is applied. This is most useful when working with
+ *     text data where you want to compute IDF style statistics</li>
+ *     <li>{@code includeImplicitZeroFeatures} is false, {@code densify} is true: the implicit zeros are not used to
+ *     fit the transformation, but are converted to explicit zeros and transformed. This is less useful than the other
+ *     three combinations, but could be used to move the minimum value, or when zero is not appropriate for a missing
+ *     value and needs to be transformed.</li>
+ * </ul>
  */
 package org.tribuo.transform;

@@ -49,6 +49,7 @@ import java.util.logging.Logger;
  * <p>
  * Transformations only operate on observed values. To operate on implicit zeros then
  * first call {@link MutableDataset#densify} on the datasets.
+ * See {@link org.tribuo.transform} for a more detailed discussion of densify.
  */
 public final class TransformerMap implements Provenancable<TransformerMapProvenance>, Serializable {
     

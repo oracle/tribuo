@@ -38,6 +38,7 @@ import java.util.logging.Logger;
  * By default transformations only operate on explicit feature values. To include implicit zeros
  * in transformation fitting set {@code includeImplicitZeroFeatures}. To convert implicit
  * zeros to explicit zeros before applying the transformations set {@code densify}.
+ * See {@link org.tribuo.transform} for a more detailed discussion of these parameters.
  */
 public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     
