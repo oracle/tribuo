@@ -85,7 +85,7 @@ public class AggregateDataSource<T extends Output<T>> implements DataSource<T> {
     
     @Override
     public String toString() {
-        return "AggregateDataSource(sources="+sources.toString()+")";
+        return "AggregateDataSource(sources="+sources.toString()+",order="+order+")";
     }
 
     @Override
@@ -110,7 +110,7 @@ public class AggregateDataSource<T extends Output<T>> implements DataSource<T> {
         return new AggregateDataSourceProvenance(this);
     }
 
-    private static class ADSRRIterator<T extends Output<T>> implements Iterator<Example<T>> {
+    static class ADSRRIterator<T extends Output<T>> implements Iterator<Example<T>> {
         private final Deque<Iterator<Example<T>>> queue;
 
         ADSRRIterator(List<? extends DataSource<T>> sources) {
@@ -146,7 +146,7 @@ public class AggregateDataSource<T extends Output<T>> implements DataSource<T> {
         }
     }
 
-    private static class ADSSeqIterator<T extends Output<T>> implements Iterator<Example<T>> {
+    static class ADSSeqIterator<T extends Output<T>> implements Iterator<Example<T>> {
         private final Iterator<? extends DataSource<T>> si;
         private Iterator<Example<T>> curr;
 

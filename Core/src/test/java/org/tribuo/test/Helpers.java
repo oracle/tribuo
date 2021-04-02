@@ -16,6 +16,7 @@
 
 package org.tribuo.test;
 
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import org.junit.jupiter.api.Assertions;
@@ -75,11 +76,15 @@ public final class Helpers {
         return ex;
     }
 
+    public static void testProvenanceMarshalling(ObjectProvenance inputProvenance) {
+        List<ObjectMarshalledProvenance> provenanceList = ProvenanceUtil.marshalProvenance(inputProvenance);
+        ObjectProvenance unmarshalledProvenance = ProvenanceUtil.unmarshalProvenance(provenanceList);
+        Assertions.assertEquals(unmarshalledProvenance,inputProvenance);
+    }
+
     public static <T extends Output<T>> void testModelSerialization(Model<T> model, Class<T> outputClazz) {
         // test provenance marshalling
-        List<ObjectMarshalledProvenance> provenanceList = ProvenanceUtil.marshalProvenance(model.getProvenance());
-        ModelProvenance provenance = (ModelProvenance) ProvenanceUtil.unmarshalProvenance(provenanceList);
-        Assertions.assertEquals(provenance,model.getProvenance());
+        testProvenanceMarshalling(model.getProvenance());
 
         // write to byte array
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
