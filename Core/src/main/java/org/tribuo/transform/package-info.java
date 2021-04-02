@@ -45,7 +45,7 @@
  * important when working with, e.g. {@link org.tribuo.transform.transformations.IDFTransformation} as it allows correct
  * computation of the inverse document frequency, but can be detrimental to features which are one-hot encodings of
  * categoricals (as they have many more implicit zeros). {@code densify} controls if the example or dataset should have
- * it's implicit zero valued features converted into explicit zero valued features (i.e., it makes a sparse example into
+ * its implicit zero valued features converted into explicit zero valued features (i.e., it makes a sparse example into
  * a dense one which contains an explicit value for every feature known to the dataset) before the transformation is
  * applied, and transformations are only applied to feature values which are present.
  * <p>
