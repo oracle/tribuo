@@ -610,6 +610,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * <p>
      * The features of the returned example are dense, and come from the [CLS] token.
      * <p>
+     * Throws {@link IllegalArgumentException} if the list is longer than {@link #getMaxLength}.
      * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
      * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
      * @return A dense example representing the pooled output from BERT for the input tokens.
@@ -623,6 +624,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * <p>
      * The features of the returned example are dense, and are controlled by the output pooling field.
      * <p>
+     * Throws {@link IllegalArgumentException} if the list is longer than {@link #getMaxLength}.
      * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
      * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
      * @param output The ground truth output for this example.
@@ -638,11 +640,15 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * <p>
      * The features returned are controlled by the output pooling field.
      * <p>
+     * Throws {@link IllegalArgumentException} if the list is longer than {@link #getMaxLength}.
      * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
      * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
      * @return The feature values.
      */
     double[] extractFeatures(List<String> tokens) {
+        if (tokens.size() > (maxLength - 2)) {
+            throw new IllegalArgumentException("Too many tokens, expected " + (maxLength - 2) + " found " + tokens.size());
+        }
         try (OnnxTensor tokenIds = convertTokens(tokens);
              OnnxTensor mask = createTensor(tokens.size()+2,MASK_VALUE);
              OnnxTensor tokenTypes = createTensor(tokens.size()+2,TOKEN_TYPE_VALUE)) {
@@ -741,6 +747,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * If {@code stripSentenceMarkers} is true then the [CLS] and [SEP] tokens are removed before example generation.
      * If it's false then they are left in with the appropriate unknown output set.
      * <p>
+     * Throws {@link IllegalArgumentException} if the list is longer than {@link #getMaxLength}.
      * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
      * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
      * @param stripSentenceMarkers Remove the [CLS] and [SEP] tokens from the returned example.
@@ -761,6 +768,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * If {@code stripSentenceMarkers} is true then the [CLS] and [SEP] tokens are removed before example generation.
      * If it's false then they are left in with the appropriate unknown output set.
      * <p>
+     * Throws {@link IllegalArgumentException} if the list is longer than {@link #getMaxLength}.
      * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
      * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
      * @param output The ground truth output for this example.
@@ -768,6 +776,9 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * @return A dense sequence example representing the token level output from BERT.
      */
     public SequenceExample<T> extractSequenceExample(List<String> tokens, List<T> output, boolean stripSentenceMarkers) {
+        if (tokens.size() > (maxLength - 2)) {
+            throw new IllegalArgumentException("Too many tokens, expected " + (maxLength - 2) + " found " + tokens.size());
+        }
         try (OnnxTensor tokenIds = convertTokens(tokens);
              OnnxTensor mask = createTensor(tokens.size()+2,MASK_VALUE);
              OnnxTensor tokenTypes = createTensor(tokens.size()+2,TOKEN_TYPE_VALUE)) {
@@ -852,6 +863,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * token list if it's longer than {@code maxLength} - 2 (to account
      * for [CLS] and [SEP] tokens), and then passes the token
      * list to {@link #extractExample}.
+     * @param tag A tag to prefix all the generated feature names with.
      * @param data The input text.
      * @return The BERT features for the supplied data.
      */
@@ -876,7 +888,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     List<String> tokenize(String data) {
         List<String> tokens = tokenizer.split(data);
         if (tokens.size() > (maxLength - 2)) {
-            logger.info("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
+            logger.fine("Truncating sentence to " + (maxLength + 2) + " from " + tokens.size());
             tokens = tokens.subList(0,maxLength-2);
         }
         return tokens;
@@ -884,6 +896,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
 
     /**
      * Runs BERT on the input, returning the tokens, ids, masks and embeddings.
+     * Truncates the token list if it's longer than {@code maxLength} - 2 (to account for [CLS] and [SEP] tokens).
      * @param data The input text.
      * @return The tokens, the token ids, the token types, the masks, the cls embedding and the token embeddings.
      * @throws OrtException If the native runtime failed.
@@ -937,36 +950,48 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
         }
     }
 
+    /**
+     * Internal class used to represent the inputs and outputs of a BERT embedding run.
+     */
     static final class BERTResult {
         public final List<String> tokens;
         public final long[] ids;
         public final long[] masks;
         public final long[] tokenTypes;
-        public final float[] clsToken;
-        public final float[][] embeddings;
+        public final float[] clsEmbedding;
+        public final float[][] tokenEmbeddings;
 
-        BERTResult(List<String> tokens, long[] ids, long[] masks, long[] tokenTypes, double[] clsToken, float[][] embeddings) {
+        BERTResult(List<String> tokens, long[] ids, long[] masks, long[] tokenTypes, double[] clsEmbedding, float[][] tokenEmbeddings) {
             this.tokens = tokens;
             this.ids = ids;
             this.masks = masks;
             this.tokenTypes = tokenTypes;
-            this.clsToken = new float[clsToken.length];
-            for (int i = 0; i < clsToken.length; i++) {
-                this.clsToken[i] = (float) clsToken[i];
+            this.clsEmbedding = new float[clsEmbedding.length];
+            for (int i = 0; i < clsEmbedding.length; i++) {
+                this.clsEmbedding[i] = (float) clsEmbedding[i];
             }
-            this.embeddings = embeddings;
+            this.tokenEmbeddings = tokenEmbeddings;
         }
     }
 
+    /**
+     * CLI options for running BERT.
+     */
     public static class BERTFeatureExtractorOptions implements Options {
         @Option(charName='b',longName="bert",usage="BERTFeatureExtractor instance")
-        public BERTFeatureExtractor bert;
+        public BERTFeatureExtractor<?> bert;
         @Option(charName='i',longName="input-file",usage="Input file to read, one doc per line")
         public Path inputFile;
         @Option(charName='o',longName="output-file",usage="Output json file.")
         public Path outputFile;
     }
 
+    /**
+     * Test harness for running a BERT model and inspecting the output.
+     * @param args The CLI arguments.
+     * @throws IOException If the files couldn't be read or written to.
+     * @throws OrtException If the BERT model failed to load, or threw an exception during computation.
+     */
     public static void main(String[] args) throws IOException, OrtException {
         BERTFeatureExtractorOptions opts = new BERTFeatureExtractorOptions();
         ConfigurationManager cm = new ConfigurationManager(args,opts);
