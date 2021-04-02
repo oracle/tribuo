@@ -42,7 +42,7 @@
  * and {@code densify}. {@code includeImplicitZeroFeatures} controls if the transformation incorporates the implicit zero
  * valued features (i.e., the ones not present in the example but are present in the dataset's
  * {@link org.tribuo.FeatureMap}) when building the transformation statistics. This is
- * important when working with {@link org.tribuo.transform.transformations.IDFTransformation} as it allows correct
+ * important when working with, e.g. {@link org.tribuo.transform.transformations.IDFTransformation} as it allows correct
  * computation of the inverse document frequency, but can be detrimental to features which are one-hot encodings of
  * categoricals (as they have many more implicit zeros). {@code densify} controls if the example or dataset should have
  * it's implicit zero valued features converted into explicit zero valued features (i.e., it makes a sparse example into
