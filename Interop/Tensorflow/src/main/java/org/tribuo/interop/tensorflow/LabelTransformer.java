@@ -214,6 +214,9 @@ public class LabelTransformer implements OutputTransformer<Label> {
     public Tensor transform(Label example, ImmutableOutputInfo<Label> outputIDInfo) {
         int output = innerTransform(example, outputIDInfo);
         TFloat32 returnVal = TFloat32.tensorOf(Shape.of(1,outputIDInfo.size()));
+        for (int j = 0; j < outputIDInfo.size(); j++) {
+            returnVal.setFloat(0.0f,0,j);
+        }
         returnVal.setFloat(1.0f,0,output);
         return returnVal;
     }
@@ -224,6 +227,9 @@ public class LabelTransformer implements OutputTransformer<Label> {
         int i = 0;
         for (Example<Label> e : examples) {
             int output = innerTransform(e.getOutput(), outputIDInfo);
+            for (int j = 0; j < outputIDInfo.size(); j++) {
+                returnVal.setFloat(0.0f,i,j);
+            }
             returnVal.setFloat(1.0f,i,output);
             i++;
         }

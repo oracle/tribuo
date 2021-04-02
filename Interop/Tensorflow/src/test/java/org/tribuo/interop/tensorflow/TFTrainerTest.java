@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Test;
 import org.tensorflow.Graph;
 import org.tensorflow.Operand;
+import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.op.Ops;
 import org.tensorflow.op.core.Constant;
@@ -76,7 +77,7 @@ public class TFTrainerTest {
                 .truncatedNormal(tf.array(5, 5, 1, 32), TFloat32.class,
                         TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
         Conv2d<TFloat32> conv1 = tf.nn.conv2d(scaledInput, conv1Weights, Arrays.asList(1L, 1L, 1L, 1L), PADDING_TYPE);
-        Variable<TFloat32> conv1Biases = tf.variable(tf.fill(tf.array(new int[]{32}), tf.constant(0.0f)));
+        Variable<TFloat32> conv1Biases = tf.variable(tf.fill(tf.array(32), tf.constant(0.0f)));
         Relu<TFloat32> relu1 = tf.nn.relu(tf.nn.biasAdd(conv1, conv1Biases));
 
         // First pooling layer
@@ -88,7 +89,7 @@ public class TFTrainerTest {
                 .truncatedNormal(tf.array(5, 5, 32, 64), TFloat32.class,
                         TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
         Conv2d<TFloat32> conv2 = tf.nn.conv2d(pool1, conv2Weights, Arrays.asList(1L, 1L, 1L, 1L), PADDING_TYPE);
-        Variable<TFloat32> conv2Biases = tf.variable(tf.fill(tf.array(new int[]{64}), tf.constant(0.1f)));
+        Variable<TFloat32> conv2Biases = tf.variable(tf.fill(tf.array(64), tf.constant(0.1f)));
         Relu<TFloat32> relu2 = tf.nn.relu(tf.nn.biasAdd(conv2, conv2Biases));
 
         // Second pooling layer
@@ -97,27 +98,33 @@ public class TFTrainerTest {
 
         // Flatten inputs
         Reshape<TFloat32> flatten = tf.reshape(pool2, tf.concat(Arrays
-                .asList(tf.slice(tf.shape(pool2), tf.array(new int[]{0}), tf.array(new int[]{1})),
-                        tf.array(new int[]{-1})), tf.constant(0)));
+                .asList(tf.slice(tf.shape(pool2), tf.array(0), tf.array(1)),
+                        tf.array(-1)), tf.constant(0)));
 
         // Fully connected layer
         Variable<TFloat32> fc1Weights = tf.variable(tf.math.mul(tf.random
                 .truncatedNormal(tf.array(IMAGE_SIZE * IMAGE_SIZE * 4, 512), TFloat32.class,
                         TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
-        Variable<TFloat32> fc1Biases = tf.variable(tf.fill(tf.array(new int[]{512}), tf.constant(0.1f)));
+        Variable<TFloat32> fc1Biases = tf.variable(tf.fill(tf.array(512), tf.constant(0.1f)));
         Relu<TFloat32> relu3 = tf.nn.relu(tf.math.add(tf.linalg.matMul(flatten, fc1Weights), fc1Biases));
 
         // Softmax layer
         Variable<TFloat32> fc2Weights = tf.variable(tf.math.mul(tf.random
                 .truncatedNormal(tf.array(512, NUM_LABELS), TFloat32.class,
                         TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
-        Variable<TFloat32> fc2Biases = tf.variable(tf.fill(tf.array(new int[]{NUM_LABELS}), tf.constant(0.1f)));
+        Variable<TFloat32> fc2Biases = tf.variable(tf.fill(tf.array(NUM_LABELS), tf.constant(0.1f)));
 
         Add<TFloat32> logits = tf.math.add(tf.linalg.matMul(relu3, fc2Weights), fc2Biases);
 
         tf.init();
 
         return new Pair<>(graph, logits.op().name());
+    }
+
+    private static String ndArrToString(FloatNdArray ndarray) {
+        StringBuffer sb = new StringBuffer();
+        ndarray.scalars().forEachIndexed((idx,array) -> sb.append(Arrays.toString(idx)).append(" = ").append(array.getFloat()).append("\n"));
+        return sb.toString();
     }
 
     @Test
@@ -137,7 +144,7 @@ public class TFTrainerTest {
 
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
-        gradientParams.put("initialAccumulatorValue", 0f);
+        gradientParams.put("initialAccumulatorValue", 0.1f);
 
         ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 28, 28, 1);
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
