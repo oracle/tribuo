@@ -63,6 +63,8 @@
  * </ul>
  * One further option is to call {@link org.tribuo.MutableDataset#densify} before passing the data to
  * {@link org.tribuo.transform.TransformTrainer#train}, which is equivalent to setting {@code includeImplicitZeroFeatures}
- * to true and {@code densify} to true.
+ * to true and {@code densify} to true. To sum up, in the context of transformations {@code includeImplicitZeroFeatures}
+ * determines whether (implicit) zero-values features are <i>measured</i> and {@code densify} determines whether
+ * they can be <i>altered</i>. 
  */
 package org.tribuo.transform;
