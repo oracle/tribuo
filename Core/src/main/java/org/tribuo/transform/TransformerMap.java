@@ -32,6 +32,7 @@ import org.tribuo.transform.TransformerMap.TransformerMapProvenance;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ import java.util.logging.Logger;
  * <p>
  * Transformations only operate on observed values. To operate on implicit zeros then
  * first call {@link MutableDataset#densify} on the datasets.
+ * See {@link org.tribuo.transform} for a more detailed discussion of densify.
  */
 public final class TransformerMap implements Provenancable<TransformerMapProvenance>, Serializable {
     
@@ -66,7 +68,7 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
      * @param transformationMapProvenance The provenance of the transformation map that was fit.
      */
     public TransformerMap(Map<String,List<Transformer>> map, DatasetProvenance datasetProvenance, ConfiguredObjectProvenance transformationMapProvenance) {
-        this.map = map;
+        this.map = Collections.unmodifiableMap(map);
         this.datasetProvenance = datasetProvenance;
         this.transformationMapProvenance = transformationMapProvenance;
     }

@@ -65,6 +65,18 @@ public class TransformedModel<T extends Output<T>> extends Model<T> {
         Collections.sort(featureNames);
     }
 
+    /**
+     * Gets the transformers that this model applies to each example.
+     * <p>
+     * Note if you use these transformers to modify some data, and then
+     * feed that data to this model, the data will be transformed twice
+     * and this is not what you want.
+     * @return The transformers.
+     */
+    public TransformerMap getTransformerMap() {
+        return transformerMap;
+    }
+
     @Override
     public Prediction<T> predict(Example<T> example) {
         Example<T> transformedExample;

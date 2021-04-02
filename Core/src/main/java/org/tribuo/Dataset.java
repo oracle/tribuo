@@ -236,9 +236,17 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * Does not mutate the dataset, if you wish to apply the TransformerMap, use
      * {@link MutableDataset#transform} or {@link TransformerMap#transformDataset}.
      * <p>
-     * Currently TransformationMaps and TransformerMaps only operate on feature values
-     * which are present, sparse values are ignored and not transformed. If the zeros
-     * should be transformed, call {@link MutableDataset#densify} on the datasets.
+     * TransformerMaps operate on feature values which are present, sparse values
+     * are ignored and not transformed. If the zeros should be transformed, call
+     * {@link MutableDataset#densify} on the datasets before applying a transformer.
+     * <p>
+     * This method calls {@link #createTransformers(TransformationMap, boolean)} with
+     * {@code includeImplicitZeroFeatures} set to false, thus ignoring implicitly zero
+     * features when fitting the transformations. This is the default behaviour in
+     * Tribuo 4.0, but causes erroneous behaviour in
+     * {@link org.tribuo.transform.transformations.IDFTransformation} so should be
+     * avoided with that transformation.
+     * See {@link org.tribuo.transform} for a more detailed discussion of densify and includeImplicitZeroFeatures.
      * <p>
      * Throws {@link IllegalArgumentException} if the TransformationMap object has
      * regexes which apply to multiple features.
@@ -246,6 +254,28 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * @return A TransformerMap which can apply the transformations to a dataset.
      */
     public TransformerMap createTransformers(TransformationMap transformations) {
+        return createTransformers(transformations, false);
+    }
+
+    /**
+     * Takes a {@link TransformationMap} and converts it into a {@link TransformerMap} by
+     * observing all the values in this dataset.
+     * <p>
+     * Does not mutate the dataset, if you wish to apply the TransformerMap, use
+     * {@link MutableDataset#transform} or {@link TransformerMap#transformDataset}.
+     * <p>
+     * TransformerMaps operate on feature values which are present, sparse values
+     * are ignored and not transformed. If the zeros should be transformed, call
+     * {@link MutableDataset#densify} on the datasets before applying a transformer.
+     * See {@link org.tribuo.transform} for a more detailed discussion of densify and includeImplicitZeroFeatures.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the TransformationMap object has
+     * regexes which apply to multiple features.
+     * @param transformations The transformations to fit.
+     * @param includeImplicitZeroFeatures Use the implicit zero feature values to construct the transformations.
+     * @return A TransformerMap which can apply the transformations to a dataset.
+     */
+    public TransformerMap createTransformers(TransformationMap transformations, boolean includeImplicitZeroFeatures) {
         ArrayList<String> featureNames = new ArrayList<>(getFeatureMap().keySet());
 
         // Validate map by checking no regex applies to multiple features.
@@ -330,10 +360,12 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
             removeSet.clear();
             // Emit the new transformers onto the end of the list in the output map.
             for (Map.Entry<String,Queue<TransformStatistics>> entry : featureStats.entrySet()) {
-                // Observe all the sparse feature values
-                int unobservedFeatures = sparseCount.get(entry.getKey()).intValue();
                 TransformStatistics currentStats = entry.getValue().poll();
-                currentStats.observeSparse(unobservedFeatures);
+                if (includeImplicitZeroFeatures) {
+                    // Observe all the sparse feature values
+                    int unobservedFeatures = sparseCount.get(entry.getKey()).intValue();
+                    currentStats.observeSparse(unobservedFeatures);
+                }
                 // Get the transformer list for that feature (if absent)
                 List<Transformer> l = output.computeIfAbsent(entry.getKey(), (k) -> new ArrayList<>());
                 // Generate the transformer and add it to the appropriate list.

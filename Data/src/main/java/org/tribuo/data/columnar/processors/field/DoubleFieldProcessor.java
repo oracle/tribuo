@@ -29,7 +29,8 @@ import java.util.logging.Logger;
 /**
  * Processes a column that contains a real value. The name of the feature
  * will be the name given for the column and the value will be the value in the 
- * column.
+ * column. This processor returns all doubles that can be parsed by {@link Double#parseDouble(String)}
+ * including zeros, and so will emit zero valued features.
  * <p>
  * Returns an empty list if the value failed to parse or was empty.
  */
@@ -62,13 +63,9 @@ public class DoubleFieldProcessor implements FieldProcessor {
     public List<ColumnarFeature> process(String value) {
         try {
             double parsedValue = Double.parseDouble(value);
-            if (parsedValue == 0.0) {
-                return Collections.emptyList();
-            } else {
-                return Collections.singletonList(new ColumnarFeature(fieldName, "value", Double.parseDouble(value)));
-            }
+            return Collections.singletonList(new ColumnarFeature(fieldName, "value", parsedValue));
         } catch (NumberFormatException ex) {
-            if(!value.trim().isEmpty()){
+            if (!value.trim().isEmpty()) {
                 logger.warning(String.format("Non-double value %s in %s", value, fieldName));
             }
             return Collections.emptyList();

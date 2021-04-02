@@ -35,7 +35,9 @@ public interface TransformStatistics {
 
     /**
      * Observes a sparse (i.e., zero) value.
+     * @deprecated in 4.1 as it's unnecessary.
      */
+    @Deprecated
     public void observeSparse();
 
     /**
