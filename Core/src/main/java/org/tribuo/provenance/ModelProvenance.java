@@ -156,6 +156,8 @@ public class ModelProvenance implements ObjectProvenance {
         this.time = ObjectProvenance.checkAndExtractProvenance(map,TRAINING_TIME,DateTimeProvenance.class, ModelProvenance.class.getSimpleName()).getValue();
         this.instanceProvenance = (MapProvenance<?>) ObjectProvenance.checkAndExtractProvenance(map,INSTANCE_VALUES,MapProvenance.class, ModelProvenance.class.getSimpleName());
         this.versionString = ObjectProvenance.checkAndExtractProvenance(map,TRIBUO_VERSION_STRING,StringProvenance.class,ModelProvenance.class.getSimpleName()).getValue();
+
+        // TODO fix this when we upgrade OLCUT.
         this.javaVersionString = maybeExtractProvenance(map,JAVA_VERSION_STRING,StringProvenance.class).map(StringProvenance::getValue).orElse(UNKNOWN_VERSION);
         this.osString = maybeExtractProvenance(map,OS_STRING,StringProvenance.class).map(StringProvenance::getValue).orElse(UNKNOWN_VERSION);
         this.archString = maybeExtractProvenance(map,ARCH_STRING,StringProvenance.class).map(StringProvenance::getValue).orElse(UNKNOWN_VERSION);
@@ -164,6 +166,8 @@ public class ModelProvenance implements ObjectProvenance {
     /**
      * Like {@link ObjectProvenance#checkAndExtractProvenance(Map, String, Class, String)} but doesn't
      * throw if it fails to find the key, only if the value is of the wrong type.
+     *
+     * @deprecated Deprecated as it's in OLCUT.
      * @param map The map to inspect.
      * @param key The key to find.
      * @param type The class of the value.
@@ -172,7 +176,8 @@ public class ModelProvenance implements ObjectProvenance {
      * @throws ProvenanceException If the value is the wrong type.
      */
     @SuppressWarnings("unchecked") // Guarded by isInstance check
-    private static <T extends Provenance> Optional<T> maybeExtractProvenance(Map<String,Provenance> map, String key, Class<T> type) throws ProvenanceException {
+    @Deprecated
+    public static <T extends Provenance> Optional<T> maybeExtractProvenance(Map<String,Provenance> map, String key, Class<T> type) throws ProvenanceException {
         Provenance tmp = map.remove(key);
         if (tmp != null) {
             if (type.isInstance(tmp)) {
