@@ -31,6 +31,13 @@
  * {@link org.tribuo.transform.TransformedModel} which automatically transforms it's input data at
  * prediction time.
  * <p>
+ * Transformations don't produces new {@link org.tribuo.Feature} entries - they only modify the values of existing ones.
+ * When doing so they can be instructed to treat Features that are absent due to sparsity as zero or as
+ * not existing at all. Independently, we can explicitly add zero-valued Features by densifying the dataset
+ * before the transformation is fit or before it is applied. Once they exist these Features can be altered by
+ * {@link org.tribuo.transform.Transformer}s and are visible to {@link org.tribuo.transform.Transformation}s which are
+ * being fit.
+ * <p>
  * The transformation fitting methods have two parameters which alter their behaviour: {@code includeImplicitZeroFeatures}
  * and {@code densify}. {@code includeImplicitZeroFeatures} controls if the transformation incorporates the implicit zero
  * valued features (i.e., the ones not present in the example) when building the transformation statistics. This is
@@ -53,5 +60,8 @@
  *     three combinations, but could be used to move the minimum value, or when zero is not appropriate for a missing
  *     value and needs to be transformed.</li>
  * </ul>
+ * One further option is to call {@link org.tribuo.MutableDataset#densify} before passing the data to
+ * {@link org.tribuo.transform.TransformTrainer#train}, which is equivalent to setting {@code includeImplicitZeroFeatures}
+ * to true and {@code densify} to true.
  */
 package org.tribuo.transform;
