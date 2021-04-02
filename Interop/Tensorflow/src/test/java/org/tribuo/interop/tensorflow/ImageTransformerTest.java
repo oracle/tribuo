@@ -16,14 +16,14 @@
 
 package org.tribuo.interop.tensorflow;
 
+import org.tensorflow.ndarray.FloatNdArray;
+import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.test.MockOutput;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Array;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class ImageTransformerTest {
 
-    private ImmutableFeatureMap constructFeatureMap() {
+    private static ImmutableFeatureMap constructFeatureMap() {
         MutableFeatureMap fMap = new MutableFeatureMap();
 
         fMap.add("A",1);
@@ -57,7 +57,7 @@ public class ImageTransformerTest {
         return new ImmutableFeatureMap(fMap);
     }
 
-    private Example<MockOutput> constructExample() {
+    private static Example<MockOutput> constructExample() {
         String[] featureNames = new String[]{"A","B","C","D","F","G","H","I","J","K","L","M","O","P","Q","R"};
         double[] featureValues = new double[]{0,1,2,3,5,6,7,8,9,10,11,12,14,15,16,17};
 
@@ -66,118 +66,76 @@ public class ImageTransformerTest {
         return e;
     }
 
-    /**
-     * Copies elements from the flat input array to the appropriate primitive array of the output.
-     * Recursively calls itself as it traverses the output array.
-     *
-     * @param input The input array.
-     * @param output The output multidimensional array.
-     * @param position The current position in the input array.
-     * @return The new position in the input array.
-     */
-    private static int reshape(Object input, Object output, int position) {
-        if (output.getClass().isArray()) {
-            Object[] outputArray = (Object[]) output;
-            for (Object outputElement : outputArray) {
-                Class<?> outputElementClass = outputElement.getClass();
-                if (outputElementClass.isArray()) {
-                    if (outputElementClass.getComponentType().isPrimitive()) {
-                        int length = Array.getLength(outputElement);
-                        System.arraycopy(input, position, outputElement, 0, length);
-                        position += length;
-                    } else {
-                        position = reshape(input, outputElement, position);
-                    }
-                } else {
-                    throw new IllegalStateException(
-                            "Found element type when expecting an array. Class " + outputElementClass);
-                }
-            }
-        } else {
-            throw new IllegalStateException(
-                    "Found element type when expecting an array. Class " + output.getClass());
-        }
-
-        return position;
-    }
-
     @Test
     public void testImageTransformer() {
         ImmutableFeatureMap fmap = constructFeatureMap();
         Example<MockOutput> e = constructExample();
-        float[][][] output;
 
         // 3,3,2
         ImageTransformer<MockOutput> first = new ImageTransformer<>("test",3,3,2);
-        float[] flat = first.innerTransform(e,fmap);
-        output = new float[3][3][2];
-        reshape(flat,output,0);
-        assertEquals( 0, output[0][0][0], 1e-10);
-        assertEquals( 1, output[1][0][0], 1e-10);
-        assertEquals( 2, output[2][0][0], 1e-10);
-        assertEquals( 3, output[0][1][0], 1e-10);
-        assertEquals( 0, output[1][1][0], 1e-10);
-        assertEquals( 5, output[2][1][0], 1e-10);
-        assertEquals( 6, output[0][2][0], 1e-10);
-        assertEquals( 7, output[1][2][0], 1e-10);
-        assertEquals( 8, output[2][2][0], 1e-10);
-        assertEquals( 9, output[0][0][1], 1e-10);
-        assertEquals(10, output[1][0][1], 1e-10);
-        assertEquals(11, output[2][0][1], 1e-10);
-        assertEquals(12, output[0][1][1], 1e-10);
-        assertEquals( 0, output[1][1][1], 1e-10);
-        assertEquals(14, output[2][1][1], 1e-10);
-        assertEquals(15, output[0][2][1], 1e-10);
-        assertEquals(16, output[1][2][1], 1e-10);
-        assertEquals(17, output[2][2][1], 1e-10);
+        FloatNdArray ndarray = (TFloat32) first.transform(e,fmap).getMap().get("test");
+        assertEquals( 0, ndarray.getFloat(0,0,0,0), 1e-10);
+        assertEquals( 1, ndarray.getFloat(0,0,0,1), 1e-10);
+        assertEquals( 2, ndarray.getFloat(0,0,1,0), 1e-10);
+        assertEquals( 3, ndarray.getFloat(0,0,1,1), 1e-10);
+        assertEquals( 0, ndarray.getFloat(0,0,2,0), 1e-10);
+        assertEquals( 5, ndarray.getFloat(0,0,2,1), 1e-10);
+        assertEquals( 6, ndarray.getFloat(0,1,0,0), 1e-10);
+        assertEquals( 7, ndarray.getFloat(0,1,0,1), 1e-10);
+        assertEquals( 8, ndarray.getFloat(0,1,1,0), 1e-10);
+        assertEquals( 9, ndarray.getFloat(0,1,1,1), 1e-10);
+        assertEquals(10, ndarray.getFloat(0,1,2,0), 1e-10);
+        assertEquals(11, ndarray.getFloat(0,1,2,1), 1e-10);
+        assertEquals(12, ndarray.getFloat(0,2,0,0), 1e-10);
+        assertEquals( 0, ndarray.getFloat(0,2,0,1), 1e-10);
+        assertEquals(14, ndarray.getFloat(0,2,1,0), 1e-10);
+        assertEquals(15, ndarray.getFloat(0,2,1,1), 1e-10);
+        assertEquals(16, ndarray.getFloat(0,2,2,0), 1e-10);
+        assertEquals(17, ndarray.getFloat(0,2,2,1), 1e-10);
 
         // 3,2,3
         ImageTransformer<MockOutput> second = new ImageTransformer<>("test",3,2,3);
-        flat = second.innerTransform(e,fmap);
-        output = new float[3][2][3];
-        reshape(flat,output,0);
-        assertEquals( 0, output[0][0][0],1e-10);
-        assertEquals( 1, output[1][0][0],1e-10);
-        assertEquals( 2, output[2][0][0],1e-10);
-        assertEquals( 3, output[0][1][0],1e-10);
-        assertEquals( 0, output[1][1][0],1e-10);
-        assertEquals( 5, output[2][1][0],1e-10);
-        assertEquals( 6, output[0][0][1],1e-10);
-        assertEquals( 7, output[1][0][1],1e-10);
-        assertEquals( 8, output[2][0][1],1e-10);
-        assertEquals( 9, output[0][1][1],1e-10);
-        assertEquals(10, output[1][1][1],1e-10);
-        assertEquals(11, output[2][1][1],1e-10);
-        assertEquals(12, output[0][0][2],1e-10);
-        assertEquals( 0, output[1][0][2],1e-10);
-        assertEquals(14, output[2][0][2],1e-10);
-        assertEquals(15, output[0][1][2],1e-10);
-        assertEquals(16, output[1][1][2],1e-10);
-        assertEquals(17, output[2][1][2],1e-10);
+        ndarray = (TFloat32) second.transform(e,fmap).getMap().get("test");
+        assertEquals( 0, ndarray.getFloat(0,0,0,0),1e-10);
+        assertEquals( 1, ndarray.getFloat(0,0,0,1),1e-10);
+        assertEquals( 2, ndarray.getFloat(0,0,0,2),1e-10);
+        assertEquals( 3, ndarray.getFloat(0,0,1,0),1e-10);
+        assertEquals( 0, ndarray.getFloat(0,0,1,1),1e-10);
+        assertEquals( 5, ndarray.getFloat(0,0,1,2),1e-10);
+        assertEquals( 6, ndarray.getFloat(0,1,0,0),1e-10);
+        assertEquals( 7, ndarray.getFloat(0,1,0,1),1e-10);
+        assertEquals( 8, ndarray.getFloat(0,1,0,2),1e-10);
+        assertEquals( 9, ndarray.getFloat(0,1,1,0),1e-10);
+        assertEquals(10, ndarray.getFloat(0,1,1,1),1e-10);
+        assertEquals(11, ndarray.getFloat(0,1,1,2),1e-10);
+        assertEquals(12, ndarray.getFloat(0,2,0,0),1e-10);
+        assertEquals( 0, ndarray.getFloat(0,2,0,1),1e-10);
+        assertEquals(14, ndarray.getFloat(0,2,0,2),1e-10);
+        assertEquals(15, ndarray.getFloat(0,2,1,0),1e-10);
+        assertEquals(16, ndarray.getFloat(0,2,1,1),1e-10);
+        assertEquals(17, ndarray.getFloat(0,2,1,2),1e-10);
 
-        // 3,2,3
+        // 2,3,3
         ImageTransformer<MockOutput> third = new ImageTransformer<>("test",2,3,3);
-        flat = third.innerTransform(e,fmap);
-        output = new float[3][2][3];
-        reshape(flat,output,0);
-        assertEquals( 0, output[0][0][0],1e-10);
-        assertEquals( 1, output[1][0][0],1e-10);
-        assertEquals( 2, output[0][1][0],1e-10);
-        assertEquals( 3, output[1][1][0],1e-10);
-        assertEquals( 0, output[0][2][0],1e-10);
-        assertEquals( 5, output[1][2][0],1e-10);
-        assertEquals( 6, output[0][0][1],1e-10);
-        assertEquals( 7, output[1][0][1],1e-10);
-        assertEquals( 8, output[0][1][1],1e-10);
-        assertEquals( 9, output[1][1][1],1e-10);
-        assertEquals(10, output[0][2][1],1e-10);
-        assertEquals(11, output[1][2][1],1e-10);
-        assertEquals(12, output[0][0][2],1e-10);
-        assertEquals( 0, output[1][0][2],1e-10);
-        assertEquals(14, output[0][1][2],1e-10);
-        assertEquals(15, output[1][1][2],1e-10);
-        assertEquals(16, output[0][2][2],1e-10);
-        assertEquals(17, output[1][2][2],1e-10);
+        ndarray = (TFloat32) third.transform(e,fmap).getMap().get("test");
+        assertEquals( 0, ndarray.getFloat(0,0,0,0),1e-10);
+        assertEquals( 1, ndarray.getFloat(0,0,0,1),1e-10);
+        assertEquals( 2, ndarray.getFloat(0,0,0,2),1e-10);
+        assertEquals( 3, ndarray.getFloat(0,0,1,0),1e-10);
+        assertEquals( 0, ndarray.getFloat(0,0,1,1),1e-10);
+        assertEquals( 5, ndarray.getFloat(0,0,1,2),1e-10);
+        assertEquals( 6, ndarray.getFloat(0,0,2,0),1e-10);
+        assertEquals( 7, ndarray.getFloat(0,0,2,1),1e-10);
+        assertEquals( 8, ndarray.getFloat(0,0,2,2),1e-10);
+        assertEquals( 9, ndarray.getFloat(0,1,0,0),1e-10);
+        assertEquals(10, ndarray.getFloat(0,1,0,1),1e-10);
+        assertEquals(11, ndarray.getFloat(0,1,0,2),1e-10);
+        assertEquals(12, ndarray.getFloat(0,1,1,0),1e-10);
+        assertEquals( 0, ndarray.getFloat(0,1,1,1),1e-10);
+        assertEquals(14, ndarray.getFloat(0,1,1,2),1e-10);
+        assertEquals(15, ndarray.getFloat(0,1,2,0),1e-10);
+        assertEquals(16, ndarray.getFloat(0,1,2,1),1e-10);
+        assertEquals(17, ndarray.getFloat(0,1,2,2),1e-10);
     }
 
 }
