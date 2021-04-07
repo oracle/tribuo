@@ -30,6 +30,7 @@ import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.baseline.DummyRegressionTrainer;
+import org.tribuo.test.Helpers;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -114,6 +115,8 @@ public class AveragingCombinerTest {
         target = new Regressor(abc,new double[]{3.8,3.8,3.8});
         assertArrayEquals(prediction.getOutput().getValues(),target.getValues());
         modelList.clear();
+
+        Helpers.testModelSerialization(ensemble,Regressor.class);
     }
 
     @Test

@@ -30,6 +30,7 @@ import org.tribuo.datasource.ListDataSource;
 import org.tribuo.ensemble.WeightedEnsembleModel;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
+import org.tribuo.test.Helpers;
 
 import java.lang.reflect.Array;
 import java.time.OffsetDateTime;
@@ -126,6 +127,8 @@ public class VotingCombinerTest {
         prediction = ensemble.predict(testExample);
         assertEquals(prediction.getOutput(),dishwasher);
         modelList.clear();
+
+        Helpers.testModelSerialization(ensemble,Label.class);
     }
 
     @Test
