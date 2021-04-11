@@ -116,9 +116,9 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 3d tensor, (width, height, channels) for this example.
      */
     @Override
-    public FeedDict transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public TensorMap transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
         float[] image = innerTransform(example,featureIDMap);
-        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
+        return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
     }
 
     /**
@@ -171,7 +171,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 4d tensor, (batch-id, width, height, channels) for this example.
      */
     @Override
-    public FeedDict transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public TensorMap transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),width,height,channels));
 
         int i = 0;
@@ -181,17 +181,17 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return new FeedDict(inputName,output);
+        return new TensorMap(inputName,output);
     }
 
     @Override
-    public FeedDict transform(SGDVector vector) {
+    public TensorMap transform(SGDVector vector) {
         float[] image = innerTransform(vector);
-        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
+        return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
     }
 
     @Override
-    public FeedDict transform(List<? extends SGDVector> vectors) {
+    public TensorMap transform(List<? extends SGDVector> vectors) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),width,height,channels));
 
         int i = 0;
@@ -201,7 +201,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return new FeedDict(inputName,output);
+        return new TensorMap(inputName,output);
     }
 
     @Override

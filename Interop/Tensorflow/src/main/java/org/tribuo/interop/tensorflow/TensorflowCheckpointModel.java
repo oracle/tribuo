@@ -35,7 +35,6 @@ import org.tensorflow.Tensor;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,7 @@ import java.util.Optional;
  * This model encapsulates a simple model with an input feed dict,
  * and produces a single output tensor (labelled {@link TensorflowCheckpointTrainer#OUTPUT_NAME}).
  * <p>
- * It accepts an {@link ExampleTransformer} that converts an example's features into a {@link ExampleTransformer.FeedDict}, and an
+ * It accepts an {@link ExampleTransformer} that converts an example's features into a {@link TensorMap}, and an
  * {@link OutputTransformer} that converts a {@link Tensor} into a {@link Prediction}.
  * <p>
  * The model's serialVersionUID is set to the major Tensorflow version number times 100.
@@ -85,7 +84,7 @@ public class TensorflowCheckpointModel<T extends Output<T>> extends Model<T> imp
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
-        try (ExampleTransformer.FeedDict transformedInput = exampleTransformer.transform(example,featureIDMap);
+        try (TensorMap transformedInput = exampleTransformer.transform(example,featureIDMap);
              Tensor isTraining = TBool.scalarOf(false);
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .feed(TensorflowCheckpointTrainer.IS_TRAINING,isTraining)

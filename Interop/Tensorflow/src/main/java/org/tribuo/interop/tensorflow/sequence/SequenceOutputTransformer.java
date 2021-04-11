@@ -22,12 +22,12 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.interop.tensorflow.TensorMap;
 import org.tribuo.sequence.SequenceExample;
 import org.tensorflow.Tensor;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Converts a Tensorflow output tensor into a list of predictions, and a Tribuo sequence example into
@@ -62,7 +62,7 @@ public interface SequenceOutputTransformer<T extends Output<T>> extends Configur
      * @param labelMap label domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor> encode(SequenceExample<T> example, ImmutableOutputInfo<T> labelMap);
+    TensorMap encode(SequenceExample<T> example, ImmutableOutputInfo<T> labelMap);
 
     /**
      * Encodes a batch of labels as a feed dict.
@@ -71,6 +71,6 @@ public interface SequenceOutputTransformer<T extends Output<T>> extends Configur
      * @param labelMap label domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor> encode(List<SequenceExample<T>> batch, ImmutableOutputInfo<T> labelMap);
+    TensorMap encode(List<SequenceExample<T>> batch, ImmutableOutputInfo<T> labelMap);
 
 }

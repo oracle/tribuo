@@ -30,6 +30,7 @@ import org.tensorflow.types.TFloat32;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
+import org.tribuo.interop.tensorflow.TensorMap;
 import org.tribuo.interop.tensorflow.TensorflowUtil;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.SkeletalTrainerProvenance;
@@ -175,19 +176,19 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
                     }
                     //
                     // Transform examples to tensors
-                    Map<String, Tensor> feed = exampleTransformer.encode(batch, featureMap);
+                    TensorMap featureTensors = exampleTransformer.encode(batch, featureMap);
                     //
                     // Add supervision
-                    feed.putAll(outputTransformer.encode(batch, labelMap));
+                    TensorMap supervisionTensors = outputTransformer.encode(batch, labelMap);
                     //
                     // Add any additional training hyperparameter values to the feed dict.
-                    feed.putAll(getHyperparameterFeed());
+                    TensorMap parameterTensors = getHyperparameterFeed();
                     //
                     // Populate the runner.
                     Session.Runner runner = session.runner();
-                    for (Map.Entry<String, Tensor> item : feed.entrySet()) {
-                        runner.feed(item.getKey(), item.getValue());
-                    }
+                    featureTensors.feedInto(runner);
+                    supervisionTensors.feedInto(runner);
+                    parameterTensors.feedInto(runner);
                     //
                     // Run a training batch.
                     try (Tensor loss = runner
@@ -204,7 +205,9 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
                     }
                     //
                     // Cleanup: close the tensors.
-                    TensorflowUtil.closeTensorCollection(feed.values());
+                    featureTensors.close();
+                    supervisionTensors.close();
+                    parameterTensors.close();
                 }
             }
             
@@ -246,10 +249,25 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
                 +",minibatchSize="+ minibatchSize +",epochs="+ epochs +",seed="+seed+")";
     }
 
+    /**
+     * A hook for modifying the session state before training starts.
+     * <p>
+     * This should not mutate any state in the trainer.
+     * @param session The session to modify.
+     * @param examples The dataset.
+     */
     protected void preTrainingHook(Session session, SequenceDataset<T> examples) {}
 
-    protected Map<String, Tensor> getHyperparameterFeed() {
-        return Collections.emptyMap();
+    /**
+     * Build any necessary non-data parameter tensors.
+     * <p>
+     * The default implementation returns an empty map, and should be overridden if necessary.
+     * <p>
+     * This should not mutate any state in the trainer.
+     * @return The parameter tensors.
+     */
+    protected TensorMap getHyperparameterFeed() {
+        return new TensorMap(Collections.emptyMap());
     }
 
     @Override

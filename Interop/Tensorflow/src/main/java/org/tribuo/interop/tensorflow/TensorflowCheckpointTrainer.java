@@ -55,8 +55,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.tribuo.interop.tensorflow.TFModel.INPUT_NAME;
-
 /**
  * Trainer for Tensorflow. Expects the underlying Tensorflow graph to have specific placeholders and
  * targets listed below. The input name is specified in the {@link ExampleTransformer}.
@@ -182,7 +180,7 @@ public final class TensorflowCheckpointTrainer<T extends Output<T>> implements T
                         batch.add(examples.getExample(k));
                     }
                     //logger.info("Batch = " + batch.size());
-                    ExampleTransformer.FeedDict input = exampleTransformer.transform(batch, featureMap);
+                    TensorMap input = exampleTransformer.transform(batch, featureMap);
                     Tensor target = outputTransformer.transform(batch, outputInfo);
                     Tensor loss = input.feedInto(session.runner())
                             .feed(TARGET, target)

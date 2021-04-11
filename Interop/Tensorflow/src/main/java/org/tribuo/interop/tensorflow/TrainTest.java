@@ -48,9 +48,21 @@ public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
-    public enum InputType { DENSE, IMAGE }
+    /**
+     * Type of feature extractor.
+     */
+    public enum InputType {
+        /**
+         * Dense feature extractor.
+         */
+        DENSE,
+        /**
+         * Image feature extractor, requires the image format option be set.
+         */
+        IMAGE
+    }
 
-    public static Pair<Dataset<Label>,Dataset<Label>> load(Path trainingPath, Path testingPath, OutputFactory<Label> outputFactory) throws IOException {
+    private static Pair<Dataset<Label>,Dataset<Label>> load(Path trainingPath, Path testingPath, OutputFactory<Label> outputFactory) throws IOException {
         logger.info(String.format("Loading data from %s", trainingPath));
         Dataset<Label> train;
         Dataset<Label> test;
@@ -67,15 +79,9 @@ public class TrainTest {
         return new Pair<>(train,test);
     }
 
-    public static void saveModel(Path outputPath, Model<Label> model) throws IOException {
-        FileOutputStream fout = new FileOutputStream(outputPath.toFile());
-        ObjectOutputStream oout = new ObjectOutputStream(fout);
-        oout.writeObject(model);
-        oout.close();
-        fout.close();
-        logger.info("Serialized model to file: " + outputPath);
-    }
-
+    /**
+     * Options for training a model in tensorflow.
+     */
     public static class TensorflowOptions implements Options {
         @Override
         public String getOptionsDescription() {
@@ -108,6 +114,7 @@ public class TrainTest {
     }
 
     /**
+     * CLI entry point.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */
@@ -188,7 +195,10 @@ public class TrainTest {
         logger.info(evaluation.getConfusionMatrix().toString());
 
         if (o.outputPath != null) {
-            saveModel(o.outputPath, model);
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(o.outputPath.toFile()))) {
+                oos.writeObject(model);
+            }
+            logger.info("Serialized model to file: " + o.outputPath);
         }
 
         if (o.checkpointPath == null) {

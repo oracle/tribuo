@@ -22,6 +22,7 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.interop.tensorflow.TensorMap;
 import org.tribuo.interop.tensorflow.TensorflowUtil;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceExample;
@@ -78,19 +79,17 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
 
     @Override
     public List<Prediction<T>> predict(SequenceExample<T> example) {
-        Map<String, Tensor> feed = exampleTransformer.encode(example, featureIDMap);
+        TensorMap feed = exampleTransformer.encode(example, featureIDMap);
         Session.Runner runner = session.runner();
-        for (Map.Entry<String, Tensor> item : feed.entrySet()) {
-            runner.feed(item.getKey(), item.getValue());
-        }
+        runner = feed.feedInto(runner);
         try (Tensor outputTensor = runner
                 .fetch(predictOp)
                 .run()
                 .get(0)) {
             List<Prediction<T>> prediction = outputTransformer.decode(outputTensor, example, outputIDMap);
             //
-            // Close all the open tensors
-            TensorflowUtil.closeTensorCollection(feed.values());
+            // Close the input tensors
+            feed.close();
             return prediction;
         }
     }

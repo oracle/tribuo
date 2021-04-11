@@ -53,7 +53,7 @@ import java.util.Map;
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
-public final class TensorflowExternalModel<T extends Output<T>> extends ExternalModel<T, ExampleTransformer.FeedDict, Tensor> implements Closeable {
+public final class TensorflowExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, Tensor> implements Closeable {
     private static final long serialVersionUID = 200L;
 
     private transient Graph model;
@@ -98,12 +98,12 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
     }
 
     @Override
-    protected ExampleTransformer.FeedDict convertFeatures(SparseVector input) {
+    protected TensorMap convertFeatures(SparseVector input) {
         return featureTransformer.transform(input);
     }
 
     @Override
-    protected ExampleTransformer.FeedDict convertFeaturesList(List<SparseVector> input) {
+    protected TensorMap convertFeaturesList(List<SparseVector> input) {
         return featureTransformer.transform(input);
     }
 
@@ -115,7 +115,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
      * @return A tensor representing the output.
      */
     @Override
-    protected Tensor externalPrediction(ExampleTransformer.FeedDict input) {
+    protected Tensor externalPrediction(TensorMap input) {
         Tensor output = input.feedInto(session.runner()).fetch(outputName).run().get(0);
         input.close();
         return output;

@@ -21,12 +21,11 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.interop.tensorflow.TensorMap;
 import org.tribuo.sequence.SequenceExample;
-import org.tensorflow.Tensor;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Converts a sequence example into a feed dict suitable for Tensorflow.
@@ -40,7 +39,7 @@ public interface SequenceExampleTransformer<T extends Output<T>> extends Configu
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor> encode(SequenceExample<T> example, ImmutableFeatureMap featureMap);
+    TensorMap encode(SequenceExample<T> example, ImmutableFeatureMap featureMap);
 
     /**
      * Encodes a batch of examples as a feed dict.
@@ -49,6 +48,6 @@ public interface SequenceExampleTransformer<T extends Output<T>> extends Configu
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor> encode(List<SequenceExample<T>> batch, ImmutableFeatureMap featureMap);
+    TensorMap encode(List<SequenceExample<T>> batch, ImmutableFeatureMap featureMap);
 
 }

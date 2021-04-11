@@ -112,13 +112,13 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
     }
 
     @Override
-    public FeedDict transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public TensorMap transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
         float[] output = innerTransform(example,featureIDMap);
-        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
+        return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
     }
 
     @Override
-    public FeedDict transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public TensorMap transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),featureIDMap.size()));
 
         int i = 0;
@@ -128,17 +128,17 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return new FeedDict(inputName,output);
+        return new TensorMap(inputName,output);
     }
 
     @Override
-    public FeedDict transform(SGDVector vector) {
+    public TensorMap transform(SGDVector vector) {
         float[] output = innerTransform(vector);
-        return new FeedDict(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
+        return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
     }
 
     @Override
-    public FeedDict transform(List<? extends SGDVector> vectors) {
+    public TensorMap transform(List<? extends SGDVector> vectors) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),vectors.get(0).size()));
 
         int i = 0;
@@ -148,7 +148,7 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
             i++;
         }
 
-        return new FeedDict(inputName,output);
+        return new TensorMap(inputName,output);
     }
 
     @Override

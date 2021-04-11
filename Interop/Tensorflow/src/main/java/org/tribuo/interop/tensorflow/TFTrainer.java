@@ -237,7 +237,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
                         batch.add(examples.getExample(k));
                     }
                     //logger.info("Batch = " + batch.size());
-                    ExampleTransformer.FeedDict input = exampleTransformer.transform(batch,featureMap);
+                    TensorMap input = exampleTransformer.transform(batch,featureMap);
                     Tensor target = outputTransformer.transform(batch,outputInfo);
                     Tensor lossTensor = input.feedInto(session.runner())
                             .feed(targetPlaceholder, target)

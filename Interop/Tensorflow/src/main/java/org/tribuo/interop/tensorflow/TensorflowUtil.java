@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 /**
  * Helper functions for working with Tensorflow.
  */
-public class TensorflowUtil {
+public abstract class TensorflowUtil {
     private static final Logger logger = Logger.getLogger(TensorflowUtil.class.getName());
 
     public static final String VARIABLE_V2 = "VariableV2";
@@ -47,6 +47,8 @@ public class TensorflowUtil {
     public static final String ASSIGN_PLACEHOLDER = "Assign_from_Placeholder";
     public static final String PLACEHOLDER = "Placeholder";
     public static final String DTYPE = "dtype";
+
+    private TensorflowUtil() {}
 
     /**
      * Closes a collection of {@link Tensor}s.

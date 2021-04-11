@@ -97,7 +97,7 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
-        try (ExampleTransformer.FeedDict transformedInput = exampleTransformer.transform(vec);
+        try (TensorMap transformedInput = exampleTransformer.transform(vec);
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a Prediction.
@@ -136,7 +136,7 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         }
 
         // Send a batch to Tensorflow
-        try (ExampleTransformer.FeedDict transformedInput = exampleTransformer.transform(vectors);
+        try (TensorMap transformedInput = exampleTransformer.transform(vectors);
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a list of Predictions.
