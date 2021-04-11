@@ -37,12 +37,10 @@ import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.family.TNumber;
-import org.tensorflow.types.family.TType;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Trainer;
 import org.tribuo.provenance.ModelProvenance;
@@ -61,6 +59,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -339,6 +338,20 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
             info.instanceValues.put(GRAPH_HASH,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_HASH,HashProvenance.class, TFTrainerProvenance.class.getSimpleName()));
             info.instanceValues.put(GRAPH_LAST_MOD,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_LAST_MOD,DateTimeProvenance.class, TFTrainerProvenance.class.getSimpleName()));
             return info;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            if (!super.equals(o)) return false;
+            TFTrainerProvenance pairs = (TFTrainerProvenance) o;
+            return graphHash.equals(pairs.graphHash) && graphLastModified.equals(pairs.graphLastModified);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), graphHash, graphLastModified);
         }
     }
 }

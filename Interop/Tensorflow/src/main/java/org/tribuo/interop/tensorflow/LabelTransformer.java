@@ -62,7 +62,11 @@ public class LabelTransformer implements OutputTransformer<Label> {
      */
     @Override
     public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
-        return (ops,pair) -> ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),(Placeholder<TNumber>)pair.getA()).loss(),ops.constant(0));
+        return (ops,pair) -> {
+            @SuppressWarnings("unchecked") // cast off the wildcard to the superclass
+            Placeholder<TNumber> placeholder = (Placeholder<TNumber>) pair.getA();
+            return ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),placeholder).loss(),ops.constant(0));
+        };
         /*
         return (ops,pair) -> new CategoricalCrossentropy(ops,
                 "tribuo-cross-entropy",
