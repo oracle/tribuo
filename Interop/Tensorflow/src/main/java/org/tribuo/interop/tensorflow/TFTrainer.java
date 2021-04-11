@@ -335,8 +335,8 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
 
         protected static ExtractedInfo extractTFProvenanceInfo(Map<String,Provenance> map) {
             ExtractedInfo info = SkeletalTrainerProvenance.extractProvenanceInfo(map);
-            info.instanceValues.put(GRAPH_HASH,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_HASH,HashProvenance.class, TFTrainerProvenance.class.getSimpleName()));
-            info.instanceValues.put(GRAPH_LAST_MOD,ObjectProvenance.checkAndExtractProvenance(map,GRAPH_LAST_MOD,DateTimeProvenance.class, TFTrainerProvenance.class.getSimpleName()));
+            info.instanceValues.put(GRAPH_HASH,ObjectProvenance.checkAndExtractProvenance(info.configuredParameters,GRAPH_HASH,HashProvenance.class, TFTrainerProvenance.class.getSimpleName()));
+            info.instanceValues.put(GRAPH_LAST_MOD,ObjectProvenance.checkAndExtractProvenance(info.configuredParameters,GRAPH_LAST_MOD,DateTimeProvenance.class, TFTrainerProvenance.class.getSimpleName()));
             return info;
         }
 
