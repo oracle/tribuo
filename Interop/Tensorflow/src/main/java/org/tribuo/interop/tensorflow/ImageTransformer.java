@@ -23,7 +23,6 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 import org.tensorflow.ndarray.NdArrays;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.ndarray.buffer.DataBuffers;
-import org.tensorflow.ndarray.buffer.FloatDataBuffer;
 import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -31,9 +30,10 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
-import org.tensorflow.Tensor;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Image transformer. Assumes the feature id numbers are linearised ids of the form:
@@ -102,6 +102,11 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
             throw new PropertyException("","Image size must be less than 2^31, found " + values);
         }
         this.totalPixels = (int) values;
+    }
+
+    @Override
+    public Set<String> inputNamesSet() {
+        return Collections.singleton(inputName);
     }
 
     /**

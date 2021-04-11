@@ -58,7 +58,7 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
      * @return The mse loss.
      */
     @Override
-    public BiFunction<Ops, Pair<Placeholder<TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
+    public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
         return (ops, pair) -> new MeanSquaredError(ops, "tribuo-mse", Reduction.SUM_OVER_BATCH_SIZE).call(pair.getA(),pair.getB());
     }
 
@@ -70,11 +70,6 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     @Override
     public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction() {
         return Ops::identity;
-    }
-
-    @Override
-    public Class<TFloat32> placeholderType() {
-        return TFloat32.class;
     }
 
     @Override

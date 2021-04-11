@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * TensorFlow support is experimental, and may change without a major version bump.
@@ -78,6 +79,12 @@ public interface ExampleTransformer<T extends Output<T>> extends Configurable, P
      * @return A FeedDict representing this minibatch.
      */
     public FeedDict transform(List<? extends SGDVector> vectors);
+
+    /**
+     * Gets a view of the names of the inputs this transformer produces.
+     * @return The input names.
+     */
+    public Set<String> inputNamesSet();
 
     /**
      * A map of names and tensors to feed into a session.

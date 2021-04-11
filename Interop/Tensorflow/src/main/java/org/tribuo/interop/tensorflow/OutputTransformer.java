@@ -45,6 +45,7 @@ import java.util.function.BiFunction;
  * transformation function for converting the TF graph output into a
  * well formed output float (e.g., a softmax for classification, a sigmoid
  * for multi-label, or the identity function for regression).
+ * @param <T> The output type.
  */
 public interface OutputTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
@@ -52,7 +53,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * The loss function associated with this prediction type.
      * @return The TF loss function.
      */
-    public BiFunction<Ops, Pair<Placeholder<TNumber>,Operand<TNumber>>,Operand<TNumber>> loss();
+    public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss();
 
     /**
      * Produces an output transformation function that applies the operation to
@@ -64,13 +65,6 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @return A function which applies the appropriate transformation function.
      */
     public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction();
-
-    /**
-     * Gets the class representing the placeholder type for this input.
-     * @param <U> The type.
-     * @return The class representing the type.
-     */
-    public <U extends TType> Class<U> placeholderType();
 
     /**
      * Converts a {@link Tensor} into a {@link Prediction}.

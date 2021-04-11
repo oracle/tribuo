@@ -32,7 +32,9 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tensorflow.Tensor;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -147,6 +149,11 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
         }
 
         return new FeedDict(inputName,output);
+    }
+
+    @Override
+    public Set<String> inputNamesSet() {
+        return Collections.singleton(inputName);
     }
 
     @Override

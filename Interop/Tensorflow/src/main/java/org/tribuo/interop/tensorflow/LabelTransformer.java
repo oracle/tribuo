@@ -61,8 +61,8 @@ public class LabelTransformer implements OutputTransformer<Label> {
      * @return The cross-entropy loss.
      */
     @Override
-    public BiFunction<Ops, Pair<Placeholder<TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
-        return (ops,pair) -> ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),pair.getA()).loss(),ops.constant(0));
+    public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
+        return (ops,pair) -> ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),(Placeholder<TNumber>)pair.getA()).loss(),ops.constant(0));
         /*
         return (ops,pair) -> new CategoricalCrossentropy(ops,
                 "tribuo-cross-entropy",
@@ -75,17 +75,12 @@ public class LabelTransformer implements OutputTransformer<Label> {
 
     /**
      * Applies a softmax.
-     * @param <U> The softmax input type (should be TFloat32).
+     * @param <V> The softmax input type (should be TFloat32).
      * @return A function which applies a softmax.
      */
     @Override
-    public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction() {
+    public <V extends TNumber> BiFunction<Ops, Operand<V>, Op> outputTransformFunction() {
         return (ops, logits) -> ops.nn.softmax(logits);
-    }
-
-    @Override
-    public Class<TFloat32> placeholderType() {
-        return TFloat32.class;
     }
 
     @Override

@@ -17,8 +17,12 @@
 package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.ConcreteFunction;
 import org.tensorflow.Graph;
+import org.tensorflow.Operation;
+import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Session;
+import org.tensorflow.Signature;
 import org.tensorflow.Tensor;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TBool;
@@ -38,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -149,7 +154,7 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
 
     /**
      * Sets a new batch size.
-     *
+     * <p>
      * Throws {@link IllegalArgumentException} if the batch size isn't positive.
      * @param batchSize The batch size to use.
      */
@@ -198,6 +203,24 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         if (modelGraph != null) {
             modelGraph.close();
         }
+    }
+
+    /**
+     * Exports this model as a {@link SavedModelBundle}, writing to the supplied directory.
+     * @param path The directory to export to.
+     * @throws IOException If it failed to write to the directory.
+     */
+    public void exportModel(String path) throws IOException {
+        Signature.Builder sigBuilder = Signature.builder();
+        Set<String> inputs = exampleTransformer.inputNamesSet();
+        for (String s : inputs) {
+            Operation inputOp = modelGraph.operation(s);
+            sigBuilder.input(s,inputOp.output(0));
+        }
+        Operation outputOp = modelGraph.operation(outputName);
+        Signature modelSig = sigBuilder.output(outputName, outputOp.output(0)).build();
+        ConcreteFunction concFunc = ConcreteFunction.create(modelSig, session);
+        SavedModelBundle.exporter(path).withFunction(concFunc).export();
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

@@ -37,6 +37,7 @@ import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.family.TNumber;
+import org.tensorflow.types.family.TType;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -185,7 +186,12 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     }
 
     @Override
-    public Model<T> train(Dataset<T> examples, Map<String,Provenance> runProvenance) {
+    public TFModel<T> train(Dataset<T> examples) {
+        return train(examples,Collections.emptyMap());
+    }
+
+    @Override
+    public TFModel<T> train(Dataset<T> examples, Map<String,Provenance> runProvenance) {
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputInfo = examples.getOutputIDInfo();
         ArrayList<Example<T>> batch = new ArrayList<>();
@@ -208,7 +214,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
             }
 
             // Add target placeholder
-            Placeholder<TNumber> targetPlaceholder = tf.placeholder(outputTransformer.placeholderType(),Placeholder.shape(Shape.of(minibatchSize,outputInfo.size())));
+            Placeholder<? extends TNumber> targetPlaceholder = tf.placeholder(TFloat32.class,Placeholder.shape(Shape.of(minibatchSize,outputInfo.size())));
 
             // Add loss, optimizer and output
             Op outputOp = outputTransformer.outputTransformFunction().apply(tf,intermediateOutputOp);
