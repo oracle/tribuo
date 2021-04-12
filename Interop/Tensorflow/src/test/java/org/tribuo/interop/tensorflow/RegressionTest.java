@@ -45,13 +45,13 @@ public class RegressionTest {
     @Test
     public void regressionMLPTest() throws IOException {
         // Create the train and test data
-        DataSource<Regressor> trainSource = new NonlinearGaussianDataSource(1024,new float[]{1.0f,2.0f,-3.0f,4.0f},10.0f,1.0f,-5.0f,5.0f,-10.0f,10.0f,42);
-        DataSource<Regressor> testSource = new NonlinearGaussianDataSource(1024,new float[]{1.0f,2.0f,-3.0f,4.0f},10.0f,1.0f,-5.0f,5.0f,-10.0f,10.0f,42*42);
+        DataSource<Regressor> trainSource = new NonlinearGaussianDataSource(1024,new float[]{1.0f,2.0f,-3.0f,4.0f},1.0f,0.1f,-5.0f,5.0f,-1.0f,1.0f,42);
+        DataSource<Regressor> testSource = new NonlinearGaussianDataSource(1024,new float[]{1.0f,2.0f,-3.0f,4.0f},1.0f,0.1f,-5.0f,5.0f,-1.0f,1.0f,42*42);
         MutableDataset<Regressor> trainData = new MutableDataset<>(trainSource);
         MutableDataset<Regressor> testData = new MutableDataset<>(testSource);
 
         // Build the MLP graph
-        GraphTuple graphTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{50}, trainData.getOutputs().size());
+        GraphTuple graphTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{50,50}, trainData.getOutputs().size());
 
         // Configure the trainer
         Map<String, Float> gradientParams = new HashMap<>();
@@ -67,15 +67,16 @@ public class RegressionTest {
                 denseTransformer,
                 outputTransformer,
                 16,
-                2,
-                16);
+                10,
+                16,
+                -1);
 
         // Train the model
         TFModel<Regressor> model = trainer.train(trainData);
 
         // Run smoke test evaluation
         RegressionEvaluation eval = new RegressionEvaluator().evaluate(model,testData);
-        Assertions.assertTrue(!eval.r2().isEmpty());
+        Assertions.assertFalse(eval.r2().isEmpty());
 
         // Check Tribuo serialization
         Helpers.testModelSerialization(model,Regressor.class);
