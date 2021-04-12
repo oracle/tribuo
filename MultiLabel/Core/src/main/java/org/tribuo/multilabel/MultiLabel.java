@@ -20,9 +20,11 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 import org.tribuo.classification.Label;
+import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -275,6 +277,43 @@ public class MultiLabel implements Classifiable<MultiLabel> {
             return str + ":" + score;
         }
         return str;
+    }
+
+    /**
+     * Converts this MultiLabel into a DenseVector using the indices from the output info.
+     * The label score is used as the value for that index if it's non-NaN, and is 1.0 otherwise.
+     * Labels which are not present are given the score 0.0.
+     * @param info The info to use for the ids.
+     * @return A DenseVector representing this MultiLabel.
+     */
+    public DenseVector convertToDenseVector(ImmutableOutputInfo<MultiLabel> info) {
+        if (!(info instanceof ImmutableMultiLabelInfo)) {
+            throw new IllegalStateException("Unexpected info type, found " + info.getClass().getName() + ", expected " + ImmutableMultiLabelInfo.class.getName());
+        } else {
+            ImmutableMultiLabelInfo imInfo = (ImmutableMultiLabelInfo) info;
+            Set<Integer> seenIndices = new HashSet<>(labels.size());
+            double[] values = new double[imInfo.size()];
+
+            for (Label l : labels) {
+                int i = imInfo.getID(l.getLabel());
+                if (i != -1) {
+                    if (!seenIndices.contains(i)) {
+                        double score = l.getScore();
+                        if (Double.isNaN(score)) {
+                            score = 1.0;
+                        }
+                        seenIndices.add(i);
+                        values[i] = score;
+                    } else {
+                        throw new IllegalArgumentException("Duplicate label ids found for id " + i + ", mapping to Label '" + l.getLabel() + "'");
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unknown label '" + l.getLabel() + "' which was not recognised by the supplied info object, info = " + info.toString());
+                }
+            }
+
+            return DenseVector.createDenseVector(values);
+        }
     }
 
     /**

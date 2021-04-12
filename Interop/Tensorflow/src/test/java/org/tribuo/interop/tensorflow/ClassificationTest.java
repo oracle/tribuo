@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TFTrainerTest {
+public class ClassificationTest {
 
     private static final int PIXEL_DEPTH = 255;
     private static final int IMAGE_SIZE = 28;

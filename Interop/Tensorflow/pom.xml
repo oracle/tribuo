@@ -59,6 +59,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>tribuo-multilabel-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-regression-core</artifactId>
             <version>${project.version}</version>
         </dependency>
