@@ -78,6 +78,11 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
 
     private static final Logger logger = Logger.getLogger(TFTrainer.class.getName());
 
+    /**
+     * Default logging interval.
+     */
+    public static final int DEFAULT_LOGGING_INTERVAL = 100;
+
     @Config(mandatory=true,description="Path to the protobuf containing the graph.")
     private Path graphPath;
 
@@ -159,6 +164,30 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
                      int minibatchSize,
                      int epochs,
                      int testBatchSize) {
+        this(graph,outputName,initName,optimizer,gradientParams,exampleTransformer,outputTransformer,minibatchSize,epochs,testBatchSize,DEFAULT_LOGGING_INTERVAL);
+    }
+
+    /**
+     * Constructs a Trainer for a tensorflow graph.
+     * @param graph The graph definition as a byte array. Must have the targets and placeholders specified above.
+     * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
+     * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
+     * @param minibatchSize The minibatch size to use in training.
+     * @param epochs The number of SGD epochs to run.
+     * @param testBatchSize The minibatch size to use at test time.
+     * @param loggingInterval The logging interval. Set to -1 to quiesce the loss level logging.
+     */
+    public TFTrainer(Graph graph,
+                     String outputName,
+                     String initName,
+                     GradientOptimiser optimizer,
+                     Map<String,Float> gradientParams,
+                     ExampleTransformer<T> exampleTransformer,
+                     OutputTransformer<T> outputTransformer,
+                     int minibatchSize,
+                     int epochs,
+                     int testBatchSize,
+                     int loggingInterval) {
         this.graphPath = null;
         this.graphDef = graph.toGraphDef();
         this.outputName = outputName;
@@ -170,6 +199,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
         this.minibatchSize = minibatchSize;
         this.epochs = epochs;
         this.testBatchSize = testBatchSize;
+        this.loggingInterval = loggingInterval;
         Shape outputShape = graph.operation(outputName).output(0).shape();
         if (outputShape.numDimensions() != 2) {
             throw new IllegalArgumentException("Expected a 2 dimensional output, found " + Arrays.toString(outputShape.asArray()));
@@ -244,7 +274,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
                             .addTarget(optimizer)
                             .fetch(lossOp)
                             .run().get(0);
-                    if (interval % loggingInterval == 0) {
+                    if ((loggingInterval != -1) && (interval % loggingInterval == 0)) {
                         logger.log(Level.INFO, "Training loss = " + ((TFloat32) lossTensor).getFloat());
                     }
                     input.close();
