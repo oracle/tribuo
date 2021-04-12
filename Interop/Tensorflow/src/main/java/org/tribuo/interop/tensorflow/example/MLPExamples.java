@@ -90,7 +90,7 @@ public abstract class MLPExamples {
         Variable<TFloat32> outputBiases = tf.variable(tf.fill(tf.array(numOutputs), tf.constant(0.1f)));
         Add<TFloat32> output = tf.math.add(tf.linalg.matMul(prevOutput, outputWeights), outputBiases);
 
-
+        // Create the init op
         Init init = tf.init();
 
         return new GraphTuple(graph, inputName, output.op().name(), init.op().name());

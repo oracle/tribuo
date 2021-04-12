@@ -94,7 +94,7 @@ public abstract class TensorflowUtil {
         List<Tensor> output = runner.run();
 
         if (output.size() != variableNames.size()) {
-            TensorflowUtil.closeTensorCollection(output);
+            closeTensorCollection(output);
             throw new IllegalStateException("Failed to annotate all requested variables. Requested " + variableNames.size() + ", found " + output.size());
         }
 
@@ -108,7 +108,7 @@ public abstract class TensorflowUtil {
             builder.build();
         }
 
-        TensorflowUtil.closeTensorCollection(output);
+        closeTensorCollection(output);
     }
 
     /**
@@ -198,8 +198,8 @@ public abstract class TensorflowUtil {
         /**
          * Makes a TensorTuple.
          * @param className The tensor class name.
-         * @param shape
-         * @param data
+         * @param shape The dimensions of the tensor.
+         * @param data The data in the tensor.
          */
         public TensorTuple(String className, long[] shape, byte[] data) {
             this.className = className;
