@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # test against supported LTS versions and latest
-        java: [ 8, 11, 15 ]
+        java: [ 8, 11, 16 ]
     name: macOS OpenJDK ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2
