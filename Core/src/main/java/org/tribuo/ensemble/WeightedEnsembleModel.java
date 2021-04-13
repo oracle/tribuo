@@ -49,7 +49,7 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     protected final EnsembleCombiner<T> combiner;
 
     /**
-     * Constructs a weighted ensemble model.
+     * Constructs an ensemble model which uses uniform weights.
      * @param name The model name.
      * @param provenance The model provenance.
      * @param featureIDMap The feature domain.
@@ -138,7 +138,8 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     /**
      * Creates an ensemble from existing models. The model outputs are combined using uniform weights.
      * <p>
-     * Uses the feature and output domain from the first model.
+     * Uses the feature and output domain from the first model as the ensemble model's domains.
+     * The individual ensemble members use the domains that they contain.
      * <p>
      * If the output domains don't cover the same dimensions then it throws {@link IllegalArgumentException}.
      * @param name The ensemble name.
@@ -154,7 +155,8 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     /**
      * Creates an ensemble from existing models.
      * <p>
-     * Uses the feature and output domain from the first model.
+     * Uses the feature and output domain from the first model as the ensemble model's domains.
+     * The individual ensemble members use the domains that they contain.
      * <p>
      * If the output domains don't cover the same dimensions then it throws {@link IllegalArgumentException}.
      * If the weights aren't the same length as the models it throws {@link IllegalArgumentException}.
