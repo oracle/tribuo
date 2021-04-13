@@ -17,6 +17,7 @@
 package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.PrimitiveProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
@@ -50,7 +51,10 @@ import org.tribuo.provenance.TrainerProvenance;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -70,18 +74,27 @@ import java.util.logging.Logger;
  * <p>
  * This trainer only works with graphs setup for minibatches. To recover single example training just use a batch size of 1.
  * <p>
- * This trainer uses the serialisation functionality in {@link TensorflowUtil}, as opposed to a SavedModel or a checkpoint.
+ * This trainer uses the serialisation functionality in {@link TensorFlowUtil}, as opposed to a SavedModel or a checkpoint.
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
-public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
+public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> {
 
-    private static final Logger logger = Logger.getLogger(TFTrainer.class.getName());
+    private static final Logger logger = Logger.getLogger(TensorFlowTrainer.class.getName());
 
     /**
-     * Default logging interval.
+     * The model format to emit.
      */
-    public static final int DEFAULT_LOGGING_INTERVAL = 100;
+    public enum TFModelFormat {
+        /**
+         * Saves the model inside the Tribuo object, emits a {@link TensorFlowNativeModel}.
+         */
+        TRIBUO_NATIVE,
+        /**
+         * Saves the model state inside a TensorFlow checkpoint, emits a {@link TensorFlowCheckpointModel}.
+         */
+        CHECKPOINT;
+    }
 
     @Config(mandatory=true,description="Path to the protobuf containing the graph.")
     private Path graphPath;
@@ -91,8 +104,8 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     @Config(description="Test time batch size.")
     private int testBatchSize = 16;
 
-    @Config(description="Name of the output operation before the loss.")
-    private String outputName = TensorflowCheckpointTrainer.OUTPUT_NAME;
+    @Config(mandatory=true,description="Name of the output operation before the loss.")
+    private String outputName;
 
     @Config(description="Name of the init operation.")
     private String initName = Init.DEFAULT_NAME;
@@ -118,58 +131,22 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     @Config(mandatory=true,description="The gradient optimizer parameters.")
     private Map<String,Float> gradientParams;
 
+    @Config(description="Saved model format.")
+    private TFModelFormat modelFormat = TFModelFormat.TRIBUO_NATIVE;
+
+    @Config(description="Checkpoint output directory.")
+    private Path checkpointPath;
+
     private int trainInvocationCounter = 0;
 
     /**
      * for olcut.
      */
-    private TFTrainer() {}
+    private TensorFlowTrainer() {}
 
     /**
-     * Constructs a Trainer for a tensorflow graph.
-     * @param graphPath The path to the graph protobuf. Must have the targets and placeholders specified above.
-     * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
-     * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
-     * @param minibatchSize The minibatch size to use in training.
-     * @param epochs The number of SGD epochs to run.
-     * @param testBatchSize The minibatch size to use at test time.
-     * @throws IOException If the graphPath is invalid or failed to load.
-     */
-    public TFTrainer(Path graphPath, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer, int minibatchSize, int epochs, int testBatchSize) throws IOException {
-        this.graphPath = graphPath;
-        this.exampleTransformer = exampleTransformer;
-        this.outputTransformer = outputTransformer;
-        this.minibatchSize = minibatchSize;
-        this.epochs = epochs;
-        this.testBatchSize = testBatchSize;
-        postConfig();
-    }
-
-    /**
-     * Constructs a Trainer for a tensorflow graph.
-     * @param graph The graph definition as a byte array. Must have the targets and placeholders specified above.
-     * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
-     * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
-     * @param minibatchSize The minibatch size to use in training.
-     * @param epochs The number of SGD epochs to run.
-     * @param testBatchSize The minibatch size to use at test time.
-     */
-    public TFTrainer(Graph graph,
-                     String outputName,
-                     String initName,
-                     GradientOptimiser optimizer,
-                     Map<String,Float> gradientParams,
-                     ExampleTransformer<T> exampleTransformer,
-                     OutputTransformer<T> outputTransformer,
-                     int minibatchSize,
-                     int epochs,
-                     int testBatchSize) {
-        this(graph,outputName,initName,optimizer,gradientParams,exampleTransformer,outputTransformer,minibatchSize,epochs,testBatchSize,DEFAULT_LOGGING_INTERVAL);
-    }
-
-    /**
-     * Constructs a Trainer for a tensorflow graph.
-     * @param graph The graph definition as a byte array. Must have the targets and placeholders specified above.
+     * Constructs a Trainer for a tensorflow graph. Stores the model parameters inside the Tribuo model.
+     * @param graphPath Path to the graph definition on disk. Must have the necessary targets and placeholders.
      * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
      * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
      * @param minibatchSize The minibatch size to use in training.
@@ -177,18 +154,134 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
      * @param testBatchSize The minibatch size to use at test time.
      * @param loggingInterval The logging interval. Set to -1 to quiesce the loss level logging.
      */
-    public TFTrainer(Graph graph,
-                     String outputName,
-                     String initName,
-                     GradientOptimiser optimizer,
-                     Map<String,Float> gradientParams,
-                     ExampleTransformer<T> exampleTransformer,
-                     OutputTransformer<T> outputTransformer,
-                     int minibatchSize,
-                     int epochs,
-                     int testBatchSize,
-                     int loggingInterval) {
-        this.graphPath = null;
+    public TensorFlowTrainer(Path graphPath,
+                             String outputName,
+                             String initName,
+                             GradientOptimiser optimizer,
+                             Map<String,Float> gradientParams,
+                             ExampleTransformer<T> exampleTransformer,
+                             OutputTransformer<T> outputTransformer,
+                             int minibatchSize,
+                             int epochs,
+                             int testBatchSize,
+                             int loggingInterval) {
+        this(graphPath,null,outputName,initName,optimizer,gradientParams,exampleTransformer,outputTransformer,minibatchSize,epochs,testBatchSize,loggingInterval,null,TFModelFormat.TRIBUO_NATIVE);
+    }
+
+    /**
+     * Constructs a Trainer for a tensorflow graph. Stores the model parameters in a TensorFlow checkpoint.
+     * @param graphPath Path to the graph definition on disk. Must have the necessary targets and placeholders.
+     * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
+     * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
+     * @param minibatchSize The minibatch size to use in training.
+     * @param epochs The number of SGD epochs to run.
+     * @param testBatchSize The minibatch size to use at test time.
+     * @param loggingInterval The logging interval. Set to -1 to quiesce the loss level logging.
+     */
+    public TensorFlowTrainer(Path graphPath,
+                             String outputName,
+                             String initName,
+                             GradientOptimiser optimizer,
+                             Map<String,Float> gradientParams,
+                             ExampleTransformer<T> exampleTransformer,
+                             OutputTransformer<T> outputTransformer,
+                             int minibatchSize,
+                             int epochs,
+                             int testBatchSize,
+                             int loggingInterval,
+                             Path checkpointPath) {
+        this(graphPath,null,outputName,initName,optimizer,gradientParams,exampleTransformer,outputTransformer,minibatchSize,epochs,testBatchSize,loggingInterval,checkpointPath,TFModelFormat.CHECKPOINT);
+    }
+
+    /**
+     * Constructs a Trainer for a tensorflow graph. Stores the model parameters inside the Tribuo model.
+     * @param graph The graph definition. Must have the necessary targets and placeholders.
+     * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
+     * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
+     * @param minibatchSize The minibatch size to use in training.
+     * @param epochs The number of SGD epochs to run.
+     * @param testBatchSize The minibatch size to use at test time.
+     * @param loggingInterval The logging interval. Set to -1 to quiesce the loss level logging.
+     */
+    public TensorFlowTrainer(Graph graph,
+                             String outputName,
+                             String initName,
+                             GradientOptimiser optimizer,
+                             Map<String,Float> gradientParams,
+                             ExampleTransformer<T> exampleTransformer,
+                             OutputTransformer<T> outputTransformer,
+                             int minibatchSize,
+                             int epochs,
+                             int testBatchSize,
+                             int loggingInterval) {
+        this(null,graph,outputName,initName,optimizer,gradientParams,exampleTransformer,outputTransformer,minibatchSize,epochs,testBatchSize,loggingInterval,null,TFModelFormat.TRIBUO_NATIVE);
+    }
+
+    /**
+     * Constructs a Trainer for a tensorflow graph. Stores the model parameters in a TensorFlow checkpoint.
+     * @param graph The graph definition. Must have the necessary targets and placeholders.
+     * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
+     * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
+     * @param minibatchSize The minibatch size to use in training.
+     * @param epochs The number of SGD epochs to run.
+     * @param testBatchSize The minibatch size to use at test time.
+     * @param loggingInterval The logging interval. Set to -1 to quiesce the loss level logging.
+     */
+    public TensorFlowTrainer(Graph graph,
+                             String outputName,
+                             String initName,
+                             GradientOptimiser optimizer,
+                             Map<String,Float> gradientParams,
+                             ExampleTransformer<T> exampleTransformer,
+                             OutputTransformer<T> outputTransformer,
+                             int minibatchSize,
+                             int epochs,
+                             int testBatchSize,
+                             int loggingInterval,
+                             Path checkpointPath) {
+        this(null,graph,outputName,initName,optimizer,gradientParams,exampleTransformer,outputTransformer,minibatchSize,epochs,testBatchSize,loggingInterval,checkpointPath,TFModelFormat.CHECKPOINT);
+    }
+
+    /**
+     * Constructs a Trainer for a tensorflow graph. Only one of {@code graphPath} and {@code graph} must be non-null.
+     * <p>
+     * Throws {@link UncheckedIOException} if the graph could not be read.
+     * @param graphPath The path to the graph protobuf. Must have the targets and placeholders specified above.
+     * @param graph The graph definition as a byte array. Must have the targets and placeholders specified above.
+     * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
+     * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
+     * @param minibatchSize The minibatch size to use in training.
+     * @param epochs The number of SGD epochs to run.
+     * @param testBatchSize The minibatch size to use at test time.
+     * @param loggingInterval The logging interval. Set to -1 to quiesce the loss level logging.
+     * @param checkpointPath The checkpoint path, if using checkpoints.
+     * @param modelFormat The model storage format.
+     */
+    private TensorFlowTrainer(Path graphPath,
+                              Graph graph,
+                              String outputName,
+                              String initName,
+                              GradientOptimiser optimizer,
+                              Map<String,Float> gradientParams,
+                              ExampleTransformer<T> exampleTransformer,
+                              OutputTransformer<T> outputTransformer,
+                              int minibatchSize,
+                              int epochs,
+                              int testBatchSize,
+                              int loggingInterval,
+                              Path checkpointPath,
+                              TFModelFormat modelFormat) {
+        if ((graphPath == null) && (graph == null)) {
+            throw new IllegalArgumentException("Must supply either a Graph or a path to a Graph");
+        }
+        if (graphPath != null) {
+            try (InputStream stream = new BufferedInputStream(new FileInputStream(graphPath.toFile()))) {
+                graphDef = GraphDef.parseFrom(stream);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        this.graphPath = graphPath;
         this.graphDef = graph.toGraphDef();
         this.outputName = outputName;
         this.initName = initName;
@@ -200,6 +293,8 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
         this.epochs = epochs;
         this.testBatchSize = testBatchSize;
         this.loggingInterval = loggingInterval;
+        this.checkpointPath = checkpointPath;
+        this.modelFormat = modelFormat;
         Shape outputShape = graph.operation(outputName).output(0).shape();
         if (outputShape.numDimensions() != 2) {
             throw new IllegalArgumentException("Expected a 2 dimensional output, found " + Arrays.toString(outputShape.asArray()));
@@ -211,7 +306,12 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
      */
     @Override
     public void postConfig() throws IOException {
-        graphDef = GraphDef.parseFrom(new BufferedInputStream(new FileInputStream(graphPath.toFile())));
+        try (InputStream stream = new BufferedInputStream(new FileInputStream(graphPath.toFile()))) {
+            graphDef = GraphDef.parseFrom(stream);
+        }
+        if (checkpointPath == null && modelFormat == TFModelFormat.CHECKPOINT) {
+            throw new PropertyException("","checkpointPath","Must set 'checkpointPath' when using TFModelFormat.CHECKPOINT");
+        }
     }
 
     @Override
@@ -224,7 +324,11 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputInfo = examples.getOutputIDInfo();
         ArrayList<Example<T>> batch = new ArrayList<>();
-        trainInvocationCounter++;
+        Path curCheckpointPath;
+        synchronized (this) {
+            curCheckpointPath = checkpointPath != null ? Paths.get(checkpointPath.toString(),"invocation-"+trainInvocationCounter) : null;
+            trainInvocationCounter++;
+        }
 
         try (Graph graph = new Graph();
              Session session = new Session(graph)) {
@@ -267,36 +371,52 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
                         batch.add(examples.getExample(k));
                     }
                     //logger.info("Batch = " + batch.size());
-                    TensorMap input = exampleTransformer.transform(batch,featureMap);
-                    Tensor target = outputTransformer.transform(batch,outputInfo);
-                    Tensor lossTensor = input.feedInto(session.runner())
-                            .feed(targetPlaceholder, target)
-                            .addTarget(optimizer)
-                            .fetch(lossOp)
-                            .run().get(0);
-                    if ((loggingInterval != -1) && (interval % loggingInterval == 0)) {
-                        logger.log(Level.INFO, "Training loss = " + ((TFloat32) lossTensor).getFloat());
+                    try (TensorMap input = exampleTransformer.transform(batch,featureMap);
+                        Tensor target = outputTransformer.transform(batch,outputInfo);
+                        Tensor lossTensor = input.feedInto(session.runner())
+                                .feed(targetPlaceholder, target)
+                                .addTarget(optimizer)
+                                .fetch(lossOp)
+                                .run().get(0)) {
+                        if ((loggingInterval != -1) && (interval % loggingInterval == 0)) {
+                            logger.log(Level.INFO, "Training loss = " + ((TFloat32) lossTensor).getFloat());
+                        }
                     }
-                    input.close();
-                    target.close();
-                    lossTensor.close();
                     interval++;
                 }
             }
 
-            //System.out.println("After training");
-            //TensorflowModel.print(session);
-
-            // This call **must** happen before the trainedGraphDef is generated.
-            TensorflowUtil.annotateGraph(graph,session);
+            // Setup the model serialization infrastructure.
+            // **Must** happen before the trainedGraphDef is generated.
+            switch (modelFormat) {
+                case TRIBUO_NATIVE:
+                    TensorFlowUtil.annotateGraph(graph,session);
+                    break;
+                case CHECKPOINT:
+                    session.save(curCheckpointPath.toString());
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected enum constant " + modelFormat);
+            }
 
             GraphDef trainedGraphDef = graph.toGraphDef();
 
-            Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(graph,session);
-
             ModelProvenance modelProvenance = new ModelProvenance(TFModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
-            TFModel<T> tfModel = new TFModel<>("tf-model", modelProvenance, featureMap,
-                    outputInfo, trainedGraphDef, tensorMap, testBatchSize, initName, outputOp.op().name(), exampleTransformer, outputTransformer);
+            TFModel<T> tfModel;
+
+            switch (modelFormat) {
+                case TRIBUO_NATIVE:
+                    Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.serialise(graph,session);
+                    tfModel = new TensorFlowNativeModel<>("tf-native-model", modelProvenance, featureMap,
+                            outputInfo, trainedGraphDef, tensorMap, testBatchSize, initName, outputOp.op().name(), exampleTransformer, outputTransformer);
+                    break;
+                case CHECKPOINT:
+                    tfModel = new TensorFlowCheckpointModel<>("tf-checkpoint-model", modelProvenance, featureMap,
+                            outputInfo, trainedGraphDef, curCheckpointPath.toString(), testBatchSize, initName, outputOp.op().name(), exampleTransformer, outputTransformer);
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected enum constant " + modelFormat);
+            }
             return tfModel;
         } catch (TensorFlowException e) {
             logger.log(Level.SEVERE, "TensorFlow threw an error", e);
@@ -307,9 +427,15 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
     @Override
     public String toString() {
         String path = graphPath==null?"":graphPath.toString();
-        return "TFTrainer(graphPath="+path+",exampleTransformer="
+        String output = "TFTrainer(graphPath="+path+",exampleTransformer="
                 +exampleTransformer.toString()+",outputTransformer="+outputTransformer.toString()
-                +",minibatchSize="+ minibatchSize +",epochs="+ epochs +")";
+                +",minibatchSize="+ minibatchSize +",epochs="+ epochs +",gradientOptimizer="+optimizerEnum
+                +",gradientParams="+gradientParams.toString()+",modelFormat="+modelFormat;
+        if (modelFormat == TFModelFormat.CHECKPOINT) {
+            return output + ",checkpointPath=" + checkpointPath.toString() + ")";
+        } else {
+            return output + ")";
+        }
     }
 
     @Override
@@ -331,7 +457,7 @@ public final class TFTrainer<T extends Output<T>> implements Trainer<T> {
         private final HashProvenance graphHash;
         private final DateTimeProvenance graphLastModified;
 
-        <T extends Output<T>> TFTrainerProvenance(TFTrainer<T> host) {
+        <T extends Output<T>> TFTrainerProvenance(TensorFlowTrainer<T> host) {
             super(host);
             // instance parameters
             if (host.graphPath != null) {

@@ -23,7 +23,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.interop.tensorflow.TensorMap;
-import org.tribuo.interop.tensorflow.TensorflowUtil;
+import org.tribuo.interop.tensorflow.TensorFlowUtil;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceExample;
 import org.tribuo.sequence.SequenceModel;
@@ -61,7 +61,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
                             SequenceOutputTransformer<T> outputTransformer,
                             String initOp,
                             String predictOp,
-                            Map<String, TensorflowUtil.TensorTuple> tensorMap
+                            Map<String, TensorFlowUtil.TensorTuple> tensorMap
     ) {
         super(name, description, featureIDMap, outputIDMap);
         this.exampleTransformer = exampleTransformer;
@@ -74,7 +74,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
 
         // Initialises the parameters.
         session.runner().addTarget(initOp).run();
-        TensorflowUtil.deserialise(session, tensorMap);
+        TensorFlowUtil.deserialise(session, tensorMap);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
         out.defaultWriteObject();
         byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
         out.writeObject(modelBytes);
-        Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(modelGraph, session);
+        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.serialise(modelGraph, session);
         out.writeObject(tensorMap);
     }
 
@@ -127,12 +127,12 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         byte[] modelBytes = (byte[]) in.readObject();
-        Map<String, TensorflowUtil.TensorTuple> tensorMap = (Map<String,TensorflowUtil.TensorTuple>) in.readObject();
+        Map<String, TensorFlowUtil.TensorTuple> tensorMap = (Map<String, TensorFlowUtil.TensorTuple>) in.readObject();
         modelGraph = new Graph();
         modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(modelGraph);
         // Initialises the parameters.
         session.runner().addTarget(initOp).run();
-        TensorflowUtil.deserialise(session,tensorMap);
+        TensorFlowUtil.deserialise(session,tensorMap);
     }
 }

@@ -39,8 +39,8 @@ import java.util.logging.Logger;
 /**
  * Helper functions for working with Tensorflow.
  */
-public abstract class TensorflowUtil {
-    private static final Logger logger = Logger.getLogger(TensorflowUtil.class.getName());
+public abstract class TensorFlowUtil {
+    private static final Logger logger = Logger.getLogger(TensorFlowUtil.class.getName());
 
     public static final String VARIABLE_V2 = "VariableV2";
     public static final String ASSIGN_OP = "Assign";
@@ -48,7 +48,7 @@ public abstract class TensorflowUtil {
     public static final String PLACEHOLDER = "Placeholder";
     public static final String DTYPE = "dtype";
 
-    private TensorflowUtil() {}
+    private TensorFlowUtil() {}
 
     /**
      * Closes a collection of {@link Tensor}s.
@@ -63,7 +63,7 @@ public abstract class TensorflowUtil {
 
     /**
      * Annotates a graph with an extra placeholder and assign operation for each
-     * VariableV2. This allows the graph to be deserialised using {@link TensorflowUtil#deserialise(Session, Map)}.
+     * VariableV2. This allows the graph to be deserialised using {@link TensorFlowUtil#deserialise(Session, Map)}.
      * <p>
      * This operation can either be done each time the Graph is loaded before deserialise is called,
      * or once, and the updated graphDef persisted with the Map produced by serialise.

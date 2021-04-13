@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.IntNdArray;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -40,7 +41,9 @@ import org.tribuo.interop.tensorflow.example.MLPExamples;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.test.Helpers;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,12 +69,12 @@ public class ClassificationTest {
     @Test
     public void classificationMLPTest() throws IOException {
         // Create the train and test data
-        Pair<Dataset<Label>,Dataset<Label>> data = LabelledDataGenerator.denseTrainTest(-1.0);
+        Pair<Dataset<Label>, Dataset<Label>> data = LabelledDataGenerator.denseTrainTest(-1.0);
         Dataset<Label> trainData = data.getA();
         Dataset<Label> testData = data.getB();
 
         // Build the MLP graph
-        GraphTuple graphTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{5,5}, trainData.getOutputs().size());
+        GraphTuple graphTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{5, 5}, trainData.getOutputs().size());
 
         // Configure the trainer
         Map<String, Float> gradientParams = new HashMap<>();
@@ -79,7 +82,9 @@ public class ClassificationTest {
         gradientParams.put("initialAccumulatorValue", 0.1f);
         ExampleTransformer<Label> denseTransformer = new DenseTransformer<>(INPUT_NAME);
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
-        TFTrainer<Label> trainer = new TFTrainer<>(graphTuple.graph,
+
+        // Test native trainer
+        TensorFlowTrainer<Label> nativeTrainer = new TensorFlowTrainer<>(graphTuple.graph,
                 graphTuple.outputName,
                 graphTuple.initName,
                 GradientOptimiser.ADAGRAD,
@@ -91,12 +96,45 @@ public class ClassificationTest {
                 16,
                 -1);
 
+        testTrainer(nativeTrainer, trainData, testData);
+
+        // Test checkpoint trainer
+        Path checkpointPath = Files.createTempDirectory("tf-classification-test-ckpt");
+        TensorFlowTrainer<Label> checkpointTrainer = new TensorFlowTrainer<>(graphTuple.graph,
+                graphTuple.outputName,
+                graphTuple.initName,
+                GradientOptimiser.ADAGRAD,
+                gradientParams,
+                denseTransformer,
+                outputTransformer,
+                16,
+                5,
+                16,
+                -1,
+                checkpointPath);
+
+        testTrainer(checkpointTrainer, trainData, testData);
+
+        // Validate that the checkpoint has stored things
+        List<Path> files = Files.list(checkpointPath).collect(Collectors.toList());
+        Assertions.assertNotEquals(0,files.size());
+
+        // Cleanup checkpoint
+        Files.walk(checkpointPath)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+
+        Assertions.assertFalse(Files.exists(checkpointPath));
+    }
+
+    private static void testTrainer(TensorFlowTrainer<Label> trainer, Dataset<Label> trainData, Dataset<Label> testData) throws IOException {
         // Train the model
         TFModel<Label> model = trainer.train(trainData);
 
         // Run smoke test evaluation
         LabelEvaluation eval = new LabelEvaluator().evaluate(model,testData);
-        Assertions.assertTrue(eval.accuracy() > 0.0);
+        Assertions.assertTrue(eval.averageAUCROC(false) > 0.0);
 
         // Check Tribuo serialization
         Helpers.testModelSerialization(model,Label.class);
@@ -225,7 +263,7 @@ public class ClassificationTest {
         gradientParams.put("initialAccumulatorValue", 0.1f);
         ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 10, 10, 1);
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
-        TFTrainer<Label> trainer = new TFTrainer<>(graphTuple.graph,
+        TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphTuple.graph,
                 graphTuple.outputName,
                 graphTuple.initName,
                 GradientOptimiser.ADAGRAD,
@@ -288,6 +326,13 @@ public class ClassificationTest {
         System.out.println("Building graph");
         GraphTuple graphTuple = CNNExamples.buildLeNetGraph(INPUT_NAME,IMAGE_SIZE,PIXEL_DEPTH,NUM_LABELS);
 
+        System.out.println("Writing graph to " + args[0] + " with init name '" + graphTuple.initName + "' and output  name '" + graphTuple.outputName + "'");
+        GraphDef graphDef = graphTuple.graph.toGraphDef();
+        byte[] bytes = graphDef.toByteArray();
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(args[0]))) {
+            bos.write(bytes);
+        }
+
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
@@ -295,7 +340,7 @@ public class ClassificationTest {
         ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 28, 28, 1);
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
 
-        TFTrainer<Label> trainer = new TFTrainer<>(graphTuple.graph,
+        TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphTuple.graph,
                 graphTuple.outputName,
                 graphTuple.initName,
                 GradientOptimiser.ADAGRAD,
@@ -304,7 +349,8 @@ public class ClassificationTest {
                 outputTransformer,
                 16,
                 2,
-                16);
+                16,
+                1000);
 
         System.out.println("Training model");
         Model<Label> model = trainer.train(train);

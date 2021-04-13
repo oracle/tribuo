@@ -59,7 +59,7 @@ public class RegressionTest {
         gradientParams.put("initialAccumulatorValue", 0.1f);
         ExampleTransformer<Regressor> denseTransformer = new DenseTransformer<>(INPUT_NAME);
         OutputTransformer<Regressor> outputTransformer = new RegressorTransformer();
-        TFTrainer<Regressor> trainer = new TFTrainer<>(graphTuple.graph,
+        TensorFlowTrainer<Regressor> trainer = new TensorFlowTrainer<>(graphTuple.graph,
                 graphTuple.outputName,
                 graphTuple.initName,
                 GradientOptimiser.ADAGRAD,

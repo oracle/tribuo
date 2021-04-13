@@ -1,19 +1,3 @@
-/*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -25,7 +9,6 @@ import org.tensorflow.Session;
 import org.tensorflow.Signature;
 import org.tensorflow.Tensor;
 import org.tensorflow.proto.framework.GraphDef;
-import org.tensorflow.types.TBool;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
@@ -46,62 +29,63 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- * This model encapsulates a TensorFlow model running in graph mode with a single tensor output.
+ * Base class for a TensorFlow model that operates on {@link Example}s.
  * <p>
- * It accepts an {@link ExampleTransformer} that converts an example's features into a set of {@link Tensor}s, and an
- * {@link OutputTransformer} that converts a {@link Tensor} into a {@link Prediction}.
- * <p>
- * The model's serialVersionUID is set to the major Tensorflow version number times 100.
- * <p>
- * N.B. Tensorflow support is experimental and may change without a major version bump.
+ * The subclasses are package private and concern themselves with how the model is stored
+ * on disk.
+ * @param <T> The output type.
  */
-public class TFModel<T extends Output<T>> extends Model<T> implements AutoCloseable {
-
-    private static final Logger logger = Logger.getLogger(TFModel.class.getName());
-
+public abstract class TFModel<T extends Output<T>> extends Model<T> implements AutoCloseable {
+    private static final Logger logger = Logger.getLogger(TensorFlowNativeModel.class.getName());
     private static final long serialVersionUID = 200L;
 
-    public static final String INPUT_NAME = "input";
+    protected int batchSize;
+    protected final String initName;
+    protected final String outputName;
+    protected final ExampleTransformer<T> exampleTransformer;
+    protected final OutputTransformer<T> outputTransformer;
+    protected transient Graph modelGraph = null;
+    protected transient Session session = null;
+    protected transient boolean closed = false;
 
-    private transient Graph modelGraph = null;
-
-    private transient Session session = null;
-
-    private int batchSize;
-
-    private final String initName;
-
-    private final String outputName;
-
-    private final ExampleTransformer<T> exampleTransformer;
-
-    private final OutputTransformer<T> outputTransformer;
-
-    TFModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorflowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
-        super(name, description, featureIDMap, outputIDMap, outputTransformer.generatesProbabilities());
-        this.exampleTransformer = exampleTransformer;
-        this.outputTransformer = outputTransformer;
+    /**
+     * Builds a TFModel. The session should be initialized in the subclass constructor.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param trainedGraphDef The graph definition.
+     * @param batchSize The test time batch size.
+     * @param initName The name of the initialization operation.
+     * @param outputName The name of the output operation.
+     * @param exampleTransformer The feature transformer.
+     * @param outputTransformer The output transformer.
+     */
+    protected TFModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
+        super(name, provenance, featureIDMap, outputIDInfo, outputTransformer.generatesProbabilities());
         this.modelGraph = new Graph();
         this.modelGraph.importGraphDef(trainedGraphDef);
         this.session = new Session(modelGraph);
         this.batchSize = batchSize;
         this.initName = initName;
         this.outputName = outputName;
-        // Initialises the parameters.
-        session.runner().addTarget(initName).run();
-        TensorflowUtil.deserialise(session,tensorMap);
+        this.exampleTransformer = exampleTransformer;
+        this.outputTransformer = outputTransformer;
     }
 
     @Override
     public Prediction<T> predict(Example<T> example) {
+        if (closed) {
+            throw new IllegalStateException("Can't use a closed model, the state has gone.");
+        }
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
-        SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
+        SparseVector vec = SparseVector.createSparseVector(example, featureIDMap, false);
         try (TensorMap transformedInput = exampleTransformer.transform(vec);
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a Prediction.
-            return outputTransformer.transformToPrediction(outputTensor,outputIDInfo,vec.numActiveElements(),example);
+            return outputTransformer.transformToPrediction(outputTensor, outputIDInfo, vec.numActiveElements(), example);
         }
     }
 
@@ -126,11 +110,14 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
     }
 
     private List<Prediction<T>> predictBatch(List<Example<T>> batchExamples) {
+        if (closed) {
+            throw new IllegalStateException("Can't use a closed model, the state has gone.");
+        }
         // Convert the batch
         List<SparseVector> vectors = new ArrayList<>(batchExamples.size());
         int[] numActiveElements = new int[batchExamples.size()];
         for (int i = 0; i < batchExamples.size(); i++) {
-            SparseVector vec = SparseVector.createSparseVector(batchExamples.get(i),featureIDMap,false);
+            SparseVector vec = SparseVector.createSparseVector(batchExamples.get(i), featureIDMap, false);
             numActiveElements[i] = vec.numActiveElements();
             vectors.add(vec);
         }
@@ -140,12 +127,13 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a list of Predictions.
-            return outputTransformer.transformToBatchPrediction(outputTensor,outputIDInfo,numActiveElements,batchExamples);
+            return outputTransformer.transformToBatchPrediction(outputTensor, outputIDInfo, numActiveElements, batchExamples);
         }
     }
 
     /**
      * Gets the current testing batch size.
+     *
      * @return The batch size.
      */
     public int getBatchSize() {
@@ -156,6 +144,7 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
      * Sets a new batch size.
      * <p>
      * Throws {@link IllegalArgumentException} if the batch size isn't positive.
+     *
      * @param batchSize The batch size to use.
      */
     public void setBatchSize(int batchSize) {
@@ -170,6 +159,7 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
      * Deep learning models don't do feature rankings. Use an Explainer.
      * <p>
      * This method always returns the empty map.
+     *
      * @param n the number of features to return.
      * @return The empty map.
      */
@@ -182,6 +172,7 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
      * Deep learning models don't do excuses. Use an Explainer.
      * <p>
      * This method always returns {@link Optional#empty}.
+     *
      * @param example The input example.
      * @return {@link Optional#empty}.
      */
@@ -190,32 +181,21 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         return Optional.empty();
     }
 
-    @Override
-    protected TFModel<T> copy(String newName, ModelProvenance newProvenance) {
-        return new TFModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),TensorflowUtil.serialise(modelGraph,session),batchSize,initName,outputName,exampleTransformer,outputTransformer);
-    }
-
-    @Override
-    public void close() {
-        if (session != null) {
-            session.close();
-        }
-        if (modelGraph != null) {
-            modelGraph.close();
-        }
-    }
-
     /**
      * Exports this model as a {@link SavedModelBundle}, writing to the supplied directory.
+     *
      * @param path The directory to export to.
      * @throws IOException If it failed to write to the directory.
      */
     public void exportModel(String path) throws IOException {
+        if (closed) {
+            throw new IllegalStateException("Can't serialize a closed model, the state has gone.");
+        }
         Signature.Builder sigBuilder = Signature.builder();
         Set<String> inputs = exampleTransformer.inputNamesSet();
         for (String s : inputs) {
             Operation inputOp = modelGraph.operation(s);
-            sigBuilder.input(s,inputOp.output(0));
+            sigBuilder.input(s, inputOp.output(0));
         }
         Operation outputOp = modelGraph.operation(outputName);
         Signature modelSig = sigBuilder.output(outputName, outputOp.output(0)).build();
@@ -223,24 +203,17 @@ public class TFModel<T extends Output<T>> extends Model<T> implements AutoClosea
         SavedModelBundle.exporter(path).withFunction(concFunc).export();
     }
 
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
-        out.writeObject(modelBytes);
-        Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(modelGraph, session);
-        out.writeObject(tensorMap);
+    @Override
+    public void close() {
+        if (session != null) {
+            session.close();
+            session = null;
+        }
+        if (modelGraph != null) {
+            modelGraph.close();
+            modelGraph = null;
+        }
+        closed = true;
     }
 
-    @SuppressWarnings("unchecked") //deserialising a typed map
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        byte[] modelBytes = (byte[]) in.readObject();
-        Map<String, TensorflowUtil.TensorTuple> tensorMap = (Map<String, TensorflowUtil.TensorTuple>) in.readObject();
-        modelGraph = new Graph();
-        modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
-        session = new Session(modelGraph);
-        // Initialises the parameters.
-        session.runner().addTarget(initName).run();
-        TensorflowUtil.deserialise(session,tensorMap);
-    }
 }

@@ -22,6 +22,7 @@ import com.oracle.labs.mlrg.olcut.config.Options;
 import com.oracle.labs.mlrg.olcut.config.UsageException;
 import com.oracle.labs.mlrg.olcut.util.LabsLogFormatter;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.op.core.Init;
 import org.tribuo.Dataset;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.Model;
@@ -39,6 +40,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 /**
@@ -83,9 +86,15 @@ public class TrainTest {
      * Options for training a model in tensorflow.
      */
     public static class TensorflowOptions implements Options {
+        private static Map<String,Float> DEFAULT_PARAMS = new HashMap<>();
+        static {
+            DEFAULT_PARAMS.put("learningRate", 0.01f);
+            DEFAULT_PARAMS.put("initialAccumulatorValue", 0.1f);
+        }
+
         @Override
         public String getOptionsDescription() {
-            return "Trains and tests a Tensorflow model.";
+            return "Trains and tests a Tensorflow classification model.";
         }
         @Option(charName='f',longName="model-output-path",usage="Path to serialize model to.")
         public Path outputPath;
@@ -94,16 +103,25 @@ public class TrainTest {
         @Option(charName='v',longName="testing-file",usage="Path to the libsvm format testing file.")
         public Path testingPath;
 
-        @Option(charName='b',longName="batch-size",usage="Test time minibatch size.")
+        @Option(charName='i',longName="init-name",usage="Name of the initialisation operation.")
+        public String initName = Init.DEFAULT_NAME;
+        @Option(charName='l',longName="output-name",usage="Name of the output operation.")
+        public String outputName;
+        @Option(charName='o',longName="optimizer-params",usage="Gradient optimizer params, see org.tribuo.interop.tensorflow.GradientOptimiser.")
+        public Map<String,Float> gradientParams = DEFAULT_PARAMS;
+        @Option(charName='g',longName="gradient-optimizer",usage="The gradient optimizer to use.")
+        public GradientOptimiser optimizer = GradientOptimiser.ADAGRAD;
+        @Option(longName="batch-size",usage="Test time minibatch size.")
         public int testBatchSize = 16;
-
         @Option(charName='b',longName="batch-size",usage="Minibatch size.")
         public int batchSize = 128;
         @Option(charName='e',longName="num-epochs",usage="Number of gradient descent epochs.")
         public int epochs = 5;
+        @Option(longName="logging-interval",usage="Interval between logging the loss.")
+        public int loggingInterval = 1000;
         @Option(charName='n',longName="input-name",usage="Name of the input placeholder.")
         public String inputName;
-        @Option(charName='i',longName="image-format",usage="Image format, in [W,H,C]. Defaults to MNIST.")
+        @Option(longName="image-format",usage="Image format, in [W,H,C]. Defaults to MNIST.")
         public String imageFormat = "28,28,1";
         @Option(charName='t',longName="input-type",usage="Input type.")
         public InputType inputType = InputType.IMAGE;
@@ -141,6 +159,10 @@ public class TrainTest {
         Dataset<Label> train = data.getA();
         Dataset<Label> test = data.getB();
 
+        if ((o.inputName == null || o.inputName.isEmpty()) || (o.outputName == null || o.outputName.isEmpty())) {
+            throw new IllegalArgumentException("Must specify both 'input-name' and 'output-name'");
+        }
+
         ExampleTransformer<Label> inputTransformer;
         switch (o.inputType) {
             case IMAGE:
@@ -165,14 +187,13 @@ public class TrainTest {
         }
         OutputTransformer<Label> labelTransformer = new LabelTransformer();
 
-        //public TensorflowTrainer(Path graphPath, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer, int batchSize, int numEpochs) throws IOException {
         Trainer<Label> trainer;
         if (o.checkpointPath == null) {
             logger.info("Using TensorflowTrainer");
-            trainer = new TFTrainer<>(o.protobufPath, inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.gradientParams, inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval);
         } else {
             logger.info("Using TensorflowCheckpointTrainer, writing to path " + o.checkpointPath);
-            trainer = new TensorflowCheckpointTrainer<>(o.protobufPath, o.checkpointPath, inputTransformer, labelTransformer, o.batchSize, o.epochs);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.gradientParams, inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval, o.checkpointPath);
         }
         logger.info("Training using " + trainer.toString());
         final long trainStart = System.currentTimeMillis();
@@ -202,9 +223,9 @@ public class TrainTest {
         }
 
         if (o.checkpointPath == null) {
-            ((TFModel<?>) model).close();
+            ((TensorFlowNativeModel<?>) model).close();
         } else {
-            ((TensorflowCheckpointModel<?>) model).close();
+            ((TensorFlowCheckpointModel<?>) model).close();
         }
     }
 }

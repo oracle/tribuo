@@ -31,7 +31,7 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.interop.tensorflow.TensorMap;
-import org.tribuo.interop.tensorflow.TensorflowUtil;
+import org.tribuo.interop.tensorflow.TensorFlowUtil;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.SkeletalTrainerProvenance;
 import org.tribuo.provenance.TrainerProvenance;
@@ -47,7 +47,6 @@ import org.tensorflow.Tensor;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -212,11 +211,11 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
             }
             
             // This call **must** happen before the trainedGraphDef is generated.
-            TensorflowUtil.annotateGraph(graph,session);
+            TensorFlowUtil.annotateGraph(graph,session);
             //
             // Generate the trained graph def.
             GraphDef trainedGraphDef = graph.toGraphDef();
-            Map<String, TensorflowUtil.TensorTuple> tensorMap = TensorflowUtil.serialise(graph,session);
+            Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.serialise(graph,session);
             ModelProvenance modelProvenance = new ModelProvenance(TensorflowSequenceModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), provenance, runProvenance);
             return new TensorflowSequenceModel<>(
                     "tf-sequence-model",
