@@ -130,7 +130,7 @@ public class ClassificationTest {
 
     private static void testTrainer(TensorFlowTrainer<Label> trainer, Dataset<Label> trainData, Dataset<Label> testData) throws IOException {
         // Train the model
-        TFModel<Label> model = trainer.train(trainData);
+        TensorFlowModel<Label> model = trainer.train(trainData);
 
         // Run smoke test evaluation
         LabelEvaluation eval = new LabelEvaluator().evaluate(model,testData);
@@ -276,7 +276,7 @@ public class ClassificationTest {
                 -1);
 
         // Train the model
-        TFModel<Label> model = trainer.train(trainData);
+        TensorFlowModel<Label> model = trainer.train(trainData);
 
         // Run smoke test evaluation
         LabelEvaluation eval = new LabelEvaluator().evaluate(model,testData);

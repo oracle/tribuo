@@ -35,7 +35,7 @@ import java.util.logging.Logger;
  * on disk.
  * @param <T> The output type.
  */
-public abstract class TFModel<T extends Output<T>> extends Model<T> implements AutoCloseable {
+public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(TensorFlowNativeModel.class.getName());
     private static final long serialVersionUID = 200L;
 
@@ -61,7 +61,7 @@ public abstract class TFModel<T extends Output<T>> extends Model<T> implements A
      * @param exampleTransformer The feature transformer.
      * @param outputTransformer The output transformer.
      */
-    protected TFModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
+    protected TensorFlowModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, provenance, featureIDMap, outputIDInfo, outputTransformer.generatesProbabilities());
         this.modelGraph = new Graph();
         this.modelGraph.importGraphDef(trainedGraphDef);

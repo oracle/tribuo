@@ -315,12 +315,12 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     }
 
     @Override
-    public TFModel<T> train(Dataset<T> examples) {
+    public TensorFlowModel<T> train(Dataset<T> examples) {
         return train(examples,Collections.emptyMap());
     }
 
     @Override
-    public TFModel<T> train(Dataset<T> examples, Map<String,Provenance> runProvenance) {
+    public TensorFlowModel<T> train(Dataset<T> examples, Map<String,Provenance> runProvenance) {
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputInfo = examples.getOutputIDInfo();
         ArrayList<Example<T>> batch = new ArrayList<>();
@@ -401,8 +401,8 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
 
             GraphDef trainedGraphDef = graph.toGraphDef();
 
-            ModelProvenance modelProvenance = new ModelProvenance(TFModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
-            TFModel<T> tfModel;
+            ModelProvenance modelProvenance = new ModelProvenance(TensorFlowModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
+            TensorFlowModel<T> tfModel;
 
             switch (modelFormat) {
                 case TRIBUO_NATIVE:

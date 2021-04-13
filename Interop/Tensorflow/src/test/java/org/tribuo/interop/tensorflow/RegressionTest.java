@@ -72,7 +72,7 @@ public class RegressionTest {
                 -1);
 
         // Train the model
-        TFModel<Regressor> model = trainer.train(trainData);
+        TensorFlowModel<Regressor> model = trainer.train(trainData);
 
         // Run smoke test evaluation
         RegressionEvaluation eval = new RegressionEvaluator().evaluate(model,testData);

@@ -39,7 +39,7 @@ import java.util.Map;
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
-class TensorFlowNativeModel<T extends Output<T>> extends TFModel<T> {
+class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<T> {
 
     TensorFlowNativeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorFlowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, description, featureIDMap, outputIDMap, trainedGraphDef, batchSize, initName, outputName, exampleTransformer, outputTransformer);
