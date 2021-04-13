@@ -152,7 +152,7 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     }
 
     /**
-     * Creates an ensemble from existing models. The model outputs are combined using uniform weights.
+     * Creates an ensemble from existing models.
      * <p>
      * Uses the feature and output domain from the first model.
      * <p>
