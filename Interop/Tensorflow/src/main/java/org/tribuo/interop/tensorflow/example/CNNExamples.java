@@ -20,6 +20,7 @@ import org.tensorflow.Graph;
 import org.tensorflow.Operand;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.op.Ops;
+import org.tensorflow.op.core.Concat;
 import org.tensorflow.op.core.Constant;
 import org.tensorflow.op.core.Init;
 import org.tensorflow.op.core.Placeholder;
@@ -31,6 +32,7 @@ import org.tensorflow.op.nn.MaxPool;
 import org.tensorflow.op.nn.Relu;
 import org.tensorflow.op.random.TruncatedNormal;
 import org.tensorflow.types.TFloat32;
+import org.tensorflow.types.TInt32;
 import org.tribuo.Trainer;
 
 import java.util.Arrays;
@@ -106,14 +108,17 @@ public abstract class CNNExamples {
         MaxPool<TFloat32> pool2 = tf.nn.maxPool(relu2, tf.array(1, 2, 2, 1), tf.array(1, 2, 2, 1),
                         PADDING_TYPE);
 
+        // Compute the new shape
+        long[] poolShape = pool2.shape().subShape(1,4).asArray();
+        int numFlattenedFeatures = (int)(poolShape[0] * poolShape[1] * poolShape[2]);
+        Concat<TInt32> newShape =  tf.concat(Arrays.asList(tf.array(-1), tf.array(numFlattenedFeatures)),tf.constant(0));
+
         // Flatten inputs
-        Reshape<TFloat32> flatten = tf.reshape(pool2, tf.concat(Arrays
-                .asList(tf.slice(tf.shape(pool2), tf.array(0), tf.array(1)),
-                        tf.array(-1)), tf.constant(0)));
+        Reshape<TFloat32> flatten = tf.reshape(pool2, newShape);
 
         // Fully connected layer
         Variable<TFloat32> fc1Weights = tf.variable(tf.math.mul(tf.random
-                .truncatedNormal(tf.array(imageSize * imageSize * 4, 512), TFloat32.class,
+                .truncatedNormal(tf.concat(Arrays.asList(tf.array(numFlattenedFeatures), tf.array(512)),tf.constant(0)), TFloat32.class,
                         TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
         Variable<TFloat32> fc1Biases = tf.variable(tf.fill(tf.array(512), tf.constant(0.1f)));
         Relu<TFloat32> relu3 = tf.nn.relu(tf.math.add(tf.linalg.matMul(flatten, fc1Weights), fc1Biases));
