@@ -94,6 +94,9 @@ public class RegressionTest {
                 .forEach(File::delete);
 
         Assertions.assertFalse(Files.exists(outputPath));
+
+        // Cleanup created model
+        model.close();
     }
 
 }

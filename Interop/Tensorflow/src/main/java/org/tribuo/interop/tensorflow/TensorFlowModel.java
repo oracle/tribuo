@@ -182,6 +182,14 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
     }
 
     /**
+     * Gets the name of the output operation.
+     * @return The output operation name.
+     */
+    public String getOutputName() {
+        return outputName;
+    }
+
+    /**
      * Exports this model as a {@link SavedModelBundle}, writing to the supplied directory.
      *
      * @param path The directory to export to.

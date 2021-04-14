@@ -27,6 +27,9 @@ import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
+import org.tribuo.Prediction;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
@@ -152,6 +155,9 @@ public class ClassificationTest {
                 .forEach(File::delete);
 
         Assertions.assertFalse(Files.exists(outputPath));
+
+        // Cleanup created model
+        model.close();
     }
 
     /**
@@ -278,8 +284,11 @@ public class ClassificationTest {
         // Train the model
         TensorFlowModel<Label> model = trainer.train(trainData);
 
+        // Make some predictions
+        List<Prediction<Label>> predictions = model.predict(testData);
+
         // Run smoke test evaluation
-        LabelEvaluation eval = new LabelEvaluator().evaluate(model,testData);
+        LabelEvaluation eval = new LabelEvaluator().evaluate(model,predictions,testData.getProvenance());
         Assertions.assertTrue(eval.accuracy() > 0.0);
 
         // Check Tribuo serialization
@@ -291,13 +300,39 @@ public class ClassificationTest {
         List<Path> files = Files.list(outputPath).collect(Collectors.toList());
         Assertions.assertNotEquals(0,files.size());
 
+        // Create external model from bundle
+        Map<Label,Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Label> p : model.getOutputIDInfo()) {
+            outputMapping.put(p.getB(),p.getA());
+        }
+        Map<String,Integer> featureMapping = new HashMap<>();
+        for (VariableInfo info : model.getFeatureIDMap()) {
+            featureMapping.put(info.getName(),((VariableIDInfo)info).getID());
+        }
+        TensorFlowSavedModelExternalModel<Label> externalModel = TensorFlowSavedModelExternalModel.createTensorflowModel(
+                trainData.getOutputFactory(),featureMapping,outputMapping,model.getOutputName(),imageTransformer,outputTransformer,outputPath.toString());
+
+        // Check predictions are equal
+        List<Prediction<Label>> externalPredictions = externalModel.predict(testData);
+        Assertions.assertEquals(predictions.size(),externalPredictions.size());
+        for (int i = 0; i < predictions.size(); i++) {
+            Prediction<Label> tribuo = predictions.get(i);
+            Prediction<Label> external = externalPredictions.get(i);
+            Assertions.assertTrue(tribuo.getOutput().fullEquals(external.getOutput()));
+            Assertions.assertTrue(tribuo.distributionEquals(external));
+        }
+
         // Cleanup saved model bundle
+        externalModel.close();
         Files.walk(outputPath)
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(File::delete);
 
         Assertions.assertFalse(Files.exists(outputPath));
+
+        // Cleanup created model
+        model.close();
     }
 
     private static String ndArrToString(FloatNdArray ndarray) {

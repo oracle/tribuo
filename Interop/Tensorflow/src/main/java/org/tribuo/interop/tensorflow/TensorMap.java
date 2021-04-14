@@ -17,15 +17,17 @@
 package org.tribuo.interop.tensorflow;
 
 import org.tensorflow.Session;
-import org.tensorflow.types.family.TType;
+import org.tensorflow.Tensor;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A map of names and tensors to feed into a session.
  */
 public class TensorMap implements AutoCloseable {
-    private final Map<String, TType> map;
+    private final Map<String, Tensor> map;
     private boolean isClosed;
 
     /**
@@ -33,7 +35,7 @@ public class TensorMap implements AutoCloseable {
      * @param inputName The input name.
      * @param value The tensor value.
      */
-    public TensorMap(String inputName, TType value) {
+    public TensorMap(String inputName, Tensor value) {
         this.map = Collections.singletonMap(inputName,value);
         this.isClosed = false;
     }
@@ -42,7 +44,7 @@ public class TensorMap implements AutoCloseable {
      * Creates a new TensorMap wrapping the supplied map.
      * @param map A map from strings to tensors.
      */
-    public TensorMap(Map<String, TType> map) {
+    public TensorMap(Map<String, Tensor> map) {
         this.map = Collections.unmodifiableMap(map);
         this.isClosed = false;
     }
@@ -51,8 +53,17 @@ public class TensorMap implements AutoCloseable {
      * Returns the underlying immutable map.
      * @return The map.
      */
-    public Map<String, TType> getMap() {
+    public Map<String, Tensor> getMap() {
         return map;
+    }
+
+    /**
+     * Returns the specified tensor if present.
+     * @param key The key to lookup.
+     * @return An optional containing the specified tensor if it's in the map, an empty optional otherwise.
+     */
+    public Optional<Tensor> getTensor(String key) {
+        return Optional.ofNullable(map.get(key));
     }
 
     /**
@@ -65,7 +76,7 @@ public class TensorMap implements AutoCloseable {
         if (isClosed) {
             throw new IllegalStateException("Can't feed closed Tensors into a Runner.");
         }
-        for (Map.Entry<String, TType> e : map.entrySet()) {
+        for (Map.Entry<String, Tensor> e : map.entrySet()) {
             runner.feed(e.getKey(), e.getValue());
         }
         return runner;
@@ -74,8 +85,16 @@ public class TensorMap implements AutoCloseable {
     @Override
     public void close() {
         isClosed = true;
-        for (TType t : map.values()) {
+        for (Tensor t : map.values()) {
             t.close();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "TensorMap(" +
+                map.entrySet().stream().map(e -> e.getKey() + ":Shape" + e.getValue().shape().toString())
+                        .collect(Collectors.joining(",")) +
+                ")";
     }
 }

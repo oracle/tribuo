@@ -53,7 +53,7 @@ import java.util.Map;
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
-public final class TensorflowExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, Tensor> implements Closeable {
+public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, Tensor> implements Closeable {
     private static final long serialVersionUID = 200L;
 
     private transient Graph model;
@@ -68,11 +68,11 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
 
     private final String outputName;
 
-    private TensorflowExternalModel(String name, ModelProvenance provenance,
-                                 ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-                                 Map<String, Integer> featureMapping,
-                                 Graph model, String inputName, String outputName,
-                                 ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
+    private TensorFlowFrozenExternalModel(String name, ModelProvenance provenance,
+                                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
+                                          Map<String, Integer> featureMapping,
+                                          Graph model, String inputName, String outputName,
+                                          ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
         super(name, provenance, featureIDMap, outputIDInfo, outputTransformer.generatesProbabilities(), featureMapping);
         this.model = model;
         this.session = new Session(model);
@@ -82,11 +82,11 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
         this.outputTransformer = outputTransformer;
     }
 
-    private TensorflowExternalModel(String name, ModelProvenance provenance,
-                                    ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-                                    int[] featureForwardMapping, int[] featureBackwardMapping,
-                                    Graph model, String inputName, String outputName,
-                                    ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
+    private TensorFlowFrozenExternalModel(String name, ModelProvenance provenance,
+                                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
+                                          int[] featureForwardMapping, int[] featureBackwardMapping,
+                                          Graph model, String inputName, String outputName,
+                                          ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
         super(name,provenance,featureIDMap,outputIDInfo,featureForwardMapping,featureBackwardMapping,
                 outputTransformer.generatesProbabilities());
         this.model = model;
@@ -109,7 +109,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
 
     /**
      * Runs the session to make a prediction.
-     *
+     * <p>
      * Closes the input tensor after the prediction has been made.
      * @param input The input in the external model's format.
      * @return A tensor representing the output.
@@ -161,7 +161,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
         GraphDef modelBytes = model.toGraphDef();
         Graph newGraph = new Graph();
         newGraph.importGraphDef(modelBytes);
-        return new TensorflowExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
+        return new TensorFlowFrozenExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
                 featureForwardMapping,featureBackwardMapping,
                 newGraph,inputName,outputName,featureTransformer,outputTransformer);
     }
@@ -177,7 +177,7 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
     }
 
     /**
-     * Creates a TensorflowExternalModel by loading in a frozen graph.
+     * Creates a TensorflowFrozenExternalModel by loading in a frozen graph.
      * @param factory The output factory.
      * @param featureMapping The feature mapping between Tribuo's names and the TF integer ids.
      * @param outputMapping The output mapping between Tribuo's names and the TF integer ids.
@@ -189,14 +189,14 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
      * @param <T> The type of the output.
      * @return The TF model wrapped in a Tribuo ExternalModel.
      */
-    public static <T extends Output<T>> TensorflowExternalModel<T> createTensorflowModel(OutputFactory<T> factory,
-                                                                                      Map<String, Integer> featureMapping,
-                                                                                      Map<T,Integer> outputMapping,
-                                                                                      String inputName,
-                                                                                      String outputName,
-                                                                                      ExampleTransformer<T> featureTransformer,
-                                                                                      OutputTransformer<T> outputTransformer,
-                                                                                      String filename) {
+    public static <T extends Output<T>> TensorFlowFrozenExternalModel<T> createTensorflowModel(OutputFactory<T> factory,
+                                                                                               Map<String, Integer> featureMapping,
+                                                                                               Map<T,Integer> outputMapping,
+                                                                                               String inputName,
+                                                                                               String outputName,
+                                                                                               ExampleTransformer<T> featureTransformer,
+                                                                                               OutputTransformer<T> outputTransformer,
+                                                                                               String filename) {
         try {
             Path path = Paths.get(filename);
             byte[] model = Files.readAllBytes(path);
@@ -208,8 +208,8 @@ public final class TensorflowExternalModel<T extends Output<T>> extends External
             OffsetDateTime now = OffsetDateTime.now();
             ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance(provenanceLocation);
             DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data",factory,false,featureMapping.size(),outputMapping.size());
-            ModelProvenance provenance = new ModelProvenance(TensorflowExternalModel.class.getName(),now,datasetProvenance,trainerProvenance);
-            return new TensorflowExternalModel<>("external-model",provenance,featureMap,outputInfo,
+            ModelProvenance provenance = new ModelProvenance(TensorFlowFrozenExternalModel.class.getName(),now,datasetProvenance,trainerProvenance);
+            return new TensorFlowFrozenExternalModel<>("tf-frozen-graph",provenance,featureMap,outputInfo,
                     featureMapping,graph,inputName,outputName,featureTransformer,outputTransformer);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load model from path " + filename, e);
