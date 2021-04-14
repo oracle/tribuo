@@ -42,7 +42,7 @@ import java.io.IOException;
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
-class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowModel<T> implements Closeable {
+public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowModel<T> implements Closeable {
 
     private static final long serialVersionUID = 200L;
 
