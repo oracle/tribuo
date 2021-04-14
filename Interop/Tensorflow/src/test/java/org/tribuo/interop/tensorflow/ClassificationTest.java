@@ -25,6 +25,7 @@ import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
+import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
@@ -306,8 +307,9 @@ public class ClassificationTest {
             outputMapping.put(p.getB(),p.getA());
         }
         Map<String,Integer> featureMapping = new HashMap<>();
-        for (VariableInfo info : model.getFeatureIDMap()) {
-            featureMapping.put(info.getName(),((VariableIDInfo)info).getID());
+        ImmutableFeatureMap featureIDMap = model.getFeatureIDMap();
+        for (VariableInfo info : featureIDMap) {
+            featureMapping.put(info.getName(),featureIDMap.getID(info.getName()));
         }
         TensorFlowSavedModelExternalModel<Label> externalModel = TensorFlowSavedModelExternalModel.createTensorflowModel(
                 trainData.getOutputFactory(),featureMapping,outputMapping,model.getOutputName(),imageTransformer,outputTransformer,outputPath.toString());
