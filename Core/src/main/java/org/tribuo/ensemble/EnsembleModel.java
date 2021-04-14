@@ -44,8 +44,16 @@ public abstract class EnsembleModel<T extends Output<T>> extends Model<T> {
 
     protected final List<Model<T>> models;
 
-    public EnsembleModel(String name, EnsembleModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, List<Model<T>> newModels) {
-        super(name,description,featureIDMap,outputIDInfo,true);
+    /**
+     * Builds an EnsembleModel from the supplied model list.
+     * @param name The name of this ensemble.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param newModels The ensemble members.
+     */
+    protected EnsembleModel(String name, EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, List<Model<T>> newModels) {
+        super(name,provenance,featureIDMap,outputIDInfo,true);
         models = Collections.unmodifiableList(newModels);
     }
 
@@ -78,6 +86,13 @@ public abstract class EnsembleModel<T extends Output<T>> extends Model<T> {
         return copy(name,(EnsembleModelProvenance)newProvenance,new ArrayList<>(models));
     }
 
+    /**
+     * Copies this ensemble model.
+     * @param name The new name.
+     * @param newProvenance The new provenance.
+     * @param newModels The new models.
+     * @return A copy of the ensemble model.
+     */
     protected abstract EnsembleModel<T> copy(String name, EnsembleModelProvenance newProvenance, List<Model<T>> newModels);
 
     @Override
