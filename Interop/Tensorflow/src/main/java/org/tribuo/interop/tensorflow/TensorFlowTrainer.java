@@ -145,7 +145,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     private TensorFlowTrainer() {}
 
     /**
-     * Constructs a Trainer for a tensorflow graph. Stores the model parameters inside the Tribuo model.
+     * Constructs a Trainer for a TensorFlow graph. Stores the model parameters inside the Tribuo model.
      * @param graphPath Path to the graph definition on disk. Must have the necessary targets and placeholders.
      * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
      * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
@@ -169,7 +169,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     }
 
     /**
-     * Constructs a Trainer for a tensorflow graph. Stores the model parameters in a TensorFlow checkpoint.
+     * Constructs a Trainer for a TensorFlow graph. Stores the model parameters in a TensorFlow checkpoint.
      * @param graphPath Path to the graph definition on disk. Must have the necessary targets and placeholders.
      * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
      * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
@@ -194,7 +194,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     }
 
     /**
-     * Constructs a Trainer for a tensorflow graph. Stores the model parameters inside the Tribuo model.
+     * Constructs a Trainer for a TensorFlow graph. Stores the model parameters inside the Tribuo model.
      * @param graph The graph definition. Must have the necessary targets and placeholders.
      * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
      * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
@@ -218,7 +218,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     }
 
     /**
-     * Constructs a Trainer for a tensorflow graph. Stores the model parameters in a TensorFlow checkpoint.
+     * Constructs a Trainer for a TensorFlow graph. Stores the model parameters in a TensorFlow checkpoint.
      * @param graph The graph definition. Must have the necessary targets and placeholders.
      * @param exampleTransformer The example transformer to convert a Tribuo {@link Example} into a {@link Tensor}.
      * @param outputTransformer The output transformer to convert a Tribuo {@link Output} into a {@link Tensor} and back. This encodes the output type.
@@ -243,7 +243,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     }
 
     /**
-     * Constructs a Trainer for a tensorflow graph. Only one of {@code graphPath} and {@code graph} must be non-null.
+     * Constructs a Trainer for a TensorFlow graph. Only one of {@code graphPath} and {@code graph} must be non-null.
      * <p>
      * Throws {@link UncheckedIOException} if the graph could not be read.
      * @param graphPath The path to the graph protobuf. Must have the targets and placeholders specified above.

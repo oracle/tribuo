@@ -83,7 +83,7 @@ public class TrainTest {
     }
 
     /**
-     * Options for training a model in tensorflow.
+     * Options for training a model in TensorFlow.
      */
     public static class TensorflowOptions implements Options {
         private static Map<String,Float> DEFAULT_PARAMS = new HashMap<>();
