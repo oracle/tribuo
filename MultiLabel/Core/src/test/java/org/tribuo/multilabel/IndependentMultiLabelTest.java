@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -90,28 +89,11 @@ public class IndependentMultiLabelTest {
         // MultiLabelConfusionMatrix toString() hard to interpret
         final ConfusionMatrix<MultiLabel> mcm = evaluation.getConfusionMatrix();
 
-        System.out.println("original");
+        System.out.println("new toString()");
         System.out.println(mcm);
-
-        System.out.println("\npretty");
-        System.out.println(prettyToString(mcm));
 
         System.out.println("\nlabelConfusionMatrixToString");
         System.out.println(labelConfusionMatrixToString(mcm));
-    }
-
-    public static String prettyToString(ConfusionMatrix<MultiLabel> mcmObject) {
-        return mcmObject.getDomain().getDomain().stream()
-            .map(multiLabel -> {
-                    final int tp = (int) mcmObject.tp(multiLabel);
-                    final int fn = (int) mcmObject.fn(multiLabel);
-                    final int fp = (int) mcmObject.fp(multiLabel);
-                    final int tn = (int) mcmObject.tn(multiLabel);
-                    return multiLabel + "\n"
-                        + String.format("[tn: %,d fn: %,d]\n", tn, fn)
-                        + String.format("[fp: %,d tp: %,d]", fp, tp);
-                }
-            ).collect(Collectors.joining("\n"));
     }
 
     public static String labelConfusionMatrixToString(ConfusionMatrix<MultiLabel> mcmObject) {

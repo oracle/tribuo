@@ -160,10 +160,8 @@ public class MultiLabelConfusionMatrixTest {
 
         assertEquals(4, cm.support());
 
-        System.out.println("original");
+        System.out.println("new toString()");
         System.out.println(cm);
-        System.out.println("\npretty");
-        System.out.println(IndependentMultiLabelTest.prettyToString(cm));
         System.out.println("\nlabelConfusionMatrixToString");
         System.out.println(IndependentMultiLabelTest.labelConfusionMatrixToString(cm));
     }
@@ -240,10 +238,8 @@ public class MultiLabelConfusionMatrixTest {
 
         assertEquals(5, cm.support());
 
-        System.out.println("original");
+        System.out.println("new toString()");
         System.out.println(cm);
-        System.out.println("\npretty");
-        System.out.println(IndependentMultiLabelTest.prettyToString(cm));
         System.out.println("\nlabelConfusionMatrixToString");
         System.out.println(IndependentMultiLabelTest.labelConfusionMatrixToString(cm));
     }
