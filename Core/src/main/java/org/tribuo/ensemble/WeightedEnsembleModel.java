@@ -49,6 +49,9 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     protected final EnsembleCombiner<T> combiner;
 
     /**
+     * Unless you are implementing a {@link org.tribuo.Trainer} you should
+     * not use this constructor directly. Instead use {@link #createEnsembleFromExistingModels(String, List<Model<T>>, EnsembleCombiner<T>)}.
+     * <p>
      * Constructs an ensemble model which uses uniform weights.
      * @param name The model name.
      * @param provenance The model provenance.
@@ -64,7 +67,10 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     }
 
     /**
-     * Constructs a weighted ensemble model.
+     * Unless you are implementing a {@link org.tribuo.Trainer} you should
+     * not use this constructor directly. Instead use {@link #createEnsembleFromExistingModels(String, List<Model<T>>, EnsembleCombiner<T>, float[])}.
+     * <p>
+     * Constructs an ensemble model which uses uniform weights.
      * @param name The model name.
      * @param provenance The model provenance.
      * @param featureIDMap The feature domain.
