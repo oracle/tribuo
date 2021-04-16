@@ -94,6 +94,9 @@ public class IndependentMultiLabelTest {
 
         System.out.println("\nlabelConfusionMatrixToString");
         System.out.println(labelConfusionMatrixToString(mcm));
+
+        System.out.println("\npredictions");
+        evaluation.getPredictions().forEach(System.out::println);
     }
 
     public static String labelConfusionMatrixToString(ConfusionMatrix<MultiLabel> mcmObject) {
@@ -123,10 +126,16 @@ public class IndependentMultiLabelTest {
         }
         sb.append('\n');
 
-        for (MultiLabel trueLabel : labelOrder) {
-            sb.append(String.format(trueLabelFormat, trueLabel.getLabelString()));
-            for (MultiLabel predictedLabel : labelOrder) {
+        for (MultiLabel predictedLabel : labelOrder) {
+            sb.append(String.format(trueLabelFormat, predictedLabel.getLabelString()));
+            for (MultiLabel trueLabel : labelOrder) {
                 int confusion = (int) mcmObject.confusion(predictedLabel, trueLabel);
+                int fp = (int) mcmObject.fp(trueLabel);
+                if (confusion > 0 && !trueLabel.equals(predictedLabel) && fp == 0) {
+                  // not actual confusion - fp == 0
+                  // FIXME likely incomplete, wrong for more involved example
+                  confusion = 0;
+                }
                 sb.append(String.format(countFormat, confusion));
             }
             sb.append('\n');
