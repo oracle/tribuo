@@ -44,7 +44,7 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
     TensorFlowNativeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorFlowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, description, featureIDMap, outputIDMap, trainedGraphDef, batchSize, initName, outputName, exampleTransformer, outputTransformer);
         // Initialises the parameters.
-        session.runner().addTarget(initName).run();
+        session.run(initName);
         TensorFlowUtil.deserialise(session,tensorMap);
     }
 
@@ -73,7 +73,7 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
         modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(modelGraph);
         // Initialises the parameters.
-        session.runner().addTarget(initName).run();
+        session.run(initName);
         TensorFlowUtil.deserialise(session,tensorMap);
     }
 }

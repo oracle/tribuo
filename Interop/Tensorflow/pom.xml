@@ -129,6 +129,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                      <skipTests>${skipTFTests}</skipTests>
+                     <environmentVariables>
+                         <TF_CPP_MIN_LOG_LEVEL>1</TF_CPP_MIN_LOG_LEVEL>
+                     </environmentVariables>
                 </configuration>
             </plugin>
             <plugin>

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.MutableDataset;
-import org.tribuo.interop.tensorflow.example.GraphTuple;
+import org.tribuo.interop.tensorflow.example.GraphDefTuple;
 import org.tribuo.interop.tensorflow.example.MLPExamples;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
@@ -51,7 +51,7 @@ public class RegressionTest {
         MutableDataset<Regressor> testData = new MutableDataset<>(testSource);
 
         // Build the MLP graph
-        GraphTuple graphTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{50,50}, trainData.getOutputs().size());
+        GraphDefTuple graphDefTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{50,50}, trainData.getOutputs().size());
 
         // Configure the trainer
         Map<String, Float> gradientParams = new HashMap<>();
@@ -59,9 +59,9 @@ public class RegressionTest {
         gradientParams.put("initialAccumulatorValue", 0.1f);
         ExampleTransformer<Regressor> denseTransformer = new DenseTransformer<>(INPUT_NAME);
         OutputTransformer<Regressor> outputTransformer = new RegressorTransformer();
-        TensorFlowTrainer<Regressor> trainer = new TensorFlowTrainer<>(graphTuple.graph,
-                graphTuple.outputName,
-                graphTuple.initName,
+        TensorFlowTrainer<Regressor> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
+                graphDefTuple.outputName,
+                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 denseTransformer,

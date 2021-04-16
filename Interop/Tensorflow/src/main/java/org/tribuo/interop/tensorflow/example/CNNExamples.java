@@ -31,6 +31,7 @@ import org.tensorflow.op.nn.Conv2d;
 import org.tensorflow.op.nn.MaxPool;
 import org.tensorflow.op.nn.Relu;
 import org.tensorflow.op.random.TruncatedNormal;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TInt32;
 import org.tribuo.Trainer;
@@ -60,7 +61,7 @@ public abstract class CNNExamples {
      * @param numOutputs The number of output dimensions (usually 10 for MNIST).
      * @return A GraphRecord containing the LeNet graph and the relevant op names.
      */
-    public static GraphTuple buildLeNetGraph(String inputName, int imageSize, int pixelDepth, int numOutputs) {
+    public static GraphDefTuple buildLeNetGraph(String inputName, int imageSize, int pixelDepth, int numOutputs) {
         if (imageSize < 1) {
             throw new IllegalArgumentException("Must have a positive image size, found " + imageSize);
         }
@@ -131,8 +132,17 @@ public abstract class CNNExamples {
 
         Add<TFloat32> logits = tf.math.add(tf.linalg.matMul(relu3, fc2Weights), fc2Biases);
 
+        // Create the init op
         Init init = tf.init();
 
-        return new GraphTuple(graph, inputName, logits.op().name(), init.op().name());
+        // Extract the graph def and op names
+        GraphDef graphDef = graph.toGraphDef();
+        String outputName = logits.op().name();
+        String initName = init.op().name();
+
+        // Close the graph
+        graph.close();
+
+        return new GraphDefTuple(graphDef, inputName, outputName, initName);
     }
 }

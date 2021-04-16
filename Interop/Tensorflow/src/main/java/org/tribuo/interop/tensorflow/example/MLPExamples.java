@@ -26,6 +26,7 @@ import org.tensorflow.op.core.Variable;
 import org.tensorflow.op.math.Add;
 import org.tensorflow.op.nn.Relu;
 import org.tensorflow.op.random.TruncatedNormal;
+import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TFloat32;
 import org.tribuo.Trainer;
 
@@ -45,7 +46,7 @@ public abstract class MLPExamples {
      * @param numOutputs The number of output dimensions.
      * @return A pair of a graph and the name of the output operation.
      */
-    public static GraphTuple buildMLPGraph(String inputName, int numFeatures, int[] hiddenSizes, int numOutputs) {
+    public static GraphDefTuple buildMLPGraph(String inputName, int numFeatures, int[] hiddenSizes, int numOutputs) {
         if (numFeatures < 1) {
             throw new IllegalArgumentException("Must have a positive number of features, found " + numFeatures);
         }
@@ -93,6 +94,14 @@ public abstract class MLPExamples {
         // Create the init op
         Init init = tf.init();
 
-        return new GraphTuple(graph, inputName, output.op().name(), init.op().name());
+        // Extract the graph def and op names
+        GraphDef graphDef = graph.toGraphDef();
+        String outputName = output.op().name();
+        String initName = init.op().name();
+
+        // Close the graph
+        graph.close();
+
+        return new GraphDefTuple(graphDef, inputName, outputName, initName);
     }
 }

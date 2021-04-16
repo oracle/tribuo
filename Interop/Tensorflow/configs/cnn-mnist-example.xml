@@ -19,6 +19,8 @@
 <!--
     Description:
         An example configuration file for a simple CNN for MNIST using Tensorflow.
+
+        The graph was defined by the main method of org.tribuo.interop.tensorflow.ClassificationTest.
 -->
 
 <config>

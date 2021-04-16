@@ -37,9 +37,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A Tensorflow model which implements SequenceModel, suitable for use in sequential prediction tasks.
+ * A TensorFlow model which implements SequenceModel, suitable for use in sequential prediction tasks.
  */
-public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<T> implements AutoCloseable {
+public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<T> implements AutoCloseable {
 
     private static final long serialVersionUID = 200L;
 
@@ -52,7 +52,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
     protected final String initOp;
     protected final String predictOp;
 
-    TensorflowSequenceModel(String name,
+    TensorFlowSequenceModel(String name,
                             ModelProvenance description,
                             ImmutableFeatureMap featureIDMap,
                             ImmutableOutputInfo<T> outputIDMap,
@@ -73,29 +73,26 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
         this.session = new Session(modelGraph);
 
         // Initialises the parameters.
-        session.runner().addTarget(initOp).run();
+        session.run(initOp);
         TensorFlowUtil.deserialise(session, tensorMap);
     }
 
     @Override
     public List<Prediction<T>> predict(SequenceExample<T> example) {
-        TensorMap feed = exampleTransformer.encode(example, featureIDMap);
-        Session.Runner runner = session.runner();
-        runner = feed.feedInto(runner);
-        try (Tensor outputTensor = runner
-                .fetch(predictOp)
-                .run()
-                .get(0)) {
-            List<Prediction<T>> prediction = outputTransformer.decode(outputTensor, example, outputIDMap);
-            //
-            // Close the input tensors
-            feed.close();
-            return prediction;
+        try (TensorMap feed = exampleTransformer.encode(example, featureIDMap)) {
+            Session.Runner runner = session.runner();
+            runner = feed.feedInto(runner);
+            try (Tensor outputTensor = runner
+                    .fetch(predictOp)
+                    .run()
+                    .get(0)) {
+                return outputTransformer.decode(outputTensor, example, outputIDMap);
+            }
         }
     }
 
     /**
-     * Returns an empty map, as the top features are not well defined for most Tensorflow models.
+     * Returns an empty map, as the top features are not well defined for most TensorFlow models.
      */
     @Override
     public Map<String, List<Pair<String, Double>>> getTopFeatures(int i) {
@@ -132,7 +129,7 @@ public class TensorflowSequenceModel<T extends Output<T>> extends SequenceModel<
         modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(modelGraph);
         // Initialises the parameters.
-        session.runner().addTarget(initOp).run();
+        session.run(initOp);
         TensorFlowUtil.deserialise(session,tensorMap);
     }
 }

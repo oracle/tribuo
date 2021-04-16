@@ -29,7 +29,6 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
-import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
@@ -40,7 +39,7 @@ import org.tribuo.datasource.IDXDataSource;
 import org.tribuo.datasource.ListDataSource;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.interop.tensorflow.example.CNNExamples;
-import org.tribuo.interop.tensorflow.example.GraphTuple;
+import org.tribuo.interop.tensorflow.example.GraphDefTuple;
 import org.tribuo.interop.tensorflow.example.MLPExamples;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.test.Helpers;
@@ -78,7 +77,7 @@ public class ClassificationTest {
         Dataset<Label> testData = data.getB();
 
         // Build the MLP graph
-        GraphTuple graphTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{5, 5}, trainData.getOutputs().size());
+        GraphDefTuple graphDefTuple = MLPExamples.buildMLPGraph(INPUT_NAME, trainData.getFeatureMap().size(), new int[]{5, 5}, trainData.getOutputs().size());
 
         // Configure the trainer
         Map<String, Float> gradientParams = new HashMap<>();
@@ -88,9 +87,9 @@ public class ClassificationTest {
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
 
         // Test native trainer
-        TensorFlowTrainer<Label> nativeTrainer = new TensorFlowTrainer<>(graphTuple.graph,
-                graphTuple.outputName,
-                graphTuple.initName,
+        TensorFlowTrainer<Label> nativeTrainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
+                graphDefTuple.outputName,
+                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 denseTransformer,
@@ -104,9 +103,9 @@ public class ClassificationTest {
 
         // Test checkpoint trainer
         Path checkpointPath = Files.createTempDirectory("tf-classification-test-ckpt");
-        TensorFlowTrainer<Label> checkpointTrainer = new TensorFlowTrainer<>(graphTuple.graph,
-                graphTuple.outputName,
-                graphTuple.initName,
+        TensorFlowTrainer<Label> checkpointTrainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
+                graphDefTuple.outputName,
+                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 denseTransformer,
@@ -262,7 +261,7 @@ public class ClassificationTest {
         Dataset<Label> testData = data.getB();
 
         // Build the CNN graph
-        GraphTuple graphTuple = CNNExamples.buildLeNetGraph(INPUT_NAME, 10, 255, trainData.getOutputs().size());
+        GraphDefTuple graphDefTuple = CNNExamples.buildLeNetGraph(INPUT_NAME, 10, 255, trainData.getOutputs().size());
 
         // Configure the trainer
         Map<String, Float> gradientParams = new HashMap<>();
@@ -270,9 +269,9 @@ public class ClassificationTest {
         gradientParams.put("initialAccumulatorValue", 0.1f);
         ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 10, 10, 1);
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
-        TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphTuple.graph,
-                graphTuple.outputName,
-                graphTuple.initName,
+        TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
+                graphDefTuple.outputName,
+                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 imageTransformer,
@@ -361,10 +360,10 @@ public class ClassificationTest {
         Dataset<Label> test = new MutableDataset<>(testMNIST);
 
         System.out.println("Building graph");
-        GraphTuple graphTuple = CNNExamples.buildLeNetGraph(INPUT_NAME,IMAGE_SIZE,PIXEL_DEPTH,NUM_LABELS);
+        GraphDefTuple graphDefTuple = CNNExamples.buildLeNetGraph(INPUT_NAME,IMAGE_SIZE,PIXEL_DEPTH,NUM_LABELS);
 
-        System.out.println("Writing graph to " + args[0] + " with init name '" + graphTuple.initName + "' and output  name '" + graphTuple.outputName + "'");
-        GraphDef graphDef = graphTuple.graph.toGraphDef();
+        System.out.println("Writing graph to " + args[0] + " with init name '" + graphDefTuple.initName + "' and output  name '" + graphDefTuple.outputName + "'");
+        GraphDef graphDef = graphDefTuple.graphDef;
         byte[] bytes = graphDef.toByteArray();
         try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(args[0]))) {
             bos.write(bytes);
@@ -377,9 +376,9 @@ public class ClassificationTest {
         ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 28, 28, 1);
         OutputTransformer<Label> outputTransformer = new LabelTransformer();
 
-        TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphTuple.graph,
-                graphTuple.outputName,
-                graphTuple.initName,
+        TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
+                graphDefTuple.outputName,
+                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 imageTransformer,

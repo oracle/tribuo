@@ -15,9 +15,9 @@
  */
 
 /**
- * Provides an interface for working with Tensorflow sequence models, using Tribuo's
+ * Provides an interface for working with TensorFlow sequence models, using Tribuo's
  * {@link org.tribuo.sequence.SequenceModel} abstraction.
  * <p>
- * N.B. Tensorflow support is experimental and may change without a major version bump.
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 package org.tribuo.interop.tensorflow.sequence;
