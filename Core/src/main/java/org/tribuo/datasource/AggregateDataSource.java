@@ -27,7 +27,6 @@ import org.tribuo.Example;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.provenance.DataSourceProvenance;
-import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -208,8 +207,9 @@ public class AggregateDataSource<T extends Output<T>> implements DataSource<T> {
         public AggregateDataSourceProvenance(Map<String,Provenance> map) {
             this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME, StringProvenance.class,AggregateDataSourceProvenance.class.getSimpleName());
             this.provenances = ObjectProvenance.checkAndExtractProvenance(map,SOURCES,ListProvenance.class,AggregateDataSourceProvenance.class.getSimpleName());
-            // TODO fix this when we upgrade OLCUT.
-            Optional<EnumProvenance> opt = ModelProvenance.maybeExtractProvenance(map,ORDER,EnumProvenance.class);
+
+            // Provenance added in Tribuo 4.1
+            Optional<EnumProvenance> opt = ObjectProvenance.maybeExtractProvenance(map,ORDER,EnumProvenance.class,AggregateDataSourceProvenance.class.getSimpleName());
             this.orderProvenance = opt.orElseGet(() -> new EnumProvenance<>(ORDER, IterationOrder.SEQUENTIAL));
         }
 
