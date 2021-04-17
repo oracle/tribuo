@@ -35,6 +35,9 @@ import java.util.Map;
  * It accepts an {@link ExampleTransformer} that converts an example's features into a set of {@link Tensor}s, and an
  * {@link OutputTransformer} that converts a {@link Tensor} into a {@link Prediction}.
  * <p>
+ * This model's serialized form stores the weights and is entirely self contained.
+ * If you wish to convert it into a model which uses checkpoints then call {@link #convertToCheckpointModel}.
+ * <p>
  * The model's serialVersionUID is set to the major Tensorflow version number times 100.
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
@@ -51,6 +54,16 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
     @Override
     protected TensorFlowNativeModel<T> copy(String newName, ModelProvenance newProvenance) {
         return new TensorFlowNativeModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(), TensorFlowUtil.serialise(modelGraph,session),batchSize,initName,outputName,exampleTransformer,outputTransformer);
+    }
+
+    /**
+     * Creates a {@link TensorFlowCheckpointModel} version of this model.
+     * @return A version of this model using a TensorFlow checkpoint to store the parameters.
+     */
+    public TensorFlowCheckpointModel<T> convertToCheckpointModel(String checkpointDirectory) {
+        session.save(checkpointDirectory.toString());
+        return new TensorFlowCheckpointModel<>(name, provenance, featureIDMap,
+                outputIDInfo, modelGraph.toGraphDef(), checkpointDirectory, batchSize, initName, outputName, exampleTransformer, outputTransformer);
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

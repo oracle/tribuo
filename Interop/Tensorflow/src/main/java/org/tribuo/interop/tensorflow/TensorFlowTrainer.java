@@ -37,6 +37,7 @@ import org.tensorflow.op.Ops;
 import org.tensorflow.op.core.Init;
 import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.proto.framework.GraphDef;
+import org.tensorflow.proto.util.SaverDef;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.family.TNumber;
 import org.tribuo.Dataset;
@@ -458,15 +459,13 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
 
             // Setup the model serialization infrastructure.
             // **Must** happen before the trainedGraphDef is generated.
-            switch (modelFormat) {
-                case TRIBUO_NATIVE:
-                    TensorFlowUtil.annotateGraph(graph,session);
-                    break;
-                case CHECKPOINT:
-                    session.save(curCheckpointPath.toString());
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected enum constant " + modelFormat);
+
+            // We unconditionally annotate the Graph for Tribuo's serialization
+            TensorFlowUtil.annotateGraph(graph,session);
+
+            // If it's a checkpoint we also save it out.
+            if (modelFormat == TFModelFormat.CHECKPOINT) {
+                session.save(curCheckpointPath.toString());
             }
 
             GraphDef trainedGraphDef = graph.toGraphDef();

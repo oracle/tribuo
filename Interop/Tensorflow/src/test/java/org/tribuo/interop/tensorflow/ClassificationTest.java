@@ -99,7 +99,23 @@ public class ClassificationTest {
                 16,
                 -1);
 
-        testTrainer(nativeTrainer, trainData, testData);
+        @SuppressWarnings("unchecked")
+        TensorFlowNativeModel<Label> nativeModel = (TensorFlowNativeModel<Label>) testTrainer(nativeTrainer, trainData, testData);
+        List<Prediction<Label>> nativePreds = nativeModel.predict(testData);
+
+        // Check it converts into a checkpoint model and still works
+        Path tmpPath = Files.createTempDirectory("tf-native-to-ckpt");
+        TensorFlowCheckpointModel<Label> ckptNativeModel = nativeModel.convertToCheckpointModel(tmpPath.toAbsolutePath().toString());
+        List<Prediction<Label>> ckptNativePreds = ckptNativeModel.predict(testData);
+        checkPredictionEquality(nativePreds,ckptNativePreds);
+
+        // Clean up checkpoint and native model
+        ckptNativeModel.close();
+        nativeModel.close();
+        Files.walk(tmpPath)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
 
         // Test checkpoint trainer
         Path checkpointPath = Files.createTempDirectory("tf-classification-test-ckpt");
@@ -116,10 +132,30 @@ public class ClassificationTest {
                 -1,
                 checkpointPath);
 
-        testTrainer(checkpointTrainer, trainData, testData);
+        @SuppressWarnings("unchecked")
+        TensorFlowCheckpointModel<Label> ckptModel = (TensorFlowCheckpointModel<Label>) testTrainer(checkpointTrainer, trainData, testData);
+        List<Prediction<Label>> oldCkptPreds = ckptModel.predict(testData);
+
+        // Check we can move the checkpoint and the model still works
+        Assertions.assertTrue(ckptModel.isInitialized());
+        Path oldPath = Paths.get(ckptModel.getCheckpointDirectory());
+        Path newCheckpointPath = oldPath.getParent().resolve("tf-new-path");
+        oldPath.toFile().renameTo(newCheckpointPath.toFile());
+        ckptModel.setCheckpointDirectory(newCheckpointPath.toString());
+        List<Prediction<Label>> ckptPreds = ckptModel.predict(testData);
+        checkPredictionEquality(ckptPreds,oldCkptPreds);
+
+        // Check it converts into a native model and still works
+        TensorFlowNativeModel<Label> nativeCkptModel = ckptModel.convertToNativeModel();
+        List<Prediction<Label>> nativeCkptPreds = nativeCkptModel.predict(testData);
+        checkPredictionEquality(ckptPreds,nativeCkptPreds);
+
+        // Clean up checkpoint and native model
+        ckptModel.close();
+        nativeCkptModel.close();
 
         // Validate that the checkpoint has stored things
-        List<Path> files = Files.list(checkpointPath).collect(Collectors.toList());
+        List<Path> files = Files.list(newCheckpointPath).collect(Collectors.toList());
         Assertions.assertNotEquals(0,files.size());
 
         // Cleanup checkpoint
@@ -127,26 +163,30 @@ public class ClassificationTest {
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(File::delete);
-
         Assertions.assertFalse(Files.exists(checkpointPath));
+        Files.walk(newCheckpointPath)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
+        Assertions.assertFalse(Files.exists(newCheckpointPath));
     }
 
-    private static void testTrainer(TensorFlowTrainer<Label> trainer, Dataset<Label> trainData, Dataset<Label> testData) throws IOException {
+    private static TensorFlowModel<Label> testTrainer(TensorFlowTrainer<Label> trainer, Dataset<Label> trainData, Dataset<Label> testData) throws IOException {
         // Train the model
         TensorFlowModel<Label> model = trainer.train(trainData);
 
         // Run smoke test evaluation
-        LabelEvaluation eval = new LabelEvaluator().evaluate(model,testData);
+        LabelEvaluation eval = new LabelEvaluator().evaluate(model, testData);
         Assertions.assertTrue(eval.averageAUCROC(false) > 0.0);
 
         // Check Tribuo serialization
-        Helpers.testModelSerialization(model,Label.class);
+        Helpers.testModelSerialization(model, Label.class);
 
         // Check saved model bundle export
         Path outputPath = Files.createTempDirectory("tf-classification-test");
         model.exportModel(outputPath.toString());
         List<Path> files = Files.list(outputPath).collect(Collectors.toList());
-        Assertions.assertNotEquals(0,files.size());
+        Assertions.assertNotEquals(0, files.size());
 
         // Cleanup saved model bundle
         Files.walk(outputPath)
@@ -156,8 +196,17 @@ public class ClassificationTest {
 
         Assertions.assertFalse(Files.exists(outputPath));
 
-        // Cleanup created model
-        model.close();
+        return model;
+    }
+
+    private void checkPredictionEquality(List<Prediction<Label>> first, List<Prediction<Label>> second) {
+        Assertions.assertEquals(first.size(),second.size());
+        for (int i = 0; i < first.size(); i++) {
+            Prediction<Label> predA = first.get(i);
+            Prediction<Label> predB = second.get(i);
+            Assertions.assertTrue(predA.getOutput().fullEquals(predB.getOutput()));
+            Assertions.assertTrue(predA.distributionEquals(predB));
+        }
     }
 
     /**
@@ -315,13 +364,7 @@ public class ClassificationTest {
 
         // Check predictions are equal
         List<Prediction<Label>> externalPredictions = externalModel.predict(testData);
-        Assertions.assertEquals(predictions.size(),externalPredictions.size());
-        for (int i = 0; i < predictions.size(); i++) {
-            Prediction<Label> tribuo = predictions.get(i);
-            Prediction<Label> external = externalPredictions.get(i);
-            Assertions.assertTrue(tribuo.getOutput().fullEquals(external.getOutput()));
-            Assertions.assertTrue(tribuo.distributionEquals(external));
-        }
+        checkPredictionEquality(predictions,externalPredictions);
 
         // Cleanup saved model bundle
         externalModel.close();

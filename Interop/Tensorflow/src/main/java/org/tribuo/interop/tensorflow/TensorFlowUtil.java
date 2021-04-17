@@ -118,7 +118,7 @@ public abstract class TensorFlowUtil {
      * @return A name for the placeholder.
      */
     public static String generatePlaceholderName(String variableName) {
-        return variableName + "-" + PLACEHOLDER;
+        return variableName + "-tribuo-" + PLACEHOLDER;
     }
 
     /**
