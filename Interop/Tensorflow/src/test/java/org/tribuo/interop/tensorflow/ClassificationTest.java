@@ -146,6 +146,7 @@ public class ClassificationTest {
         Path newCheckpointPath = oldPath.getParent().resolve("tf-new-path");
         Assertions.assertTrue(oldPath.toFile().renameTo(newCheckpointPath.toFile()));
         ckptModel.setCheckpointDirectory(newCheckpointPath.toString());
+        ckptModel.initialize();
         List<Prediction<Label>> ckptPreds = ckptModel.predict(testData);
         checkPredictionEquality(ckptPreds,oldCkptPreds);
 
@@ -162,17 +163,12 @@ public class ClassificationTest {
         List<Path> files = Files.list(newCheckpointPath).collect(Collectors.toList());
         Assertions.assertNotEquals(0,files.size());
 
-        // Cleanup checkpoint
+        // Cleanup checkpoints
         Files.walk(checkpointPath)
                 .sorted(Comparator.reverseOrder())
                 .map(Path::toFile)
                 .forEach(File::delete);
         Assertions.assertFalse(Files.exists(checkpointPath));
-        Files.walk(newCheckpointPath)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
-        Assertions.assertFalse(Files.exists(newCheckpointPath));
     }
 
     private static TensorFlowModel<Label> testTrainer(TensorFlowTrainer<Label> trainer, Dataset<Label> trainData, Dataset<Label> testData) throws IOException {
