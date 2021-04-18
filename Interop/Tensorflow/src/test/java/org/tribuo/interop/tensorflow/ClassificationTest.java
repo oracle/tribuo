@@ -132,6 +132,10 @@ public class ClassificationTest {
                 -1,
                 checkpointPath);
 
+        // Check the invocation counter works
+        TensorFlowCheckpointModel<Label> tmpModel = (TensorFlowCheckpointModel<Label>) testTrainer(checkpointTrainer, trainData, testData);
+        tmpModel.close();
+
         @SuppressWarnings("unchecked")
         TensorFlowCheckpointModel<Label> ckptModel = (TensorFlowCheckpointModel<Label>) testTrainer(checkpointTrainer, trainData, testData);
         List<Prediction<Label>> oldCkptPreds = ckptModel.predict(testData);
@@ -140,7 +144,7 @@ public class ClassificationTest {
         Assertions.assertTrue(ckptModel.isInitialized());
         Path oldPath = Paths.get(ckptModel.getCheckpointDirectory());
         Path newCheckpointPath = oldPath.getParent().resolve("tf-new-path");
-        oldPath.toFile().renameTo(newCheckpointPath.toFile());
+        Assertions.assertTrue(oldPath.toFile().renameTo(newCheckpointPath.toFile()));
         ckptModel.setCheckpointDirectory(newCheckpointPath.toString());
         List<Prediction<Label>> ckptPreds = ckptModel.predict(testData);
         checkPredictionEquality(ckptPreds,oldCkptPreds);

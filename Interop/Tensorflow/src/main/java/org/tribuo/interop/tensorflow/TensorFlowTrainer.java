@@ -397,7 +397,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
         ArrayList<Example<T>> batch = new ArrayList<>();
         Path curCheckpointPath;
         synchronized (this) {
-            curCheckpointPath = checkpointPath != null ? Paths.get(checkpointPath.toString(),"invocation-"+trainInvocationCounter) : null;
+            curCheckpointPath = checkpointPath != null ? Paths.get(checkpointPath.toString(),"invocation-"+trainInvocationCounter, "tribuo") : null;
             trainInvocationCounter++;
         }
 

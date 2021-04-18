@@ -88,7 +88,14 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
      * Throws {@code TensorFlowException} if it failed to read the checkpoint.
      */
     public final void initialize() {
+        // Close the old session
+        if (session != null) {
+            session.close();
+            session = null;
+        }
+        session = new Session(modelGraph);
         session.restore(checkpointDirectory);
+
         initialized = true;
     }
 
