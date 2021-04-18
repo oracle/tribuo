@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SplittableRandom;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ClassificationTest {
 
@@ -160,14 +161,17 @@ public class ClassificationTest {
         nativeCkptModel.close();
 
         // Validate that the checkpoint has stored things
-        List<Path> files = Files.list(newCheckpointPath).collect(Collectors.toList());
-        Assertions.assertNotEquals(0,files.size());
+        try (Stream<Path> f = Files.list(newCheckpointPath)) {
+            List<Path> files = f.collect(Collectors.toList());
+            Assertions.assertNotEquals(0, files.size());
+        }
 
         // Cleanup checkpoints
-        Files.walk(checkpointPath)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        try (Stream<Path> f = Files.walk(checkpointPath)) {
+            f.sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(File::delete);
+        }
         Assertions.assertFalse(Files.exists(checkpointPath));
     }
 
@@ -346,8 +350,10 @@ public class ClassificationTest {
         // Check saved model bundle export
         Path outputPath = Files.createTempDirectory("tf-classification-cnn-test");
         model.exportModel(outputPath.toString());
-        List<Path> files = Files.list(outputPath).collect(Collectors.toList());
-        Assertions.assertNotEquals(0,files.size());
+        try (Stream<Path> f = Files.list(outputPath)) {
+            List<Path> files = f.collect(Collectors.toList());
+            Assertions.assertNotEquals(0, files.size());
+        }
 
         // Create external model from bundle
         Map<Label,Integer> outputMapping = new HashMap<>();
