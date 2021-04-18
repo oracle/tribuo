@@ -71,11 +71,19 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
         this.checkpointDirectory = checkpointDirectory;
         this.checkpointName = checkpointName;
         try {
-            session.restore(Paths.get(checkpointDirectory,checkpointName).toString());
+            session.restore(resolvePath());
             initialized = true;
         } catch (TensorFlowException e) {
             logger.log(Level.WARNING, "Failed to initialise model in directory " + checkpointDirectory, e);
         }
+    }
+
+    /**
+     * Resolves the path into the format that TensorFlow expects.
+     * @return The TensorFlow checkpoint path.
+     */
+    private final String resolvePath() {
+        return Paths.get(checkpointDirectory,checkpointName).toString();
     }
 
     /**
@@ -98,7 +106,7 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
             session = null;
         }
         session = new Session(modelGraph);
-        session.restore(Paths.get(checkpointDirectory,checkpointName).toString());
+        session.restore(resolvePath());
 
         initialized = true;
     }
@@ -171,7 +179,7 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
         this.session = new Session(modelGraph);
 
         try {
-            session.restore(checkpointDirectory);
+            session.restore(resolvePath());
             initialized = true;
         } catch (TensorFlowException e) {
             logger.log(Level.WARNING, "Failed to initialise model after deserialization, attempted to load from " + checkpointDirectory, e);
