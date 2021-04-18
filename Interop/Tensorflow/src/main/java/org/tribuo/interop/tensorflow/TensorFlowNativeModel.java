@@ -27,6 +27,7 @@ import org.tribuo.Prediction;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Map;
 
 /**
@@ -58,12 +59,14 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
 
     /**
      * Creates a {@link TensorFlowCheckpointModel} version of this model.
+     * @param checkpointDirectory The directory to write the checkpoint to.
+     * @param checkpointName The name of the checkpoint files.
      * @return A version of this model using a TensorFlow checkpoint to store the parameters.
      */
-    public TensorFlowCheckpointModel<T> convertToCheckpointModel(String checkpointDirectory) {
-        session.save(checkpointDirectory.toString());
+    public TensorFlowCheckpointModel<T> convertToCheckpointModel(String checkpointDirectory, String checkpointName) {
+        session.save(Paths.get(checkpointDirectory,checkpointName).toString());
         return new TensorFlowCheckpointModel<>(name, provenance, featureIDMap,
-                outputIDInfo, modelGraph.toGraphDef(), checkpointDirectory, batchSize, initName, outputName, exampleTransformer, outputTransformer);
+                outputIDInfo, modelGraph.toGraphDef(), checkpointDirectory, checkpointName, batchSize, initName, outputName, exampleTransformer, outputTransformer);
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

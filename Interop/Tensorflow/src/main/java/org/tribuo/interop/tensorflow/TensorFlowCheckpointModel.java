@@ -29,6 +29,7 @@ import org.tensorflow.Tensor;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,13 +62,16 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
 
     private String checkpointDirectory;
 
+    private String checkpointName;
+
     private boolean initialized;
 
-    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
+    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, String checkpointName, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, description, featureIDMap, outputIDMap, graphDef, batchSize, initName, outputName, exampleTransformer, outputTransformer);
         this.checkpointDirectory = checkpointDirectory;
+        this.checkpointName = checkpointName;
         try {
-            session.restore(checkpointDirectory);
+            session.restore(Paths.get(checkpointDirectory,checkpointName).toString());
             initialized = true;
         } catch (TensorFlowException e) {
             logger.log(Level.WARNING, "Failed to initialise model in directory " + checkpointDirectory, e);
@@ -94,23 +98,19 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
             session = null;
         }
         session = new Session(modelGraph);
-        session.restore(checkpointDirectory);
+        session.restore(Paths.get(checkpointDirectory,checkpointName).toString());
 
         initialized = true;
     }
 
     /**
-     * Sets the checkpoint directory. If the directories are different
-     * then it re-initializes the model.
+     * Sets the checkpoint directory.
      * <p>
-     * Throws {@code TensorFlowException} if the model fails to re-initialize.
+     * The model likely needs re-initializing after this call.
      * @param newCheckpointDirectory The new checkpoint directory.
      */
     public void setCheckpointDirectory(String newCheckpointDirectory) {
-        if (!checkpointDirectory.equals(newCheckpointDirectory)) {
-            checkpointDirectory = newCheckpointDirectory;
-            initialize();
-        }
+        checkpointDirectory = newCheckpointDirectory;
     }
 
     /**
@@ -119,6 +119,24 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
      */
     public String getCheckpointDirectory() {
         return checkpointDirectory;
+    }
+
+    /**
+     * Sets the checkpoint name.
+     * <p>
+     * The model likely needs re-initializing after this call.
+     * @param newCheckpointName The new checkpoint name.
+     */
+    public void setCheckpointName(String newCheckpointName) {
+        checkpointName = newCheckpointName;
+    }
+
+    /**
+     * Gets the checkpoint name this model loads from.
+     * @return The checkpoint name.
+     */
+    public String getCheckpointName() {
+        return checkpointName;
     }
 
     /**
@@ -133,7 +151,7 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
 
     @Override
     protected TensorFlowCheckpointModel<T> copy(String newName, ModelProvenance newProvenance) {
-        return new TensorFlowCheckpointModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),checkpointDirectory,batchSize,initName,outputName,exampleTransformer,outputTransformer);
+        return new TensorFlowCheckpointModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),checkpointDirectory,checkpointName,batchSize,initName,outputName,exampleTransformer,outputTransformer);
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

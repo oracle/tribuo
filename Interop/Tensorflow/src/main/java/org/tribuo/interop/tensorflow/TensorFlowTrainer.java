@@ -481,7 +481,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                     break;
                 case CHECKPOINT:
                     tfModel = new TensorFlowCheckpointModel<>("tf-checkpoint-model", modelProvenance, featureMap,
-                            outputInfo, trainedGraphDef, curCheckpointPath.toString(), testBatchSize, initName, outputOp.op().name(), exampleTransformer, outputTransformer);
+                            outputInfo, trainedGraphDef, curCheckpointPath.getParent().toString(), curCheckpointPath.getFileName().toString(), testBatchSize, initName, outputOp.op().name(), exampleTransformer, outputTransformer);
                     break;
                 default:
                     throw new IllegalStateException("Unexpected enum constant " + modelFormat);

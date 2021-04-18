@@ -105,7 +105,7 @@ public class ClassificationTest {
 
         // Check it converts into a checkpoint model and still works
         Path tmpPath = Files.createTempDirectory("tf-native-to-ckpt");
-        TensorFlowCheckpointModel<Label> ckptNativeModel = nativeModel.convertToCheckpointModel(tmpPath.toAbsolutePath().toString());
+        TensorFlowCheckpointModel<Label> ckptNativeModel = nativeModel.convertToCheckpointModel(tmpPath.toAbsolutePath().toString(),"tribuo-test");
         List<Prediction<Label>> ckptNativePreds = ckptNativeModel.predict(testData);
         checkPredictionEquality(nativePreds,ckptNativePreds);
 
