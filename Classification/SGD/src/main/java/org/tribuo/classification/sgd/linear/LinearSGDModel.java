@@ -47,7 +47,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
 
     private final VectorNormalizer normalizer;
 
-    // Unused as the weights now live in AbstractLinearSGDModel
+    // Unused as the weights now live in AbstractSGDModel
     // It remains for serialization compatibility with Tribuo 4.0
     @Deprecated
     private DenseMatrix weights = null;
@@ -65,24 +65,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
     LinearSGDModel(String name, ModelProvenance provenance,
                    ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo,
                    LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities) {
-        super(name, provenance, featureIDMap, outputIDInfo, parameters.getWeightMatrix(), generatesProbabilities);
-        this.normalizer = normalizer;
-    }
-
-    /**
-     * Constructs a linear classification model trained via SGD.
-     * @param name The model name.
-     * @param provenance The model provenance.
-     * @param featureIDMap The feature domain.
-     * @param outputIDInfo The output domain.
-     * @param weights The model parameters (i.e., the weight matrix).
-     * @param normalizer The normalization function.
-     * @param generatesProbabilities Does this model generate probabilities?
-     */
-    private LinearSGDModel(String name, ModelProvenance provenance,
-                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo,
-                          DenseMatrix weights, VectorNormalizer normalizer, boolean generatesProbabilities) {
-        super(name, provenance, featureIDMap, outputIDInfo, weights, generatesProbabilities);
+        super(name, provenance, featureIDMap, outputIDInfo, parameters, generatesProbabilities);
         this.normalizer = normalizer;
     }
 
@@ -110,7 +93,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
 
     @Override
     protected LinearSGDModel copy(String newName, ModelProvenance newProvenance) {
-        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(baseWeights),normalizer,generatesProbabilities);
+        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,(LinearParameters)modelParameters.copy(),normalizer,generatesProbabilities);
     }
 
     @Override
@@ -122,9 +105,10 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
         in.defaultReadObject();
 
         // Bounce old 4.0 style models into the new 4.1 style models
-        if (weights != null && baseWeights == null) {
-            baseWeights = weights;
+        if (weights != null && modelParameters == null) {
+            modelParameters = new LinearParameters(weights);
             weights = null;
+            addBias = true;
         }
     }
 }

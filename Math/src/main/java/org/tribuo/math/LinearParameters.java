@@ -19,6 +19,8 @@ package org.tribuo.math;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
+import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.util.HeapMerger;
@@ -27,7 +29,8 @@ import org.tribuo.math.util.Merger;
 /**
  * A {@link Parameters} for producing linear models.
  */
-public class LinearParameters implements Parameters {
+public class LinearParameters implements FeedForwardParameters {
+    private static final long serialVersionUID = 1L;
 
     private static final Merger merger = new HeapMerger();
 
@@ -48,11 +51,24 @@ public class LinearParameters implements Parameters {
     }
 
     /**
+     * Constructs a LinearParameters wrapped around a weight matrix.
+     * <p>
+     * Used for serialization compatibility with Tribuo 4.0.
+     * @param weightMatrix The weight matrix to wrap.
+     */
+    public LinearParameters(DenseMatrix weightMatrix) {
+        this.weightMatrix = weightMatrix;
+        this.weights = new Tensor[1];
+        weights[0] = weightMatrix;
+    }
+
+    /**
      * Generates an unnormalised prediction by leftMultiply'ing the weights with the incoming features.
      * @param example A feature vector
      * @return A {@link org.tribuo.math.la.DenseVector} containing a score for each label.
      */
-    public SGDVector predict(SGDVector example) {
+    @Override
+    public DenseVector predict(SGDVector example) {
         return weightMatrix.leftMultiply(example);
     }
 
@@ -63,8 +79,9 @@ public class LinearParameters implements Parameters {
      * This parameters returns a single element {@link Tensor} array.
      * @param score The Pair returned by the objective.
      * @param features The feature vector.
-     * @return A {@link Tensor} array with a single {@link DenseSparseMatrix} containing all gradients.
+     * @return A {@link Tensor} array with a single {@link Matrix} containing all gradients.
      */
+    @Override
     public Tensor[] gradients(Pair<Double, SGDVector> score, SGDVector features) {
         Tensor[] output = new Tensor[1];
         output[0] = score.getB().outer(features);
@@ -130,5 +147,10 @@ public class LinearParameters implements Parameters {
         } else {
             throw new IllegalStateException("Unexpected gradient type, expected DenseMatrix or DenseSparseMatrix, received " + gradients[0][0].getClass().getName());
         }
+    }
+
+    @Override
+    public LinearParameters copy() {
+        return new LinearParameters(weightMatrix.copy());
     }
 }

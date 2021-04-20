@@ -23,7 +23,6 @@ import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.LinearParameters;
-import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.multilabel.MultiLabel;
@@ -50,18 +49,21 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> {
     private final VectorNormalizer normalizer;
     private final double threshold;
 
+    /**
+     * Constructs a linear regression model trained via SGD.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param parameters The model parameters (i.e., the weight matrix).
+     * @param normalizer The output normalizer (usually sigmoid or no-op).
+     * @param generatesProbabilities Does this model produce probabilistic outputs.
+     * @param threshold The threshold for emitting a label.
+     */
     LinearSGDModel(String name, ModelProvenance provenance,
                    ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> outputIDInfo,
                    LinearParameters parameters, VectorNormalizer normalizer, boolean generatesProbabilities, double threshold) {
-        super(name, provenance, featureIDMap, outputIDInfo, parameters.getWeightMatrix(), generatesProbabilities);
-        this.normalizer = normalizer;
-        this.threshold = threshold;
-    }
-
-    private LinearSGDModel(String name, ModelProvenance provenance,
-                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<MultiLabel> outputIDInfo,
-                          DenseMatrix weights, VectorNormalizer normalizer, boolean generatesProbabilities, double threshold) {
-        super(name, provenance, featureIDMap, outputIDInfo, weights, generatesProbabilities);
+        super(name, provenance, featureIDMap, outputIDInfo, parameters, generatesProbabilities);
         this.normalizer = normalizer;
         this.threshold = threshold;
     }
@@ -92,6 +94,6 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> {
 
     @Override
     protected LinearSGDModel copy(String newName, ModelProvenance newProvenance) {
-        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseMatrix(baseWeights),normalizer,generatesProbabilities,threshold);
+        return new LinearSGDModel(newName,newProvenance,featureIDMap,outputIDInfo,(LinearParameters)modelParameters.copy(),normalizer,generatesProbabilities,threshold);
     }
 }
