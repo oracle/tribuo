@@ -16,8 +16,6 @@
 
 package org.tribuo.multilabel;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,10 +32,10 @@ import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
+import org.tribuo.MutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
-import org.tribuo.classification.MutableLabelInfo;
 import org.tribuo.classification.evaluation.ClassifierEvaluation;
 import org.tribuo.classification.evaluation.ConfusionMatrix;
 import org.tribuo.classification.evaluation.LabelConfusionMatrix;
@@ -169,17 +167,7 @@ public class IndependentMultiLabelTest {
     }
 
     public static ImmutableOutputInfo<Label> mkDomain(List<Prediction<Label>> predictions) {
-      // MutableLabelInfo info = new MutableLabelInfo();
-      // FIXME hack call package private ctor of MutableLabelInfo
-      // TODO just make that public
-      final MutableLabelInfo info;
-      try {
-          Constructor<MutableLabelInfo> ctor = MutableLabelInfo.class.getDeclaredConstructor();
-          ctor.setAccessible(true);
-          info = ctor.newInstance();
-      } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-          throw new RuntimeException(e);
-      }
+      final MutableOutputInfo<Label> info = new LabelFactory().generateInfo();
       for (Prediction<Label> p : predictions) {
           info.observe(p.getExample().getOutput());
           info.observe(p.getOutput()); // TODO? LN added
