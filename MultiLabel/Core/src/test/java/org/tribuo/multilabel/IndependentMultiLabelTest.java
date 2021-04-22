@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -118,6 +119,11 @@ public class IndependentMultiLabelTest {
     }
 
     public static List<Prediction<Label>> mkSingleLabelPredictions(List<Prediction<MultiLabel>> predictions) {
+        return mkSingleLabelPredictions(predictions, false);
+    }
+
+    public static List<Prediction<Label>> mkSingleLabelPredictions(List<Prediction<MultiLabel>> predictions,
+        final boolean falseNegativeHeuristic) {
         return predictions.stream()
           .flatMap(p -> {
               final Set<Label> trueLabels = p.getExample().getOutput().getLabelSet();
@@ -125,7 +131,7 @@ public class IndependentMultiLabelTest {
               // intersection(trueLabels, predicted) = true positives
               // predicted - trueLabels = false positives
               // trueLabels - predicted = false negatives
-              return predicted.stream().map(pred -> {
+              return Stream.concat(predicted.stream().map(pred -> {
                   if (trueLabels.contains(pred)) {
                       return mkPrediction(pred.getLabel(), pred.getLabel());
                   } else if (trueLabels.size() == 1) {
@@ -134,7 +140,21 @@ public class IndependentMultiLabelTest {
                       // arbitrarily pick first trueLabel
                       return mkPrediction(trueLabels.iterator().next().getLabel(), pred.getLabel());
                   }
-              });
+              }),
+              !falseNegativeHeuristic ? Stream.of() :
+              // partially represent false negatives by calling them false positives tied to some predicted label if there is one
+                  trueLabels.stream().filter(t -> !predicted.contains(t)).flatMap(fnTrueLabel -> {
+                  if (predicted.isEmpty()) {
+                      // nothing to pin this on
+                      return Stream.of();
+                  } else if (predicted.size() == 1) {
+                      return Stream.of(mkPrediction(fnTrueLabel.getLabel(), predicted.iterator().next().getLabel()));
+                  } else {
+                      // arbitrarily pick first predicted label
+                      return Stream.of(mkPrediction(fnTrueLabel.getLabel(), predicted.iterator().next().getLabel()));
+                  }
+              })
+              );
           }).collect(Collectors.toList());
     }
 
