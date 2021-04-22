@@ -18,6 +18,8 @@ package org.tribuo.interop.tensorflow.example;
 
 import org.tensorflow.Graph;
 import org.tensorflow.Operand;
+import org.tensorflow.framework.initializers.Glorot;
+import org.tensorflow.framework.initializers.VarianceScaling;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.op.Ops;
 import org.tensorflow.op.core.Init;
@@ -25,7 +27,6 @@ import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.op.core.Variable;
 import org.tensorflow.op.math.Add;
 import org.tensorflow.op.nn.Relu;
-import org.tensorflow.op.random.TruncatedNormal;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TFloat32;
 import org.tribuo.Trainer;
@@ -65,17 +66,17 @@ public abstract class MLPExamples {
 
         Ops tf = Ops.create(graph);
 
+        Glorot<TFloat32> initializer = new Glorot<>(tf, VarianceScaling.Distribution.TRUNCATED_NORMAL, Trainer.DEFAULT_SEED);
+
         // Inputs
         Placeholder<TFloat32> input = tf.withName(inputName).placeholder(TFloat32.class,
                 Placeholder.shape(Shape.of(-1, numFeatures)));
 
         Operand<TFloat32> prevOutput = input;
-        int prevLayerSize = numFeatures;
+        long prevLayerSize = numFeatures;
         for (int i = 0; i < hiddenSizes.length; i++) {
             // Fully connected layer
-            Variable<TFloat32> fcWeights = tf.variable(tf.math.mul(tf.random
-                    .truncatedNormal(tf.array(prevLayerSize, hiddenSizes[i]), TFloat32.class,
-                            TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
+            Variable<TFloat32> fcWeights = tf.variable(initializer.call(tf.array(prevLayerSize,hiddenSizes[i]),TFloat32.class));
             Variable<TFloat32> fcBiases = tf.variable(tf.fill(tf.array(hiddenSizes[i]), tf.constant(0.1f)));
             Relu<TFloat32> relu = tf.nn.relu(tf.math.add(tf.linalg.matMul(prevOutput, fcWeights), fcBiases));
 
@@ -85,9 +86,7 @@ public abstract class MLPExamples {
         }
 
         // Fully connected layer
-        Variable<TFloat32> outputWeights = tf.variable(tf.math.mul(tf.random
-                .truncatedNormal(tf.array(prevLayerSize, numOutputs), TFloat32.class,
-                        TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
+        Variable<TFloat32> outputWeights = tf.variable(initializer.call(tf.array(prevLayerSize,numOutputs),TFloat32.class));
         Variable<TFloat32> outputBiases = tf.variable(tf.fill(tf.array(numOutputs), tf.constant(0.1f)));
         Add<TFloat32> output = tf.math.add(tf.linalg.matMul(prevOutput, outputWeights), outputBiases);
 

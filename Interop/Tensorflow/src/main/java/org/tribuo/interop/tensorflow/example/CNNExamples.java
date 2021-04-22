@@ -18,6 +18,8 @@ package org.tribuo.interop.tensorflow.example;
 
 import org.tensorflow.Graph;
 import org.tensorflow.Operand;
+import org.tensorflow.framework.initializers.Glorot;
+import org.tensorflow.framework.initializers.VarianceScaling;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.op.Ops;
 import org.tensorflow.op.core.Concat;
@@ -30,10 +32,10 @@ import org.tensorflow.op.math.Add;
 import org.tensorflow.op.nn.Conv2d;
 import org.tensorflow.op.nn.MaxPool;
 import org.tensorflow.op.nn.Relu;
-import org.tensorflow.op.random.TruncatedNormal;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.TInt32;
+import org.tensorflow.types.TInt64;
 import org.tribuo.Trainer;
 
 import java.util.Arrays;
@@ -76,6 +78,8 @@ public abstract class CNNExamples {
 
         Ops tf = Ops.create(graph);
 
+        Glorot<TFloat32> initializer = new Glorot<>(tf, VarianceScaling.Distribution.TRUNCATED_NORMAL, Trainer.DEFAULT_SEED);
+
         // Inputs
         Placeholder<TFloat32> input = tf.withName(inputName).placeholder(TFloat32.class,
                 Placeholder.shape(Shape.of(-1, imageSize, imageSize, 1)));
@@ -86,9 +90,7 @@ public abstract class CNNExamples {
         Operand<TFloat32> scaledInput = tf.math.div(tf.math.sub(input, centeringFactor), scalingFactor);
 
         // First conv layer
-        Variable<TFloat32> conv1Weights = tf.variable(tf.math.mul(tf.random
-                .truncatedNormal(tf.array(5, 5, 1, 32), TFloat32.class,
-                        TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
+        Variable<TFloat32> conv1Weights = tf.variable(initializer.call(tf.array(5L, 5, 1, 32), TFloat32.class));
         Conv2d<TFloat32> conv1 = tf.nn.conv2d(scaledInput, conv1Weights, Arrays.asList(1L, 1L, 1L, 1L), PADDING_TYPE);
         Variable<TFloat32> conv1Biases = tf.variable(tf.fill(tf.array(32), tf.constant(0.0f)));
         Relu<TFloat32> relu1 = tf.nn.relu(tf.nn.biasAdd(conv1, conv1Biases));
@@ -98,9 +100,7 @@ public abstract class CNNExamples {
                 .maxPool(relu1, tf.array(1, 2, 2, 1), tf.array(1, 2, 2, 1), PADDING_TYPE);
 
         // Second conv layer
-        Variable<TFloat32> conv2Weights = tf.variable(tf.math.mul(tf.random
-                .truncatedNormal(tf.array(5, 5, 32, 64), TFloat32.class,
-                        TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
+        Variable<TFloat32> conv2Weights = tf.variable(initializer.call(tf.array(5L, 5, 32, 64), TFloat32.class));
         Conv2d<TFloat32> conv2 = tf.nn.conv2d(pool1, conv2Weights, Arrays.asList(1L, 1L, 1L, 1L), PADDING_TYPE);
         Variable<TFloat32> conv2Biases = tf.variable(tf.fill(tf.array(64), tf.constant(0.1f)));
         Relu<TFloat32> relu2 = tf.nn.relu(tf.nn.biasAdd(conv2, conv2Biases));
@@ -111,23 +111,21 @@ public abstract class CNNExamples {
 
         // Compute the new shape
         long[] poolShape = pool2.shape().subShape(1,4).asArray();
-        int numFlattenedFeatures = (int)(poolShape[0] * poolShape[1] * poolShape[2]);
-        Concat<TInt32> newShape =  tf.concat(Arrays.asList(tf.array(-1), tf.array(numFlattenedFeatures)),tf.constant(0));
+        long numFlattenedFeatures = (long)(poolShape[0] * poolShape[1] * poolShape[2]);
+        Concat<TInt64> newShape =  tf.concat(Arrays.asList(tf.array(-1L), tf.array(numFlattenedFeatures)),tf.constant(0));
 
         // Flatten inputs
         Reshape<TFloat32> flatten = tf.reshape(pool2, newShape);
 
         // Fully connected layer
-        Variable<TFloat32> fc1Weights = tf.variable(tf.math.mul(tf.random
-                .truncatedNormal(tf.concat(Arrays.asList(tf.array(numFlattenedFeatures), tf.array(512)),tf.constant(0)), TFloat32.class,
-                        TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
+        Variable<TFloat32> fc1Weights = tf.variable(initializer.call(tf.concat(
+                Arrays.asList(tf.array(numFlattenedFeatures), tf.array(512L)),tf.constant(0)),
+                TFloat32.class));
         Variable<TFloat32> fc1Biases = tf.variable(tf.fill(tf.array(512), tf.constant(0.1f)));
         Relu<TFloat32> relu3 = tf.nn.relu(tf.math.add(tf.linalg.matMul(flatten, fc1Weights), fc1Biases));
 
         // Softmax layer
-        Variable<TFloat32> fc2Weights = tf.variable(tf.math.mul(tf.random
-                .truncatedNormal(tf.array(512, numOutputs), TFloat32.class,
-                        TruncatedNormal.seed(Trainer.DEFAULT_SEED)), tf.constant(0.1f)));
+        Variable<TFloat32> fc2Weights = tf.variable(initializer.call(tf.array(512L,numOutputs),TFloat32.class));
         Variable<TFloat32> fc2Biases = tf.variable(tf.fill(tf.array(numOutputs), tf.constant(0.1f)));
 
         Add<TFloat32> logits = tf.math.add(tf.linalg.matMul(relu3, fc2Weights), fc2Biases);
