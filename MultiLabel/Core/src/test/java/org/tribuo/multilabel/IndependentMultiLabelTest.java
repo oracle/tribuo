@@ -16,23 +16,33 @@
 
 package org.tribuo.multilabel;
 
-import java.util.ArrayList;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
+import org.tribuo.Example;
+import org.tribuo.Feature;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
+import org.tribuo.classification.Label;
+import org.tribuo.classification.LabelFactory;
+import org.tribuo.classification.MutableLabelInfo;
 import org.tribuo.classification.evaluation.ClassifierEvaluation;
 import org.tribuo.classification.evaluation.ConfusionMatrix;
+import org.tribuo.classification.evaluation.LabelConfusionMatrix;
 import org.tribuo.classification.sgd.linear.LinearSGDTrainer;
 import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
+import org.tribuo.impl.ListExample;
 import org.tribuo.multilabel.baseline.IndependentMultiLabelTrainer;
 import org.tribuo.multilabel.evaluation.MultiLabelEvaluator;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
@@ -92,55 +102,68 @@ public class IndependentMultiLabelTest {
         System.out.println("new toString()");
         System.out.println(mcm);
 
-        System.out.println("\nlabelConfusionMatrixToString");
-        System.out.println(labelConfusionMatrixToString(mcm));
-
         System.out.println("\npredictions");
         evaluation.getPredictions().forEach(System.out::println);
+
+        final List<Prediction<MultiLabel>> predictions = evaluation.getPredictions();
+        System.out.println("\nsingleLabelConfusionMatrix");
+        System.out.println(singleLabelConfusionMatrix(predictions));
     }
 
-    public static String labelConfusionMatrixToString(ConfusionMatrix<MultiLabel> mcmObject) {
-        ImmutableOutputInfo<MultiLabel> domain = mcmObject.getDomain();
-        List<MultiLabel> labelOrder = new ArrayList<>(domain.getDomain());
+    public static LabelConfusionMatrix singleLabelConfusionMatrix(final List<Prediction<MultiLabel>> predictions) {
+        final List<Prediction<Label>> singleLabelPredictions = mkSingleLabelPredictions(predictions);
+        ImmutableOutputInfo<Label> domain = mkDomain(singleLabelPredictions);
+        LabelConfusionMatrix cm = new LabelConfusionMatrix(domain, singleLabelPredictions);
+        return cm;
+    }
 
-        StringBuilder sb = new StringBuilder();
+    public static List<Prediction<Label>> mkSingleLabelPredictions(List<Prediction<MultiLabel>> predictions) {
+        return predictions.stream()
+          .flatMap(p -> {
+              final Set<Label> trueLabels = p.getExample().getOutput().getLabelSet();
+              final Set<Label> predicted = p.getOutput().getLabelSet();
+              // intersection(trueLabels, predicted) = true positives
+              // predicted - trueLabels = false positives
+              // trueLabels - predicted = false negatives
+              return predicted.stream().map(pred -> {
+                  if (trueLabels.contains(pred)) {
+                      return mkPrediction(pred.getLabel(), pred.getLabel());
+                  } else if (trueLabels.size() == 1) {
+                      return mkPrediction(trueLabels.iterator().next().getLabel(), pred.getLabel());
+                  } else {
+                      // arbitrarily pick first trueLabel
+                      return mkPrediction(trueLabels.iterator().next().getLabel(), pred.getLabel());
+                  }
+              });
+          }).collect(Collectors.toList());
+    }
 
-        int maxLen = Integer.MIN_VALUE;
-        for (MultiLabel multiLabel : labelOrder) {
-            maxLen = Math.max(multiLabel.getLabelString().length(), maxLen);
-            maxLen = Math.max(String.format(" %,d", (int) mcmObject.support(multiLabel)).length(), maxLen);
-        }
+    // FIXME HACK copied from Classification/Core/src/test/java/org/tribuo/classification/Utils.java
 
-        String trueLabelFormat = String.format("%%-%ds", maxLen + 2);
-        String predictedLabelFormat = String.format("%%%ds", maxLen + 2);
-        String countFormat = String.format("%%,%dd", maxLen + 2);
+    public static Prediction<Label> mkPrediction(String trueVal, String predVal) {
+        LabelFactory factory = new LabelFactory();
+        Example<Label> example = new ListExample<>(factory.generateOutput(trueVal));
+        example.add(new Feature("noop", 1d));
+        Prediction<Label> prediction = new Prediction<>(factory.generateOutput(predVal), 0, example);
+        return prediction;
+    }
 
-        //
-        // Empty spot in first row for labels on subsequent rows.
-        sb.append(String.format(trueLabelFormat, ""));
-
-        //
-        // Labels across the top for predicted.
-        for (MultiLabel multiLabel : labelOrder) {
-            sb.append(String.format(predictedLabelFormat, multiLabel.getLabelString()));
-        }
-        sb.append('\n');
-
-        for (MultiLabel predictedLabel : labelOrder) {
-            sb.append(String.format(trueLabelFormat, predictedLabel.getLabelString()));
-            for (MultiLabel trueLabel : labelOrder) {
-                int confusion = (int) mcmObject.confusion(predictedLabel, trueLabel);
-                int fp = (int) mcmObject.fp(trueLabel);
-                if (confusion > 0 && !trueLabel.equals(predictedLabel) && fp == 0) {
-                  // not actual confusion - fp == 0
-                  // FIXME likely incomplete, wrong for more involved example
-                  confusion = 0;
-                }
-                sb.append(String.format(countFormat, confusion));
-            }
-            sb.append('\n');
-        }
-
-        return sb.toString();
+    public static ImmutableOutputInfo<Label> mkDomain(List<Prediction<Label>> predictions) {
+      // MutableLabelInfo info = new MutableLabelInfo();
+      // FIXME hack call package private ctor of MutableLabelInfo
+      // TODO just make that public
+      final MutableLabelInfo info;
+      try {
+          Constructor<MutableLabelInfo> ctor = MutableLabelInfo.class.getDeclaredConstructor();
+          ctor.setAccessible(true);
+          info = ctor.newInstance();
+      } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+          throw new RuntimeException(e);
+      }
+      for (Prediction<Label> p : predictions) {
+          info.observe(p.getExample().getOutput());
+          info.observe(p.getOutput()); // TODO? LN added
+      }
+      return info.generateImmutableOutputInfo();
     }
 }

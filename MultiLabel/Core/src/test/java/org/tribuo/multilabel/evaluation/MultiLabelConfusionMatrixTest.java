@@ -23,12 +23,12 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.math.la.DenseMatrix;
-import org.tribuo.multilabel.IndependentMultiLabelTest;
 import org.tribuo.multilabel.MultiLabel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.tribuo.multilabel.IndependentMultiLabelTest.singleLabelConfusionMatrix;
 import static org.tribuo.multilabel.Utils.getUnknown;
 import static org.tribuo.multilabel.Utils.label;
 import static org.tribuo.multilabel.Utils.mkDomain;
@@ -162,8 +162,8 @@ public class MultiLabelConfusionMatrixTest {
 
         System.out.println("new toString()");
         System.out.println(cm);
-        System.out.println("\nlabelConfusionMatrixToString");
-        System.out.println(IndependentMultiLabelTest.labelConfusionMatrixToString(cm));
+        System.out.println("\nsingleLabelConfusionMatrix");
+        System.out.println(singleLabelConfusionMatrix(predictions));
     }
 
     @Test
@@ -240,8 +240,8 @@ public class MultiLabelConfusionMatrixTest {
 
         System.out.println("new toString()");
         System.out.println(cm);
-        System.out.println("\nlabelConfusionMatrixToString");
-        System.out.println(IndependentMultiLabelTest.labelConfusionMatrixToString(cm));
+        System.out.println("\nsingleLabelConfusionMatrix");
+        System.out.println(singleLabelConfusionMatrix(predictions));
     }
 
 
