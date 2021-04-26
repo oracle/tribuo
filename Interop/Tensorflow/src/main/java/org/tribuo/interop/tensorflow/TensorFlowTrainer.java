@@ -37,7 +37,6 @@ import org.tensorflow.op.Ops;
 import org.tensorflow.op.core.Init;
 import org.tensorflow.op.core.Placeholder;
 import org.tensorflow.proto.framework.GraphDef;
-import org.tensorflow.proto.util.SaverDef;
 import org.tensorflow.types.TFloat32;
 import org.tensorflow.types.family.TNumber;
 import org.tribuo.Dataset;
@@ -75,7 +74,7 @@ import java.util.logging.Logger;
  * <p>
  * This trainer only works with graphs setup for minibatches. To recover single example training just use a batch size of 1.
  * <p>
- * This trainer uses the serialisation functionality in {@link TensorFlowUtil}, as opposed to a SavedModel or a checkpoint.
+ * This trainer uses the serialisation functionality in {@link TensorFlowUtil}, or a TF checkpoint.
  * <p>
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */

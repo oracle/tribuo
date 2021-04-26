@@ -30,7 +30,6 @@ import org.tribuo.Output;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
-import org.tensorflow.Tensor;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,7 +37,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- * Converts a sparse example into a dense float vector, then wraps it in a {@link Tensor}.
+ * Converts a sparse example into a dense float vector, then wraps it in a {@link TFloat32}.
  */
 public class DenseTransformer<T extends Output<T>> implements ExampleTransformer<T> {
     private static final long serialVersionUID = 1L;
@@ -158,7 +157,7 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
 
     @Override
     public String toString() {
-        return "DenseTransformer()";
+        return "DenseTransformer(inputName='"+inputName+"')";
     }
 
     @Override

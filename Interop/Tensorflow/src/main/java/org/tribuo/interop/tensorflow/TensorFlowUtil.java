@@ -68,8 +68,7 @@ public abstract class TensorFlowUtil {
      * This operation can either be done each time the Graph is loaded before deserialise is called,
      * or once, and the updated graphDef persisted with the Map produced by serialise.
      * <p>
-     * Requires a session to correctly get the output type of a VariableV2. This isn't strictly necessary,
-     * but there aren't typed ways to get outputs in the TF version we use.
+     * Requires a session to correctly get the output type of a VariableV2.
      *
      * @param graph The graph to annotate.
      * @param session The session to use.

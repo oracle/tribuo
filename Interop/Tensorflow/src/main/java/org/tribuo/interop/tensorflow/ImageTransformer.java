@@ -113,7 +113,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * Transform implicitly pads unseen values with zero.
      * @param example The example to transform.
      * @param featureIDMap The feature id mapping to use.
-     * @return A 3d tensor, (width, height, channels) for this example.
+     * @return A 4d tensor, (1, width, height, channels) for this example.
      */
     @Override
     public TensorMap transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
@@ -126,7 +126,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * with zero.
      * @param example The example to transform.
      * @param featureIDMap The feature id mapping to use.
-     * @return A 1d array stored in multdimensional column-major order representing the example.
+     * @return A 1d array stored in multidimensional column-major order representing the example.
      */
     float[] innerTransform(Example<T> example, ImmutableFeatureMap featureIDMap) {
         if (featureIDMap.size() > totalPixels) {
@@ -147,7 +147,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * Actually performs the transformation. Implicitly pads unseen values
      * with zero.
      * @param vector The vector to transform.
-     * @return A 3d array, (width,height,channels) representing the vector.
+     * @return A 1d array stored in multidimensional column-major order representing the example.
      */
     float[] innerTransform(SGDVector vector) {
         if (vector.size() > totalPixels) {
@@ -206,7 +206,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
 
     @Override
     public String toString() {
-        return "ImageTransformer(width="+width+",height="+height+",channels="+channels+")";
+        return "ImageTransformer(inputName='"+inputName+"',width="+width+",height="+height+",channels="+channels+")";
     }
 
     @Override

@@ -44,6 +44,7 @@ import java.util.Map;
  * N.B. Tensorflow support is experimental and may change without a major version bump.
  */
 public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<T> {
+    private static final long serialVersionUID = 200L;
 
     TensorFlowNativeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorFlowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
         super(name, description, featureIDMap, outputIDMap, trainedGraphDef, batchSize, initName, outputName, exampleTransformer, outputTransformer);
