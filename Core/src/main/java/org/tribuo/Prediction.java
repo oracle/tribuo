@@ -172,8 +172,9 @@ public class Prediction<T extends Output<T>> implements Serializable {
         buffer.append(",outputScores={");
         for (Map.Entry<String,T> e : outputScores.entrySet()) {
             buffer.append(e.toString());
+            buffer.append(",");
         }
-        buffer.delete(buffer.length()-2,buffer.length());
+        buffer.delete(buffer.length()-1,buffer.length());
         buffer.append("})");
 
         return buffer.toString();
