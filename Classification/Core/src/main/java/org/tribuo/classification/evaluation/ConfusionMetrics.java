@@ -60,7 +60,7 @@ public final class ConfusionMetrics {
         double support = cm.support(label);
         // handle div-by-zero
         if (support == 0d) {
-            logger.warning("No predictions: accuracy ill-defined");
+            logger.warning("No predictions for " + label + ": accuracy ill-defined");
             return Double.NaN;
         }
         return cm.tp(label) / cm.support(label);
