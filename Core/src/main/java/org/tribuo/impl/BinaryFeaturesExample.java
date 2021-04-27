@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
@@ -502,6 +503,9 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
 
         @Override
         public Feature next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("Iterator exhausted at position " + pos);
+            }
             Feature f = new Feature(featureNames[pos], 1.0);
             pos++;
             return f;

@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -260,6 +261,57 @@ public class ExampleTest {
 
         // This example should be valid
         assertTrue(test.validateExample());
+    }
+
+    @Test
+    public void exampleIterators() {
+        MockOutput output = new MockOutput("UNK");
+        List<Feature> features = new ArrayList<>();
+        features.add(new Feature("A",1.0));
+        features.add(new Feature("C",1.0));
+        features.add(new Feature("B",1.0));
+
+        ArrayExample<MockOutput> array = new ArrayExample<>(output,features);
+        assertEquals(3,array.size());
+
+        Iterator<Feature> arrayItr = array.iterator();
+        assertTrue(arrayItr.hasNext());
+        assertEquals(features.get(0),arrayItr.next());
+        assertTrue(arrayItr.hasNext());
+        // Features are lexicographically sorted inside examples
+        assertEquals(features.get(2),arrayItr.next());
+        assertTrue(arrayItr.hasNext());
+        assertEquals(features.get(1),arrayItr.next());
+        assertFalse(arrayItr.hasNext());
+        assertThrows(NoSuchElementException.class, arrayItr::next);
+
+        ListExample<MockOutput> list = new ListExample<>(output,features);
+        assertEquals(3,list.size());
+
+        Iterator<Feature> listItr = list.iterator();
+        assertTrue(listItr.hasNext());
+        assertEquals(features.get(0),listItr.next());
+        assertTrue(listItr.hasNext());
+        // Features are lexicographically sorted inside examples
+        assertEquals(features.get(2),listItr.next());
+        assertTrue(listItr.hasNext());
+        assertEquals(features.get(1),listItr.next());
+        assertFalse(listItr.hasNext());
+        assertThrows(NoSuchElementException.class, listItr::next);
+
+        BinaryFeaturesExample<MockOutput> binary = new BinaryFeaturesExample<>(output,features);
+        assertEquals(3,binary.size());
+
+        Iterator<Feature> binaryItr = binary.iterator();
+        assertTrue(binaryItr.hasNext());
+        assertEquals(features.get(0),binaryItr.next());
+        assertTrue(binaryItr.hasNext());
+        // Features are lexicographically sorted inside examples
+        assertEquals(features.get(2),binaryItr.next());
+        assertTrue(binaryItr.hasNext());
+        assertEquals(features.get(1),binaryItr.next());
+        assertFalse(binaryItr.hasNext());
+        assertThrows(NoSuchElementException.class, binaryItr::next);
     }
     
     @Test
