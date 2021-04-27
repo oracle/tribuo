@@ -16,22 +16,23 @@
 
 package org.tribuo.multilabel.evaluation;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.multilabel.MultiLabel;
-import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.List;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.tribuo.multilabel.IndependentMultiLabelTest.singleLabelConfusionMatrix;
 import static org.tribuo.multilabel.Utils.getUnknown;
 import static org.tribuo.multilabel.Utils.label;
 import static org.tribuo.multilabel.Utils.mkDomain;
 import static org.tribuo.multilabel.Utils.mkPrediction;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MultiLabelConfusionMatrixTest {
 
@@ -158,6 +159,11 @@ public class MultiLabelConfusionMatrixTest {
         assertEquals(1, cm.support(c));
 
         assertEquals(4, cm.support());
+
+        System.out.println("new toString()");
+        System.out.println(cm);
+        System.out.println("\nsingleLabelConfusionMatrix");
+        System.out.println(singleLabelConfusionMatrix(predictions));
     }
 
     @Test
@@ -231,6 +237,11 @@ public class MultiLabelConfusionMatrixTest {
         assertEquals(1, cm.support(c));
 
         assertEquals(5, cm.support());
+
+        System.out.println("new toString()");
+        System.out.println(cm);
+        System.out.println("\nsingleLabelConfusionMatrix");
+        System.out.println(singleLabelConfusionMatrix(predictions));
     }
 
 

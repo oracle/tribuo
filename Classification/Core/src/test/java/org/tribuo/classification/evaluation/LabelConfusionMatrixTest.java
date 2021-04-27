@@ -16,18 +16,18 @@
 
 package org.tribuo.classification.evaluation;
 
-import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.Prediction;
-import org.tribuo.classification.Label;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.jupiter.api.Test;
+import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Prediction;
+import org.tribuo.classification.Label;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.classification.Utils.label;
 import static org.tribuo.classification.Utils.mkDomain;
 import static org.tribuo.classification.Utils.mkPrediction;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 public class LabelConfusionMatrixTest {
@@ -38,7 +38,8 @@ public class LabelConfusionMatrixTest {
                 mkPrediction("a", "a"),
                 mkPrediction("c", "b"),
                 mkPrediction("b", "b"),
-                mkPrediction("b", "c")
+                mkPrediction("b", "c"),
+                mkPrediction("a", "b")
         );
         ImmutableOutputInfo<Label> domain = mkDomain(predictions);
         LabelConfusionMatrix cm = new LabelConfusionMatrix(domain, predictions);
@@ -54,25 +55,25 @@ public class LabelConfusionMatrixTest {
         assertEquals(1, cm.tp(a));
         assertEquals(0, cm.fp(a));
         assertEquals(3, cm.tn(a));
-        assertEquals(0, cm.fn(a));
-        assertEquals(1, cm.support(a));
+        assertEquals(1, cm.fn(a));
+        assertEquals(2, cm.support(a));
 
         assertEquals(1, cm.tp(b));
-        assertEquals(1, cm.fp(b));
+        assertEquals(2, cm.fp(b));
         assertEquals(1, cm.tn(b));
         assertEquals(1, cm.fn(b));
         assertEquals(2, cm.support(b));
 
         assertEquals(0, cm.tp(c));
         assertEquals(1, cm.fp(c));
-        assertEquals(2, cm.tn(c));
+        assertEquals(3, cm.tn(c));
         assertEquals(1, cm.fn(c));
         assertEquals(1, cm.support(c));
 
-        assertEquals(4, cm.support());
+        assertEquals(5, cm.support());
         String cmToString = cm.toString();
         assertEquals("       a   b   c\n" + 
-        			 "a      1   0   0\n" + 
+        			 "a      1   1   0\n" +
         			 "b      0   1   1\n" + 
         			 "c      0   1   0\n", cmToString);
 

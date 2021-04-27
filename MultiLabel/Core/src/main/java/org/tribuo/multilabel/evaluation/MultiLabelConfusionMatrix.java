@@ -16,6 +16,11 @@
 
 package org.tribuo.multilabel.evaluation;
 
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
@@ -24,10 +29,6 @@ import org.tribuo.classification.evaluation.ConfusionMatrix;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 
 /**
  * A {@link ConfusionMatrix} which accepts {@link MultiLabel}s.
@@ -158,15 +159,18 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (int i = 0; i < mcm.length; i++) {
-            DenseMatrix cm = mcm[i];
-            sb.append(cm.toString());
-            sb.append("\n");
-        }
-        sb.append("]");
-        return sb.toString();
+        return getDomain().getDomain().stream()
+            .map(multiLabel -> {
+                  final int tp = (int) tp(multiLabel);
+                  final int fn = (int) fn(multiLabel);
+                  final int fp = (int) fp(multiLabel);
+                  final int tn = (int) tn(multiLabel);
+                  return String.join("\n",
+                      multiLabel.toString(),
+                      String.format("    [tn: %,d fn: %,d]", tn, fn),
+                      String.format("    [fp: %,d tp: %,d]", fp, tp));
+                }
+            ).collect(Collectors.joining("\n"));
     }
 
     static ConfusionMatrixTuple tabulate(ImmutableOutputInfo<MultiLabel> domain, List<Prediction<MultiLabel>> predictions) {
