@@ -86,7 +86,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     protected Map<String,FieldProcessor> regexMappingProcessors = new HashMap<>();
 
     @Config(description="Replace newlines with spaces in values before passing them to field processors.")
-    protected boolean replaceNewlinesWithSpaces;
+    protected boolean replaceNewlinesWithSpaces = true;
 
     protected boolean configured;
 
@@ -385,7 +385,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
             String value = row.get(e.getKey());
             if (value != null) {
                 if (replaceNewlinesWithSpaces) {
-                  value = value.replace('\n', ' ');
+                    value = value.replace('\n', ' ');
                 }
                 value = value.trim();
                 features.addAll(e.getValue().process(value));
@@ -562,7 +562,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      */
     @Deprecated
     public RowProcessor<T> copy() {
-      return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, replaceNewlinesWithSpaces);
+        return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, replaceNewlinesWithSpaces);
     }
 
     @Override

@@ -191,7 +191,7 @@ public class RowProcessorTest {
             if (charSequence == null || charSequence.length() == 0) {
                 return charSequence;
             }
-            return BLANK_LINES.splitAsStream(charSequence).collect(Collectors.joining(" ⏎\n\n"));
+            return BLANK_LINES.splitAsStream(charSequence).collect(Collectors.joining(" *\n\n"));
         };
 
         Tokenizer tokenizer = new MungingTokenizer(new BreakIteratorTokenizer(Locale.US), newLiner);
@@ -215,23 +215,47 @@ public class RowProcessorTest {
         assertEquals("Sheep",example.getOutput().label);
         Iterator<Feature> featureIterator = example.iterator();
         Feature a = featureIterator.next();
-        assertEquals("order_text@1-N=Hoffa", a.getName());
+        assertEquals("order_text@1-N=*", a.getName());
         assertEquals(1.0, a.getValue());
+        a = featureIterator.next();
+        assertEquals("order_text@1-N=Hoffa", a.getName());
         a = featureIterator.next();
         assertEquals("order_text@1-N=Jimmy", a.getName());
         a = featureIterator.next();
-        assertEquals("order_text@1-N=⏎", a.getName());
+        assertEquals("order_text@2-N=*/Hoffa", a.getName());
         a = featureIterator.next();
-        assertEquals("order_text@2-N=Jimmy/⏎", a.getName());
-        a = featureIterator.next();
-        assertEquals("order_text@2-N=⏎/Hoffa", a.getName());
+        assertEquals("order_text@2-N=Jimmy/*", a.getName());
         assertFalse(featureIterator.hasNext());
-        a = featureIterator.next(); // weird this doesn't throw NoSuchElementException?
-        assertNull(a.getName());
     }
 
-    public abstract static class ForwardingTokenizer implements Tokenizer {
-        protected abstract Tokenizer delegate();
+    static class MungingTokenizer implements Tokenizer {
+        private final Tokenizer tokenizer;
+        private final Function<CharSequence, CharSequence> munger;
+
+        MungingTokenizer(final Tokenizer tokenizer, final Function<CharSequence, CharSequence> munger) {
+            this.tokenizer = tokenizer;
+            this.munger = munger;
+        }
+
+        protected Tokenizer delegate() {
+            return tokenizer;
+        }
+
+        @Override
+        public List<Token> tokenize(CharSequence cs) {
+            return tokenizer.tokenize(munger.apply(cs));
+        }
+
+        @Override
+        public List<String> split(CharSequence cs) {
+            return tokenizer.split(munger.apply(cs));
+        }
+
+        @Override
+        public Tokenizer clone() throws CloneNotSupportedException {
+            Tokenizer copy = tokenizer.clone();
+            return new MungingTokenizer(copy, munger);
+        }
 
         @Override
         public void reset(final CharSequence cs) {
@@ -266,43 +290,6 @@ public class RowProcessorTest {
         @Override
         public ConfiguredObjectProvenance getProvenance() {
             return delegate().getProvenance();
-        }
-
-        @Override
-        public Tokenizer clone() throws CloneNotSupportedException {
-            // must be overridden in subclass but can't be left out here or this class won't compile
-            throw new CloneNotSupportedException();
-        }
-    } // end class ForwardingTokenizer
-
-    static class MungingTokenizer extends ForwardingTokenizer {
-        private final Tokenizer tokenizer;
-        private final Function<CharSequence, CharSequence> munger;
-
-        MungingTokenizer(final Tokenizer tokenizer, final Function<CharSequence, CharSequence> munger) {
-            this.tokenizer = tokenizer;
-            this.munger = munger;
-        }
-
-        @Override
-        protected Tokenizer delegate() {
-            return tokenizer;
-        }
-
-        @Override
-        public List<Token> tokenize(CharSequence cs) {
-            return tokenizer.tokenize(munger.apply(cs));
-        }
-
-        @Override
-        public List<String> split(CharSequence cs) {
-            return tokenizer.split(munger.apply(cs));
-        }
-
-        @Override
-        public Tokenizer clone() throws CloneNotSupportedException {
-            Tokenizer copy = tokenizer.clone();
-            return new MungingTokenizer(copy, munger);
         }
     } // end class MungingTokenizer
 
