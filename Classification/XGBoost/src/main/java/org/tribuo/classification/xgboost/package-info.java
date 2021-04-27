@@ -17,8 +17,11 @@
 /**
  * Provides an interface to XGBoost for classification problems.
  * <p>
- * Note: XGBoost requires a native library, on macOS this library requires libomp (which can be installed via homebrew),
- * on Windows this native library must be compiled into a jar as it's not contained in the official XGBoost binary
- * on Maven Central.
+ * N.B.: XGBoost4J wraps the native C implementation of xgboost that links to various C libraries, including libgomp
+ * and glibc (on Linux). If you're running on Alpine, which does not natively use glibc, you'll need to install glibc
+ * into the container.
+ * On the macOS binary on Maven Central is compiled without
+ * OpenMP support, meaning that XGBoost is single threaded on macOS. You can recompile the macOS binary with
+ * OpenMP support after installing libomp from homebrew if necessary.
  */
 package org.tribuo.classification.xgboost;
