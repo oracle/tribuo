@@ -61,10 +61,12 @@ import java.util.logging.Logger;
  * "Greedy Function Approximation: a Gradient Boosting Machine"
  * Annals of statistics, 2001.
  * </pre>
- * N.B.: This uses a native C implementation of xgboost that links to various C libraries, including libgomp
- * and glibc. If you're running on Alpine, which does not natively use glibc, you'll need to install glibc
- * into the container. On Windows this binary is not available in the Maven Central release, you'll need
- * to compile it from source.
+ * N.B.: XGBoost4J wraps the native C implementation of xgboost that links to various C libraries, including libgomp
+ * and glibc (on Linux). If you're running on Alpine, which does not natively use glibc, you'll need to install glibc
+ * into the container.
+ * On the macOS binary on Maven Central is compiled without
+ * OpenMP support, meaning that XGBoost is single threaded on macOS. You can recompile the macOS binary with
+ * OpenMP support after installing libomp from homebrew if necessary.
  */
 public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>, WeightedExamples {
     /* Alpine install command

@@ -49,7 +49,7 @@
         <libsvm.version>3.24</libsvm.version>
         <onnxruntime.version>1.7.0</onnxruntime.version>
         <tensorflow.version>1.14.0</tensorflow.version>
-        <xgboost.version>1.3.1</xgboost.version>
+        <xgboost.version>1.4.1</xgboost.version>
 
         <!-- 3rd party other dependencies -->
         <junit.version>5.7.1</junit.version>
@@ -57,9 +57,7 @@
         <commonsmath.version>3.6.1</commonsmath.version>
 
         <!-- Other properties -->
-        <!-- used by CI on Windows as the
-             XGBoost 1.0.0 binary on Maven Central doesn't
-             include Windows support -->
+        <!-- Turn off tests which rely on native code -->
         <skipXGBoostTests>false</skipXGBoostTests>
         <skipONNXTests>false</skipONNXTests>
     </properties>
