@@ -85,6 +85,9 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     @Config(description="A map from a regex to field processors to apply to fields matching the regex.")
     protected Map<String,FieldProcessor> regexMappingProcessors = new HashMap<>();
 
+    @Config(description="Replace newlines with spaces in values before passing them to field processors.")
+    protected boolean replaceNewlinesWithSpaces;
+
     protected boolean configured;
 
     /**
@@ -154,7 +157,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
                         ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
                         Set<FeatureProcessor> featureProcessors) {
-        this(metadataExtractors,weightExtractor,responseProcessor,fieldProcessorMap,Collections.emptyMap(),featureProcessors);
+        this(metadataExtractors,weightExtractor,responseProcessor,fieldProcessorMap,Collections.emptyMap(),featureProcessors, true);
     }
 
     /**
@@ -181,14 +184,46 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * @param featureProcessors The feature processors to run on each extracted feature list.
      */
     public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
+        ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
+        Map<String,FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors) {
+        this(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, true);
+    }
+
+    /**
+     * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
+     * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
+     * <p>
+     * In addition this processor can instantiate field processors which match the regexes supplied in
+     * the regexMappingProcessors. If a regex matches a field which already has a fieldProcessor assigned to
+     * it, it throws an IllegalArgumentException.
+     * <p>
+     * After extraction the features are then processed using the supplied set of feature processors.
+     * These processors can be used to insert conjunction features which are triggered when
+     * multiple features appear, or to filter out unnecessary features.
+     * <p>
+     * Additionally this processor can extract a weight from each row and insert it into the example, along
+     * with more general metadata fields (e.g., the row number, date stamps). The weightExtractor can be null,
+     * and if so the weights are left unset.
+     * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
+     *                           the same metadata name then the constructor throws a PropertyException.
+     * @param weightExtractor The weight extractor, if null the weights are left unset at their default.
+     * @param responseProcessor The response processor to use.
+     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     * @param regexMappingProcessors A set of field processors which can be instantiated if the regexes match the field names.
+     * @param featureProcessors The feature processors to run on each extracted feature list.
+     * @param replaceNewlinesWithSpaces Replace newlines with spaces in values before passing them to field processors.
+     */
+    public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
                         ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
-                        Map<String,FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors) {
+                        Map<String,FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors,
+                        boolean replaceNewlinesWithSpaces) {
         this.metadataExtractors = metadataExtractors.isEmpty() ? Collections.emptyList() : new ArrayList<>(metadataExtractors);
         this.weightExtractor = weightExtractor;
         this.responseProcessor = responseProcessor;
         this.fieldProcessorMap = new HashMap<>(fieldProcessorMap);
         this.regexMappingProcessors = regexMappingProcessors.isEmpty() ? Collections.emptyMap() : new HashMap<>(regexMappingProcessors);
         this.featureProcessors.addAll(featureProcessors);
+        this.replaceNewlinesWithSpaces = replaceNewlinesWithSpaces;
         postConfig();
     }
 
@@ -349,7 +384,10 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         for (Map.Entry<String,FieldProcessor> e : fieldProcessorMap.entrySet()) {
             String value = row.get(e.getKey());
             if (value != null) {
-                value = value.replace('\n', ' ').trim();
+                if (replaceNewlinesWithSpaces) {
+                  value = value.replace('\n', ' ');
+                }
+                value = value.trim();
                 features.addAll(e.getValue().process(value));
             }
         }
@@ -524,7 +562,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      */
     @Deprecated
     public RowProcessor<T> copy() {
-        return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors);
+      return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, replaceNewlinesWithSpaces);
     }
 
     @Override
