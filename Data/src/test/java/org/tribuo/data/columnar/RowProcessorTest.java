@@ -243,8 +243,6 @@ public class RowProcessorTest {
         assertEquals("order_text@1-N=Jimmy", a.getName());
         a = featureIterator.next();
         assertEquals("order_text@2-N=Jimmy/Hoffa", a.getName());
-        a = featureIterator.next(); // doesn't throw NoSuchElementException?
-        assertNull(a.getName());
         assertFalse(featureIterator.hasNext());
     }
 
