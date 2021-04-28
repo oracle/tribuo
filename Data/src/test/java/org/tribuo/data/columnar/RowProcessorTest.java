@@ -211,8 +211,8 @@ public class RowProcessorTest {
         Example<MockOutput> example = processor.generateExample(row,true).get();
 
         // Check example is extracted correctly
-        assertEquals(5,example.size());
-        assertEquals("Sheep",example.getOutput().label);
+        assertEquals(5, example.size());
+        assertEquals("Sheep", example.getOutput().label);
         Iterator<Feature> featureIterator = example.iterator();
         Feature a = featureIterator.next();
         assertEquals("order_text@1-N=*", a.getName());
@@ -225,6 +225,26 @@ public class RowProcessorTest {
         assertEquals("order_text@2-N=*/Hoffa", a.getName());
         a = featureIterator.next();
         assertEquals("order_text@2-N=Jimmy/*", a.getName());
+        assertFalse(featureIterator.hasNext());
+
+        // same input with replaceNewlinesWithSpacesTest=true (the default) produces different features
+        processor = new RowProcessor<>(Collections.emptyList(),null,response,fieldProcessors,Collections.emptyMap(),Collections.emptySet(), true);
+
+        example = processor.generateExample(row,true).get();
+
+        // Check example is extracted correctly
+        assertEquals(3, example.size());
+        assertEquals("Sheep", example.getOutput().label);
+        featureIterator = example.iterator();
+        a = featureIterator.next();
+        assertEquals("order_text@1-N=Hoffa", a.getName());
+        assertEquals(1.0, a.getValue());
+        a = featureIterator.next();
+        assertEquals("order_text@1-N=Jimmy", a.getName());
+        a = featureIterator.next();
+        assertEquals("order_text@2-N=Jimmy/Hoffa", a.getName());
+        a = featureIterator.next(); // doesn't throw NoSuchElementException?
+        assertNull(a.getName());
         assertFalse(featureIterator.hasNext());
     }
 
