@@ -17,6 +17,7 @@
 package org.tribuo.data.columnar;
 
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.data.columnar.extractors.DateExtractor;
@@ -26,8 +27,14 @@ import org.tribuo.data.columnar.extractors.IdentityExtractor;
 import org.tribuo.data.columnar.extractors.IntExtractor;
 import org.tribuo.data.columnar.processors.field.DoubleFieldProcessor;
 import org.tribuo.data.columnar.processors.field.IdentityProcessor;
+import org.tribuo.data.columnar.processors.field.TextFieldProcessor;
+import org.tribuo.data.text.impl.TokenPipeline;
 import org.tribuo.test.MockOutput;
 import org.junit.jupiter.api.Test;
+import org.tribuo.util.tokens.Token;
+import org.tribuo.util.tokens.Token.TokenType;
+import org.tribuo.util.tokens.Tokenizer;
+import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -40,9 +47,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -169,5 +182,133 @@ public class RowProcessorTest {
 
         assertThrows(PropertyException.class, () -> new RowProcessor<>(badExtractors,weightExtractor,response,fixed,Collections.emptySet()));
     }
+
+    @Test
+    public void replaceNewlinesWithSpacesTest() {
+        final Pattern BLANK_LINES = Pattern.compile("(\n[\\s-]*\n)+");
+
+        final Function<CharSequence, CharSequence> newLiner = (CharSequence charSequence) -> {
+            if (charSequence == null || charSequence.length() == 0) {
+                return charSequence;
+            }
+            return BLANK_LINES.splitAsStream(charSequence).collect(Collectors.joining(" *\n\n"));
+        };
+
+        Tokenizer tokenizer = new MungingTokenizer(new BreakIteratorTokenizer(Locale.US), newLiner);
+        TokenPipeline textPipeline = new TokenPipeline(tokenizer, 2, false);
+
+        final Map<String, FieldProcessor> fieldProcessors = new HashMap<>();
+        fieldProcessors.put("order_text", new TextFieldProcessor("order_text", textPipeline));
+
+        MockResponseProcessor response = new MockResponseProcessor("Label");
+
+        Map<String,String> row = new HashMap<>();
+        row.put("order_text", "Jimmy\n\n\n\nHoffa");
+        row.put("Label", "Sheep");
+
+        RowProcessor<MockOutput> processor = new RowProcessor<>(Collections.emptyList(),null,response,fieldProcessors,Collections.emptyMap(),Collections.emptySet(), false);
+
+        Example<MockOutput> example = processor.generateExample(row,true).get();
+
+        // Check example is extracted correctly
+        assertEquals(5, example.size());
+        assertEquals("Sheep", example.getOutput().label);
+        Iterator<Feature> featureIterator = example.iterator();
+        Feature a = featureIterator.next();
+        assertEquals("order_text@1-N=*", a.getName());
+        assertEquals(1.0, a.getValue());
+        a = featureIterator.next();
+        assertEquals("order_text@1-N=Hoffa", a.getName());
+        a = featureIterator.next();
+        assertEquals("order_text@1-N=Jimmy", a.getName());
+        a = featureIterator.next();
+        assertEquals("order_text@2-N=*/Hoffa", a.getName());
+        a = featureIterator.next();
+        assertEquals("order_text@2-N=Jimmy/*", a.getName());
+        assertFalse(featureIterator.hasNext());
+
+        // same input with replaceNewlinesWithSpacesTest=true (the default) produces different features
+        processor = new RowProcessor<>(Collections.emptyList(),null,response,fieldProcessors,Collections.emptyMap(),Collections.emptySet(), true);
+
+        example = processor.generateExample(row,true).get();
+
+        // Check example is extracted correctly
+        assertEquals(3, example.size());
+        assertEquals("Sheep", example.getOutput().label);
+        featureIterator = example.iterator();
+        a = featureIterator.next();
+        assertEquals("order_text@1-N=Hoffa", a.getName());
+        assertEquals(1.0, a.getValue());
+        a = featureIterator.next();
+        assertEquals("order_text@1-N=Jimmy", a.getName());
+        a = featureIterator.next();
+        assertEquals("order_text@2-N=Jimmy/Hoffa", a.getName());
+        assertFalse(featureIterator.hasNext());
+    }
+
+    static class MungingTokenizer implements Tokenizer {
+        private final Tokenizer tokenizer;
+        private final Function<CharSequence, CharSequence> munger;
+
+        MungingTokenizer(final Tokenizer tokenizer, final Function<CharSequence, CharSequence> munger) {
+            this.tokenizer = tokenizer;
+            this.munger = munger;
+        }
+
+        protected Tokenizer delegate() {
+            return tokenizer;
+        }
+
+        @Override
+        public List<Token> tokenize(CharSequence cs) {
+            return tokenizer.tokenize(munger.apply(cs));
+        }
+
+        @Override
+        public List<String> split(CharSequence cs) {
+            return tokenizer.split(munger.apply(cs));
+        }
+
+        @Override
+        public Tokenizer clone() throws CloneNotSupportedException {
+            Tokenizer copy = tokenizer.clone();
+            return new MungingTokenizer(copy, munger);
+        }
+
+        @Override
+        public void reset(final CharSequence cs) {
+            delegate().reset(cs);
+        }
+
+        @Override
+        public boolean advance() {
+            return delegate().advance();
+        }
+
+        @Override
+        public String getText() {
+            return delegate().getText();
+        }
+
+        @Override
+        public int getStart() {
+            return delegate().getStart();
+        }
+
+        @Override
+        public int getEnd() {
+            return delegate().getEnd();
+        }
+
+        @Override
+        public TokenType getType() {
+            return delegate().getType();
+        }
+
+        @Override
+        public ConfiguredObjectProvenance getProvenance() {
+            return delegate().getProvenance();
+        }
+    } // end class MungingTokenizer
 
 }
