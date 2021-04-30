@@ -40,7 +40,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -86,10 +88,13 @@ public class TrainTest {
      * Options for training a model in TensorFlow.
      */
     public static class TensorflowOptions implements Options {
-        private static Map<String,Float> DEFAULT_PARAMS = new HashMap<>();
+        private static List<String> DEFAULT_PARAM_NAMES = new ArrayList<>();
+        private static List<Float> DEFAULT_PARAM_VALUES = new ArrayList<>();
         static {
-            DEFAULT_PARAMS.put("learningRate", 0.01f);
-            DEFAULT_PARAMS.put("initialAccumulatorValue", 0.1f);
+            DEFAULT_PARAM_NAMES.add("learningRate");
+            DEFAULT_PARAM_NAMES.add("initialAccumulatorValue");
+            DEFAULT_PARAM_VALUES.add(0.01f);
+            DEFAULT_PARAM_VALUES.add(0.1f);
         }
 
         @Override
@@ -107,11 +112,13 @@ public class TrainTest {
         public String initName = Init.DEFAULT_NAME;
         @Option(charName='l',longName="output-name",usage="Name of the output operation.")
         public String outputName;
-        @Option(charName='o',longName="optimizer-params",usage="Gradient optimizer params, see org.tribuo.interop.tensorflow.GradientOptimiser.")
-        public Map<String,Float> gradientParams = DEFAULT_PARAMS;
+        @Option(longName="optimizer-param-names",usage="Gradient optimizer param names, see org.tribuo.interop.tensorflow.GradientOptimiser.")
+        public List<String> gradientParamNames = DEFAULT_PARAM_NAMES;
+        @Option(longName="optimizer-param-values",usage="Gradient optimizer param values, see org.tribuo.interop.tensorflow.GradientOptimiser.")
+        public List<Float> gradientParamValues = DEFAULT_PARAM_VALUES;
         @Option(charName='g',longName="gradient-optimizer",usage="The gradient optimizer to use.")
         public GradientOptimiser optimizer = GradientOptimiser.ADAGRAD;
-        @Option(longName="batch-size",usage="Test time minibatch size.")
+        @Option(longName="test-batch-size",usage="Test time minibatch size.")
         public int testBatchSize = 16;
         @Option(charName='b',longName="batch-size",usage="Minibatch size.")
         public int batchSize = 128;
@@ -129,6 +136,22 @@ public class TrainTest {
         public Path protobufPath;
         @Option(charName='p',longName="checkpoint-dir",usage="Path to the checkpoint base directory.")
         public Path checkpointPath;
+
+        /**
+         * Zips the gradient parameter names and values.
+         * @return The gradient parameter map.
+         */
+        public Map<String,Float> getGradientParams() {
+            if (gradientParamNames.size() != gradientParamValues.size()) {
+                throw new IllegalArgumentException("Must supply both name and value for the gradient parameters, " +
+                        "found " + gradientParamNames.size() + " names, and " + gradientParamValues.size() + "values.");
+            }
+            Map<String,Float> output = new HashMap<>();
+            for (int i = 0 ; i < gradientParamNames.size(); i++) {
+                output.put(gradientParamNames.get(i),gradientParamValues.get(i));
+            }
+            return output;
+        }
     }
 
     /**
@@ -190,10 +213,10 @@ public class TrainTest {
         Trainer<Label> trainer;
         if (o.checkpointPath == null) {
             logger.info("Using TensorflowTrainer");
-            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.gradientParams, inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.getGradientParams(), inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval);
         } else {
             logger.info("Using TensorflowCheckpointTrainer, writing to path " + o.checkpointPath);
-            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.gradientParams, inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval, o.checkpointPath);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.getGradientParams(), inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval, o.checkpointPath);
         }
         logger.info("Training using " + trainer.toString());
         final long trainStart = System.currentTimeMillis();
@@ -211,9 +234,9 @@ public class TrainTest {
             logger.info("Average weighted AUC = " + evaluation.averageAUCROC(true));
         }
 
-        logger.info(evaluation.toString());
+        System.out.println(evaluation.toString());
 
-        logger.info(evaluation.getConfusionMatrix().toString());
+        System.out.println(evaluation.getConfusionMatrix().toString());
 
         if (o.outputPath != null) {
             try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(o.outputPath.toFile()))) {

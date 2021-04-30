@@ -449,7 +449,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                                 .fetch(lossOp)
                                 .run().get(0)) {
                         if ((loggingInterval != -1) && (interval % loggingInterval == 0)) {
-                            logger.log(Level.INFO, "Training loss = " + ((TFloat32) lossTensor).getFloat());
+                            logger.log(Level.INFO, "Training loss at itr " + interval + " = " + ((TFloat32) lossTensor).getFloat());
                         }
                     }
                     interval++;
