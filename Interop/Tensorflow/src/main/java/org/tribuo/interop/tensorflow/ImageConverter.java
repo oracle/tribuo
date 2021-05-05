@@ -36,13 +36,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Image transformer. Assumes the feature id numbers are linearised ids of the form:
+ * Image converter. Assumes the feature id numbers are linearised ids of the form:
  * <pre>
  * [0,0,0] = 0, [0,0,1] = 1, [0,1,0] = k, [1,0,0] = j*k, ..., [i,0,0] = i*j*k,
  * </pre>
  * That is, they are in multidimensional row major order.
  */
-public class ImageTransformer<T extends Output<T>> implements ExampleTransformer<T> {
+public class ImageConverter<T extends Output<T>> implements FeatureConverter<T> {
     private static final long serialVersionUID = 1L;
 
     @Config(mandatory=true,description="Input name.")
@@ -62,16 +62,16 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
     /**
      * For olcut.
      */
-    private ImageTransformer() {}
+    private ImageConverter() {}
 
     /**
-     * Builds an image transformer for images of the supplied size.
+     * Builds an image converter for images of the supplied size.
      * @param inputName The input name.
      * @param width The image width.
      * @param height The image height.
      * @param channels The number of colour channels.
      */
-    public ImageTransformer(String inputName, int width, int height, int channels) {
+    public ImageConverter(String inputName, int width, int height, int channels) {
         if (width < 1 || height < 1 || channels < 1) {
             throw new IllegalArgumentException("Inputs must be positive integers, found ["+width+","+height+","+channels+"]");
         }
@@ -116,7 +116,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 4d tensor, (1, width, height, channels) for this example.
      */
     @Override
-    public TensorMap transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(Example<T> example, ImmutableFeatureMap featureIDMap) {
         float[] image = innerTransform(example,featureIDMap);
         return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
     }
@@ -171,7 +171,7 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
      * @return A 4d tensor, (batch-id, width, height, channels) for this example.
      */
     @Override
-    public TensorMap transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),width,height,channels));
 
         int i = 0;
@@ -185,13 +185,13 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
     }
 
     @Override
-    public TensorMap transform(SGDVector vector) {
+    public TensorMap convert(SGDVector vector) {
         float[] image = innerTransform(vector);
         return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
     }
 
     @Override
-    public TensorMap transform(List<? extends SGDVector> vectors) {
+    public TensorMap convert(List<? extends SGDVector> vectors) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),width,height,channels));
 
         int i = 0;
@@ -206,11 +206,11 @@ public class ImageTransformer<T extends Output<T>> implements ExampleTransformer
 
     @Override
     public String toString() {
-        return "ImageTransformer(inputName='"+inputName+"',width="+width+",height="+height+",channels="+channels+")";
+        return "ImageConverter(inputName='"+inputName+"',width="+width+",height="+height+",channels="+channels+")";
     }
 
     @Override
     public ConfiguredObjectProvenance getProvenance() {
-        return new ConfiguredObjectProvenanceImpl(this,"ExampleTransformer");
+        return new ConfiguredObjectProvenanceImpl(this,"FeatureConverter");
     }
 }

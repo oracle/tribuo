@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.Operand;
-import org.tensorflow.Tensor;
 import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.ndarray.index.Indices;
@@ -34,49 +33,48 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
-import org.tribuo.math.la.SparseVector;
-import org.tribuo.math.la.VectorTuple;
-import org.tribuo.multilabel.MultiLabel;
+import org.tensorflow.Tensor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
 /**
- * Can convert a {@link MultiLabel} into a {@link Tensor} containing a binary encoding of the label vector and
- * can convert a {@link TFloat16} or {@link TFloat32} into a {@link Prediction} or a {@link MultiLabel}.
- * <p>
- * Predictions are thresholded at {@link #THRESHOLD}, probabilities above this are considered to be present in the
- * output.
+ * Can convert a {@link Label} into a {@link Tensor} containing one hot encoding of the label and
+ * can convert a {@link TFloat16} or {@link TFloat32} into a {@link Prediction} or a {@link Label}.
  */
-public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
+public class LabelConverter implements OutputConverter<Label> {
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger(MultiLabelTransformer.class.getName());
-
-    public static final double THRESHOLD = 0.5;
+    private static final Logger logger = Logger.getLogger(LabelConverter.class.getName());
 
     /**
-     * Constructs a MultiLabelTransformer.
+     * Constructs a LabelConverter.
      */
-    public MultiLabelTransformer() {}
+    public LabelConverter() {}
 
     /**
-     * Returns a sigmoid cross-entropy loss.
-     * @return The sigmoid cross-entropy loss.
+     * Returns a cross-entropy loss.
+     * @return The cross-entropy loss.
      */
     @Override
     public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
         return (ops,pair) -> {
             @SuppressWarnings("unchecked") // cast off the wildcard to the superclass
             Placeholder<TNumber> placeholder = (Placeholder<TNumber>) pair.getA();
-            return ops.math.mean(ops.nn.sigmoidCrossEntropyWithLogits(placeholder,pair.getB()),ops.constant(0));
+            return ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),placeholder).loss(),ops.constant(0));
         };
+        /*
+        return (ops,pair) -> new CategoricalCrossentropy(ops,
+                "tribuo-cross-entropy",
+                true,
+                CategoricalCrossentropy.LABEL_SMOOTHING_DEFAULT,
+                Reduction.SUM_OVER_BATCH_SIZE,
+                CategoricalCrossentropy.DEFAULT_AXIS).call(pair.getA(),pair.getB());
+         */
     }
 
     /**
@@ -86,11 +84,11 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
      */
     @Override
     public <V extends TNumber> BiFunction<Ops, Operand<V>, Op> outputTransformFunction() {
-        return (ops, logits) -> ops.math.sigmoid(logits);
+        return (ops, logits) -> ops.nn.softmax(logits);
     }
 
     @Override
-    public Prediction<MultiLabel> transformToPrediction(Tensor tensor, ImmutableOutputInfo<MultiLabel> outputIDInfo, int numValidFeatures, Example<MultiLabel> example) {
+    public Prediction<Label> convertToPrediction(Tensor tensor, ImmutableOutputInfo<Label> outputIDInfo, int numValidFeatures, Example<Label> example) {
         FloatNdArray predictions = getBatchPredictions(tensor,outputIDInfo);
         long batchSize = predictions.shape().asArray()[0];
         if (batchSize != 1) {
@@ -99,7 +97,7 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
         return generatePrediction(predictions.slice(Indices.at(0),Indices.all()),outputIDInfo,numValidFeatures,example);
     }
 
-    private Prediction<MultiLabel> generatePrediction(FloatNdArray predictions, ImmutableOutputInfo<MultiLabel> outputIDInfo, int numUsed, Example<MultiLabel> example) {
+    private Prediction<Label> generatePrediction(FloatNdArray predictions, ImmutableOutputInfo<Label> outputIDInfo, int numUsed, Example<Label> example) {
         long[] shape = predictions.shape().asArray();
         if (shape.length != 1) {
             throw new IllegalArgumentException("Failed to get scalar predictions. Found " + Arrays.toString(shape));
@@ -108,31 +106,29 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
             throw new IllegalArgumentException("More than Integer.MAX_VALUE predictions. Found " + shape[0]);
         }
         int length = (int) shape[0];
-        Map<String,MultiLabel> fullLabels = new HashMap<>(outputIDInfo.size());
-        Set<Label> predictedLabels = new HashSet<>();
+        Label max = null;
+        Map<String,Label> map = new HashMap<>();
         for (int i = 0; i < length; i++) {
-            String labelName = outputIDInfo.getOutput(i).getLabelString();
-            double labelScore = predictions.getFloat(i);
-            Label score = new Label(labelName,labelScore);
-            if (labelScore > THRESHOLD) {
-                predictedLabels.add(score);
+            Label current = new Label(outputIDInfo.getOutput(i).getLabel(),predictions.getFloat(i));
+            map.put(current.getLabel(),current);
+            if ((max == null) || (current.getScore() > max.getScore())) {
+                max = current;
             }
-            fullLabels.put(labelName,new MultiLabel(score));
         }
-        return new Prediction<>(new MultiLabel(predictedLabels), fullLabels, numUsed, example, true);
+        return new Prediction<>(max,map,numUsed,example,true);
     }
 
     @Override
-    public MultiLabel transformToOutput(Tensor tensor, ImmutableOutputInfo<MultiLabel> outputIDInfo) {
+    public Label convertToOutput(Tensor tensor, ImmutableOutputInfo<Label> outputIDInfo) {
         FloatNdArray predictions = getBatchPredictions(tensor,outputIDInfo);
         long batchSize = predictions.shape().asArray()[0];
         if (batchSize != 1) {
             throw new IllegalArgumentException("Supplied tensor has too many results, batchSize = " + batchSize);
         }
-        return generateMultiLabel(predictions.slice(Indices.at(0),Indices.all()),outputIDInfo);
+        return generateLabel(predictions.slice(Indices.at(0),Indices.all()),outputIDInfo);
     }
 
-    private MultiLabel generateMultiLabel(FloatNdArray predictions, ImmutableOutputInfo<MultiLabel> outputIDInfo) {
+    private Label generateLabel(FloatNdArray predictions, ImmutableOutputInfo<Label> outputIDInfo) {
         long[] shape = predictions.shape().asArray();
         if (shape.length != 1) {
             throw new IllegalArgumentException("Failed to get scalar predictions. Found " + Arrays.toString(shape));
@@ -141,18 +137,19 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
             throw new IllegalArgumentException("More than Integer.MAX_VALUE predictions. Found " + shape[0]);
         }
         int length = (int) shape[0];
-        Set<Label> predictedLabels = new HashSet<>();
+        int maxIdx = 0;
+        float max = Float.NEGATIVE_INFINITY;
         for (int i = 0; i < length; i++) {
-            double labelScore = predictions.getFloat(i);
-            Label score = new Label(outputIDInfo.getOutput(i).getLabelString(),labelScore);
-            if (labelScore > THRESHOLD) {
-                predictedLabels.add(score);
+            float pred = predictions.getFloat(i);
+            if (pred > max) {
+                maxIdx = i;
+                max = pred;
             }
         }
-        return new MultiLabel(predictedLabels);
+        return new Label(outputIDInfo.getOutput(maxIdx).getLabel(),max);
     }
 
-    private FloatNdArray getBatchPredictions(Tensor tensor, ImmutableOutputInfo<MultiLabel> outputIDInfo) {
+    private FloatNdArray getBatchPredictions(Tensor tensor, ImmutableOutputInfo<Label> outputIDInfo) {
         long[] shape = tensor.shape().asArray();
         if (shape.length != 2) {
             throw new IllegalArgumentException("Supplied tensor has the wrong number of dimensions, shape = " + Arrays.toString(shape));
@@ -171,9 +168,9 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
     }
 
     @Override
-    public List<Prediction<MultiLabel>> transformToBatchPrediction(Tensor tensor, ImmutableOutputInfo<MultiLabel> outputIDInfo, int[] numValidFeatures, List<Example<MultiLabel>> examples) {
+    public List<Prediction<Label>> convertToBatchPrediction(Tensor tensor, ImmutableOutputInfo<Label> outputIDInfo, int[] numValidFeatures, List<Example<Label>> examples) {
         FloatNdArray predictions = getBatchPredictions(tensor,outputIDInfo);
-        List<Prediction<MultiLabel>> output = new ArrayList<>();
+        List<Prediction<Label>> output = new ArrayList<>();
 
         int batchSize = (int) predictions.shape().asArray()[0];
 
@@ -190,45 +187,49 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
     }
 
     @Override
-    public List<MultiLabel> transformToBatchOutput(Tensor tensor, ImmutableOutputInfo<MultiLabel> outputIDInfo) {
+    public List<Label> convertToBatchOutput(Tensor tensor, ImmutableOutputInfo<Label> outputIDInfo) {
         FloatNdArray predictions = getBatchPredictions(tensor,outputIDInfo);
-        List<MultiLabel> output = new ArrayList<>();
+        List<Label> output = new ArrayList<>();
 
         int batchSize = (int) predictions.shape().asArray()[0];
 
         for (int i = 0; i < batchSize; i++) {
             FloatNdArray slice = predictions.slice(Indices.at(i),Indices.all());
-            output.add(generateMultiLabel(slice,outputIDInfo));
+            output.add(generateLabel(slice,outputIDInfo));
         }
 
         return output;
     }
 
+    private int innerTransform(Label label, ImmutableOutputInfo<Label> outputIDInfo) {
+        int id = outputIDInfo.getID(label);
+        if (id == -1) {
+            throw new IllegalArgumentException("Label " + label + " isn't known by the supplied outputIDInfo, " + outputIDInfo.toString());
+        }
+        return id;
+    }
+
     @Override
-    public Tensor transform(MultiLabel example, ImmutableOutputInfo<MultiLabel> outputIDInfo) {
-        SparseVector vec = example.convertToSparseVector(outputIDInfo);
+    public Tensor convertToTensor(Label example, ImmutableOutputInfo<Label> outputIDInfo) {
+        int output = innerTransform(example, outputIDInfo);
         TFloat32 returnVal = TFloat32.tensorOf(Shape.of(1,outputIDInfo.size()));
         for (int j = 0; j < outputIDInfo.size(); j++) {
             returnVal.setFloat(0.0f,0,j);
         }
-        for (VectorTuple v : vec) {
-            returnVal.setFloat((float)v.value, 0, v.index);
-        }
+        returnVal.setFloat(1.0f,0,output);
         return returnVal;
     }
 
     @Override
-    public Tensor transform(List<Example<MultiLabel>> examples, ImmutableOutputInfo<MultiLabel> outputIDInfo) {
+    public Tensor convertToTensor(List<Example<Label>> examples, ImmutableOutputInfo<Label> outputIDInfo) {
         TFloat32 returnVal = TFloat32.tensorOf(Shape.of(examples.size(),outputIDInfo.size()));
         int i = 0;
-        for (Example<MultiLabel> e : examples) {
-            SparseVector vec = e.getOutput().convertToSparseVector(outputIDInfo);
+        for (Example<Label> e : examples) {
+            int output = innerTransform(e.getOutput(), outputIDInfo);
             for (int j = 0; j < outputIDInfo.size(); j++) {
                 returnVal.setFloat(0.0f,i,j);
             }
-            for (VectorTuple v : vec) {
-                returnVal.setFloat((float)v.value, i, v.index);
-            }
+            returnVal.setFloat(1.0f,i,output);
             i++;
         }
         return returnVal;
@@ -241,11 +242,11 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
 
     @Override
     public String toString() {
-        return "MultiLabelTransformer()";
+        return "LabelConverter()";
     }
 
     @Override
     public ConfiguredObjectProvenance getProvenance() {
-        return new ConfiguredObjectProvenanceImpl(this,"OutputTransformer");
+        return new ConfiguredObjectProvenanceImpl(this,"OutputConverter");
     }
 }

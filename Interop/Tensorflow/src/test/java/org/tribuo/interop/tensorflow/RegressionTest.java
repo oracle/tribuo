@@ -17,6 +17,7 @@
 package org.tribuo.interop.tensorflow;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.MutableDataset;
@@ -36,11 +37,19 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class RegressionTest {
 
     private static final String INPUT_NAME = "input";
+
+    @BeforeAll
+    public static void setup() {
+        Logger logger = Logger.getLogger(TensorFlowTrainer.class.getName());
+        logger.setLevel(Level.WARNING);
+    }
 
     @Test
     public void regressionMLPTest() throws IOException {
@@ -57,15 +66,15 @@ public class RegressionTest {
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
-        ExampleTransformer<Regressor> denseTransformer = new DenseTransformer<>(INPUT_NAME);
-        OutputTransformer<Regressor> outputTransformer = new RegressorTransformer();
+        FeatureConverter<Regressor> denseConverter = new DenseFeatureConverter<>(INPUT_NAME);
+        OutputConverter<Regressor> outputConverter = new RegressorConverter();
         TensorFlowTrainer<Regressor> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
                 graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
-                denseTransformer,
-                outputTransformer,
+                denseConverter,
+                outputConverter,
                 16,
                 10,
                 16,

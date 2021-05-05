@@ -46,8 +46,8 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
     private transient Graph modelGraph = null;
     private transient Session session = null;
 
-    protected final SequenceExampleTransformer<T> exampleTransformer;
-    protected final SequenceOutputTransformer<T> outputTransformer;
+    protected final SequenceExampleConverter<T> exampleConverter;
+    protected final SequenceOutputConverter<T> outputConverter;
 
     protected final String initOp;
     protected final String predictOp;
@@ -57,15 +57,15 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
                             ImmutableFeatureMap featureIDMap,
                             ImmutableOutputInfo<T> outputIDMap,
                             GraphDef graphDef,
-                            SequenceExampleTransformer<T> exampleTransformer,
-                            SequenceOutputTransformer<T> outputTransformer,
+                            SequenceExampleConverter<T> exampleConverter,
+                            SequenceOutputConverter<T> outputConverter,
                             String initOp,
                             String predictOp,
                             Map<String, TensorFlowUtil.TensorTuple> tensorMap
     ) {
         super(name, description, featureIDMap, outputIDMap);
-        this.exampleTransformer = exampleTransformer;
-        this.outputTransformer = outputTransformer;
+        this.exampleConverter = exampleConverter;
+        this.outputConverter = outputConverter;
         this.initOp = initOp;
         this.predictOp = predictOp;
         this.modelGraph = new Graph();
@@ -79,14 +79,14 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
 
     @Override
     public List<Prediction<T>> predict(SequenceExample<T> example) {
-        try (TensorMap feed = exampleTransformer.encode(example, featureIDMap)) {
+        try (TensorMap feed = exampleConverter.encode(example, featureIDMap)) {
             Session.Runner runner = session.runner();
             runner = feed.feedInto(runner);
             try (Tensor outputTensor = runner
                     .fetch(predictOp)
                     .run()
                     .get(0)) {
-                return outputTransformer.decode(outputTensor, example, outputIDMap);
+                return outputConverter.decode(outputTensor, example, outputIDMap);
             }
         }
     }

@@ -42,8 +42,8 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
     protected int batchSize;
     protected final String initName;
     protected final String outputName;
-    protected final ExampleTransformer<T> exampleTransformer;
-    protected final OutputTransformer<T> outputTransformer;
+    protected final FeatureConverter<T> featureConverter;
+    protected final OutputConverter<T> outputConverter;
     protected transient Graph modelGraph = null;
     protected transient Session session = null;
     protected transient boolean closed = false;
@@ -58,19 +58,19 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
      * @param batchSize The test time batch size.
      * @param initName The name of the initialization operation.
      * @param outputName The name of the output operation.
-     * @param exampleTransformer The feature transformer.
-     * @param outputTransformer The output transformer.
+     * @param featureConverter The feature converter.
+     * @param outputConverter The output converter.
      */
-    protected TensorFlowModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
-        super(name, provenance, featureIDMap, outputIDInfo, outputTransformer.generatesProbabilities());
+    protected TensorFlowModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+        super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities());
         this.modelGraph = new Graph();
         this.modelGraph.importGraphDef(trainedGraphDef);
         this.session = new Session(modelGraph);
         this.batchSize = batchSize;
         this.initName = initName;
         this.outputName = outputName;
-        this.exampleTransformer = exampleTransformer;
-        this.outputTransformer = outputTransformer;
+        this.featureConverter = featureConverter;
+        this.outputConverter = outputConverter;
     }
 
     @Override
@@ -81,11 +81,11 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
         SparseVector vec = SparseVector.createSparseVector(example, featureIDMap, false);
-        try (TensorMap transformedInput = exampleTransformer.transform(vec);
+        try (TensorMap transformedInput = featureConverter.convert(vec);
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a Prediction.
-            return outputTransformer.transformToPrediction(outputTensor, outputIDInfo, vec.numActiveElements(), example);
+            return outputConverter.convertToPrediction(outputTensor, outputIDInfo, vec.numActiveElements(), example);
         }
     }
 
@@ -123,11 +123,11 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
         }
 
         // Send a batch to Tensorflow
-        try (TensorMap transformedInput = exampleTransformer.transform(vectors);
+        try (TensorMap transformedInput = featureConverter.convert(vectors);
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a list of Predictions.
-            return outputTransformer.transformToBatchPrediction(outputTensor, outputIDInfo, numActiveElements, batchExamples);
+            return outputConverter.convertToBatchPrediction(outputTensor, outputIDInfo, numActiveElements, batchExamples);
         }
     }
 
@@ -200,7 +200,7 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
             throw new IllegalStateException("Can't serialize a closed model, the state has gone.");
         }
         Signature.Builder sigBuilder = Signature.builder();
-        Set<String> inputs = exampleTransformer.inputNamesSet();
+        Set<String> inputs = featureConverter.inputNamesSet();
         for (String s : inputs) {
             Operation inputOp = modelGraph.operation(s);
             sigBuilder.input(s, inputOp.output(0));

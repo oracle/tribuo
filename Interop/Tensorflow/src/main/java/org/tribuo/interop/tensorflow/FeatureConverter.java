@@ -31,11 +31,11 @@ import java.util.Set;
 /**
  * TensorFlow support is experimental, and may change without a major version bump.
  * <p>
- * Transforms an {@link Example}, extracting the features from it as a {@link TensorMap}.
+ * Transforms an {@link Example} or {@link SGDVector}, extracting the features from it as a {@link TensorMap}.
  * <p>
  * This usually densifies the example, so can be a lot larger than the input example.
  */
-public interface ExampleTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface FeatureConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Converts an {@link Example} into a {@link TensorMap} suitable for supplying as an input to a graph.
@@ -45,7 +45,7 @@ public interface ExampleTransformer<T extends Output<T>> extends Configurable, P
      * @param featureIDMap The id map to convert feature names into id numbers.
      * @return A FeedDict representing the features in this example.
      */
-    public TensorMap transform(Example<T> example, ImmutableFeatureMap featureIDMap);
+    public TensorMap convert(Example<T> example, ImmutableFeatureMap featureIDMap);
 
     /**
      * Converts a batch of {@link Example}s into a single {@link TensorMap} suitable for supplying as
@@ -54,7 +54,7 @@ public interface ExampleTransformer<T extends Output<T>> extends Configurable, P
      * @param featureIDMap THe id map to convert feature names into id numbers.
      * @return A FeedDict representing the features in this minibatch.
      */
-    public TensorMap transform(List<Example<T>> example, ImmutableFeatureMap featureIDMap);
+    public TensorMap convert(List<Example<T>> example, ImmutableFeatureMap featureIDMap);
 
     /**
      * Converts a {@link SGDVector} representing the features into a {@link TensorMap}.
@@ -63,7 +63,7 @@ public interface ExampleTransformer<T extends Output<T>> extends Configurable, P
      * @param vector The features to convert.
      * @return A FeedDict representing this vector.
      */
-    public TensorMap transform(SGDVector vector);
+    public TensorMap convert(SGDVector vector);
 
     /**
      * Converts a list of {@link SGDVector}s representing a batch of features into a {@link TensorMap}.
@@ -71,10 +71,10 @@ public interface ExampleTransformer<T extends Output<T>> extends Configurable, P
      * @param vectors The batch of features to convert.
      * @return A FeedDict representing this minibatch.
      */
-    public TensorMap transform(List<? extends SGDVector> vectors);
+    public TensorMap convert(List<? extends SGDVector> vectors);
 
     /**
-     * Gets a view of the names of the inputs this transformer produces.
+     * Gets a view of the names of the inputs this converter produces.
      * @return The input names.
      */
     public Set<String> inputNamesSet();

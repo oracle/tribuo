@@ -59,9 +59,9 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
 
     private transient SavedModelBundle bundle;
 
-    private final ExampleTransformer<T> featureTransformer;
+    private final FeatureConverter<T> featureConverter;
 
-    private final OutputTransformer<T> outputTransformer;
+    private final OutputConverter<T> outputConverter;
 
     private final String outputName;
 
@@ -69,12 +69,12 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                               ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                               Map<String, Integer> featureMapping,
                                               String modelDirectory, String outputName,
-                                              ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
-        super(name, provenance, featureIDMap, outputIDInfo, outputTransformer.generatesProbabilities(), featureMapping);
+                                              FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+        super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.modelDirectory = modelDirectory;
         this.outputName = outputName;
-        this.featureTransformer = featureTransformer;
-        this.outputTransformer = outputTransformer;
+        this.featureConverter = featureConverter;
+        this.outputConverter = outputConverter;
         SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
         bundle = loader.load();
     }
@@ -83,25 +83,25 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                               ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                               int[] featureForwardMapping, int[] featureBackwardMapping,
                                               String modelDirectory, String outputName,
-                                              ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
+                                              FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
         super(name,provenance,featureIDMap,outputIDInfo,featureForwardMapping,featureBackwardMapping,
-                outputTransformer.generatesProbabilities());
+                outputConverter.generatesProbabilities());
         this.modelDirectory = modelDirectory;
         this.outputName = outputName;
-        this.featureTransformer = featureTransformer;
-        this.outputTransformer = outputTransformer;
+        this.featureConverter = featureConverter;
+        this.outputConverter = outputConverter;
         SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
         bundle = loader.load();
     }
 
     @Override
     protected TensorMap convertFeatures(SparseVector input) {
-        return featureTransformer.transform(input);
+        return featureConverter.convert(input);
     }
 
     @Override
     protected TensorMap convertFeaturesList(List<SparseVector> input) {
-        return featureTransformer.transform(input);
+        return featureConverter.convert(input);
     }
 
     /**
@@ -130,7 +130,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
     protected Prediction<T> convertOutput(TensorMap output, int numValidFeatures, Example<T> example) {
         Optional<Tensor> tensor = output.getTensor(outputName);
         if (tensor.isPresent()) {
-            Prediction<T> pred = outputTransformer.transformToPrediction(tensor.get(), outputIDInfo, numValidFeatures, example);
+            Prediction<T> pred = outputConverter.convertToPrediction(tensor.get(), outputIDInfo, numValidFeatures, example);
             output.close();
             return pred;
         } else {
@@ -151,7 +151,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
     protected List<Prediction<T>> convertOutput(TensorMap output, int[] numValidFeatures, List<Example<T>> examples) {
         Optional<Tensor> tensor = output.getTensor(outputName);
         if (tensor.isPresent()) {
-            List<Prediction<T>> predictions = outputTransformer.transformToBatchPrediction(tensor.get(),outputIDInfo,numValidFeatures,examples);
+            List<Prediction<T>> predictions = outputConverter.convertToBatchPrediction(tensor.get(),outputIDInfo,numValidFeatures,examples);
             output.close();
             return predictions;
         } else {
@@ -169,7 +169,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
     protected Model<T> copy(String newName, ModelProvenance newProvenance) {
         return new TensorFlowSavedModelExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
                 featureForwardMapping,featureBackwardMapping,
-                modelDirectory,outputName,featureTransformer,outputTransformer);
+                modelDirectory,outputName,featureConverter, outputConverter);
     }
 
     @Override
@@ -187,8 +187,8 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
      * @param featureMapping The feature mapping between Tribuo's names and the TF integer ids.
      * @param outputMapping The output mapping between Tribuo's names and the TF integer ids.
      * @param outputName The name of the output tensor.
-     * @param featureTransformer The feature transformation function.
-     * @param outputTransformer The output transformation function.
+     * @param featureConverter The feature transformation function.
+     * @param outputConverter The output transformation function.
      * @param bundleDirectory The path to load the saved model bundle from.
      * @param <T> The type of the output.
      * @return The TF model wrapped in a Tribuo {@link ExternalModel}.
@@ -197,8 +197,8 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                                                                                    Map<String, Integer> featureMapping,
                                                                                                    Map<T,Integer> outputMapping,
                                                                                                    String outputName,
-                                                                                                   ExampleTransformer<T> featureTransformer,
-                                                                                                   OutputTransformer<T> outputTransformer,
+                                                                                                   FeatureConverter<T> featureConverter,
+                                                                                                   OutputConverter<T> outputConverter,
                                                                                                    String bundleDirectory) {
         try {
             Path path = Paths.get(bundleDirectory);
@@ -210,7 +210,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
             DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data", factory, false, featureMapping.size(), outputMapping.size());
             ModelProvenance provenance = new ModelProvenance(TensorFlowSavedModelExternalModel.class.getName(), now, datasetProvenance, trainerProvenance);
             return new TensorFlowSavedModelExternalModel<>("tf-saved-model-bundle", provenance, featureMap, outputInfo,
-                    featureMapping, bundleDirectory, outputName, featureTransformer, outputTransformer);
+                    featureMapping, bundleDirectory, outputName, featureConverter, outputConverter);
         } catch (IOException | TensorFlowException e) {
             throw new IllegalArgumentException("Unable to load model from path " + bundleDirectory, e);
         }

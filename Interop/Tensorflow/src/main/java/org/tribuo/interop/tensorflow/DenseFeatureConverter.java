@@ -39,9 +39,9 @@ import java.util.logging.Logger;
 /**
  * Converts a sparse example into a dense float vector, then wraps it in a {@link TFloat32}.
  */
-public class DenseTransformer<T extends Output<T>> implements ExampleTransformer<T> {
+public class DenseFeatureConverter<T extends Output<T>> implements FeatureConverter<T> {
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = Logger.getLogger(DenseTransformer.class.getName());
+    private static final Logger logger = Logger.getLogger(DenseFeatureConverter.class.getName());
 
     /**
      * Feature size beyond which a warning is generated (as TensorFlow requires dense features and large feature spaces are memory hungry).
@@ -61,13 +61,13 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
     /**
      * For OLCUT.
      */
-    private DenseTransformer() {}
+    private DenseFeatureConverter() {}
 
     /**
-     * Builds a DenseTransformer, setting the input name.
+     * Builds a DenseFeatureConverter, setting the input name.
      * @param inputName The placeholder input name.
      */
-    public DenseTransformer(String inputName) {
+    public DenseFeatureConverter(String inputName) {
         this.inputName = inputName;
     }
 
@@ -111,13 +111,13 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
     }
 
     @Override
-    public TensorMap transform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(Example<T> example, ImmutableFeatureMap featureIDMap) {
         float[] output = innerTransform(example,featureIDMap);
         return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
     }
 
     @Override
-    public TensorMap transform(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),featureIDMap.size()));
 
         int i = 0;
@@ -131,13 +131,13 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
     }
 
     @Override
-    public TensorMap transform(SGDVector vector) {
+    public TensorMap convert(SGDVector vector) {
         float[] output = innerTransform(vector);
         return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
     }
 
     @Override
-    public TensorMap transform(List<? extends SGDVector> vectors) {
+    public TensorMap convert(List<? extends SGDVector> vectors) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(vectors.size(),vectors.get(0).size()));
 
         int i = 0;
@@ -157,11 +157,11 @@ public class DenseTransformer<T extends Output<T>> implements ExampleTransformer
 
     @Override
     public String toString() {
-        return "DenseTransformer(inputName='"+inputName+"')";
+        return "DenseFeatureConverter(inputName='"+inputName+"')";
     }
 
     @Override
     public ConfiguredObjectProvenance getProvenance() {
-        return new ConfiguredObjectProvenanceImpl(this,"ExampleTransformer");
+        return new ConfiguredObjectProvenanceImpl(this,"FeatureConverter");
     }
 }

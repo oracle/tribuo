@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Converts a sequence example into a feed dict suitable for Tensorflow.
  */
-public interface SequenceExampleTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceExampleConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Encodes an example as a feed dict.

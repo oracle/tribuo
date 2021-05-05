@@ -117,7 +117,7 @@ public class TrainTest {
         @Option(longName="optimizer-param-values",usage="Gradient optimizer param values, see org.tribuo.interop.tensorflow.GradientOptimiser.")
         public List<Float> gradientParamValues = DEFAULT_PARAM_VALUES;
         @Option(charName='g',longName="gradient-optimizer",usage="The gradient optimizer to use.")
-        public GradientOptimiser optimizer = GradientOptimiser.ADAGRAD;
+        public GradientOptimiser optimiser = GradientOptimiser.ADAGRAD;
         @Option(longName="test-batch-size",usage="Test time minibatch size.")
         public int testBatchSize = 16;
         @Option(charName='b',longName="batch-size",usage="Minibatch size.")
@@ -186,7 +186,7 @@ public class TrainTest {
             throw new IllegalArgumentException("Must specify both 'input-name' and 'output-name'");
         }
 
-        ExampleTransformer<Label> inputTransformer;
+        FeatureConverter<Label> inputConverter;
         switch (o.inputType) {
             case IMAGE:
                 String[] splitFormat = o.imageFormat.split(",");
@@ -198,25 +198,25 @@ public class TrainTest {
                 int width = Integer.parseInt(splitFormat[0]);
                 int height = Integer.parseInt(splitFormat[1]);
                 int channels = Integer.parseInt(splitFormat[2]);
-                inputTransformer = new ImageTransformer<>(o.inputName,width,height,channels);
+                inputConverter = new ImageConverter<>(o.inputName,width,height,channels);
                 break;
             case DENSE:
-                inputTransformer = new DenseTransformer<>(o.inputName);
+                inputConverter = new DenseFeatureConverter<>(o.inputName);
                 break;
             default:
                 logger.info(cm.usage());
                 logger.info("Unknown input type. Found " + o.inputType);
                 return;
         }
-        OutputTransformer<Label> labelTransformer = new LabelTransformer();
+        OutputConverter<Label> labelConverter = new LabelConverter();
 
         Trainer<Label> trainer;
         if (o.checkpointPath == null) {
             logger.info("Using TensorflowTrainer");
-            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.getGradientParams(), inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimiser, o.getGradientParams(), inputConverter, labelConverter, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval);
         } else {
             logger.info("Using TensorflowCheckpointTrainer, writing to path " + o.checkpointPath);
-            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimizer, o.getGradientParams(), inputTransformer, labelTransformer, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval, o.checkpointPath);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimiser, o.getGradientParams(), inputConverter, labelConverter, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval, o.checkpointPath);
         }
         logger.info("Training using " + trainer.toString());
         final long trainStart = System.currentTimeMillis();

@@ -45,13 +45,13 @@ import java.util.function.BiFunction;
  * Can convert a {@link Regressor} to a {@link TFloat32} vector and a {@link TFloat32} into a
  * {@link Prediction} or Regressor.
  */
-public class RegressorTransformer implements OutputTransformer<Regressor> {
+public class RegressorConverter implements OutputConverter<Regressor> {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Constructs a RegressorTransformer.
+     * Constructs a RegressorConverter.
      */
-    public RegressorTransformer() {}
+    public RegressorConverter() {}
 
     /**
      * Returns a mean squared error loss.
@@ -73,13 +73,13 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     }
 
     @Override
-    public Prediction<Regressor> transformToPrediction(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int numValidFeatures, Example<Regressor> example) {
-        Regressor r = transformToOutput(tensor,outputIDInfo);
+    public Prediction<Regressor> convertToPrediction(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int numValidFeatures, Example<Regressor> example) {
+        Regressor r = convertToOutput(tensor,outputIDInfo);
         return new Prediction<>(r,numValidFeatures,example);
     }
 
     @Override
-    public Regressor transformToOutput(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
+    public Regressor convertToOutput(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
         FloatNdArray predictions = getBatchPredictions(tensor, outputIDInfo.size());
         long[] shape = predictions.shape().asArray();
         if (shape[0] != 1) {
@@ -131,8 +131,8 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     }
 
     @Override
-    public List<Prediction<Regressor>> transformToBatchPrediction(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int[] numValidFeatures, List<Example<Regressor>> examples) {
-        List<Regressor> regressors = transformToBatchOutput(tensor,outputIDInfo);
+    public List<Prediction<Regressor>> convertToBatchPrediction(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int[] numValidFeatures, List<Example<Regressor>> examples) {
+        List<Regressor> regressors = convertToBatchOutput(tensor,outputIDInfo);
         List<Prediction<Regressor>> output = new ArrayList<>();
 
         if ((regressors.size() != examples.size()) || (regressors.size() != numValidFeatures.length)) {
@@ -147,7 +147,7 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     }
 
     @Override
-    public List<Regressor> transformToBatchOutput(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
+    public List<Regressor> convertToBatchOutput(Tensor tensor, ImmutableOutputInfo<Regressor> outputIDInfo) {
         FloatNdArray predictions = getBatchPredictions(tensor, outputIDInfo.size());
         List<Regressor> output = new ArrayList<>();
         int batchSize = (int) predictions.shape().asArray()[0];
@@ -169,7 +169,7 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     }
 
     @Override
-    public Tensor transform(Regressor example, ImmutableOutputInfo<Regressor> outputIDInfo) {
+    public Tensor convertToTensor(Regressor example, ImmutableOutputInfo<Regressor> outputIDInfo) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(1,outputIDInfo.size()));
         double[] values = example.getValues();
         for (int i = 0; i < values.length; i++) {
@@ -179,7 +179,7 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
     }
 
     @Override
-    public Tensor transform(List<Example<Regressor>> examples, ImmutableOutputInfo<Regressor> outputIDInfo) {
+    public Tensor convertToTensor(List<Example<Regressor>> examples, ImmutableOutputInfo<Regressor> outputIDInfo) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),outputIDInfo.size()));
         int i = 0;
         for (Example<Regressor> e : examples) {
@@ -199,11 +199,11 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
 
     @Override
     public String toString() {
-        return "RegressorTransformer()";
+        return "RegressorConverter()";
     }
 
     @Override
     public ConfiguredObjectProvenance getProvenance() {
-        return new ConfiguredObjectProvenanceImpl(this,"OutputTransformer");
+        return new ConfiguredObjectProvenanceImpl(this,"OutputConverter");
     }
 }

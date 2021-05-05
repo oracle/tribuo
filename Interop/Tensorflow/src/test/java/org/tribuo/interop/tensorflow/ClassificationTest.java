@@ -18,6 +18,7 @@ package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.IntNdArray;
@@ -43,6 +44,7 @@ import org.tribuo.interop.tensorflow.example.GraphDefTuple;
 import org.tribuo.interop.tensorflow.example.MLPExamples;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.test.Helpers;
+import org.tribuo.util.Util;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -60,6 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SplittableRandom;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,6 +73,12 @@ public class ClassificationTest {
     private static final int IMAGE_SIZE = 28;
     private static final int NUM_LABELS = 10;
     private static final String INPUT_NAME = "inputplaceholder";
+
+    @BeforeAll
+    public static void setup() {
+        Logger logger = Logger.getLogger(TensorFlowTrainer.class.getName());
+        logger.setLevel(Level.WARNING);
+    }
 
     @Test
     public void classificationMLPTest() throws IOException {
@@ -84,8 +94,8 @@ public class ClassificationTest {
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
-        ExampleTransformer<Label> denseTransformer = new DenseTransformer<>(INPUT_NAME);
-        OutputTransformer<Label> outputTransformer = new LabelTransformer();
+        FeatureConverter<Label> denseConverter = new DenseFeatureConverter<>(INPUT_NAME);
+        OutputConverter<Label> outputConverter = new LabelConverter();
 
         // Test native trainer
         TensorFlowTrainer<Label> nativeTrainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
@@ -93,8 +103,8 @@ public class ClassificationTest {
                 graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
-                denseTransformer,
-                outputTransformer,
+                denseConverter,
+                outputConverter,
                 16,
                 5,
                 16,
@@ -125,8 +135,8 @@ public class ClassificationTest {
                 graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
-                denseTransformer,
-                outputTransformer,
+                denseConverter,
+                outputConverter,
                 16,
                 5,
                 16,
@@ -320,15 +330,15 @@ public class ClassificationTest {
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
-        ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 10, 10, 1);
-        OutputTransformer<Label> outputTransformer = new LabelTransformer();
+        FeatureConverter<Label> imageConverter = new ImageConverter<>(INPUT_NAME, 10, 10, 1);
+        OutputConverter<Label> outputConverter = new LabelConverter();
         TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
                 graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
-                imageTransformer,
-                outputTransformer,
+                imageConverter,
+                outputConverter,
                 16,
                 5,
                 16,
@@ -366,7 +376,7 @@ public class ClassificationTest {
             featureMapping.put(info.getName(),featureIDMap.getID(info.getName()));
         }
         TensorFlowSavedModelExternalModel<Label> externalModel = TensorFlowSavedModelExternalModel.createTensorflowModel(
-                trainData.getOutputFactory(),featureMapping,outputMapping,model.getOutputName(),imageTransformer,outputTransformer,outputPath.toString());
+                trainData.getOutputFactory(),featureMapping,outputMapping,model.getOutputName(),imageConverter, outputConverter,outputPath.toString());
 
         // Check predictions are equal
         List<Prediction<Label>> externalPredictions = externalModel.predict(testData);
@@ -422,23 +432,26 @@ public class ClassificationTest {
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
 
-        ExampleTransformer<Label> imageTransformer = new ImageTransformer<>(INPUT_NAME, 28, 28, 1);
-        OutputTransformer<Label> outputTransformer = new LabelTransformer();
+        FeatureConverter<Label> imageConverter = new ImageConverter<>(INPUT_NAME, 28, 28, 1);
+        OutputConverter<Label> outputConverter = new LabelConverter();
 
         TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
                 graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
-                imageTransformer,
-                outputTransformer,
+                imageConverter,
+                outputConverter,
                 16,
                 2,
                 16,
                 1000);
 
         System.out.println("Training model");
+        final long trainStart = System.currentTimeMillis();
         Model<Label> model = trainer.train(train);
+        final long trainStop = System.currentTimeMillis();
+        System.out.println("Finished training classifier " + Util.formatDuration(trainStart, trainStop));
 
         System.out.println("Evaluating model");
         LabelEvaluation eval = new LabelEvaluator().evaluate(model,test);

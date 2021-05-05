@@ -33,8 +33,8 @@ import java.util.Map;
 /**
  * This model encapsulates a TensorFlow model running in graph mode with a single tensor output.
  * <p>
- * It accepts an {@link ExampleTransformer} that converts an example's features into a set of {@link Tensor}s, and an
- * {@link OutputTransformer} that converts a {@link Tensor} into a {@link Prediction}.
+ * It accepts an {@link FeatureConverter} that converts an example's features into a set of {@link Tensor}s, and an
+ * {@link OutputConverter} that converts a {@link Tensor} into a {@link Prediction}.
  * <p>
  * This model's serialized form stores the weights and is entirely self contained.
  * If you wish to convert it into a model which uses checkpoints then call {@link #convertToCheckpointModel}.
@@ -46,8 +46,8 @@ import java.util.Map;
 public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<T> {
     private static final long serialVersionUID = 200L;
 
-    TensorFlowNativeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorFlowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, ExampleTransformer<T> exampleTransformer, OutputTransformer<T> outputTransformer) {
-        super(name, description, featureIDMap, outputIDMap, trainedGraphDef, batchSize, initName, outputName, exampleTransformer, outputTransformer);
+    TensorFlowNativeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorFlowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+        super(name, description, featureIDMap, outputIDMap, trainedGraphDef, batchSize, initName, outputName, featureConverter, outputConverter);
         // Initialises the parameters.
         session.run(initName);
         TensorFlowUtil.deserialise(session,tensorMap);
@@ -55,7 +55,7 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
 
     @Override
     protected TensorFlowNativeModel<T> copy(String newName, ModelProvenance newProvenance) {
-        return new TensorFlowNativeModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(), TensorFlowUtil.serialise(modelGraph,session),batchSize,initName,outputName,exampleTransformer,outputTransformer);
+        return new TensorFlowNativeModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(), TensorFlowUtil.serialise(modelGraph,session),batchSize,initName,outputName, featureConverter, outputConverter);
     }
 
     /**
@@ -67,7 +67,7 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
     public TensorFlowCheckpointModel<T> convertToCheckpointModel(String checkpointDirectory, String checkpointName) {
         session.save(Paths.get(checkpointDirectory,checkpointName).toString());
         return new TensorFlowCheckpointModel<>(name, provenance, featureIDMap,
-                outputIDInfo, modelGraph.toGraphDef(), checkpointDirectory, checkpointName, batchSize, initName, outputName, exampleTransformer, outputTransformer);
+                outputIDInfo, modelGraph.toGraphDef(), checkpointDirectory, checkpointName, batchSize, initName, outputName, featureConverter, outputConverter);
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

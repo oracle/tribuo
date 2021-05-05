@@ -34,13 +34,13 @@
  * loads a TensorFlow v1 frozen graph and stores the graph inside the Tribuo serialized object.
  * <p>
  * There are two main interfaces for interacting with TensorFlow Tensors,
- * {@link org.tribuo.interop.tensorflow.ExampleTransformer} and
- * {@link org.tribuo.interop.tensorflow.OutputTransformer}, with
+ * {@link org.tribuo.interop.tensorflow.FeatureConverter} and
+ * {@link org.tribuo.interop.tensorflow.OutputConverter}, with
  * provide conversions to and from Tribuo's features and outputs respectively. There
  * are implementations of a dense feature transformation and one for images as 3d arrays,
- * along with output transformers for {@link org.tribuo.classification.Label}
+ * along with output converters for {@link org.tribuo.classification.Label}
  * {@link org.tribuo.regression.Regressor}, and {@link org.tribuo.multilabel.MultiLabel}.
- * The loss function and output transformation used is controlled by the {@link org.tribuo.interop.tensorflow.OutputTransformer},
+ * The loss function and output transformation used is controlled by the {@link org.tribuo.interop.tensorflow.OutputConverter},
  * if a different one is desired then users are recommended to implement that interface separately.
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.

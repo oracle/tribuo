@@ -60,9 +60,9 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
 
     private transient Session session;
 
-    private final ExampleTransformer<T> featureTransformer;
+    private final FeatureConverter<T> featureConverter;
 
-    private final OutputTransformer<T> outputTransformer;
+    private final OutputConverter<T> outputConverter;
 
     private final String inputName;
 
@@ -72,39 +72,39 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
                                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                           Map<String, Integer> featureMapping,
                                           Graph model, String inputName, String outputName,
-                                          ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
-        super(name, provenance, featureIDMap, outputIDInfo, outputTransformer.generatesProbabilities(), featureMapping);
+                                          FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+        super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.model = model;
         this.session = new Session(model);
         this.inputName = inputName;
         this.outputName = outputName;
-        this.featureTransformer = featureTransformer;
-        this.outputTransformer = outputTransformer;
+        this.featureConverter = featureConverter;
+        this.outputConverter = outputConverter;
     }
 
     private TensorFlowFrozenExternalModel(String name, ModelProvenance provenance,
                                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                           int[] featureForwardMapping, int[] featureBackwardMapping,
                                           Graph model, String inputName, String outputName,
-                                          ExampleTransformer<T> featureTransformer, OutputTransformer<T> outputTransformer) {
+                                          FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
         super(name,provenance,featureIDMap,outputIDInfo,featureForwardMapping,featureBackwardMapping,
-                outputTransformer.generatesProbabilities());
+                outputConverter.generatesProbabilities());
         this.model = model;
         this.session = new Session(model);
         this.inputName = inputName;
         this.outputName = outputName;
-        this.featureTransformer = featureTransformer;
-        this.outputTransformer = outputTransformer;
+        this.featureConverter = featureConverter;
+        this.outputConverter = outputConverter;
     }
 
     @Override
     protected TensorMap convertFeatures(SparseVector input) {
-        return featureTransformer.transform(input);
+        return featureConverter.convert(input);
     }
 
     @Override
     protected TensorMap convertFeaturesList(List<SparseVector> input) {
-        return featureTransformer.transform(input);
+        return featureConverter.convert(input);
     }
 
     /**
@@ -131,7 +131,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
      */
     @Override
     protected Prediction<T> convertOutput(Tensor output, int numValidFeatures, Example<T> example) {
-        Prediction<T> pred = outputTransformer.transformToPrediction(output,outputIDInfo,numValidFeatures,example);
+        Prediction<T> pred = outputConverter.convertToPrediction(output,outputIDInfo,numValidFeatures,example);
         output.close();
         return pred;
     }
@@ -146,7 +146,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
      */
     @Override
     protected List<Prediction<T>> convertOutput(Tensor output, int[] numValidFeatures, List<Example<T>> examples) {
-        List<Prediction<T>> predictions = outputTransformer.transformToBatchPrediction(output,outputIDInfo,numValidFeatures,examples);
+        List<Prediction<T>> predictions = outputConverter.convertToBatchPrediction(output,outputIDInfo,numValidFeatures,examples);
         output.close();
         return predictions;
     }
@@ -163,7 +163,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
         newGraph.importGraphDef(modelBytes);
         return new TensorFlowFrozenExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
                 featureForwardMapping,featureBackwardMapping,
-                newGraph,inputName,outputName,featureTransformer,outputTransformer);
+                newGraph,inputName,outputName,featureConverter, outputConverter);
     }
 
     @Override
@@ -183,8 +183,8 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
      * @param outputMapping The output mapping between Tribuo's names and the TF integer ids.
      * @param inputName The name of the input placeholder.
      * @param outputName The name of the output tensor.
-     * @param featureTransformer The feature transformation function.
-     * @param outputTransformer The output transformation function.
+     * @param featureConverter The feature transformation function.
+     * @param outputConverter The output transformation function.
      * @param filename The filename to load the graph from.
      * @param <T> The type of the output.
      * @return The TF model wrapped in a Tribuo ExternalModel.
@@ -194,8 +194,8 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
                                                                                                Map<T,Integer> outputMapping,
                                                                                                String inputName,
                                                                                                String outputName,
-                                                                                               ExampleTransformer<T> featureTransformer,
-                                                                                               OutputTransformer<T> outputTransformer,
+                                                                                               FeatureConverter<T> featureConverter,
+                                                                                               OutputConverter<T> outputConverter,
                                                                                                String filename) {
         try {
             Path path = Paths.get(filename);
@@ -210,7 +210,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
             DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data",factory,false,featureMapping.size(),outputMapping.size());
             ModelProvenance provenance = new ModelProvenance(TensorFlowFrozenExternalModel.class.getName(),now,datasetProvenance,trainerProvenance);
             return new TensorFlowFrozenExternalModel<>("tf-frozen-graph",provenance,featureMap,outputInfo,
-                    featureMapping,graph,inputName,outputName,featureTransformer,outputTransformer);
+                    featureMapping,graph,inputName,outputName,featureConverter, outputConverter);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load model from path " + filename, e);
         }

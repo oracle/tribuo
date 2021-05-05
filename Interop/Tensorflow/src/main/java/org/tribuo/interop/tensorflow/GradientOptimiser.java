@@ -40,12 +40,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An enum for the gradient optimizers exposed by TensorFlow-Java.
+ * An enum for the gradient optimisers exposed by TensorFlow-Java.
  */
 public enum GradientOptimiser {
 
     /**
-     * The AdaDelta optimizer.
+     * The AdaDelta optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -56,7 +56,7 @@ public enum GradientOptimiser {
      */
     ADADELTA("learningRate","rho","epsilon"),
     /**
-     * The AdaGrad optimizer.
+     * The AdaGrad optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -66,7 +66,7 @@ public enum GradientOptimiser {
      */
     ADAGRAD("learningRate","initialAccumulatorValue"),
     /**
-     * The AdaGrad Dual Averaging optimizer.
+     * The AdaGrad Dual Averaging optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -78,7 +78,7 @@ public enum GradientOptimiser {
      */
     ADAGRADDA("learningRate","initialAccumulatorValue","l1Strength","l2Strength"),
     /**
-     * The Adam optimizer.
+     * The Adam optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -90,7 +90,7 @@ public enum GradientOptimiser {
      */
     ADAM("learningRate","betaOne","betaTwo","epsilon"),
     /**
-     * The Adamax optimizer.
+     * The Adamax optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -102,7 +102,7 @@ public enum GradientOptimiser {
      */
     ADAMAX("learningRate","betaOne","betaTwo","epsilon"),
     /**
-     * The FTRL optimizer.
+     * The FTRL optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -120,7 +120,7 @@ public enum GradientOptimiser {
      */
     FTRL("learningRate","learningRatePower","initialAccumulatorValue","l1Strength","l2Strength","l2ShrinkageRegularizationStrength"),
     /**
-     * A standard gradient descent optimizer with a fixed learning rate.
+     * A standard gradient descent optimiser with a fixed learning rate.
      * <p>
      * Parameters are:
      * <ul>
@@ -149,7 +149,7 @@ public enum GradientOptimiser {
      */
     NESTEROV("learningRate","momentum"),
     /**
-     * The Nadam optimizer.
+     * The Nadam optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -161,7 +161,7 @@ public enum GradientOptimiser {
      */
     NADAM("learningRate","betaOne","betaTwo","epsilon"),
     /**
-     * The AdaDelta optimizer.
+     * The AdaDelta optimiser.
      * <p>
      * Parameters are:
      * <ul>
@@ -170,7 +170,7 @@ public enum GradientOptimiser {
      *     <li>momentum - the momentum scalar.</li>
      *     <li>epsilon - for numerical stability.</li>
      * </ul>
-     * This optimizer is currently uncentered.
+     * This optimiser is currently uncentered.
      */
     RMSPROP("learningRate","decay","momentum","epsilon");
 
@@ -194,8 +194,8 @@ public enum GradientOptimiser {
 
     /**
      * Checks that the parameter names in the supplied set are an exact
-     * match for the parameter names that this gradient optimizer expects.
-     * @param paramNames The gradient optimizer parameter names.
+     * match for the parameter names that this gradient optimiser expects.
+     * @param paramNames The gradient optimiser parameter names.
      * @return True if the two sets intersection and union are equal.
      */
     public boolean validateParamNames(Set<String> paramNames) {
@@ -203,53 +203,53 @@ public enum GradientOptimiser {
     }
 
     /**
-     * Applies the optimizer to the graph and returns the optimiser step operation.
+     * Applies the optimiser to the graph and returns the optimiser step operation.
      * @param graph The graph to optimise.
      * @param loss The loss to minimise.
      * @param optimiserParams The optimiser parameters.
      * @param <T> The loss type (most of the time this will be {@link TFloat32}.
      * @return The optimiser step operation.
      */
-    public <T extends TNumber> Op applyOptimizer(Graph graph, Operand<T> loss, Map<String,Float> optimiserParams) {
+    public <T extends TNumber> Op applyOptimiser(Graph graph, Operand<T> loss, Map<String,Float> optimiserParams) {
         if (!validateParamNames(optimiserParams.keySet())) {
             throw new IllegalArgumentException("Invalid optimiser parameters, expected " + args.toString() + ", found " + optimiserParams.keySet().toString());
         }
-        Optimizer optimizer;
+        Optimizer optimiser;
         switch (this) {
             case ADADELTA:
-                optimizer = new AdaDelta(graph,"tribuo-adadelta",
+                optimiser = new AdaDelta(graph,"tribuo-adadelta",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("rho"),
                         optimiserParams.get("epsilon"));
                 break;
             case ADAGRAD:
-                optimizer = new AdaGrad(graph,"tribuo-adagrad",
+                optimiser = new AdaGrad(graph,"tribuo-adagrad",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("initialAccumulatorValue"));
                 break;
             case ADAGRADDA:
-                optimizer = new AdaGradDA(graph,"tribuo-adagradda",
+                optimiser = new AdaGradDA(graph,"tribuo-adagradda",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("initialAccumulatorValue"),
                         optimiserParams.get("l1Strength"),
                         optimiserParams.get("l2Strength"));
                 break;
             case ADAM:
-                optimizer = new Adam(graph,"tribuo-adam",
+                optimiser = new Adam(graph,"tribuo-adam",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("betaOne"),
                         optimiserParams.get("betaTwo"),
                         optimiserParams.get("epsilon"));
                 break;
             case ADAMAX:
-                optimizer = new Adamax(graph,"tribuo-adamax",
+                optimiser = new Adamax(graph,"tribuo-adamax",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("betaOne"),
                         optimiserParams.get("betaTwo"),
                         optimiserParams.get("epsilon"));
                 break;
             case FTRL:
-                optimizer = new Ftrl(graph,"tribuo-ftrl",
+                optimiser = new Ftrl(graph,"tribuo-ftrl",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("learningRatePower"),
                         optimiserParams.get("initialAccumulatorValue"),
@@ -258,30 +258,30 @@ public enum GradientOptimiser {
                         optimiserParams.get("l2ShrinkageRegularizationStrength"));
                 break;
             case GRADIENT_DESCENT:
-                optimizer = new GradientDescent(graph,"tribuo-sgd",
+                optimiser = new GradientDescent(graph,"tribuo-sgd",
                         optimiserParams.get("learningRate"));
                 break;
             case MOMENTUM:
-                optimizer = new Momentum(graph,"tribuo-momentum",
+                optimiser = new Momentum(graph,"tribuo-momentum",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("momentum"),
                         false);
                 break;
             case NESTEROV:
-                optimizer = new Momentum(graph,"tribuo-nesterov",
+                optimiser = new Momentum(graph,"tribuo-nesterov",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("momentum"),
                         true);
                 break;
             case NADAM:
-                optimizer = new Nadam(graph,"tribuo-nadam",
+                optimiser = new Nadam(graph,"tribuo-nadam",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("betaOne"),
                         optimiserParams.get("betaTwo"),
                         optimiserParams.get("epsilon"));
                 break;
             case RMSPROP:
-                optimizer = new RMSProp(graph,"tribuo-rmsprop",
+                optimiser = new RMSProp(graph,"tribuo-rmsprop",
                         optimiserParams.get("learningRate"),
                         optimiserParams.get("decay"),
                         optimiserParams.get("momentum"),
@@ -291,6 +291,6 @@ public enum GradientOptimiser {
             default:
                 throw new IllegalStateException("Unimplemented switch branch " + this.toString());
         }
-        return optimizer.minimize(loss,"tribuo-" + this.toString() + "-minimize");
+        return optimiser.minimize(loss,"tribuo-" + this.toString() + "-minimize");
     }
 }

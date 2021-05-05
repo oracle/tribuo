@@ -41,12 +41,12 @@ import java.util.function.BiFunction;
  * Converts the {@link Output} into a {@link Tensor} and vice versa.
  * <p>
  * Also provides the loss function for this output type, along with the
- * transformation function for converting the TF graph output into a
+ * function which converts the TF graph output into a
  * well formed output float (e.g., a softmax for classification, a sigmoid
  * for multi-label, or the identity function for regression).
  * @param <T> The output type.
  */
-public interface OutputTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface OutputConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * The loss function associated with this prediction type.
@@ -73,7 +73,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param example The example to insert into the prediction.
      * @return A prediction object.
      */
-    public Prediction<T> transformToPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int numValidFeatures, Example<T> example);
+    public Prediction<T> convertToPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int numValidFeatures, Example<T> example);
 
     /**
      * Converts a {@link Tensor} into the specified output type.
@@ -81,7 +81,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A output.
      */
-    public T transformToOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
+    public T convertToOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts a {@link Tensor} containing multiple outputs into a list of {@link Prediction}s.
@@ -91,7 +91,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param examples The example to insert into the prediction.
      * @return A list of predictions.
      */
-    public List<Prediction<T>> transformToBatchPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int[] numValidFeatures, List<Example<T>> examples);
+    public List<Prediction<T>> convertToBatchPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int[] numValidFeatures, List<Example<T>> examples);
 
     /**
      * Converts a {@link Tensor} containing multiple outputs into a list of {@link Output}s.
@@ -99,7 +99,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A list of outputs.
      */
-    public List<T> transformToBatchOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
+    public List<T> convertToBatchOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts an {@link Output} into a {@link Tensor} representing it's output.
@@ -107,7 +107,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A Tensor representing this output.
      */
-    public Tensor transform(T output, ImmutableOutputInfo<T> outputIDInfo);
+    public Tensor convertToTensor(T output, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts a list of {@link Example} into a {@link Tensor} representing all the outputs
@@ -116,10 +116,10 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A Tensor representing all the supplied Outputs.
      */
-    public Tensor transform(List<Example<T>> examples, ImmutableOutputInfo<T> outputIDInfo);
+    public Tensor convertToTensor(List<Example<T>> examples, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
-     * Does this OutputTransformer generate probabilities.
+     * Does this OutputConverter generate probabilities.
      * @return True if it produces a probability distribution in the {@link Prediction}.
      */
     public boolean generatesProbabilities();

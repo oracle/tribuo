@@ -33,7 +33,7 @@ import java.util.List;
  * Converts a Tensorflow output tensor into a list of predictions, and a Tribuo sequence example into
  * a Tensorflow tensor suitable for training.
  */
-public interface SequenceOutputTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceOutputConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Decode a tensor of graph output into a list of predictions for the input sequence.
