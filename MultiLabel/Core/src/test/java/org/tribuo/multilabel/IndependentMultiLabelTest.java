@@ -22,6 +22,8 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.classification.sgd.linear.LinearSGDTrainer;
 import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
+import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
+import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.multilabel.baseline.IndependentMultiLabelTrainer;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.junit.jupiter.api.Assertions;
@@ -43,8 +45,11 @@ public class IndependentMultiLabelTest {
 
     @BeforeAll
     public static void setup() {
-        Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
-        logger.setLevel(Level.WARNING);
+        Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
+        for (Class c : classes) {
+            Logger logger = Logger.getLogger(c.getName());
+            logger.setLevel(Level.WARNING);
+        }
     }
 
     @Test

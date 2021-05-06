@@ -24,6 +24,8 @@ import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
+import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
@@ -47,8 +49,11 @@ public class TestSGDLinear {
 
     @BeforeAll
     public static void setup() {
-        Logger logger = Logger.getLogger(org.tribuo.multilabel.sgd.linear.LinearSGDTrainer.class.getName());
-        logger.setLevel(Level.WARNING);
+        Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
+        for (Class c : classes) {
+            Logger logger = Logger.getLogger(c.getName());
+            logger.setLevel(Level.WARNING);
+        }
     }
 
     @Test
