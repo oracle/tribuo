@@ -120,7 +120,7 @@ public class RegressorConverter implements OutputConverter<Regressor> {
                 return floatTensor.slice(Indices.all(),Indices.newAxis());
             } else {
                 if (shape[1] != outputDims) {
-                    throw new IllegalArgumentException("Supplied tensor has too many elements, tensor.shape = " + Arrays.toString(shape) + ", outputDims = " + outputDims);
+                    throw new IllegalArgumentException("Supplied tensor has incorrect number of elements, tensor value dimension: " + Arrays.toString(shape) + ", output dimension: " + outputDims);
                 }
                 // No reshaping necessary
                 return (TFloat32) tensor;

@@ -159,7 +159,7 @@ public class MultiLabelConverter implements OutputConverter<MultiLabel> {
         }
         int numValues = (int) shape[1];
         if (numValues != outputIDInfo.size()) {
-            throw new IllegalArgumentException("Supplied tensor has too many elements, tensor.length = " + numValues + ", outputIDInfo.size() = " + outputIDInfo.size());
+            throw new IllegalArgumentException("Supplied tensor has incorrect number of elements, tensor output dimension: " + numValues + ", outputInfo dimension: " + outputIDInfo.size());
         }
         if (tensor instanceof TFloat16) {
             return (TFloat16) tensor;
