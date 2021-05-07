@@ -46,7 +46,7 @@ import java.util.Map;
 public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<T> {
     private static final long serialVersionUID = 200L;
 
-    TensorFlowNativeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorFlowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+    TensorFlowNativeModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef trainedGraphDef, Map<String, TensorFlowUtil.TensorTuple> tensorMap, int batchSize, String initName, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, description, featureIDMap, outputIDMap, trainedGraphDef, batchSize, initName, outputName, featureConverter, outputConverter);
         // Initialises the parameters.
         session.run(initName);

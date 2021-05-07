@@ -66,7 +66,7 @@ public class RegressionTest {
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
-        FeatureConverter<Regressor> denseConverter = new DenseFeatureConverter<>(INPUT_NAME);
+        FeatureConverter denseConverter = new DenseFeatureConverter(INPUT_NAME);
         OutputConverter<Regressor> outputConverter = new RegressorConverter();
         TensorFlowTrainer<Regressor> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,

@@ -42,7 +42,7 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
     protected int batchSize;
     protected final String initName;
     protected final String outputName;
-    protected final FeatureConverter<T> featureConverter;
+    protected final FeatureConverter featureConverter;
     protected final OutputConverter<T> outputConverter;
     protected transient Graph modelGraph = null;
     protected transient Session session = null;
@@ -61,7 +61,7 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
      * @param featureConverter The feature converter.
      * @param outputConverter The output converter.
      */
-    protected TensorFlowModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+    protected TensorFlowModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities());
         this.modelGraph = new Graph();
         this.modelGraph.importGraphDef(trainedGraphDef);

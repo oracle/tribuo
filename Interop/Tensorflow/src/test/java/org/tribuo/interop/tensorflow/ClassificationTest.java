@@ -94,7 +94,7 @@ public class ClassificationTest {
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
-        FeatureConverter<Label> denseConverter = new DenseFeatureConverter<>(INPUT_NAME);
+        FeatureConverter denseConverter = new DenseFeatureConverter(INPUT_NAME);
         OutputConverter<Label> outputConverter = new LabelConverter();
 
         // Test native trainer
@@ -330,7 +330,7 @@ public class ClassificationTest {
         Map<String, Float> gradientParams = new HashMap<>();
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
-        FeatureConverter<Label> imageConverter = new ImageConverter<>(INPUT_NAME, 10, 10, 1);
+        FeatureConverter imageConverter = new ImageConverter(INPUT_NAME, 10, 10, 1);
         OutputConverter<Label> outputConverter = new LabelConverter();
         TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
@@ -432,7 +432,7 @@ public class ClassificationTest {
         gradientParams.put("learningRate", 0.01f);
         gradientParams.put("initialAccumulatorValue", 0.1f);
 
-        FeatureConverter<Label> imageConverter = new ImageConverter<>(INPUT_NAME, 28, 28, 1);
+        FeatureConverter imageConverter = new ImageConverter(INPUT_NAME, 28, 28, 1);
         OutputConverter<Label> outputConverter = new LabelConverter();
 
         TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,

@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 /**
  * Converts a sparse example into a dense float vector, then wraps it in a {@link TFloat32}.
  */
-public class DenseFeatureConverter<T extends Output<T>> implements FeatureConverter<T> {
+public class DenseFeatureConverter implements FeatureConverter {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(DenseFeatureConverter.class.getName());
 
@@ -71,7 +71,7 @@ public class DenseFeatureConverter<T extends Output<T>> implements FeatureConver
         this.inputName = inputName;
     }
 
-    float[] innerTransform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    float[] innerTransform(Example<?> example, ImmutableFeatureMap featureIDMap) {
         if ((warningCount < WARNING_THRESHOLD) && (featureIDMap.size() > THRESHOLD)) {
             logger.warning("Large dense example requested, featureIDMap.size() = " + featureIDMap.size() + ", example.size() = " + example.size());
             warningCount++;
@@ -111,17 +111,17 @@ public class DenseFeatureConverter<T extends Output<T>> implements FeatureConver
     }
 
     @Override
-    public TensorMap convert(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(Example<?> example, ImmutableFeatureMap featureIDMap) {
         float[] output = innerTransform(example,featureIDMap);
         return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,output.length), DataBuffers.of(output)));
     }
 
     @Override
-    public TensorMap convert(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(List<? extends Example<?>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),featureIDMap.size()));
 
         int i = 0;
-        for (Example<T> example : examples) {
+        for (Example<?> example : examples) {
             float[] features = innerTransform(example,featureIDMap);
             output.set(NdArrays.vectorOf(features),i);
             i++;

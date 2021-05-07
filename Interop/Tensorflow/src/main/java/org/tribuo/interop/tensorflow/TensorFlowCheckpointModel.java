@@ -66,7 +66,7 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
 
     private boolean initialized;
 
-    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, String checkpointName, int batchSize, String initName, String outputName, FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, String checkpointName, int batchSize, String initName, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, description, featureIDMap, outputIDMap, graphDef, batchSize, initName, outputName, featureConverter, outputConverter);
         this.checkpointDirectory = checkpointDirectory;
         this.checkpointName = checkpointName;

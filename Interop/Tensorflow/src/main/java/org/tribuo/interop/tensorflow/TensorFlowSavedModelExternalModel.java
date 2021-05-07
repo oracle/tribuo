@@ -59,7 +59,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
 
     private transient SavedModelBundle bundle;
 
-    private final FeatureConverter<T> featureConverter;
+    private final FeatureConverter featureConverter;
 
     private final OutputConverter<T> outputConverter;
 
@@ -69,7 +69,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                               ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                               Map<String, Integer> featureMapping,
                                               String modelDirectory, String outputName,
-                                              FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+                                              FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.modelDirectory = modelDirectory;
         this.outputName = outputName;
@@ -83,7 +83,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                               ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                               int[] featureForwardMapping, int[] featureBackwardMapping,
                                               String modelDirectory, String outputName,
-                                              FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+                                              FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name,provenance,featureIDMap,outputIDInfo,featureForwardMapping,featureBackwardMapping,
                 outputConverter.generatesProbabilities());
         this.modelDirectory = modelDirectory;
@@ -197,7 +197,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                                                                                    Map<String, Integer> featureMapping,
                                                                                                    Map<T,Integer> outputMapping,
                                                                                                    String outputName,
-                                                                                                   FeatureConverter<T> featureConverter,
+                                                                                                   FeatureConverter featureConverter,
                                                                                                    OutputConverter<T> outputConverter,
                                                                                                    String bundleDirectory) {
         try {

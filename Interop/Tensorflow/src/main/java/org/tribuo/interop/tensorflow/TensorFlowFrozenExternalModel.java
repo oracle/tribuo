@@ -60,7 +60,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
 
     private transient Session session;
 
-    private final FeatureConverter<T> featureConverter;
+    private final FeatureConverter featureConverter;
 
     private final OutputConverter<T> outputConverter;
 
@@ -72,7 +72,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
                                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                           Map<String, Integer> featureMapping,
                                           Graph model, String inputName, String outputName,
-                                          FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+                                          FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.model = model;
         this.session = new Session(model);
@@ -86,7 +86,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
                                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                           int[] featureForwardMapping, int[] featureBackwardMapping,
                                           Graph model, String inputName, String outputName,
-                                          FeatureConverter<T> featureConverter, OutputConverter<T> outputConverter) {
+                                          FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name,provenance,featureIDMap,outputIDInfo,featureForwardMapping,featureBackwardMapping,
                 outputConverter.generatesProbabilities());
         this.model = model;
@@ -194,7 +194,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
                                                                                                Map<T,Integer> outputMapping,
                                                                                                String inputName,
                                                                                                String outputName,
-                                                                                               FeatureConverter<T> featureConverter,
+                                                                                               FeatureConverter featureConverter,
                                                                                                OutputConverter<T> outputConverter,
                                                                                                String filename) {
         try {

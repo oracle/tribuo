@@ -112,7 +112,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     private String initName = Init.DEFAULT_NAME;
 
     @Config(mandatory=true,description="Feature extractor.")
-    private FeatureConverter<T> featureConverter;
+    private FeatureConverter featureConverter;
 
     @Config(mandatory=true,description="Response extractor.")
     private OutputConverter<T> outputConverter;
@@ -167,7 +167,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                              String initName,
                              GradientOptimiser optimizer,
                              Map<String,Float> gradientParams,
-                             FeatureConverter<T> featureConverter,
+                             FeatureConverter featureConverter,
                              OutputConverter<T> outputConverter,
                              int minibatchSize,
                              int epochs,
@@ -192,7 +192,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                              String initName,
                              GradientOptimiser optimizer,
                              Map<String,Float> gradientParams,
-                             FeatureConverter<T> featureConverter,
+                             FeatureConverter featureConverter,
                              OutputConverter<T> outputConverter,
                              int minibatchSize,
                              int epochs,
@@ -217,7 +217,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                              String initName,
                              GradientOptimiser optimizer,
                              Map<String,Float> gradientParams,
-                             FeatureConverter<T> featureConverter,
+                             FeatureConverter featureConverter,
                              OutputConverter<T> outputConverter,
                              int minibatchSize,
                              int epochs,
@@ -241,7 +241,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                              String initName,
                              GradientOptimiser optimizer,
                              Map<String,Float> gradientParams,
-                             FeatureConverter<T> featureConverter,
+                             FeatureConverter featureConverter,
                              OutputConverter<T> outputConverter,
                              int minibatchSize,
                              int epochs,
@@ -269,7 +269,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                              String initName,
                              GradientOptimiser optimizer,
                              Map<String,Float> gradientParams,
-                             FeatureConverter<T> featureConverter,
+                             FeatureConverter featureConverter,
                              OutputConverter<T> outputConverter,
                              int minibatchSize,
                              int epochs,
@@ -296,7 +296,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                              String initName,
                              GradientOptimiser optimizer,
                              Map<String,Float> gradientParams,
-                             FeatureConverter<T> featureConverter,
+                             FeatureConverter featureConverter,
                              OutputConverter<T> outputConverter,
                              int minibatchSize,
                              int epochs,
@@ -325,7 +325,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
                               String initName,
                               GradientOptimiser optimizer,
                               Map<String,Float> gradientParams,
-                              FeatureConverter<T> featureConverter,
+                              FeatureConverter featureConverter,
                               OutputConverter<T> outputConverter,
                               int minibatchSize,
                               int epochs,

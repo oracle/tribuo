@@ -72,7 +72,7 @@ public class ImageConverterTest {
         Example<MockOutput> e = constructExample();
 
         // 3,3,2
-        ImageConverter<MockOutput> first = new ImageConverter<>("test",3,3,2);
+        ImageConverter first = new ImageConverter("test",3,3,2);
         FloatNdArray ndarray = (TFloat32) first.convert(e,fmap).getMap().get("test");
         assertEquals( 0, ndarray.getFloat(0,0,0,0), 1e-10);
         assertEquals( 1, ndarray.getFloat(0,0,0,1), 1e-10);
@@ -94,7 +94,7 @@ public class ImageConverterTest {
         assertEquals(17, ndarray.getFloat(0,2,2,1), 1e-10);
 
         // 3,2,3
-        ImageConverter<MockOutput> second = new ImageConverter<>("test",3,2,3);
+        ImageConverter second = new ImageConverter("test",3,2,3);
         ndarray = (TFloat32) second.convert(e,fmap).getMap().get("test");
         assertEquals( 0, ndarray.getFloat(0,0,0,0),1e-10);
         assertEquals( 1, ndarray.getFloat(0,0,0,1),1e-10);
@@ -116,7 +116,7 @@ public class ImageConverterTest {
         assertEquals(17, ndarray.getFloat(0,2,1,2),1e-10);
 
         // 2,3,3
-        ImageConverter<MockOutput> third = new ImageConverter<>("test",2,3,3);
+        ImageConverter third = new ImageConverter("test",2,3,3);
         ndarray = (TFloat32) third.convert(e,fmap).getMap().get("test");
         assertEquals( 0, ndarray.getFloat(0,0,0,0),1e-10);
         assertEquals( 1, ndarray.getFloat(0,0,0,1),1e-10);

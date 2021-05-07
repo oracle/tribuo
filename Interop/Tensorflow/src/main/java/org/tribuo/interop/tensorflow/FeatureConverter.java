@@ -35,7 +35,7 @@ import java.util.Set;
  * <p>
  * This usually densifies the example, so can be a lot larger than the input example.
  */
-public interface FeatureConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface FeatureConverter extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Converts an {@link Example} into a {@link TensorMap} suitable for supplying as an input to a graph.
@@ -43,25 +43,25 @@ public interface FeatureConverter<T extends Output<T>> extends Configurable, Pro
      * It generates it as a single example minibatch.
      * @param example The example to convert.
      * @param featureIDMap The id map to convert feature names into id numbers.
-     * @return A FeedDict representing the features in this example.
+     * @return A TensorMap (similar to a TF Python feed_dict) representing the features in this example.
      */
-    public TensorMap convert(Example<T> example, ImmutableFeatureMap featureIDMap);
+    public TensorMap convert(Example<?> example, ImmutableFeatureMap featureIDMap);
 
     /**
      * Converts a batch of {@link Example}s into a single {@link TensorMap} suitable for supplying as
      * an input to a graph.
      * @param example The examples to convert.
      * @param featureIDMap THe id map to convert feature names into id numbers.
-     * @return A FeedDict representing the features in this minibatch.
+     * @return A TensorMap (similar to a TF Python feed_dict) representing the features in this minibatch.
      */
-    public TensorMap convert(List<Example<T>> example, ImmutableFeatureMap featureIDMap);
+    public TensorMap convert(List<? extends Example<?>> example, ImmutableFeatureMap featureIDMap);
 
     /**
      * Converts a {@link SGDVector} representing the features into a {@link TensorMap}.
      * <p>
      * It generates it as a single example minibatch.
      * @param vector The features to convert.
-     * @return A FeedDict representing this vector.
+     * @return A TensorMap (similar to a TF Python feed_dict) representing this vector.
      */
     public TensorMap convert(SGDVector vector);
 
@@ -69,7 +69,7 @@ public interface FeatureConverter<T extends Output<T>> extends Configurable, Pro
      * Converts a list of {@link SGDVector}s representing a batch of features into a {@link TensorMap}.
      * <p>
      * @param vectors The batch of features to convert.
-     * @return A FeedDict representing this minibatch.
+     * @return A TensorMap (similar to a TF Python feed_dict) representing this minibatch.
      */
     public TensorMap convert(List<? extends SGDVector> vectors);
 

@@ -186,7 +186,7 @@ public class TrainTest {
             throw new IllegalArgumentException("Must specify both 'input-name' and 'output-name'");
         }
 
-        FeatureConverter<Label> inputConverter;
+        FeatureConverter inputConverter;
         switch (o.inputType) {
             case IMAGE:
                 String[] splitFormat = o.imageFormat.split(",");
@@ -198,10 +198,10 @@ public class TrainTest {
                 int width = Integer.parseInt(splitFormat[0]);
                 int height = Integer.parseInt(splitFormat[1]);
                 int channels = Integer.parseInt(splitFormat[2]);
-                inputConverter = new ImageConverter<>(o.inputName,width,height,channels);
+                inputConverter = new ImageConverter(o.inputName,width,height,channels);
                 break;
             case DENSE:
-                inputConverter = new DenseFeatureConverter<>(o.inputName);
+                inputConverter = new DenseFeatureConverter(o.inputName);
                 break;
             default:
                 logger.info(cm.usage());

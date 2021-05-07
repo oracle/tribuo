@@ -40,9 +40,9 @@ import java.util.Set;
  * <pre>
  * [0,0,0] = 0, [0,0,1] = 1, [0,1,0] = k, [1,0,0] = j*k, ..., [i,0,0] = i*j*k,
  * </pre>
- * That is, they are in multidimensional row major order.
+ * That is, they are in multidimensional row major order (e.g. the order used by {@link org.tribuo.datasource.IDXDataSource}).
  */
-public class ImageConverter<T extends Output<T>> implements FeatureConverter<T> {
+public class ImageConverter implements FeatureConverter {
     private static final long serialVersionUID = 1L;
 
     @Config(mandatory=true,description="TensorFlow Placeholder Input name.")
@@ -116,7 +116,7 @@ public class ImageConverter<T extends Output<T>> implements FeatureConverter<T> 
      * @return A 4d tensor, (1, width, height, channels) for this example.
      */
     @Override
-    public TensorMap convert(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(Example<?> example, ImmutableFeatureMap featureIDMap) {
         float[] image = innerTransform(example,featureIDMap);
         return new TensorMap(inputName,TFloat32.tensorOf(Shape.of(1,width,height,channels), DataBuffers.of(image)));
     }
@@ -128,7 +128,7 @@ public class ImageConverter<T extends Output<T>> implements FeatureConverter<T> 
      * @param featureIDMap The feature id mapping to use.
      * @return A 1d array stored in multidimensional column-major order representing the example.
      */
-    float[] innerTransform(Example<T> example, ImmutableFeatureMap featureIDMap) {
+    float[] innerTransform(Example<?> example, ImmutableFeatureMap featureIDMap) {
         if (featureIDMap.size() > totalPixels) {
             throw new IllegalArgumentException("Found more values than expected, expected " + totalPixels + ", found " + featureIDMap.size());
         }
@@ -171,11 +171,11 @@ public class ImageConverter<T extends Output<T>> implements FeatureConverter<T> 
      * @return A 4d tensor, (batch-id, width, height, channels) for this example.
      */
     @Override
-    public TensorMap convert(List<Example<T>> examples, ImmutableFeatureMap featureIDMap) {
+    public TensorMap convert(List<? extends Example<?>> examples, ImmutableFeatureMap featureIDMap) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),width,height,channels));
 
         int i = 0;
-        for (Example<T> example : examples) {
+        for (Example<?> example : examples) {
             float[] features = innerTransform(example,featureIDMap);
             output.set(NdArrays.wrap(Shape.of(width,height,channels), DataBuffers.of(features)),i);
             i++;
