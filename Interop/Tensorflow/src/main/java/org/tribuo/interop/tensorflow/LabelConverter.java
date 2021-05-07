@@ -67,6 +67,8 @@ public class LabelConverter implements OutputConverter<Label> {
             Placeholder<TNumber> placeholder = (Placeholder<TNumber>) pair.getA();
             return ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),placeholder).loss(),ops.constant(0));
         };
+        // TODO - migrate over to TF-Java's CategoricalCrossEntropy when we've fixed the issue we had applying this.
+        // It should be roughly the block below.
         /*
         return (ops,pair) -> new CategoricalCrossentropy(ops,
                 "tribuo-cross-entropy",
