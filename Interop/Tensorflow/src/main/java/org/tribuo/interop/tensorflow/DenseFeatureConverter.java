@@ -55,7 +55,7 @@ public class DenseFeatureConverter<T extends Output<T>> implements FeatureConver
 
     private int warningCount = 0;
 
-    @Config(mandatory=true,description="Input name.")
+    @Config(mandatory=true,description="TensorFlow Placeholder Input name.")
     private String inputName;
 
     /**
