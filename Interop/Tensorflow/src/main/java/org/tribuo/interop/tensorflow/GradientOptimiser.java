@@ -161,7 +161,7 @@ public enum GradientOptimiser {
      */
     NADAM("learningRate","betaOne","betaTwo","epsilon"),
     /**
-     * The AdaDelta optimiser.
+     * The RMSprop optimiser.
      * <p>
      * Parameters are:
      * <ul>
