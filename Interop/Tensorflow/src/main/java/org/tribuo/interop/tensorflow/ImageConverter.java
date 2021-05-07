@@ -45,7 +45,7 @@ import java.util.Set;
 public class ImageConverter<T extends Output<T>> implements FeatureConverter<T> {
     private static final long serialVersionUID = 1L;
 
-    @Config(mandatory=true,description="Input name.")
+    @Config(mandatory=true,description="TensorFlow Placeholder Input name.")
     private String inputName;
 
     @Config(mandatory=true,description="Image width.")
