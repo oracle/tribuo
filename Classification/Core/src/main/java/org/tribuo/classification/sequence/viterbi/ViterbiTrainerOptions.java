@@ -26,8 +26,18 @@ import org.tribuo.classification.Label;
  */
 public class ViterbiTrainerOptions implements Options {
 
+    /**
+     * Type of label features to include.
+     */
     public enum ViterbiLabelFeatures {
-        DEFAULT, NONE
+        /**
+         * The default label features.
+         */
+        DEFAULT,
+        /**
+         * No label features.
+         */
+        NONE
     }
 
     @Option(longName = "viterbi-score-aggregation", usage = "Aggregation operation, choices are {ADD, MULTIPLY}.")
@@ -39,6 +49,11 @@ public class ViterbiTrainerOptions implements Options {
     @Option(longName = "viterbi-stack-size", usage = "-1 for no limit on the stack size")
     private int viterbiStackSize = -1;
 
+    /**
+     * Creates a viterbi trainer wrapping the supplied label trainer.
+     * @param innerTrainer The trainer to wrap.
+     * @return A ViterbiTrainer.
+     */
     public ViterbiTrainer getSequenceTrainer(Trainer<Label> innerTrainer) {
         LabelFeatureExtractor lfe = new NoopFeatureExtractor();
         if (viterbiLabelFeatures == ViterbiLabelFeatures.DEFAULT) {

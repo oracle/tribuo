@@ -43,9 +43,36 @@ public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
-    public enum SLMType { SFS, SFSN, LARS, LARSLASSO, ELASTICNET }
+    /**
+     * Type of sparse linear model.
+     */
+    public enum SLMType {
+        /**
+         * Creates a {@link SLMTrainer} which performs sequential forward selection of the features.
+         */
+        SFS,
+        /**
+         * Creates a {@link SLMTrainer} which performs sequential forward selection on normalised features.
+         */
+        SFSN,
+        /**
+         * Creates a {@link LARSTrainer}.
+         */
+        LARS,
+        /**
+         * Creates a {@link LARSLassoTrainer}.
+         */
+        LARSLASSO,
+        /**
+         * Creates an {@link ElasticNetCDTrainer}.
+         */
+        ELASTICNET
+    }
 
-    public static class LARSOptions implements Options {
+    /**
+     * Command line options.
+     */
+    public static class SLMOptions implements Options {
         @Override
         public String getOptionsDescription() {
             return "Trains and tests a sparse linear regression model on the specified datasets.";
@@ -73,7 +100,7 @@ public class TrainTest {
         // Use the labs format logging.
         LabsLogFormatter.setAllLogFormatters();
 
-        LARSOptions o = new LARSOptions();
+        SLMOptions o = new SLMOptions();
         ConfigurationManager cm;
         try {
             cm = new ConfigurationManager(args,o);

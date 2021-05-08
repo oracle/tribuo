@@ -214,6 +214,9 @@ public class LIMETextCLI implements CommandGroup {
         return "Prediction = " + prediction.toString();
     }
 
+    /**
+     * Command line options.
+     */
     public static class LIMETextCLIOptions implements Options {
         @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
         public String modelFilename;

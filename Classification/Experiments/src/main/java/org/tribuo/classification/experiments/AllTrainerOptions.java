@@ -40,8 +40,42 @@ import java.util.logging.Logger;
 public class AllTrainerOptions implements ClassificationOptions<Trainer<Label>> {
     private static final Logger logger = Logger.getLogger(AllTrainerOptions.class.getName());
 
+    /**
+     * Types of algorithms supported.
+     */
     public enum AlgorithmType {
-        CART, KNN, LIBLINEAR, LIBSVM, MNB, SGD_KERNEL, SGD_LINEAR, XGBOOST //RANDOM_FOREST,
+        /**
+         * Creates a {@link org.tribuo.classification.dtree.CARTClassificationTrainer}.
+         */
+        CART,
+        /**
+         * Creates a {@link org.tribuo.common.nearest.KNNTrainer}.
+         */
+        KNN,
+        /**
+         * Creates a {@link org.tribuo.classification.liblinear.LibLinearClassificationTrainer}.
+         */
+        LIBLINEAR,
+        /**
+         * Creates a {@link org.tribuo.classification.libsvm.LibSVMClassificationTrainer}.
+         */
+        LIBSVM,
+        /**
+         * Creates a {@link org.tribuo.classification.mnb.MultinomialNaiveBayesTrainer}.
+         */
+        MNB,
+        /**
+         * Creates a {@link org.tribuo.classification.sgd.kernel.KernelSVMTrainer}.
+         */
+        SGD_KERNEL,
+        /**
+         * Creates a {@link org.tribuo.classification.sgd.linear.LinearSGDTrainer}.
+         */
+        SGD_LINEAR,
+        /**
+         * Creates a {@link org.tribuo.classification.xgboost.XGBoostClassificationTrainer}.
+         */
+        XGBOOST,
     }
 
     @Option(longName = "algorithm", usage = "Type of learner (or base learner). Defaults to SGD_LINEAR.")

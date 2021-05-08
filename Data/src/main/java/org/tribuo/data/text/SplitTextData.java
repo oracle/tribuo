@@ -47,6 +47,9 @@ import java.util.logging.Logger;
 public class SplitTextData {
     private static final Logger logger = Logger.getLogger(SplitTextData.class.getName());
 
+    /**
+     * Command line options.
+     */
     public static class TrainTestSplitOptions implements Options {
         @Override
         public String getOptionsDescription() {

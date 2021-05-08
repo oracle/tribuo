@@ -51,6 +51,9 @@ import java.util.logging.Logger;
  */
 public class SQLToCSV {
 
+    /**
+     * Command line options.
+     */
     public static class SQLToCSVOptions implements Options {
         @Option(charName='n', longName="connection", usage="Connection string to the SQL database")
         public String connString;

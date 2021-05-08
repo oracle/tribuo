@@ -201,14 +201,22 @@ public final class LabelEvaluationUtil {
     /**
      * Stores the ROC curve as three arrays: the false positive rate, the true positive rate,
      * and the thresholds associated with those rates.
-     *
+     * <p>
      * By definition if both tpr and fpr are zero for the first value, the threshold is positive infinity.
+     * <p>
+     * Not yet a record, but it will be one day.
      */
     public static class ROC {
         public final double[] fpr;
         public final double[] tpr;
         public final double[] thresholds;
 
+        /**
+         * Constructs an ROC curve.
+         * @param fpr The false positive rates.
+         * @param tpr The true positive rates.
+         * @param thresholds The classification thresholds for the relevant rates.
+         */
         public ROC(double[] fpr, double[] tpr, double[] thresholds) {
             this.fpr = fpr;
             this.tpr = tpr;
@@ -219,12 +227,20 @@ public final class LabelEvaluationUtil {
     /**
      * Stores the Precision-Recall curve as three arrays: the precisions, the recalls,
      * and the thresholds associated with those values.
+     * <p>
+     * Not yet a record, but it will be one day.
      */
     public static class PRCurve {
         public final double[] precision;
         public final double[] recall;
         public final double[] thresholds;
 
+        /**
+         * Constructs a precision-recall curve.
+         * @param precision The precisions.
+         * @param recall The recalls.
+         * @param thresholds The classification thresholds for the precisions and recalls.
+         */
         public PRCurve(double[] precision, double[] recall, double[] thresholds) {
             this.precision = precision;
             this.recall = recall;

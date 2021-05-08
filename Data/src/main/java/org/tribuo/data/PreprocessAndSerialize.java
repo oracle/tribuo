@@ -41,6 +41,9 @@ public final class PreprocessAndSerialize {
 
     private PreprocessAndSerialize() {}
 
+    /**
+     * Command line options.
+     */
     public static class PreprocessAndSerializeOptions implements Options {
         @Option(charName='d', longName="dataSource", usage="Datasource to load from a config file")
         public ConfigurableDataSource<? extends Output<?>> dataSource;

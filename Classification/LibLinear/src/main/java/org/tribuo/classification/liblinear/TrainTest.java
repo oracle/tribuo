@@ -33,6 +33,9 @@ import java.io.IOException;
  */
 public class TrainTest {
 
+    /**
+     * Command line options.
+     */
     public static class TrainTestOptions implements Options {
 
         @Override

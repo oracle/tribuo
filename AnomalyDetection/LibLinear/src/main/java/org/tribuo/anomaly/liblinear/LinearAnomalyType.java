@@ -48,6 +48,10 @@ public final class LinearAnomalyType implements LibLinearType<Event> {
             this.type = type;
         }
 
+        /**
+         * Gets the type of the solver.
+         * @return The solver type.
+         */
         public SolverType getSolverType() {
             return type;
         }
@@ -61,6 +65,10 @@ public final class LinearAnomalyType implements LibLinearType<Event> {
      */
     private LinearAnomalyType() {}
 
+    /**
+     * Constructs the type of the liblinear anomaly detector.
+     * @param type The anomaly detector type.
+     */
     public LinearAnomalyType(LinearType type) {
         this.type = type;
     }

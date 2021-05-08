@@ -53,6 +53,9 @@ import java.util.logging.Logger;
 public class RunAll {
     private static final Logger logger = Logger.getLogger(RunAll.class.getName());
 
+    /**
+     * Command line options.
+     */
     public static class RunAllOptions implements Options {
         @Override
         public String getOptionsDescription() {

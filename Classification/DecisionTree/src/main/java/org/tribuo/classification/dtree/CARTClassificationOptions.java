@@ -33,9 +33,29 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
         return "Options for decision/classification trees.";
     }
 
-    public enum TreeType {CART}
+    /**
+     * Type of decision tree algorithm.
+     */
+    public enum TreeType {
+        /**
+         * Builds a CART model.
+         */
+        CART
+    }
 
-    public enum ImpurityType {GINI, ENTROPY}
+    /**
+     * The impurity algorithm.
+     */
+    public enum ImpurityType {
+        /**
+         * Uses {@link GiniIndex}.
+         */
+        GINI,
+        /**
+         * Uses {@link Entropy}.
+         */
+        ENTROPY
+    }
 
     @Option(longName = "cart-max-depth", usage = "Maximum depth in the decision tree.")
     public int cartMaxDepth = 6;

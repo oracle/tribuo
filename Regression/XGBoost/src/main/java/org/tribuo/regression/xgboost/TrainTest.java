@@ -40,7 +40,10 @@ import java.util.logging.Logger;
 public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
-    
+
+    /**
+     * Command line options.
+     */
     public static class XGBoostOptions implements Options {
         @Override
         public String getOptionsDescription() {

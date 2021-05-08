@@ -43,12 +43,20 @@ public class SplitCharactersTokenizer extends SplitFunctionTokenizer {
             '\'', '|', ';', ':', '\\', '!', '-', '?' };
     public static final char[] DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS = new char[] { '.', ',', '/', };
 
+    /**
+     * Splits tokens at the supplied characters.
+     */
     public static class SplitCharactersSplitterFunction implements SplitFunction {
 
         private final char[] splitCharacters;
 
         private final char[] splitXDigitsCharacters;
 
+        /**
+         * Constructs a splitting function using the supplied split characters.
+         * @param splitCharacters The characters to split on.
+         * @param splitXDigitsCharacters Characters that are valid split points outside of a run of digits.
+         */
         public SplitCharactersSplitterFunction(char[] splitCharacters, char[] splitXDigitsCharacters) {
             this.splitCharacters = splitCharacters;
             this.splitXDigitsCharacters = splitXDigitsCharacters;
@@ -68,10 +76,20 @@ public class SplitCharactersTokenizer extends SplitFunctionTokenizer {
             return SplitResult.NO_SPLIT_WORD;
         }
 
+        /**
+         * Checks if this is a valid split character or whitespace.
+         * @param c The character to check.
+         * @return True if the character should split the token.
+         */
         public boolean isSplitCharacter(char c) {
             return isCharacter(c, splitCharacters) || Character.isWhitespace(c);
         }
 
+        /**
+         * Checks if this a valid split character outside of a run of digits.
+         * @param c The character to check.
+         * @return True if the character should split the token.
+         */
         public boolean isSplitXDigitCharacter(char c) {
             return isCharacter(c, splitXDigitsCharacters);
         }
@@ -84,6 +102,11 @@ public class SplitCharactersTokenizer extends SplitFunctionTokenizer {
     @Config(description = "The characters to split on unless we're in a number.")
     private char[] splitXDigitsCharacters = DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS;
 
+    /**
+     * Creates a default split characters tokenizer using
+     * {@link #DEFAULT_SPLIT_CHARACTERS} and
+     * {@link #DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS}.
+     */
     public SplitCharactersTokenizer() {
         this.postConfig(); // I feel like I need to call this explicitly in case someone uses the default
                            // constructor

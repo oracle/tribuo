@@ -155,6 +155,9 @@ public final class DatasetExplorer implements CommandGroup {
         return dataset.getProvenance().toString();
     }
 
+    /**
+     * Command line options.
+     */
     public static class DatasetExplorerOptions implements Options {
         @Option(charName='f',longName="filename",usage="Dataset file to load. Optional.")
         public String modelFilename;

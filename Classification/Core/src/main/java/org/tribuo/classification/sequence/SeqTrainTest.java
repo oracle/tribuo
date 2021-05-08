@@ -44,6 +44,9 @@ public class SeqTrainTest {
 
     private static final Logger logger = Logger.getLogger(SeqTrainTest.class.getName());
 
+    /**
+     * Command line options.
+     */
     public static class SeqTrainTestOptions implements Options {
         @Override
         public String getOptionsDescription() {

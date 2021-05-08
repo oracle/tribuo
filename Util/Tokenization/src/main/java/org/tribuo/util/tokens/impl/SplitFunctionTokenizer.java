@@ -115,17 +115,32 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         }
     }
 
+    /**
+     * An interface for checking if the text should be split at the supplied codepoint.
+     */
     @FunctionalInterface
     public static interface SplitFunction {
+        /**
+         * Applies the split function.
+         * @param codepoint The codepoint to check.
+         * @param index The character index.
+         * @param cs The sequence that's being split.
+         * @return How the sequence should be split.
+         */
         public SplitResult apply(int codepoint, int index, CharSequence cs);
     }
 
     protected SplitFunction splitFunction;
 
-    // for OLCUT
-    protected SplitFunctionTokenizer() {
-    }
+    /**
+     * Constructs a tokenizer, used by OLCUT.
+     */
+    protected SplitFunctionTokenizer() { }
 
+    /**
+     * Creates a new tokenizer using the supplied split function.
+     * @param splitFunction The split function.
+     */
     public SplitFunctionTokenizer(SplitFunction splitFunction) {
         super();
         this.splitFunction = splitFunction;
