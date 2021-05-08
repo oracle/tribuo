@@ -91,16 +91,44 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
     }
 
     /**
-     * Creates a CART trainer. Sets the impurity to the {@link MeanSquaredError}, uses
-     * all the features, and sets the minimum number of examples in a leaf to {@link #MIN_EXAMPLES}.
+     * Creates a CART Trainer.
+     * <p>
+     * Computes the exact split point.
+     * @param maxDepth maxDepth The maximum depth of the tree.
+     * @param minChildWeight minChildWeight The minimum node weight to consider it for a split.
+     * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
+     * @param fractionFeaturesInSplit fractionFeaturesInSplit The fraction of features available in each split.
+     * @param impurity impurity The impurity function to use to determine split quality.
+     * @param seed The RNG seed.
+     */
+    public CARTRegressionTrainer(
+            int maxDepth,
+            float minChildWeight,
+            float minImpurityDecrease,
+            float fractionFeaturesInSplit,
+            RegressorImpurity impurity,
+            long seed
+    ) {
+        this(maxDepth,minChildWeight,minImpurityDecrease,fractionFeaturesInSplit,false,impurity,seed);
+    }
+
+    /**
+     * Creates a CART trainer.
+     * <p>
+     * Sets the impurity to the {@link MeanSquaredError}, uses
+     * all the features, computes the exact split point, and
+     * sets the minimum number of examples in a leaf to {@link #MIN_EXAMPLES}.
      */
     public CARTRegressionTrainer() {
         this(Integer.MAX_VALUE);
     }
 
     /**
-     * Creates a CART trainer. Sets the impurity to the {@link MeanSquaredError}, uses
-     * all the features, and sets the minimum number of examples in a leaf to {@link #MIN_EXAMPLES}.
+     * Creates a CART trainer.
+     * <p>
+     * Sets the impurity to the {@link MeanSquaredError}, uses
+     * all the features, computes the exact split point and sets
+     * the minimum number of examples in a leaf to {@link #MIN_EXAMPLES}.
      * @param maxDepth The maximum depth of the tree.
      */
     public CARTRegressionTrainer(int maxDepth) {

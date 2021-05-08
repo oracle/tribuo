@@ -72,15 +72,22 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
     }
 
     /**
-     * Creates a CART Trainer. Sets the impurity to the {@link GiniIndex}.
+     * Creates a CART Trainer.
+     * <p>
+     * Sets the impurity to the {@link GiniIndex}, uses all the features,
+     * builds an arbitrary depth tree, computes the exact split point
+     * and sets the minimum number of examples in a leaf to {@link #MIN_EXAMPLES}.
      */
     public CARTClassificationTrainer() {
         this(Integer.MAX_VALUE);
     }
 
     /**
-     * Creates a CART trainer. Sets the impurity to the {@link GiniIndex}, uses
-     * all the features, and sets the minimum number of examples in a leaf to {@link #MIN_EXAMPLES}.
+     * Creates a CART trainer.
+     * <p>
+     * Sets the impurity to the {@link GiniIndex}, uses all the features,
+     * computes the exact split point and sets the minimum number of
+     * examples in a leaf to {@link #MIN_EXAMPLES}.
      * @param maxDepth The maximum depth of the tree.
      */
     public CARTClassificationTrainer(int maxDepth) {
@@ -88,7 +95,9 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
     }
 
     /**
-     * Creates a CART Trainer. Sets the impurity to the {@link GiniIndex}.
+     * Creates a CART Trainer.
+     * <p>
+     * Sets the impurity to the {@link GiniIndex}.
      * @param maxDepth The maximum depth of the tree.
      * @param fractionFeaturesInSplit The fraction of features available in each split.
      * @param seed The seed for the RNG.
@@ -98,7 +107,9 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
     }
 
     /**
-     * Creates a CART Trainer. Sets the impurity to the {@link GiniIndex}.
+     * Creates a CART Trainer.
+     * <p>
+     * Sets the impurity to the {@link GiniIndex}. Computes the exact split point.
      * @param maxDepth The maximum depth of the tree.
      * @param fractionFeaturesInSplit The fraction of features available in each split.
      * @param useRandomSplitPoints Whether to choose split points for features at random.
@@ -107,6 +118,28 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
     public CARTClassificationTrainer(int maxDepth, float fractionFeaturesInSplit,
                                      boolean useRandomSplitPoints, long seed) {
         this(maxDepth, MIN_EXAMPLES, 0.0f, fractionFeaturesInSplit, useRandomSplitPoints, new GiniIndex(), seed);
+    }
+
+    /**
+     * Creates a CART Trainer.
+     * <p>
+     * Computes the exact split point.
+     * @param maxDepth The maximum depth of the tree.
+     * @param minChildWeight The minimum node weight to consider it for a split.
+     * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
+     * @param fractionFeaturesInSplit The fraction of features available in each split.
+     * @param impurity Impurity measure to determine split quality. See {@link LabelImpurity}.
+     * @param seed The RNG seed.
+     */
+    public CARTClassificationTrainer(
+            int maxDepth,
+            float minChildWeight,
+            float minImpurityDecrease,
+            float fractionFeaturesInSplit,
+            LabelImpurity impurity,
+            long seed
+    ) {
+        this(maxDepth, minChildWeight, minImpurityDecrease, fractionFeaturesInSplit, false, impurity, seed);
     }
 
     @Override
