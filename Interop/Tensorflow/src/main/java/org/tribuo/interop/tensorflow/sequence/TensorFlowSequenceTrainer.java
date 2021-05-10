@@ -60,6 +60,8 @@ import java.util.logging.Logger;
 
 /**
  * A trainer for SequenceModels which use an underlying TensorFlow graph.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceTrainer<T> {
     
@@ -218,7 +220,7 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
             //
             // Generate the trained graph def.
             GraphDef trainedGraphDef = graph.toGraphDef();
-            Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.serialise(graph,session);
+            Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(graph,session);
             ModelProvenance modelProvenance = new ModelProvenance(TensorFlowSequenceModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), provenance, runProvenance);
             return new TensorFlowSequenceModel<>(
                     "tf-sequence-model",

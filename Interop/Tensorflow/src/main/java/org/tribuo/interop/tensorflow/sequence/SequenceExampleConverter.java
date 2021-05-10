@@ -28,7 +28,9 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Converts a sequence example into a feed dict suitable for Tensorflow.
+ * Converts a sequence example into a feed dict suitable for TensorFlow.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public interface SequenceExampleConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 

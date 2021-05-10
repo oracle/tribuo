@@ -46,11 +46,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * A Tribuo wrapper around a Tensorflow saved model bundle.
+ * A Tribuo wrapper around a TensorFlow saved model bundle.
  * <p>
- * The model's serialVersionUID is set to the major Tensorflow version number times 100.
+ * The model's serialVersionUID is set to the major TensorFlow version number times 100.
  * <p>
- * N.B. Tensorflow support is experimental and may change without a major version bump.
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, TensorMap> implements Closeable {
     private static final long serialVersionUID = 200L;

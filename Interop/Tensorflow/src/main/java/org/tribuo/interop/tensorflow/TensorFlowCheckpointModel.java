@@ -35,14 +35,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * TensorFlow support is experimental, and may change without a major version bump.
- * <p>
  * This model encapsulates a simple model with an input feed dict,
  * and produces a single output tensor.
  * <p>
  * If the checkpoint is not available on construction or after deserialisation then the
- * model is uninitialised. Models can be initialised by calling {@link #initialize} or
- * {@link #setCheckpointDirectory}.
+ * model is uninitialised. Models can be initialised by calling {@link #initialize} after calling
+ * {@link #setCheckpointDirectory} and {@link #setCheckpointName} with the right directory and name
+ * respectively.
  * <p>
  * This model's serialized form stores the weights in the specified model checkpoint directory.
  * If you wish to convert it into a model which stores the weights inside the model then
@@ -51,9 +50,9 @@ import java.util.logging.Logger;
  * It accepts an {@link FeatureConverter} that converts an example's features into a {@link TensorMap}, and an
  * {@link OutputConverter} that converts a {@link Tensor} into a {@link Prediction}.
  * <p>
- * The model's serialVersionUID is set to the major Tensorflow version number times 100.
+ * The model's serialVersionUID is set to the major TensorFlow version number times 100.
  * <p>
- * N.B. Tensorflow support is experimental and may change without a major version bump.
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowModel<T> implements Closeable {
     private static final Logger logger = Logger.getLogger(TensorFlowCheckpointModel.class.getName());
@@ -97,7 +96,9 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
     /**
      * Initializes the model.
      * <p>
-     * Throws {@code TensorFlowException} if it failed to read the checkpoint.
+     * This call closes the old session (if it exists) and creates a fresh session from the current checkpoint path.
+     * <p>
+     * Throws {@link org.tensorflow.exceptions.TensorFlowException} if it failed to read the checkpoint.
      */
     public final void initialize() {
         // Close the old session
@@ -152,7 +153,7 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
      * @return A version of this model using Tribuo's native serialization mechanism.
      */
     public TensorFlowNativeModel<T> convertToNativeModel() {
-        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.serialise(modelGraph,session);
+        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(modelGraph,session);
         return new TensorFlowNativeModel<>(name, provenance, featureIDMap,
                 outputIDInfo, modelGraph.toGraphDef(), tensorMap, batchSize, initName, outputName, featureConverter, outputConverter);
     }

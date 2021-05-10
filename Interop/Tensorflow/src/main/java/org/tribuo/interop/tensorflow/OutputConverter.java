@@ -36,14 +36,14 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 /**
- * TensorFlow support is experimental, and may change without a major version bump.
- * <p>
  * Converts the {@link Output} into a {@link Tensor} and vice versa.
  * <p>
  * Also provides the loss function for this output type, along with the
  * function which converts the TF graph output into a
  * well formed output float (e.g., a softmax for classification, a sigmoid
  * for multi-label, or the identity function for regression).
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  * @param <T> The output type.
  */
 public interface OutputConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {

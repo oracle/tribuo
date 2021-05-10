@@ -30,8 +30,10 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Converts a Tensorflow output tensor into a list of predictions, and a Tribuo sequence example into
+ * Converts a TensorFlow output tensor into a list of predictions, and a Tribuo sequence example into
  * a Tensorflow tensor suitable for training.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public interface SequenceOutputConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 

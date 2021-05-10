@@ -29,11 +29,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * TensorFlow support is experimental, and may change without a major version bump.
- * <p>
  * Transforms an {@link Example} or {@link SGDVector}, extracting the features from it as a {@link TensorMap}.
  * <p>
  * This usually densifies the example, so can be a lot larger than the input example.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public interface FeatureConverter extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 

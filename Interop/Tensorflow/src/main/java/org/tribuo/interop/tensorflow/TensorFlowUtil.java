@@ -37,7 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Helper functions for working with Tensorflow.
+ * Helper functions for working with TensorFlow.
  */
 public abstract class TensorFlowUtil {
     private static final Logger logger = Logger.getLogger(TensorFlowUtil.class.getName());
@@ -63,7 +63,7 @@ public abstract class TensorFlowUtil {
 
     /**
      * Annotates a graph with an extra placeholder and assign operation for each
-     * VariableV2. This allows the graph to be deserialised using {@link TensorFlowUtil#deserialise(Session, Map)}.
+     * VariableV2. This allows the graph to be deserialised using {@link TensorFlowUtil#restoreMarshalledVariables(Session, Map)}.
      * <p>
      * This operation can either be done each time the Graph is loaded before deserialise is called,
      * or once, and the updated graphDef persisted with the Map produced by serialise.
@@ -128,7 +128,7 @@ public abstract class TensorFlowUtil {
      * @param session The session to read from.
      * @return A map containing all variable names and parameter arrays.
      */
-    public static Map<String, TensorTuple> serialise(Graph graph, Session session) {
+    public static Map<String, TensorTuple> extractMarshalledVariables(Graph graph, Session session) {
         List<String> variableNames = new ArrayList<>();
         Iterator<Operation> opItr = graph.operations();
         while (opItr.hasNext()) {
@@ -168,7 +168,7 @@ public abstract class TensorFlowUtil {
      * @param session   The session to write to.
      * @param tensorMap The parameter map to write.
      */
-    public static void deserialise(Session session, Map<String, TensorTuple> tensorMap) {
+    public static void restoreMarshalledVariables(Session session, Map<String, TensorTuple> tensorMap) {
         Session.Runner runner = session.runner();
         List<Tensor> tensors = new ArrayList<>();
         for (Map.Entry<String, TensorTuple> e : tensorMap.entrySet()) {

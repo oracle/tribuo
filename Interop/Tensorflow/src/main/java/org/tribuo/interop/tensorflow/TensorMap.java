@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * A map of names and tensors to feed into a session.
  */
-public class TensorMap implements AutoCloseable {
+public final class TensorMap implements AutoCloseable {
     private final Map<String, Tensor> map;
     private boolean isClosed;
 

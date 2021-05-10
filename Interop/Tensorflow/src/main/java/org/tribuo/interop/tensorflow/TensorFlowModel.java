@@ -33,6 +33,8 @@ import java.util.logging.Logger;
  * <p>
  * The subclasses are package private and concern themselves with how the model is stored
  * on disk.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  * @param <T> The output type.
  */
 public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> implements AutoCloseable {

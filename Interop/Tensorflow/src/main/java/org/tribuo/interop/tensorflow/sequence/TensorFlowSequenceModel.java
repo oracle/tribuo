@@ -38,6 +38,8 @@ import java.util.Map;
 
 /**
  * A TensorFlow model which implements SequenceModel, suitable for use in sequential prediction tasks.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<T> implements AutoCloseable {
 
@@ -74,7 +76,7 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
 
         // Initialises the parameters.
         session.run(initOp);
-        TensorFlowUtil.deserialise(session, tensorMap);
+        TensorFlowUtil.restoreMarshalledVariables(session, tensorMap);
     }
 
     @Override
@@ -116,7 +118,7 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
         out.defaultWriteObject();
         byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
         out.writeObject(modelBytes);
-        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.serialise(modelGraph, session);
+        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(modelGraph, session);
         out.writeObject(tensorMap);
     }
 
@@ -130,6 +132,6 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
         session = new Session(modelGraph);
         // Initialises the parameters.
         session.run(initOp);
-        TensorFlowUtil.deserialise(session,tensorMap);
+        TensorFlowUtil.restoreMarshalledVariables(session,tensorMap);
     }
 }

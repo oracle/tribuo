@@ -39,9 +39,9 @@ import java.util.Map;
  * This model's serialized form stores the weights and is entirely self contained.
  * If you wish to convert it into a model which uses checkpoints then call {@link #convertToCheckpointModel}.
  * <p>
- * The model's serialVersionUID is set to the major Tensorflow version number times 100.
+ * The model's serialVersionUID is set to the major TensorFlow version number times 100.
  * <p>
- * N.B. Tensorflow support is experimental and may change without a major version bump.
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<T> {
     private static final long serialVersionUID = 200L;
@@ -50,12 +50,12 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
         super(name, description, featureIDMap, outputIDMap, trainedGraphDef, batchSize, initName, outputName, featureConverter, outputConverter);
         // Initialises the parameters.
         session.run(initName);
-        TensorFlowUtil.deserialise(session,tensorMap);
+        TensorFlowUtil.restoreMarshalledVariables(session,tensorMap);
     }
 
     @Override
     protected TensorFlowNativeModel<T> copy(String newName, ModelProvenance newProvenance) {
-        return new TensorFlowNativeModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(), TensorFlowUtil.serialise(modelGraph,session),batchSize,initName,outputName, featureConverter, outputConverter);
+        return new TensorFlowNativeModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(), TensorFlowUtil.extractMarshalledVariables(modelGraph,session),batchSize,initName,outputName, featureConverter, outputConverter);
     }
 
     /**
@@ -77,7 +77,7 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
         out.defaultWriteObject();
         byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
         out.writeObject(modelBytes);
-        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.serialise(modelGraph, session);
+        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(modelGraph, session);
         out.writeObject(tensorMap);
     }
 
@@ -91,6 +91,6 @@ public class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<
         session = new Session(modelGraph);
         // Initialises the parameters.
         session.run(initName);
-        TensorFlowUtil.deserialise(session,tensorMap);
+        TensorFlowUtil.restoreMarshalledVariables(session,tensorMap);
     }
 }
