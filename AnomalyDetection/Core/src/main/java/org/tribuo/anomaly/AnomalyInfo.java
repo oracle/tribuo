@@ -147,7 +147,12 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
 
     @Override
     public String toReadableString() {
-        return "{Anomalies:"+anomalyCount+",expected:"+expectedCount+"}";
+        return "AnomalyInfo(anomalies="+anomalyCount+",expected="+expectedCount+",unknown="+unknownCount+")";
+    }
+
+    @Override
+    public String toString() {
+        return toReadableString();
     }
 
     @Override
