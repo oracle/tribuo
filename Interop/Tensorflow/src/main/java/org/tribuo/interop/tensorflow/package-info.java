@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 /**
  * Provides an interface to TensorFlow, allowing the training of non-sequential models using any supported
- * Tribuo output type.
+ * Tribuo output type. Sequential model support is found in {@link org.tribuo.interop.tensorflow.sequence}.
  * <p>
- * Tribuo's TensorFlow support operates in Graph mode, as in v0.3.0 that is the only way to access
+ * Tribuo's TensorFlow support operates in Graph mode, as in v0.3.1 that is the only way to access
  * gradients. The set of supported gradients is determined by TensorFlow, and not all gradients are
- * available in TensorFlow Java in v0.3.0. Unsupported gradients will trigger an exception when the
+ * available in TensorFlow Java in v0.3.1. Unsupported gradients will trigger an exception when the
  * train method is called.
  * <p>
  * Models can store their trained parameters in two ways, either inside the Tribuo serialized model file

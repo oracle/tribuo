@@ -73,7 +73,7 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
     private GraphDef graphDef;
 
     @Config(mandatory=true,description="Sequence feature extractor.")
-    protected SequenceExampleConverter<T> exampleConverter;
+    protected SequenceFeatureConverter featureConverter;
     @Config(mandatory=true,description="Sequence output extractor.")
     protected SequenceOutputConverter<T> outputConverter;
 
@@ -100,7 +100,7 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
     protected int trainInvocationCounter;
 
     public TensorFlowSequenceTrainer(Path graphPath,
-                                     SequenceExampleConverter<T> exampleConverter,
+                                     SequenceFeatureConverter featureConverter,
                                      SequenceOutputConverter<T> outputConverter,
                                      int minibatchSize,
                                      int epochs,
@@ -111,7 +111,7 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
                                      String getLossOp,
                                      String predictOp) throws IOException {
         this.graphPath = graphPath;
-        this.exampleConverter = exampleConverter;
+        this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
         this.minibatchSize = minibatchSize;
         this.epochs = epochs;
@@ -180,7 +180,7 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
                     }
                     //
                     // Transform examples to tensors
-                    TensorMap featureTensors = exampleConverter.encode(batch, featureMap);
+                    TensorMap featureTensors = featureConverter.encode(batch, featureMap);
                     //
                     // Add supervision
                     TensorMap supervisionTensors = outputConverter.encode(batch, labelMap);
@@ -228,7 +228,7 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
                     featureMap,
                     labelMap,
                     trainedGraphDef,
-                    exampleConverter,
+                    featureConverter,
                     outputConverter,
                     initOp,
                     predictOp,
@@ -249,7 +249,7 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
     @Override
     public String toString() {
         return "TensorflowSequenceTrainer(graphPath="+graphPath.toString()+",exampleConverter="
-                +exampleConverter.toString()+",outputConverter="+outputConverter.toString()
+                + featureConverter.toString()+",outputConverter="+outputConverter.toString()
                 +",minibatchSize="+ minibatchSize +",epochs="+ epochs +",seed="+seed+")";
     }
 

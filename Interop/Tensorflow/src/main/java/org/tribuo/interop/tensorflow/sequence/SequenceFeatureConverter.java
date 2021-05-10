@@ -26,13 +26,14 @@ import org.tribuo.sequence.SequenceExample;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Converts a sequence example into a feed dict suitable for TensorFlow.
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public interface SequenceExampleConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceFeatureConverter extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Encodes an example as a feed dict.
@@ -41,7 +42,7 @@ public interface SequenceExampleConverter<T extends Output<T>> extends Configura
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    TensorMap encode(SequenceExample<T> example, ImmutableFeatureMap featureMap);
+    TensorMap encode(SequenceExample<?> example, ImmutableFeatureMap featureMap);
 
     /**
      * Encodes a batch of examples as a feed dict.
@@ -50,6 +51,11 @@ public interface SequenceExampleConverter<T extends Output<T>> extends Configura
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    TensorMap encode(List<SequenceExample<T>> batch, ImmutableFeatureMap featureMap);
+    TensorMap encode(List<? extends SequenceExample<?>> batch, ImmutableFeatureMap featureMap);
 
+    /**
+     * Gets a view of the names of the inputs this converter produces.
+     * @return The input names.
+     */
+    Set<String> inputNamesSet();
 }

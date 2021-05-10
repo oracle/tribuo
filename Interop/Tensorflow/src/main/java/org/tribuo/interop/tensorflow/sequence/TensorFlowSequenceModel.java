@@ -48,7 +48,7 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
     private transient Graph modelGraph = null;
     private transient Session session = null;
 
-    protected final SequenceExampleConverter<T> exampleConverter;
+    protected final SequenceFeatureConverter featureConverter;
     protected final SequenceOutputConverter<T> outputConverter;
 
     protected final String initOp;
@@ -59,14 +59,14 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
                             ImmutableFeatureMap featureIDMap,
                             ImmutableOutputInfo<T> outputIDMap,
                             GraphDef graphDef,
-                            SequenceExampleConverter<T> exampleConverter,
+                            SequenceFeatureConverter featureConverter,
                             SequenceOutputConverter<T> outputConverter,
                             String initOp,
                             String predictOp,
                             Map<String, TensorFlowUtil.TensorTuple> tensorMap
     ) {
         super(name, description, featureIDMap, outputIDMap);
-        this.exampleConverter = exampleConverter;
+        this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
         this.initOp = initOp;
         this.predictOp = predictOp;
@@ -81,7 +81,7 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
 
     @Override
     public List<Prediction<T>> predict(SequenceExample<T> example) {
-        try (TensorMap feed = exampleConverter.encode(example, featureIDMap)) {
+        try (TensorMap feed = featureConverter.encode(example, featureIDMap)) {
             Session.Runner runner = session.runner();
             runner = feed.feedInto(runner);
             try (Tensor outputTensor = runner
