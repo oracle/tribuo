@@ -178,4 +178,25 @@ public class Prediction<T extends Output<T>> implements Serializable {
 
         return buffer.toString();
     }
+
+    /**
+     * Checks that the other prediction has the same distribution as this prediction,
+     * using the {@link Output#fullEquals} method.
+     * @param other The prediction to compare.
+     * @return True if they have the same distributions.
+     */
+    public boolean distributionEquals(Prediction<T> other) {
+        if (outputScores.size() != other.outputScores.size()) {
+            return false;
+        }
+        for (Map.Entry<String,T> e : outputScores.entrySet()) {
+            T otherScore = other.outputScores.get(e.getKey());
+            if (otherScore == null) {
+                return false;
+            } else if (!e.getValue().fullEquals(otherScore)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

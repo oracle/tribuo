@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021 Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 
 /**
- * Provides an interface for working with TensorFlow sequence models, using Tribuo's
- * {@link org.tribuo.sequence.SequenceModel} abstraction.
+ * Example architectures for use with Tribuo's TF interface.
  * <p>
- * N.B. TensorFlow support is experimental and may change without a major version bump.
+ * Also used to provide architectures for the unit tests.
  */
-package org.tribuo.interop.tensorflow.sequence;
+package org.tribuo.interop.tensorflow.example;

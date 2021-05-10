@@ -28,6 +28,16 @@
     <artifactId>tribuo-tensorflow</artifactId>
     <packaging>jar</packaging>
 
+    <repositories>
+        <repository>
+            <id>tensorflow-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -49,12 +59,27 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>tribuo-multilabel-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-regression-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.tensorflow</groupId>
-            <artifactId>libtensorflow</artifactId>
+            <artifactId>tensorflow-core-api</artifactId>
+            <version>${tensorflow.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow-core-platform</artifactId>
+            <version>${tensorflow.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tensorflow</groupId>
+            <artifactId>tensorflow-framework</artifactId>
             <version>${tensorflow.version}</version>
         </dependency>
 
@@ -98,6 +123,16 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                     <skipTests>${skipTFTests}</skipTests>
+                     <environmentVariables>
+                         <TF_CPP_MIN_LOG_LEVEL>1</TF_CPP_MIN_LOG_LEVEL>
+                     </environmentVariables>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

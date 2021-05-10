@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,12 @@ package org.tribuo.interop.tensorflow;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.Operand;
+import org.tensorflow.op.Op;
+import org.tensorflow.op.Ops;
+import org.tensorflow.op.core.Placeholder;
+import org.tensorflow.types.family.TNumber;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
@@ -27,13 +33,37 @@ import org.tensorflow.Tensor;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.function.BiFunction;
 
 /**
- * TensorFlow support is experimental, and may change without a major version bump.
- * <p>
  * Converts the {@link Output} into a {@link Tensor} and vice versa.
+ * <p>
+ * Also provides the loss function for this output type, along with the
+ * function which converts the TF graph output into a
+ * well formed output float (e.g., a softmax for classification, a sigmoid
+ * for multi-label, or the identity function for regression).
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
+ * @param <T> The output type.
  */
-public interface OutputTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface OutputConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+
+    /**
+     * The loss function associated with this prediction type.
+     * @return The TF loss function.
+     */
+    public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss();
+
+    /**
+     * Produces an output transformation function that applies the operation to
+     * the graph from the supplied {@link Ops}, taking a graph output operation.
+     * <p>
+     * For example this function will apply a softmax for classification, a sigmoid
+     * for multi-label, or the identity function for regression.
+     * @param <U> The type of the graph output.
+     * @return A function which applies the appropriate transformation function.
+     */
+    public <U extends TNumber> BiFunction<Ops, Operand<U>, Op> outputTransformFunction();
 
     /**
      * Converts a {@link Tensor} into a {@link Prediction}.
@@ -43,7 +73,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param example The example to insert into the prediction.
      * @return A prediction object.
      */
-    public Prediction<T> transformToPrediction(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo, int numValidFeatures, Example<T> example);
+    public Prediction<T> convertToPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int numValidFeatures, Example<T> example);
 
     /**
      * Converts a {@link Tensor} into the specified output type.
@@ -51,7 +81,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A output.
      */
-    public T transformToOutput(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo);
+    public T convertToOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts a {@link Tensor} containing multiple outputs into a list of {@link Prediction}s.
@@ -61,7 +91,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param examples The example to insert into the prediction.
      * @return A list of predictions.
      */
-    public List<Prediction<T>> transformToBatchPrediction(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo, int[] numValidFeatures, List<Example<T>> examples);
+    public List<Prediction<T>> convertToBatchPrediction(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo, int[] numValidFeatures, List<Example<T>> examples);
 
     /**
      * Converts a {@link Tensor} containing multiple outputs into a list of {@link Output}s.
@@ -69,7 +99,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A list of outputs.
      */
-    public List<T> transformToBatchOutput(Tensor<?> tensor, ImmutableOutputInfo<T> outputIDInfo);
+    public List<T> convertToBatchOutput(Tensor tensor, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts an {@link Output} into a {@link Tensor} representing it's output.
@@ -77,7 +107,7 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A Tensor representing this output.
      */
-    public Tensor<?> transform(T output, ImmutableOutputInfo<T> outputIDInfo);
+    public Tensor convertToTensor(T output, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
      * Converts a list of {@link Example} into a {@link Tensor} representing all the outputs
@@ -86,10 +116,10 @@ public interface OutputTransformer<T extends Output<T>> extends Configurable, Pr
      * @param outputIDInfo The output info to use to identify the outputs.
      * @return A Tensor representing all the supplied Outputs.
      */
-    public Tensor<?> transform(List<Example<T>> examples, ImmutableOutputInfo<T> outputIDInfo);
+    public Tensor convertToTensor(List<Example<T>> examples, ImmutableOutputInfo<T> outputIDInfo);
 
     /**
-     * Does this OutputTransformer generate probabilities.
+     * Does this OutputConverter generate probabilities.
      * @return True if it produces a probability distribution in the {@link Prediction}.
      */
     public boolean generatesProbabilities();

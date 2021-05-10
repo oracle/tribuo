@@ -105,6 +105,14 @@ public final class Helpers {
             Assertions.assertEquals(model.getProvenance(), deserializedModel.getProvenance());
             // validate that the model is still of the right type
             Assertions.assertTrue(deserializedModel.validate(outputClazz));
+            if (deserializedModel instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) deserializedModel).close();
+                } catch (Exception ex) {
+                    logger.severe("Exception thrown when closing model");
+                    Assertions.fail("Failed to close deserialized model " + model.getClass().toString(),ex);
+                }
+            }
         } catch (IOException ex) {
             logger.severe("IOException when reading in model");
             Assertions.fail("Failed to deserialize model class " + model.getClass().toString(), ex);
@@ -134,6 +142,14 @@ public final class Helpers {
             Assertions.assertEquals(model.getProvenance(), deserializedModel.getProvenance());
             // validate that the model is still of the right type
             Assertions.assertTrue(deserializedModel.validate(outputClazz));
+            if (deserializedModel instanceof AutoCloseable) {
+                try {
+                    ((AutoCloseable) deserializedModel).close();
+                } catch (Exception ex) {
+                    logger.severe("Exception thrown when closing model");
+                    Assertions.fail("Failed to close deserialized model " + model.getClass().toString(),ex);
+                }
+            }
         } catch (IOException ex) {
             logger.severe("IOException when reading in model");
             Assertions.fail("Failed to deserialize sequence model class " + model.getClass().toString(), ex);

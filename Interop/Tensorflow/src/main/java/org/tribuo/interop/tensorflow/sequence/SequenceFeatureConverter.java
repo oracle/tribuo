@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,19 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.interop.tensorflow.TensorMap;
 import org.tribuo.sequence.SequenceExample;
-import org.tensorflow.Tensor;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 /**
- * Converts a sequence example into a feed dict suitable for Tensorflow.
+ * Converts a sequence example into a feed dict suitable for TensorFlow.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public interface SequenceExampleTransformer<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceFeatureConverter extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Encodes an example as a feed dict.
@@ -40,7 +42,7 @@ public interface SequenceExampleTransformer<T extends Output<T>> extends Configu
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor<?>> encode(SequenceExample<T> example, ImmutableFeatureMap featureMap);
+    TensorMap encode(SequenceExample<?> example, ImmutableFeatureMap featureMap);
 
     /**
      * Encodes a batch of examples as a feed dict.
@@ -49,6 +51,11 @@ public interface SequenceExampleTransformer<T extends Output<T>> extends Configu
      * @param featureMap feature domain
      * @return a map from graph placeholder names to their fed-in values.
      */
-    Map<String, Tensor<?>> encode(List<SequenceExample<T>> batch, ImmutableFeatureMap featureMap);
+    TensorMap encode(List<? extends SequenceExample<?>> batch, ImmutableFeatureMap featureMap);
 
+    /**
+     * Gets a view of the names of the inputs this converter produces.
+     * @return The input names.
+     */
+    Set<String> inputNamesSet();
 }

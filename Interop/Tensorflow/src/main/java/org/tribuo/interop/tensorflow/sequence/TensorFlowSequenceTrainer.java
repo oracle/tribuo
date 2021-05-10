@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,14 @@ import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.tensorflow.exceptions.TensorFlowException;
+import org.tensorflow.proto.framework.GraphDef;
+import org.tensorflow.types.TFloat32;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
-import org.tribuo.interop.tensorflow.TensorflowUtil;
+import org.tribuo.interop.tensorflow.TensorMap;
+import org.tribuo.interop.tensorflow.TensorFlowUtil;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.SkeletalTrainerProvenance;
 import org.tribuo.provenance.TrainerProvenance;
@@ -39,10 +43,10 @@ import org.tribuo.util.Util;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
-import org.tensorflow.TensorFlowException;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -55,21 +59,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A trainer for SequenceModels which use an underlying Tensorflow graph.
+ * A trainer for SequenceModels which use an underlying TensorFlow graph.
+ * <p>
+ * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceTrainer<T> {
+public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceTrainer<T> {
     
-    private static final Logger log = Logger.getLogger(TensorflowSequenceTrainer.class.getName());
+    private static final Logger log = Logger.getLogger(TensorFlowSequenceTrainer.class.getName());
 
-    @Config(mandatory=true,description="Path to the protobuf containing the Tensorflow graph.")
+    @Config(mandatory=true,description="Path to the protobuf containing the TensorFlow graph.")
     protected Path graphPath;
 
-    private byte[] graphDef;
+    private GraphDef graphDef;
 
     @Config(mandatory=true,description="Sequence feature extractor.")
-    protected SequenceExampleTransformer<T> exampleTransformer;
+    protected SequenceFeatureConverter featureConverter;
     @Config(mandatory=true,description="Sequence output extractor.")
-    protected SequenceOutputTransformer<T> outputTransformer;
+    protected SequenceOutputConverter<T> outputConverter;
 
     @Config(description="Minibatch size")
     protected int minibatchSize = 1;
@@ -93,9 +99,9 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
 
     protected int trainInvocationCounter;
 
-    public TensorflowSequenceTrainer(Path graphPath,
-                                     SequenceExampleTransformer<T> exampleTransformer,
-                                     SequenceOutputTransformer<T> outputTransformer,
+    public TensorFlowSequenceTrainer(Path graphPath,
+                                     SequenceFeatureConverter featureConverter,
+                                     SequenceOutputConverter<T> outputConverter,
                                      int minibatchSize,
                                      int epochs,
                                      int loggingInterval,
@@ -105,8 +111,8 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
                                      String getLossOp,
                                      String predictOp) throws IOException {
         this.graphPath = graphPath;
-        this.exampleTransformer = exampleTransformer;
-        this.outputTransformer = outputTransformer;
+        this.featureConverter = featureConverter;
+        this.outputConverter = outputConverter;
         this.minibatchSize = minibatchSize;
         this.epochs = epochs;
         this.loggingInterval = loggingInterval;
@@ -119,12 +125,15 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
     }
 
     /** Constructor required by olcut config system. **/
-    private TensorflowSequenceTrainer() { }
+    private TensorFlowSequenceTrainer() { }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public synchronized void postConfig() throws IOException {
         rng = new SplittableRandom(seed);
-        graphDef = Files.readAllBytes(graphPath);
+        graphDef = GraphDef.parseFrom(new BufferedInputStream(new FileInputStream(graphPath.toFile())));
     }
 
     @Override
@@ -150,7 +159,7 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
             graph.importGraphDef(graphDef);
             //
             // Initialise the variables.
-            session.runner().addTarget(initOp).run();
+            session.run(initOp);
             log.info("Initialised the model parameters");
             //
             // Run additional initialization routines, if needed.
@@ -171,55 +180,56 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
                     }
                     //
                     // Transform examples to tensors
-                    Map<String, Tensor<?>> feed = exampleTransformer.encode(batch, featureMap);
+                    TensorMap featureTensors = featureConverter.encode(batch, featureMap);
                     //
                     // Add supervision
-                    feed.putAll(outputTransformer.encode(batch, labelMap));
+                    TensorMap supervisionTensors = outputConverter.encode(batch, labelMap);
                     //
                     // Add any additional training hyperparameter values to the feed dict.
-                    feed.putAll(getHyperparameterFeed());
+                    TensorMap parameterTensors = getHyperparameterFeed();
                     //
                     // Populate the runner.
                     Session.Runner runner = session.runner();
-                    for (Map.Entry<String, Tensor<?>> item : feed.entrySet()) {
-                        runner.feed(item.getKey(), item.getValue());
-                    }
+                    featureTensors.feedInto(runner);
+                    supervisionTensors.feedInto(runner);
+                    parameterTensors.feedInto(runner);
                     //
                     // Run a training batch.
-                    Tensor<?> loss = runner
+                    try (Tensor loss = runner
                             .addTarget(trainOp)
                             .fetch(getLossOp)
                             .run()
-                            .get(0);
-                    if (interval % loggingInterval == 0) {
-                        log.info(String.format("loss %-5.6f [epoch %-2d batch %-4d #(%d - %d)/%d]",
-                                loss.floatValue(), i, interval, j, Math.min(examples.size(), j+minibatchSize), examples.size()));
+                            .get(0)) {
+                        if (interval % loggingInterval == 0) {
+                            float lossVal = ((TFloat32) loss).getFloat(0);
+                            log.info(String.format("loss %-5.6f [epoch %-2d batch %-4d #(%d - %d)/%d]",
+                                    lossVal, i, interval, j, Math.min(examples.size(), j + minibatchSize), examples.size()));
+                        }
+                        interval++;
                     }
-                    interval++;
                     //
                     // Cleanup: close the tensors.
-                    loss.close();
-                    for (Tensor<?> tns : feed.values()) {
-                        tns.close();
-                    }
+                    featureTensors.close();
+                    supervisionTensors.close();
+                    parameterTensors.close();
                 }
             }
             
             // This call **must** happen before the trainedGraphDef is generated.
-            TensorflowUtil.annotateGraph(graph,session);
+            TensorFlowUtil.annotateGraph(graph,session);
             //
             // Generate the trained graph def.
-            byte[] trainedGraphDef = graph.toGraphDef();
-            Map<String,Object> tensorMap = TensorflowUtil.serialise(graph,session);
-            ModelProvenance modelProvenance = new ModelProvenance(TensorflowSequenceModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), provenance, runProvenance);
-            return new TensorflowSequenceModel<>(
+            GraphDef trainedGraphDef = graph.toGraphDef();
+            Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(graph,session);
+            ModelProvenance modelProvenance = new ModelProvenance(TensorFlowSequenceModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), provenance, runProvenance);
+            return new TensorFlowSequenceModel<>(
                     "tf-sequence-model",
                     modelProvenance,
                     featureMap,
                     labelMap,
                     trainedGraphDef,
-                    exampleTransformer,
-                    outputTransformer,
+                    featureConverter,
+                    outputConverter,
                     initOp,
                     predictOp,
                     tensorMap
@@ -238,23 +248,38 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
 
     @Override
     public String toString() {
-        return "TensorflowSequenceTrainer(graphPath="+graphPath.toString()+",exampleTransformer="
-                +exampleTransformer.toString()+",outputTransformer="+outputTransformer.toString()
+        return "TensorflowSequenceTrainer(graphPath="+graphPath.toString()+",exampleConverter="
+                + featureConverter.toString()+",outputConverter="+outputConverter.toString()
                 +",minibatchSize="+ minibatchSize +",epochs="+ epochs +",seed="+seed+")";
     }
 
+    /**
+     * A hook for modifying the session state before training starts.
+     * <p>
+     * This should not mutate any state in the trainer.
+     * @param session The session to modify.
+     * @param examples The dataset.
+     */
     protected void preTrainingHook(Session session, SequenceDataset<T> examples) {}
 
-    protected Map<String, Tensor<?>> getHyperparameterFeed() {
-        return Collections.emptyMap();
+    /**
+     * Build any necessary non-data parameter tensors.
+     * <p>
+     * The default implementation returns an empty map, and should be overridden if necessary.
+     * <p>
+     * This should not mutate any state in the trainer.
+     * @return The parameter tensors.
+     */
+    protected TensorMap getHyperparameterFeed() {
+        return new TensorMap(Collections.emptyMap());
     }
 
     @Override
     public TrainerProvenance getProvenance() {
-        return new TensorflowSequenceTrainerProvenance(this);
+        return new TensorFlowSequenceTrainerProvenance(this);
     }
 
-    public static class TensorflowSequenceTrainerProvenance extends SkeletalTrainerProvenance {
+    public static class TensorFlowSequenceTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 
         public static final String GRAPH_HASH = "graph-hash";
@@ -263,18 +288,18 @@ public class TensorflowSequenceTrainer<T extends Output<T>> implements SequenceT
         private final StringProvenance graphHash;
         private final DateTimeProvenance graphLastModified;
 
-        <T extends Output<T>> TensorflowSequenceTrainerProvenance(TensorflowSequenceTrainer<T> host) {
+        <T extends Output<T>> TensorFlowSequenceTrainerProvenance(TensorFlowSequenceTrainer<T> host) {
             super(host);
             // instance parameters
             this.graphHash = new StringProvenance(GRAPH_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.graphPath));
             this.graphLastModified = new DateTimeProvenance(GRAPH_LAST_MOD,OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.graphPath.toFile().lastModified()), ZoneId.systemDefault()));
         }
 
-        public TensorflowSequenceTrainerProvenance(Map<String,Provenance> map) {
+        public TensorFlowSequenceTrainerProvenance(Map<String,Provenance> map) {
             this(extractTFProvenanceInfo(map));
         }
 
-        private TensorflowSequenceTrainerProvenance(ExtractedInfo info) {
+        private TensorFlowSequenceTrainerProvenance(ExtractedInfo info) {
             super(info);
             this.graphHash = (StringProvenance) info.instanceValues.get(GRAPH_HASH);
             this.graphLastModified = (DateTimeProvenance) info.instanceValues.get(GRAPH_LAST_MOD);

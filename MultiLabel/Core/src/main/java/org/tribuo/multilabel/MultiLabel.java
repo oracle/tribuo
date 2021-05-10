@@ -20,9 +20,11 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 import org.tribuo.classification.Label;
+import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +40,11 @@ import java.util.stream.Collectors;
  * Multi-label classification is where a (possibly empty) set of labels
  * is predicted for each example. For example, predicting that a Reuters
  * article has both the Finance and Sports labels.
+ * <p>
+ * Both the labels in the set, and the MultiLabel itself may have optional
+ * scores (which are not required to be probabilities). If the scores are
+ * not present these are represented by {@link Double#NaN}. This is most
+ * common with ground-truth labels which usually do not supply scores.
  */
 public class MultiLabel implements Classifiable<MultiLabel> {
     private static final long serialVersionUID = 1L;
@@ -278,6 +285,44 @@ public class MultiLabel implements Classifiable<MultiLabel> {
     }
 
     /**
+     * Converts this MultiLabel into a DenseVector using the indices from the output info.
+     * The label score is used as the value for that index if it's non-NaN, and is 1.0 otherwise.
+     * Labels which are not present are given the score 0.0.
+     * @param info The info to use for the ids.
+     * @return A DenseVector representing this MultiLabel.
+     */
+    public DenseVector convertToDenseVector(ImmutableOutputInfo<MultiLabel> info) {
+        if (!(info instanceof ImmutableMultiLabelInfo)) {
+            throw new IllegalStateException("Unexpected info type, found " + info.getClass().getName() + ", expected " + ImmutableMultiLabelInfo.class.getName());
+        } else {
+            ImmutableMultiLabelInfo imInfo = (ImmutableMultiLabelInfo) info;
+            Set<Integer> seenIndices = new HashSet<>(labels.size());
+            double[] values = new double[imInfo.size()];
+
+            for (Label l : labels) {
+                int i = imInfo.getID(l.getLabel());
+                if (i != -1) {
+                    if (!seenIndices.contains(i)) {
+                        double score = l.getScore();
+                        // A NaN score means this label was constructed without one, meaning it's a ground truth label.
+                        if (Double.isNaN(score)) {
+                            score = 1.0;
+                        }
+                        seenIndices.add(i);
+                        values[i] = score;
+                    } else {
+                        throw new IllegalArgumentException("Duplicate label ids found for id " + i + ", mapping to Label '" + l.getLabel() + "'");
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unknown label '" + l.getLabel() + "' which was not recognised by the supplied info object, info = " + info.toString());
+                }
+            }
+
+            return DenseVector.createDenseVector(values);
+        }
+    }
+
+    /**
      * Converts this MultiLabel into a SparseVector using the indices from the output info.
      * The label score is used as the value for that index if it's non-NaN, and is 1.0 otherwise.
      * @param info The info to use for the ids.
@@ -294,6 +339,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
                 int i = imInfo.getID(l.getLabel());
                 if (i != -1) {
                     double score = l.getScore();
+                    // A NaN score means this label was constructed without one, meaning it's a ground truth label.
                     if (Double.isNaN(score)) {
                         score = 1.0;
                     }

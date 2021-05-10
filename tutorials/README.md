@@ -16,3 +16,4 @@ The tutorials cover:
 - [Anomaly Detection with LibSVM](anomaly-tribuo-v4.ipynb)
 - [Loading columnar data](columnar-tribuo-v4.ipynb)
 - [Importing third-party models](external-models-tribuo-v4.ipynb)
+- [Training and deploying TensorFlow models](tensorflow-tribuo-v4.ipynb)

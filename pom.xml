@@ -48,7 +48,7 @@
         <liblinear.version>2.43</liblinear.version>
         <libsvm.version>3.24</libsvm.version>
         <onnxruntime.version>1.7.0</onnxruntime.version>
-        <tensorflow.version>1.14.0</tensorflow.version>
+        <tensorflow.version>0.3.1</tensorflow.version>
         <xgboost.version>1.4.1</xgboost.version>
 
         <!-- 3rd party other dependencies -->
@@ -60,6 +60,7 @@
         <!-- Turn off tests which rely on native code -->
         <skipXGBoostTests>false</skipXGBoostTests>
         <skipONNXTests>false</skipONNXTests>
+        <skipTFTests>false</skipTFTests>
     </properties>
 
     <name>Tribuo</name>
@@ -254,6 +255,11 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.1</version>
             </plugin>
         </plugins>
     </build>
