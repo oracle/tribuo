@@ -68,6 +68,9 @@ public final class TensorMap implements AutoCloseable {
 
     /**
      * Feeds the tensors in this FeedDict into the runner.
+     * <p>
+     * If the session does not have placeholders with the names used in this TensorMap
+     * then the {@code Session.Runner} will throw {@link IllegalArgumentException}.
      *
      * @param runner The session runner.
      * @return The runner.
