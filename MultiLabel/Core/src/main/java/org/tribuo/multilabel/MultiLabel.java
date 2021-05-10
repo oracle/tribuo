@@ -40,6 +40,11 @@ import java.util.stream.Collectors;
  * Multi-label classification is where a (possibly empty) set of labels
  * is predicted for each example. For example, predicting that a Reuters
  * article has both the Finance and Sports labels.
+ * <p>
+ * Both the labels in the set, and the MultiLabel itself may have optional
+ * scores (which are not required to be probabilities). If the scores are
+ * not present these are represented by {@link Double#NaN}. This is most
+ * common with ground-truth labels which usually do not supply scores.
  */
 public class MultiLabel implements Classifiable<MultiLabel> {
     private static final long serialVersionUID = 1L;
@@ -299,6 +304,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
                 if (i != -1) {
                     if (!seenIndices.contains(i)) {
                         double score = l.getScore();
+                        // A NaN score means this label was constructed without one, meaning it's a ground truth label.
                         if (Double.isNaN(score)) {
                             score = 1.0;
                         }
@@ -333,6 +339,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
                 int i = imInfo.getID(l.getLabel());
                 if (i != -1) {
                     double score = l.getScore();
+                    // A NaN score means this label was constructed without one, meaning it's a ground truth label.
                     if (Double.isNaN(score)) {
                         score = 1.0;
                     }
