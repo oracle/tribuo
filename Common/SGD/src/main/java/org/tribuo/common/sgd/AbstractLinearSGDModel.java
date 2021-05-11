@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,8 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
-import org.tribuo.math.la.DenseVector;
-import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -40,14 +38,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.PriorityQueue;
 
-public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<T> {
+public abstract class AbstractLinearSGDModel<T extends Output<T>> extends AbstractSGDModel<T> {
     private static final long serialVersionUID = 1L;
-
-    /**
-     * The weights for this linear model.
-     */
-    // Note this is not final to allow backwards compatibility for 4.0 models which need to rewrite the field on load.
-    protected DenseMatrix baseWeights;
 
     /**
      * Constructs a linear model trained via SGD.
@@ -55,36 +47,18 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
      * @param provenance The model provenance.
      * @param featureIDMap The feature domain.
      * @param outputIDInfo The output domain.
-     * @param weights The model weights.
+     * @param parameters The model parameters.
      * @param generatesProbabilities Does this model generate probabilities?
      */
     protected AbstractLinearSGDModel(String name, ModelProvenance provenance,
-                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-                           DenseMatrix weights, boolean generatesProbabilities) {
-        super(name, provenance, featureIDMap, outputIDInfo, generatesProbabilities);
-        this.baseWeights = weights;
-    }
-
-    /**
-     * Generates the dense vector prediction from the supplied example.
-     * @param example The example to use for prediction.
-     * @return The prediction and the number of features involved.
-     */
-    protected PredAndActive predictSingle(Example<T> example) {
-        SGDVector features;
-        if (example.size() == featureIDMap.size()) {
-            features = DenseVector.createDenseVector(example, featureIDMap, true);
-        } else {
-            features = SparseVector.createSparseVector(example, featureIDMap, true);
-        }
-        if (features.numActiveElements() == 1) {
-            throw new IllegalArgumentException("No features found in Example " + example.toString());
-        }
-        return new PredAndActive(baseWeights.leftMultiply(features),features.numActiveElements());
+                                     ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
+                                     LinearParameters parameters, boolean generatesProbabilities) {
+        super(name, provenance, featureIDMap, outputIDInfo, parameters, generatesProbabilities, true);
     }
 
     @Override
     public Map<String, List<Pair<String, Double>>> getTopFeatures(int n) {
+        DenseMatrix baseWeights = (DenseMatrix) modelParameters.get()[0];
         int maxFeatures = n < 0 ? featureIDMap.size() + 1 : n;
 
         Comparator<Pair<String,Double>> comparator = Comparator.comparingDouble(p -> Math.abs(p.getB()));
@@ -128,6 +102,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
 
     @Override
     public Optional<Excuse<T>> getExcuse(Example<T> example) {
+        DenseMatrix baseWeights = (DenseMatrix) modelParameters.get()[0];
         Prediction<T> prediction = predict(example);
         Map<String, List<Pair<String, Double>>> weightMap = new HashMap<>();
         int numClasses = baseWeights.getDimension1Size();
@@ -162,19 +137,6 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Model<
      * @return A copy of the weights.
      */
     public DenseMatrix getWeightsCopy() {
-        return baseWeights.copy();
-    }
-
-    /**
-     * A nominal tuple used to capture the prediction and the number of active features used by the model.
-     */
-    protected static final class PredAndActive {
-        public final DenseVector prediction;
-        public final int numActiveFeatures;
-
-        PredAndActive(DenseVector prediction, int numActiveFeatures) {
-            this.prediction = prediction;
-            this.numActiveFeatures = numActiveFeatures;
-        }
+        return ((DenseMatrix)modelParameters.get()[0]).copy();
     }
 }

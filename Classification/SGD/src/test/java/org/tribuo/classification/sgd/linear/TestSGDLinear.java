@@ -28,6 +28,8 @@ import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.classification.sgd.objectives.Hinge;
+import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
+import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.junit.jupiter.api.Assertions;
@@ -52,8 +54,11 @@ public class TestSGDLinear {
 
     @BeforeAll
     public static void setup() {
-        Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
-        logger.setLevel(Level.WARNING);
+        Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
+        for (Class c : classes) {
+            Logger logger = Logger.getLogger(c.getName());
+            logger.setLevel(Level.WARNING);
+        }
     }
 
     public static Model<Label> testSGDLinear(Pair<Dataset<Label>,Dataset<Label>> p) {

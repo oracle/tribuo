@@ -18,6 +18,8 @@ package org.tribuo.math;
 
 import org.tribuo.math.la.Tensor;
 
+import java.io.Serializable;
+
 /**
  * An interface to a {@link Tensor}[] array which accepts updates to the parameters.
  * <p>
@@ -25,8 +27,10 @@ import org.tribuo.math.la.Tensor;
  * <p>
  * Subclasses of this can add methods for calculating gradients for
  * their prediction task, or use an external objective class.
+ * <p>
+ * Implementations must be serializable.
  */
-public interface Parameters {
+public interface Parameters extends Serializable {
 
     /**
      * Generates an empty copy of the underlying {@link Tensor} array.

@@ -46,7 +46,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
 
     private final String[] dimensionNames;
 
-    // Unused as the weights now live in AbstractLinearSGDModel
+    // Unused as the weights now live in AbstractSGDModel
     // It remains for serialization compatibility with Tribuo 4.0
     @Deprecated
     private DenseMatrix weights = null;
@@ -54,6 +54,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
     /**
      * Constructs a linear regression model trained via SGD.
      * @param name The model name.
+     * @param dimensionNames The regression dimension names.
      * @param provenance The model provenance.
      * @param featureIDMap The feature domain.
      * @param outputIDInfo The output domain.
@@ -62,22 +63,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
     LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
                           LinearParameters parameters) {
-        super(name, provenance, featureIDMap, outputIDInfo, parameters.getWeightMatrix(), false);
-        this.dimensionNames = dimensionNames;
-    }
-
-    /**
-     * Constructs a linear regression model trained via SGD.
-     * @param name The model name.
-     * @param provenance The model provenance.
-     * @param featureIDMap The feature domain.
-     * @param outputIDInfo The output domain.
-     * @param weights The model parameters (i.e., the weight matrix).
-     */
-    private LinearSGDModel(String name, String[] dimensionNames, ModelProvenance provenance,
-                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
-                          DenseMatrix weights) {
-        super(name, provenance, featureIDMap, outputIDInfo, weights, false);
+        super(name, provenance, featureIDMap, outputIDInfo, parameters, false);
         this.dimensionNames = dimensionNames;
     }
 
@@ -89,7 +75,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
 
     @Override
     protected LinearSGDModel copy(String newName, ModelProvenance newProvenance) {
-        return new LinearSGDModel(newName,Arrays.copyOf(dimensionNames,dimensionNames.length),newProvenance,featureIDMap,outputIDInfo,getWeightsCopy());
+        return new LinearSGDModel(newName,Arrays.copyOf(dimensionNames,dimensionNames.length),newProvenance,featureIDMap,outputIDInfo,(LinearParameters)modelParameters.copy());
     }
 
     @Override
@@ -101,9 +87,10 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> {
         in.defaultReadObject();
 
         // Bounce old 4.0 style models into the new 4.1 style models
-        if (weights != null && baseWeights == null) {
-            baseWeights = weights;
+        if (weights != null && modelParameters == null) {
+            modelParameters = new LinearParameters(weights);
             weights = null;
+            addBias = true;
         }
     }
 }

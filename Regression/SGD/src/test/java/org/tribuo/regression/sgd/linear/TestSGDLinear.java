@@ -23,6 +23,8 @@ import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
+import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
+import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.optimisers.AdaGrad;
@@ -55,8 +57,11 @@ public class TestSGDLinear {
 
     @BeforeAll
     public static void setup() {
-        Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
-        logger.setLevel(Level.WARNING);
+        Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
+        for (Class c : classes) {
+            Logger logger = Logger.getLogger(c.getName());
+            logger.setLevel(Level.WARNING);
+        }
     }
 
     public static Model<Regressor> testSGDLinear(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
