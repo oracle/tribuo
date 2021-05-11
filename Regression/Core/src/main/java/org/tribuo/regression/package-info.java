@@ -16,5 +16,12 @@
 
 /**
  * Provides classes and infrastructure for regression problems with single or multiple output dimensions.
+ * <p>
+ * All Tribuo regressions are treated as if they have multiple output dimensions, there is no
+ * special casing in the API for single dimensional regression. As a result the methods on
+ * {@link org.tribuo.regression.Regressor} all return arrays of values. Each
+ * {@link org.tribuo.regression.Regressor} can be seen as a collection of
+ * {@link org.tribuo.regression.Regressor.DimensionTuple} each of which represents a single named
+ * regression dimension, along with the associated regressed value and optionally a variance.
  */
 package org.tribuo.regression;

@@ -83,14 +83,44 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
     }
 
     /**
-     * Creates a CART Trainer. Sets the impurity to the {@link MeanSquaredError} and does not normalize the outputs.
+     * Creates a CART Trainer.
+     * <p>
+     * Computes the exact split point.
+     * @param maxDepth maxDepth The maximum depth of the tree.
+     * @param minChildWeight minChildWeight The minimum node weight to consider it for a split.
+     * @param minImpurityDecrease The minimum decrease in impurity necessary to split a node.
+     * @param fractionFeaturesInSplit fractionFeaturesInSplit The fraction of features available in each split.
+     * @param impurity impurity The impurity function to use to determine split quality.
+     * @param normalize Normalize the leaves so each output sums to one.
+     * @param seed The seed to use for the RNG.
+     */
+    public CARTJointRegressionTrainer(
+            int maxDepth,
+            float minChildWeight,
+            float minImpurityDecrease,
+            float fractionFeaturesInSplit,
+            RegressorImpurity impurity,
+            boolean normalize,
+            long seed
+    ) {
+        this(maxDepth, minChildWeight, minImpurityDecrease, fractionFeaturesInSplit, false, impurity, normalize, seed);
+    }
+
+    /**
+     * Creates a CART Trainer.
+     * <p>
+     * Sets the impurity to the {@link MeanSquaredError}, computes an arbitrary depth
+     * tree with exact split points using all the features, and does not normalize the outputs.
      */
     public CARTJointRegressionTrainer() {
         this(Integer.MAX_VALUE, MIN_EXAMPLES, 0.0f, 1.0f, false, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
     }
 
     /**
-     * Creates a CART Trainer. Sets the impurity to the {@link MeanSquaredError} and does not normalize the outputs.
+     * Creates a CART Trainer.
+     * <p>
+     * Sets the impurity to the {@link MeanSquaredError}, computes the exact split
+     * points using all the features, and does not normalize the outputs.
      * @param maxDepth The maximum depth of the tree.
      */
     public CARTJointRegressionTrainer(int maxDepth) {

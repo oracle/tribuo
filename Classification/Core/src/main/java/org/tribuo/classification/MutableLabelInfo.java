@@ -77,4 +77,9 @@ public class MutableLabelInfo extends LabelInfo implements MutableOutputInfo<Lab
         }
         return builder.toString();
     }
+
+    @Override
+    public String toString() {
+        return toReadableString();
+    }
 }

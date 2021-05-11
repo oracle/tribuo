@@ -44,7 +44,10 @@ public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
-    public static class LibLinearOptions implements Options {
+    /**
+     * Command line options.
+     */
+    public static class LibSVMOptions implements Options {
         @Override
         public String getOptionsDescription() {
             return "Trains and tests a LibSVM regression model on the specified datasets.";
@@ -75,7 +78,7 @@ public class TrainTest {
         // Use the labs format logging.
         LabsLogFormatter.setAllLogFormatters();
 
-        LibLinearOptions o = new LibLinearOptions();
+        LibSVMOptions o = new LibSVMOptions();
         ConfigurationManager cm;
         try {
             cm = new ConfigurationManager(args,o);

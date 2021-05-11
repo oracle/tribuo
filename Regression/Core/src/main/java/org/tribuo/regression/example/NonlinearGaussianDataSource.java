@@ -168,7 +168,7 @@ public class NonlinearGaussianDataSource implements ConfigurableDataSource<Regre
 
     /**
      * Generates a single dimensional output drawn from
-     * N(w_0*x_0 - w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
+     * N(w_0*x_0 + w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
      * <p>
      * The features are drawn from a uniform distribution over the range.
      * @param numSamples The size of the output dataset.

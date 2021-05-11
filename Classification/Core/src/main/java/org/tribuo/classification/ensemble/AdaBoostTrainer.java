@@ -105,6 +105,9 @@ public class AdaBoostTrainer implements Trainer<Label> {
         postConfig();
     }
 
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
     @Override
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);

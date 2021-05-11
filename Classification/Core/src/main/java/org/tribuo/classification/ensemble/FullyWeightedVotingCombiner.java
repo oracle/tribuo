@@ -37,6 +37,9 @@ import java.util.Map;
 public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a weighted voting combiner.
+     */
     public FullyWeightedVotingCombiner() {}
 
     @Override

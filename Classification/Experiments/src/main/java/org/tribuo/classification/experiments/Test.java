@@ -62,6 +62,9 @@ public class Test {
 
     private static final Logger logger = Logger.getLogger(Test.class.getName());
 
+    /**
+     * Command line options.
+     */
     public static class ConfigurableTestOptions implements Options {
         @Override
         public String getOptionsDescription() {

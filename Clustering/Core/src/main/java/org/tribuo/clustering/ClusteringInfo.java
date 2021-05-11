@@ -111,4 +111,9 @@ public abstract class ClusteringInfo implements OutputInfo<ClusterID> {
         }
         return builder.toString();
     }
+
+    @Override
+    public String toString() {
+        return toReadableString();
+    }
 }

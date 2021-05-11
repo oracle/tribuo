@@ -44,11 +44,40 @@ public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
-    public enum ImpurityType { MSE, MAE }
+    /**
+     * Impurity function.
+     */
+    public enum ImpurityType {
+        /**
+         * Use {@link MeanSquaredError}.
+         */
+        MSE,
+        /**
+         * Use {@link MeanAbsoluteError}.
+         */
+        MAE
+    }
 
-    public enum TreeType {CART_INDEPENDENT, CART_JOINT}
+    /**
+     * Type of tree trainer.
+     */
+    public enum TreeType {
+        /**
+         * Creates a {@link CARTRegressionTrainer} which treats
+         * each regression dimension independently.
+         */
+        CART_INDEPENDENT,
+        /**
+         * Creates a {@link CARTJointRegressionTrainer} which
+         * jointly minimises the impurity across all output dimensions.
+         */
+        CART_JOINT
+    }
 
-    public static class DecisionTreeOptions implements Options {
+    /**
+     * Command line options.
+     */
+    public static class RegressionTreeOptions implements Options {
         @Override
         public String getOptionsDescription() {
             return "Trains and tests a CART regression model on the specified datasets.";
@@ -88,7 +117,7 @@ public class TrainTest {
         // Use the labs format logging.
         LabsLogFormatter.setAllLogFormatters();
 
-        DecisionTreeOptions o = new DecisionTreeOptions();
+        RegressionTreeOptions o = new RegressionTreeOptions();
         ConfigurationManager cm;
         try {
             cm = new ConfigurationManager(args,o);

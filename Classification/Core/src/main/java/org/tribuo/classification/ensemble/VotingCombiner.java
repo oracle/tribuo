@@ -37,6 +37,9 @@ import java.util.Map;
 public final class VotingCombiner implements EnsembleCombiner<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a voting combiner.
+     */
     public VotingCombiner() {}
 
     @Override

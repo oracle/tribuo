@@ -52,6 +52,9 @@ public class SeqTest {
 
     private static final Logger logger = Logger.getLogger(SeqTest.class.getName());
 
+    /**
+     * Command line options.
+     */
     public static class CRFOptions implements Options {
         @Override
         public String getOptionsDescription() {

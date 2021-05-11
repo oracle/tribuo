@@ -146,6 +146,9 @@ public class SequenceModelExplorer implements CommandGroup {
         return string.toString();
     }
 
+    /**
+     * Command line options.
+     */
     public static class SequenceModelExplorerOptions implements Options {
         @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
         public String modelFilename;

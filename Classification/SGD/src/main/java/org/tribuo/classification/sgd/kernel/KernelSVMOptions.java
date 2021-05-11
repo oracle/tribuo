@@ -44,7 +44,24 @@ public class KernelSVMOptions implements ClassificationOptions<KernelSVMTrainer>
     /**
      * The kernel types.
      */
-    public enum KernelEnum {LINEAR, POLYNOMIAL, SIGMOID, RBF}
+    public enum KernelEnum {
+        /**
+         * Uses a {@link Linear} kernel.
+         */
+        LINEAR,
+        /**
+         * Uses a {@link Polynomial} kernel.
+         */
+        POLYNOMIAL,
+        /**
+         * Uses a {@link Sigmoid} kernel.
+         */
+        SIGMOID,
+        /**
+         * Uses an {@link RBF} kernel.
+         */
+        RBF
+    }
 
     @Option(longName = "kernel-intercept", usage = "Intercept in kernel function. Defaults to 1.0.")
     public double kernelIntercept = 1.0;

@@ -65,8 +65,34 @@ public class CoreTokenizerOptions implements TokenizerOptions {
         return tokenizer;
     }
 
+    /**
+     * Tokenizer type.
+     */
     public enum CoreTokenizerType {
-        BREAK_ITERATOR, SPLIT_CHARACTERS, NON, SHAPE, SPLIT_PATTERN, UNIVERSAL
+        /**
+         * Creates a {@link org.tribuo.util.tokens.impl.BreakIteratorTokenizer}.
+         */
+        BREAK_ITERATOR,
+        /**
+         * Creates a {@link org.tribuo.util.tokens.impl.SplitCharactersTokenizer}.
+         */
+        SPLIT_CHARACTERS,
+        /**
+         * Creates a {@link NonTokenizer}.
+         */
+        NON,
+        /**
+         * Creates a {@link ShapeTokenizer}.
+         */
+        SHAPE,
+        /**
+         * Creates a {@link org.tribuo.util.tokens.impl.SplitPatternTokenizer}.
+         */
+        SPLIT_PATTERN,
+        /**
+         * Creates a {@link UniversalTokenizer}.
+         */
+        UNIVERSAL
     }
 
 }

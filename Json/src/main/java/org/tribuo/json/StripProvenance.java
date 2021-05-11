@@ -240,6 +240,9 @@ public final class StripProvenance {
         }
     }
 
+    /**
+     * Command line options.
+     */
     public static class StripProvenanceOptions implements Options {
         @Override
         public String getOptionsDescription() {
@@ -261,6 +264,7 @@ public final class StripProvenance {
     }
 
     /**
+     * Runs StripProvenance.
      * @param args the command line arguments
      * @param <T>  The {@link Output} subclass.
      */
@@ -349,6 +353,11 @@ public final class StripProvenance {
         public final Model<T> model;
         public final ModelProvenance provenance;
 
+        /**
+         * Constructs a model tuple.
+         * @param model The model.
+         * @param provenance The provenance.
+         */
         public ModelTuple(Model<T> model, ModelProvenance provenance) {
             this.model = model;
             this.provenance = provenance;

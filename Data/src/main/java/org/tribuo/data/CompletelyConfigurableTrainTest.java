@@ -51,6 +51,9 @@ public final class CompletelyConfigurableTrainTest {
 
     private CompletelyConfigurableTrainTest() {}
 
+    /**
+     * Command line options.
+     */
     public static class ConfigurableTrainTestOptions implements Options {
         @Override
         public String getOptionsDescription() {

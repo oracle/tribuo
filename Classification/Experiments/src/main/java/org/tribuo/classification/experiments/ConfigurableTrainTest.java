@@ -56,6 +56,9 @@ public class ConfigurableTrainTest {
 
     private static final Logger logger = Logger.getLogger(ConfigurableTrainTest.class.getName());
 
+    /**
+     * Command line options.
+     */
     public static class ConfigurableTrainTestOptions implements Options {
         @Override
         public String getOptionsDescription() {

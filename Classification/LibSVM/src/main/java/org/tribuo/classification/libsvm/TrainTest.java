@@ -37,6 +37,9 @@ public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
+    /**
+     * Command line options.
+     */
     public static class TrainTestOptions implements Options {
         @Override
         public String getOptionsDescription() {

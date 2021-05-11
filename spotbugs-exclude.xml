@@ -46,13 +46,13 @@ positive warnings.
 	    <Class name="org.tribuo.regression.liblinear.TrainTest"/>
 	    <Class name="org.tribuo.regression.liblinear.TrainTest$LibLinearOptions"/>
 	    <Class name="org.tribuo.regression.libsvm.TrainTest"/>
-	    <Class name="org.tribuo.regression.libsvm.TrainTest$LibLinearOptions"/>
+	    <Class name="org.tribuo.regression.libsvm.TrainTest$LibSVMOptions"/>
 	    <Class name="org.tribuo.regression.rtree.TrainTest"/>
-	    <Class name="org.tribuo.regression.rtree.TrainTest$DecisionTreeOptions"/>
+	    <Class name="org.tribuo.regression.rtree.TrainTest$RegressionTreeOptions"/>
 	    <Class name="org.tribuo.regression.sgd.TrainTest"/>
 	    <Class name="org.tribuo.regression.sgd.TrainTest$SGDOptions"/>
 	    <Class name="org.tribuo.regression.slm.TrainTest"/>
-	    <Class name="org.tribuo.regression.slm.TrainTest$LARSOptions"/>
+	    <Class name="org.tribuo.regression.slm.TrainTest$SLMOptions"/>
 	    <Class name="org.tribuo.regression.xgboost.TrainTest"/>
 	    <Class name="org.tribuo.regression.xgboost.TrainTest$XGBoostOptions"/>
 	</Or>

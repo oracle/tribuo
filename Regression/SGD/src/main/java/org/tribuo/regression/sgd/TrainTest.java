@@ -47,8 +47,27 @@ public class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
-    public enum LossEnum { ABSOLUTE, SQUARED, HUBER }
+    /**
+     * Loss function.
+     */
+    public enum LossEnum {
+        /**
+         * Uses {@link AbsoluteLoss}.
+         */
+        ABSOLUTE,
+        /**
+         * Uses {@link SquaredLoss}.
+         */
+        SQUARED,
+        /**
+         * Uses {@link Huber} loss.
+         */
+        HUBER
+    }
 
+    /**
+     * Command line options.
+     */
     public static class SGDOptions implements Options {
         @Override
         public String getOptionsDescription() {

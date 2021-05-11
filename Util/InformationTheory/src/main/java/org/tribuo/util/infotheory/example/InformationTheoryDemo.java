@@ -115,8 +115,27 @@ public class InformationTheoryDemo {
         return new CachedTriple<>(first,second,third);
     }
 
-    public enum DistributionType { RANDOM, XOR, CORRELATED }
+    /**
+     * Type of data distribution.
+     */
+    public enum DistributionType {
+        /**
+         * Uniformly randomly generated data.
+         */
+        RANDOM,
+        /**
+         * Data generated from an XOR function.
+         */
+        XOR,
+        /**
+         * Correlated data.
+         */
+        CORRELATED
+    }
 
+    /**
+     * Command line options.
+     */
     public static class DemoOptions implements Options {
         @Override
         public String getOptionsDescription() {
