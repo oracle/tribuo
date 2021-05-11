@@ -58,7 +58,7 @@ public abstract class CNNExamples {
      * <p>
      * Unlike the original LeNet 5 it uses ReLU activations.
      * @param inputName The input placeholder name.
-     * @param imageSize The image width & height.
+     * @param imageSize The image width and height.
      * @param pixelDepth The maximum pixel value (usually 255).
      * @param numOutputs The number of output dimensions (usually 10 for MNIST).
      * @return A GraphRecord containing the LeNet graph and the relevant op names.
