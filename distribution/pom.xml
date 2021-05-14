@@ -67,6 +67,11 @@
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-common-sgd</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-common-tree</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -177,6 +182,11 @@
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-multilabel-sgd</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-clustering-core</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -188,6 +198,11 @@
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-anomaly-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-anomaly-liblinear</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
