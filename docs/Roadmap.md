@@ -28,6 +28,7 @@ specific operations (though this can be achieved today using `DatasetView` and p
 - Make `Example`s immutable after they've been added to a `Dataset`. This is likely to be a breaking change.
 - Add support for global feature transformations, like normalizing to a unit vector, applying PCA and others.
 - Integrate with a plotting library.
+- ONNX format model export.
 
 ## Internals
 
@@ -52,19 +53,21 @@ examples, or examples which didn't have suitable features for the model).
 
 ## New ML algorithms or parameters
 
-- ~~Add K-Means++ initialisation for K-Means.~~ Integrated and arriving in Tribuo 4.1.
+- ~~Add K-Means++ initialisation for K-Means.~~ Integrated in Tribuo 4.1.
 - ~~Add extra parameters to the tree trainers to allow for an ExtraTrees style ensemble, and to 
-specify a minimum purity decrease requirement.~~ Integrated and arriving in Tribuo 4.1.
+specify a minimum purity decrease requirement.~~ Integrated in Tribuo 4.1.
 - Gaussian Processes.
 - Vowpal Wabbit interface.
 - Feature selection. We already have several feature selection algorithms implemented 
 in a Tribuo compatible interface, but the codebase isn't quite ready for release.
 - Support word embedding features.
-- Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).
+- ~~Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).~~ ONNX support for BERT embeddings is integrated in Tribuo 4.1.
 - More complex Multi-Label prediction algorithms.
-    - A Multi-Label linear SGD is integrated and arriving in Tribuo 4.1.
+    - A Multi-Label linear SGD is integrated in Tribuo 4.1.
 - More anomaly detection algorithms.
+    - LibLinear based anomaly detection is integrated in Tribuo 4.1.
 - More clustering algorithms.
+- Factorization machines for classification.
 
 ## Performance
 
@@ -81,4 +84,4 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 ## Documentation
 
 - Fill out the javadoc so it exists for all public and protected methods, including constructors.
-- Add more tutorials. Note: Tribuo 4.0.2 adds tutorials for external model loading and columnar data processing.
+- Add more tutorials. Note: Tribuo 4.0.2 adds tutorials for external model loading and columnar data processing, and 4.1 adds tutorials for TensorFlow and document classification

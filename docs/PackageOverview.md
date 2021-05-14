@@ -99,17 +99,18 @@ labels to a test example.  The classification module has several submodules:
 ## Multi-label Classification
 
 Multi-label classification is the task of predicting a set of labels for a test
-example rather than just a single label.  This package provides an Output
-subclass for multi-label prediction, evaluation code for checking the
-performance of a multi-label model, and a basic implementation of independent
-binary predictions. The multi-label support is found in the `tribuo-multilabel-core`
-artifact, in the `org.tribuo.multilabel` package.
- 
+example rather than just a single label. 
+
 The independent binary predictor breaks each multi-label prediction into n
 binary predictions, one for each possible label.  To achieve this, the supplied
 trainer takes a classification trainer and uses it to build n models, one per
 label, which are then run in sequence on a test example to produce the final
 multi-label output.
+
+| Folder | ArtifactID | Package root | Description |
+| --- | --- | --- | --- |
+| Core | `tribuo-multilabel-core` | `org.tribuo.multilabel` | Contains an Output subclass for multi-label prediction, evaluation code for checking the performance of a multi-label model, and a basic implementation of independent binary predictions. |
+| SGD | `tribuo-multilabel-sgd` | `org.tribuo.multilabel.sgd` | An implementation of stochastic gradient descent based classifiers. It includes a linear package for independent logistic regression and linear-SVM (using log and hinge losses, respectively) for each output label. These implementations depend upon the stochastic gradient optimisers in the main Math package. The linear package can use any of the provided gradient optimisers, which enforce various different kinds of regularisation or convergence metrics. |
 
 ## Regression
 
@@ -135,7 +136,7 @@ one cluster. This package provides two modules:
 | Folder | ArtifactID | Package root | Description |
 | --- | --- | --- | --- |
 | Core | `tribuo-clustering-core` | `org.tribuo.clustering` | Contains the Output subclass for use with clustering data, as well as the evaluation code for measuring clustering performance. |
-| KMeans | `tribuo-clustering-kmeans` | `org.tribuo.clustering.kmeans` | An implementation of K-Means using the Java 8 Stream API for parallelisation. |
+| KMeans | `tribuo-clustering-kmeans` | `org.tribuo.clustering.kmeans` | An implementation of K-Means using the Java 8 Stream API for parallelisation, along with the K-Means++ initialization algorithm. |
 
 ## Anomaly Detection
 
@@ -146,6 +147,7 @@ modules:
 | Folder | ArtifactID | Package root | Description |
 | --- | --- | --- | --- |
 | Core | `tribuo-anomaly-core` | `org.tribuo.anomaly` | Contains the Output subclass for use with anomaly detection data. |
+| LibLinear | `tribuo-anomaly-liblinear` | `org.tribuo.anomaly.liblinear` | A wrapper around the Java version of LibLinear, which provides a one-class SVM. |
 | LibSVM | `tribuo-anomaly-libsvm` | `org.tribuo.anomaly.libsvm` | A wrapper around the Java version of LibSVM, which provides a one-class SVM. |
 
 ## Common
@@ -153,7 +155,9 @@ modules:
 The common module shares code across multiple prediction types. It provides
 the base support for LibLinear, LibSVM, nearest neighbour, tree, and XGBoost
 models. The nearest neighbour submodule is standalone, however the rest of the
-submodules require the prediction specific implementation modules.
+submodules require the prediction specific implementation modules. The common
+tree package contains the implementations of Random Forests and Extremely 
+Randomized Trees (ExtraTrees).
 
 ## Third party models
 
@@ -167,30 +171,29 @@ TensorFlow and XGBoost models.
 converters from systems like scikit-learn to the ONNX format.  Tribuo provides
 a wrapper around Microsoft's [ONNX Runtime](https://onnxruntime.ai) that can
 score ONNX models on both CPU and GPU platforms. ONNX support is found in the
-`tribuo-onnx` artifact in the `org.tribuo.interop.onnx` package.
+`tribuo-onnx` artifact in the `org.tribuo.interop.onnx` package which also
+provides a feature extractor that uses BERT embedding models.
 - TensorFlow - Tribuo supports loading [TensorFlow](https://tensorflow.org)'s
-  frozen classification and regression models and scoring them.
+  frozen graphs and saved models and scoring them.
 - XGBoost - Tribuo supports loading [XGBoost](https://xgboost.ai)
   classification and regression models.
 
 ## TensorFlow
 
-Tribuo includes experimental support for TensorFlow 1.14 in the `tribuo-tensorflow`
-artifact in the `org.tribuo.interop.tensorflow` package. Due to a lack of
-flexibility in TensorFlow 1.14's Java API, models still need to be specified in
-python, and have their graph definitions written out as a protobuf. The Java
-code accepts this protobuf and trains a model that can be used purely from
-Java. It includes a Java serialisation system so that all TensorFlow models can
-be serialised and deserialised in the same way as other Tribuo models.
-TensorFlow models run by default on GPU if one is available.
+Tribuo includes experimental support for TensorFlow-Java 0.3.1 (using
+TensorFlow 2.4.1) in the `tribuo-tensorflow` artifact in the
+`org.tribuo.interop.tensorflow` package. Models can be defined using
+TensorFlow-Java's graph construction mechanisms, and Tribuo will manage the
+gradient optimizer output function and loss function. It includes a Java
+serialisation system so that all TensorFlow models can be serialised and
+deserialised in the same way as other Tribuo models.  TensorFlow models run by
+default on GPU if one is available and the appropriate GPU jar is on the
+classpath.
 
 This support remains experimental while the TF JVM SIG rewrites the TensorFlow
-Java API.  We participate in the TensorFlow JVM SIG, and the upcoming releases
-from that group will include full Java support for training models without the
-need to define the model in Python before training.
+Java API.  We participate in the TensorFlow JVM SIG, and are working to improve
+TensorFlow not just for Tribuo but for the Java community as a whole.
 
 Tribuo demonstrates the TensorFlow interop by including an example config file,
-python model generation file and protobuf for an MNIST model. In addition to
-the libraries gathered by the Tribuo TensorFlow jar, it is necessary to include
-libtensorflow\_jni.so and libtensorflow\_framework.so in your
-java.library.path.
+several example model generation functions and protobuf for an MNIST model
+graph.

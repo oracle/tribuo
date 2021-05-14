@@ -127,7 +127,7 @@ thrown.
 The majority of `Trainer`s then create a `SparseVector` from each `Example`'s
 features, and copies out the `Output` into either an id or double value
 (depending on it's class). The `SparseVector` guarantees that there are no id
-collisions by adding together colliding feature values (collisons can be
+collisions by adding together colliding feature values (collisions can be
 induced by feature hashing), and otherwise validates the `Example`. Ensemble
 `Trainer`s and others which wrap an inner `Trainer` leave the `SparseVector`
 conversion to the inner `Trainer`.
@@ -142,8 +142,9 @@ provided. The `ModelProvenance` along with the `ImmutableFeatureMap`,
 `ImmutableOutputInfo`, and the model parameters are supplied to the appropriate
 model constructor, and the trained `Model` is returned.
 
-`Model`s are immutable, apart from test time parameters such as inference batch
-size, number of inference threads, choice of threading backend etc.
+`Model`s are immutable, apart from parameters which control test time behaviour
+such as inference batch size, number of inference threads, choice of threading
+backend etc.
 
 ### Evaluation
 Once an `Evaluator` of the appropriate type has been constructed (either
