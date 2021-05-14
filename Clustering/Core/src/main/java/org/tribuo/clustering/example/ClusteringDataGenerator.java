@@ -21,7 +21,6 @@ import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
-import org.tribuo.Feature;
 import org.tribuo.MutableDataset;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
