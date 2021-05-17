@@ -1,6 +1,6 @@
 <p align="center"><img width="50%" alt="Tribuo Logo" src="docs/img/Tribuo_Logo_Colour.png" /></p>
 
-# Tribuo - A Java prediction library (v4.0)
+# Tribuo - A Java prediction library (v4.1)
 
 [Tribuo](https://tribuo.org) is a machine learning library in Java that
 provides multi-class classification, regression, clustering, anomaly detection
@@ -42,7 +42,7 @@ to the developers of those libraries.
 
 * [Library Architecture](docs/Architecture.md)
 * [Package Overview](docs/PackageOverview.md)
-* [Javadoc](https://tribuo.org/learn/4.0/javadoc/)
+* Javadoc [4.1](https://tribuo.org/learn/4.1/javadoc/), [4.0](https://tribuo.org/learn/4.0/javadoc/)
 * [Helper Programs](docs/HelperPrograms.md)
 * [Developer Documentation](docs/Internals.md)
 * [Roadmap](docs/Roadmap.md)
@@ -51,11 +51,12 @@ to the developers of those libraries.
 ## Tutorials
 
 Tutorial notebooks, including examples of Classification, Clustering,
-Regression, Anomaly Detection and the configuration system, can be found in the
-[tutorials](tutorials). These use the [IJava](https://github.com/SpencerPark/IJava) 
-Jupyter notebook kernel, and work with Java 10+. To convert the tutorials' code 
-back to Java 8, in most cases simply replace the `var` keyword with the
-appropriate types.
+Regression, Anomaly Detection, TensorFlow, document classification, columnar
+data loading, working with externally trained models, and the configuration 
+system, can be found in the [tutorials](tutorials). These use the 
+[IJava](https://github.com/SpencerPark/IJava) Jupyter notebook kernel, and
+work with Java 10+. To convert the tutorials' code back to Java 8, in most 
+cases simply replace the `var` keyword with the appropriate types.
 
 ## Algorithms
 
@@ -67,9 +68,10 @@ of prediction tasks:
 |Algorithm|Implementation|Notes|
 |---|---|---|
 |Bagging|Tribuo|Can use any Tribuo trainer as the base learner|
-|Random Forest|Tribuo|Can use any Tribuo tree trainer as the base learner|
+|Random Forest|Tribuo|For both classification and regression|
+|Extra Trees|Tribuo|For both classification and regression|
 |K-NN|Tribuo|Includes options for several parallel backends, as well as a single threaded backend|
-|Neural Networks|TensorFlow|Pass a TensorFlow Neural Net to a Tribuo wrapper. Models can be deployed using the ONNX interface or the TF interface|
+|Neural Networks|TensorFlow|Train a neural network in TensorFlow via the Tribuo wrapper. Models can be deployed using the ONNX interface or the TF interface|
 
 The ensembles and K-NN use a combination function to produce their output.
 These combiners are prediction task specific, but the ensemble & K-NN 
@@ -86,7 +88,7 @@ Tribuo has implementations or interfaces for:
 |CART|Tribuo||
 |SVM-SGD|Tribuo|An implementation of the Pegasos algorithm|
 |Adaboost.SAMME|Tribuo|Can use any Tribuo classification trainer as the base learner|
-|Multinomial Naive Bayes|Tribuo|
+|Multinomial Naive Bayes|Tribuo||
 |Regularised Linear Models|LibLinear||
 |SVM|LibSVM or LibLinear|LibLinear only supports linear SVMs|
 |Gradient Boosted Decision Trees|XGBoost||
@@ -122,16 +124,29 @@ algorithms over time.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
-|K-Means|Tribuo|Includes both sequential and parallel backends|
+|K-Means|Tribuo|Includes both sequential and parallel backends, and the K-Means++ initialisation algorithm|
 
 ### Anomaly Detection
 
-Tribuo offers infrastructure for anomaly detection tasks and a single backend 
-implementation using LibSVM. We expect to add new implementations over time.
+Tribuo offers infrastructure for anomaly detection tasks. 
+We expect to add new implementations over time.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
 |One-class SVM|LibSVM||
+|One-class linear SVM|LibLinear||
+
+### Multi-label classification
+
+Tribuo offers infrastructure for multi-label classification, along
+with a wrapper which converts any of Tribuo's multi-class classification
+algorithms into a multi-label classification algorithm. We expect to add 
+more multi-label specific implementations over time.
+
+|Algorithm|Implementation|Notes|
+|---|---|---|
+|Independent wrapper|Tribuo|Converts a multi-class classification algorithm into a multi-label one by producing a separate classifier for each label|
+|Linear models|Tribuo|Uses SGD and allows any gradient optimizer|
 
 ### Interfaces
 
@@ -142,13 +157,11 @@ discuss how it would fit into Tribuo.
 
 Currently we have interfaces to:
 
-* [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/).
-* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation.
-* [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group.
-* [TensorFlow](https://tensorflow.org) - Using the 1.14 Java API. We're participating in TensorFlow's SIG-JVM,
-and the upcoming TensorFlow 2 Java API will support training models without Python, which we'll incorporate into Tribuo 
-when it's released.
-* [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API.
+* [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) (v2.43).
+* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.24).
+* [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.7.0).
+* [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.3.1 (based on TensorFlow v2.4.1). This allows the training and deployment of TensorFlow models entirely in Java.
+* [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.4.1).
 
 ## Binaries
 
@@ -161,13 +174,13 @@ Maven:
 <dependency>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
-    <version>4.0.2</version>
+    <version>4.1.0</version>
     <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-implementation ("org.tribuo:tribuo-all:4.0.2@pom") {
+implementation ("org.tribuo:tribuo-all:4.1.0@pom") {
     transitive = true // for build.gradle (i.e., Groovy)
     // isTransitive = true // for build.gradle.kts (i.e., Kotlin)
 }
@@ -181,7 +194,10 @@ interfaces link to libraries which use native code. Those interfaces
 (TensorFlow, ONNX Runtime and XGBoost) only run on supported platforms for the
 respective published binaries, and Tribuo has no control over which binaries
 are supplied. If you need support for a specific platform, reach out to the
-maintainers of those projects.
+maintainers of those projects. As of the 4.1 release these native packages
+all provide x86\_64 binaries for Windows, macOS and Linux. It is also possible
+to compile each package for macOS ARM64 (i.e., Apple Silicon), though there are
+no binaries available on Maven Central for that platform.
 
 Individual jars are published for each Tribuo module. It is preferable to
 depend only on the modules necessary for the specific project. This prevents
@@ -214,7 +230,7 @@ We welcome contributions! See our [contribution guidelines](./CONTRIBUTING.md).
 We have a discussion mailing list
 [tribuo-devel@oss.oracle.com](mailto:tribuo-devel@oss.oracle.com), archived
 [here](https://oss.oracle.com/pipermail/tribuo-devel/). We're investigating
-different options for real time chat, check back in the near future. For bug
+different options for real time chat, check back in the future. For bug
 reports, feature requests or other issues, please file a [Github
 Issue](https://github.com/oracle/tribuo/issues).
 
@@ -226,6 +242,7 @@ Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
+- v4.1.0 - Added TensorFlow training support, a BERT feature extractor, ExtraTrees, K-Means++, many linear model & CRF performance improvements, new tutorials on TF and document classification. Many bug fixes & documentation improvements.
 - v4.0.2 - Many bug fixes (CSVDataSource, JsonDataSource, RowProcessor, LibSVMTrainer, Evaluations, Regressor serialization). Improved javadoc and documentation. Added two new tutorials (columnar data and external models).
 - v4.0.1 - Bugfix for CSVReader to cope with blank lines, added IDXDataSource to allow loading of native MNIST format data.
 - v4.0.0 - Initial public release.
