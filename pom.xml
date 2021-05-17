@@ -182,6 +182,11 @@
                     <artifactId>maven-enforcer-plugin</artifactId>
                     <version>3.0.0-M3</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.9.1</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -194,7 +199,7 @@
                     <show>protected</show>
                     <notimestamp>true</notimestamp>
                     <failOnError>false</failOnError>
-                    <linksource>true</linksource>
+                    <linksource>false</linksource>
                     <nohelp>true</nohelp>
                     <tags>
                         <tag>
@@ -213,6 +218,47 @@
                             <head>Implementation Note:</head>
                         </tag>
                     </tags>
+                    <overview>./Core/src/main/javadoc/overview.html</overview>
+                    <groups>
+                        <group>
+                            <title>Core Packages</title>
+                            <packages>
+                                org.tribuo:org.tribuo.dataset:org.tribuo.datasource:org.tribuo.ensemble:org.tribuo.evaluation*:org.tribuo.hash:org.tribuo.impl:org.tribuo.provenance*:org.tribuo.sequence:org.tribuo.transform*:org.tribuo.util:org.tribuo.data*:org.tribuo.json:org.tribuo.math*
+                            </packages>
+                        </group>
+                        <group>
+                            <title>Shared Backend Packages</title>
+                            <packages>org.tribuo.common.*</packages>
+                        </group>
+                        <group>
+                            <title>Anomaly Detection Packages</title>
+                            <packages>org.tribuo.anomaly*</packages>
+                        </group>
+                        <group>
+                            <title>Multi-class Classification Packages</title>
+                            <packages>org.tribuo.classification*</packages>
+                        </group>
+                        <group>
+                            <title>Clustering Packages</title>
+                            <packages>org.tribuo.clustering*</packages>
+                        </group>
+                        <group>
+                            <title>Multi-label Classification Packages</title>
+                            <packages>org.tribuo.multilabel*</packages>
+                        </group>
+                        <group>
+                            <title>Regression Packages</title>
+                            <packages>org.tribuo.regression*</packages>
+                        </group>
+                        <group>
+                            <title>External Interface Packages</title>
+                            <packages>org.tribuo.interop*</packages>
+                        </group>
+                        <group>
+                            <title>Utility Packages</title>
+                            <packages>org.tribuo.util.*:org.tribuo.tests</packages>
+                        </group>
+                    </groups>
                 </configuration>
                 <executions>
                     <execution>
@@ -221,6 +267,49 @@
                             <goal>aggregate</goal>
                         </goals>
                         <phase>site</phase>
+                        <configuration>
+                            <overview>./Core/src/main/javadoc/overview.html</overview>
+                            <groups>
+                                <group>
+                                    <title>Core Packages</title>
+                                    <packages>
+                                        org.tribuo:org.tribuo.dataset:org.tribuo.datasource:org.tribuo.ensemble:org.tribuo.evaluation*:org.tribuo.hash:org.tribuo.impl:org.tribuo.provenance*:org.tribuo.sequence:org.tribuo.transform*:org.tribuo.util:org.tribuo.data*:org.tribuo.json:org.tribuo.math*
+                                    </packages>
+                                </group>
+                                <group>
+                                    <title>Shared Backend Packages</title>
+                                    <packages>org.tribuo.common.*</packages>
+                                </group>
+                                <group>
+                                    <title>Anomaly Detection Packages</title>
+                                    <packages>org.tribuo.anomaly*</packages>
+                                </group>
+                                <group>
+                                    <title>Multi-class Classification Packages</title>
+                                    <packages>org.tribuo.classification*</packages>
+                                </group>
+                                <group>
+                                    <title>Clustering Packages</title>
+                                    <packages>org.tribuo.clustering*</packages>
+                                </group>
+                                <group>
+                                    <title>Multi-label Classification Packages</title>
+                                    <packages>org.tribuo.multilabel*</packages>
+                                </group>
+                                <group>
+                                    <title>Regression Packages</title>
+                                    <packages>org.tribuo.regression*</packages>
+                                </group>
+                                <group>
+                                    <title>Interface Packages</title>
+                                    <packages>org.tribuo.interop.*</packages>
+                                </group>
+                                <group>
+                                    <title>Utility Packages</title>
+                                    <packages>org.tribuo.util.*</packages>
+                                </group>
+                            </groups>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

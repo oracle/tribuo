@@ -17,7 +17,9 @@
 /**
  * Provides the core interfaces and classes for using Tribuo.
  * <p>
- * This package contains a dataset class, several classes which represent datapoints (subclasses of {@link org.tribuo.Example}),
- * the canonical {@link org.tribuo.Feature} class, interfaces for training models and working with outputs.
+ * This package contains the {@link org.tribuo.Dataset} class and it's two subclasses, the
+ * base {@link org.tribuo.Example} which represents a datapoint,
+ * the base {@link org.tribuo.Feature} class, interfaces for training models, working with outputs,
+ * and representing output and feature domains.
  */
 package org.tribuo;
