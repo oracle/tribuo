@@ -47,6 +47,7 @@ public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
      * @param outputIDInfo The output domain.
      * @param weights The model weights.
      * @param generatesProbabilities Does this model generate probabilities?
+     * @param addBias Should the model add a bias feature to the feature vector?
      */
     protected AbstractSGDModel(String name, ModelProvenance provenance,
                                ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
