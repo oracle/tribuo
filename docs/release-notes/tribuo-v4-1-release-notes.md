@@ -13,13 +13,13 @@ Migrated to TensorFlow Java 0.3.1 which allows specification and training of
 models in Java ([#134](https://github.com/oracle/tribuo/pull/134)).  The
 TensorFlow models can be saved in two formats, either using TensorFlow's
 checkpoint format or Tribuo's native model serialization. They can also be
-exported as TensorFlow saved models for interop with other TensorFlow
-platforms. Tribuo can now load TF v2 saved models and serve them alongside TF
+exported as TensorFlow Saved Models for interop with other TensorFlow
+platforms. Tribuo can now load TF v2 Saved Models and serve them alongside TF
 v1 frozen graphs with it's external model loader.
 
 We also added a TensorFlow tutorial which walks through the creation of a
 simple regression MLP, a classification MLP and a classification CNN, before
-exporting the model as a TensorFlow native model and importing it back into
+exporting the model as a TensorFlow Saved Model and importing it back into
 Tribuo.
 
 ## New models
@@ -61,12 +61,12 @@ This can load in ONNX format BERT (and BERT style) models from HuggingFace Trans
 
 ## Contributors
 
-Adam Pocock ([@Craigacp](https://github.com/Craigacp))
-Philip Ogren ([@pogren](https://github.com/pogren))
-Jeffrey Alexander ([@jhalexand](https://github.com/jhalexand))
-Jack Sullivan ([@JackSullivan](https://github.com/JackSullivan))
-Samantha Campo ([@samanthacampo](https://github.com/samanthacampo))
-Luke Nezda ([@nezda](https://github.com/nezda))
-Mani Sarkar ([@neomatrix369](https://github.com/neomatrix369))
-Stephen Green ([@eelstretching](https://github.com/eelstretching))
-Kate Silverstein ([@k8si](https://github.com/k8si))
+- Adam Pocock ([@Craigacp](https://github.com/Craigacp))
+- Philip Ogren ([@pogren](https://github.com/pogren))
+- Jeffrey Alexander ([@jhalexand](https://github.com/jhalexand))
+- Jack Sullivan ([@JackSullivan](https://github.com/JackSullivan))
+- Samantha Campo ([@samanthacampo](https://github.com/samanthacampo))
+- Luke Nezda ([@nezda](https://github.com/nezda))
+- Mani Sarkar ([@neomatrix369](https://github.com/neomatrix369))
+- Stephen Green ([@eelstretching](https://github.com/eelstretching))
+- Kate Silverstein ([@k8si](https://github.com/k8si))
