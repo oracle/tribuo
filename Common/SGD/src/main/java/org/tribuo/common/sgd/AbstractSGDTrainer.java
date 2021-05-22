@@ -88,6 +88,7 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
      * @param loggingInterval Log the loss after this many iterations. If -1 don't log anything.
      * @param minibatchSize The size of any minibatches.
      * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     * @param addBias Should the model add a bias feature to the feature vector?
      */
     protected AbstractSGDTrainer(StochasticGradientOptimiser optimiser, int epochs, int loggingInterval, int minibatchSize, long seed, boolean addBias) {
         this.optimiser = optimiser;
@@ -101,6 +102,7 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
 
     /**
      * Base constructor called by subclass no-args constructors used by OLCUT.
+     * @param addBias Should the model add a bias feature to the feature vector?
      */
     protected AbstractSGDTrainer(boolean addBias) {
         this.addBias = addBias;

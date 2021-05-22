@@ -73,13 +73,13 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
 
     private static final Logger logger = Logger.getLogger(DirectoryFileSource.class.getName());
 
+    private static final Charset enc = StandardCharsets.UTF_8;
+
     /**
      * The top-level directory containing the data set.
      */
     @Config(description="The top-level directory containing the data set.")
     private Path dataDir = Paths.get(".");
-
-    private final Charset enc = StandardCharsets.UTF_8;
 
     /**
      * Document preprocessors that should be run on the documents that make up
@@ -187,8 +187,9 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
         public boolean hasNext() {
             if (labelPaths.isEmpty()) {
                 return !labelDirs.isEmpty();
+            } else {
+                return true;
             }
-            return true;
         }
 
         @Override

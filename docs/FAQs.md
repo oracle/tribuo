@@ -156,17 +156,17 @@ the future).
 
 ### What's the difference between configuration and provenance?
 
-In short, the configuration sets the parameters for an object (e.g.
+In short, the configuration sets the parameters for an object (e.g.,
 hyperparameters, data scaling, and random seed). The provenance is the
 configuration plus the information gathered from the specific run that created
 the model/dataset/evaluation (e.g., the number of features, the number of
 samples, the timestamp of the data file, and the number of times that the
 Trainer's RNG has been used).
 
-The provenance is a superset of configurations. You can convert a provenance
+The provenance is a superset of the configuration. You can convert a provenance
 object into a set of configurations, one for each of its constituent parts. In
 contrast, the configuration cannot be converted into a provenance without
-executing the code (e.g., loading the dataset or training the model) as,
+executing the code (e.g., loading the dataset or training the model) as
 otherwise, it won't know the run-specific information.
 
 ### How do I know what I can configure in a class?
@@ -207,11 +207,11 @@ prediction.
 The `Output.equals` and `Output.hashcode` methods are constrained to only look
 at the dimension labels. This means that two `Label`s can be compared for
 equality even if they have different confidence scores (as ground truth labels
-usually have a score of 1.0, and predicted ones do not). To compare the values
-including any confidence score the `Output.fullEquals` method should be used.
-Note, this implementation of equals and hashcode causes any two `Regressor`s
-that share the same dimension names to be equal, which is unfortunate. When
-comparing `Regressor`, always use `Regressor.fullEquals` to include both the
-regressed value, and the variance. As `Regressor` uses `Double.NaN` as the
-sentinel value to indicate that no variance was calculated, NaN variances are
-considered equal to each other.
+usually have an undefined confidence score, and predicted ones have a defined
+one). To compare the values including any confidence score the
+`Output.fullEquals` method should be used.  Note, this implementation of equals
+and hashcode causes any two `Regressor`s that share the same dimension names to
+be equal, which is unfortunate. When comparing `Regressor`, always use
+`Regressor.fullEquals` to include both the regressed value, and the variance.
+As `Regressor` uses `Double.NaN` as the sentinel value to indicate that no
+variance was calculated, NaN variances are considered equal to each other.

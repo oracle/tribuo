@@ -41,7 +41,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
- * A version of {@link SimpleTextDataSource} that accepts an {@link Iterable} of Strings.
+ * A version of {@link SimpleTextDataSource} that accepts a {@link List} of Strings.
  * <p>
  * Uses the parsing logic from {@link SimpleTextDataSource}.
  */
