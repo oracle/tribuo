@@ -20,6 +20,7 @@ import org.tribuo.Output;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
 
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -70,9 +71,10 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> extends Ab
      * a single weight matrix.
      * @param numFeatures The number of input features.
      * @param numOutputs The number of output dimensions.
+     * @param localRNG The RNG to use for parameter initialisation.
      * @return The trainable parameters.
      */
-    protected LinearParameters createParameters(int numFeatures, int numOutputs) {
+    protected LinearParameters createParameters(int numFeatures, int numOutputs, SplittableRandom localRNG) {
         return new LinearParameters(numFeatures+1,numOutputs);
     }
 
