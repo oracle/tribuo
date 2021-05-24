@@ -171,7 +171,7 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         logger.info(String.format("Training SGD model with %d examples", n));
         logger.info("Outputs - " + outputIDInfo.toReadableString());
 
-        X parameters = createParameters(featureIDMap.size(),outputIDInfo.size());
+        X parameters = createParameters(featureIDMap.size(), outputIDInfo.size(), localRNG);
 
         localOptimiser.initialise(parameters);
         double loss = 0.0;
@@ -279,9 +279,10 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
      * Constructs the trainable parameters object.
      * @param numFeatures The number of input features.
      * @param numOutputs The number of output dimensions.
+     * @param localRNG The RNG to use for parameter initialisation.
      * @return The trainable parameters.
      */
-    protected abstract X createParameters(int numFeatures, int numOutputs);
+    protected abstract X createParameters(int numFeatures, int numOutputs, SplittableRandom localRNG);
 
     @Override
     public TrainerProvenance getProvenance() {
