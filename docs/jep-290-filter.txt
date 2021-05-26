@@ -1,0 +1,1 @@
+org.tribuo.**;libsvm.svm_model;libsvm.svm_parameter;libsvm.svm_node;de.bwaldvogel.liblinear.Model;de.bwaldvogel.liblinear.SolverType;java.util.**;java.lang.*;!*;
