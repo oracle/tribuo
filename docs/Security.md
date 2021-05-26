@@ -14,11 +14,11 @@ algebra library exposes mutable state to reduce copying).
 Tribuo models are stored as Java serialized objects. Due to the inherent issues
 with Java serialization, these object files should only be loaded and saved to
 trusted locations where third parties do not have access. We have provided a
-[JEP 290](https://openjdk.java.net/jeps/290) [allowlist](jep-290-allowlist.txt)
+[JEP 290](https://openjdk.java.net/jeps/290) [filter](jep-290-filter.txt)
 which will allow the deserialization of only the classes found in the Tribuo
-library. This allowlist should be enabled on the code paths which deserialize
+library. This filter should be enabled on the code paths which deserialize
 models or datasets. As Tribuo supports Java 8+, and JEP 290 is an addition to
-the Java 8 API from 8u121, the best way to use the allowlist for the main 
+the Java 8 API from 8u121, the best way to use the filter for the main 
 programs provided with Tribuo is by setting it as a process-wide flag.  
 Additionally, when running with a security manager, Tribuo will need access to
 the relevant filesystem locations to load or save model files. See the section 
