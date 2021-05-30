@@ -70,22 +70,6 @@ public class TestFMClassification {
         return m;
     }
 
-    /*
-    @Test
-    public void testSingleClassTraining() {
-        Pair<Dataset<Label>,Dataset<Label>> data = LabelledDataGenerator.denseTrainTest();
-        // Done to reduce sensitivity to test run order.
-        Trainer<Label> trainer = new FMClassificationTrainer(new Hinge(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,6,0.0,0.1);
-        DatasetView<Label> trainingData = DatasetView.createView(data.getA(),(Example<Label> e) -> e.getOutput().getLabel().equals("Foo"), "Foo selector");
-        Model<Label> model = trainer.train(trainingData);
-        LabelEvaluation evaluation = (LabelEvaluation) trainingData.getOutputFactory().getEvaluator().evaluate(model,data.getB());
-        assertEquals(0.0,evaluation.accuracy(new Label("Baz")));
-        assertEquals(0.0,evaluation.accuracy(new Label("Quux")));
-        assertEquals(1.0,evaluation.recall(new Label("Foo")));
-        assertEquals(1.0,evaluation.recall(new Label("Bar"))); // This is due to the random init of the classifier.
-    }
-    */
-
     @Test
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();

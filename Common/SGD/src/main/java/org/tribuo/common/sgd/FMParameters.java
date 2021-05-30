@@ -36,7 +36,7 @@ import java.util.Random;
 import java.util.SplittableRandom;
 
 /**
- * A {@link Parameters} for producing factorization machines.
+ * A {@link Parameters} for factorization machines.
  */
 public final class FMParameters implements FeedForwardParameters {
     private static final long serialVersionUID = 1L;
