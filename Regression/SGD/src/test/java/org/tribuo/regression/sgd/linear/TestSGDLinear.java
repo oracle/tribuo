@@ -75,7 +75,7 @@ public class TestSGDLinear {
     @BeforeAll
     public static void setup() {
         Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
-        for (Class c : classes) {
+        for (Class<?> c : classes) {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
         }

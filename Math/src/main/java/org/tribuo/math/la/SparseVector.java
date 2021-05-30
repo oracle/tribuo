@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.ToDoubleBiFunction;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
  * Uses binary search to look up a specific index, so it's usually faster to
  * use the iterator to iterate the values.
  * <p>
- * This vector has immutable indices. It cannot get new indices after construction,
+ * This vector has immutable indices. It cannot get new indices after construction,
  * and will throw {@link IllegalArgumentException} if such an operation is tried.
  */
 public class SparseVector implements SGDVector {
@@ -53,6 +54,17 @@ public class SparseVector implements SGDVector {
     protected final int[] indices;
     protected final double[] values;
     private final int size;
+
+    /**
+     * Creates an empty sparse vector.
+     * @param size The dimension.
+     */
+    SparseVector(int size) {
+        this.indices = new int[0];
+        this.values = new double[0];
+        this.size = size;
+        this.shape = new int[]{size};
+    }
 
     /**
      * Used internally for performance.
@@ -93,8 +105,8 @@ public class SparseVector implements SGDVector {
     /**
      * Creates a sparse vector of the specified size, with the supplied value at each of the indices.
      * @param size The vector size.
-     * @param indices The indices of the sparse vector.
-     * @param value The initial value.
+     * @param indices The active indices.
+     * @param value The value for those indices.
      */
     public SparseVector(int size, int[] indices, double value) {
         this.indices = Arrays.copyOf(indices,indices.length);
@@ -178,7 +190,7 @@ public class SparseVector implements SGDVector {
     /**
      * Defensively copies the input, and checks that the indices are sorted. If not,
      * it sorts them.
-     *  <p>
+     * <p>
      * Throws {@link IllegalArgumentException} if the arrays are not the same length, or if size is less than
      * the max index.
      * @param dimension The dimension of this vector.
@@ -459,10 +471,37 @@ public class SparseVector implements SGDVector {
         }
     }
 
+    /**
+     * Applies a {@link ToDoubleBiFunction} elementwise to this {@link SGDVector}.
+     * <p>
+     * The first argument to the function is the index, the second argument is the current value.
+     * <p>
+     * Only applies the function to the elements which are present.
+     * <p>
+     * If you need to operate over the whole vector then densify it first.
+     * @param f The function to apply.
+     */
     @Override
     public void foreachInPlace(DoubleUnaryOperator f) {
         for (int i = 0; i < values.length; i++) {
             values[i] = f.applyAsDouble(values[i]);
+        }
+    }
+
+    /**
+     * Applies a {@link ToDoubleBiFunction} elementwise to this {@link SGDVector}.
+     * <p>
+     * The first argument to the function is the index, the second argument is the current value.
+     * <p>
+     * Only applies the function to the elements which are present.
+     * <p>
+     * If you need to operate over the whole vector then densify it first.
+     * @param f The function to apply.
+     */
+    @Override
+    public void foreachIndexedInPlace(ToDoubleBiFunction<Integer,Double> f) {
+        for (int i = 0; i < values.length; i++) {
+            values[i] = f.applyAsDouble(indices[i],values[i]);
         }
     }
 

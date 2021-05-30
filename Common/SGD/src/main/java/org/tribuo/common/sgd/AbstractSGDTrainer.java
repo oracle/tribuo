@@ -53,6 +53,10 @@ import java.util.logging.Logger;
  * "Large-Scale Machine Learning with Stochastic Gradient Descent"
  * Proceedings of COMPSTAT, 2010.
  * </pre>
+ * @param <T> The output type.
+ * @param <U> The intermediate representation of the labels.
+ * @param <V> The model type.
+ * @param <X> The parameter type.
  */
 public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T>,X extends FeedForwardParameters> implements Trainer<T>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(AbstractSGDTrainer.class.getName());
@@ -97,7 +101,6 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         this.minibatchSize = minibatchSize;
         this.seed = seed;
         this.addBias = addBias;
-        postConfig();
     }
 
     /**

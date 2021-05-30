@@ -20,6 +20,7 @@ import org.tribuo.math.util.VectorNormalizer;
 
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.ToDoubleBiFunction;
 
 /**
  * Interface for 1 dimensional {@link Tensor}s.
@@ -27,6 +28,14 @@ import java.util.function.DoubleUnaryOperator;
  * Vectors have immutable sizes and immutable indices (so {@link SparseVector} can't grow).
  */
 public interface SGDVector extends Tensor, Iterable<VectorTuple> {
+
+    /**
+     * Applies a {@link ToDoubleBiFunction} elementwise to this {@link SGDVector}.
+     * <p>
+     * The first argument to the function is the index, the second argument is the current value.
+     * @param f The function to apply.
+     */
+    public void foreachIndexedInPlace(ToDoubleBiFunction<Integer,Double> f);
 
     /**
      * Returns a deep copy of this vector.

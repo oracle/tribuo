@@ -49,6 +49,7 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> extends Ab
      */
     protected AbstractLinearSGDTrainer(StochasticGradientOptimiser optimiser, int epochs, int loggingInterval, int minibatchSize, long seed) {
         super(optimiser,epochs,loggingInterval,minibatchSize,seed,true);
+        postConfig();
     }
 
     /**

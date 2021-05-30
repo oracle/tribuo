@@ -27,6 +27,16 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
+/**
+ * A model trained using SGD.
+ * <p>
+ * See:
+ * <pre>
+ * Bottou L.
+ * "Large-Scale Machine Learning with Stochastic Gradient Descent"
+ * Proceedings of COMPSTAT, 2010.
+ * </pre>
+ */
 public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
     private static final long serialVersionUID = 1L;
 
@@ -69,7 +79,8 @@ public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
         } else {
             features = SparseVector.createSparseVector(example, featureIDMap, addBias);
         }
-        if (features.numActiveElements() == 1) {
+        int minNumFeatures = addBias ? 1 : 0;
+        if (features.numActiveElements() == minNumFeatures) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
         return new PredAndActive(modelParameters.predict(features),features.numActiveElements());
