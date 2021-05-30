@@ -132,7 +132,7 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
             int id = outputInfo.getID(r);
             dimensionNames[id] = r.getNames()[0];
         }
-        return new FMRegressionModel("linear-sgd-model",dimensionNames,provenance,featureMap,outputInfo,parameters);
+        return new FMRegressionModel(name,dimensionNames,provenance,featureMap,outputInfo,parameters);
     }
 
     @Override

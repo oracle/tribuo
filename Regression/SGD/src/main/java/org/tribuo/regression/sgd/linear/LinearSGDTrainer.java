@@ -118,7 +118,7 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor,DenseVe
             int id = outputInfo.getID(r);
             dimensionNames[id] = r.getNames()[0];
         }
-        return new LinearSGDModel("linear-sgd-model",dimensionNames,provenance,featureMap,outputInfo,parameters);
+        return new LinearSGDModel(name,dimensionNames,provenance,featureMap,outputInfo,parameters);
     }
 
     @Override
