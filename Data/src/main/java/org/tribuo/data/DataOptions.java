@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,9 @@ import org.tribuo.data.text.impl.TextFeatureExtractorImpl;
 import org.tribuo.data.text.impl.TokenPipeline;
 import org.tribuo.dataset.MinimumCardinalityDataset;
 import org.tribuo.datasource.LibSVMDataSource;
+import org.tribuo.transform.TransformationMap;
+import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.LinearScalingTransformation;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.BufferedInputStream;
@@ -45,6 +48,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.logging.Logger;
 
@@ -63,11 +67,11 @@ public final class DataOptions implements Options {
          */
         SERIALIZED,
         /**
-         * LibSVM format data.
+         * LibSVM/svm-light format data.
          */
         LIBSVM,
         /**
-         * Text data in Tribuo's default text format "output ## text".
+         * Text data in Tribuo's standard format (i.e., each line is "output ## text data").
          */
         TEXT,
         /**
@@ -75,7 +79,7 @@ public final class DataOptions implements Options {
          */
         CSV,
         /**
-         * A CSV file using a {@link RowProcessor}.
+         * A CSV file parsed using a configured {@link RowProcessor}.
          */
         COLUMNAR
     }
@@ -177,6 +181,8 @@ public final class DataOptions implements Options {
      */
     @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
     public Path testingPath;
+    @Option(longName="scale-features",usage="Scales the features to the range 0-1 independently.")
+    public boolean scaleFeatures;
 
     /**
      * Loads the datasets specified in this options.
@@ -285,7 +291,16 @@ public final class DataOptions implements Options {
                 throw new IllegalArgumentException("Unsupported input format " + inputFormat);
         }
         logger.info(String.format("Loaded %d testing examples", test.size()));
-        return new Pair<>(train, test);
+        if (scaleFeatures) {
+            logger.info("Fitting feature scaling");
+            TransformationMap map = new TransformationMap(Collections.singletonList(new LinearScalingTransformation()));
+            TransformerMap transformers = train.createTransformers(map);
+            logger.info("Applying scaling to training dataset");
+            train = transformers.transformDataset(train);
+            logger.info("Applying scaling to testing dataset");
+            test = transformers.transformDataset(test);
+        }
+        return new Pair<>(train,test);
     }
 
     /**
@@ -301,3 +316,4 @@ public final class DataOptions implements Options {
         }
     }
 }
+
