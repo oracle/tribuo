@@ -185,6 +185,11 @@ public final class FMParameters implements FeedForwardParameters {
                     factorGradMatrix = new DenseSparseMatrix(vectors);
                 } else {
                     factorGradMatrix = new DenseMatrix(numFactors,features.size());
+                    for (int j = 0; j < numFactors; j++) {
+                        for (int k = 0; k < features.size(); k++) {
+                            factorGradMatrix.set(j,k,features.get(k));
+                        }
+                    }
                 }
                 for (int j = 0; j < numFactors; j++) {
                     // This gets a mutable view of the row
