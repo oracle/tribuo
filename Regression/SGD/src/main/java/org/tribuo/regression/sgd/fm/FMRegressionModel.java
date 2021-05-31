@@ -23,6 +23,8 @@ import org.tribuo.Prediction;
 import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.regression.ImmutableRegressionInfo;
+import org.tribuo.regression.RegressionInfo;
 import org.tribuo.regression.Regressor;
 
 import java.util.Arrays;
@@ -44,6 +46,8 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> {
 
     private final String[] dimensionNames;
 
+    private final boolean standardise;
+
     /**
      * Constructs a linear regression model trained via SGD.
      * @param name The model name.
@@ -52,23 +56,43 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> {
      * @param featureIDMap The feature domain.
      * @param outputIDInfo The output domain.
      * @param parameters The model parameters.
+     * @param standardise Is the model fitted on standardised regressors?
      */
     FMRegressionModel(String name, String[] dimensionNames, ModelProvenance provenance,
                       ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
-                      FMParameters parameters) {
+                      FMParameters parameters, boolean standardise) {
         super(name, provenance, featureIDMap, outputIDInfo, parameters, false);
         this.dimensionNames = dimensionNames;
+        this.standardise = standardise;
     }
 
     @Override
     public Prediction<Regressor> predict(Example<Regressor> example) {
         PredAndActive predTuple = predictSingle(example);
-        return new Prediction<>(new Regressor(dimensionNames,predTuple.prediction.toArray()), predTuple.numActiveFeatures, example);
+        double[] predictions = predTuple.prediction.toArray();
+        if (standardise) {
+            predictions = unstandardisePredictions(predictions);
+        }
+        return new Prediction<>(new Regressor(dimensionNames,predictions), predTuple.numActiveFeatures, example);
+    }
+
+    /**
+     * Converts zero mean unit variance predictions into the true range.
+     * @param predictions The predictions to convert.
+     */
+    private double[] unstandardisePredictions(double[] predictions) {
+        ImmutableRegressionInfo info = (ImmutableRegressionInfo) outputIDInfo;
+        for (int i = 0; i < predictions.length; i++) {
+            double mean = info.getMean(i);
+            double variance = info.getVariance(i);
+            predictions[i] = (predictions[i] * variance) + mean;
+        }
+        return predictions;
     }
 
     @Override
     protected FMRegressionModel copy(String newName, ModelProvenance newProvenance) {
-        return new FMRegressionModel(newName,Arrays.copyOf(dimensionNames,dimensionNames.length),newProvenance,featureIDMap,outputIDInfo,(FMParameters)modelParameters.copy());
+        return new FMRegressionModel(newName,Arrays.copyOf(dimensionNames,dimensionNames.length),newProvenance,featureIDMap,outputIDInfo,(FMParameters)modelParameters.copy(),standardise);
     }
 
     @Override

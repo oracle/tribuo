@@ -25,6 +25,7 @@ import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.sgd.RegressionObjective;
 
@@ -48,6 +49,9 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
     @Config(mandatory = true,description="The regression objective to use.")
     private RegressionObjective objective;
 
+    @Config(mandatory = true,description="Standardise the output variables before fitting the model.")
+    private boolean standardise;
+
     /**
      * Constructs an SGD trainer for a factorization machine.
      * @param objective The objective function to optimise.
@@ -59,12 +63,14 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
      * @param factorizedDimSize Size of the factorized feature representation.
      * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
+     * @param standardise       Standardise the output regressors before fitting the model.
      */
     public FMRegressionTrainer(RegressionObjective objective, StochasticGradientOptimiser optimiser, int epochs,
                                int loggingInterval, int minibatchSize, long seed,
-                               int factorizedDimSize, double l2, double variance) {
+                               int factorizedDimSize, double l2, double variance, boolean standardise) {
         super(optimiser, epochs, loggingInterval, minibatchSize, seed, factorizedDimSize, l2, variance);
         this.objective = objective;
+        this.standardise = standardise;
     }
 
     /**
@@ -79,11 +85,12 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
      * @param factorizedDimSize Size of the factorized feature representation.
      * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
+     * @param standardise       Standardise the output regressors before fitting the model.
      */
     public FMRegressionTrainer(RegressionObjective objective, StochasticGradientOptimiser optimiser, int epochs,
                                int loggingInterval, long seed,
-                               int factorizedDimSize, double l2, double variance) {
-        this(objective,optimiser,epochs,loggingInterval,1,seed,factorizedDimSize,l2,variance);
+                               int factorizedDimSize, double l2, double variance, boolean standardise) {
+        this(objective,optimiser,epochs,loggingInterval,1,seed,factorizedDimSize,l2,variance,standardise);
     }
 
     /**
@@ -97,10 +104,11 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
      * @param factorizedDimSize Size of the factorized feature representation.
      * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
+     * @param standardise       Standardise the output regressors before fitting the model.
      */
     public FMRegressionTrainer(RegressionObjective objective, StochasticGradientOptimiser optimiser, int epochs,
-                               long seed, int factorizedDimSize, double l2, double variance) {
-        this(objective,optimiser,epochs,1000,1,seed,factorizedDimSize,l2,variance);
+                               long seed, int factorizedDimSize, double l2, double variance, boolean standardise) {
+        this(objective,optimiser,epochs,1000,1,seed,factorizedDimSize,l2,variance,standardise);
     }
 
     /**
@@ -112,10 +120,15 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
 
     @Override
     protected DenseVector getTarget(ImmutableOutputInfo<Regressor> outputInfo, Regressor output) {
+        ImmutableRegressionInfo regressionInfo = (ImmutableRegressionInfo) outputInfo;
         double[] regressorsBuffer = new double[outputInfo.size()];
         for (Regressor.DimensionTuple r : output) {
             int id = outputInfo.getID(r);
-            regressorsBuffer[id] = r.getValue();
+            double curValue = r.getValue();
+            if (standardise) {
+                curValue = (curValue - regressionInfo.getMean(id)) / regressionInfo.getVariance(id);
+            }
+            regressorsBuffer[id] = curValue;
         }
         return DenseVector.createDenseVector(regressorsBuffer);
     }
@@ -132,7 +145,7 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
             int id = outputInfo.getID(r);
             dimensionNames[id] = r.getNames()[0];
         }
-        return new FMRegressionModel(name,dimensionNames,provenance,featureMap,outputInfo,parameters);
+        return new FMRegressionModel(name,dimensionNames,provenance,featureMap,outputInfo,parameters,standardise);
     }
 
     @Override
@@ -145,6 +158,6 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
         return "FMRegressionTrainer(objective=" + objective.toString() + ",optimiser=" + optimiser.toString() +
                 ",epochs=" + epochs + ",minibatchSize=" + minibatchSize + ",seed=" + seed +
                 ",factorizedDimSize=" + factorizedDimSize + ",l2=" + l2 + ",variance=" + variance +
-                ")";
+                ",standardise=" + standardise + ")";
     }
 }

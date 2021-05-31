@@ -91,6 +91,8 @@ public class TrainTest {
         public double l2 = 0.001;
         @Option(longName = "variance", usage = "Variance of the initialization gaussian.")
         public double variance = 0.1;
+        @Option(longName = "standardise", usage = "Standardise the output regressors before model fitting.")
+        public boolean standardise = false;
     }
 
     /**
@@ -143,7 +145,9 @@ public class TrainTest {
         Dataset<Regressor> train = data.getA();
         Dataset<Regressor> test = data.getB();
 
-        Trainer<Regressor> trainer = new FMRegressionTrainer(obj,grad,o.epochs,o.loggingInterval,o.minibatchSize,o.general.seed,o.factorSize,o.l2,o.variance);
+        logger.info("Feature domain - " + train.getFeatureIDMap());
+
+        Trainer<Regressor> trainer = new FMRegressionTrainer(obj,grad,o.epochs,o.loggingInterval,o.minibatchSize,o.general.seed,o.factorSize,o.l2,o.variance,o.standardise);
         logger.info("Training using " + trainer.toString());
         final long trainStart = System.currentTimeMillis();
         Model<Regressor> model = trainer.train(train);
