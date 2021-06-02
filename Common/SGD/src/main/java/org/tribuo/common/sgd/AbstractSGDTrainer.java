@@ -161,17 +161,23 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         U[] sgdTargets = (U[]) new Object[examples.size()];
         double[] weights = new double[examples.size()];
         int n = 0;
+        long featureSize = 0;
+        long denseCount = 0;
         for (Example<T> example : examples) {
             weights[n] = example.getWeight();
             if (example.size() == featureSpaceSize) {
                 sgdFeatures[n] = DenseVector.createDenseVector(example, featureIDMap, addBias);
+                denseCount++;
             } else {
                 sgdFeatures[n] = SparseVector.createSparseVector(example, featureIDMap, addBias);
             }
             sgdTargets[n] = getTarget(outputIDInfo,example.getOutput());
+            featureSize += sgdFeatures[n].numActiveElements();
             n++;
         }
         logger.info(String.format("Training SGD model with %d examples", n));
+        logger.fine("Average feature size = " + featureSize / (double)n);
+        logger.fine("Dense count = " + denseCount);
         logger.info("Outputs - " + outputIDInfo.toReadableString());
 
         X parameters = createParameters(featureIDMap.size(), outputIDInfo.size(), localRNG);
