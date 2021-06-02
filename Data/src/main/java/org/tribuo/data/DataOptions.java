@@ -183,8 +183,11 @@ public final class DataOptions implements Options {
     public Path testingPath;
     @Option(longName="scale-features",usage="Scales the features to the range 0-1 independently.")
     public boolean scaleFeatures;
+    @Option(longName="scale-including-zeros",usage="Includes implicit zeros in the scale range calculation")
+    public boolean scaleIncZeros;
 
     /**
+<<<<<<< HEAD
      * Loads the datasets specified in this options.
      * @param outputFactory The output factory to use.
      * @param <T> The type of the dataset.
@@ -192,6 +195,17 @@ public final class DataOptions implements Options {
      * @throws IOException If the datasets failed to load.
      */
     public <T extends Output<T>> Pair<Dataset<T>, Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
+=======
+     * Loads the training and testing data from {@link #trainingPath} and {@link #testingPath}
+     * according to the other parameters specified in this class.
+     * @param outputFactory The output factory to use to process the inputs.
+     * @param <T> The dataset output type.
+     * @return A pair containing the training and testing datasets. The training dataset is element 'A' and the
+     * testing dataset is element 'B'.
+     * @throws IOException If the paths could not be loaded.
+     */
+    public <T extends Output<T>> Pair<Dataset<T>,Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
+>>>>>>> c459390 (Adding another rescaling option to DataOptions.)
         logger.info(String.format("Loading data from %s", trainingPath));
         Dataset<T> train;
         Dataset<T> test;
@@ -294,7 +308,7 @@ public final class DataOptions implements Options {
         if (scaleFeatures) {
             logger.info("Fitting feature scaling");
             TransformationMap map = new TransformationMap(Collections.singletonList(new LinearScalingTransformation()));
-            TransformerMap transformers = train.createTransformers(map);
+            TransformerMap transformers = train.createTransformers(map,scaleIncZeros);
             logger.info("Applying scaling to training dataset");
             train = transformers.transformDataset(train);
             logger.info("Applying scaling to testing dataset");
@@ -304,14 +318,14 @@ public final class DataOptions implements Options {
     }
 
     /**
-     * Saves the model out to the path specified in this options.
+     * Saves the model out to the path in {@link #outputPath}.
      * @param model The model to save.
-     * @param <T> The type of the model output.
+     * @param <T> The model's output type.
      * @throws IOException If the model could not be saved.
      */
     public <T extends Output<T>> void saveModel(Model<T> model) throws IOException {
-        try (ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(outputPath.toFile()))) {
-            objOut.writeObject(model);
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath.toFile()))) {
+            oos.writeObject(model);
             logger.info("Serialized model to file: " + outputPath);
         }
     }
