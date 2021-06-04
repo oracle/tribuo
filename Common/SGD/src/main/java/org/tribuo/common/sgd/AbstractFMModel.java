@@ -128,7 +128,10 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
     }
 
     /**
-     * Returns a copy of the factors. There is one factor matrix per output dimension.
+     * Returns a copy of the factors.
+     * There is one factor matrix per output dimension.
+     * The first factor matrix dimension is the factor dimension,
+     * the second is the number of features.
      * @return The factors.
      */
     public Tensor[] getFactorsCopy() {
