@@ -24,6 +24,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Tensor;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -108,6 +109,35 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
             map.put(getDimensionName(i), b);
         }
         return map;
+    }
+
+    /**
+     * Returns a copy of the linear weights.
+     * @return The linear weights.
+     */
+    public DenseMatrix getLinearWeightsCopy() {
+        return ((DenseMatrix)modelParameters.get()[1]).copy();
+    }
+
+    /**
+     * Returns a copy of the output dimension biases.
+     * @return The biases.
+     */
+    public DenseVector getBiasesCopy() {
+        return ((DenseVector)modelParameters.get()[0]).copy();
+    }
+
+    /**
+     * Returns a copy of the factors. There is one factor matrix per output dimension.
+     * @return The factors.
+     */
+    public Tensor[] getFactorsCopy() {
+        Tensor[] params = modelParameters.get();
+        Tensor[] paramCopy = new Tensor[params.length-2];
+        for (int i = 0; i < paramCopy.length; i++) {
+            paramCopy[i] = params[i+2].copy();
+        }
+        return paramCopy;
     }
 
     /**
