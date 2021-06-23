@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+  ~ Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,29 +20,32 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.tribuo</groupId>
-        <artifactId>tribuo-interop</artifactId>
+        <artifactId>tribuo-util</artifactId>
         <version>4.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <name>Interop-Core</name>
-    <artifactId>tribuo-interop-core</artifactId>
+    <name>ONNXExport</name>
+    <artifactId>tribuo-util-onnx-export</artifactId>
     <packaging>jar</packaging>
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>tribuo-core</artifactId>
+            <groupId>com.oracle.labs.olcut</groupId>
+            <artifactId>olcut-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>tribuo-math</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-core</artifactId>
             <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>${protobuf.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -52,21 +55,15 @@
         </dependency>
     </dependencies>
 
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
-
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>org.tribuo.interop.core</Automatic-Module-Name>
+                            <Automatic-Module-Name>org.tribuo.util.onnx</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>

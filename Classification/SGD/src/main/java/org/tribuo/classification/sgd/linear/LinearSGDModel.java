@@ -16,16 +16,19 @@
 
 package org.tribuo.classification.sgd.linear;
 
+import onnx.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
+import org.tribuo.Tribuo;
 import org.tribuo.classification.Label;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.onnx.ONNXExport;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -42,7 +45,7 @@ import java.util.Map;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
+public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONNXExport {
     private static final long serialVersionUID = 2L;
 
     private final VectorNormalizer normalizer;
@@ -99,6 +102,28 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> {
     @Override
     protected String getDimensionName(int index) {
         return outputIDInfo.getOutput(index).getLabel();
+    }
+
+    @Override
+    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
+        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+        OnnxMl.TypeProto inputType = OnnxMl.TypeProto.newBuilder().setTensorType(OnnxMl.TypeProto.Tensor.newBuilder().)
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).build();
+        graphBuilder.addInput(inputValueProto);
+
+        OnnxMl.AttributeProto.Builder attrBuilder;
+        attrBuilder.addFloats();
+
+        OnnxMl.NodeProto nodeProto;
+        nodeProto.
+
+        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
+        builder.setDomain(domain);
+        builder.setProducerName("Tribuo");
+        builder.setProducerVersion(Tribuo.VERSION);
+        builder.setModelVersion(modelVersion);
+        builder.setDocString(toString());
+        return null;
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
