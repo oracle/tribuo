@@ -593,6 +593,15 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     }
 
     @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.trainInvocationCounter = invocationCount;
+    }
+
+    @Override
     public TrainerProvenance getProvenance() {
         return new TensorFlowTrainerProvenance(this);
     }

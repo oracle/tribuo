@@ -224,6 +224,22 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
     }
 
     @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        SplittableRandom localRNG;
+
+        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
+            localRNG = rng.split();
+            trainInvocationCounter++;
+        }
+
+    }
+
+    @Override
     public String toString() {
         return "KernelSVMTrainer(kernel="+kernel.toString()+",lambda="+lambda+",epochs="+epochs+",seed="+seed+")";
     }

@@ -88,6 +88,11 @@ public final class HashingTrainer<T extends Output<T>> implements Trainer<T> {
     }
 
     @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        innerTrainer.setInvocationCount(invocationCount);
+    }
+
+    @Override
     public TrainerProvenance getProvenance() {
         return new TrainerProvenanceImpl(this);
     }

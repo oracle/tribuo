@@ -19,7 +19,10 @@ package org.tribuo.regression.slm;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.SparseModel;
 import org.tribuo.Trainer;
+import org.tribuo.math.la.Tensor;
+import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -33,6 +36,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestSLM {
 
@@ -127,6 +133,45 @@ public class TestSLM {
         testLARS(p);
         testLASSO(p);
         testElasticNet(p);
+    }
+
+    @Test
+    public void testSetInvocationCount() {
+        // Create new trainer and dataset so as not to mess with the other tests
+        ElasticNetCDTrainer originalTrainer = new ElasticNetCDTrainer(1.0,0.5);
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimSparseTrainTest();
+
+        // The number of times to call train before final training.
+        // Original trainer will be trained numOfInvocations + 1 times
+        // New trainer will have it's invocation count set to numOfInvocations then trained once
+        int numOfInvocations = 2;
+
+        // Create the first model and train it numOfInvocations + 1 times
+        SparseModel<Regressor> originalModel = null;
+        for(int invocationCounter = 0; invocationCounter < numOfInvocations + 1; invocationCounter++){
+            originalModel = originalTrainer.train(p.getA());
+        }
+
+        // Create a new model with same configuration, but set the invocation count to numOfInvocations
+        // Assert that this succeeded, this means RNG will be at state where originalTrainer was before
+        // it performed its last train.
+        ElasticNetCDTrainer newTrainer = new ElasticNetCDTrainer(1.0,0.5);
+        newTrainer.setInvocationCount(numOfInvocations);
+        assertEquals(numOfInvocations,newTrainer.getInvocationCount());
+
+        // Training newTrainer should now have the same result as if it
+        // had trained numOfInvocations times previously even though it hasn't
+        SparseModel<Regressor> newModel = newTrainer.train(p.getA());
+        assertEquals(originalTrainer.getInvocationCount(),newTrainer.getInvocationCount());
+
+    }
+
+    @Test
+    public void testNegativeInvocationCount(){
+        assertThrows(IllegalArgumentException.class, () -> {
+            ElasticNetCDTrainer t = new ElasticNetCDTrainer(1.0,0.5);
+            t.setInvocationCount(-1);
+        });
     }
 
 }

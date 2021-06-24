@@ -200,6 +200,14 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
     }
 
     @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+        this.invocationCount = invocationCount;
+    }
+
+    @Override
     public TrainerProvenance getProvenance() {
         return new TrainerProvenanceImpl(this);
     }

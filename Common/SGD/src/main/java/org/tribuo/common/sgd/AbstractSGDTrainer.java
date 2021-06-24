@@ -238,6 +238,22 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         return trainInvocationCounter;
     }
 
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        SplittableRandom localRNG;
+
+        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
+            localRNG = rng.split();
+            trainInvocationCounter++;
+        }
+       
+    }
+
     /**
      * Extracts the appropriate training time representation from the supplied output.
      * @param outputInfo The output info to use.

@@ -221,6 +221,22 @@ public class AdaBoostTrainer implements Trainer<Label> {
         return trainInvocationCounter;
     }
 
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        SplittableRandom localRNG;
+
+        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
+            localRNG = rng.split();
+            trainInvocationCounter++;
+        }
+
+    }
+
     private float accuracy(List<Prediction<Label>> predictions, Dataset<Label> examples, float[] weights) {
         float correctSum = 0;
         float total = 0;

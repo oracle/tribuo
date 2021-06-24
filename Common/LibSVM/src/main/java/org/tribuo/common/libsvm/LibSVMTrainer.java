@@ -242,6 +242,15 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         return trainInvocationCounter;
     }
 
+    @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.trainInvocationCounter = invocationCount;
+    }
+
     /**
      * Convert the example into an array of svm_node which represents a sparse feature vector.
      * <p>

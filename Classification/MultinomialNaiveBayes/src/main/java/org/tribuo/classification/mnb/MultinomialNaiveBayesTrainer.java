@@ -119,6 +119,15 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
     }
 
     @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.invocationCount = invocationCount;
+    }
+
+    @Override
     public String toString() {
         return "MultinomialNaiveBayesTrainer(alpha=" + alpha + ")";
     }

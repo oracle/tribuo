@@ -95,6 +95,11 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
     }
 
     @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        innerTrainer.setInvocationCount(invocationCount);
+    }
+
+    @Override
     public String toString() {
         return "IndependentMultiLabelTrainer(innerTrainer="+innerTrainer.toString()+")";
     }

@@ -142,6 +142,22 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     }
 
     @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        SplittableRandom localRNG;
+
+        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
+            localRNG = rng.split();
+            trainInvocationCounter++;
+        }
+
+    }
+
+    @Override
     public float getFractionFeaturesInSplit() {
         return fractionFeaturesInSplit;
     }

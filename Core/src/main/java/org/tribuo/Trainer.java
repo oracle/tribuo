@@ -60,4 +60,13 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
      * @return The number of train invocations.
      */
     public int getInvocationCount();
+
+    /**
+     * Set the internal state of the trainer to the provided number of invocations of the train method.
+     * <p>
+     * This is used when reproducing a Tribuo-trained model by setting the state of the RNG to
+     * what it was at when Tribuo trained the original model by simulating invocations of the train method.
+     * @param  invocationCount the number of invocations of the train method to simulate
+     */
+    public void setInvocationCount(int invocationCount);
 }

@@ -135,6 +135,12 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     }
 
     @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        //TODO: Check if this all this method needs to do
+        innerTrainer.setInvocationCount(invocationCount);
+    }
+
+    @Override
     public TrainerProvenance getProvenance() {
         return new TrainerProvenanceImpl(this);
     }

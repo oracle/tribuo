@@ -116,6 +116,22 @@ public abstract class SkeletalIndependentRegressionSparseTrainer<T> implements S
         return trainInvocationCounter;
     }
 
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        SplittableRandom localRNG;
+
+        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
+            localRNG = rng.split();
+            trainInvocationCounter++;
+        }
+
+    }
+
     /**
      * Constructs the appropriate subclass of {@link SkeletalIndependentRegressionModel} for this trainer.
      * @param models The models to use.

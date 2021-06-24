@@ -328,6 +328,22 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
     }
 
     @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        SplittableRandom localRNG;
+
+        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
+            localRNG = rng.split();
+            trainInvocationCounter++;
+        }
+
+    }
+
+    @Override
     public String toString() {
         return "ElasticNetCDTrainer(alpha="+alpha+",l1Ratio="+l1Ratio+"" +
                 ",tolerance="+tolerance+",maxIterations="+maxIterations +

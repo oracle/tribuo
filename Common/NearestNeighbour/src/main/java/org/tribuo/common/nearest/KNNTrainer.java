@@ -141,6 +141,15 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
     }
 
     @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.invocationCount = invocationCount;
+    }
+
+    @Override
     public TrainerProvenance getProvenance() {
         return new TrainerProvenanceImpl(this);
     }

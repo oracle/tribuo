@@ -351,6 +351,15 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         return trainInvocationCounter;
     }
 
+    @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.trainInvocationCounter = invocationCount;
+    }
+
     protected static <T extends Output<T>> DMatrixTuple<T> convertDataset(Dataset<T> examples, Function<T,Float> responseExtractor) throws XGBoostError {
         return convertExamples(examples.getData(), examples.getFeatureIDMap(), responseExtractor);
     }
