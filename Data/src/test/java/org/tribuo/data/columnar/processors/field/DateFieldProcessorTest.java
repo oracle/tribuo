@@ -74,7 +74,7 @@ public class DateFieldProcessorTest {
                 EnumSet.allOf(DateFieldProcessor.DateFeatureType.class), isoFormat);
         LocalDate isoDate = LocalDate.parse(isoInput, isoFormatter);
         List<ColumnarFeature> isoFeatures = isoProc.process(isoInput);
-        assertEquals(6, isoFeatures.size());
+        assertEquals(DateFieldProcessor.DateFeatureType.values().length, isoFeatures.size());
         assertTrue(isoFeatures.contains(
                 new ColumnarFeature("test-iso", "DAY", isoDate.getDayOfMonth())));
         assertTrue(isoFeatures.contains(
@@ -89,6 +89,20 @@ public class DateFieldProcessorTest {
                 new ColumnarFeature("test-iso", "DAY_OF_YEAR", 26)));
         assertTrue(isoFeatures.contains(
                 new ColumnarFeature("test-iso", "WEEK_OF_YEAR", isoDate.get(WeekFields.ISO.weekOfWeekBasedYear()))));
+        assertTrue(isoFeatures.contains(
+                new ColumnarFeature("test-iso", "WEEK_OF_MONTH", 4)));
+        assertTrue(isoFeatures.contains(
+                new ColumnarFeature("test-iso", "EVEN_OR_ODD_DAY", 0)));
+        assertTrue(isoFeatures.contains(
+                new ColumnarFeature("test-iso", "EVEN_OR_ODD_WEEK", 0)));
+        assertTrue(isoFeatures.contains(
+                new ColumnarFeature("test-iso", "EVEN_OR_ODD_MONTH", 1)));
+        assertTrue(isoFeatures.contains(
+                new ColumnarFeature("test-iso", "EVEN_OR_ODD_YEAR", 0)));
+        assertTrue(isoFeatures.contains(
+                new ColumnarFeature("test-iso", "CALENDAR_QUARTER", 1)));
+        assertTrue(isoFeatures.contains(
+                new ColumnarFeature("test-iso", "DAY_OF_QUARTER", 26)));
         assertTrue(isoFeatures.contains(
                 new ColumnarFeature("test-iso", "MONTH", isoDate.getMonthValue())));
         assertTrue(isoFeatures.contains(
@@ -105,7 +119,7 @@ public class DateFieldProcessorTest {
                 EnumSet.allOf(DateFieldProcessor.DateFeatureType.class), usFormat);
         LocalDate usDate = LocalDate.parse(usInput, usFormatter);
         List<ColumnarFeature> usFeatures = usProc.process(usInput);
-        assertEquals(6, usFeatures.size());
+        assertEquals(DateFieldProcessor.DateFeatureType.values().length, usFeatures.size());
         assertTrue(usFeatures.contains(
                 new ColumnarFeature("test-us", "DAY", usDate.getDayOfMonth())));
         assertTrue(usFeatures.contains(
@@ -120,6 +134,20 @@ public class DateFieldProcessorTest {
                 new ColumnarFeature("test-us", "DAY_OF_YEAR", 251)));
         assertTrue(usFeatures.contains(
                 new ColumnarFeature("test-us", "WEEK_OF_YEAR", usDate.get(WeekFields.ISO.weekOfWeekBasedYear()))));
+        assertTrue(usFeatures.contains(
+                new ColumnarFeature("test-us", "WEEK_OF_MONTH", 2)));
+        assertTrue(usFeatures.contains(
+                new ColumnarFeature("test-us", "EVEN_OR_ODD_DAY", 1)));
+        assertTrue(usFeatures.contains(
+                new ColumnarFeature("test-us", "EVEN_OR_ODD_WEEK", 0)));
+        assertTrue(usFeatures.contains(
+                new ColumnarFeature("test-us", "EVEN_OR_ODD_MONTH", 1)));
+        assertTrue(usFeatures.contains(
+                new ColumnarFeature("test-us", "EVEN_OR_ODD_YEAR", 0)));
+        assertTrue(usFeatures.contains(
+                new ColumnarFeature("test-us", "CALENDAR_QUARTER", 3)));
+        assertTrue(usFeatures.contains(
+                new ColumnarFeature("test-us", "DAY_OF_QUARTER", 70)));
         assertTrue(usFeatures.contains(
                 new ColumnarFeature("test-us", "MONTH", usDate.getMonthValue())));
         assertTrue(usFeatures.contains(
@@ -137,7 +165,7 @@ public class DateFieldProcessorTest {
                 EnumSet.allOf(DateFieldProcessor.DateFeatureType.class), ukFormat);
         LocalDate ukDate = LocalDate.parse(ukInput, ukFormatter);
         List<ColumnarFeature> ukFeatures = ukProc.process(ukInput);
-        assertEquals(6, ukFeatures.size());
+        assertEquals(DateFieldProcessor.DateFeatureType.values().length, ukFeatures.size());
         assertTrue(ukFeatures.contains(
                 new ColumnarFeature("test-uk", "DAY", ukDate.getDayOfMonth())));
         assertTrue(ukFeatures.contains(
@@ -152,6 +180,20 @@ public class DateFieldProcessorTest {
                 new ColumnarFeature("test-uk", "DAY_OF_YEAR", 327)));
         assertTrue(ukFeatures.contains(
                 new ColumnarFeature("test-uk", "WEEK_OF_YEAR", ukDate.get(WeekFields.ISO.weekOfWeekBasedYear()))));
+        assertTrue(ukFeatures.contains(
+                new ColumnarFeature("test-uk", "WEEK_OF_MONTH", 3)));
+        assertTrue(ukFeatures.contains(
+                new ColumnarFeature("test-uk", "EVEN_OR_ODD_DAY", 1)));
+        assertTrue(ukFeatures.contains(
+                new ColumnarFeature("test-uk", "EVEN_OR_ODD_WEEK", 1)));
+        assertTrue(ukFeatures.contains(
+                new ColumnarFeature("test-uk", "EVEN_OR_ODD_MONTH", 1)));
+        assertTrue(ukFeatures.contains(
+                new ColumnarFeature("test-uk", "EVEN_OR_ODD_YEAR", 1)));
+        assertTrue(ukFeatures.contains(
+                new ColumnarFeature("test-uk", "CALENDAR_QUARTER", 4)));
+        assertTrue(ukFeatures.contains(
+                new ColumnarFeature("test-uk", "DAY_OF_QUARTER", 54)));
         assertTrue(ukFeatures.contains(
                 new ColumnarFeature("test-uk", "MONTH", ukDate.getMonthValue())));
         assertTrue(ukFeatures.contains(

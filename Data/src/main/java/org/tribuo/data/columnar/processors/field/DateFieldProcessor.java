@@ -25,6 +25,7 @@ import org.tribuo.data.columnar.FieldProcessor;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.IsoFields;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,9 +61,37 @@ public final class DateFieldProcessor implements FieldProcessor {
          */
         WEEK_OF_YEAR((LocalDate l) -> l.get(WeekFields.ISO.weekOfWeekBasedYear())),
         /**
+         * The week of the month, as defined by ISO 8601 semantics for week of the year.
+         */
+        WEEK_OF_MONTH((LocalDate l) -> l.get(WeekFields.ISO.weekOfMonth())),
+        /**
          * The day of the year.
          */
         DAY_OF_YEAR(LocalDate::getDayOfYear),
+        /**
+         * The parity of the day of the year.
+         */
+        EVEN_OR_ODD_DAY((LocalDate l) -> l.getDayOfYear() % 2),
+        /**
+         * The parity of the week of the year as defined by ISO 8601.
+         */
+        EVEN_OR_ODD_WEEK((LocalDate l) -> l.get(WeekFields.ISO.weekOfWeekBasedYear()) % 2),
+        /**
+         * The parity of the month.
+         */
+        EVEN_OR_ODD_MONTH((LocalDate l) -> l.getMonthValue() % 2),
+        /**
+         * The parity of the year.
+         */
+        EVEN_OR_ODD_YEAR((LocalDate l) -> l.getYear() % 2),
+        /**
+         * The calendar quarter of the year.
+         */
+        CALENDAR_QUARTER((LocalDate l) -> l.get(IsoFields.QUARTER_OF_YEAR)),
+        /**
+         * The day of the quarter.
+         */
+        DAY_OF_QUARTER((LocalDate l) -> l.get(IsoFields.DAY_OF_QUARTER)),
         /**
          * The day.
          */
