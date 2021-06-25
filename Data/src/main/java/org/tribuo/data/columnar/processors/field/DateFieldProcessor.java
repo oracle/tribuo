@@ -208,7 +208,7 @@ public final class DateFieldProcessor implements FieldProcessor {
 
     @Override
     public GeneratedFeatureType getFeatureType() {
-        return GeneratedFeatureType.REAL;
+        return GeneratedFeatureType.INTEGER;
     }
 
     @Override
