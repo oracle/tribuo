@@ -217,6 +217,18 @@ public final class DateFieldProcessor implements FieldProcessor {
     }
 
     @Override
+    public String toString() {
+        return "DateFieldProcessor(" +
+                "fieldName='" + fieldName + '\'' +
+                ", featureTypes=" + featureTypes +
+                ", dateFormat='" + dateFormat + '\'' +
+                ", formatter=" + formatter +
+                ", localeLanguage='" + localeLanguage + '\'' +
+                ", localeCountry='" + localeCountry + '\'' +
+                ')';
+    }
+
+    @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"FieldProcessor");
     }
