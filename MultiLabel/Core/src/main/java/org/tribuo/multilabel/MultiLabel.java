@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -146,6 +147,25 @@ public class MultiLabel implements Classifiable<MultiLabel> {
      */
     public double getScore() {
         return score;
+    }
+
+    /**
+     * The score for the specified label if present, returns an empty optional otherwise.
+     * @param label The label to check.
+     * @return The score for the label if present.
+     */
+    public OptionalDouble getLabelScore(Label label) {
+        Label scored = null;
+        for (Label l : labels) {
+            if (l.getLabel().equals(label.getLabel())) {
+                scored = l;
+            }
+        }
+        if (scored != null) {
+            return OptionalDouble.of(scored.getScore());
+        } else {
+            return OptionalDouble.empty();
+        }
     }
 
     /**
