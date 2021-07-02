@@ -42,6 +42,9 @@ import java.util.Set;
  * <p>
  * It is possible for the prediction to produce an empty MultiLabel
  * when none of the binary Labels were predicted.
+ * <p>
+ * This model implements the approach known as "Binary Relevance" in
+ * the multi-label classification literature.
  */
 public class IndependentMultiLabelModel extends Model<MultiLabel> {
     private static final long serialVersionUID = 1L;

@@ -44,6 +44,9 @@ import java.util.Map;
  * prediction.
  * <p>
  * It trains each model sequentially, and could be optimised to train in parallel.
+ * <p>
+ * This trainer implements the approach known as "Binary Relevance" in
+ * the multi-label classification literature.
  */
 public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
 
