@@ -40,6 +40,7 @@ import org.tribuo.util.Util;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,7 +126,12 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
     }
 
     @Override
-    public Model<MultiLabel> train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance) {
+    public ClassifierChainModel train(Dataset<MultiLabel> examples) {
+        return train(examples, Collections.emptyMap());
+    }
+
+    @Override
+    public ClassifierChainModel train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -148,11 +154,12 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
             }
             Util.shuffle(curLabelOrder,localRNG);
         } else {
-            if (labelInfo.size() != labelOrder.size()) {
+            Set<String> labelSet = new HashSet<>(labelOrder);
+            if (labelInfo.size() != labelSet.size()) {
                 throw new IllegalArgumentException("Must supply a total label ordering, labelOrder = " + labelOrder.toString() + ", train label domain = " + labelInfo.getDomain());
             } else {
                 // validate all the labels exist
-                for (String lbl : labelOrder) {
+                for (String lbl : labelSet) {
                     if (labelInfo.getLabelCount(lbl) == 0) {
                         throw new IllegalArgumentException("Must supply a total label ordering, labelOrder = " + labelOrder.toString() + ", train label domain = " + labelInfo.getDomain());
                     }

@@ -109,6 +109,14 @@ public final class ClassifierChainModel extends Model<MultiLabel> {
         return new Prediction<>(new MultiLabel(predictedLabels),numUsed,example);
     }
 
+    /**
+     * Returns the training label order.
+     * @return The training label order.
+     */
+    public List<Label> getLabelOrder() {
+        return labelOrder;
+    }
+
     @Override
     public Map<String, List<Pair<String, Double>>> getTopFeatures(int n) {
         return Collections.emptyMap();
