@@ -241,6 +241,36 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
         dense = true;
     }
 
+    /**
+     * Rebuilds the output info by inspecting each example.
+     */
+    public void regenerateOutputInfo() {
+        outputMap.clear();
+        for (Example<T> e : data) {
+            outputMap.observe(e.getOutput());
+        }
+    }
+
+    /**
+     * Rebuilds the feature info by inspecting each example.
+     */
+    public void regenerateFeatureInfo() {
+        featureMap.clear();
+        dense = true;
+        for (Example<T> e : data) {
+            int oldNumFeatures = featureMap.size();
+            for (Feature f : e) {
+                featureMap.add(f.getName(),f.getValue());
+            }
+            e.canonicalize(featureMap);
+            // If we've observed a new feature, or this example doesn't contain all the features then
+            // the dataset stops being dense.
+            if ((oldNumFeatures != 0) && (oldNumFeatures < featureMap.size() || e.size() != featureMap.size())) {
+                dense = false;
+            }
+        }
+    }
+
     @Override
     public DatasetProvenance getProvenance() {
         return new DatasetProvenance(sourceProvenance, new ListProvenance<>(transformProvenances), this);

@@ -61,7 +61,7 @@ public class IndependentMultiLabelModel extends Model<MultiLabel> {
      * @param labelInfo The label domain used in training.
      */
     IndependentMultiLabelModel(List<Label> labels, List<Model<Label>> models, ModelProvenance description, ImmutableFeatureMap featureMap, ImmutableOutputInfo<MultiLabel> labelInfo) {
-        super(null,description,featureMap,labelInfo,models.get(0).generatesProbabilities());
+        super("binary-relevance",description,featureMap,labelInfo,models.get(0).generatesProbabilities());
         this.labels = labels;
         this.models = models;
     }

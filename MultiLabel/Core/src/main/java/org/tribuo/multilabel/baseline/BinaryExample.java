@@ -23,6 +23,7 @@ import org.tribuo.classification.Label;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.util.Merger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +38,10 @@ class BinaryExample extends Example<Label> {
 
     private final Example<MultiLabel> innerExample;
 
+    private Label binaryLabel;
+
+    //private final ArrayList<Feature> additionalFeatures = new ArrayList<>();
+
     /**
      * Creates a BinaryExample, which wraps a MultiLabel example and
      * has a single Label inside.
@@ -46,6 +51,20 @@ class BinaryExample extends Example<Label> {
     BinaryExample(Example<MultiLabel> innerExample, Label newLabel) {
         super(newLabel);
         this.innerExample = innerExample;
+        this.binaryLabel = newLabel;
+    }
+
+    @Override
+    public Label getOutput() {
+        return binaryLabel;
+    }
+
+    /**
+     * Sets a new label.
+     * @param newLabel The new label.
+     */
+    void setLabel(Label newLabel) {
+        binaryLabel = newLabel;
     }
 
     @Override
@@ -56,6 +75,7 @@ class BinaryExample extends Example<Label> {
     @Override
     public void add(Feature feature) {
         logger.warning("Attempting to add a feature to an immutable IndependentMultiLabelTrainer.BinaryExample");
+        //additionalFeatures.add(feature);
     }
 
     @Override
@@ -95,7 +115,7 @@ class BinaryExample extends Example<Label> {
 
     @Override
     public Example<Label> copy() {
-        return new BinaryExample(innerExample, output);
+        return new BinaryExample(innerExample, binaryLabel);
     }
 
     @Override

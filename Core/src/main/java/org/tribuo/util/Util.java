@@ -206,6 +206,23 @@ public final class Util {
     }
 
     /**
+     * Shuffles an ArrayList like {@link java.util.Collections#shuffle} but
+     * using a {@link SplittableRandom}.
+     * @param list The list to shuffle.
+     * @param rng The random number generator to use.
+     * @param <T> The type of the list.
+     */
+    public static <T> void shuffle(ArrayList<T> list, SplittableRandom rng) {
+        // Shuffle list
+        for (int i = list.size(); i > 1; i--) {
+            int j = rng.nextInt(i);
+            T tmp = list.get(i-1);
+            list.set(i-1,list.get(j));
+            list.set(j,tmp);
+        }
+    }
+
+    /**
      * Draws a bootstrap sample of indices.
      * @param size Size of the sample to generate.
      * @param rng The RNG to use.
