@@ -16,10 +16,12 @@
 
 package org.tribuo.multilabel.evaluation;
 
+import org.tribuo.Prediction;
 import org.tribuo.classification.evaluation.ConfusionMetrics;
 import org.tribuo.evaluation.metrics.MetricTarget;
 import org.tribuo.multilabel.MultiLabel;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 /**
@@ -59,7 +61,11 @@ public enum MultiLabelMetrics {
     /**
      * The balanced error rate, i.e., the mean of the per class recalls.
      */
-    BALANCED_ERROR_RATE((tgt, ctx) -> ConfusionMetrics.balancedErrorRate(ctx.getCM()));
+    BALANCED_ERROR_RATE((tgt, ctx) -> ConfusionMetrics.balancedErrorRate(ctx.getCM())),
+    /**
+     * The Jaccard score, i.e., the average across the predictions of the intersection over union.
+     */
+    JACCARD_SCORE((tgt, ctx) -> MultiLabelMetrics.jaccardScore(ctx.getPredictions()));
 
     private final BiFunction<MetricTarget<MultiLabel>, MultiLabelMetric.Context, Double> impl;
 
@@ -82,5 +88,20 @@ public enum MultiLabelMetrics {
      */
     public MultiLabelMetric forTarget(MetricTarget<MultiLabel> tgt) {
         return new MultiLabelMetric(tgt, this.name(), this.getImpl());
+    }
+
+    /**
+     * The average Jaccard score across the predictions.
+     * @param predictions The predictions to use.
+     * @return The average Jaccard score.
+     */
+    public static double jaccardScore(List<Prediction<MultiLabel>> predictions) {
+        double score = 0.0;
+
+        for (Prediction<MultiLabel> p : predictions) {
+            score += MultiLabel.jaccardScore(p.getOutput(),p.getExample().getOutput());
+        }
+
+        return score / predictions.size();
     }
 }

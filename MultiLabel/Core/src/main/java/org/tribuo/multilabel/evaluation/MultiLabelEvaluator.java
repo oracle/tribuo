@@ -70,10 +70,11 @@ public class MultiLabelEvaluator extends AbstractEvaluator<MultiLabel, MultiLabe
             metrics.add(MultiLabelMetrics.F1.forTarget(tgt));
         }
 
-        // Target doesn't matter for balanced error rate, so we just use Average.macro
-        // as it's the macro average of the recalls.
+        // Target doesn't matter for balanced error rate or jaccard score
+        // so we use Average.macro. The BER is the macro average of the recalls.
         MetricTarget<MultiLabel> dummy = new MetricTarget<>(Average.MACRO);
         metrics.add(MultiLabelMetrics.BALANCED_ERROR_RATE.forTarget(dummy));
+        metrics.add(MultiLabelMetrics.JACCARD_SCORE.forTarget(dummy));
 
         return metrics;
     }

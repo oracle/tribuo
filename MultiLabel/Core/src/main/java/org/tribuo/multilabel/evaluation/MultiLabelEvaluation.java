@@ -24,4 +24,13 @@ import org.tribuo.multilabel.MultiLabel;
  * <p>
  * Used to hold multi-label specific evaluation metrics.
  */
-public interface MultiLabelEvaluation extends ClassifierEvaluation<MultiLabel> { }
+public interface MultiLabelEvaluation extends ClassifierEvaluation<MultiLabel> {
+
+    /**
+     * The average across the predictions of the intersection of the true and predicted labels divided by the
+     * union of the true and predicted labels.
+     * @return The Jaccard score.
+     */
+    public double jaccardScore();
+
+}
