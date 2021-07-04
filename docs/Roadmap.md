@@ -64,6 +64,7 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 - ~~Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).~~ ONNX support for BERT embeddings is integrated in Tribuo 4.1.
 - More complex Multi-Label prediction algorithms.
     - A Multi-Label linear SGD is integrated in Tribuo 4.1.
+    - Classifier chains and classifier chain ensembles are planned for Tribuo 4.2.
 - More anomaly detection algorithms.
     - LibLinear based anomaly detection is integrated in Tribuo 4.1.
 - More clustering algorithms.
