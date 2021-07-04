@@ -464,4 +464,44 @@ public class MultiLabel implements Classifiable<MultiLabel> {
         }
         return new MultiLabel(labels);
     }
+
+    /**
+     * The number of labels present in both MultiLabels.
+     * @param first The first MultiLabel.
+     * @param second The second MultiLabel.
+     * @return The set intersection size.
+     */
+    public static int intersectionSize(MultiLabel first, MultiLabel second) {
+        HashSet<String> intersection = new HashSet<>();
+
+        intersection.addAll(first.labelStrings);
+        intersection.retainAll(second.labelStrings);
+
+        return intersection.size();
+    }
+
+    /**
+     * The number of unique labels across both MultiLabels.
+     * @param first The first MultiLabel.
+     * @param second The second MultiLabel.
+     * @return The set union size.
+     */
+    public static int unionSize(MultiLabel first, MultiLabel second) {
+        HashSet<String> union = new HashSet<>();
+
+        union.addAll(first.labelStrings);
+        union.addAll(second.labelStrings);
+
+        return union.size();
+    }
+
+    /**
+     * The Jaccard score/index between the two MultiLabels.
+     * @param first The first MultiLabel.
+     * @param second The second MultiLabel.
+     * @return The Jaccard score.
+     */
+    public static double jaccardScore(MultiLabel first, MultiLabel second) {
+        return ((double) intersectionSize(first,second)) / unionSize(first,second);
+    }
 }

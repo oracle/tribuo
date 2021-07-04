@@ -54,7 +54,7 @@ public class MultiLabelEvaluatorTest {
         Dataset<MultiLabel> dataset = mkDataset(predictions);
         Model<MultiLabel> model = new IndependentMultiLabelTrainer(DummyClassifierTrainer.createMostFrequentTrainer()).train(dataset); // noop model
         assertEquals(3, model.getOutputIDInfo().size());
-        ClassifierEvaluation<MultiLabel> evaluation = new MultiLabelEvaluator().evaluate(model, predictions, dataset.getProvenance());
+        MultiLabelEvaluation evaluation = new MultiLabelEvaluator().evaluate(model, predictions, dataset.getProvenance());
 
         MultiLabel a = label("a");
         MultiLabel b = label("b");
@@ -94,6 +94,8 @@ public class MultiLabelEvaluatorTest {
         assertEquals(0.6, evaluation.microAveragedPrecision());
         assertEquals(0.6, evaluation.microAveragedRecall());
         assertEquals(0.6, evaluation.microAveragedF1());
+
+        assertEquals(0.5, evaluation.jaccardScore());
     }
 
     @Test
@@ -107,7 +109,7 @@ public class MultiLabelEvaluatorTest {
         Dataset<MultiLabel> dataset = mkDataset(predictions);
         Model<MultiLabel> model = new IndependentMultiLabelTrainer(DummyClassifierTrainer.createMostFrequentTrainer()).train(dataset); // noop model
         assertEquals(3, model.getOutputIDInfo().size());
-        ClassifierEvaluation<MultiLabel> evaluation = new MultiLabelEvaluator()
+        MultiLabelEvaluation evaluation = new MultiLabelEvaluator()
                 .evaluate(model, predictions, dataset.getProvenance());
 
         MultiLabel a = label("a");
@@ -133,6 +135,8 @@ public class MultiLabelEvaluatorTest {
         assertEquals(0.5, evaluation.microAveragedPrecision());
         assertEquals(0.5, evaluation.microAveragedRecall());
         assertEquals(0.5, evaluation.microAveragedF1());
+
+        assertEquals(0.5, evaluation.jaccardScore());
     }
 
 

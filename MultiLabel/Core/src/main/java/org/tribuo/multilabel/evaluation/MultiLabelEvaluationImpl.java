@@ -186,6 +186,11 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
     }
 
     @Override
+    public double jaccardScore() {
+        return get(new MetricTarget<>(Average.MACRO), MultiLabelMetrics.JACCARD_SCORE);
+    }
+
+    @Override
     public Map<MetricID<MultiLabel>, Double> asMap() {
         return Collections.unmodifiableMap(results);
     }
@@ -244,7 +249,9 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
         sb.append(String.format(labelFormatString, "Macro Average"));
         sb.append(String.format("%60.3f%12.3f%12.3f%n", macroAveragedRecall(), macroAveragedPrecision(), macroAveragedF1()));
         sb.append(String.format(labelFormatString, "Balanced Error Rate"));
-        sb.append(String.format("%60.3f", balancedErrorRate()));
+        sb.append(String.format("%60.3f%n", balancedErrorRate()));
+        sb.append(String.format(labelFormatString, "Jaccard Score"));
+        sb.append(String.format("%60.3f", jaccardScore()));
         return sb.toString();
     }
 
