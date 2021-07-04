@@ -54,6 +54,20 @@ class BinaryExample extends Example<Label> {
         this.binaryLabel = newLabel;
     }
 
+    /**
+     * Creates a BinaryExample, which wraps a MultiLabel example and
+     * has a single Label inside.
+     * @param innerExample The example to wrap.
+     * @param newLabel The new Label.
+     * @param additionalFeatures The extra features.
+     */
+    private BinaryExample(Example<MultiLabel> innerExample, Label newLabel, List<Feature> additionalFeatures) {
+        super(newLabel);
+        this.innerExample = innerExample;
+        this.binaryLabel = newLabel;
+        this.additionalFeatures.addAll(additionalFeatures);
+    }
+
     @Override
     public Label getOutput() {
         return binaryLabel;
@@ -114,7 +128,7 @@ class BinaryExample extends Example<Label> {
 
     @Override
     public Example<Label> copy() {
-        return new BinaryExample(innerExample, binaryLabel);
+        return new BinaryExample(innerExample, binaryLabel, additionalFeatures);
     }
 
     @Override

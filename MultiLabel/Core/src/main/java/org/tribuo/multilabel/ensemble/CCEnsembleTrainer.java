@@ -53,7 +53,7 @@ import java.util.logging.Logger;
  * Machine Learning, pages 333-359, 2011.
  * </pre>
  */
-public class CCEnsembleTrainer implements Trainer<MultiLabel> {
+public final class CCEnsembleTrainer implements Trainer<MultiLabel> {
     private static final Logger logger = Logger.getLogger(CCEnsembleTrainer.class.getName());
 
     @Config(mandatory = true, description = "The trainer to use.")
