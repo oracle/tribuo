@@ -36,6 +36,8 @@ import java.util.Set;
  * A combiner which performs a weighted or unweighted vote independently across the predicted labels in each multi-label.
  * <p>
  * This uses the thresholded predictions from each ensemble member.
+ * <p>
+ * This class is stateless and thread safe.
  */
 public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLabel> {
     private static final long serialVersionUID = 1L;

@@ -44,6 +44,11 @@ import java.util.logging.Logger;
 /**
  * A trainer for an ensemble of randomly ordered Classifier Chains.
  * <p>
+ * This ensemble is useful if there is no a-priori knowledge of the
+ * label dependence structure, as it averages over many possible structures.
+ * In addition, ensembling is frequently a powerful technique for improving
+ * general classification performance.
+ * <p>
  * {@link ClassifierChainTrainer} for more details on classifier chains.
  * <p>
  * See:

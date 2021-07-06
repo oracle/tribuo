@@ -98,6 +98,18 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
      */
     private ClassifierChainTrainer() {}
 
+    /**
+     * Builds a classifier chain trainer using the specified member trainer and seed.
+     * <p>
+     * The chain is built from n different classifiers, one per label. Later
+     * classifiers in the chain see the earlier ground truth labels at training time
+     * and at test time they see the earlier predictions from the other chain members.
+     * <p>
+     * This trainer will generate a different random label ordering for each call
+     * to {@link #train(Dataset)}.
+     * @param innerTrainer The trainer to use for each binary classifier.
+     * @param seed The RNG seed for the chain order.
+     */
     public ClassifierChainTrainer(Trainer<Label> innerTrainer, long seed) {
         this.innerTrainer = innerTrainer;
         this.labelOrder = Collections.emptyList();
@@ -106,6 +118,18 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
         postConfig();
     }
 
+    /**
+     * Builds a classifier chain trainer using the specified member trainer and seed.
+     * <p>
+     * The chain is built from n different classifiers, one per label. Later
+     * classifiers in the chain see the earlier ground truth labels at training time
+     * and at test time they see the earlier predictions from the other chain members.
+     * <p>
+     * This trainer uses the supplied label ordering, and will throw {@link IllegalArgumentException}
+     * if the label ordering does not cover all the labels in the training set.
+     * @param innerTrainer The trainer to use for each binary classifier.
+     * @param labelOrder The label ordering.
+     */
     public ClassifierChainTrainer(Trainer<Label> innerTrainer, List<String> labelOrder) {
         this.innerTrainer = innerTrainer;
         this.labelOrder = Collections.unmodifiableList(new ArrayList<>(labelOrder));
