@@ -131,6 +131,7 @@ public class DenseVector implements SGDVector {
      * get function has been modified.
      * @return A copy of the values in this DenseVector.
      */
+    @Override
     public double[] toArray() {
         return Arrays.copyOf(elements, elements.length);
     }

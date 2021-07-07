@@ -41,6 +41,7 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
      * Returns a deep copy of this vector.
      * @return A copy of this vector.
      */
+    @Override
     public SGDVector copy();
 
     /**

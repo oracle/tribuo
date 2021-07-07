@@ -63,6 +63,7 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> extends Ab
      * Returns the default model name.
      * @return The default model name.
      */
+    @Override
     protected String getName() {
         return "linear-sgd-model";
     }
@@ -75,6 +76,7 @@ public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> extends Ab
      * @param localRNG The RNG to use for parameter initialisation.
      * @return The trainable parameters.
      */
+    @Override
     protected LinearParameters createParameters(int numFeatures, int numOutputs, SplittableRandom localRNG) {
         return new LinearParameters(numFeatures+1,numOutputs);
     }

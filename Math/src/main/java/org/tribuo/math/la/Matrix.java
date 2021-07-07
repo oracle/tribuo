@@ -27,6 +27,7 @@ public interface Matrix extends Tensor, Iterable<MatrixTuple> {
      * Copies the matrix.
      * @return A copy of the matrix.
      */
+    @Override
     public Matrix copy();
 
     /**

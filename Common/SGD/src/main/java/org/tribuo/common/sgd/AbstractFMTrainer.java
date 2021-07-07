@@ -93,6 +93,7 @@ public abstract class AbstractFMTrainer<T extends Output<T>,U> extends AbstractS
      * Returns the default model name.
      * @return The default model name.
      */
+    @Override
     protected String getName() {
         return "factorization-machine-model";
     }
@@ -106,6 +107,7 @@ public abstract class AbstractFMTrainer<T extends Output<T>,U> extends AbstractS
      * @param localRNG The RNG to use for parameter initialisation.
      * @return The trainable parameters.
      */
+    @Override
     protected FMParameters createParameters(int numFeatures, int numOutputs, SplittableRandom localRNG) {
         return new FMParameters(localRNG,numFeatures,numOutputs,factorizedDimSize,l2,variance);
     }
