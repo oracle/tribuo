@@ -17,6 +17,7 @@
 package org.tribuo.data.columnar.extractors;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 
@@ -105,11 +106,19 @@ public class DateExtractor extends SimpleFieldExtractor<LocalDate> {
         Locale locale;
         if ((localeLanguage == null) && (localeCountry == null)) {
             locale = Locale.getDefault(Locale.Category.FORMAT);
+        } else if (localeLanguage == null) {
+            throw new PropertyException("","localeLanguage","Must supply both localeLanguage and localeCountry when setting the locale.");
+        } else if (localeCountry == null) {
+            throw new PropertyException("","localeCountry","Must supply both localeLanguage and localeCountry when setting the locale.");
         } else {
             locale = new Locale(localeLanguage,localeCountry);
         }
         if (dateFormat != null) {
-            formatter = DateTimeFormatter.ofPattern(dateFormat,locale);
+            try {
+                formatter = DateTimeFormatter.ofPattern(dateFormat,locale);
+            } catch (IllegalArgumentException e) {
+                throw new PropertyException(e,"","dateFormat","dateFormat could not be parsed by DateTimeFormatter");
+            }
         } else {
             formatter = DateTimeFormatter.BASIC_ISO_DATE;
         }

@@ -16,6 +16,7 @@
 
 package org.tribuo.data.columnar.processors.field;
 
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.data.columnar.ColumnarFeature;
@@ -52,7 +53,7 @@ public class DateFieldProcessorTest {
                     EnumSet.of(DateFieldProcessor.DateFeatureType.DAY),
                     notADateFormatString);
             fail("Should have thrown on failing to parse the date format string");
-        } catch (IllegalArgumentException e) {
+        } catch (PropertyException e) {
             // pass
         }
 

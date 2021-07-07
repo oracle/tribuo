@@ -16,6 +16,7 @@
 
 package org.tribuo.data.columnar.extractors;
 
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +47,7 @@ public class OffsetDateTimeExtractorTest {
         try {
             OffsetDateTimeExtractor extractor = new OffsetDateTimeExtractor("test","date", notADateFormatString);
             fail("Should have thrown on failing to parse the date format string");
-        } catch (IllegalArgumentException e) {
+        } catch (PropertyException e) {
             // pass
         }
 

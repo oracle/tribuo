@@ -17,6 +17,7 @@
 package org.tribuo.data.columnar.processors.field;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.data.columnar.ColumnarFeature;
@@ -179,8 +180,12 @@ public final class DateFieldProcessor implements FieldProcessor {
      */
     @Override
     public void postConfig() {
-        Locale locale = new Locale(localeLanguage,localeCountry);
-        formatter = DateTimeFormatter.ofPattern(dateFormat,locale);
+        Locale locale = new Locale(localeLanguage, localeCountry);
+        try {
+            formatter = DateTimeFormatter.ofPattern(dateFormat, locale);
+        } catch (IllegalArgumentException e) {
+            throw new PropertyException(e,"","dateFormat","dateFormat could not be parsed by DateTimeFormatter");
+        }
     }
 
     @Override

@@ -91,11 +91,19 @@ public class OffsetDateTimeExtractor extends SimpleFieldExtractor<OffsetDateTime
         Locale locale;
         if ((localeLanguage == null) && (localeCountry == null)) {
             locale = Locale.getDefault(Locale.Category.FORMAT);
+        } else if (localeLanguage == null) {
+            throw new PropertyException("","localeLanguage","Must supply both localeLanguage and localeCountry when setting the locale.");
+        } else if (localeCountry == null) {
+            throw new PropertyException("","localeCountry","Must supply both localeLanguage and localeCountry when setting the locale.");
         } else {
             locale = new Locale(localeLanguage,localeCountry);
         }
         if (dateTimeFormat != null) {
-            formatter = DateTimeFormatter.ofPattern(dateTimeFormat,locale);
+            try {
+                formatter = DateTimeFormatter.ofPattern(dateTimeFormat,locale);
+            } catch (IllegalArgumentException e) {
+                throw new PropertyException(e,"","dateTimeFormat","dateTimeFormat could not be parsed by DateTimeFormatter");
+            }
         } else {
             throw new PropertyException("","dateTimeFormat", "Invalid Date/Time format string supplied");
         }
