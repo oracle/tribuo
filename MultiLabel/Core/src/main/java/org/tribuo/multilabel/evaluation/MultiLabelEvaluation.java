@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,4 +24,13 @@ import org.tribuo.multilabel.MultiLabel;
  * <p>
  * Used to hold multi-label specific evaluation metrics.
  */
-public interface MultiLabelEvaluation extends ClassifierEvaluation<MultiLabel> { }
+public interface MultiLabelEvaluation extends ClassifierEvaluation<MultiLabel> {
+
+    /**
+     * The average across the predictions of the intersection of the true and predicted labels divided by the
+     * union of the true and predicted labels.
+     * @return The Jaccard score.
+     */
+    public double jaccardScore();
+
+}

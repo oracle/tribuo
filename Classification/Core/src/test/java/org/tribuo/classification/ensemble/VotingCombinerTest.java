@@ -32,7 +32,6 @@ import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.test.Helpers;
 
-import java.lang.reflect.Array;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;

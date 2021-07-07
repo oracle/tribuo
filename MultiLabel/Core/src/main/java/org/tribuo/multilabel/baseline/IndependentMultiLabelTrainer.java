@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.tribuo.MutableDataset;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
+import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.multilabel.ImmutableMultiLabelInfo;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.provenance.DatasetProvenance;
@@ -44,6 +45,9 @@ import java.util.Map;
  * prediction.
  * <p>
  * It trains each model sequentially, and could be optimised to train in parallel.
+ * <p>
+ * This trainer implements the approach known as "Binary Relevance" in
+ * the multi-label classification literature.
  */
 public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
 
@@ -68,20 +72,28 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
         }
         ImmutableMultiLabelInfo labelInfo = (ImmutableMultiLabelInfo) examples.getOutputIDInfo();
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
+        if (featureMap instanceof HashedFeatureMap) {
+            throw new IllegalStateException("Cannot use HashingTrainer wrapped around IndependentMultiLabelTrainer.");
+        }
         ArrayList<Model<Label>> modelsList = new ArrayList<>();
         ArrayList<Label> labelList = new ArrayList<>();
         DatasetProvenance datasetProvenance = examples.getProvenance();
         //TODO supply more suitable provenance showing it's a single dimension out of many.
         MutableDataset<Label> trainingData = new MutableDataset<>(datasetProvenance, new LabelFactory());
+        for (Example<MultiLabel> e : examples) {
+            trainingData.add(new BinaryExample(e, MultiLabel.NEGATIVE_LABEL));
+        }
         for (MultiLabel l : labelInfo.getDomain()) {
             Label label = new Label(l.getLabelString());
-            trainingData.clear();
             labelList.add(label);
-            for (Example<MultiLabel> e : examples) {
+            for (int i = 0; i < examples.size(); i++) {
+                Example<MultiLabel> e = examples.getExample(i);
+                BinaryExample be = (BinaryExample) trainingData.getExample(i);
                 Label newLabel = e.getOutput().createLabel(label);
-                // This sets the label in the new example to either l or MultiLabel.NEGATIVE_LABEL_STRING.
-                trainingData.add(new BinaryExample(e,newLabel));
+                // This sets the label in the binary example to either label or MultiLabel.NEGATIVE_LABEL_STRING.
+                be.setLabel(newLabel);
             }
+            trainingData.regenerateOutputInfo();
             modelsList.add(innerTrainer.train(trainingData));
         }
         ModelProvenance provenance = new ModelProvenance(IndependentMultiLabelModel.class.getName(), OffsetDateTime.now(), datasetProvenance, getProvenance(), runProvenance);

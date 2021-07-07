@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.multilabel;
+package org.tribuo.multilabel.baseline;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
@@ -24,7 +24,8 @@ import org.tribuo.classification.sgd.linear.LinearSGDTrainer;
 import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
-import org.tribuo.multilabel.baseline.IndependentMultiLabelTrainer;
+import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -46,7 +47,7 @@ public class IndependentMultiLabelTest {
     @BeforeAll
     public static void setup() {
         Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
-        for (Class c : classes) {
+        for (Class<?> c : classes) {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
         }
