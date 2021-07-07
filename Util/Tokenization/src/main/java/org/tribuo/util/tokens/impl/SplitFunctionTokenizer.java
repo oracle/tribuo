@@ -386,6 +386,7 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         return currentToken.type;
     }
 
+    @Override
     public Tokenizer clone() throws CloneNotSupportedException {
         throw new UnsupportedOperationException(
                 "abstract class SplitFunctionTokenizer does not implement clone method.  Subclasses must implement this method.");
