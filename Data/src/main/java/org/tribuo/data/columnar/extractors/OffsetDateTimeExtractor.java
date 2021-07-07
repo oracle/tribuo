@@ -24,6 +24,7 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,6 +43,12 @@ public class OffsetDateTimeExtractor extends SimpleFieldExtractor<OffsetDateTime
     private String dateTimeFormat;
     private DateTimeFormatter formatter;
 
+    @Config(mandatory = false, description = "The locale language.")
+    private String localeLanguage = null;
+
+    @Config(mandatory = false, description = "The locale country.")
+    private String localeCountry = null;
+
     /**
      * for olcut
      */
@@ -49,13 +56,29 @@ public class OffsetDateTimeExtractor extends SimpleFieldExtractor<OffsetDateTime
 
     /**
      * Constructs a date time extractor that emits an OffsetDateTime by applying the supplied format to the specified field.
+     * <p>
+     * Uses the system locale for backwards compatibility with 4.0 and 4.1.
      * @param fieldName The field to read.
      * @param metadataName The metadata field to write.
      * @param dateTimeFormat The date/time format (supplied to {@link DateTimeFormatter}.
      */
     public OffsetDateTimeExtractor(String fieldName, String metadataName, String dateTimeFormat) {
+        this(fieldName,metadataName,dateTimeFormat,null,null);
+    }
+
+    /**
+     * Constructs a date time extractor that emits an OffsetDateTime by applying the supplied format to the specified field.
+     * @param fieldName The field to read.
+     * @param metadataName The metadata field to write to.
+     * @param dateTimeFormat The date format (supplied to {@link DateTimeFormatter}.
+     * @param localeLanguage The locale language.
+     * @param localeCountry The locale country.
+     */
+    public OffsetDateTimeExtractor(String fieldName, String metadataName, String dateTimeFormat, String localeLanguage, String localeCountry) {
         super(fieldName, metadataName);
         this.dateTimeFormat = dateTimeFormat;
+        this.localeCountry = localeCountry;
+        this.localeLanguage = localeLanguage;
         postConfig();
     }
 
@@ -65,8 +88,22 @@ public class OffsetDateTimeExtractor extends SimpleFieldExtractor<OffsetDateTime
     @Override
     public void postConfig() {
         super.postConfig();
+        Locale locale;
+        if ((localeLanguage == null) && (localeCountry == null)) {
+            locale = Locale.getDefault(Locale.Category.FORMAT);
+        } else if (localeLanguage == null) {
+            throw new PropertyException("","localeLanguage","Must supply both localeLanguage and localeCountry when setting the locale.");
+        } else if (localeCountry == null) {
+            throw new PropertyException("","localeCountry","Must supply both localeLanguage and localeCountry when setting the locale.");
+        } else {
+            locale = new Locale(localeLanguage,localeCountry);
+        }
         if (dateTimeFormat != null) {
-            formatter = DateTimeFormatter.ofPattern(dateTimeFormat);
+            try {
+                formatter = DateTimeFormatter.ofPattern(dateTimeFormat,locale);
+            } catch (IllegalArgumentException e) {
+                throw new PropertyException(e,"","dateTimeFormat","dateTimeFormat could not be parsed by DateTimeFormatter");
+            }
         } else {
             throw new PropertyException("","dateTimeFormat", "Invalid Date/Time format string supplied");
         }
@@ -90,7 +127,13 @@ public class OffsetDateTimeExtractor extends SimpleFieldExtractor<OffsetDateTime
 
     @Override
     public String toString() {
-        return "OffsetDateTimeExtractor(fieldName=" + fieldName + ", metadataName=" + metadataName + ", dateTimeFormat=" + dateTimeFormat + ")";
+        return "OffsetDateTimeExtractor(" +
+                "fieldName='" + fieldName + '\'' +
+                ", metadataName='" + metadataName + '\'' +
+                ", dateTimeFormat='" + dateTimeFormat + '\'' +
+                ", localeLanguage='" + localeLanguage + '\'' +
+                ", localeCountry='" + localeCountry + '\'' +
+                ')';
     }
 
     @Override

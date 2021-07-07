@@ -41,9 +41,13 @@ public interface FieldProcessor extends Configurable, Provenancable<ConfiguredOb
          */
         BINARISED_CATEGORICAL,
         /**
-         * Categorical features with the values converted into doubles.
+         * Unordered categorical features with the values converted into doubles.
          */
         CATEGORICAL,
+        /**
+         * Ordered integral feature values (e.g. day of month) stored as doubles.
+         */
+        INTEGER,
         /**
          * Real valued features.
          */
