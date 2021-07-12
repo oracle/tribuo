@@ -151,7 +151,7 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
     @Override
     public Optional<T> process(List<String> values) {
         List<String> response = new ArrayList<>();
-        for(int i=0; i< values.size(); i++) {
+        for(int i=0; i< fieldNames.size(); i++) {
             String value = values.get(i);
             String prefix = name == null || name.isEmpty() ? fieldNames.get(i) : getFieldName();
             Quartile q = quartiles.get(i);

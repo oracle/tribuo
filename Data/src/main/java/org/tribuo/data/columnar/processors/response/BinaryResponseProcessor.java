@@ -165,7 +165,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     public Optional<T> process(List<String> values) {
         List<String> responses = new ArrayList<>();
         String prefix = "";
-        for(int i=0; i < values.size(); i++) {
+        for(int i=0; i < fieldNames.size(); i++) {
             if(displayField) {
                 prefix = fieldNames.get(i) + ":";
             }

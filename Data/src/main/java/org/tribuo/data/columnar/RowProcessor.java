@@ -289,11 +289,9 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * @return An Optional containing an Example if the row was valid, an empty Optional otherwise.
      */
     public Optional<Example<T>> generateExample(ColumnarIterator.Row row, boolean outputRequired) {
-        //String responseValue = row.getRowData().get(responseProcessor.getFieldName());
-        //Optional<T> labelOpt = responseProcessor.process(responseValue);
 
         List<String> responseValues = responseProcessor.getFieldNames().stream()
-                .map(f -> row.getRowData().get(f))
+                .map(f -> row.getRowData().getOrDefault(f, ""))
                 .collect(Collectors.toList());
         Optional<T> labelOpt = responseProcessor.process(responseValues);
         if (!labelOpt.isPresent() && outputRequired) {
