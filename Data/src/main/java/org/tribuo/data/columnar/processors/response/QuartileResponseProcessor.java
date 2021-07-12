@@ -17,13 +17,19 @@
 package org.tribuo.data.columnar.processors.response;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ResponseProcessor;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Processes the response into quartiles and emits them as classification outputs.
@@ -33,9 +39,11 @@ import java.util.Optional;
 public class QuartileResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
     @Config(mandatory = true,description="The string to emit.")
+    @Deprecated
     private String name;
 
     @Config(mandatory = true,description="The field name to read.")
+    @Deprecated
     private String fieldName;
 
     @Config(mandatory = true,description="The quartile to use.")
@@ -44,13 +52,39 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
     @Config(mandatory = true,description="The output factory to use.")
     private OutputFactory<T> outputFactory;
 
+    @Config(description = "A list of field names to read, you should use only one of this or fieldName.")
+    private List<String> fieldNames;
+
+    @Config(description = "A list of quartiles to use, should have the same length as fieldNames")
+    private List<Quartile> quartiles;
+
+    @Override
+    public void postConfig() throws PropertyException, IOException {
+        if (fieldName != null && fieldNames != null) {
+            throw new PropertyException("fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
+        } else if (fieldNames != null) {
+            quartiles = quartiles == null ? Collections.nCopies(fieldNames.size(), quartile) : quartiles;
+            if(quartiles.size() != fieldNames.size()) {
+                throw new PropertyException("quartiles", "must either be empty or match the length of fieldNames");
+            }
+        } else if (fieldName != null) {
+            if (quartiles != null) {
+                throw new PropertyException("quartiles", "if fieldName is populated, quartiles must be blank");
+            }
+            fieldNames = Collections.singletonList(fieldName);
+            quartiles = Collections.singletonList(quartile);
+        } else {
+            throw new PropertyException("fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
+        }
+    }
+
     /**
      * For olcut.
      */
     private QuartileResponseProcessor() {}
 
     /**
-     * Constructs a repsonse processor which emits 4 distinct bins for the output factory to process.
+     * Constructs a response processor which emits 4 distinct bins for the output factory to process.
      * <p>
      * This works best with classification outputs as the discrete binning is tricky to do in other output
      * types.
@@ -60,9 +94,22 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
      * @param outputFactory The output factory to use.
      */
     public QuartileResponseProcessor(String name, String fieldName, Quartile quartile, OutputFactory<T> outputFactory) {
+        this(Collections.singletonList(fieldName), Collections.singletonList(quartile), outputFactory);
         this.name = name;
-        this.fieldName = fieldName;
-        this.quartile = quartile;
+    }
+
+    /**
+     * Constructs a response processor which emits 4 distinct bins for the output factory to process.
+     * <p>
+     * This works best with classification outputs as the discrete binning is tricky to do in other output
+     * types.
+     * @param fieldNames The field to read.
+     * @param quartiles The quartile range to use.
+     * @param outputFactory The output factory to use.
+     */
+    public QuartileResponseProcessor(List<String> fieldNames, List<Quartile> quartiles, OutputFactory<T> outputFactory) {
+        this.fieldNames = fieldNames;
+        this.quartiles = quartiles;
         this.outputFactory = outputFactory;
     }
 
@@ -79,7 +126,7 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
 
     @Override
     public String getFieldName() {
-        return fieldName;
+        return fieldNames.get(0);
     }
 
     @Override
@@ -102,8 +149,38 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
     }
 
     @Override
+    public Optional<T> process(List<String> values) {
+        List<String> response = new ArrayList<>();
+        for(int i=0; i< values.size(); i++) {
+            String value = values.get(i);
+            String prefix = name == null || name.isEmpty() ? fieldNames.get(i) : getFieldName();
+            Quartile q = quartiles.get(i);
+            if(value == null) {
+                response.add(prefix + ":NONE");
+            } else {
+                double dv = Double.parseDouble(value);
+                if (dv <= q.getLowerMedian()) {
+                    response.add(prefix + ":first");
+                } else if (dv > q.getLowerMedian() && dv <= q.getMedian()) {
+                    response.add(prefix + ":second");
+                } else if (dv > q.getMedian() && dv <= q.getUpperMedian()) {
+                    response.add(prefix + ":third");
+                } else {
+                    response.add(prefix + ":fourth");
+                }
+            }
+        }
+        return Optional.of(outputFactory.generateOutput(response.size() == 1 ? response.get(0) : response));
+    }
+
+    @Override
+    public List<String> getFieldNames() {
+        return fieldNames;
+    }
+
+    @Override
     public String toString() {
-        return "QuartileResponseProcessor(fieldName="+ fieldName +",quartile="+quartile.toString()+")";
+        return "QuartileResponseProcessor(fieldNames="+ fieldNames.toString() +",quartiles=" + quartiles.stream().map(Quartile::toString).collect(Collectors.toList()) + ")";
     }
 
     @Override

@@ -23,6 +23,8 @@ import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ResponseProcessor;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -82,6 +84,16 @@ public final class EmptyResponseProcessor<T extends Output<T>> implements Respon
     @Override
     public Optional<T> process(String value) {
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<T> process(List<String> values) {
+        return Optional.empty();
+    }
+
+    @Override
+    public List<String> getFieldNames() {
+        return Collections.singletonList(FIELD_NAME);
     }
 
     @Override

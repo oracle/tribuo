@@ -17,12 +17,16 @@
 package org.tribuo.data.columnar.processors.response;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ResponseProcessor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,13 +36,14 @@ import java.util.Optional;
  */
 public class BinaryResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
-    @Config(mandatory = true,description="The field name to read.")
+    @Config(description="The field name to read, you should use only one of this or fieldNames")
+    @Deprecated
     private String fieldName;
 
-    @Config(mandatory = true,description="The string which triggers a positive response.")
+    @Config(description="The string which triggers a positive response.")
     private String positiveResponse;
 
-    @Config(mandatory = true,description="Output factory to use to create the response.")
+    @Config(description="Output factory to use to create the response.")
     private OutputFactory<T> outputFactory;
 
     @Config(description="The positive response to emit.")
@@ -46,6 +51,36 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     @Config(description="The negative response to emit.")
     private String negativeName = "0";
+
+    @Config(description = "A list of field names to read, you should use only one of this or fieldName.")
+    private List<String> fieldNames;
+
+    @Config(description = "A list of strings that trigger positive responses; it should be the same length as fieldNames or empty")
+    private List<String> positiveResponses;
+
+    @Config(description = "Whether to display field names as part of the generated label, defaults to false")
+    private boolean displayField = false;
+
+
+    @Override
+    public void postConfig() {
+        if (fieldName != null && fieldNames != null) { // we can only have one path
+            throw new PropertyException("fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
+        } else if (fieldNames != null) {
+            positiveResponses = positiveResponses == null ? Collections.nCopies(fieldNames.size(), positiveResponse) : positiveResponses;
+            if(positiveResponses.size() != fieldNames.size()) {
+                throw new PropertyException("positiveResponses", "must either be empty or match the length of fieldNames");
+            }
+        } else if (fieldName != null)  {
+            if(positiveResponses != null) {
+                throw new PropertyException("positiveResponses", "if fieldName is populated, positiveResponses must be blank");
+            }
+            fieldNames = Collections.singletonList(fieldName);
+            positiveResponses = Collections.singletonList(positiveName);
+        } else {
+            throw new PropertyException("fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
+        }
+    }
 
     /**
      * for OLCUT.
@@ -60,9 +95,49 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
      * @param outputFactory The output factory to use.
      */
     public BinaryResponseProcessor(String fieldName, String positiveResponse, OutputFactory<T> outputFactory) {
-        this.fieldName = fieldName;
-        this.positiveResponse = positiveResponse;
+        this(Collections.singletonList(fieldName), positiveResponse, outputFactory);
+    }
+
+    /**
+     * Constructs a binary response processor which emits a positive value for a single string
+     * and a negative value for all other field values.
+     * @param fieldNames The field names to read.
+     * @param positiveResponse The positive response to look for.
+     * @param outputFactory The output factory to use.
+     */
+    public BinaryResponseProcessor(List<String> fieldNames, String positiveResponse, OutputFactory<T> outputFactory) {
+        this(fieldNames, Collections.nCopies(fieldNames.size(), positiveResponse), outputFactory);
+    }
+
+    /**
+     * Constructs a binary response processor which emits a positive value for a single string
+     * and a negative value for all other field values. the lengths of fieldNames and positiveResponses
+     * must be the same.
+     * @param fieldNames The field names to read.
+     * @param positiveResponses The positive responses to look for.
+     * @param outputFactory The output factory to use.
+     */
+    public BinaryResponseProcessor(List<String> fieldNames, List<String> positiveResponses, OutputFactory<T> outputFactory) {
+        this(fieldNames, positiveResponses, outputFactory, false);
+    }
+
+    /**
+     * Constructs a binary response processor which emits a positive value for a single string
+     * and a negative value for all other field values. the lengths of fieldNames and positiveResponses
+     * must be the same.
+     * @param fieldNames The field names to read.
+     * @param positiveResponses The positive responses to look for.
+     * @param outputFactory The output factory to use.
+     * @param displayField whether to include field names in the generated labels.
+     */
+    public BinaryResponseProcessor(List<String> fieldNames, List<String> positiveResponses, OutputFactory<T> outputFactory, boolean displayField) {
+        if(fieldNames.size() != positiveResponses.size()) {
+            throw new IllegalArgumentException("fieldNames and positiveResponses must be the same length");
+        }
+        this.fieldNames = fieldNames;
+        this.positiveResponses = positiveResponses;
         this.outputFactory = outputFactory;
+        this.displayField = displayField;
     }
 
     @Override
@@ -72,7 +147,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     @Override
     public String getFieldName() {
-        return fieldName;
+        return fieldNames.get(0);
     }
 
     @Deprecated
@@ -83,12 +158,30 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     @Override
     public Optional<T> process(String value) {
-        return Optional.of(outputFactory.generateOutput(positiveResponse.equals(value) ? positiveName : negativeName));
+        return process(Collections.singletonList(value));
+    }
+
+    @Override
+    public Optional<T> process(List<String> values) {
+        List<String> responses = new ArrayList<>();
+        String prefix = "";
+        for(int i=0; i < values.size(); i++) {
+            if(displayField) {
+                prefix = fieldNames.get(i) + ":";
+            }
+            responses.add(prefix + (positiveResponses.get(i).equals(values.get(i)) ? positiveName : negativeName));
+        }
+        return Optional.of(outputFactory.generateOutput(fieldNames.size() == 1 ? responses.get(0) : responses));
+    }
+
+    @Override
+    public List<String> getFieldNames() {
+        return fieldNames;
     }
 
     @Override
     public String toString() {
-        return "BinaryResponseProcessor(fieldName="+ fieldName +", positiveResponse="+ positiveResponse +", positiveName="+positiveName +", negativeName="+negativeName+")";
+        return "BinaryResponseProcessor(fieldNames="+ fieldNames.toString() +", positiveResponses="+ positiveResponses.toString() +", positiveName="+positiveName +", negativeName="+negativeName+")";
     }
 
     @Override

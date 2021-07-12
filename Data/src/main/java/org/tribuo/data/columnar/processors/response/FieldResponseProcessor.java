@@ -17,12 +17,16 @@
 package org.tribuo.data.columnar.processors.response;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ResponseProcessor;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,14 +34,44 @@ import java.util.Optional;
  */
 public class FieldResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
-    @Config(mandatory = true,description="The field name to read.")
+    @Config(description="The field name to read.")
+    @Deprecated
     private String fieldName;
 
-    @Config(mandatory = true,description="Default value to return if one isn't found.")
+    @Config(description="Default value to return if one isn't found.")
     private String defaultValue;
 
-    @Config(mandatory = true,description="The output factory to use.")
+    @Config(description="The output factory to use.")
     private OutputFactory<T> outputFactory;
+
+    @Config(description = "A list of field names to read, you should use only one of this or fieldName.")
+    private List<String> fieldNames;
+
+    @Config(description = "A list of default values to return if one isn't found, one for each field")
+    private List<String> defaultValues;
+
+    @Config(description = "Whether to display field names as part of the generated label, defaults to false")
+    private boolean displayField = false;
+
+    @Override
+    public void postConfig() {
+        if (fieldName != null && fieldNames != null) {
+            throw new PropertyException("fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
+        } else if (fieldNames != null) {
+            defaultValues = defaultValues == null ? Collections.nCopies(fieldNames.size(), defaultValue) : defaultValues;
+            if(defaultValues.size() != fieldNames.size()) {
+                throw new PropertyException("defaultValues", "must either be empty or match the length of fieldNames");
+            }
+        } else if (fieldName != null) {
+            if(defaultValues != null) {
+                throw new PropertyException("defaultValues", "if fieldName is populated, defaultValues must be blank");
+            }
+            fieldNames = Collections.singletonList(fieldName);
+            defaultValues = Collections.singletonList(defaultValue);
+        } else {
+            throw new PropertyException("fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
+        }
+    }
 
     /**
      * For olcut.
@@ -52,9 +86,47 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
      * @param outputFactory The output factory to use.
      */
     public FieldResponseProcessor(String fieldName, String defaultValue, OutputFactory<T> outputFactory) {
-        this.fieldName = fieldName;
-        this.defaultValue = defaultValue;
+        this(Collections.singletonList(fieldName), defaultValue, outputFactory);
+    }
+
+    /**
+     * Constructs a response processor which passes the field value through the
+     * output factory.
+     * @param fieldNames The fields to read.
+     * @param defaultValue The default value to extract if it's not found.
+     * @param outputFactory The output factory to use.
+     */
+    public FieldResponseProcessor(List<String> fieldNames, String defaultValue, OutputFactory<T> outputFactory) {
+        this(fieldNames, Collections.nCopies(fieldNames.size(), defaultValue), outputFactory);
+    }
+
+    /**
+     * Constructs a response processor which passes the field value through the
+     * output factory. fieldNames and defaultValues must be the same length.
+     * @param fieldNames The field to read.
+     * @param defaultValues The default value to extract if it's not found.
+     * @param outputFactory The output factory to use.
+     */
+    public FieldResponseProcessor(List<String> fieldNames, List<String> defaultValues, OutputFactory<T> outputFactory) {
+        this(fieldNames, defaultValues, outputFactory, false);
+    }
+
+    /**
+     * Constructs a response processor which passes the field value through the
+     * output factory. fieldNames and defaultValues must be the same length.
+     * @param fieldNames The field to read.
+     * @param defaultValues The default value to extract if it's not found.
+     * @param outputFactory The output factory to use.
+     * @param displayField whether to include field names in the generated labels.
+     */
+    public FieldResponseProcessor(List<String> fieldNames, List<String> defaultValues, OutputFactory<T> outputFactory, boolean displayField) {
+        if(fieldNames.size() != defaultValues.size()) {
+            throw new IllegalArgumentException("fieldNames and defaultValues must be the same length");
+        }
+        this.fieldNames = fieldNames;
+        this.defaultValues = defaultValues;
         this.outputFactory = outputFactory;
+        this.displayField = displayField;
     }
 
     @Deprecated
@@ -70,27 +142,37 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
 
     @Override
     public String getFieldName() {
-        return fieldName;
+        return fieldNames.get(0);
     }
 
     @Override
     public Optional<T> process(String value) {
-        String val = value == null ? defaultValue : value;
-        if (val != null) {
-            val = val.toUpperCase().trim();
-            if (val.isEmpty()) {
-                return Optional.empty();
-            } else{
-                return Optional.of(outputFactory.generateOutput(val));
+        return process(Collections.singletonList(value));
+    }
+
+    @Override
+    public Optional<T> process(List<String> values) {
+        List<String> responses = new ArrayList<>();
+        String prefix = "";
+        for(int i=0; i < values.size(); i++) {
+            if (displayField) {
+                prefix = fieldNames.get(i) + ":";
             }
-        } else {
-            return Optional.empty();
+            String val = values.get(i).toUpperCase().trim();
+            val = val.isEmpty() ? defaultValues.get(i) : val;
+            responses.add(prefix + val);
         }
+        return Optional.of(outputFactory.generateOutput(fieldNames.size() == 1 ? responses.get(0) : responses));
+    }
+
+    @Override
+    public List<String> getFieldNames() {
+        return fieldNames;
     }
 
     @Override
     public String toString() {
-        return "FieldResponseProcessor(fieldName="+ fieldName +")";
+        return "FieldResponseProcessor(fieldNames="+ fieldNames.toString() +")";
     }
 
     @Override

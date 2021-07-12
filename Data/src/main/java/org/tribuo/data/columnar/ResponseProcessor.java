@@ -22,6 +22,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,6 +40,7 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
      * Gets the field name this ResponseProcessor uses.
      * @return The field name.
      */
+    @Deprecated
     public String getFieldName();
 
     /**
@@ -55,5 +57,25 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
      * @param value The value to process.
      * @return The response value if found.
      */
+    @Deprecated()
     public Optional<T> process(String value);
+
+    /**
+     * Returns Optional.empty() if it failed to process out a response.
+     * @param values The value to process.
+     * @return The response values if found.
+     */
+    default Optional<T> process(List<String> values) {
+        if (values.size() != 1) {
+            throw new IllegalArgumentException(getClass().getSimpleName() + " does not implement support for multiple response values");
+        } else {
+            return process(values.get(0));
+        }
+    }
+
+    /**
+     * Gets the field names this ResponseProcessor uses.
+     * @return The field name.
+     */
+    List<String> getFieldNames();
 }
