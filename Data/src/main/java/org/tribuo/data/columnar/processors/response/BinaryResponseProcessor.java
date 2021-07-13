@@ -131,12 +131,29 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
      * @param displayField whether to include field names in the generated labels.
      */
     public BinaryResponseProcessor(List<String> fieldNames, List<String> positiveResponses, OutputFactory<T> outputFactory, boolean displayField) {
+        this(fieldNames, positiveResponses, outputFactory, "1", "0", displayField);
+    }
+
+    /**
+     * Constructs a binary response processor which emits a positive value for a single string
+     * and a negative value for all other field values. the lengths of fieldNames and positiveResponses
+     * must be the same.
+     * @param fieldNames The field names to read.
+     * @param positiveResponses The positive responses to look for.
+     * @param outputFactory The output factory to use.
+     * @param positiveName The value of a 'positive' output
+     * @param negativeName the value of a 'negative' output
+     * @param displayField whether to include field names in the generated labels.
+     */
+    public BinaryResponseProcessor(List<String> fieldNames, List<String> positiveResponses, OutputFactory<T> outputFactory, String positiveName, String negativeName, boolean displayField) {
         if(fieldNames.size() != positiveResponses.size()) {
             throw new IllegalArgumentException("fieldNames and positiveResponses must be the same length");
         }
         this.fieldNames = fieldNames;
         this.positiveResponses = positiveResponses;
         this.outputFactory = outputFactory;
+        this.positiveName = positiveName;
+        this.negativeName = negativeName;
         this.displayField = displayField;
     }
 
@@ -167,7 +184,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
         String prefix = "";
         for(int i=0; i < fieldNames.size(); i++) {
             if(displayField) {
-                prefix = fieldNames.get(i) + ":";
+                prefix = fieldNames.get(i) + "=";
             }
             responses.add(prefix + (positiveResponses.get(i).equals(values.get(i)) ? positiveName : negativeName));
         }

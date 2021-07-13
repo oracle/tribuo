@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +31,7 @@ public class MultioutputResponseProcessorTest {
 
     private URI dataFile;
     private Map<String, FieldProcessor> fieldProcessors;
+    private List<Set<String>> multiTruthValues;
 
 
     private static <T extends Output<T>> RowProcessor<T> makeRowProcessor(ResponseProcessor<T> responseProcessor, Map<String, FieldProcessor> fieldProcessors) {
@@ -54,6 +56,13 @@ public class MultioutputResponseProcessorTest {
         for(String header: Arrays.asList("A", "B", "D")) {
             fieldProcessors.put(header, new IdentityProcessor(header));
         }
+        multiTruthValues = Arrays.asList(
+                new HashSet<>(Arrays.asList("R1")),
+                new HashSet<>(Arrays.asList("R1", "R2")),
+                new HashSet<>(Collections.emptyList()),
+                new HashSet<>(Arrays.asList("R1")),
+                new HashSet<>(Arrays.asList("R2")),
+                new HashSet<>(Arrays.asList("R2")));
     }
 
     @Test
@@ -61,14 +70,9 @@ public class MultioutputResponseProcessorTest {
         doTest(new BinaryResponseProcessor<>(
                         Arrays.asList("R1", "R2"),
                         Arrays.asList("TRUE", "TRUE"),
-                        new MockMultiOutputFactory(), true)
-                , Arrays.asList(
-                        new HashSet<>(Arrays.asList("R1:1", "R2:0")),
-                        new HashSet<>(Arrays.asList("R1:1", "R2:1")),
-                        new HashSet<>(Arrays.asList("R1:0", "R2:0")),
-                        new HashSet<>(Arrays.asList("R1:1", "R2:0")),
-                        new HashSet<>(Arrays.asList("R1:0", "R2:1")),
-                        new HashSet<>(Arrays.asList("R1:0", "R2:1")))
+                        new MockMultiOutputFactory(),
+                        "true", "false", true)
+                , multiTruthValues
                 , MockMultiOutput::getNameSet);
 
         doTest(new BinaryResponseProcessor<>(
@@ -96,13 +100,7 @@ public class MultioutputResponseProcessorTest {
                         Arrays.asList("R1", "R2"),
                         Arrays.asList("FALSE", "FALSE"),
                         new MockMultiOutputFactory(), true)
-                , Arrays.asList(
-                        new HashSet<>(Arrays.asList("R1:TRUE", "R2:FALSE")),
-                        new HashSet<>(Arrays.asList("R1:TRUE", "R2:TRUE")),
-                        new HashSet<>(Arrays.asList("R1:FALSE", "R2:FALSE")),
-                        new HashSet<>(Arrays.asList("R1:TRUE", "R2:FALSE")),
-                        new HashSet<>(Arrays.asList("R1:FALSE", "R2:TRUE")),
-                        new HashSet<>(Arrays.asList("R1:FALSE", "R2:TRUE")))
+                , multiTruthValues
                 , MockMultiOutput::getNameSet);
 
         doTest(new FieldResponseProcessor<>(

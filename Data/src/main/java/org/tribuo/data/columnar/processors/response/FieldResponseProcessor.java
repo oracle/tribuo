@@ -156,7 +156,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
         String prefix = "";
         for(int i=0; i < fieldNames.size(); i++) {
             if (displayField) {
-                prefix = fieldNames.get(i) + ":";
+                prefix = fieldNames.get(i) + "=";
             }
             String val = values.get(i).toUpperCase().trim();
             val = val.isEmpty() ? defaultValues.get(i) : val;
