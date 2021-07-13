@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class MultioutputResponseProcessorTest {
 
     private URI dataFile;
+    private URI missingDataFile;
     private Map<String, FieldProcessor> fieldProcessors;
     private List<Set<String>> multiTruthValues;
 
@@ -41,17 +42,20 @@ public class MultioutputResponseProcessorTest {
     private <T extends Output<T>, Label> void doTest(ResponseProcessor<T> responseProcessor, List<Label> expectedLabels, Function<T, Label> labelMapper) {
         RowProcessor<T> rowProcessor = makeRowProcessor(responseProcessor, fieldProcessors);
 
-        CSVDataSource<T> ds = new CSVDataSource<>(dataFile, rowProcessor, true);
+        for (URI df: Arrays.asList(dataFile, missingDataFile)) {
+            CSVDataSource<T> ds = new CSVDataSource<>(df, rowProcessor, true);
 
-        Iterator<Example<T>> iter = ds.iterator();
-        for(Label l: expectedLabels) {
-            assertEquals(l, labelMapper.apply(iter.next().getOutput()));
+            Iterator<Example<T>> iter = ds.iterator();
+            for(Label l: expectedLabels) {
+                assertEquals(l, labelMapper.apply(iter.next().getOutput()));
+            }
         }
     }
 
     @BeforeEach
     public void setup() throws URISyntaxException {
         dataFile = MultioutputResponseProcessorTest.class.getResource("/org/tribuo/data/csv/test-multioutput.csv").toURI();
+        missingDataFile = MultioutputResponseProcessorTest.class.getResource("/org/tribuo/data/csv/test-missingoutput.csv").toURI();
         fieldProcessors = new HashMap<>();
         for(String header: Arrays.asList("A", "B", "D")) {
             fieldProcessors.put(header, new IdentityProcessor(header));
