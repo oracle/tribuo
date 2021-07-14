@@ -37,6 +37,7 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
     public OutputFactory<T> getOutputFactory();
 
     /**
+     * @deprecated use {@link #getFieldNames()} and support multiple values instead.
      * Gets the field name this ResponseProcessor uses.
      * @return The field name.
      */
@@ -49,19 +50,22 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
      * @param fieldName The field name.
      *
      */
-    @Deprecated()
+    @Deprecated
     public void setFieldName(String fieldName);
 
     /**
+     * @deprecated use {@link #process(List)} and support multiple values instead.
      * Returns Optional.empty() if it failed to process out a response.
      * @param value The value to process.
      * @return The response value if found.
      */
-    @Deprecated()
+    @Deprecated
     public Optional<T> process(String value);
 
     /**
-     * Returns Optional.empty() if it failed to process out a response.
+     * Returns Optional.empty() if it failed to process out a response. Though this method currently has
+     * a default implementation, it is the core method and should be overridden by implementors. Unless it
+     * is overridden it will throw an {@link IllegalArgumentException} when called with multiple values.
      * @param values The value to process.
      * @return The response values if found.
      */
@@ -75,7 +79,7 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
 
     /**
      * Gets the field names this ResponseProcessor uses.
-     * @return The field name.
+     * @return The field names.
      */
     List<String> getFieldNames();
 }

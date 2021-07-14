@@ -39,14 +39,14 @@ public class MultioutputResponseProcessorTest {
         return new RowProcessor<T>(responseProcessor, fieldProcessors);
     }
 
-    private <T extends Output<T>, Label> void doTest(ResponseProcessor<T> responseProcessor, List<Label> expectedLabels, Function<T, Label> labelMapper) {
+    private <T extends Output<T>, L> void doTest(ResponseProcessor<T> responseProcessor, List<L> expectedLabels, Function<T, L> labelMapper) {
         RowProcessor<T> rowProcessor = makeRowProcessor(responseProcessor, fieldProcessors);
 
         for (URI df: Arrays.asList(dataFile, missingDataFile)) {
             CSVDataSource<T> ds = new CSVDataSource<>(df, rowProcessor, true);
 
             Iterator<Example<T>> iter = ds.iterator();
-            for(Label l: expectedLabels) {
+            for(L l: expectedLabels) {
                 assertEquals(l, labelMapper.apply(iter.next().getOutput()));
             }
         }

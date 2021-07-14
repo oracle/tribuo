@@ -17,6 +17,7 @@
 package org.tribuo.data.columnar.processors.response;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.ConfigurableName;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -43,7 +44,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     @Config(description="The string which triggers a positive response.")
     private String positiveResponse;
 
-    @Config(description="Output factory to use to create the response.")
+    @Config(mandatory = true, description="Output factory to use to create the response.")
     private OutputFactory<T> outputFactory;
 
     @Config(description="The positive response to emit.")
@@ -58,27 +59,37 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     @Config(description = "A list of strings that trigger positive responses; it should be the same length as fieldNames or empty")
     private List<String> positiveResponses;
 
-    @Config(description = "Whether to display field names as part of the generated label, defaults to false")
-    private boolean displayField = false;
+    @Config(description = "Whether to display field names as part of the generated output, defaults to false")
+    private boolean displayField;
 
+    @ConfigurableName
+    private String configName;
 
     @Override
     public void postConfig() {
         if (fieldName != null && fieldNames != null) { // we can only have one path
-            throw new PropertyException("fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
+            throw new PropertyException(configName, "fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
         } else if (fieldNames != null) {
-            positiveResponses = positiveResponses == null ? Collections.nCopies(fieldNames.size(), positiveResponse) : positiveResponses;
-            if(positiveResponses.size() != fieldNames.size()) {
-                throw new PropertyException("positiveResponses", "must either be empty or match the length of fieldNames");
+            if(positiveResponse != null) {
+                positiveResponses = positiveResponses == null ? Collections.nCopies(fieldNames.size(), positiveResponse) : positiveResponses;
+                if(positiveResponses.size() != fieldNames.size()) {
+                    throw new PropertyException(configName, "positiveResponses", "must either be empty or match the length of fieldNames");
+                }
+            } else {
+                throw new PropertyException(configName, "positiveResponse, positiveResponses", "one of positiveResponse or positiveResponses must be populated");
             }
         } else if (fieldName != null)  {
             if(positiveResponses != null) {
-                throw new PropertyException("positiveResponses", "if fieldName is populated, positiveResponses must be blank");
+                throw new PropertyException(configName, "positiveResponses", "if fieldName is populated, positiveResponses must be blank");
             }
             fieldNames = Collections.singletonList(fieldName);
-            positiveResponses = Collections.singletonList(positiveName);
+            if(positiveResponse != null) {
+                positiveResponses = Collections.singletonList(positiveResponse);
+            } else {
+                throw new PropertyException(configName, "positiveResponse", "if fieldName is populated positiveResponse must be populated");
+            }
         } else {
-            throw new PropertyException("fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
+            throw new PropertyException(configName, "fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
         }
     }
 

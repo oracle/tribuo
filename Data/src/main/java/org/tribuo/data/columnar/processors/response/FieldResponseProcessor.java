@@ -17,6 +17,7 @@
 package org.tribuo.data.columnar.processors.response;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.ConfigurableName;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -41,7 +42,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     @Config(description="Default value to return if one isn't found.")
     private String defaultValue;
 
-    @Config(description="The output factory to use.")
+    @Config(mandatory = true, description="The output factory to use.")
     private OutputFactory<T> outputFactory;
 
     @Config(description = "A list of field names to read, you should use only one of this or fieldName.")
@@ -53,23 +54,34 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     @Config(description = "Whether to display field names as part of the generated label, defaults to false")
     private boolean displayField = false;
 
+    @ConfigurableName
+    private String configName;
+
     @Override
     public void postConfig() {
         if (fieldName != null && fieldNames != null) {
-            throw new PropertyException("fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
+            throw new PropertyException(configName, "fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
         } else if (fieldNames != null) {
-            defaultValues = defaultValues == null ? Collections.nCopies(fieldNames.size(), defaultValue) : defaultValues;
+            if(defaultValue != null) {
+                defaultValues = defaultValues == null ? Collections.nCopies(fieldNames.size(), defaultValue) : defaultValues;
+            } else {
+                throw new PropertyException(configName, "defaultValue, defaultValues", "one of defaultValue or defaultValues must be populated");
+            }
             if(defaultValues.size() != fieldNames.size()) {
-                throw new PropertyException("defaultValues", "must either be empty or match the length of fieldNames");
+                throw new PropertyException(configName, "defaultValues", "must either be empty or match the length of fieldNames");
             }
         } else if (fieldName != null) {
             if(defaultValues != null) {
-                throw new PropertyException("defaultValues", "if fieldName is populated, defaultValues must be blank");
+                throw new PropertyException(configName, "defaultValues", "if fieldName is populated, defaultValues must be blank");
             }
             fieldNames = Collections.singletonList(fieldName);
-            defaultValues = Collections.singletonList(defaultValue);
+            if (defaultValue != null) {
+                defaultValues = Collections.singletonList(defaultValue);
+            } else {
+                throw new PropertyException(configName, "defaultValue", "if fieldName is populated, defaultValue must be populated");
+            }
         } else {
-            throw new PropertyException("fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
+            throw new PropertyException(configName, "fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
         }
     }
 

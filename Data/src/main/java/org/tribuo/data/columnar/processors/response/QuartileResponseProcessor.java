@@ -17,6 +17,7 @@
 package org.tribuo.data.columnar.processors.response;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.ConfigurableName;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -29,24 +30,29 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Processes the response into quartiles and emits them as classification outputs.
  * <p>
- * The emitted outputs are of the form {@code {<name>:first, <name>:second, <name>:third, <name>:fourth} }.
+ * The emitted outputs for each field are of the form:
+ * {@code {<fieldName>:first, <fieldName>:second, <fieldName>:third, <fieldName>:fourth} }.
  */
 public class QuartileResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
+    /**
+     * @deprecated This field causes issues with multidimensional outputs.
+     * When populated the emitted outputs are of the form:
+     * {@code {<name>:first, <name>:second, <name>:third, <name>:fourth} }.
+     */
     @Config(mandatory = true,description="The string to emit.")
     @Deprecated
     private String name;
 
-    @Config(mandatory = true,description="The field name to read.")
+    @Config(description="The field name to read.")
     @Deprecated
     private String fieldName;
 
-    @Config(mandatory = true,description="The quartile to use.")
+    @Config(description="The quartile to use.")
     private Quartile quartile;
 
     @Config(mandatory = true,description="The output factory to use.")
@@ -58,23 +64,34 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
     @Config(description = "A list of quartiles to use, should have the same length as fieldNames")
     private List<Quartile> quartiles;
 
+    @ConfigurableName
+    private String configName;
+
     @Override
     public void postConfig() throws PropertyException, IOException {
         if (fieldName != null && fieldNames != null) {
-            throw new PropertyException("fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
+            throw new PropertyException(configName, "fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
         } else if (fieldNames != null) {
-            quartiles = quartiles == null ? Collections.nCopies(fieldNames.size(), quartile) : quartiles;
+            if(quartile != null) {
+                quartiles = quartiles == null ? Collections.nCopies(fieldNames.size(), quartile) : quartiles;
+            } else {
+                throw new PropertyException(configName, "quartile, quartiles", "one of quartile or quartiles must be populated");
+            }
             if(quartiles.size() != fieldNames.size()) {
-                throw new PropertyException("quartiles", "must either be empty or match the length of fieldNames");
+                throw new PropertyException(configName, "quartiles", "must either be empty or match the length of fieldNames");
             }
         } else if (fieldName != null) {
             if (quartiles != null) {
-                throw new PropertyException("quartiles", "if fieldName is populated, quartiles must be blank");
+                throw new PropertyException(configName, "quartiles", "if fieldName is populated, quartiles must be blank");
             }
             fieldNames = Collections.singletonList(fieldName);
-            quartiles = Collections.singletonList(quartile);
+            if(quartile != null) {
+                quartiles = Collections.singletonList(quartile);
+            } else {
+                throw new PropertyException(configName, "quartile", "if fieldName is populated, quartile must be populated");
+            }
         } else {
-            throw new PropertyException("fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
+            throw new PropertyException(configName, "fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
         }
     }
 
@@ -180,7 +197,7 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
 
     @Override
     public String toString() {
-        return "QuartileResponseProcessor(fieldNames="+ fieldNames.toString() +",quartiles=" + quartiles.stream().map(Quartile::toString).collect(Collectors.toList()) + ")";
+        return "QuartileResponseProcessor(fieldNames="+ fieldNames.toString() +",quartiles=" + quartiles.toString() + ")";
     }
 
     @Override
