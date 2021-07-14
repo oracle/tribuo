@@ -142,6 +142,7 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
     }
 
     @Override
+    @Deprecated
     public String getFieldName() {
         return fieldNames.get(0);
     }
@@ -167,6 +168,9 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
 
     @Override
     public Optional<T> process(List<String> values) {
+        if(values.size() != fieldNames.size()) {
+            throw new IllegalArgumentException("values must have the same length as fieldNames. Got values: " + values.size() + " fieldNames: "  + fieldNames.size());
+        }
         List<String> response = new ArrayList<>();
         for(int i=0; i< fieldNames.size(); i++) {
             String value = values.get(i);

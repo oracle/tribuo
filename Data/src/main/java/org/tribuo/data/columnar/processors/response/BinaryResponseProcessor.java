@@ -47,6 +47,9 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     @Config(mandatory = true, description="Output factory to use to create the response.")
     private OutputFactory<T> outputFactory;
 
+    public static final String POSITIVE_NAME = "1";
+    public static final String NEGATIVE_NAME = "0";
+
     @Config(description="The positive response to emit.")
     private String positiveName = "1";
 
@@ -100,7 +103,8 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     /**
      * Constructs a binary response processor which emits a positive value for a single string
-     * and a negative value for all other field values.
+     * and a negative value for all other field values. Defaults to {@link #POSITIVE_NAME} for positive outputs and {@link #NEGATIVE_NAME}
+     * for negative outputs.
      * @param fieldName The field name to read.
      * @param positiveResponse The positive response to look for.
      * @param outputFactory The output factory to use.
@@ -111,7 +115,8 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     /**
      * Constructs a binary response processor which emits a positive value for a single string
-     * and a negative value for all other field values.
+     * and a negative value for all other field values. Defaults to {@link #POSITIVE_NAME} for positive outputs and {@link #NEGATIVE_NAME}
+     * for negative outputs.
      * @param fieldNames The field names to read.
      * @param positiveResponse The positive response to look for.
      * @param outputFactory The output factory to use.
@@ -122,8 +127,9 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     /**
      * Constructs a binary response processor which emits a positive value for a single string
-     * and a negative value for all other field values. the lengths of fieldNames and positiveResponses
-     * must be the same.
+     * and a negative value for all other field values. The lengths of fieldNames and positiveResponses
+     * must be the same. Defaults to {@link #POSITIVE_NAME} for positive outputs and {@link #NEGATIVE_NAME}
+     * for negative outputs.
      * @param fieldNames The field names to read.
      * @param positiveResponses The positive responses to look for.
      * @param outputFactory The output factory to use.
@@ -134,20 +140,21 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     /**
      * Constructs a binary response processor which emits a positive value for a single string
-     * and a negative value for all other field values. the lengths of fieldNames and positiveResponses
-     * must be the same.
+     * and a negative value for all other field values. The lengths of fieldNames and positiveResponses
+     * must be the same. Defaults to {@link #POSITIVE_NAME} for positive outputs and {@link #NEGATIVE_NAME}
+     * for negative outputs.
      * @param fieldNames The field names to read.
      * @param positiveResponses The positive responses to look for.
      * @param outputFactory The output factory to use.
      * @param displayField whether to include field names in the generated labels.
      */
     public BinaryResponseProcessor(List<String> fieldNames, List<String> positiveResponses, OutputFactory<T> outputFactory, boolean displayField) {
-        this(fieldNames, positiveResponses, outputFactory, "1", "0", displayField);
+        this(fieldNames, positiveResponses, outputFactory, POSITIVE_NAME, NEGATIVE_NAME, displayField);
     }
 
     /**
      * Constructs a binary response processor which emits a positive value for a single string
-     * and a negative value for all other field values. the lengths of fieldNames and positiveResponses
+     * and a negative value for all other field values. The lengths of fieldNames and positiveResponses
      * must be the same.
      * @param fieldNames The field names to read.
      * @param positiveResponses The positive responses to look for.
@@ -173,6 +180,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
         return outputFactory;
     }
 
+    @Deprecated
     @Override
     public String getFieldName() {
         return fieldNames.get(0);
@@ -191,6 +199,9 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     @Override
     public Optional<T> process(List<String> values) {
+        if(values.size() != fieldNames.size()) {
+            throw new IllegalArgumentException("values must have the same length as fieldNames. Got values: " + values.size() + " fieldNames: "  + fieldNames.size());
+        }
         List<String> responses = new ArrayList<>();
         String prefix = "";
         for(int i=0; i < fieldNames.size(); i++) {

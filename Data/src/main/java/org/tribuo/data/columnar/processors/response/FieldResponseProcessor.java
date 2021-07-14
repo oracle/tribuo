@@ -153,6 +153,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     }
 
     @Override
+    @Deprecated
     public String getFieldName() {
         return fieldNames.get(0);
     }
@@ -164,6 +165,9 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
 
     @Override
     public Optional<T> process(List<String> values) {
+        if(values.size() != fieldNames.size()) {
+            throw new IllegalArgumentException("values must have the same length as fieldNames. Got values: " + values.size() + " fieldNames: "  + fieldNames.size());
+        }
         List<String> responses = new ArrayList<>();
         String prefix = "";
         for(int i=0; i < fieldNames.size(); i++) {
