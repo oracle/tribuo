@@ -63,9 +63,11 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
     public Optional<T> process(String value);
 
     /**
-     * Returns Optional.empty() if it failed to process out a response. Though this method currently has
-     * a default implementation, it is the core method and should be overridden by implementors. Unless it
-     * is overridden it will throw an {@link IllegalArgumentException} when called with multiple values.
+     * Returns Optional.empty() if it failed to process out a response.This method has a default
+     * implementation for backwards compatibility with Tribuo 4.0 and 4.1. This method should be
+     * overridden by code which depends on newer versions of Tribuo. The default implementation
+     * will be removed when the deprecated members are removed.  Unless is is overridden it will
+     * throw an {@link IllegalArgumentException} when called with multiple values.
      * @param values The value to process.
      * @return The response values if found.
      */

@@ -174,7 +174,7 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
         List<String> response = new ArrayList<>();
         for(int i=0; i< fieldNames.size(); i++) {
             String value = values.get(i);
-            String prefix = name == null || name.isEmpty() ? fieldNames.get(i) : getFieldName();
+            String prefix = name == null || name.isEmpty() ? fieldNames.get(i) : name;
             Quartile q = quartiles.get(i);
             if(value == null) {
                 response.add(prefix + ":NONE");

@@ -51,10 +51,10 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     public static final String NEGATIVE_NAME = "0";
 
     @Config(description="The positive response to emit.")
-    private String positiveName = "1";
+    private String positiveName = POSITIVE_NAME;
 
     @Config(description="The negative response to emit.")
-    private String negativeName = "0";
+    private String negativeName = NEGATIVE_NAME;
 
     @Config(description = "A list of field names to read, you should use only one of this or fieldName.")
     private List<String> fieldNames;
