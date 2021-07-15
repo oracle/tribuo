@@ -199,8 +199,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
             String val;
             if (uppercase) {
                 val = values.get(i).toUpperCase().trim();
-            }
-            else {
+            } else {
                 val = values.get(i).trim();
             }
             val = val.isEmpty() ? defaultValues.get(i) : val;
