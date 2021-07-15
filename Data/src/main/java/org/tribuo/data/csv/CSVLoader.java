@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,32 +25,29 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.URLProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.Example;
+import org.tribuo.DataSource;
 import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
-import org.tribuo.datasource.ListDataSource;
-import org.tribuo.impl.ArrayExample;
+import org.tribuo.data.columnar.FieldProcessor;
+import org.tribuo.data.columnar.ResponseProcessor;
+import org.tribuo.data.columnar.RowProcessor;
+import org.tribuo.data.columnar.processors.field.DoubleFieldProcessor;
+import org.tribuo.data.columnar.processors.response.FieldResponseProcessor;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -170,7 +167,7 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(Path csvPath, String responseName) throws IOException {
+    public DataSource<T> loadDataSource(Path csvPath, String responseName) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName));
     }
 
@@ -182,7 +179,7 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(URL csvPath, String responseName) throws IOException {
+    public DataSource<T> loadDataSource(URL csvPath, String responseName) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName));
     }
 
@@ -195,7 +192,7 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(Path csvPath, String responseName, String[] header) throws IOException {
+    public DataSource<T> loadDataSource(Path csvPath, String responseName, String[] header) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName), header);
     }
 
@@ -208,7 +205,7 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(URL csvPath, String responseName, String[] header) throws IOException {
+    public DataSource<T> loadDataSource(URL csvPath, String responseName, String[] header) throws IOException {
         return loadDataSource(csvPath, Collections.singleton(responseName), header);
     }
 
@@ -220,7 +217,7 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(Path csvPath, Set<String> responseNames) throws IOException {
+    public DataSource<T> loadDataSource(Path csvPath, Set<String> responseNames) throws IOException {
         return loadDataSource(csvPath, responseNames, null);
     }
 
@@ -232,7 +229,7 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(URL csvPath, Set<String> responseNames) throws IOException {
+    public DataSource<T> loadDataSource(URL csvPath, Set<String> responseNames) throws IOException {
         return loadDataSource(csvPath, responseNames, null);
     }
 
@@ -245,7 +242,7 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(Path csvPath, Set<String> responseNames, String[] header) throws IOException {
+    public DataSource<T> loadDataSource(Path csvPath, Set<String> responseNames, String[] header) throws IOException {
         return loadDataSource(csvPath.toUri().toURL(),responseNames,header);
     }
 
@@ -258,110 +255,65 @@ public class CSVLoader<T extends Output<T>> {
      * @return A datasource containing the csv data.
      * @throws IOException If the disk read failed.
      */
-    public ListDataSource<T> loadDataSource(URL csvPath, Set<String> responseNames, String[] header) throws IOException {
-        List<String> headerList = header == null ? Collections.emptyList() : Arrays.asList(header);
-        try (CSVIterator itr = new CSVIterator(csvPath.toURI(), separator, quote, headerList)) {
-            //
-            // CSVInteropProvenance constructor throws an exception on FileNotFound, so we include in the try/catch
-            DataSourceProvenance provenance = new CSVLoaderProvenance(
-                    csvPath,
-                    outputFactory.getProvenance(),
-                    String.join(",", responseNames), // If there are multiple responses, join them
-                    separator,
-                    quote
-            );
-            List<Example<T>> list = innerLoadFromCSV(itr, responseNames, csvPath.toString());
-            return new ListDataSource<>(list, outputFactory, provenance);
+    public DataSource<T> loadDataSource(URL csvPath, Set<String> responseNames, String[] header) throws IOException {
+        List<String> headers = header == null || header.length == 0 ? Collections.emptyList() : Arrays.asList(header);
+        URI csvURI;
+
+        // Extract headers and convert to URI
+        try (CSVIterator itr = new CSVIterator(csvPath.toURI(), separator, quote)) {
+            List<String> extractedHeaders = itr.getFields();
+            if (extractedHeaders.isEmpty() && headers.isEmpty()) {
+                throw new IllegalArgumentException("Failed to read headers from CSV, and none were supplied.");
+            }
+            if (headers.size() != 0) {
+                if (extractedHeaders.size() != headers.size()) {
+                    throw new IllegalArgumentException("The csv contains " + extractedHeaders.size() + " fields, but only " + headers.size() + " headers were supplied.");
+                }
+            } else {
+                headers = extractedHeaders;
+            }
+            csvURI = csvPath.toURI();
         } catch (URISyntaxException e) {
             throw new FileNotFoundException("Failed to read from URL '" + csvPath + "' as it could not be converted to a URI");
         }
-    }
 
-    private List<Example<T>> innerLoadFromCSV(CSVIterator itr, Set<String> responseNames, String csvPath) {
-        validateResponseNames(responseNames, itr.getFields(), csvPath);
-        List<Example<T>> dataset = new ArrayList<>();
-        String responseName = responseNames.size() == 1 ? responseNames.iterator().next() : null;
-        //
-        // Create the examples.
-        while (itr.hasNext()) {
-            Map<String, String> row = itr.next().getRowData();
-            T label = (responseNames.size() == 1) ?
-                    buildOutput(responseName, row) :
-                    buildMultiOutput(responseNames, row);
-            ArrayExample<T> example = new ArrayExample<>(label);
-            for (Map.Entry<String, String> ent : row.entrySet()) {
-                String columnName = ent.getKey();
-                if (!responseNames.contains(columnName)) {
-                    //
-                    // If it's not a response, it's a feature
-                    double value = Double.parseDouble(ent.getValue());
-                    example.add(columnName, value);
-                }
-            }
-            dataset.add(example);
-        }
-        return dataset;
-    }
-
-    private static void validateResponseNames(Set<String> responseNames, List<String> headers, String csvPath) throws IllegalArgumentException {
+        // Validate the responseNames
         if (responseNames.isEmpty()) {
             throw new IllegalArgumentException("At least one response name must be specified, but responseNames is empty.");
         }
-        //
-        // Validate that all the expected responses are included in the given header fields
-        Map<String, Boolean> responsesFound = new HashMap<>();
-        for (String response : responseNames) {
-            responsesFound.put(response, false);
-        }
-        for (String header : headers) {
-            if (responseNames.contains(header)) {
-                responsesFound.put(header, true);
+        if (!headers.containsAll(responseNames)) {
+            for (String s : responseNames) {
+                if (!headers.contains(s)) {
+                    throw new IllegalArgumentException(String.format("Response %s not found in file %s", s, csvPath));
+                }
             }
         }
-        for (Map.Entry<String, Boolean> kv : responsesFound.entrySet()) {
-            if (!kv.getValue()) {
-                throw new IllegalArgumentException(String.format("Response %s not found in file %s", kv.getKey(), csvPath));
+
+        // Construct the row processor
+        Map<String, FieldProcessor> fieldProcessors = new HashMap<>();
+        for (String field : headers) {
+            if (!responseNames.contains(field)) {
+                fieldProcessors.put(field,new DoubleFieldProcessor(field,true,true));
             }
         }
-    }
+        boolean includeFieldName = responseNames.size() > 1 ? true : false;
+        ResponseProcessor<T> responseProcessor = new FieldResponseProcessor<>(new ArrayList<>(responseNames),Collections.nCopies(responseNames.size(),""),outputFactory,includeFieldName,false);
+        RowProcessor<T> rowProcessor = new RowProcessor<>(responseProcessor,fieldProcessors);
 
-    private T buildOutput(String responseName, Map<String, String> row) {
-        String label = row.get(responseName);
-        T output = outputFactory.generateOutput(label);
-        return output;
-    }
-
-    /**
-     * Build a Output for a multi-output CSV file formatted like:
-     * <pre>
-     * Attr1,Attr2,...,Class1,Class2,Class3
-     * 1.0,0.5,...,true,true,false
-     * 1.0,0.5,...,true,false,false
-     * 1.0,0.5,...,false,true,true
-     * </pre>
-     * Or for multivariate regression,
-     * <pre>
-     * Attr1,Attr2,...,Var1,Var2,Var3
-     * 1.0,0.5,...,0.1,0.1,0.3
-     * 1.0,0.5,...,0.2,0.0,0.8
-     * </pre>
-     * @param responseNames The response dimension names
-     * @param row           The row to process.
-     */
-    private T buildMultiOutput(Set<String> responseNames, Map<String, String> row) {
-        Set<String> pairs = new HashSet<>();
-        for (String responseName : responseNames) {
-            String rawValue = row.get(responseName);
-            String pair = String.format("%s=%s", responseName, rawValue);
-            pairs.add(pair);
+        if (header != null) {
+            // if headers are supplied then we assume they aren't present in the csv file.
+            return new CSVDataSource<>(csvURI, rowProcessor, true, separator, quote, headers);
+        } else {
+            return new CSVDataSource<>(csvURI, rowProcessor, true, separator, quote);
         }
-        T output = outputFactory.generateOutput(pairs);
-        return output;
     }
 
     /**
      * Provenance for CSVs loaded by {@link CSVLoader}.
+     * @deprecated Deprecated in 4.2 as CSVLoader now returns a {@link CSVDataSource}.
+     * This provenance is kept so older models can still load correctly.
      */
+    @Deprecated
     public final static class CSVLoaderProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 

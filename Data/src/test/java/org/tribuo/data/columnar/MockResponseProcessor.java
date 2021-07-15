@@ -46,6 +46,7 @@ public class MockResponseProcessor implements ResponseProcessor<MockOutput> {
         return new MockOutputFactory();
     }
 
+    @Deprecated
     @Override
     public String getFieldName() {
         return fieldName;
@@ -57,6 +58,7 @@ public class MockResponseProcessor implements ResponseProcessor<MockOutput> {
         this.fieldName = fieldName;
     }
 
+    @Deprecated
     @Override
     public Optional<MockOutput> process(String value) {
         return Optional.of(new MockOutput(value));
