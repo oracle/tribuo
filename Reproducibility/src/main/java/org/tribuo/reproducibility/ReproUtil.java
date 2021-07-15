@@ -2,6 +2,7 @@ package org.tribuo.reproducibility;
 
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
+import com.oracle.labs.mlrg.olcut.config.property.SimpleProperty;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance;
@@ -49,7 +50,7 @@ public final class ReproUtil {
         return newTrainer;
     }
 
-    private static DataSource getDatasourceFromCM(Class dataSourceClass, ConfigurationManager CM){
+    private static DataSource getDatasourceFromCM(Class dataSourceClass, ConfigurationManager CM, List<Pair<String, String>> propertyNameAndValues){
         List sources = CM.listAll(dataSourceClass);
         String sourceName = null;
         if (sources.size() > 0){
@@ -59,6 +60,11 @@ public final class ReproUtil {
         // If the data source can be recovered from CM do it here.
         DataSource dataSource = null;
         if (sourceName != null){
+            if(propertyNameAndValues != null){
+                for(Pair<String, String> propertyNameAndValue : propertyNameAndValues){
+                    CM.overrideConfigurableProperty(sourceName, propertyNameAndValue.getA(), new SimpleProperty(propertyNameAndValue.getB()));
+                }
+            }
             dataSource  = (DataSource) CM.lookup(sourceName);
         }
 
@@ -69,7 +75,7 @@ public final class ReproUtil {
         return dataSource;
     }
 
-    private static Dataset reflectDataset(DataSource modelSource, ModelProvenance provenance){
+    private static Dataset datasetReflection(DataSource modelSource, ModelProvenance provenance){
         Dataset modelDataset = null;
         Iterator<Pair<String, Provenance>> sourceProv = provenance.getDatasetProvenance().iterator();
         String datasetClassname = null;
@@ -97,7 +103,7 @@ public final class ReproUtil {
         return modelDataset;
     }
 
-    private static Dataset recoverDataset(ModelProvenance provenance, ConfigurationManager CM){
+    private static Dataset recoverDataset(ModelProvenance provenance, ConfigurationManager CM, List<Pair<String, String>> propertyNameAndValues){
         Class dataSourceClass = null;
         Dataset modelDataset = null;
 
@@ -132,20 +138,20 @@ public final class ReproUtil {
                 e.printStackTrace();
             }
 
-            DataSource innerSource = getDatasourceFromCM(dataSourceClass, CM);
+            DataSource innerSource = getDatasourceFromCM(dataSourceClass, CM, propertyNameAndValues);
 
             TrainTestSplitter trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
 
             if(isTrain){
-                modelDataset = reflectDataset(trainTestSplitter.getTrain(), provenance);
+                modelDataset = datasetReflection(trainTestSplitter.getTrain(), provenance);
             } else {
-                modelDataset = reflectDataset(trainTestSplitter.getTest(), provenance);
+                modelDataset = datasetReflection(trainTestSplitter.getTest(), provenance);
             }
 
         } else {
 
-            DataSource modelSource = getDatasourceFromCM(dataSourceClass, CM);
-            modelDataset = reflectDataset(modelSource, provenance);
+            DataSource modelSource = getDatasourceFromCM(dataSourceClass, CM, propertyNameAndValues);
+            modelDataset = datasetReflection(modelSource, provenance);
         }
 
 
@@ -160,6 +166,19 @@ public final class ReproUtil {
      * @return A reproduced model identical to the one described in the provenance.
      */
     public static Model reproduceFromProvenance(ModelProvenance provenance){
+        return(reproduceFromProvenance(provenance, null));
+    }
+
+    /**
+     * Using a supplied {@link ModelProvenance} object, recreates a model object that the provenance describes.
+     * <p>
+     * Recovers the trainer and dataset information before training an identical model.
+     * @param provenance The provenance describing the model that is to be reproduced.
+     * @param propertyNameAndValues List of pairs where each pair has a configuration name, and
+     *                             a new value for that configuration.
+     * @return A reproduced model identical to the one described in the provenance.
+     */
+    public static Model reproduceFromProvenance(ModelProvenance provenance, List<Pair<String, String>> propertyNameAndValues){
         // Load provenance into the config manager so we can extract the necessary classes from config
         List<ConfigurationData> provConfig = ProvenanceUtil.extractConfiguration(provenance);
         ConfigurationManager newCM = new ConfigurationManager();
@@ -170,7 +189,8 @@ public final class ReproUtil {
         // recoverDataset returns the dataset used to train the model
         // and handles TrainTestSplitters, so if a model uses one this
         // function will return the training data specifically
-        Dataset newDataset = recoverDataset(provenance, newCM);
+        Dataset newDataset = recoverDataset(provenance, newCM, propertyNameAndValues);
+
 
 
         Model newModel = newTrainer.train(newDataset);
@@ -182,7 +202,7 @@ public final class ReproUtil {
      * Using a supplied {@link Model} object, recreates an identical model object that the provenance describes.
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
-     * @param originalModel The provenance describing the model that is to be repoduced.
+     * @param originalModel The provenance describing the model that is to be reproduced.
      * @return A reproduced model identical to the one described in the provenance.
      */
     public static Model reproduceFromModel(Model originalModel) throws Exception {
