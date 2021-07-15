@@ -28,7 +28,7 @@ public class EmptyResponseProcessorTest {
         Assertions.assertFalse(rp.process("!@$#$!").isPresent());
         Assertions.assertFalse(rp.process("\n").isPresent());
         Assertions.assertFalse(rp.process("\t").isPresent());
-        Assertions.assertFalse(rp.process(null).isPresent());
+        Assertions.assertFalse(rp.process((String) null).isPresent());
     }
 
 }
