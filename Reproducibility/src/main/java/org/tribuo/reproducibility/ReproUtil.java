@@ -19,17 +19,43 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
 import java.util.List;
 
-public final class ReproUtil {
-    
+public class ReproUtil {
+
+    private ConfigurationManager CM;
+
+    private ModelProvenance modelProvenance;
+
+    private Model originalModel;
+
     private ReproUtil () {}
 
-    private static Trainer recoverTrainer(ModelProvenance provenance, ConfigurationManager CM){
+    public ReproUtil(ModelProvenance provenance){
+        this(provenance, null);
+    }
+
+    public ReproUtil(Model originalModel){
+        this(originalModel.getProvenance(), originalModel);
+    }
+
+    private ReproUtil(ModelProvenance provenance, Model originalModel){
+        this.modelProvenance = provenance;
+
+        // Load configurations from provenance so we can re-instantiate objects using the ConfigManager
+        // Additionally allows us to change the values of certain configurable fields before re-instantiation
+        List<ConfigurationData> provConfig = ProvenanceUtil.extractConfiguration(this.modelProvenance);
+        this.CM = new ConfigurationManager();
+        this.CM.addConfiguration(provConfig);
+
+        this.originalModel = originalModel;
+    }
+
+    private Trainer recoverTrainer(){
         Class trainerClass = null;
 
         // Recover the name of the trainer class from the model's provenance
         // Convert to a class object so it can be passed to the config manager to recover the trainer object
         try {
-            trainerClass = Class.forName(provenance.getTrainerProvenance().getClassName());
+            trainerClass = Class.forName(this.modelProvenance.getTrainerProvenance().getClassName());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -41,7 +67,7 @@ public final class ReproUtil {
 
         // RNG changes state each time train is called, so examine prov for how many invocations of train
         // had been called when the original model was trained. Then, set the RNG to the same state
-        newTrainer.setInvocationCount((int) provenance
+        newTrainer.setInvocationCount((int) this.modelProvenance
                 .getTrainerProvenance()
                 .getInstanceValues()
                 .get("train-invocation-count")
@@ -50,7 +76,7 @@ public final class ReproUtil {
         return newTrainer;
     }
 
-    private static DataSource getDatasourceFromCM(Class dataSourceClass, ConfigurationManager CM, List<Pair<String, String>> propertyNameAndValues){
+    private DataSource getDatasourceFromCM(Class dataSourceClass, List<Pair<String, String>> propertyNameAndValues){
         List sources = CM.listAll(dataSourceClass);
         String sourceName = null;
         if (sources.size() > 0){
@@ -75,9 +101,9 @@ public final class ReproUtil {
         return dataSource;
     }
 
-    private static Dataset datasetReflection(DataSource modelSource, ModelProvenance provenance){
+    private Dataset datasetReflection(DataSource modelSource){
         Dataset modelDataset = null;
-        Iterator<Pair<String, Provenance>> sourceProv = provenance.getDatasetProvenance().iterator();
+        Iterator<Pair<String, Provenance>> sourceProv = this.modelProvenance.getDatasetProvenance().iterator();
         String datasetClassname = null;
         while (sourceProv.hasNext()){
             Pair<String, Provenance> provPair = sourceProv.next();
@@ -103,18 +129,18 @@ public final class ReproUtil {
         return modelDataset;
     }
 
-    private static Dataset recoverDataset(ModelProvenance provenance, ConfigurationManager CM, List<Pair<String, String>> propertyNameAndValues){
+    private Dataset recoverDataset(List<Pair<String, String>> propertyNameAndValues){
         Class dataSourceClass = null;
         Dataset modelDataset = null;
 
         try {
-            dataSourceClass = Class.forName(provenance.getDatasetProvenance().getSourceProvenance().getClassName());
+            dataSourceClass = Class.forName(this.modelProvenance.getDatasetProvenance().getSourceProvenance().getClassName());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
-        if (provenance.getDatasetProvenance().getSourceProvenance() instanceof TrainTestSplitter.SplitDataSourceProvenance) {
-            Iterator<Pair<String, Provenance>> sourceProv = provenance.getDatasetProvenance().getSourceProvenance().iterator();
+        if (this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof TrainTestSplitter.SplitDataSourceProvenance) {
+            Iterator<Pair<String, Provenance>> sourceProv = this.modelProvenance.getDatasetProvenance().getSourceProvenance().iterator();
             long seed = 0;
             double trainProportion = 0;
             boolean isTrain = true;
@@ -138,20 +164,20 @@ public final class ReproUtil {
                 e.printStackTrace();
             }
 
-            DataSource innerSource = getDatasourceFromCM(dataSourceClass, CM, propertyNameAndValues);
+            DataSource innerSource = getDatasourceFromCM(dataSourceClass, propertyNameAndValues);
 
             TrainTestSplitter trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
 
             if(isTrain){
-                modelDataset = datasetReflection(trainTestSplitter.getTrain(), provenance);
+                modelDataset = datasetReflection(trainTestSplitter.getTrain());
             } else {
-                modelDataset = datasetReflection(trainTestSplitter.getTest(), provenance);
+                modelDataset = datasetReflection(trainTestSplitter.getTest());
             }
 
         } else {
 
-            DataSource modelSource = getDatasourceFromCM(dataSourceClass, CM, propertyNameAndValues);
-            modelDataset = datasetReflection(modelSource, provenance);
+            DataSource modelSource = getDatasourceFromCM(dataSourceClass, propertyNameAndValues);
+            modelDataset = datasetReflection(modelSource);
         }
 
 
@@ -159,40 +185,32 @@ public final class ReproUtil {
     }
 
     /**
-     * Using a supplied {@link ModelProvenance} object, recreates a model object that the provenance describes.
+     * Recreates a model object using the {@link ModelProvenance} supplied when the ReproUtil object was created.
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
-     * @param provenance The provenance describing the model that is to be reproduced.
      * @return A reproduced model identical to the one described in the provenance.
      */
-    public static Model reproduceFromProvenance(ModelProvenance provenance){
-        return(reproduceFromProvenance(provenance, null));
+    public Model reproduceFromProvenance(){
+        return(reproduceFromProvenance(null));
     }
 
     /**
-     * Using a supplied {@link ModelProvenance} object, recreates a model object that the provenance describes.
+     * Recreates a model object using the {@link ModelProvenance} supplied when the ReproUtil object was created.
+     * Additionally allows calling code to pass a list of new values for configurable properties
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
-     * @param provenance The provenance describing the model that is to be reproduced.
      * @param propertyNameAndValues List of pairs where each pair has a configuration name, and
      *                             a new value for that configuration.
      * @return A reproduced model identical to the one described in the provenance.
      */
-    public static Model reproduceFromProvenance(ModelProvenance provenance, List<Pair<String, String>> propertyNameAndValues){
-        // Load provenance into the config manager so we can extract the necessary classes from config
-        List<ConfigurationData> provConfig = ProvenanceUtil.extractConfiguration(provenance);
-        ConfigurationManager newCM = new ConfigurationManager();
-        newCM.addConfiguration(provConfig);
+    public Model reproduceFromProvenance(List<Pair<String, String>> propertyNameAndValues){
 
-        Trainer newTrainer = recoverTrainer(provenance, newCM);
+        // Until now the object only holds the configuration for these objects, the following
+        // functions will actually re-instantiate them.
+        Trainer newTrainer = recoverTrainer();
+        Dataset newDataset = recoverDataset(propertyNameAndValues);
 
-        // recoverDataset returns the dataset used to train the model
-        // and handles TrainTestSplitters, so if a model uses one this
-        // function will return the training data specifically
-        Dataset newDataset = recoverDataset(provenance, newCM, propertyNameAndValues);
-
-
-
+        // This function actually re-trains a model rather than copy the original
         Model newModel = newTrainer.train(newDataset);
 
         return newModel;
@@ -202,12 +220,15 @@ public final class ReproUtil {
      * Using a supplied {@link Model} object, recreates an identical model object that the provenance describes.
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
-     * @param originalModel The provenance describing the model that is to be reproduced.
      * @return A reproduced model identical to the one described in the provenance.
      */
-    public static Model reproduceFromModel(Model originalModel) throws Exception {
+    public Model reproduceFromModel() throws Exception {
+        // TODO: Create types for these exceptions
+        if(this.originalModel == null){
+            throw new Exception("No model to reproduce was provided");
+        }
 
-        Model newModel = reproduceFromProvenance(originalModel.getProvenance());
+        Model newModel = reproduceFromProvenance();
 
         ImmutableFeatureMap newFeatureMap = newModel.getFeatureIDMap();
         ImmutableFeatureMap oldFeatureMap = originalModel.getFeatureIDMap();
