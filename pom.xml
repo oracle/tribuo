@@ -357,6 +357,15 @@
 
     <profiles>
         <profile>
+            <!-- Turn off ONNX, XGBoost and TF tests on ARM platforms as the binaries are not available -->
+            <id>arm</id>
+            <properties>
+                <skipXGBoostTests>true</skipXGBoostTests>
+                <skipONNXTests>true</skipONNXTests>
+                <skipTFTests>true</skipTFTests>
+            </properties>
+        </profile>
+        <profile>
             <id>src</id>
             <build>
                 <plugins>
