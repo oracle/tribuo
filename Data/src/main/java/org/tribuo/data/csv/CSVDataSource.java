@@ -45,7 +45,9 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -65,6 +67,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
 
     @Config(description="The CSV quote character.")
     private char quote = CSVIterator.QUOTE;
+
+    @Config(description="The CSV headers. Should only be used if the csv file does not already contain headers.")
+    private List<String> headers = Collections.emptyList();
 
     private ConfiguredDataSourceProvenance provenance;
 
@@ -147,6 +152,23 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data, and the supplied separator and quote
      * characters to read the input data file.
+     * <p>
+     * Used in {@link CSVLoader} to read a CSV without headers.
+     * @param dataFile A URI for the data file.
+     * @param rowProcessor The row processor which converts a row into an {@link Example}.
+     * @param outputRequired Is the output required to exist in the data file.
+     * @param separator The separator character in the data file.
+     * @param quote The quote character in the data file.
+     * @param headers The CSV file headers.
+     */
+    CSVDataSource(URI dataFile, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote, List<String> headers) {
+        this(dataFile, Paths.get(dataFile),rowProcessor,outputRequired,separator,quote);
+        this.headers = headers;
+    }
+
+    /**
+     * Creates a CSVDataSource using the specified RowProcessor to process the data, and the supplied separator and quote
+     * characters to read the input data file.
      * @param dataPath The Path to the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
      * @param outputRequired Is the output required to exist in the data file.
@@ -192,7 +214,11 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
     @Override
     public ColumnarIterator rowIterator() {
         try {
-            return new CSVIterator(dataFile, separator, quote);
+            if (headers.isEmpty()) {
+                return new CSVIterator(dataFile, separator, quote);
+            } else {
+                return new CSVIterator(dataFile, separator, quote, headers);
+            }
         } catch (IOException e) {
             throw new IllegalStateException("Failed to read data",e);
         }

@@ -63,6 +63,7 @@ public final class EmptyResponseProcessor<T extends Output<T>> implements Respon
         return outputFactory;
     }
 
+    @Deprecated
     @Override
     public String getFieldName() {
         return FIELD_NAME;
@@ -81,11 +82,17 @@ public final class EmptyResponseProcessor<T extends Output<T>> implements Respon
      * @param value The value to process.
      * @return {@link Optional#empty}.
      */
+    @Deprecated
     @Override
     public Optional<T> process(String value) {
         return Optional.empty();
     }
 
+    /**
+     * This method always returns {@link Optional#empty}.
+     * @param values The values to process.
+     * @return {@link Optional#empty}.
+     */
     @Override
     public Optional<T> process(List<String> values) {
         return Optional.empty();

@@ -30,9 +30,11 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -94,8 +96,8 @@ public class CSVLoaderTest {
         // because CSVIterator does not skip the first line in this case.
         // TODO do we want this behavior?
         String[] header = new String[]{"A","B","C","D","RESPONSE"};
-        assertThrows(NumberFormatException.class, () -> loader.loadDataSource(path, "RESPONSE", header));
-        assertThrows(NumberFormatException.class, () -> loader.loadDataSource(path, Collections.singleton("RESPONSE"), header));
+        assertThrows(NumberFormatException.class, () -> loader.load(Paths.get(path.toURI()), "RESPONSE", header));
+        assertThrows(NumberFormatException.class, () -> loader.load(Paths.get(path.toURI()), Collections.singleton("RESPONSE"), header));
         //
         // Test behavior when CSV file does not have a header row and the user instead supplies the header.
         URL noheader = CSVLoader.class.getResource("/org/tribuo/data/csv/test-noheader.csv");
@@ -103,7 +105,7 @@ public class CSVLoaderTest {
         checkDataTestCsv(loader.loadDataSource(noheader, Collections.singleton("RESPONSE"), header));
     }
 
-    private void checkDataTestCsv(DataSource<MockOutput> source) throws IOException {
+    private void checkDataTestCsv(DataSource<MockOutput> source) {
         MutableDataset<MockOutput> data = new MutableDataset<>(source);
         assertEquals(6, data.size());
         assertEquals("monkey", data.getExample(0).getOutput().label);
@@ -120,7 +122,7 @@ public class CSVLoaderTest {
         //
         // Missing feature column "A"
         assertThrows(IllegalArgumentException.class,
-                () -> loader.loadDataSource(path, Collections.singleton("RESPONSE"), new String[]{"B","C","D","RESPONSE"}));
+                () -> loader.load(Paths.get(path.toURI()), Collections.singleton("RESPONSE"), new String[]{"B","C","D","RESPONSE"}));
         //
         // Missing "RESPONSE" column
         assertThrows(IllegalArgumentException.class,
@@ -185,7 +187,7 @@ public class CSVLoaderTest {
     @Test
     public void testLoadMultiOutputAsSingleOutput() throws IOException {
         URL path = CSVLoader.class.getResource("/org/tribuo/data/csv/test-multioutput.csv");
-        Set<String> responses = new HashSet<>(Arrays.asList("R1", "R2"));
+        Set<String> responses = new LinkedHashSet<>(Arrays.asList("R1", "R2"));
         CSVLoader<MockOutput> loader = new CSVLoader<>(new MockOutputFactory());
         DataSource<MockOutput> source = loader.loadDataSource(path, responses);
         MutableDataset<MockOutput> data = new MutableDataset<>(source);

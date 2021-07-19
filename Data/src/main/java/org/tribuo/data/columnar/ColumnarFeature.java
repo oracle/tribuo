@@ -42,6 +42,21 @@ public class ColumnarFeature extends Feature {
     private final String columnEntry;
 
     /**
+     * Constructs a {@code ColumnarFeature} from the field name. The column entry is blank.
+     * <p>
+     * This produces a ColumnarFeature which is identical to a Feature.
+     * @param fieldName The field name.
+     * @param value The feature value.
+     */
+    public ColumnarFeature(String fieldName, double value) {
+        super(fieldName,value);
+        this.fieldName = fieldName;
+        this.columnEntry = "";
+        this.firstFieldName = "";
+        this.secondFieldName = "";
+    }
+
+    /**
      * Constructs a {@code ColumnarFeature} from the field name, column entry and value.
      * @param fieldName The field name.
      * @param columnEntry The name of the extracted value from the field.
@@ -71,7 +86,7 @@ public class ColumnarFeature extends Feature {
     }
 
     /**
-     * Generates a feature name based on the field name.
+     * Generates a feature name based on the field name and the name.
      * <p>
      * Uses {@link ColumnarFeature#JOINER} to join the strings.
      * @param fieldName The field name.

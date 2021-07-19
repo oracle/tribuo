@@ -192,6 +192,7 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
         this.fieldName = fieldName;
     }
 
+    @Deprecated
     @Override
     public Optional<T> process(String value) {
         return process(Collections.singletonList(value));

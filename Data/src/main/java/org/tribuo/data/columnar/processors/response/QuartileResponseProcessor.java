@@ -147,6 +147,7 @@ public class QuartileResponseProcessor<T extends Output<T>> implements ResponseP
         return fieldNames.get(0);
     }
 
+    @Deprecated
     @Override
     public Optional<T> process(String value) {
         if(value == null) {

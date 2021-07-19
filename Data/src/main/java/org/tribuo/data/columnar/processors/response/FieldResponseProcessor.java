@@ -54,6 +54,9 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     @Config(description = "Whether to display field names as part of the generated label, defaults to false")
     private boolean displayField = false;
 
+    @Config(description = "Uppercase the value before converting to output.")
+    private boolean uppercase = true;
+
     @ConfigurableName
     private String configName;
 
@@ -93,6 +96,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     /**
      * Constructs a response processor which passes the field value through the
      * output factory.
+     * Uppercases the value before generating the output.
      * @param fieldName The field to read.
      * @param defaultValue The default value to extract if it's not found.
      * @param outputFactory The output factory to use.
@@ -104,6 +108,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     /**
      * Constructs a response processor which passes the field value through the
      * output factory.
+     * Uppercases the value before generating the output.
      * @param fieldNames The fields to read.
      * @param defaultValue The default value to extract if it's not found.
      * @param outputFactory The output factory to use.
@@ -115,6 +120,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     /**
      * Constructs a response processor which passes the field value through the
      * output factory. fieldNames and defaultValues must be the same length.
+     * Uppercases the value before generating the output.
      * @param fieldNames The field to read.
      * @param defaultValues The default value to extract if it's not found.
      * @param outputFactory The output factory to use.
@@ -126,12 +132,26 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     /**
      * Constructs a response processor which passes the field value through the
      * output factory. fieldNames and defaultValues must be the same length.
+     * Uppercases the value before generating the output.
      * @param fieldNames The field to read.
      * @param defaultValues The default value to extract if it's not found.
      * @param outputFactory The output factory to use.
      * @param displayField whether to include field names in the generated labels.
      */
     public FieldResponseProcessor(List<String> fieldNames, List<String> defaultValues, OutputFactory<T> outputFactory, boolean displayField) {
+        this(fieldNames,defaultValues,outputFactory,displayField,true);
+    }
+
+    /**
+     * Constructs a response processor which passes the field value through the
+     * output factory. fieldNames and defaultValues must be the same length.
+     * @param fieldNames The field to read.
+     * @param defaultValues The default value to extract if it's not found.
+     * @param outputFactory The output factory to use.
+     * @param displayField Whether to include field names in the generated output.
+     * @param uppercase Whether to uppercase the value before generating the output.
+     */
+    public FieldResponseProcessor(List<String> fieldNames, List<String> defaultValues, OutputFactory<T> outputFactory, boolean displayField, boolean uppercase) {
         if(fieldNames.size() != defaultValues.size()) {
             throw new IllegalArgumentException("fieldNames and defaultValues must be the same length");
         }
@@ -139,6 +159,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
         this.defaultValues = defaultValues;
         this.outputFactory = outputFactory;
         this.displayField = displayField;
+        this.uppercase = uppercase;
     }
 
     @Deprecated
@@ -158,6 +179,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
         return fieldNames.get(0);
     }
 
+    @Deprecated
     @Override
     public Optional<T> process(String value) {
         return process(Collections.singletonList(value));
@@ -174,7 +196,12 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
             if (displayField) {
                 prefix = fieldNames.get(i) + "=";
             }
-            String val = values.get(i).toUpperCase().trim();
+            String val;
+            if (uppercase) {
+                val = values.get(i).toUpperCase().trim();
+            } else {
+                val = values.get(i).trim();
+            }
             val = val.isEmpty() ? defaultValues.get(i) : val;
             responses.add(prefix + val);
         }
@@ -188,7 +215,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
 
     @Override
     public String toString() {
-        return "FieldResponseProcessor(fieldNames="+ fieldNames.toString() +")";
+        return "FieldResponseProcessor(fieldNames="+ fieldNames.toString() + ",displayField="+displayField+",uppercase="+uppercase+")";
     }
 
     @Override
