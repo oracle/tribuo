@@ -1,5 +1,6 @@
 package org.tribuo.reproducibility;
 
+import com.oracle.labs.mlrg.olcut.config.property.SimpleProperty;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.FileProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -179,6 +180,39 @@ class ReproUtilTest {
         List<Pair<String, String>> newConfigs = Arrays.asList(new Pair<String, String>("dataPath", csvPath.toString()));
         ReproUtil reproUtil = new ReproUtil(model.getProvenance());
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance(newConfigs);
+
+        assertTrue(newModel.getWeightsCopy().equals(model.getWeightsCopy()));
+
+        Iterator<Pair<String, Provenance>> sourceProv = newModel.getProvenance().getDatasetProvenance().getSourceProvenance().iterator();
+
+        while (sourceProv.hasNext()){
+            Pair<String, Provenance> provPair = sourceProv.next();
+            if(provPair.getA() == "dataPath"){
+                assertEquals("new_data.csv", ((FileProvenance) provPair.getB()).getValue().getName());
+            }
+        }
+    }
+
+    @Test
+    public void testoverrideConfigurableProperty(){
+        CSVDataSource csvSource = getCSVDatasource();
+        MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
+
+        LogisticRegressionTrainer trainer = new LogisticRegressionTrainer();
+        LinearSGDModel model = (LinearSGDModel) trainer.train(datasetFromCSV);
+        model = (LinearSGDModel) trainer.train(datasetFromCSV);
+        model = (LinearSGDModel) trainer.train(datasetFromCSV);
+
+        URL u = ReproUtilTest.class.getResource("/new_dir/new_data.csv");
+        Path csvPath = null;
+        try {
+            csvPath = Paths.get(u.toURI());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        reproUtil.getConfigurationManager().overrideConfigurableProperty("csvdatasource-1", "dataPath", new SimpleProperty(csvPath.toString()));
+        LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance();
 
         assertTrue(newModel.getWeightsCopy().equals(model.getWeightsCopy()));
 

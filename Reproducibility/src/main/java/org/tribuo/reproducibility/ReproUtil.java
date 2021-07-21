@@ -10,7 +10,11 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.*;
+import org.tribuo.DataSource;
+import org.tribuo.Dataset;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.Model;
+import org.tribuo.Trainer;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.provenance.ModelProvenance;
@@ -182,6 +186,10 @@ public class ReproUtil {
 
 
         return modelDataset;
+    }
+
+    public ConfigurationManager getConfigurationManager(){
+        return CM;
     }
 
     /**
