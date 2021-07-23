@@ -42,7 +42,7 @@ public final class ONNXContext {
      */
     public String generateUniqueName(String name) {
         MutableLong counter = nameMap.computeIfAbsent(name,k -> new MutableLong());
-        String newName = name + "-" + counter.longValue();
+        String newName = name + "_" + counter.longValue();
         counter.increment();
         return newName;
     }

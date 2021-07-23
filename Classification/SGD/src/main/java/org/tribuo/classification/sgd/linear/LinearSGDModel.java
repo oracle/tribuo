@@ -27,8 +27,12 @@ import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.util.ExpNormalizer;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.onnx.ONNXConstants;
+import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExport;
+import org.tribuo.onnx.ONNXShape;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -106,24 +110,100 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONN
 
     @Override
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        OnnxMl.TypeProto inputType = OnnxMl.TypeProto.newBuilder().setTensorType(OnnxMl.TypeProto.Tensor.newBuilder().)
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).build();
-        graphBuilder.addInput(inputValueProto);
+        ONNXContext context = new ONNXContext();
 
-        OnnxMl.AttributeProto.Builder attrBuilder;
-        attrBuilder.addFloats();
+        // Build graph
+        OnnxMl.GraphProto graph = exportONNXGraph(context);
 
-        OnnxMl.NodeProto nodeProto;
-        nodeProto.
-
+        // Build model
         OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
+        builder.setGraph(graph);
         builder.setDomain(domain);
         builder.setProducerName("Tribuo");
         builder.setProducerVersion(Tribuo.VERSION);
         builder.setModelVersion(modelVersion);
         builder.setDocString(toString());
-        return null;
+        builder.addOpsetImport(OnnxMl.OperatorSetIdProto.newBuilder().setVersion(9).build());
+        builder.setIrVersion(6);
+        return builder.build();
+    }
+
+    @Override
+    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
+        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        graphBuilder.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        graphBuilder.addOutput(outputValueProto);
+
+        // Make weights
+        DenseMatrix weightMatrix = (DenseMatrix)modelParameters.get()[0];
+        OnnxMl.TensorProto.Builder weightBuilder = OnnxMl.TensorProto.newBuilder();
+        weightBuilder.setName(context.generateUniqueName("linear_sgd_weights"));
+        weightBuilder.addDims(featureIDMap.size());
+        weightBuilder.addDims(outputIDInfo.size());
+        weightBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        for (int j = 0; j < weightMatrix.getDimension2Size()-1; j++) {
+            for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+                weightBuilder.addFloatData((float)weightMatrix.get(i,j));
+            }
+        }
+        OnnxMl.TensorProto weightInitializerProto = weightBuilder.build();
+        graphBuilder.addInitializer(weightInitializerProto);
+
+        // Make biases
+        OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
+        biasBuilder.setName(context.generateUniqueName("linear_sgd_biases"));
+        biasBuilder.addDims(outputIDInfo.size());
+        biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+            biasBuilder.addFloatData((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
+        }
+        OnnxMl.TensorProto biasInitializerProto = biasBuilder.build();
+        graphBuilder.addInitializer(biasInitializerProto);
+
+        // Make gemm
+        OnnxMl.NodeProto.Builder gemmBuilder = OnnxMl.NodeProto.newBuilder();
+        gemmBuilder.addInput(inputValueProto.getName());
+        gemmBuilder.addInput(weightInitializerProto.getName());
+        gemmBuilder.addInput(biasInitializerProto.getName());
+        gemmBuilder.addOutput(context.generateUniqueName("gemm_output"));
+        gemmBuilder.setName(context.generateUniqueName("gemm"));
+        gemmBuilder.setOpType(ONNXConstants.GEMM.opName);
+        gemmBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("alpha").setF(1.0f).setType(OnnxMl.AttributeProto.AttributeType.FLOAT).build());
+        gemmBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("beta").setF(1.0f).setType(OnnxMl.AttributeProto.AttributeType.FLOAT).build());
+        gemmBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("transB").setI(0).setType(OnnxMl.AttributeProto.AttributeType.INT).build());
+        OnnxMl.NodeProto gemmProto = gemmBuilder.build();
+        graphBuilder.addNode(gemmProto);
+
+        // Make output normalizer
+        if (!(normalizer instanceof ExpNormalizer)) {
+            throw new IllegalStateException("Only works on softmax");
+        }
+        OnnxMl.NodeProto.Builder outputBuilder = OnnxMl.NodeProto.newBuilder();
+        outputBuilder.addInput(gemmProto.getOutput(0));
+        outputBuilder.addOutput("output");
+        outputBuilder.setName(context.generateUniqueName("softmax"));
+        outputBuilder.setOpType(ONNXConstants.SOFTMAX.opName);
+        outputBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("axis").setI(1).setType(OnnxMl.AttributeProto.AttributeType.INT).build());
+        graphBuilder.addNode(outputBuilder.build());
+
+        return graphBuilder.build();
+    }
+
+    private static OnnxMl.TypeProto buildTensorTypeNode(ONNXShape shape, OnnxMl.TensorProto.DataType type) {
+        OnnxMl.TypeProto.Builder builder = OnnxMl.TypeProto.newBuilder();
+
+        OnnxMl.TypeProto.Tensor.Builder tensorBuilder = OnnxMl.TypeProto.Tensor.newBuilder();
+        tensorBuilder.setElemType(type.getNumber());
+        tensorBuilder.setShape(shape.getProto());
+        builder.setTensorType(tensorBuilder.build());
+
+        return builder.build();
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

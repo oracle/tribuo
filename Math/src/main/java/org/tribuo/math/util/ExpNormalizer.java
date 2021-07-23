@@ -21,6 +21,8 @@ import java.util.Arrays;
 
 /**
  * Normalizes the exponential values of the input array. Used when the input is in log space.
+ * <p>
+ * a.k.a. SoftMax.
  */
 public class ExpNormalizer implements VectorNormalizer, Serializable {
     private static final long serialVersionUID = 1L;
