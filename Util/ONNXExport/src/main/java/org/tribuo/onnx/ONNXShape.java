@@ -18,13 +18,23 @@ package org.tribuo.onnx;
 
 import onnx.OnnxMl;
 
+/**
+ * Carrier class for an ONNX Tensor shape.
+ */
 public final class ONNXShape {
 
+    /**
+     * The sentinel value for an unknown dimension.
+     */
     public final long UNKNOWN_DIMENSION = -1;
 
     private final long[] dimensions;
     private final String[] dimensionOverrides;
 
+    /**
+     * Creates a shape where all dimensions have a known, fixed value.
+     * @param dimensions The dimensions.
+     */
     public ONNXShape(long[] dimensions) {
         for (int i = 0; i < dimensions.length; i++) {
             if (dimensions[i] == UNKNOWN_DIMENSION) {
@@ -35,6 +45,15 @@ public final class ONNXShape {
         this.dimensionOverrides = null;
     }
 
+    /**
+     * Creates a shape where some dimensions may be unknown.
+     * <p>
+     * Unknown dimensions must be named, the two arrays must be of the same length,
+     * wherever the long value is -1, the String value must be non-null, and wherever the
+     * String value is null the long value must be positive.
+     * @param dimensions The known dimensions.
+     * @param dimensionOverrides Names for any unknown dimensions.
+     */
     public ONNXShape(long[] dimensions, String[] dimensionOverrides) {
         if (dimensions.length != dimensionOverrides.length) {
             throw new IllegalArgumentException("Must supply dimensions of equal length, found " + dimensions.length + ", and " + dimensionOverrides.length);
@@ -48,6 +67,10 @@ public final class ONNXShape {
         this.dimensionOverrides = dimensionOverrides;
     }
 
+    /**
+     * Creates the {@link onnx.OnnxMl.TensorShapeProto} from this shape.
+     * @return The TensorShapeProto.
+     */
     public OnnxMl.TensorShapeProto getProto() {
         OnnxMl.TensorShapeProto.Builder builder = OnnxMl.TensorShapeProto.newBuilder();
         for (int i = 0; i < dimensions.length; i++) {

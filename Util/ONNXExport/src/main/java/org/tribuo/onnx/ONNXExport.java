@@ -37,8 +37,25 @@ public interface ONNXExport {
      */
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion);
 
+    /**
+     * Exports this {@link org.tribuo.Model} as an ONNX graph proto.
+     * <p>
+     * This graph can be combined with other graphs to form an ensemble or other
+     * aggregate ONNX model.
+     * @param context The ONNX context to use for namespacing.
+     * @return The ONNX GraphProto representing this Tribuo Model.
+     */
     public OnnxMl.GraphProto exportONNXGraph(ONNXContext context);
 
+    /**
+     * Exports this {@link org.tribuo.Model} as an ONNX graph proto.
+     * <p>
+     * This graph can be combined with other graphs to form an ensemble or other
+     * aggregate ONNX model.
+     * <p>
+     * Creates a fresh ONNX context.
+     * @return The ONNX GraphProto representing this Tribuo Model.
+     */
     default public OnnxMl.GraphProto exportONNXGraph() {
         return exportONNXGraph(new ONNXContext());
     }
@@ -50,7 +67,7 @@ public interface ONNXExport {
      * @param outputPath The path to write to.
      * @throws IOException if the file could not be written to.
      */
-    public default void saveONNXModel(String domain, long modelVersion, Path outputPath) throws IOException {
+    default public void saveONNXModel(String domain, long modelVersion, Path outputPath) throws IOException {
         OnnxMl.ModelProto proto = exportONNXModel(domain,modelVersion);
         try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputPath.toFile()))) {
             proto.writeTo(bos);
