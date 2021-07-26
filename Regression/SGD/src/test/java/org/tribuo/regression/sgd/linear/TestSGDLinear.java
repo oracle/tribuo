@@ -16,18 +16,28 @@
 
 package org.tribuo.regression.sgd.linear;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.RegressorTransformer;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.optimisers.AdaGrad;
+import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -40,11 +50,15 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -74,6 +88,46 @@ public class TestSGDLinear {
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         return m;
+    }
+
+    @Test
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        LinearSGDModel model = (LinearSGDModel) t.train(p.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");
+        model.saveONNXModel("org.tribuo.classification.sgd.linear.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Regressor, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Regressor> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        // Load in via ORT
+        OrtEnvironment env = OrtEnvironment.getEnvironment();
+        env.close();
+        ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(),featureMapping,outputMapping,new DenseTransformer(),new RegressorTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
+
+        // Generate predictions
+        List<Prediction<Regressor>> nativePredictions = model.predict(p.getB());
+        List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
+
+        // Assert the predictions are identical
+        for (int i = 0; i < nativePredictions.size(); i++) {
+            Prediction<Regressor> tribuo = nativePredictions.get(i);
+            Prediction<Regressor> external = onnxPredictions.get(i);
+            assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
+            assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-6);
+        }
+
+        onnxFile.toFile().delete();
     }
 
     @Test

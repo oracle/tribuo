@@ -47,6 +47,11 @@ public class LabelTransformer implements OutputTransformer<Label> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
 
+    /**
+     * Constructs a LabelTransformer.
+     */
+    public LabelTransformer() {}
+
     @Override
     public Prediction<Label> transformToPrediction(List<OnnxValue> tensor, ImmutableOutputInfo<Label> outputIDInfo, int numValidFeatures, Example<Label> example) {
         float[][] predictions = getBatchPredictions(tensor,outputIDInfo);
