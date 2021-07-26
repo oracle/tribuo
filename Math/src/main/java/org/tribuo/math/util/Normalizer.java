@@ -16,8 +16,15 @@
 
 package org.tribuo.math.util;
 
+import ai.onnx.proto.OnnxMl;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXOperators;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Normalizes, but first subtracts the minimum value (to ensure positivity).
@@ -51,4 +58,32 @@ public class Normalizer implements VectorNormalizer, Serializable {
         }
     }
 
+    /**
+     * Returns a list of node protos containing a ReduceMin, then a Sub, then a ReduceSum, then a Div.
+     * @param context The ONNX context object for name generation.
+     * @param input The name of the input to normalize.
+     * @param output The name of the normalized output.
+     * @return The node protos representing this normalizer.
+     */
+    @Override
+    public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
+        List<OnnxMl.NodeProto> protos = new ArrayList<>();
+
+        String minOutput = context.generateUniqueName("min_output");
+        OnnxMl.NodeProto min = ONNXOperators.REDUCE_MIN.build(context,new String[]{input},new String[]{minOutput},Collections.singletonMap("axes",1));
+        protos.add(min);
+
+        String subOutput = context.generateUniqueName("sub_output");
+        OnnxMl.NodeProto sub = ONNXOperators.SUB.build(context,new String[]{input,minOutput},new String[]{subOutput});
+        protos.add(sub);
+
+        String sumOutput = context.generateUniqueName("sum_output");
+        OnnxMl.NodeProto sum = ONNXOperators.REDUCE_SUM.build(context,new String[]{subOutput},new String[]{sumOutput},Collections.singletonMap("axes",1));
+        protos.add(sum);
+
+        OnnxMl.NodeProto div = ONNXOperators.DIV.build(context,new String[]{subOutput,sumOutput},new String[]{output});
+        protos.add(div);
+
+        return protos;
+    }
 }

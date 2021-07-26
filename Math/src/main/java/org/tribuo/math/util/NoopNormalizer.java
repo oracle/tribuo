@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
 
 package org.tribuo.math.util;
 
+import ai.onnx.proto.OnnxMl;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXOperators;
+
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * NoopNormalizer returns a copy in {@link NoopNormalizer#normalize} and is a no-op in place.
@@ -32,4 +38,16 @@ public class NoopNormalizer implements VectorNormalizer, Serializable {
 
     @Override
     public void normalizeInPlace(double[] input) {}
+
+    /**
+     * Returns the ONNX identity node.
+     * @param context The ONNX context object for name generation.
+     * @param input The name of the input to normalize.
+     * @param output The name of the normalized output.
+     * @return The node protos representing this normalizer.
+     */
+    @Override
+    public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
+        return Collections.singletonList(ONNXOperators.IDENTITY.build(context,new String[]{input},new String[]{output}));
+    }
 }

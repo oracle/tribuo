@@ -29,14 +29,53 @@ import java.util.Map;
  */
 public enum ONNXOperators {
 
+
     /**
-     * Softmax
+     * Identity,
      */
-    SOFTMAX("Softmax",1,1,Arrays.asList(
-            new ONNXAttribute("axis",OnnxMl.AttributeProto.AttributeType.INT)
+    IDENTITY("Identity",1,1),
+    /**
+     * Sigmoid element-wise.
+     */
+    SIGMOID("Sigmoid",1,1),
+    /**
+     * Softmax.
+     */
+    SOFTMAX("Softmax",1,1, Collections.singletonList(
+            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT)
     )),
     /**
-     * Generalized Matrix Multiply
+     * Element-wise addition with broadcasting.
+     */
+    ADD("Add",2,1),
+    /**
+     * Element-wise subtraction with broadcasting.
+     */
+    SUB("Sub",2,1),
+    /**
+     * Element-wise multiplication with broadcasting.
+     */
+    MUL("Mul",2,1),
+    /**
+     * Element-wise division with broadcasting.
+     */
+    DIV("Div",2,1),
+    /**
+     * Compute the minimum along the specified axes of the tensor.
+     */
+    REDUCE_MIN("ReduceMin",1,1,Arrays.asList(
+            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS),
+            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT)
+    )),
+    /**
+     * Compute the sum along the specified axes of the tensor.
+     */
+    REDUCE_SUM("ReduceSum",2,1,Arrays.asList(
+            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS), //Opset 11
+            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT)
+    )),
+    /**
+     * General Matrix Multiply: alpha*AB + beta*C.
      */
     GEMM("Gemm",3,1, Arrays.asList(
             new ONNXAttribute("alpha", OnnxMl.AttributeProto.AttributeType.FLOAT),
@@ -62,6 +101,18 @@ public enum ONNXOperators {
      */
     public final Map<String,ONNXAttribute> attributes;
 
+    /**
+     * Opset supported by these definitions.
+     */
+    private static final int OPSET_VERSION = 11;
+
+    private ONNXOperators(String value, int numInputs, int numOutputs) {
+        this.opName = value;
+        this.numInputs = numInputs;
+        this.numOutputs = numOutputs;
+        this.attributes = Collections.emptyMap();
+    }
+
     private ONNXOperators(String value, int numInputs, int numOutputs, List<ONNXAttribute> attributes) {
         this.opName = value;
         this.numInputs = numInputs;
@@ -74,6 +125,18 @@ public enum ONNXOperators {
             throw new IllegalArgumentException("Duplicate attribute in enum declaration - " + attributes);
         }
         this.attributes = Collections.unmodifiableMap(attributeMap);
+    }
+
+    /**
+     * Builds this node based on the supplied inputs and outputs.
+     * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param inputs The names of the inputs.
+     * @param outputs The names of the outputs.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String[] outputs) {
+        return build(context,inputs,outputs,Collections.emptyMap());
     }
 
     /**
@@ -94,7 +157,7 @@ public enum ONNXOperators {
             throw new IllegalArgumentException("Expected " + numOutputs + " outputs, but received " + outputs.length);
         }
         if (attributeValues.size() > attributes.size()) {
-            throw new IllegalArgumentException("Found more attributes than expected, received " + attributeValues.size() + ", expected " + attributes.size());
+            throw new IllegalArgumentException("Found more attributes than expected, received " + attributeValues.size() + ", expected at most " + attributes.size());
         }
         if (!attributes.keySet().containsAll(attributeValues.keySet())) {
             throw new IllegalArgumentException("Unexpected attribute found, received " + attributeValues.keySet() + ", expected " + attributes.keySet());
@@ -115,4 +178,19 @@ public enum ONNXOperators {
         return nodeBuilder.build();
     }
 
+    /**
+     * Returns the opset version supported by these operators.
+     * @return The opset version.
+     */
+    public static int getOpsetVersion() {
+        return OPSET_VERSION;
+    }
+
+    /**
+     * Returns the opset proto for these operators.
+     * @return The opset proto.
+     */
+    public static OnnxMl.OperatorSetIdProto getOpsetProto() {
+        return OnnxMl.OperatorSetIdProto.newBuilder().setVersion(ONNXOperators.getOpsetVersion()).build();
+    }
 }

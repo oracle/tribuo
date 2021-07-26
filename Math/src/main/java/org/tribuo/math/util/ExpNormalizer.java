@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
 
 package org.tribuo.math.util;
 
+import ai.onnx.proto.OnnxMl;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXOperators;
+
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Normalizes the exponential values of the input array. Used when the input is in log space.
@@ -50,6 +56,18 @@ public class ExpNormalizer implements VectorNormalizer, Serializable {
         for (int i = 0; i < input.length; i++) {
             input[i] /= sum;
         }
+    }
+
+    /**
+     * Returns the ONNX softmax node, operating over the 2nd dimension.
+     * @param context The ONNX context object for name generation.
+     * @param input The name of the input to normalize.
+     * @param output The name of the normalized output.
+     * @return The node protos representing this normalizer.
+     */
+    @Override
+    public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
+       return Collections.singletonList(ONNXOperators.SOFTMAX.build(context,new String[]{input},new String[]{output}, Collections.singletonMap("axis",1)));
     }
 
 }

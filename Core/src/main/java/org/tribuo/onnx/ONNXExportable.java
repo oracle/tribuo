@@ -27,7 +27,7 @@ import java.nio.file.Path;
  * An interface which denotes this {@link org.tribuo.Model} can be
  * exported as an ONNX model.
  */
-public interface ONNXExport {
+public interface ONNXExportable {
 
     /**
      * Exports this {@link org.tribuo.Model} as an ONNX protobuf.
