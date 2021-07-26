@@ -16,7 +16,7 @@
 
 package org.tribuo.onnx;
 
-import onnx.OnnxMl;
+import ai.onnx.proto.OnnxMl;
 
 /**
  * Carrier class for an ONNX Tensor shape.
@@ -68,7 +68,7 @@ public final class ONNXShape {
     }
 
     /**
-     * Creates the {@link onnx.OnnxMl.TensorShapeProto} from this shape.
+     * Creates the {@link ai.onnx.proto.OnnxMl.TensorShapeProto} from this shape.
      * @return The TensorShapeProto.
      */
     public OnnxMl.TensorShapeProto getProto() {

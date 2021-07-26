@@ -17,7 +17,7 @@
 package org.tribuo.onnx;
 
 import com.google.protobuf.ByteString;
-import onnx.OnnxMl;
+import ai.onnx.proto.OnnxMl;
 
 import java.nio.charset.StandardCharsets;
 
@@ -129,11 +129,9 @@ public final class ONNXAttribute {
             case TENSOR:
             case GRAPH:
             case SPARSE_TENSOR:
-            case TYPE_PROTO:
             case TENSORS:
             case GRAPHS:
             case SPARSE_TENSORS:
-            case TYPE_PROTOS:
                 throw new UnsupportedOperationException("Type: " + type + " is not supported.");
         }
 

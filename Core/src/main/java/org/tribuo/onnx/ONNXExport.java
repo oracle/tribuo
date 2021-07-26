@@ -16,7 +16,7 @@
 
 package org.tribuo.onnx;
 
-import onnx.OnnxMl;
+import ai.onnx.proto.OnnxMl;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
