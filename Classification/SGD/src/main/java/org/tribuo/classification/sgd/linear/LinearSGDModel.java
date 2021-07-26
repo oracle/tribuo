@@ -16,6 +16,7 @@
 
 package org.tribuo.classification.sgd.linear;
 
+import com.google.protobuf.ByteString;
 import onnx.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -36,6 +37,9 @@ import org.tribuo.onnx.ONNXShape;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -147,11 +151,15 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONN
         weightBuilder.addDims(featureIDMap.size());
         weightBuilder.addDims(outputIDInfo.size());
         weightBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(featureIDMap.size()*outputIDInfo.size()*4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
         for (int j = 0; j < weightMatrix.getDimension2Size()-1; j++) {
             for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
-                weightBuilder.addFloatData((float)weightMatrix.get(i,j));
+                floatBuffer.put((float)weightMatrix.get(i,j));
             }
         }
+        floatBuffer.rewind();
+        weightBuilder.setRawData(ByteString.copyFrom(buffer));
         OnnxMl.TensorProto weightInitializerProto = weightBuilder.build();
         graphBuilder.addInitializer(weightInitializerProto);
 
@@ -160,9 +168,13 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONN
         biasBuilder.setName(context.generateUniqueName("linear_sgd_biases"));
         biasBuilder.addDims(outputIDInfo.size());
         biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer biasBuffer = ByteBuffer.allocate(outputIDInfo.size()*4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBiasBuffer = biasBuffer.asFloatBuffer();
         for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
-            biasBuilder.addFloatData((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
+            floatBiasBuffer.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
         }
+        floatBiasBuffer.rewind();
+        biasBuilder.setRawData(ByteString.copyFrom(biasBuffer));
         OnnxMl.TensorProto biasInitializerProto = biasBuilder.build();
         graphBuilder.addInitializer(biasInitializerProto);
 
