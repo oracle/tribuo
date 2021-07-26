@@ -30,7 +30,7 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.ExpNormalizer;
 import org.tribuo.math.util.VectorNormalizer;
-import org.tribuo.onnx.ONNXConstants;
+import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExport;
 import org.tribuo.onnx.ONNXShape;
@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -179,30 +181,16 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONN
         graphBuilder.addInitializer(biasInitializerProto);
 
         // Make gemm
-        OnnxMl.NodeProto.Builder gemmBuilder = OnnxMl.NodeProto.newBuilder();
-        gemmBuilder.addInput(inputValueProto.getName());
-        gemmBuilder.addInput(weightInitializerProto.getName());
-        gemmBuilder.addInput(biasInitializerProto.getName());
-        gemmBuilder.addOutput(context.generateUniqueName("gemm_output"));
-        gemmBuilder.setName(context.generateUniqueName("gemm"));
-        gemmBuilder.setOpType(ONNXConstants.GEMM.opName);
-        gemmBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("alpha").setF(1.0f).setType(OnnxMl.AttributeProto.AttributeType.FLOAT).build());
-        gemmBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("beta").setF(1.0f).setType(OnnxMl.AttributeProto.AttributeType.FLOAT).build());
-        gemmBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("transB").setI(0).setType(OnnxMl.AttributeProto.AttributeType.INT).build());
-        OnnxMl.NodeProto gemmProto = gemmBuilder.build();
-        graphBuilder.addNode(gemmProto);
+        String[] gemmInputs = new String[]{inputValueProto.getName(),weightInitializerProto.getName(),biasInitializerProto.getName()};
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,new String[]{context.generateUniqueName("gemm_output")},Collections.emptyMap());
+        graphBuilder.addNode(gemm);
 
         // Make output normalizer
         if (!(normalizer instanceof ExpNormalizer)) {
             throw new IllegalStateException("Only works on softmax");
         }
-        OnnxMl.NodeProto.Builder outputBuilder = OnnxMl.NodeProto.newBuilder();
-        outputBuilder.addInput(gemmProto.getOutput(0));
-        outputBuilder.addOutput("output");
-        outputBuilder.setName(context.generateUniqueName("softmax"));
-        outputBuilder.setOpType(ONNXConstants.SOFTMAX.opName);
-        outputBuilder.addAttribute(OnnxMl.AttributeProto.newBuilder().setName("axis").setI(1).setType(OnnxMl.AttributeProto.AttributeType.INT).build());
-        graphBuilder.addNode(outputBuilder.build());
+        OnnxMl.NodeProto softmax = ONNXOperators.SOFTMAX.build(context,new String[]{gemm.getOutput(0)},new String[]{"output"}, Collections.singletonMap("axis",1));
+        graphBuilder.addNode(softmax);
 
         return graphBuilder.build();
     }
