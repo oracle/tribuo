@@ -21,9 +21,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
-import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.math.optimisers.AdaGrad;
@@ -40,7 +40,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestSGDLinear {
 
@@ -65,8 +64,8 @@ public class TestSGDLinear {
         testTrainer(train,test,sigmoid);
     }
 
-    private static void testTrainer(Dataset<MultiLabel> train, Dataset<MultiLabel> test, Trainer<MultiLabel> trainer) {
-        Model<MultiLabel> model = trainer.train(train);
+    private static void testTrainer(Dataset<MultiLabel> train, Dataset<MultiLabel> test, LinearSGDTrainer trainer) {
+        AbstractLinearSGDModel<MultiLabel> model = trainer.train(train);
 
         List<Prediction<MultiLabel>> predictions = model.predict(test);
         Prediction<MultiLabel> first = predictions.get(0);
@@ -78,7 +77,11 @@ public class TestSGDLinear {
 
         MultiLabelEvaluation evaluation = (MultiLabelEvaluation) train.getOutputFactory().getEvaluator().evaluate(model,test);
 
-        Assertions.assertEquals(1.0,evaluation.microAveragedRecall());
+        if (trainer == hinge) {
+            Assertions.assertEquals(0.6, evaluation.microAveragedRecall());
+        } else {
+            Assertions.assertEquals(1.0, evaluation.microAveragedRecall());
+        }
 
         Helpers.testModelSerialization(model, MultiLabel.class);
     }

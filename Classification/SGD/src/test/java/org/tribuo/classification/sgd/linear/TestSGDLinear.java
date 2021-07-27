@@ -147,6 +147,8 @@ public class TestSGDLinear {
             }
         }
 
+        onnxModel.close();
+
         onnxFile.toFile().delete();
     }
 

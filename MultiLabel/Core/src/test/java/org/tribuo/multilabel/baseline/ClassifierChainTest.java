@@ -20,10 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Prediction;
-import org.tribuo.classification.sgd.linear.LinearSGDTrainer;
-import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
-import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
-import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.classification.baseline.DummyClassifierTrainer;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
@@ -45,16 +42,8 @@ public class ClassifierChainTest {
 
     @BeforeAll
     public static void setup() {
-        Class<?>[] classes = new Class<?>[]{
-                ClassifierChainTrainer.class,
-                AbstractSGDTrainer.class,
-                AbstractLinearSGDTrainer.class,
-                LinearSGDTrainer.class
-        };
-        for (Class<?> c : classes) {
-            Logger logger = Logger.getLogger(c.getName());
-            logger.setLevel(Level.WARNING);
-        }
+        Logger logger = Logger.getLogger(ClassifierChainTrainer.class.getName());
+        logger.setLevel(Level.WARNING);
     }
 
     @Test
@@ -65,27 +54,27 @@ public class ClassifierChainTest {
         // Generate data
         Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
 
-        LogisticRegressionTrainer lr = new LogisticRegressionTrainer();
+        DummyClassifierTrainer trainer = DummyClassifierTrainer.createConstantTrainer("MONKEY");
         List<String> labelOrder;
 
         // Too many labels
         labelOrder = Arrays.asList("MONKEY","PUZZLE","TREE","PINE");
-        ClassifierChainTrainer tooMany = new ClassifierChainTrainer(lr, labelOrder);
+        ClassifierChainTrainer tooMany = new ClassifierChainTrainer(trainer, labelOrder);
         assertThrows(IllegalArgumentException.class, () -> tooMany.train(train));
 
         // Too few labels
         labelOrder = Arrays.asList("MONKEY","PUZZLE");
-        ClassifierChainTrainer tooFew = new ClassifierChainTrainer(lr, labelOrder);
+        ClassifierChainTrainer tooFew = new ClassifierChainTrainer(trainer, labelOrder);
         assertThrows(IllegalArgumentException.class, () -> tooFew.train(train));
 
         // Duplicate valid labels
         labelOrder = Arrays.asList("MONKEY","PUZZLE","PUZZLE");
-        ClassifierChainTrainer duplicate = new ClassifierChainTrainer(lr, labelOrder);
+        ClassifierChainTrainer duplicate = new ClassifierChainTrainer(trainer, labelOrder);
         assertThrows(IllegalArgumentException.class, () -> duplicate.train(train));
 
         // Labels not in the training data
         labelOrder = Arrays.asList("MONKEY","PUZZLE","PINE");
-        ClassifierChainTrainer invalidLabels = new ClassifierChainTrainer(lr, labelOrder);
+        ClassifierChainTrainer invalidLabels = new ClassifierChainTrainer(trainer, labelOrder);
         assertThrows(IllegalArgumentException.class, () -> invalidLabels.train(train));
     }
 
@@ -96,7 +85,7 @@ public class ClassifierChainTest {
         Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
 
         // Test random chain
-        ClassifierChainTrainer trainer = new ClassifierChainTrainer(new LogisticRegressionTrainer(),1234);
+        ClassifierChainTrainer trainer = new ClassifierChainTrainer(DummyClassifierTrainer.createMostFrequentTrainer(),1234);
         ClassifierChainModel model = trainer.train(train);
 
         List<Prediction<MultiLabel>> predictions = model.predict(test);
@@ -109,7 +98,7 @@ public class ClassifierChainTest {
 
         // Test ordered chain
         List<String> labelOrder = Arrays.asList("PUZZLE","MONKEY","TREE");
-        trainer = new ClassifierChainTrainer(new LogisticRegressionTrainer(), labelOrder);
+        trainer = new ClassifierChainTrainer(DummyClassifierTrainer.createMostFrequentTrainer(), labelOrder);
         model = trainer.train(train);
 
         predictions = model.predict(test);

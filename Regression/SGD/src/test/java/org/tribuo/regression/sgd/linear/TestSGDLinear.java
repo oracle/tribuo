@@ -127,6 +127,8 @@ public class TestSGDLinear {
             assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-6);
         }
 
+        onnxModel.close();
+
         onnxFile.toFile().delete();
     }
 
