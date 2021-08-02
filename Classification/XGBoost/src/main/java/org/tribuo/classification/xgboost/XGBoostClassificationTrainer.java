@@ -164,11 +164,17 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
 
     @Override
     public synchronized XGBoostModel<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
+        return (train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public synchronized XGBoostModel<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<Label> outputInfo = examples.getOutputIDInfo();
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
         TrainerProvenance trainerProvenance = getProvenance();
         trainInvocationCounter++;
         parameters.put("num_class", outputInfo.size());

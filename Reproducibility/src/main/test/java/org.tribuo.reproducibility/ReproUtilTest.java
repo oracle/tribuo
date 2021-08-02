@@ -225,4 +225,14 @@ class ReproUtilTest {
             }
         }
     }
+
+    @Test
+    public void testProvDiff(){
+        CSVDataSource csvSource = getCSVDatasource();
+        MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
+
+        LogisticRegressionTrainer trainer = new LogisticRegressionTrainer();
+        LinearSGDModel model = (LinearSGDModel) trainer.train(datasetFromCSV);
+        ReproUtil.diffProvenance(model.getProvenance(), model.getProvenance());
+    }
 }

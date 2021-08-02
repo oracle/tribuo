@@ -119,6 +119,11 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
 
     @Override
     public SparseModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public SparseModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -126,6 +131,7 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;

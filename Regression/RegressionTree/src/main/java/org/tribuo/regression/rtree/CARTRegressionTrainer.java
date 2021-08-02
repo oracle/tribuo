@@ -143,6 +143,11 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
 
     @Override
     public TreeModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public TreeModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -150,6 +155,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
         SplittableRandom localRNG;
         TrainerProvenance trainerProvenance;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) setInvocationCount(invocationCount);
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;

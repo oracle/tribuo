@@ -111,12 +111,25 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
      */
     @Override
     public SparseLinearModel train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+
+    /**
+     * Trains a sparse linear model.
+     * @param examples The data set containing the examples.
+     * @param invocationCount The state of the RNG the trainer should be set to before training
+     * @return A trained sparse linear model.
+     */
+    @Override
+    public SparseLinearModel train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
 
         TrainerProvenance trainerProvenance;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
         }

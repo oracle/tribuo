@@ -134,6 +134,11 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
 
     @Override
     public KernelSVMModel train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
+        return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public KernelSVMModel train(Dataset<Label> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -141,6 +146,7 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;

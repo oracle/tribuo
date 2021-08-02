@@ -23,6 +23,7 @@ import org.tribuo.provenance.TrainerProvenance;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * An interface for things that can train predictive models.
@@ -34,6 +35,12 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
      * Default seed used to initialise RNGs.
      */
     public static long DEFAULT_SEED = 12345L;
+
+    /**
+     * When training a model, passing this value will inform the trainer to
+     * simply increment the invocation count rather than set a new one
+     */
+    public static int INCREMENT_INVOCATION_COUNT = -1;
     
     /**
      * Trains a predictive model using the examples in the given data set.
@@ -53,6 +60,23 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
     public Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance);
 
     /**
+     * Trains a predictive model using the examples in the given data set.
+     *
+     * @param examples        the data set containing the examples.
+     * @param runProvenance   Training run specific provenance (e.g., fold number).
+     * @param invocationCount The state of the RNG the trainer should be set to before training
+     * @return a predictive model that can be used to generate predictions for new examples.
+     */
+    public default Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
+        Model<T> returnModel = null;
+        synchronized (this){
+            setInvocationCount(invocationCount);
+            returnModel = train(examples, runProvenance);
+        }
+        return returnModel;
+    }
+
+    /**
      * The number of times this trainer instance has had it's train method invoked.
      * <p>
      * This is used to determine how many times the trainer's RNG has been accessed
@@ -68,5 +92,9 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
      * what it was at when Tribuo trained the original model by simulating invocations of the train method.
      * @param  invocationCount the number of invocations of the train method to simulate
      */
-    public void setInvocationCount(int invocationCount);
+    default public void setInvocationCount(int invocationCount){
+        Logger.getLogger(this.getClass().getName()).warning("This class is using the default implementation of " +
+                "setInvocationCount and so might not behave as expected. We highly recommend overriding this method " +
+                "to function as per the documentation.");
+    }
 }

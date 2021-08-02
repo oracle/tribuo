@@ -111,6 +111,11 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Override
     public Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+        return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> labelIDMap = examples.getOutputIDInfo();
 
@@ -123,6 +128,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
             i++;
         }
 
+        if(invocationCount != INCREMENT_INVOCATION_COUNT){setInvocationCount(invocationCount);}
         invocationCount++;
 
         ModelProvenance provenance = new ModelProvenance(KNNModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);

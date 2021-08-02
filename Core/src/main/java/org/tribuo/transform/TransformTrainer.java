@@ -28,6 +28,7 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -111,18 +112,23 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Override
     public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance) {
-        
+        return train(examples, instanceProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance, int invocationCount) {
+
         logger.fine(String.format("Creating transformers"));
 
         TransformerMap transformerMap = examples.createTransformers(transformations, includeImplicitZeroFeatures);
 
         logger.fine("Transforming data set");
-        
+
         Dataset<T> transformedDataset = transformerMap.transformDataset(examples,densify);
 
         logger.fine("Running inner trainer");
-        
-        Model<T> innerModel = innerTrainer.train(transformedDataset);
+
+        Model<T> innerModel = innerTrainer.train(transformedDataset, Collections.emptyMap(), invocationCount);
 
         ModelProvenance provenance = new ModelProvenance(TransformedModel.class.getName(), OffsetDateTime.now(), transformedDataset.getProvenance(), getProvenance(), instanceProvenance);
 
@@ -136,7 +142,6 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Override
     public synchronized void setInvocationCount(int invocationCount){
-        //TODO: Check if this all this method needs to do
         innerTrainer.setInvocationCount(invocationCount);
     }
 

@@ -134,6 +134,11 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
 
     @Override
     public V train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+        return (train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public V train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -142,6 +147,7 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         SplittableRandom localRNG;
         StochasticGradientOptimiser localOptimiser;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
             localRNG = rng.split();
             localOptimiser = optimiser.copy();
             trainerProvenance = getProvenance();

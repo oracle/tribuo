@@ -71,6 +71,11 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
 
     @Override
     public Model<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public Model<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -94,7 +99,7 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
                 featureMap.merge(featureInfos.getID(feat.getName()), curWeight*feat.getValue(), Double::sum);
             }
         }
-
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
         TrainerProvenance trainerProvenance = getProvenance();
         ModelProvenance provenance = new ModelProvenance(MultinomialNaiveBayesModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
         invocationCount++;
