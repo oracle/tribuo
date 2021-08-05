@@ -67,7 +67,7 @@ public class DoubleFieldProcessor implements FieldProcessor {
      * Constructs a field processor which extracts a single double valued feature from the specified field name.
      * <p>
      * Generates features named "&lt;fieldName&gt;@value" where &lt;fieldName&gt; is the argument to this constructor if
-     * {@code onlyFieldName} is false and "&lt;fieldName&gt;" otherwise.
+     * {@code onlyFieldName} is false, otherwise generates features named "&lt;fieldName&gt;".
      * Does not throw an exception if the value failed to parse.
      * @param fieldName The field name to read.
      * @param onlyFieldName Only use the field name as the feature name.
