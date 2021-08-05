@@ -136,6 +136,9 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv file then wraps it in a dataset.
+     * <p>
+     * The {@code responseNames} set is traversed in iteration order to emit outputs,
+     * and should be an ordered set to ensure reproducibility.
      *
      * @param csvPath       The path to load.
      * @param responseNames The names of the response variables.
@@ -148,6 +151,9 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv file then wraps it in a dataset.
+     * <p>
+     * The {@code responseNames} set is traversed in iteration order to emit outputs,
+     * and should be an ordered set to ensure reproducibility.
      *
      * @param csvPath       The path to load.
      * @param responseNames The names of the response variables.
@@ -211,6 +217,9 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
+     * <p>
+     * The {@code responseNames} set is traversed in iteration order to emit outputs,
+     * and should be an ordered set to ensure reproducibility.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
@@ -223,6 +232,9 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
+     * <p>
+     * The {@code responseNames} set is traversed in iteration order to emit outputs,
+     * and should be an ordered set to ensure reproducibility.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
@@ -235,6 +247,9 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
+     * <p>
+     * The {@code responseNames} set is traversed in iteration order to emit outputs,
+     * and should be an ordered set to ensure reproducibility.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
@@ -248,6 +263,9 @@ public class CSVLoader<T extends Output<T>> {
 
     /**
      * Loads a DataSource from the specified csv path.
+     * <p>
+     * The {@code responseNames} set is traversed in iteration order to emit outputs,
+     * and should be an ordered set to ensure reproducibility.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
@@ -296,7 +314,7 @@ public class CSVLoader<T extends Output<T>> {
                 fieldProcessors.put(field,new DoubleFieldProcessor(field,true,true));
             }
         }
-        boolean includeFieldName = responseNames.size() > 1 ? true : false;
+        boolean includeFieldName = responseNames.size() > 1;
         ResponseProcessor<T> responseProcessor = new FieldResponseProcessor<>(new ArrayList<>(responseNames),Collections.nCopies(responseNames.size(),""),outputFactory,includeFieldName,false);
         RowProcessor<T> rowProcessor = new RowProcessor<>(responseProcessor,fieldProcessors);
 
