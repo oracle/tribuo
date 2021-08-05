@@ -41,6 +41,12 @@ public class DoubleFieldProcessor implements FieldProcessor {
     @Config(mandatory = true,description="The field name to read.")
     private String fieldName;
 
+    @Config(description="Emit a feature using just the field name.")
+    private boolean onlyFieldName;
+
+    @Config(description="Throw NumberFormatException if the value failed to parse.")
+    private boolean throwOnInvalid;
+
     /**
      * For olcut.
      */
@@ -48,10 +54,41 @@ public class DoubleFieldProcessor implements FieldProcessor {
 
     /**
      * Constructs a field processor which extracts a single double valued feature from the specified field name.
+     * <p>
+     * Generates features named "&lt;fieldName&gt;@value" where &lt;fieldName&gt; is the argument to this constructor,
+     * and does not throw an exception if the value failed to parse.
      * @param fieldName The field name to read.
      */
     public DoubleFieldProcessor(String fieldName) {
+        this(fieldName,false);
+    }
+
+    /**
+     * Constructs a field processor which extracts a single double valued feature from the specified field name.
+     * <p>
+     * Generates features named "&lt;fieldName&gt;@value" where &lt;fieldName&gt; is the argument to this constructor if
+     * {@code onlyFieldName} is false, otherwise generates features named "&lt;fieldName&gt;".
+     * Does not throw an exception if the value failed to parse.
+     * @param fieldName The field name to read.
+     * @param onlyFieldName Only use the field name as the feature name.
+     */
+    public DoubleFieldProcessor(String fieldName, boolean onlyFieldName) {
+        this(fieldName,onlyFieldName,false);
+    }
+
+    /**
+     * Constructs a field processor which extracts a single double valued feature from the specified field name.
+     * <p>
+     * Generates features named "&lt;fieldName&gt;@value" where &lt;fieldName&gt; is the argument to this constructor if
+     * {@code onlyFieldName} is false, otherwise generates features named "&lt;fieldName&gt;".
+     * @param fieldName The field name to read.
+     * @param onlyFieldName Only use the field name as the feature name.
+     * @param throwOnInvalid Throw NumberFormatException if the value failed to parse.
+     */
+    public DoubleFieldProcessor(String fieldName, boolean onlyFieldName, boolean throwOnInvalid) {
         this.fieldName = fieldName;
+        this.onlyFieldName = onlyFieldName;
+        this.throwOnInvalid = throwOnInvalid;
     }
 
     @Override
@@ -63,14 +100,21 @@ public class DoubleFieldProcessor implements FieldProcessor {
     public List<ColumnarFeature> process(String value) {
         try {
             double parsedValue = Double.parseDouble(value);
-            return Collections.singletonList(new ColumnarFeature(fieldName, "value", parsedValue));
-        } catch (NumberFormatException ex) {
-            if (!value.trim().isEmpty()) {
-                logger.warning(String.format("Non-double value %s in %s", value, fieldName));
+            if (onlyFieldName) {
+                return Collections.singletonList(new ColumnarFeature(fieldName, parsedValue));
+            } else {
+                return Collections.singletonList(new ColumnarFeature(fieldName, "value", parsedValue));
             }
-            return Collections.emptyList();
+        } catch (NumberFormatException ex) {
+            if (throwOnInvalid) {
+                throw ex;
+            } else {
+                if (!value.trim().isEmpty()) {
+                    logger.warning(String.format("Non-double value %s in %s", value, fieldName));
+                }
+                return Collections.emptyList();
+            }
         }
-
     }
 
     @Override
@@ -80,12 +124,12 @@ public class DoubleFieldProcessor implements FieldProcessor {
 
     @Override
     public DoubleFieldProcessor copy(String newFieldName) {
-        return new DoubleFieldProcessor(newFieldName);
+        return new DoubleFieldProcessor(newFieldName, onlyFieldName, throwOnInvalid);
     }
 
     @Override
     public String toString() {
-        return "DoubleFieldProcessor(fieldName=" + getFieldName() + ")";
+        return "DoubleFieldProcessor(fieldName=" + getFieldName() + ",onlyFieldName="+onlyFieldName+",throwOnInvalid="+throwOnInvalid+")";
     }
 
     @Override

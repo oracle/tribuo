@@ -7,6 +7,7 @@ import org.tribuo.test.MockOutputFactory;
 
 public class EmptyResponseProcessorTest {
 
+    @SuppressWarnings("deprecation") // due to setFieldName test
     @Test
     public void basicTest() {
         MockOutputFactory outputFactory = new MockOutputFactory();
