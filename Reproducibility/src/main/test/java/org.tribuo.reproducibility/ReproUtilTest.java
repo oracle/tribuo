@@ -14,9 +14,9 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.sgd.linear.LinearSGDModel;
 import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
-import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.data.columnar.FieldExtractor;
 import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.RowProcessor;
@@ -29,16 +29,16 @@ import org.tribuo.data.columnar.processors.field.TextFieldProcessor;
 import org.tribuo.data.columnar.processors.response.FieldResponseProcessor;
 import org.tribuo.data.csv.CSVDataSource;
 import org.tribuo.data.text.impl.BasicPipeline;
+import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.evaluation.TrainTestSplitter;
-import org.tribuo.math.la.Tensor;
-import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.regression.Regressor;
+import org.tribuo.regression.ensemble.AveragingCombiner;
 import org.tribuo.regression.example.RegressionDataGenerator;
+import org.tribuo.regression.rtree.CARTRegressionTrainer;
+import org.tribuo.regression.rtree.impurity.MeanSquaredError;
 import org.tribuo.regression.sgd.linear.LinearSGDTrainer;
-import org.tribuo.regression.sgd.objectives.SquaredLoss;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -46,7 +46,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,12 +60,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 
 class ReproUtilTest {
 
     @BeforeAll
     public static void setup() {
-        Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
+        Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class, BaggingTrainer.class};
         for (Class c : classes) {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
@@ -194,7 +201,7 @@ class ReproUtilTest {
     }
 
     @Test
-    public void testoverrideConfigurableProperty(){
+    public void testOverrideConfigurableProperty(){
         CSVDataSource csvSource = getCSVDatasource();
         MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
 
@@ -226,13 +233,36 @@ class ReproUtilTest {
         }
     }
 
+
     @Test
     public void testProvDiff(){
+        //TODO: Expand this to actually assert something
         CSVDataSource csvSource = getCSVDatasource();
         MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
 
         LogisticRegressionTrainer trainer = new LogisticRegressionTrainer();
-        LinearSGDModel model = (LinearSGDModel) trainer.train(datasetFromCSV);
-        ReproUtil.diffProvenance(model.getProvenance(), model.getProvenance());
+        LinearSGDModel model_1 = (LinearSGDModel) trainer.train(datasetFromCSV);
+        LinearSGDModel model_2 = (LinearSGDModel) trainer.train(datasetFromCSV);
+        String report = ReproUtil.diffProvenance(model_1.getProvenance(), model_2.getProvenance());
+        System.out.println(report);
+    }
+
+
+    @Test
+    public void testBaggingTrainer(){
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+
+        CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE,
+                MIN_EXAMPLES, 0.0f, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
+        RandomForestTrainer<Regressor> rfT = new RandomForestTrainer<>(subsamplingTree,new AveragingCombiner(),10);
+
+        Model<Regressor> model = rfT.train(p.getA());
+        rfT.train(p.getA());
+        Model<Regressor> diff_model = rfT.train(p.getA());
+
+        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        RandomForestTrainer<Regressor> new_rfT = (RandomForestTrainer<Regressor>) reproUtil.recoverTrainer();
+        Model<Regressor> new_model = new_rfT.train(p.getA());
+
     }
 }

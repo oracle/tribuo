@@ -63,12 +63,34 @@
             <version>4.2.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-classification-sgd</artifactId>
             <version>4.2.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-regression-tree</artifactId>
+            <version>4.2.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oracle.labs.olcut</groupId>
+            <artifactId>olcut-config-json</artifactId>
+            <version>${olcut.version}</version>
+        </dependency>
+
+        <dependency>
+        <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-tree</artifactId>
+            <version>4.2.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
