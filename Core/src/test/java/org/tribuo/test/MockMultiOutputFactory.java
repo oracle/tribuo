@@ -16,6 +16,7 @@
 
 package org.tribuo.test;
 
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
@@ -84,7 +85,7 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
 
     @Override
     public OutputFactoryProvenance getProvenance() {
-        return null;
+        return new MockMultiOutputFactoryProvenance();
     }
 
     /**
@@ -162,5 +163,33 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
             }
         }
         return new MockMultiOutput(labels);
+    }
+
+    public static class MockMultiOutputFactoryProvenance implements OutputFactoryProvenance {
+        private static final long serialVersionUID=1L;
+
+        MockMultiOutputFactoryProvenance() {}
+
+        public MockMultiOutputFactoryProvenance(Map<String, Provenance> map) {}
+
+        @Override
+        public String getClassName() {
+            return MockMultiOutputFactory.class.getName();
+        }
+
+        @Override
+        public String toString() {
+            return generateString("MockMultiOutputFactory");
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof MockMultiOutputFactoryProvenance;
+        }
+
+        @Override
+        public int hashCode() {
+            return 32;
+        }
     }
 }

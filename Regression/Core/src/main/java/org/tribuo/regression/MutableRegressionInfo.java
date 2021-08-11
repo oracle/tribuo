@@ -39,7 +39,7 @@ public class MutableRegressionInfo extends RegressionInfo implements MutableOutp
 
     @Override
     public void observe(Regressor output) {
-        if (output == RegressionFactory.UNKNOWN_MULTIPLE_REGRESSOR) {
+        if (output == RegressionFactory.UNKNOWN_REGRESSOR) {
             unknownCount++;
         } else {
             if (overallCount != 0) {

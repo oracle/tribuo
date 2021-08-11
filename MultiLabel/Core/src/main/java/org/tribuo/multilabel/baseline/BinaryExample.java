@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.tribuo.classification.Label;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.util.Merger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -37,6 +38,10 @@ class BinaryExample extends Example<Label> {
 
     private final Example<MultiLabel> innerExample;
 
+    private Label binaryLabel;
+
+    private final ArrayList<Feature> additionalFeatures = new ArrayList<>();
+
     /**
      * Creates a BinaryExample, which wraps a MultiLabel example and
      * has a single Label inside.
@@ -46,36 +51,64 @@ class BinaryExample extends Example<Label> {
     BinaryExample(Example<MultiLabel> innerExample, Label newLabel) {
         super(newLabel);
         this.innerExample = innerExample;
+        this.binaryLabel = newLabel;
+    }
+
+    /**
+     * Creates a BinaryExample, which wraps a MultiLabel example and
+     * has a single Label inside.
+     * @param innerExample The example to wrap.
+     * @param newLabel The new Label.
+     * @param additionalFeatures The extra features.
+     */
+    private BinaryExample(Example<MultiLabel> innerExample, Label newLabel, List<Feature> additionalFeatures) {
+        super(newLabel);
+        this.innerExample = innerExample;
+        this.binaryLabel = newLabel;
+        this.additionalFeatures.addAll(additionalFeatures);
+    }
+
+    @Override
+    public Label getOutput() {
+        return binaryLabel;
+    }
+
+    /**
+     * Sets a new label.
+     * @param newLabel The new label.
+     */
+    void setLabel(Label newLabel) {
+        binaryLabel = newLabel;
     }
 
     @Override
     protected void sort() {
-        logger.warning("Attempting to sort an immutable IndependentMultiLabelTrainer.BinaryExample");
+        logger.warning("Attempting to sort an immutable BinaryExample");
     }
 
     @Override
     public void add(Feature feature) {
-        logger.warning("Attempting to add a feature to an immutable IndependentMultiLabelTrainer.BinaryExample");
+        additionalFeatures.add(feature);
     }
 
     @Override
     public void addAll(Collection<? extends Feature> features) {
-        logger.warning("Attempting to add features to an immutable IndependentMultiLabelTrainer.BinaryExample");
+        additionalFeatures.addAll(features);
     }
 
     @Override
     public int size() {
-        return innerExample.size();
+        return innerExample.size() + additionalFeatures.size();
     }
 
     @Override
     public void removeFeatures(List<Feature> featureList) {
-        logger.warning("Attempting to remove features from an immutable IndependentMultiLabelTrainer.BinaryExample");
+        logger.warning("Attempting to remove features from an immutable BinaryExample");
     }
 
     @Override
     public void reduceByName(Merger merger) {
-        logger.warning("Attempting to reduce features in an immutable IndependentMultiLabelTrainer.BinaryExample");
+        logger.warning("Attempting to reduce features in an immutable BinaryExample");
     }
 
     @Override
@@ -90,22 +123,28 @@ class BinaryExample extends Example<Label> {
 
     @Override
     protected void densify(List<String> featureNames) {
-        logger.warning("Attempting to densify an immutable IndependentMultiLabelTrainer.BinaryExample");
+        logger.warning("Attempting to densify an immutable BinaryExample");
     }
 
     @Override
     public Example<Label> copy() {
-        return new BinaryExample(innerExample, output);
+        return new BinaryExample(innerExample, binaryLabel, additionalFeatures);
     }
 
     @Override
     public void set(Feature feature) {
-        logger.warning("Attempting to mutate a feature to an immutable IndependentMultiLabelTrainer.BinaryExample");
+        logger.warning("Attempting to mutate a feature to an immutable BinaryExample");
     }
 
     @Override
     public Iterator<Feature> iterator() {
-        return innerExample.iterator();
+        List<Feature> tmpFeatures = new ArrayList<>(innerExample.size());
+        for (Feature f : innerExample) {
+            tmpFeatures.add(f);
+        }
+        tmpFeatures.addAll(additionalFeatures);
+        tmpFeatures.sort(Feature.featureNameComparator());
+        return tmpFeatures.iterator();
     }
 
     @Override

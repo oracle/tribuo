@@ -22,6 +22,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -36,9 +37,11 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
     public OutputFactory<T> getOutputFactory();
 
     /**
+     * @deprecated use {@link #getFieldNames()} and support multiple values instead.
      * Gets the field name this ResponseProcessor uses.
      * @return The field name.
      */
+    @Deprecated
     public String getFieldName();
 
     /**
@@ -47,13 +50,38 @@ public interface ResponseProcessor<T extends Output<T>> extends Configurable, Pr
      * @param fieldName The field name.
      *
      */
-    @Deprecated()
+    @Deprecated
     public void setFieldName(String fieldName);
 
     /**
+     * @deprecated use {@link #process(List)} and support multiple values instead.
      * Returns Optional.empty() if it failed to process out a response.
      * @param value The value to process.
      * @return The response value if found.
      */
+    @Deprecated
     public Optional<T> process(String value);
+
+    /**
+     * Returns Optional.empty() if it failed to process out a response.This method has a default
+     * implementation for backwards compatibility with Tribuo 4.0 and 4.1. This method should be
+     * overridden by code which depends on newer versions of Tribuo. The default implementation
+     * will be removed when the deprecated members are removed.  Unless is is overridden it will
+     * throw an {@link IllegalArgumentException} when called with multiple values.
+     * @param values The value to process.
+     * @return The response values if found.
+     */
+    default Optional<T> process(List<String> values) {
+        if (values.size() != 1) {
+            throw new IllegalArgumentException(getClass().getSimpleName() + " does not implement support for multiple response values");
+        } else {
+            return process(values.get(0));
+        }
+    }
+
+    /**
+     * Gets the field names this ResponseProcessor uses.
+     * @return The field names.
+     */
+    List<String> getFieldNames();
 }

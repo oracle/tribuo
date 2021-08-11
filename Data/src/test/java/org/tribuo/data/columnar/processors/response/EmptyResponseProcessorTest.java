@@ -7,6 +7,7 @@ import org.tribuo.test.MockOutputFactory;
 
 public class EmptyResponseProcessorTest {
 
+    @SuppressWarnings("deprecation") // due to setFieldName test
     @Test
     public void basicTest() {
         MockOutputFactory outputFactory = new MockOutputFactory();
@@ -28,7 +29,7 @@ public class EmptyResponseProcessorTest {
         Assertions.assertFalse(rp.process("!@$#$!").isPresent());
         Assertions.assertFalse(rp.process("\n").isPresent());
         Assertions.assertFalse(rp.process("\t").isPresent());
-        Assertions.assertFalse(rp.process(null).isPresent());
+        Assertions.assertFalse(rp.process((String) null).isPresent());
     }
 
 }

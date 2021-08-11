@@ -23,6 +23,8 @@ import org.tribuo.OutputFactory;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -44,6 +46,7 @@ public class MockResponseProcessor implements ResponseProcessor<MockOutput> {
         return new MockOutputFactory();
     }
 
+    @Deprecated
     @Override
     public String getFieldName() {
         return fieldName;
@@ -55,9 +58,15 @@ public class MockResponseProcessor implements ResponseProcessor<MockOutput> {
         this.fieldName = fieldName;
     }
 
+    @Deprecated
     @Override
     public Optional<MockOutput> process(String value) {
         return Optional.of(new MockOutput(value));
+    }
+
+    @Override
+    public List<String> getFieldNames() {
+        return Collections.singletonList(fieldName);
     }
 
     @Override

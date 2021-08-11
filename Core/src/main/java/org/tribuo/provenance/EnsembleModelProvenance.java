@@ -71,8 +71,7 @@ public class EnsembleModelProvenance extends ModelProvenance {
     public EnsembleModelProvenance(String className, OffsetDateTime time, DatasetProvenance datasetProvenance,
                                    TrainerProvenance trainerProvenance, Map<String, Provenance> instanceProvenance,
                                    ListProvenance<? extends ModelProvenance> memberProvenance) {
-        super(className, time, datasetProvenance, trainerProvenance, instanceProvenance);
-        this.memberProvenance = memberProvenance;
+        this(className,time,datasetProvenance,trainerProvenance,instanceProvenance,true,memberProvenance);
     }
 
     /**

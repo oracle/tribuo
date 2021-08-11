@@ -25,6 +25,7 @@ import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * An {@link Explanation} using LIME.
@@ -56,7 +57,12 @@ public class LIMEExplanation implements Explanation<Regressor> {
 
     @Override
     public List<String> getActiveFeatures() {
-        return model.getActiveFeatures().get(prediction.getOutput().getLabel());
+        Map<String,List<String>> features = model.getActiveFeatures();
+        if (features.containsKey(Model.ALL_OUTPUTS)) {
+            return features.get(Model.ALL_OUTPUTS);
+        } else {
+            return features.get(prediction.getOutput().getLabel());
+        }
     }
 
     @Override

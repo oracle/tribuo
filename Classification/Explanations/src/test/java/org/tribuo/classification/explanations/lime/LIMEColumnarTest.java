@@ -52,6 +52,7 @@ import java.util.SplittableRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -204,6 +205,9 @@ public class LIMEColumnarTest {
         testExample.put("TextField","The full text field has more words in it than other fields.");
 
         Pair<LIMEExplanation, List<Example<Regressor>>> explanation = lime.explainWithSamples(testExample);
+
+        List<String> activeFeatures = explanation.getA().getActiveFeatures();
+        assertNotNull(activeFeatures);
 
         int[] aSampleCount = new int[3];
         int[] dSampleCount = new int[3];

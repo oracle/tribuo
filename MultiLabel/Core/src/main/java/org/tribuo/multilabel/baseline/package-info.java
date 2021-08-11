@@ -15,8 +15,16 @@
  */
 
 /**
- * Provides an implementation of independent multi-label classification that
- * wraps a {@link org.tribuo.classification.Label} {@link org.tribuo.Trainer}
- * and uses it to make independent predictions of each label.
+ * Provides implementations of binary relevance based multi-label classification
+ * algorithms.
+ * <p>
+ * {@link org.tribuo.multilabel.baseline.IndependentMultiLabelTrainer} provides
+ * the standard binary relevance algorithm where n models are built independently,
+ * one per label in the domain.
+ * <p>
+ * {@link org.tribuo.multilabel.baseline.ClassifierChainTrainer} provides
+ * classifier chains, which train n models in a sequence, one per label, where
+ * each model observes the labels before it in the chain. This label ordering
+ * can be random, or specified on construction.
  */
 package org.tribuo.multilabel.baseline;
