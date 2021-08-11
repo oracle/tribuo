@@ -243,7 +243,9 @@ class ReproUtilTest {
         LogisticRegressionTrainer trainer = new LogisticRegressionTrainer();
         LinearSGDModel model_1 = (LinearSGDModel) trainer.train(datasetFromCSV);
         LinearSGDModel model_2 = (LinearSGDModel) trainer.train(datasetFromCSV);
-        String report = ReproUtil.diffProvenance(model_1.getProvenance(), model_2.getProvenance());
+        ReproUtil repro = new ReproUtil(model_1);
+        LinearSGDModel model_3 = (LinearSGDModel) repro.reproduceFromProvenance();
+        String report = ReproUtil.diffProvenance(model_1.getProvenance(), model_3.getProvenance());
         System.out.println(report);
     }
 

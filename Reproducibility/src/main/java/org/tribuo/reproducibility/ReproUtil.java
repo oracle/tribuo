@@ -1,6 +1,7 @@
 package org.tribuo.reproducibility;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
@@ -45,143 +46,6 @@ public class ReproUtil {
     private Model originalModel;
 
     private ReproUtil () {}
-
-    // This method takes an iterator from a prov object and converts it into a sorted map
-    // It uses a sorted map just in case two prov objects are the same type but iterate in a different order.
-    private static TreeMap<String, Provenance> iterToMap(Iterator<Pair<String, Provenance>> iter){
-        TreeMap<String, Provenance> provMap = new TreeMap<>();
-        while (iter.hasNext()){
-            Pair<String, Provenance> provPair = iter.next();
-            provMap.put(provPair.getA(), provPair.getB());
-        }
-
-        return new TreeMap<>(provMap);
-    }
-
-    // This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
-    private static ObjectNode compareModelProvenances(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
-        // The report ObjectNode is the ultimate return value of the method,
-        // All diff values are put in it.
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode report = mapper.createObjectNode();
-
-        // Convert the iterators to a sorted map, so it can iterate through the keys to find matching values
-        TreeMap<String, Provenance> provMapA = iterToMap(iterA);
-        TreeMap<String, Provenance> provMapB = iterToMap(iterB);
-
-        Set<String> keys = provMapA.keySet();
-        for(String key : keys){
-            // When provenance is primitive and they share a key simply compare their values
-            // If different, place each prov's value in the report
-            if(provMapA.get(key) instanceof PrimitiveProvenance && provMapB.get(key) instanceof PrimitiveProvenance){
-                if(!provMapA.get(key).equals(provMapB.get(key))){
-                    ObjectNode val_diff = mapper.createObjectNode();
-                    val_diff.put(OLD, ((PrimitiveProvenance<?>) provMapA.get(key)).getValue().toString());
-                    val_diff.put(NEW, ((PrimitiveProvenance<?>) provMapB.get(key)).getValue().toString());
-                    report.set(key, val_diff);
-                }
-            }
-            // In the event it's a different prov object, and they are the same time, recursively call
-            // this method on the iterators of the respective prov objects, and then merge the resulting
-            // ObjectNode into the report in this frame.
-            else if(provMapA.get(key).getClass() == provMapB.get(key).getClass()){
-
-                // ObjectProvenance and MapProvenance will always return Iterator<Pair<String, Provenance>> so can
-                // be handled simply here through recursion of this method.
-                if (provMapA.get(key) instanceof ObjectProvenance || provMapA.get(key) instanceof MapProvenance){
-
-                    // There is no abstract provenance object that has the iterator method, so use reflection to determine
-                    // what the type of the provenance is (Dataset, Datasource, Trainer, etc), then get the iterator method
-                    Method iterator_A = null;
-                    Method iterator_B = null;
-                    try {
-                        iterator_A = provMapA.get(key).getClass().getMethod("iterator", (Class<?>[]) null);
-                        iterator_B = provMapB.get(key).getClass().getMethod("iterator", (Class<?>[]) null);
-                    } catch (NoSuchMethodException e) {
-                        //TODO: Do more to handle this?
-                        e.printStackTrace();
-                    }
-
-                    // Use the method identified in the previous step to actually get the iterator for each prov object.
-                    Iterator<Pair<String, Provenance>> subIterA = null;
-                    Iterator<Pair<String, Provenance>> subIterB = null;
-                    try {
-                        subIterA = (Iterator<Pair<String, Provenance>>) iterator_A.invoke(provMapA.get(key), (Object[]) null);
-                        subIterB = (Iterator<Pair<String, Provenance>>) iterator_B.invoke(provMapB.get(key), (Object[]) null);
-                    } catch (IllegalAccessException e) {
-                        //TODO: Do more to handle these?
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Recursively identify any diffs down to primitive objects
-                    ObjectNode sub_report = compareModelProvenances(subIterA, subIterB);
-
-                    // Only add the new ObjectNode if it is not empty, to prevent unwanted keys in the resulting JSON
-                    if(!sub_report.isEmpty()){
-                        report.set(key, sub_report);
-                    }
-                }
-                // ListProvenance might contain Pair<String, Provenance> but it might also contain a list of
-                // ConfiguredObjectProvenanceImpl. This handles that situation directly.
-                else if (provMapA.get(key) instanceof ListProvenance){
-
-                    ListProvenance listProvA = ((ListProvenance<?>) provMapA.get(key));
-                    ListProvenance listProvB = ((ListProvenance<?>) provMapB.get(key));
-
-                    // If it is a Pair, handle it with recursion as if it was an Object or Map Provenance.
-                    if(listProvA.getList().size() > 0 && listProvA.getList().get(0) instanceof Pair){
-                        Iterator subIterA = ((ListProvenance<?>) provMapA.get(key)).iterator();
-                        Iterator subIterB = ((ListProvenance<?>) provMapB.get(key)).iterator();
-
-                        ObjectNode sub_report = compareModelProvenances(subIterA, subIterB);
-                        if(!sub_report.isEmpty()){
-                            report.set(key, sub_report);
-                        }
-                    }
-                    // If the list contains ConfiguredObjectProvenanceImpl then do something different.
-                    //TODO: Iterate through these?
-                    else if (listProvA.getList().size() > 0 && listProvA.getList().get(0) instanceof ConfiguredObjectProvenanceImpl){
-
-                        if(!listProvA.equals(listProvB)){
-                            ObjectNode val_diff = mapper.createObjectNode();
-                            val_diff.put(OLD, listProvA.toString());
-                            val_diff.put(NEW, listProvB.toString());
-                            report.set(key, val_diff);
-                        }
-
-                    }
-
-                } else {
-                    //TODO: Error handling here
-                    System.out.println("Unrecognized Provenance: ");
-                    System.out.println(provMapA.get(key).getClass());
-                }
-            }
-        }
-
-        return report;
-    }
-
-    /**
-     * Creates a JSON String diff of two {@link ModelProvenance} objects. Only the differences will appear
-     * in the resulting diff.
-     * <p>
-     * Recovers the trainer and dataset information before training an identical model.
-     * @param originalProvenance The first of the two provenance objects to diff
-     * @param newProvenance The second of the two provenance objects to diff
-     * @return A String JSON report displaying the differences in the model.
-     */
-    public static String diffProvenance(ModelProvenance originalProvenance, ModelProvenance newProvenance){
-
-        Iterator<Pair<String, Provenance>> originalIter = originalProvenance.iterator();
-        Iterator<Pair<String, Provenance>> newIter = newProvenance.iterator();
-
-
-        String report = compareModelProvenances(originalIter, newIter).toPrettyString();
-        return report;
-    }
 
     public ReproUtil(ModelProvenance provenance){
         this(provenance, null);
@@ -267,6 +131,8 @@ public class ReproUtil {
     // Attempts to use reflection to determine the correct type a dataset should be and then instantiates it
     // returns null if cannot be done.
     private Dataset datasetReflection(DataSource modelSource){
+        // The first step is to find the classname as a String so it can use reflection to instantiate the correct type
+        // The class name is contained within the provenance accessible through the iterator.
         Dataset modelDataset = null;
         Iterator<Pair<String, Provenance>> sourceProv = this.modelProvenance.getDatasetProvenance().iterator();
         String datasetClassname = null;
@@ -277,6 +143,7 @@ public class ReproUtil {
             }
         }
 
+        // Once the class is identified, reflection will allow us to search for a constructor for that class and instantiate it
         try {
             modelDataset = (Dataset) Class.forName(datasetClassname).getConstructor(DataSource.class).newInstance(modelSource);
         } catch (InstantiationException e) {
@@ -427,4 +294,154 @@ public class ReproUtil {
 
         return newModel;
     }
+
+    /**
+     * Creates a JSON String diff of two {@link ModelProvenance} objects. Only the differences will appear
+     * in the resulting diff.
+     * <p>
+     * Recovers the trainer and dataset information before training an identical model.
+     * @param originalProvenance The first of the two provenance objects to diff
+     * @param newProvenance The second of the two provenance objects to diff
+     * @return A String JSON report displaying the differences in the model.
+     */
+    public static String diffProvenance(ModelProvenance originalProvenance, ModelProvenance newProvenance){
+
+        Iterator<Pair<String, Provenance>> originalIter = originalProvenance.iterator();
+        Iterator<Pair<String, Provenance>> newIter = newProvenance.iterator();
+
+
+        String report = diffProvenanceIterators(originalIter, newIter).toPrettyString();
+        return report;
+    }
+
+    // This method takes an iterator from a prov object and converts it into a sorted map
+    // It uses a sorted map just in case two prov objects are the same type but iterate in a different order.
+    private static TreeMap<String, Provenance> iterToMap(Iterator<Pair<String, Provenance>> iter){
+        TreeMap<String, Provenance> provMap = new TreeMap<>();
+        while (iter.hasNext()){
+            Pair<String, Provenance> provPair = iter.next();
+            provMap.put(provPair.getA(), provPair.getB());
+        }
+
+        return new TreeMap<>(provMap);
+    }
+
+    // This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
+    private static ObjectNode diffProvenanceIterators(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
+        // The report ObjectNode is the ultimate return value of the method,
+        // All diff values are put in it.
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode report = mapper.createObjectNode();
+
+        // Convert the iterators to a sorted map, so it can iterate through the keys to find matching values
+        TreeMap<String, Provenance> provMapA = iterToMap(iterA);
+        TreeMap<String, Provenance> provMapB = iterToMap(iterB);
+
+        Set<String> keys = provMapA.keySet();
+        for(String key : keys){
+            // When provenance is primitive and they share a key simply compare their values
+            // If different, place each prov's value in the report
+            if(provMapA.get(key) instanceof PrimitiveProvenance && provMapB.get(key) instanceof PrimitiveProvenance){
+                if(!provMapA.get(key).equals(provMapB.get(key))){
+                    ObjectNode val_diff = mapper.createObjectNode();
+                    val_diff.put(OLD, ((PrimitiveProvenance<?>) provMapA.get(key)).getValue().toString());
+                    val_diff.put(NEW, ((PrimitiveProvenance<?>) provMapB.get(key)).getValue().toString());
+                    report.set(key, val_diff);
+                }
+            }
+            // In the event it's a different prov object, and they are the same time, recursively call
+            // this method on the iterators of the respective prov objects, and then merge the resulting
+            // ObjectNode into the report in this frame.
+            else if(provMapA.get(key).getClass() == provMapB.get(key).getClass()){
+
+                // ObjectProvenance and MapProvenance will always return Iterator<Pair<String, Provenance>> so can
+                // be handled simply here through recursion of this method.
+                if (provMapA.get(key) instanceof ObjectProvenance || provMapA.get(key) instanceof MapProvenance){
+
+                    // There is no abstract provenance object that has the iterator method, so use reflection to determine
+                    // what the type of the provenance is (Dataset, Datasource, Trainer, etc), then get the iterator method
+                    Method iterator_A = null;
+                    Method iterator_B = null;
+                    try {
+                        iterator_A = provMapA.get(key).getClass().getMethod("iterator", (Class<?>[]) null);
+                        iterator_B = provMapB.get(key).getClass().getMethod("iterator", (Class<?>[]) null);
+                    } catch (NoSuchMethodException e) {
+                        //TODO: Do more to handle this?
+                        e.printStackTrace();
+                    }
+
+                    // Use the method identified in the previous step to actually get the iterator for each prov object.
+                    Iterator<Pair<String, Provenance>> subIterA = null;
+                    Iterator<Pair<String, Provenance>> subIterB = null;
+                    try {
+                        subIterA = (Iterator<Pair<String, Provenance>>) iterator_A.invoke(provMapA.get(key), (Object[]) null);
+                        subIterB = (Iterator<Pair<String, Provenance>>) iterator_B.invoke(provMapB.get(key), (Object[]) null);
+                    } catch (IllegalAccessException e) {
+                        //TODO: Do more to handle these?
+                        e.printStackTrace();
+                    } catch (InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+
+                    // Recursively identify any diffs down to primitive objects
+                    ObjectNode sub_report = diffProvenanceIterators(subIterA, subIterB);
+
+                    // Only add the new ObjectNode if it is not empty, to prevent unwanted keys in the resulting JSON
+                    if(!sub_report.isEmpty()){
+                        report.set(key, sub_report);
+                    }
+                }
+                // ListProvenance might contain Pair<String, Provenance> but it might also contain a list of
+                // ConfiguredObjectProvenanceImpl. This handles that situation directly.
+                else if (provMapA.get(key) instanceof ListProvenance){
+
+                    ListProvenance listProvA = ((ListProvenance<?>) provMapA.get(key));
+                    ListProvenance listProvB = ((ListProvenance<?>) provMapB.get(key));
+
+                    // If it is a Pair, handle it with recursion as if it was an Object or Map Provenance.
+                    if(listProvA.getList().size() > 0 && listProvA.getList().get(0) instanceof Pair){
+                        Iterator subIterA = ((ListProvenance<?>) provMapA.get(key)).iterator();
+                        Iterator subIterB = ((ListProvenance<?>) provMapB.get(key)).iterator();
+
+                        ObjectNode sub_report = diffProvenanceIterators(subIterA, subIterB);
+                        if(!sub_report.isEmpty()){
+                            report.set(key, sub_report);
+                        }
+                    }
+                    // If the list contains ConfiguredObjectProvenanceImpl, they are the same size, and not empty
+                    // do an element-wise comparison of the objects and add any diffs to an array that is reported
+                    else if (listProvA.getList().size() > 0 &&
+                            listProvB.getList().size() > 0 &&
+                            listProvA.getList().get(0) instanceof ConfiguredObjectProvenanceImpl &&
+                            listProvB.getList().get(0) instanceof ConfiguredObjectProvenanceImpl &&
+                            listProvA.getList().size() == listProvB.getList().size()){
+
+                        ArrayNode provArray =  mapper.createArrayNode();
+
+                        // Since each ConfiguredObjectProvenanceImpl will have an iterator, recurse again
+                        // Then check if empty and add to array if a diff exists
+                        for (int provListIndex = 0; provListIndex < listProvA.getList().size(); provListIndex++){
+                            ObjectNode singleProv = diffProvenanceIterators(((ConfiguredObjectProvenanceImpl) listProvA.getList().get(provListIndex)).iterator(),
+                                    ((ConfiguredObjectProvenanceImpl) listProvB.getList().get(provListIndex)).iterator());
+                            if(!singleProv.isEmpty()){
+                                provArray.add(singleProv);
+                            }
+                        }
+
+                        // After iteration, if diffs exists between the two provenance lists add it to the overall report
+                        if(!provArray.isEmpty()){
+                            report.set(key, provArray);
+                        }
+                    }
+                } else {
+                    //TODO: Error handling here
+                    System.out.println("Unrecognized Provenance: ");
+                    System.out.println(provMapA.get(key).getClass());
+                }
+            }
+        }
+
+        return report;
+    }
+
 }
