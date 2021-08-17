@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.SequenceInfo;
+import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Example;
@@ -39,18 +40,32 @@ import java.util.logging.Logger;
 /**
  * Can convert an {@link OnnxValue} into a {@link Prediction} or a {@link Label}.
  * <p>
- *     Accepts both a tuple (tensor,sequence(map(long,float))) and a single tensor.
- *     The former is usually produced by scikit-learn or similar, the latter is produced by pytorch.
- * </p>
+ * Accepts both a tuple (tensor,sequence(map(long,float))) and a single tensor.
+ * The former is usually produced by scikit-learn or similar, the latter is produced by pytorch.
+ * <p>
+ * By default it assumes the model scores are probabilities.
  */
 public class LabelTransformer implements OutputTransformer<Label> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
 
+    @Config(description = "Does this transformer produce probabilistic outputs.")
+    private boolean generatesProbabilities = true;
+
+    /**
+     * Constructs a LabelTransformer which assumes the model emits probabilities.
+     */
+    public LabelTransformer() {
+        this(true);
+    }
+
     /**
      * Constructs a LabelTransformer.
+     * @param generatesProbabilities Does this model emit probabilistic outputs?
      */
-    public LabelTransformer() {}
+    public LabelTransformer(boolean generatesProbabilities) {
+        this.generatesProbabilities = generatesProbabilities;
+    }
 
     @Override
     public Prediction<Label> transformToPrediction(List<OnnxValue> tensor, ImmutableOutputInfo<Label> outputIDInfo, int numValidFeatures, Example<Label> example) {
@@ -191,12 +206,12 @@ public class LabelTransformer implements OutputTransformer<Label> {
 
     @Override
     public boolean generatesProbabilities() {
-        return true;
+        return generatesProbabilities;
     }
 
     @Override
     public String toString() {
-        return "LabelTransformer()";
+        return "LabelTransformer(generatesProbabilities="+generatesProbabilities+")";
     }
 
     @Override

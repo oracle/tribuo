@@ -20,8 +20,11 @@ import ai.onnxruntime.OnnxJavaType;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtException;
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import com.sun.tools.sjavac.ProblemException;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
@@ -40,24 +43,55 @@ import java.util.logging.Logger;
 /**
  * Can convert an {@link OnnxValue} into a {@link Prediction} or a {@link MultiLabel}.
  * <p>
- * Accepts a single tensor representing the probabilities of each label in the batch.
+ * Accepts a single tensor representing the scores of each label in the batch.
  * <p>
- * Predictions are thresholded at {@link #THRESHOLD}, probabilities above this are considered to be present in the
- * output.
+ * By default predictions are thresholded at {@link #DEFAULT_THRESHOLD}, scores
+ * above this are considered to be present in the output, and the model output is assumed
+ * to be probabilistic.
  */
 public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(MultiLabelTransformer.class.getName());
 
     /**
-     * The threshold for conversion into a label.
+     * The default threshold for conversion into a label.
      */
-    public static final double THRESHOLD = 0.5;
+    public static final double DEFAULT_THRESHOLD = 0.5;
+
+    @Config(description = "The threshold for determining if a label is present.")
+    private double threshold = DEFAULT_THRESHOLD;
+
+    @Config(description = "Does this transformer produce probabilistic outputs.")
+    private boolean generatesProbabilities = true;
 
     /**
-     * Constructs a MultiLabelTransformer.
+     * Constructs a MultiLabelTransformer with a threshold of {@link #DEFAULT_THRESHOLD} which
+     * assumes the model emits probabilities.
      */
     public MultiLabelTransformer() {}
+
+    /**
+     * Constructs a MultiLabelTransformer with the supplied threshold.
+     * @param threshold The threshold to set. Must be between 0 and 1 if {@code generatesProbabilities} is true.
+     * @param generatesProbabilities Does this model produce probabilistic outputs.
+     */
+    public MultiLabelTransformer(double threshold, boolean generatesProbabilities) {
+        this.threshold = threshold;
+        this.generatesProbabilities = generatesProbabilities;
+        if (generatesProbabilities && (threshold < 0.0 || threshold > 1.0)) {
+            throw new IllegalArgumentException("Threshold must be between 0 and 1 to generate probabilities, found " + threshold);
+        }
+    }
+
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
+    @Override
+    public void postConfig() {
+        if (generatesProbabilities && (threshold < 0.0 || threshold > 1.0)) {
+            throw new PropertyException("","threshold","Threshold must be between 0 and 1 to generate probabilities, found " + threshold);
+        }
+    }
 
     @Override
     public Prediction<MultiLabel> transformToPrediction(List<OnnxValue> value, ImmutableOutputInfo<MultiLabel> outputIDInfo, int numValidFeatures, Example<MultiLabel> example) {
@@ -67,6 +101,7 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
         }
         return getPrediction(predictions[0],outputIDInfo,numValidFeatures,example);
     }
+
 
     @Override
     public MultiLabel transformToOutput(List<OnnxValue> value, ImmutableOutputInfo<MultiLabel> outputIDInfo) {
@@ -107,7 +142,7 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
         Set<Label> predictedLabels = new HashSet<>();
         for (int i = 0; i < predictions.length; i++) {
             double labelScore = predictions[i];
-            if (labelScore > THRESHOLD) {
+            if (labelScore > threshold) {
                 Label score = new Label(outputIDInfo.getOutput(i).getLabelString(),labelScore);
                 predictedLabels.add(score);
             }
@@ -125,7 +160,7 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
             double labelScore = predictions[i];
             String labelName = outputIDInfo.getOutput(i).getLabelString();
             Label score = new Label(labelName,labelScore);
-            if (labelScore > THRESHOLD) {
+            if (labelScore > threshold) {
                 predictedLabels.add(score);
             }
             fullLabels.put(labelName,new MultiLabel(score));
@@ -163,12 +198,12 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
 
     @Override
     public boolean generatesProbabilities() {
-        return true;
+        return generatesProbabilities;
     }
 
     @Override
     public String toString() {
-        return "MultiLabelTransformer()";
+        return "MultiLabelTransformer(threshold="+threshold+",generatesProbabilities="+generatesProbabilities+")";
     }
 
     @Override

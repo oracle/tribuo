@@ -28,16 +28,19 @@ public final class ONNXAttribute {
 
     private final String name;
     private final OnnxMl.AttributeProto.AttributeType type;
+    private final boolean mandatory;
 
     /**
      * Constructs an attribute placeholder of the appropriate name and type.
      *
      * @param name The name of the attribute.
      * @param type The type of the attribute.
+     * @param mandatory Is this attribute mandatory?
      */
-    public ONNXAttribute(String name, OnnxMl.AttributeProto.AttributeType type) {
+    public ONNXAttribute(String name, OnnxMl.AttributeProto.AttributeType type, boolean mandatory) {
         this.name = name;
         this.type = type;
+        this.mandatory = mandatory;
     }
 
     /**
@@ -59,12 +62,20 @@ public final class ONNXAttribute {
     }
 
     /**
+     * Is this attribute mandatory?
+     * @return True if the attribute is mandatory for this operation.
+     */
+    public boolean isMandatory() {
+        return mandatory;
+    }
+
+    /**
      * Builds the attribute proto using the supplied value.
      * <p>
      * Throws {@link IllegalArgumentException} if the value type does not match the expected type, and
      * throws {@link UnsupportedOperationException} if the value type is not supported. Currently supported
-     * types are primitives, strings and arrays of primitives and strings.
-     *
+     * types are primitives, strings and arrays of primitives and strings. ONNX attributes only support
+     * float and int as primitives.
      * @param value The value
      * @return The AttributeProto.
      */
@@ -140,6 +151,6 @@ public final class ONNXAttribute {
 
     @Override
     public String toString() {
-        return "ONNXAttribute(name='" + name + "',type=" + type + ")";
+        return "ONNXAttribute(name='" + name + "',type=" + type + ",mandatory="+mandatory+")";
     }
 }

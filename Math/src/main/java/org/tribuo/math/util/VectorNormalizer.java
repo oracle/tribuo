@@ -22,6 +22,7 @@ import org.tribuo.onnx.ONNXContext;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * A functional interface that generates a normalized version of a double array.
@@ -62,6 +63,7 @@ public interface VectorNormalizer extends Serializable {
      * @return A list of node protos representing the normalization operation.
      */
     default public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
+        Logger.getLogger(this.getClass().getName()).severe("Tried to export a normalizer to ONNX format, but this is not implemented.");
         return Collections.emptyList();
     }
 

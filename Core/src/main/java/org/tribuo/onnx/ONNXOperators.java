@@ -21,8 +21,10 @@ import ai.onnx.proto.OnnxMl;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The supported ONNX operators.
@@ -40,9 +42,13 @@ public enum ONNXOperators {
     SIGMOID("Sigmoid",1,1),
     /**
      * Softmax.
+     * <p>
+     * <ul>
+     *     <li>{@code axis} defaults to -1.</li>
+     * </ul>
      */
     SOFTMAX("Softmax",1,1, Collections.singletonList(
-            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT)
+            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT,false)
     )),
     /**
      * Element-wise addition with broadcasting.
@@ -62,26 +68,43 @@ public enum ONNXOperators {
     DIV("Div",2,1),
     /**
      * Compute the minimum along the specified axes of the tensor.
+     * <p>
+     * <ul>
+     *     <li>{@code axes} defaults to all dimensions.</li>
+     *     <li>{@code keepdims} defaults to 1 which means keep.</li>
+     * </ul>
      */
     REDUCE_MIN("ReduceMin",1,1,Arrays.asList(
-            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS),
-            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT)
+            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS,false),
+            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT,false)
     )),
     /**
      * Compute the sum along the specified axes of the tensor.
+     * <p>
+     * <ul>
+     *     <li>{@code axes} defaults to all dimensions.</li>
+     *     <li>{@code keepdims} defaults to 1 which means keep.</li>
+     * </ul>
      */
     REDUCE_SUM("ReduceSum",2,1,Arrays.asList(
-            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS), //Opset 11
-            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT)
+            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS, false), //Opset 11
+            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT, false)
     )),
     /**
      * General Matrix Multiply: alpha*AB + beta*C.
+     * <p>
+     * <ul>
+     *     <li>{@code alpha} defaults to 1.0</li>
+     *     <li>{@code beta} defaults to 1.0</li>
+     *     <li>{@code transA} defaults to 0 (i.e., not transposed)</li>
+     *     <li>{@code transB} defaults to 0 (i.e., not transposed)</li>
+     * </ul>
      */
     GEMM("Gemm",3,1, Arrays.asList(
-            new ONNXAttribute("alpha", OnnxMl.AttributeProto.AttributeType.FLOAT),
-            new ONNXAttribute("beta", OnnxMl.AttributeProto.AttributeType.FLOAT),
-            new ONNXAttribute("transA", OnnxMl.AttributeProto.AttributeType.INT),
-            new ONNXAttribute("transB", OnnxMl.AttributeProto.AttributeType.INT)
+            new ONNXAttribute("alpha", OnnxMl.AttributeProto.AttributeType.FLOAT,false),
+            new ONNXAttribute("beta", OnnxMl.AttributeProto.AttributeType.FLOAT,false),
+            new ONNXAttribute("transA", OnnxMl.AttributeProto.AttributeType.INT,false),
+            new ONNXAttribute("transB", OnnxMl.AttributeProto.AttributeType.INT,false)
     ));
 
     /**
@@ -100,31 +123,54 @@ public enum ONNXOperators {
      * The operator attributes.
      */
     public final Map<String,ONNXAttribute> attributes;
+    /**
+     * The mandatory attribute names.
+     */
+    public final Set<String> mandatoryAttributeNames;
 
     /**
      * Opset supported by these definitions.
      */
     private static final int OPSET_VERSION = 11;
 
+    /**
+     * Builds an operator without attributes.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOutputs The number of outputs.
+     */
     private ONNXOperators(String value, int numInputs, int numOutputs) {
         this.opName = value;
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
         this.attributes = Collections.emptyMap();
+        this.mandatoryAttributeNames = Collections.emptySet();
     }
 
+    /**
+     * Builds an operator with attributes.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOutputs The number of outputs.
+     * @param attributes The attributes.
+     */
     private ONNXOperators(String value, int numInputs, int numOutputs, List<ONNXAttribute> attributes) {
         this.opName = value;
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
         Map<String,ONNXAttribute> attributeMap = new HashMap<>();
+        Set<String> attributeSet = new HashSet<>();
         for (ONNXAttribute a : attributes) {
             attributeMap.put(a.getName(),a);
+            if (a.isMandatory()) {
+                attributeSet.add(a.getName());
+            }
         }
         if (attributes.size() != attributeMap.size()) {
             throw new IllegalArgumentException("Duplicate attribute in enum declaration - " + attributes);
         }
         this.attributes = Collections.unmodifiableMap(attributeMap);
+        this.mandatoryAttributeNames = attributeSet.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(attributeSet);
     }
 
     /**
@@ -160,7 +206,10 @@ public enum ONNXOperators {
             throw new IllegalArgumentException("Found more attributes than expected, received " + attributeValues.size() + ", expected at most " + attributes.size());
         }
         if (!attributes.keySet().containsAll(attributeValues.keySet())) {
-            throw new IllegalArgumentException("Unexpected attribute found, received " + attributeValues.keySet() + ", expected " + attributes.keySet());
+            throw new IllegalArgumentException("Unexpected attribute found, received " + attributeValues.keySet() + ", expected values from " + attributes.keySet());
+        }
+        if (!attributeValues.keySet().containsAll(mandatoryAttributeNames)) {
+            throw new IllegalArgumentException("Expected to find all mandatory attributes, received " + attributeValues.keySet() + ", expected " + mandatoryAttributeNames);
         }
         OnnxMl.NodeProto.Builder nodeBuilder = OnnxMl.NodeProto.newBuilder();
         for (String i : inputs) {
