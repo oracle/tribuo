@@ -51,36 +51,40 @@ import static org.tribuo.anomaly.AnomalyFactory.EXPECTED_EVENT;
  * Generates an anomaly detection dataset sampling each feature uniformly from a univariate Gaussian.
  * <p>
  * Or equivalently sampling all the features from a spherical Gaussian.
- * <p>
  * Can accept at most 26 features.
+ * <p>
+ * By default the expected means are (1.0, 2.0, 1.0, 2.0, 5.0), with variances
+ * (1.0, 0.5, 0.25, 1.0, 0.1).
+ * The anomalous means are (-2.0, 2.0, -2.0, 2.0, -10.0), with variances (1.0, 0.5, 0.25, 1.0, 0.1)
+ * which are the same as the default expected variances.
  */
 public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> {
 
     private static final AnomalyFactory factory = new AnomalyFactory();
 
-    private static final String[] allFeatureNames = new String[] {
-      "A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"
+    private static final String[] allFeatureNames = new String[]{
+            "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
     };
 
-    @Config(mandatory=true,description = "The number of samples to draw.")
+    @Config(mandatory = true, description = "The number of samples to draw.")
     private int numSamples;
 
     @Config(description = "Means of the expected events.")
-    private double[] expectedMeans = new double[]{1.0,2.0,1.0,2.0,5.0};
+    private double[] expectedMeans = new double[]{1.0, 2.0, 1.0, 2.0, 5.0};
 
     @Config(description = "Variances of the expected events.")
-    private double[] expectedVariances = new double[]{1.0,0.5,0.25,1.0,0.1};
+    private double[] expectedVariances = new double[]{1.0, 0.5, 0.25, 1.0, 0.1};
 
     @Config(description = "Means of the anomalous events.")
-    private double[] anomalousMeans = new double[]{-2.0,2.0,-2.0,2.0,-10.0};
+    private double[] anomalousMeans = new double[]{-2.0, 2.0, -2.0, 2.0, -10.0};
 
     @Config(description = "Variances of the anomalous events.")
-    private double[] anomalousVariances = new double[]{1.0,0.5,0.25,1.0,0.1};
+    private double[] anomalousVariances = new double[]{1.0, 0.5, 0.25, 1.0, 0.1};
 
-    @Config(description="The RNG seed.")
+    @Config(description = "The RNG seed.")
     private long seed = Trainer.DEFAULT_SEED;
 
-    @Config(mandatory=true,description="The fraction of anomalous events.")
+    @Config(mandatory = true, description = "The fraction of anomalous events.")
     private float fractionAnomalous = 0.3f;
 
     private List<Example<Event>> examples;
@@ -88,7 +92,7 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
     /**
      * For OLCUT.
      */
-    private GaussianAnomalyDataSource() {}
+    private GaussianAnomalyDataSource() { }
 
     /**
      * Generates anomaly detection examples sampling each feature uniformly from a univariate Gaussian.
@@ -96,9 +100,10 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
      * Or equivalently sampling all the features from a spherical Gaussian.
      * <p>
      * Can accept at most 26 features.
-     * @param numSamples The size of the output dataset.
+     *
+     * @param numSamples        The size of the output dataset.
      * @param fractionAnomalous The fraction of anomalies in the generated data.
-     * @param seed The rng seed to use.
+     * @param seed              The rng seed to use.
      * @return Examples drawn from a gaussian.
      */
     public GaussianAnomalyDataSource(int numSamples, float fractionAnomalous, long seed) {
@@ -114,13 +119,14 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
      * Or equivalently sampling all the features from a spherical Gaussian.
      * <p>
      * Can accept at most 26 features.
-     * @param numSamples The size of the output dataset.
-     * @param expectedMeans The means of the expected event features.
-     * @param expectedVariances The variances of the expected event features.
-     * @param anomalousMeans The means of the anomalous event features.
+     *
+     * @param numSamples         The size of the output dataset.
+     * @param expectedMeans      The means of the expected event features.
+     * @param expectedVariances  The variances of the expected event features.
+     * @param anomalousMeans     The means of the anomalous event features.
      * @param anomalousVariances The variances of the anomalous event features.
-     * @param fractionAnomalous The fraction of anomalies to generate.
-     * @param seed The rng seed to use.
+     * @param fractionAnomalous  The fraction of anomalies to generate.
+     * @param seed               The rng seed to use.
      * @return Examples drawn from a gaussian.
      */
     public GaussianAnomalyDataSource(int numSamples, double[] expectedMeans, double[] expectedVariances,
@@ -142,32 +148,33 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
     @Override
     public void postConfig() {
         if (numSamples < 1) {
-            throw new PropertyException("","numSamples","numSamples must be positive, found " + numSamples);
+            throw new PropertyException("", "numSamples", "numSamples must be positive, found " + numSamples);
         }
         if ((expectedMeans.length > allFeatureNames.length) || (expectedMeans.length == 0)) {
-            throw new PropertyException("","expectedMeans","Must have 1-26 features, found " + expectedMeans.length);
+            throw new PropertyException("", "expectedMeans", "Must have 1-26 features, found " + expectedMeans.length);
         }
         if (expectedMeans.length != expectedVariances.length) {
-            throw new PropertyException("","expectedMeans","Must supply the same number of expected means and variances." +
+            throw new PropertyException("", "expectedMeans", "Must supply the same number of expected means and variances." +
                     " expectedMeans.length = " + expectedMeans.length +
                     " expectedVariances.length = " + expectedVariances.length);
         }
         if (anomalousMeans.length != anomalousVariances.length) {
-            throw new PropertyException("","anomalousMeans","Must supply the same number of anomalous means and variances." +
+            throw new PropertyException("", "anomalousMeans", "Must supply the same number of anomalous means and variances." +
                     " anomalousMeans.length = " + anomalousMeans.length +
                     " anomalousVariances.length = " + anomalousVariances.length);
         }
         if (fractionAnomalous < 0.0f || fractionAnomalous > 1.0f) {
-            throw new PropertyException("","fractionAnomalous","fractionAnomalous must be between 0.0 and 1.0, found " + fractionAnomalous);
+            throw new PropertyException("", "fractionAnomalous", "fractionAnomalous must be between 0.0 and 1.0, found " + fractionAnomalous);
         }
         if ((fractionAnomalous != 0.0) && (anomalousMeans.length != expectedMeans.length)) {
-            throw new PropertyException("","anomalousMeans","When sampling anomalous data there must be the same number " +
+            throw new PropertyException("", "anomalousMeans", "When sampling anomalous data there must be the same number " +
                     "of anomalous features as expected features. anomalousMeans.length = " + anomalousMeans.length +
                     ", expectedMeans.length = " + expectedMeans.length);
 
         }
-        String[] featureNames = Arrays.copyOf(allFeatureNames,expectedMeans.length);
+        String[] featureNames = Arrays.copyOf(allFeatureNames, expectedMeans.length);
         // We use java.util.Random here because SplittableRandom doesn't have nextGaussian yet.
+        // Once we adopt Java 17 we may switch to SplittableRandom.
         Random rng = new Random(seed);
         List<Example<Event>> examples = new ArrayList<>(numSamples);
         for (int i = 0; i < numSamples; i++) {
@@ -200,9 +207,10 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
 
     /**
      * Generates the features based on the RNG, the means and the variances.
-     * @param rng The RNG to use.
-     * @param names The feature names.
-     * @param means The feature means.
+     *
+     * @param rng       The RNG to use.
+     * @param names     The feature names.
+     * @param means     The feature means.
      * @param variances The feature variances.
      * @return A sampled feature list.
      */
@@ -215,7 +223,7 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
 
         for (int i = 0; i < names.length; i++) {
             double value = (rng.nextGaussian() * Math.sqrt(variances[i])) + means[i];
-            features.add(new Feature(names[i],value));
+            features.add(new Feature(names[i], value));
         }
 
         return features;
@@ -227,19 +235,20 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
      * Or equivalently sampling all the features from a spherical Gaussian.
      * <p>
      * Can accept at most 26 features.
-     * @param numSamples The size of the output dataset.
-     * @param expectedMeans The means of the expected event features.
-     * @param expectedVariances The variances of the expected event features.
-     * @param anomalousMeans The means of the anomalous event features.
+     *
+     * @param numSamples         The size of the output dataset.
+     * @param expectedMeans      The means of the expected event features.
+     * @param expectedVariances  The variances of the expected event features.
+     * @param anomalousMeans     The means of the anomalous event features.
      * @param anomalousVariances The variances of the anomalous event features.
-     * @param fractionAnomalous The fraction of anomalies to generate.
-     * @param seed The rng seed to use.
+     * @param fractionAnomalous  The fraction of anomalies to generate.
+     * @param seed               The rng seed to use.
      * @return A dataset drawn from a gaussian.
      */
     public static Dataset<Event> generateDataset(int numSamples, double[] expectedMeans, double[] expectedVariances,
                                                  double[] anomalousMeans, double[] anomalousVariances,
                                                  float fractionAnomalous, long seed) {
-        GaussianAnomalyDataSource source = new GaussianAnomalyDataSource(numSamples,expectedMeans,expectedVariances,anomalousMeans,anomalousVariances,fractionAnomalous,seed);
+        GaussianAnomalyDataSource source = new GaussianAnomalyDataSource(numSamples, expectedMeans, expectedVariances, anomalousMeans, anomalousVariances, fractionAnomalous, seed);
         return new MutableDataset<>(source);
     }
 
@@ -251,14 +260,16 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
 
         /**
          * Constructs a provenance from the host data source.
+         *
          * @param host The host to read.
          */
         GaussianAnomalyDataSourceProvenance(GaussianAnomalyDataSource host) {
-            super(host,"DataSource");
+            super(host, "DataSource");
         }
 
         /**
          * Constructs a provenance from the marshalled form.
+         *
          * @param map The map of field values.
          */
         public GaussianAnomalyDataSourceProvenance(Map<String, Provenance> map) {
@@ -271,15 +282,16 @@ public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> 
 
         /**
          * Extracts the relevant provenance information fields for this class.
+         *
          * @param map The map to remove values from.
          * @return The extracted information.
          */
-        protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
-            Map<String,Provenance> configuredParameters = new HashMap<>(map);
-            String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, GaussianAnomalyDataSourceProvenance.class.getSimpleName()).getValue();
-            String hostTypeStringName = ObjectProvenance.checkAndExtractProvenance(configuredParameters,HOST_SHORT_NAME, StringProvenance.class, GaussianAnomalyDataSourceProvenance.class.getSimpleName()).getValue();
+        protected static ExtractedInfo extractProvenanceInfo(Map<String, Provenance> map) {
+            Map<String, Provenance> configuredParameters = new HashMap<>(map);
+            String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters, CLASS_NAME, StringProvenance.class, GaussianAnomalyDataSourceProvenance.class.getSimpleName()).getValue();
+            String hostTypeStringName = ObjectProvenance.checkAndExtractProvenance(configuredParameters, HOST_SHORT_NAME, StringProvenance.class, GaussianAnomalyDataSourceProvenance.class.getSimpleName()).getValue();
 
-            return new ExtractedInfo(className,hostTypeStringName,configuredParameters, Collections.emptyMap());
+            return new ExtractedInfo(className, hostTypeStringName, configuredParameters, Collections.emptyMap());
         }
     }
 }
