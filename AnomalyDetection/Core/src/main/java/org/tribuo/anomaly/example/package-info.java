@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides a anomaly data generator used for testing implementations.
+ * Provides anomaly data generators used for demos and testing implementations.
  */
 package org.tribuo.anomaly.example;

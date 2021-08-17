@@ -43,6 +43,10 @@ import static org.tribuo.anomaly.AnomalyFactory.EXPECTED_EVENT;
  * Also has a dataset generator which returns a training dataset
  * with no anomalies sampled from a single gaussian, and a test dataset
  * sampled from two gaussians where the second is labelled anomalous.
+ * <p>
+ * For most use cases that are not unit tests, it is recommended to use
+ * {@link GaussianAnomalyDataSource} which has similar functionality but
+ * is more flexible and configurable.
  */
 public abstract class AnomalyDataGenerator {
 

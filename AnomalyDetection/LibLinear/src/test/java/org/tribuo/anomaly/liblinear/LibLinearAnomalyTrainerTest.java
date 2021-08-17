@@ -16,13 +16,14 @@
 
 package org.tribuo.anomaly.liblinear;
 
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Test;
+import org.tribuo.DataSource;
 import org.tribuo.Dataset;
+import org.tribuo.MutableDataset;
 import org.tribuo.anomaly.Event;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluation;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluator;
-import org.tribuo.anomaly.example.AnomalyDataGenerator;
+import org.tribuo.anomaly.example.GaussianAnomalyDataSource;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.test.Helpers;
 
@@ -35,22 +36,26 @@ public class LibLinearAnomalyTrainerTest {
 
     @Test
     public void gaussianDataTest() {
-        Pair<Dataset<Event>,Dataset<Event>> pair = AnomalyDataGenerator.gaussianAnomaly(1000,0.2);
+        DataSource<Event> trainSource = new GaussianAnomalyDataSource(1000, 0.0f, 1);
+        DataSource<Event> testSource = new GaussianAnomalyDataSource(1000, 0.2f, 1);
+
+        Dataset<Event> trainData = new MutableDataset<>(trainSource);
+        Dataset<Event> testData = new MutableDataset<>(testSource);
 
         LinearAnomalyType type = new LinearAnomalyType(LinearAnomalyType.LinearType.ONECLASS_SVM);
 
         LibLinearAnomalyTrainer trainer = new LibLinearAnomalyTrainer(type,1.0,1000,0.01,0.05);
 
-        LibLinearModel<Event> model = trainer.train(pair.getA());
+        LibLinearModel<Event> model = trainer.train(trainData);
 
         AnomalyEvaluator evaluator = new AnomalyEvaluator();
 
-        AnomalyEvaluation evaluation = evaluator.evaluate(model,pair.getB());
+        AnomalyEvaluation evaluation = evaluator.evaluate(model,testData);
 
-        assertEquals(200,evaluation.getTruePositives());
-        assertEquals(764,evaluation.getTrueNegatives());
+        assertEquals(196,evaluation.getTruePositives());
+        assertEquals(761,evaluation.getTrueNegatives());
         assertEquals(0,evaluation.getFalseNegatives());
-        assertEquals(36,evaluation.getFalsePositives());
+        assertEquals(43,evaluation.getFalsePositives());
 
         String confusion = evaluation.confusionString();
         String output = evaluation.toString();
