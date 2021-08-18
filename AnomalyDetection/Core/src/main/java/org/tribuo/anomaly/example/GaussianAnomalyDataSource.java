@@ -104,7 +104,6 @@ public final class GaussianAnomalyDataSource implements ConfigurableDataSource<E
      * @param numSamples        The size of the output dataset.
      * @param fractionAnomalous The fraction of anomalies in the generated data.
      * @param seed              The rng seed to use.
-     * @return Examples drawn from a gaussian.
      */
     public GaussianAnomalyDataSource(int numSamples, float fractionAnomalous, long seed) {
         this.numSamples = numSamples;
@@ -127,7 +126,6 @@ public final class GaussianAnomalyDataSource implements ConfigurableDataSource<E
      * @param anomalousVariances The variances of the anomalous event features.
      * @param fractionAnomalous  The fraction of anomalies to generate.
      * @param seed               The rng seed to use.
-     * @return Examples drawn from a gaussian.
      */
     public GaussianAnomalyDataSource(int numSamples, double[] expectedMeans, double[] expectedVariances,
                                      double[] anomalousMeans, double[] anomalousVariances,
@@ -171,6 +169,14 @@ public final class GaussianAnomalyDataSource implements ConfigurableDataSource<E
                     "of anomalous features as expected features. anomalousMeans.length = " + anomalousMeans.length +
                     ", expectedMeans.length = " + expectedMeans.length);
 
+        }
+        for (int i = 0; i < anomalousVariances.length; i++) {
+            if (anomalousVariances[i] < 1e-10) {
+                throw new PropertyException("","anomalousVariances", "Variances must be positive, found " + Arrays.toString(anomalousVariances));
+            }
+            if (expectedVariances[i] < 1e-10) {
+                throw new PropertyException("","expectedVariances", "Variances must be positive, found " + Arrays.toString(expectedVariances));
+            }
         }
         String[] featureNames = Arrays.copyOf(allFeatureNames, expectedMeans.length);
         // We use java.util.Random here because SplittableRandom doesn't have nextGaussian yet.
