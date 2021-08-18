@@ -53,8 +53,14 @@ import java.util.Random;
  * <p>
  * By default the Gaussians are 2-dimensional with the following means and variances:
  * <ul>
- *     <li>Mean = (), variance = ()</li>
+ *     <li>N([0.0,0.0], [[1.0,0.0],[0.0,1.0]])</li>
+ *     <li>N([5.0,5.0], [[1.0,0.0],[0.0,1.0]])</li>
+ *     <li>N([2.5,2.5], [[1.0,0.5],[0.5,1.0]])</li>
+ *     <li>N([10.0,0.0], [[0.1,0.0],[0.0,0.1]])</li>
+ *     <li>N([-1.0,0.0], [[1.0,0.0],[0.0,0.1]])</li>
  * </ul>
+ * and the mixing distribution is:
+ * [0.1, 0.35, 0.05, 0.25, 0.25].
  */
 public final class GaussianClusterDataSource implements ConfigurableDataSource<ClusterID> {
 
@@ -68,7 +74,7 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
     private int numSamples;
 
     @Config(description = "The probability of sampling from each Gaussian, must sum to 1.0.")
-    private double[] mixingPMF = new double[]{0.1, 0.35, 0.05, 0.25, 0.25};
+    private double[] mixingDistribution = new double[]{0.1, 0.35, 0.05, 0.25, 0.25};
 
     @Config(description = "The mean of the first Gaussian.")
     private double[] firstMean = new double[]{0.0, 0.0};
@@ -113,10 +119,20 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
 
     /**
      * Generates a clustering dataset drawn from a mixture of 5 Gaussians.
+     * <p>
+     * The default Gaussians are:
+     * <ul>
+     *     <li>N([0.0,0.0], [[1.0,0.0],[0.0,1.0]])</li>
+     *     <li>N([5.0,5.0], [[1.0,0.0],[0.0,1.0]])</li>
+     *     <li>N([2.5,2.5], [[1.0,0.5],[0.5,1.0]])</li>
+     *     <li>N([10.0,0.0], [[0.1,0.0],[0.0,0.1]])</li>
+     *     <li>N([-1.0,0.0], [[1.0,0.0],[0.0,0.1]])</li>
+     * </ul>
+     * and the mixing distribution is:
+     * [0.1, 0.35, 0.05, 0.25, 0.25].
      *
      * @param numSamples The size of the output dataset.
      * @param seed       The rng seed to use.
-     * @return Examples drawn from a mixture of Gaussians.
      */
     public GaussianClusterDataSource(int numSamples, long seed) {
         this.numSamples = numSamples;
@@ -129,21 +145,21 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
      * <p>
      * The Gaussians can be at most 4 dimensional, resulting in 4 features.
      *
-     * @param numSamples     The size of the output dataset.
-     * @param mixingPMF      The probability of each cluster.
-     * @param firstMean      The mean of the first Gaussian.
-     * @param firstVariance  The variance of the first Gaussian, linearised from a row-major matrix.
-     * @param secondMean     The mean of the second Gaussian.
-     * @param secondVariance The variance of the second Gaussian, linearised from a row-major matrix.
-     * @param thirdMean      The mean of the third Gaussian.
-     * @param thirdVariance  The variance of the third Gaussian, linearised from a row-major matrix.
-     * @param fourthMean     The mean of the fourth Gaussian.
-     * @param fourthVariance The variance of the fourth Gaussian, linearised from a row-major matrix.
-     * @param fifthMean      The mean of the fifth Gaussian.
-     * @param fifthVariance  The variance of the fifth Gaussian, linearised from a row-major matrix.
-     * @param seed           The rng seed to use.
+     * @param numSamples         The size of the output dataset.
+     * @param mixingDistribution The probability of each cluster.
+     * @param firstMean          The mean of the first Gaussian.
+     * @param firstVariance      The variance of the first Gaussian, linearised from a row-major matrix.
+     * @param secondMean         The mean of the second Gaussian.
+     * @param secondVariance     The variance of the second Gaussian, linearised from a row-major matrix.
+     * @param thirdMean          The mean of the third Gaussian.
+     * @param thirdVariance      The variance of the third Gaussian, linearised from a row-major matrix.
+     * @param fourthMean         The mean of the fourth Gaussian.
+     * @param fourthVariance     The variance of the fourth Gaussian, linearised from a row-major matrix.
+     * @param fifthMean          The mean of the fifth Gaussian.
+     * @param fifthVariance      The variance of the fifth Gaussian, linearised from a row-major matrix.
+     * @param seed               The rng seed to use.
      */
-    public GaussianClusterDataSource(int numSamples, double[] mixingPMF,
+    public GaussianClusterDataSource(int numSamples, double[] mixingDistribution,
                                      double[] firstMean, double[] firstVariance,
                                      double[] secondMean, double[] secondVariance,
                                      double[] thirdMean, double[] thirdVariance,
@@ -151,7 +167,7 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
                                      double[] fifthMean, double[] fifthVariance,
                                      long seed) {
         this.numSamples = numSamples;
-        this.mixingPMF = mixingPMF;
+        this.mixingDistribution = mixingDistribution;
         this.firstMean = firstMean;
         this.firstVariance = firstVariance;
         this.secondMean = secondMean;
@@ -174,11 +190,11 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
         if (numSamples < 1) {
             throw new PropertyException("", "numSamples", "numSamples must be positive, found " + numSamples);
         }
-        if (mixingPMF.length != 5) {
-            throw new PropertyException("", "mixingPMF", "mixingPMF must have 5 elements, found " + mixingPMF.length);
+        if (mixingDistribution.length != 5) {
+            throw new PropertyException("", "mixingDistribution", "mixingDistribution must have 5 elements, found " + mixingDistribution.length);
         }
-        if (Math.abs(Util.sum(mixingPMF) - 1.0) > 1e-10) {
-            throw new PropertyException("", "mixingPMF", "mixingPMF must sum to 1.0, found " + Util.sum(mixingPMF));
+        if (Math.abs(Util.sum(mixingDistribution) - 1.0) > 1e-10) {
+            throw new PropertyException("", "mixingDistribution", "mixingDistribution must sum to 1.0, found " + Util.sum(mixingDistribution));
         }
         if ((firstMean.length > allFeatureNames.length) || (firstMean.length == 0)) {
             throw new PropertyException("", "firstMean", "Must have 1-4 features, found " + firstMean.length);
@@ -211,23 +227,28 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
         if (fifthVariance.length != firstVariance.length) {
             throw new PropertyException("", "fifthVariance", "fifthVariance is invalid, expected " + covarianceSize + ", found " + fifthVariance.length);
         }
-        double[] mixingCDF = Util.generateCDF(mixingPMF);
+        for (int i = 0; i < mixingDistribution.length; i++) {
+            if (mixingDistribution[i] < 0) {
+                throw new PropertyException("", "mixingDistribution", "Probability values in the mixing distribution must be non-negative, found " + Arrays.toString(mixingDistribution));
+            }
+        }
+        double[] mixingCDF = Util.generateCDF(mixingDistribution);
         String[] featureNames = Arrays.copyOf(allFeatureNames, firstMean.length);
         Random rng = new Random(seed);
         MultivariateNormalDistribution first = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                firstMean, reshape(firstVariance)
+                firstMean, reshapeAndValidate(firstVariance, "firstVariance")
         );
         MultivariateNormalDistribution second = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                secondMean, reshape(secondVariance)
+                secondMean, reshapeAndValidate(secondVariance, "secondVariance")
         );
         MultivariateNormalDistribution third = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                thirdMean, reshape(thirdVariance)
+                thirdMean, reshapeAndValidate(thirdVariance, "thirdVariance")
         );
         MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                fourthMean, reshape(fourthVariance)
+                fourthMean, reshapeAndValidate(fourthVariance, "fourthVariance")
         );
         MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                fifthMean, reshape(fifthVariance)
+                fifthMean, reshapeAndValidate(fifthVariance, "fifthVariance")
         );
         MultivariateNormalDistribution[] Gaussians = new MultivariateNormalDistribution[]{first, second, third, fourth, fifth};
         List<Example<ClusterID>> examples = new ArrayList<>(numSamples);
@@ -255,18 +276,21 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
     }
 
     /**
-     * Reshapes the vector into a matrix.
+     * Reshapes the vector into a covariance matrix, validating that it's non-negative.
      *
      * @param vector The vector.
      * @return The matrix assuming the vector is linearised in row-major order.
      */
-    private static double[][] reshape(double[] vector) {
+    private static double[][] reshapeAndValidate(double[] vector, String fieldName) {
         int length = (int) Math.sqrt(vector.length);
         if (length * length != vector.length) {
             throw new IllegalArgumentException("The vector does not represent a square matrix, found " + vector.length + " elements, which is not square.");
         }
         double[][] matrix = new double[length][length];
         for (int i = 0; i < vector.length; i++) {
+            if (vector[i] < 0) {
+                throw new PropertyException("", fieldName, fieldName + " must have a non-negative covariance matrix, found " + Arrays.toString(vector));
+            }
             matrix[i / length][i % length] = vector[i];
         }
         return matrix;
@@ -277,29 +301,29 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
      * <p>
      * The Gaussians can be at most 4 dimensional, resulting in 4 features.
      *
-     * @param numSamples     The size of the output dataset.
-     * @param mixingPMF      The probability of each cluster.
-     * @param firstMean      The mean of the first Gaussian.
-     * @param firstVariance  The variance of the first Gaussian, linearised from a row-major matrix.
-     * @param secondMean     The mean of the second Gaussian.
-     * @param secondVariance The variance of the second Gaussian, linearised from a row-major matrix.
-     * @param thirdMean      The mean of the third Gaussian.
-     * @param thirdVariance  The variance of the third Gaussian, linearised from a row-major matrix.
-     * @param fourthMean     The mean of the fourth Gaussian.
-     * @param fourthVariance The variance of the fourth Gaussian, linearised from a row-major matrix.
-     * @param fifthMean      The mean of the fifth Gaussian.
-     * @param fifthVariance  The variance of the fifth Gaussian, linearised from a row-major matrix.
-     * @param seed           The rng seed to use.
+     * @param numSamples         The size of the output dataset.
+     * @param mixingDistribution The probability of each cluster.
+     * @param firstMean          The mean of the first Gaussian.
+     * @param firstVariance      The variance of the first Gaussian, linearised from a row-major matrix.
+     * @param secondMean         The mean of the second Gaussian.
+     * @param secondVariance     The variance of the second Gaussian, linearised from a row-major matrix.
+     * @param thirdMean          The mean of the third Gaussian.
+     * @param thirdVariance      The variance of the third Gaussian, linearised from a row-major matrix.
+     * @param fourthMean         The mean of the fourth Gaussian.
+     * @param fourthVariance     The variance of the fourth Gaussian, linearised from a row-major matrix.
+     * @param fifthMean          The mean of the fifth Gaussian.
+     * @param fifthVariance      The variance of the fifth Gaussian, linearised from a row-major matrix.
+     * @param seed               The rng seed to use.
      * @return A dataset drawn from a mixture of Gaussians.
      */
-    public static Dataset<ClusterID> generateDataset(int numSamples, double[] mixingPMF,
+    public static Dataset<ClusterID> generateDataset(int numSamples, double[] mixingDistribution,
                                                      double[] firstMean, double[] firstVariance,
                                                      double[] secondMean, double[] secondVariance,
                                                      double[] thirdMean, double[] thirdVariance,
                                                      double[] fourthMean, double[] fourthVariance,
                                                      double[] fifthMean, double[] fifthVariance,
                                                      long seed) {
-        GaussianClusterDataSource source = new GaussianClusterDataSource(numSamples, mixingPMF,
+        GaussianClusterDataSource source = new GaussianClusterDataSource(numSamples, mixingDistribution,
                 firstMean, firstVariance, secondMean, secondVariance, thirdMean, thirdVariance, fourthMean, fourthVariance,
                 fifthMean, fifthVariance, seed);
         return new MutableDataset<>(source);
