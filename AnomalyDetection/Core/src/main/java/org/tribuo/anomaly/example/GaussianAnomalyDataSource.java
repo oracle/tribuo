@@ -255,7 +255,7 @@ public final class GaussianAnomalyDataSource implements ConfigurableDataSource<E
     /**
      * Provenance for {@link GaussianAnomalyDataSource}.
      */
-    public static class GaussianAnomalyDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
+    public static final class GaussianAnomalyDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
         /**
