@@ -15,6 +15,6 @@
  */
 
 /**
- * Provides a clustering data generator used for testing implementations.
+ * Provides clustering data generators used for demos and testing implementations.
  */
 package org.tribuo.clustering.example;
