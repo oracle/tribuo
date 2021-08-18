@@ -58,7 +58,7 @@ import static org.tribuo.anomaly.AnomalyFactory.EXPECTED_EVENT;
  * The anomalous means are (-2.0, 2.0, -2.0, 2.0, -10.0), with variances (1.0, 0.5, 0.25, 1.0, 0.1)
  * which are the same as the default expected variances.
  */
-public class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> {
+public final class GaussianAnomalyDataSource implements ConfigurableDataSource<Event> {
 
     private static final AnomalyFactory factory = new AnomalyFactory();
 
