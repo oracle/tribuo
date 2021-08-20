@@ -16,25 +16,46 @@
 
 package org.tribuo.regression.slm;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.DataSource;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.MutableDataset;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
+import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.RegressorTransformer;
+import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
+import org.tribuo.regression.example.NonlinearGaussianDataSource;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 public class TestSLM {
+    private static final Logger logger = Logger.getLogger(TestSLM.class.getName());
 
     private static final SLMTrainer SFS = new SLMTrainer(false,-1);
     private static final SLMTrainer SFSN = new SLMTrainer(false,-1);
@@ -51,7 +72,9 @@ public class TestSLM {
     }
 
     // This is a bit contrived, but it makes the trainer that failed appear in the stack trace.
-    public static Model<Regressor> testTrainer(Trainer<Regressor> trainer, Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
+    public static Model<Regressor> testTrainer(Trainer<Regressor> trainer,
+                                               Pair<Dataset<Regressor>,Dataset<Regressor>> p,
+                                               boolean testONNX) {
         Model<Regressor> m = trainer.train(p.getA());
         RegressionEvaluator e = new RegressionEvaluator();
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
@@ -61,72 +84,133 @@ public class TestSLM {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        if (testONNX) {
+            try {
+                SparseLinearModel slm = (SparseLinearModel) m;
+                // Write out model
+                Path onnxFile = Files.createTempFile("tribuo-slm-test", ".onnx");
+                slm.saveONNXModel("org.tribuo.classification.sgd.linear.test", 1, onnxFile);
+
+                // Prep mappings
+                Map<String, Integer> featureMapping = new HashMap<>();
+                for (VariableInfo f : slm.getFeatureIDMap()) {
+                    VariableIDInfo id = (VariableIDInfo) f;
+                    featureMapping.put(id.getName(), id.getID());
+                }
+                Map<Regressor, Integer> outputMapping = new HashMap<>();
+                for (Pair<Integer, Regressor> l : slm.getOutputIDInfo()) {
+                    outputMapping.put(l.getB(), l.getA());
+                }
+
+                String arch = System.getProperty("os.arch");
+                if (arch.equals("amd64") || arch.equals("X86_64")) {
+                    // Initialise the OrtEnvironment to load the native library
+                    // (as OrtSession.SessionOptions doesn't trigger the static initializer).
+                    OrtEnvironment env = OrtEnvironment.getEnvironment();
+                    env.close();
+                    // Load in via ORT
+                    ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(), featureMapping, outputMapping, new DenseTransformer(), new RegressorTransformer(), new OrtSession.SessionOptions(), onnxFile, "input");
+
+                    // Generate predictions
+                    List<Prediction<Regressor>> nativePredictions = slm.predict(p.getB());
+                    List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
+
+                    // Assert the predictions are identical
+                    for (int i = 0; i < nativePredictions.size(); i++) {
+                        Prediction<Regressor> tribuo = nativePredictions.get(i);
+                        Prediction<Regressor> external = onnxPredictions.get(i);
+                        assertArrayEquals(tribuo.getOutput().getNames(), external.getOutput().getNames());
+                        assertArrayEquals(tribuo.getOutput().getValues(), external.getOutput().getValues(), 1e-6);
+                    }
+                    onnxModel.close();
+                } else {
+                    logger.warning("ORT based tests only supported on x86_64, found " + arch);
+                }
+
+                onnxFile.toFile().delete();
+            } catch (IOException | OrtException ex) {
+                fail(ex);
+            }
+        }
         return m;
     }
 
-    public static Model<Regressor> testSFS(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        return testTrainer(SFS,p);
+    public static Model<Regressor> testSFS(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
+        return testTrainer(SFS,p,testONNX);
     }
 
-    public static Model<Regressor> testSFSN(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        return testTrainer(SFSN,p);
+    public static Model<Regressor> testSFSN(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
+        return testTrainer(SFSN,p,testONNX);
     }
 
-    public static Model<Regressor> testLARS(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        return testTrainer(LARS,p);
+    public static Model<Regressor> testLARS(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
+        return testTrainer(LARS,p,testONNX);
     }
 
-    public static Model<Regressor> testLASSO(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        return testTrainer(LARS_LASSO,p);
+    public static Model<Regressor> testLASSO(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
+        return testTrainer(LARS_LASSO,p,testONNX);
     }
 
-    public static Model<Regressor> testElasticNet(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        return testTrainer(ELASTIC_NET,p);
+    public static Model<Regressor> testElasticNet(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
+        return testTrainer(ELASTIC_NET,p,testONNX);
     }
 
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        Model<Regressor> sfs = testSFS(p);
+        Model<Regressor> sfs = testSFS(p,false);
         Helpers.testModelSerialization(sfs,Regressor.class);
-        Model<Regressor> sfsn = testSFSN(p);
+        Model<Regressor> sfsn = testSFSN(p,false);
         Helpers.testModelSerialization(sfsn,Regressor.class);
-        Model<Regressor> lars = testLARS(p);
+        Model<Regressor> lars = testLARS(p,false);
         Helpers.testModelSerialization(lars,Regressor.class);
-        Model<Regressor> lasso = testLASSO(p);
+        Model<Regressor> lasso = testLASSO(p,false);
         Helpers.testModelSerialization(lasso,Regressor.class);
-        Model<Regressor> elastic = testElasticNet(p);
+        Model<Regressor> elastic = testElasticNet(p,false);
         Helpers.testModelSerialization(elastic,Regressor.class);
     }
 
     @Test
     public void testSparseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
-        testSFS(p);
-        testSFSN(p);
-        testLARS(p);
-        testLASSO(p);
-        testElasticNet(p);
+        testSFS(p,false);
+        testSFSN(p,false);
+        testLARS(p,false);
+        testLASSO(p,false);
+        testElasticNet(p,false);
     }
 
     @Test
     public void testMultiDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
-        testSFS(p);
-        testSFSN(p);
-        testLARS(p);
-        testLASSO(p);
-        testElasticNet(p);
+        testSFS(p,true);
+        testSFSN(p,true);
+        testLARS(p,true);
+        testLASSO(p,true);
+        testElasticNet(p,true);
     }
 
     @Test
     public void testMultiSparseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimSparseTrainTest();
-        testSFS(p);
-        testSFSN(p);
-        testLARS(p);
-        testLASSO(p);
-        testElasticNet(p);
+        testSFS(p,false);
+        testSFSN(p,false);
+        testLARS(p,false);
+        testLASSO(p,false);
+        testElasticNet(p,false);
+    }
+
+    @Test
+    public void testNonlinearData() {
+        DataSource<Regressor> trainSource = new NonlinearGaussianDataSource(200,new float[]{1.0f,2.0f,-3.0f,4.0f},1.0f,0.1f,-5.0f,5.0f,-1.0f,1.0f,42);
+        DataSource<Regressor> testSource = new NonlinearGaussianDataSource(200,new float[]{1.0f,2.0f,-3.0f,4.0f},1.0f,0.1f,-5.0f,5.0f,-1.0f,1.0f,42*42);
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = new Pair<>(new MutableDataset<>(trainSource),new MutableDataset<>(testSource));
+        testSFS(p,true);
+        testSFSN(p,true);
+        testLARS(p,true);
+        Model<Regressor> lasso = testLASSO(p,true);
+        Helpers.testModelSerialization(lasso,Regressor.class);
+        testElasticNet(p,true);
     }
 
 }

@@ -17,6 +17,11 @@
 package org.tribuo.onnx;
 
 import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.ByteString;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 
 /**
  * Helper functions for building ONNX protos.
@@ -44,4 +49,29 @@ public abstract class ONNXUtils {
 
         return builder.build();
     }
+
+    /**
+     * Builds a TensorProto containing the array.
+     * <p>
+     * Downcasts the doubles into floats as ONNX's fp64 support is poor compared to fp32.
+     * @param context The naming context.
+     * @param name The base name for the proto.
+     * @param parameters The array to store in the proto.
+     * @return A TensorProto containing the array as floats.
+     */
+    public static OnnxMl.TensorProto arrayBuilder(ONNXContext context, String name, double[] parameters) {
+        OnnxMl.TensorProto.Builder arrBuilder = OnnxMl.TensorProto.newBuilder();
+        arrBuilder.setName(context.generateUniqueName(name));
+        arrBuilder.addDims(parameters.length);
+        arrBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(parameters.length*4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        for (int i = 0; i < parameters.length; i++) {
+            floatBuffer.put((float)parameters.length);
+        }
+        floatBuffer.rewind();
+        arrBuilder.setRawData(ByteString.copyFrom(buffer));
+        return arrBuilder.build();
+    }
+
 }
