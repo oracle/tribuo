@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,63 @@
 
 package org.tribuo.regression;
 
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class RegressorTest {
+
+    /**
+     * Tests that the id assingment uses lexicographic ordering unless overridden.
+     */
+    @Test
+    public void testIdAssignment() {
+        RegressionFactory factory = new RegressionFactory();
+
+        MutableRegressionInfo info = (MutableRegressionInfo) factory.generateInfo();
+
+        String[] dimNames = new String[]{
+                "A","B","C","dim0","dim1","dim2","dim3","dim4","dim5"
+        };
+
+        double[] dimValues = new double[]{
+                0,1,2,3,4,5,6,7,8
+        };
+
+        Regressor r = new Regressor(dimNames,dimValues);
+
+        info.observe(r);
+
+        ImmutableRegressionInfo immutableInfo = (ImmutableRegressionInfo) info.generateImmutableOutputInfo();
+
+        for (Pair<Integer,Regressor> p : immutableInfo) {
+            assertTrue(p.getB() instanceof Regressor.DimensionTuple);
+            assertEquals(dimNames[p.getA()],((Regressor.DimensionTuple)p.getB()).getName());
+        }
+
+        assertTrue(immutableInfo.validateMapping());
+
+        Map<Regressor,Integer> mapping = new HashMap<>();
+        mapping.put(new Regressor.DimensionTuple(dimNames[0],dimValues[0]),8);
+        mapping.put(new Regressor.DimensionTuple(dimNames[1],dimValues[1]),0);
+        mapping.put(new Regressor.DimensionTuple(dimNames[2],dimValues[2]),7);
+        mapping.put(new Regressor.DimensionTuple(dimNames[3],dimValues[3]),1);
+        mapping.put(new Regressor.DimensionTuple(dimNames[4],dimValues[4]),6);
+        mapping.put(new Regressor.DimensionTuple(dimNames[5],dimValues[5]),2);
+        mapping.put(new Regressor.DimensionTuple(dimNames[6],dimValues[6]),5);
+        mapping.put(new Regressor.DimensionTuple(dimNames[7],dimValues[7]),3);
+        mapping.put(new Regressor.DimensionTuple(dimNames[8],dimValues[8]),4);
+
+        ImmutableRegressionInfo mappedInfo = new ImmutableRegressionInfo(info,mapping);
+
+        assertFalse(mappedInfo.validateMapping());
+    }
 
     @Test
     public void getsCorrectSerializableForm() {
