@@ -122,7 +122,7 @@ public class TestSGDLinear {
         }
 
         String arch = System.getProperty("os.arch");
-        if (arch.equals("amd64") || arch.equals("X86_64")) {
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
             // Initialise the OrtEnvironment to load the native library
             // (as OrtSession.SessionOptions doesn't trigger the static initializer).
             OrtEnvironment env = OrtEnvironment.getEnvironment();
