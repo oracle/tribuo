@@ -67,7 +67,7 @@ public abstract class ONNXUtils {
         ByteBuffer buffer = ByteBuffer.allocate(parameters.length*4).order(ByteOrder.LITTLE_ENDIAN);
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
         for (int i = 0; i < parameters.length; i++) {
-            floatBuffer.put((float)parameters.length);
+            floatBuffer.put((float)parameters[i]);
         }
         floatBuffer.rewind();
         arrBuilder.setRawData(ByteString.copyFrom(buffer));
