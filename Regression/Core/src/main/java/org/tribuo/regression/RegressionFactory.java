@@ -134,11 +134,26 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
         // Validate inputs are dense
         OutputFactory.validateMapping(mapping);
 
+        // Coalesce all the mappings into a single Regressor.
+        String[] names = new String[mapping.size()];
+        double[] values = new double[mapping.size()];
+        double[] variances = new double[mapping.size()];
+        int i = 0;
+        for (Map.Entry<Regressor,Integer> m : mapping.entrySet()) {
+            Regressor r = m.getKey();
+            if (r.size() != 1) {
+                throw new IllegalArgumentException("Expected to find a DimensionTuple, found multiple dimensions for a single integer. Found = " + r);
+            }
+            names[i] = r.getNames()[0];
+            values[i] = r.getValues()[0];
+            variances[i] = r.getVariances()[0];
+            i++;
+        }
+        Regressor newRegressor = new Regressor(names,values,variances);
+
         MutableRegressionInfo info = new MutableRegressionInfo();
 
-        for (Map.Entry<Regressor,Integer> e : mapping.entrySet()) {
-            info.observe(e.getKey());
-        }
+        info.observe(newRegressor);
 
         return new ImmutableRegressionInfo(info,mapping);
     }
