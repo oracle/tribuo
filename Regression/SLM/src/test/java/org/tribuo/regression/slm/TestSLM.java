@@ -103,7 +103,7 @@ public class TestSLM {
                 }
 
                 String arch = System.getProperty("os.arch");
-                if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+                //if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
                     // Initialise the OrtEnvironment to load the native library
                     // (as OrtSession.SessionOptions doesn't trigger the static initializer).
                     OrtEnvironment env = OrtEnvironment.getEnvironment();
@@ -120,12 +120,12 @@ public class TestSLM {
                         Prediction<Regressor> tribuo = nativePredictions.get(i);
                         Prediction<Regressor> external = onnxPredictions.get(i);
                         assertArrayEquals(tribuo.getOutput().getNames(), external.getOutput().getNames());
-                        assertArrayEquals(tribuo.getOutput().getValues(), external.getOutput().getValues(), 1e-6);
+                        assertArrayEquals(tribuo.getOutput().getValues(), external.getOutput().getValues(), 1e-5);
                     }
                     onnxModel.close();
-                } else {
-                    logger.warning("ORT based tests only supported on x86_64, found " + arch);
-                }
+                //} else {
+                //    logger.warning("ORT based tests only supported on x86_64, found " + arch);
+                //}
 
                 onnxFile.toFile().delete();
             } catch (IOException | OrtException ex) {
