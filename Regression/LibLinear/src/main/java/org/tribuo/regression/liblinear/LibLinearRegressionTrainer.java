@@ -134,13 +134,11 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     @Override
     protected Pair<FeatureNode[][], double[][]> extractData(Dataset<Regressor> data, ImmutableOutputInfo<Regressor> outputInfo, ImmutableFeatureMap featureMap) {
         int numOutputs = outputInfo.size();
-        /*
         String[] dimensionNames = data.getExample(0).getOutput().getNames();
         int[] dimensionIds = new int[dimensionNames.length];
         for (int i = 0; i < dimensionNames.length; i++) {
             dimensionIds[i] = outputInfo.getID(new Regressor.DimensionTuple(dimensionNames[i],Double.NaN));
         }
-        */
         List<FeatureNode> featureCache = new ArrayList<>();
         FeatureNode[][] features = new FeatureNode[data.size()][];
         double[][] outputs = new double[numOutputs][data.size()];
@@ -148,7 +146,7 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
         for (Example<Regressor> e : data) {
             double[] curOutputs = e.getOutput().getValues();
             for (int j = 0; j < curOutputs.length; j++) {
-                outputs[j][i] = curOutputs[j];
+                outputs[dimensionIds[j]][i] = curOutputs[j];
             }
             features[i] = exampleToNodes(e,featureMap,featureCache);
             i++;
