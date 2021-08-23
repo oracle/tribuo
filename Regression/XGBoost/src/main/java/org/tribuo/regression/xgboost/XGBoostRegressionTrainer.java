@@ -238,6 +238,13 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
             // Use a null response extractor as we'll do the per dimension regression extraction later.
             DMatrixTuple<Regressor> trainingData = convertExamples(examples, featureMap, null);
 
+            // Map the names into ids
+            String[] dimensionNames = examples.getExample(0).getOutput().getNames();
+            int[] dimensionIds = new int[dimensionNames.length];
+            for (int i = 0; i < dimensionNames.length; i++) {
+                dimensionIds[i] = outputInfo.getID(new Regressor.DimensionTuple(dimensionNames[i],Double.NaN));
+            }
+
             // Extract the weights and the regression targets.
             float[][] outputs = new float[numOutputs][examples.size()];
             float[] weights = new float[examples.size()];
@@ -247,7 +254,7 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
                 double[] curOutputs = e.getOutput().getValues();
                 // Transpose them for easy training.
                 for (int j = 0; j < numOutputs; j++) {
-                    outputs[j][i] = (float) curOutputs[j];
+                    outputs[dimensionIds[j]][i] = (float) curOutputs[j];
                 }
                 i++;
             }

@@ -20,11 +20,13 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.regression.Regressor;
+import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestXGBoost {
@@ -50,6 +52,22 @@ public class TestXGBoost {
     public void testMultiSparseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimSparseTrainTest();
         testXGBoost(p);
+    }
+
+    @Test
+    public void testThreeDenseData() {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0);
+        Model<Regressor> xgbModel = t.train(p.getA());
+        RegressionEvaluation xgbEval = e.evaluate(xgbModel,p.getB());
+        double expectedDim1 = -0.6516752237887062;
+        double expectedDim2 = -0.6494935599069476;
+        double expectedDim3 = -1.4848856827996757;
+        double expectedAve = -0.9286848221651098;
+
+        assertEquals(expectedDim1,xgbEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,xgbEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,xgbEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,xgbEval.averageR2(),1e-6);
     }
 
     @Test

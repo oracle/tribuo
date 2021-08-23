@@ -27,9 +27,16 @@ import java.util.List;
 
 /**
  * Converts XGBoost outputs into {@link Regressor} {@link Prediction}s.
+ * <p>
+ * Instances of this class are stateless and thread-safe.
  */
 public final class XGBoostRegressionConverter implements XGBoostOutputConverter<Regressor> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Construct an XGBoostRegressionConverter.
+     */
+    public XGBoostRegressionConverter() {}
 
     @Override
     public boolean generatesProbabilities() {
