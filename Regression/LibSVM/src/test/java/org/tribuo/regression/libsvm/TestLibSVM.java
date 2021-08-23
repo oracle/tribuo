@@ -34,6 +34,7 @@ import org.tribuo.test.Helpers;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestLibSVM {
@@ -42,6 +43,7 @@ public class TestLibSVM {
     private static final LibSVMRegressionTrainer linear = new LibSVMRegressionTrainer(linearParams);
     private static final SVMParameters<Regressor> rbfParams = new SVMParameters<>(new SVMRegressionType(SVMMode.NU_SVR), KernelType.RBF);
     private static final LibSVMRegressionTrainer rbf = new LibSVMRegressionTrainer(rbfParams);
+    private static final RegressionEvaluator eval = new RegressionEvaluator();
 
     @BeforeAll
     public static void setup() {
@@ -50,7 +52,6 @@ public class TestLibSVM {
     }
 
     public static Model<Regressor> testLibSVM(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        RegressionEvaluator eval = new RegressionEvaluator();
         Model<Regressor> linearModel = linear.train(p.getA());
         RegressionEvaluation linearEval = eval.evaluate(linearModel,p.getB());
         Model<Regressor> rbfModel = rbf.train(p.getA());
@@ -93,6 +94,22 @@ public class TestLibSVM {
     public void testMultiDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
         testLibSVM(p);
+    }
+
+    @Test
+    public void testThreeDenseData() {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0);
+        Model<Regressor> rbfModel = rbf.train(p.getA());
+        RegressionEvaluation rbfEval = eval.evaluate(rbfModel,p.getB());
+        double expectedDim1 = 0.041236330466452364;
+        double expectedDim2 = 0.041236330466452364;
+        double expectedDim3 = -0.02183233692613551;
+        double expectedAve = 0.02021344133558974;
+
+        assertEquals(expectedDim1,rbfEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,rbfEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,rbfEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,rbfEval.averageR2(),1e-6);
     }
 
     @Test

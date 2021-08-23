@@ -177,14 +177,19 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
     @Override
     protected Pair<svm_node[][], double[][]> extractData(Dataset<Regressor> data, ImmutableOutputInfo<Regressor> outputInfo, ImmutableFeatureMap featureMap) {
         int numOutputs = outputInfo.size();
-        ArrayList<svm_node> buffer = new ArrayList<>();
+        String[] dimensionNames = data.getExample(0).getOutput().getNames();
+        int[] dimensionIds = new int[dimensionNames.length];
+        for (int i = 0; i < dimensionNames.length; i++) {
+            dimensionIds[i] = outputInfo.getID(new Regressor.DimensionTuple(dimensionNames[i],Double.NaN));
+        }
+        List<svm_node> buffer = new ArrayList<>();
         svm_node[][] features = new svm_node[data.size()][];
         double[][] outputs = new double[numOutputs][data.size()];
         int i = 0;
         for (Example<Regressor> e : data) {
             double[] curOutputs = e.getOutput().getValues();
             for (int j = 0; j < curOutputs.length; j++) {
-                outputs[j][i] = curOutputs[j];
+                outputs[dimensionIds[j]][i] = curOutputs[j];
             }
             features[i] = exampleToNodes(e,featureMap,buffer);
             i++;
