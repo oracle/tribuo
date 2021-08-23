@@ -16,21 +16,32 @@
 
 package org.tribuo.classification.sgd.linear;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.classification.sgd.objectives.Hinge;
+import org.tribuo.classification.sgd.objectives.LogMulticlass;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.dataset.DatasetView;
+import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.LabelTransformer;
+import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,6 +50,9 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -50,7 +64,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {
 
-    private static final LinearSGDTrainer t = new LinearSGDTrainer(new Hinge(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
+    private static final LinearSGDTrainer t = new LinearSGDTrainer(new LogMulticlass(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
 
     @BeforeAll
     public static void setup() {
@@ -61,8 +75,8 @@ public class TestSGDLinear {
         }
     }
 
-    public static Model<Label> testSGDLinear(Pair<Dataset<Label>,Dataset<Label>> p) {
-        Model<Label> m = t.train(p.getA());
+    public static LinearSGDModel testSGDLinear(Pair<Dataset<Label>,Dataset<Label>> p) {
+        LinearSGDModel m = (LinearSGDModel) t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
@@ -86,6 +100,56 @@ public class TestSGDLinear {
         assertEquals(0.0,evaluation.accuracy(new Label("Quux")));
         assertEquals(1.0,evaluation.recall(new Label("Foo")));
         assertEquals(1.0,evaluation.recall(new Label("Bar"))); // This is due to the random init of the classifier.
+    }
+
+    @Test
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        LinearSGDModel model = (LinearSGDModel) t.train(p.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");
+        model.saveONNXModel("org.tribuo.classification.sgd.linear.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Label, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Label> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        // Load in via ORT
+        OrtEnvironment env = OrtEnvironment.getEnvironment();
+        env.close();
+        ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(),featureMapping,outputMapping,new DenseTransformer(),new LabelTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
+
+        // Generate predictions
+        List<Prediction<Label>> nativePredictions = model.predict(p.getB());
+        List<Prediction<Label>> onnxPredictions = onnxModel.predict(p.getB());
+
+        // Assert the predictions are identical
+        for (int i = 0; i < nativePredictions.size(); i++) {
+            Prediction<Label> tribuo = nativePredictions.get(i);
+            Prediction<Label> external = onnxPredictions.get(i);
+            assertEquals(tribuo.getOutput().getLabel(),external.getOutput().getLabel());
+            assertEquals(tribuo.getOutput().getScore(),external.getOutput().getScore(),1e-6);
+            for (Map.Entry<String,Label> l : tribuo.getOutputScores().entrySet()) {
+                Label other = external.getOutputScores().get(l.getKey());
+                if (other == null) {
+                    fail("Failed to find label " + l.getKey() + " in ORT prediction.");
+                } else {
+                    assertEquals(l.getValue().getScore(),other.getScore(),1e-6);
+                }
+            }
+        }
+
+        onnxModel.close();
+
+        onnxFile.toFile().delete();
     }
 
     @Test

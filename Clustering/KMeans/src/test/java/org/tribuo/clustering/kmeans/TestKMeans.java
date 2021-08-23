@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@ package org.tribuo.clustering.kmeans;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
-import org.tribuo.Trainer;
+import org.tribuo.MutableDataset;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.evaluation.ClusteringEvaluation;
 import org.tribuo.clustering.evaluation.ClusteringEvaluator;
 import org.tribuo.clustering.example.ClusteringDataGenerator;
+import org.tribuo.clustering.example.GaussianClusterDataSource;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,7 +69,7 @@ public class TestKMeans {
     }
 
     public static void runEvaluation(KMeansTrainer trainer) {
-        Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(500, 1L);
+        Dataset<ClusterID> data = new MutableDataset<>(new GaussianClusterDataSource(500, 1L));
         Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
         ClusteringEvaluator eval = new ClusteringEvaluator();
 

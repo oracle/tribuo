@@ -81,6 +81,12 @@ public class MultiLabelDataGenerator {
         e.add(new Feature("C-TREE",1.0));
         dataset.add(e);
 
+        e = new ArrayExample<>(factory.generateOutput("MONKEY,TREE,PUZZLE"));
+        e.add(new Feature("A-MONKEY",0.5));
+        e.add(new Feature("B-PUZZLE",0.5));
+        e.add(new Feature("C-TREE",0.5));
+        dataset.add(e);
+
         return dataset;
     }
 

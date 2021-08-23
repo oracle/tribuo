@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 /**
- * Provides a multiclass data generator used for testing implementations. Not designed for synthesising data for real uses.
+ * Provides a multiclass data generator used for testing implementations, along with several synthetic data generators
+ * for 2d binary classification problems to be used in demos or tutorials.
  */
 package org.tribuo.classification.example;

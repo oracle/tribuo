@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 
 /**
- * Provides clustering data generators used for demos and testing implementations.
+ * Interfaces and utilities for exporting Tribuo {@link org.tribuo.Model}s in
+ * <a href="https://onnx.ai">ONNX</a> format.
  */
-package org.tribuo.clustering.example;
+package org.tribuo.onnx;
