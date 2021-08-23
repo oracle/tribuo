@@ -125,7 +125,7 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
             double[] variances = new double[models.size()];
             List<svm_model> unpickedModels = new ArrayList<>(models.size());
             for (int i = 0; i < models.size(); i++) {
-                ModelWithMeanVar curModel = (ModelWithMeanVar) models.get(0);
+                ModelWithMeanVar curModel = (ModelWithMeanVar) models.get(i);
                 means[i] = curModel.mean;
                 variances[i] = curModel.variance;
                 unpickedModels.add(curModel.innerModel);
