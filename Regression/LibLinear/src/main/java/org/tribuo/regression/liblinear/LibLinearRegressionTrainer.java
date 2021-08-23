@@ -71,15 +71,17 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     }
 
     /**
-     * Creates a trainer using the default values (1, 1000, 0.1, 0.1) and specified algorithm.
-     * @param trainerType The linear regression algorithm.
+     * Creates a trainer for a LibLinear regression model.
+     * <p>
+     * Uses the default values of cost = 1.0, maxIterations = 1000, terminationCriterion = 0.1, epsilon = 0.1.
+     * @param trainerType Loss function and optimisation method.
      */
     public LibLinearRegressionTrainer(LinearRegressionType trainerType) {
         this(trainerType,1.0,1000,0.1,0.1);
     }
 
     /**
-     * Creates a trainer for a LibLinear model
+     * Creates a trainer for a LibLinear regression model.
      * @param trainerType Loss function and optimisation method combination.
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param maxIterations The maximum number of dataset iterations.
@@ -96,7 +98,7 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     @Override
     public void postConfig() {
         super.postConfig();
-        if (!trainerType.isClassification()) {
+        if (!trainerType.isRegression()) {
             throw new IllegalArgumentException("Supplied classification or anomaly detection parameters to a regression linear model.");
         }
     }
