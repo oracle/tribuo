@@ -57,12 +57,6 @@
             <version>4.2.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-classification-core</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.tribuo</groupId>
@@ -89,6 +83,12 @@
             <artifactId>tribuo-classification-tree</artifactId>
             <version>4.2.0-SNAPSHOT</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-interop-core</artifactId>
+            <version>4.2.0-SNAPSHOT</version>
+            <scope>compile</scope>
         </dependency>
 
     </dependencies>
@@ -123,6 +123,14 @@
                             <Automatic-Module-Name>org.tribuo.reproducibility</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>16</source>
+                    <target>16</target>
                 </configuration>
             </plugin>
         </plugins>

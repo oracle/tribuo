@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.property.SimpleProperty;
-import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.MapProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;;
 import com.oracle.labs.mlrg.olcut.provenance.PrimitiveProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
@@ -24,11 +22,11 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
 import org.tribuo.evaluation.TrainTestSplitter;
+import org.tribuo.interop.ExternalTrainerProvenance;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -47,18 +45,22 @@ public class ReproUtil {
 
     private ReproUtil () {}
 
-    public ReproUtil(ModelProvenance provenance){
+    public ReproUtil(ModelProvenance provenance) throws Exception {
         this(provenance, null);
     }
 
-    public ReproUtil(Model originalModel){
+    public ReproUtil(Model originalModel) throws Exception {
         this(originalModel.getProvenance(), originalModel);
     }
 
-    private ReproUtil(ModelProvenance provenance, Model originalModel){
+    private ReproUtil(ModelProvenance provenance, Model originalModel) throws Exception {
+        if (provenance.getTrainerProvenance() instanceof ExternalTrainerProvenance){
+            throw new Exception("This version of this tool cannot reproduce external models.");
+        }
+
         this.modelProvenance = provenance;
 
-        // Load configurations from provenance so we can re-instantiate objects using the ConfigManager
+        // Load configurations from provenance so it can re-instantiate objects using the ConfigManager
         // Additionally allows us to change the values of certain configurable fields before re-instantiation
         List<ConfigurationData> provConfig = ProvenanceUtil.extractConfiguration(this.modelProvenance);
         this.CM = new ConfigurationManager();
@@ -354,46 +356,7 @@ public class ReproUtil {
             // ObjectNode into the report in this frame.
             else if(provMapA.get(key).getClass() == provMapB.get(key).getClass()){
 
-                // ObjectProvenance and MapProvenance will always return Iterator<Pair<String, Provenance>> so can
-                // be handled simply here through recursion of this method.
-                if (provMapA.get(key) instanceof ObjectProvenance || provMapA.get(key) instanceof MapProvenance){
-
-                    // There is no abstract provenance object that has the iterator method, so use reflection to determine
-                    // what the type of the provenance is (Dataset, Datasource, Trainer, etc), then get the iterator method
-                    Method iterator_A = null;
-                    Method iterator_B = null;
-                    try {
-                        iterator_A = provMapA.get(key).getClass().getMethod("iterator", (Class<?>[]) null);
-                        iterator_B = provMapB.get(key).getClass().getMethod("iterator", (Class<?>[]) null);
-                    } catch (NoSuchMethodException e) {
-                        //TODO: Do more to handle this?
-                        e.printStackTrace();
-                    }
-
-                    // Use the method identified in the previous step to actually get the iterator for each prov object.
-                    Iterator<Pair<String, Provenance>> subIterA = null;
-                    Iterator<Pair<String, Provenance>> subIterB = null;
-                    try {
-                        subIterA = (Iterator<Pair<String, Provenance>>) iterator_A.invoke(provMapA.get(key), (Object[]) null);
-                        subIterB = (Iterator<Pair<String, Provenance>>) iterator_B.invoke(provMapB.get(key), (Object[]) null);
-                    } catch (IllegalAccessException e) {
-                        //TODO: Do more to handle these?
-                        e.printStackTrace();
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-
-                    // Recursively identify any diffs down to primitive objects
-                    ObjectNode sub_report = diffProvenanceIterators(subIterA, subIterB);
-
-                    // Only add the new ObjectNode if it is not empty, to prevent unwanted keys in the resulting JSON
-                    if(!sub_report.isEmpty()){
-                        report.set(key, sub_report);
-                    }
-                }
-                // ListProvenance might contain Pair<String, Provenance> but it might also contain a list of
-                // ConfiguredObjectProvenanceImpl. This handles that situation directly.
-                else if (provMapA.get(key) instanceof ListProvenance){
+                if (provMapA.get(key) instanceof ListProvenance){
 
                     ListProvenance listProvA = ((ListProvenance<?>) provMapA.get(key));
                     ListProvenance listProvB = ((ListProvenance<?>) provMapB.get(key));
@@ -433,7 +396,27 @@ public class ReproUtil {
                             report.set(key, provArray);
                         }
                     }
-                } else {
+                }
+                // ObjectProvenance and MapProvenance will always return Iterator<Pair<String, Provenance>> so can
+                // be handled simply here through recursion of this method.
+                else if (provMapA.get(key) instanceof Iterable provIterableA &&
+                         provMapB.get(key) instanceof Iterable provIterableB){
+
+                    // Use the method identified in the previous step to actually get the iterator for each prov object.
+                    Iterator<Pair<String, Provenance>> subIterA = provIterableA.iterator();
+                    Iterator<Pair<String, Provenance>> subIterB = provIterableB.iterator();
+
+                    // Recursively identify any diffs down to primitive objects
+                    ObjectNode sub_report = diffProvenanceIterators(subIterA, subIterB);
+
+                    // Only add the new ObjectNode if it is not empty, to prevent unwanted keys in the resulting JSON
+                    if(!sub_report.isEmpty()){
+                        report.set(key, sub_report);
+                    }
+                }
+                // ListProvenance might contain Pair<String, Provenance> but it might also contain a list of
+                // ConfiguredObjectProvenanceImpl. This handles that situation directly.
+                else {
                     //TODO: Error handling here
                     System.out.println("Unrecognized Provenance: ");
                     System.out.println(provMapA.get(key).getClass());

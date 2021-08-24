@@ -7,6 +7,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
+import org.tribuo.DataSource;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Trainer;
@@ -28,6 +29,7 @@ import org.tribuo.data.columnar.processors.field.IdentityProcessor;
 import org.tribuo.data.columnar.processors.field.TextFieldProcessor;
 import org.tribuo.data.columnar.processors.response.FieldResponseProcessor;
 import org.tribuo.data.csv.CSVDataSource;
+import org.tribuo.data.csv.CSVLoader;
 import org.tribuo.data.text.impl.BasicPipeline;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.evaluation.TrainTestSplitter;
@@ -110,6 +112,7 @@ class ReproUtilTest {
 
         return(dataSource);
     }
+    
 
     @Test
     public void testReproduceFromProvenanceWithSplitter(){
@@ -124,7 +127,12 @@ class ReproUtilTest {
         model = (LinearSGDModel) trainer.train(trainingDataset);
         model = (LinearSGDModel) trainer.train(trainingDataset);
 
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(model.getProvenance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance();
 
         assertTrue(newModel.getWeightsCopy().equals(model.getWeightsCopy()));
@@ -140,7 +148,12 @@ class ReproUtilTest {
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
 
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(model.getProvenance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance();
 
         assertTrue(newModel.getWeightsCopy().equals(model.getWeightsCopy()));
@@ -156,7 +169,12 @@ class ReproUtilTest {
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
 
-        ReproUtil reproUtil = new ReproUtil(model);
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(model);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         LinearSGDModel newModel = null;
         try {
             newModel = (LinearSGDModel) reproUtil.reproduceFromModel();
@@ -185,7 +203,12 @@ class ReproUtilTest {
             e.printStackTrace();
         }
         List<Pair<String, String>> newConfigs = Arrays.asList(new Pair<String, String>("dataPath", csvPath.toString()));
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(model.getProvenance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance(newConfigs);
 
         assertTrue(newModel.getWeightsCopy().equals(model.getWeightsCopy()));
@@ -217,7 +240,12 @@ class ReproUtilTest {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(model.getProvenance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         reproUtil.getConfigurationManager().overrideConfigurableProperty("csvdatasource-1", "dataPath", new SimpleProperty(csvPath.toString()));
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance();
 
@@ -243,7 +271,12 @@ class ReproUtilTest {
         LogisticRegressionTrainer trainer = new LogisticRegressionTrainer();
         LinearSGDModel model_1 = (LinearSGDModel) trainer.train(datasetFromCSV);
         LinearSGDModel model_2 = (LinearSGDModel) trainer.train(datasetFromCSV);
-        ReproUtil repro = new ReproUtil(model_1);
+        ReproUtil repro = null;
+        try {
+            repro = new ReproUtil(model_1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         LinearSGDModel model_3 = (LinearSGDModel) repro.reproduceFromProvenance();
         String report = ReproUtil.diffProvenance(model_1.getProvenance(), model_3.getProvenance());
         System.out.println(report);
@@ -262,7 +295,12 @@ class ReproUtilTest {
         rfT.train(p.getA());
         Model<Regressor> diff_model = rfT.train(p.getA());
 
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(model.getProvenance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         RandomForestTrainer<Regressor> new_rfT = (RandomForestTrainer<Regressor>) reproUtil.recoverTrainer();
         Model<Regressor> new_model = new_rfT.train(p.getA());
 
