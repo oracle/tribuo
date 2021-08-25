@@ -16,7 +16,11 @@
 
 package org.tribuo.test;
 
+import com.oracle.labs.mlrg.olcut.config.Configurable;
+import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
+import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import org.junit.jupiter.api.Assertions;
@@ -27,7 +31,6 @@ import org.tribuo.Model;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.impl.ListExample;
-import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceModel;
 
 import java.io.BufferedInputStream;
@@ -40,7 +43,9 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Test helpers
@@ -75,6 +80,22 @@ public final class Helpers {
         }
         return ex;
     }
+
+
+    public static <P extends ObjectProvenance, C extends Configurable & Provenancable<P>> void testConfigurableRoundtrip(C itm) {
+        ConfigurationManager cm = new ConfigurationManager();
+        String name = cm.importConfigurable(itm, "item");
+        List<ConfigurationData> configData = cm.getComponentNames().stream()
+                .map(cm::getConfigurationData)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        List<ConfigurationData> provenData = ProvenanceUtil.extractConfiguration(itm.getProvenance());
+
+        Assertions.assertTrue(ConfigurationData.structuralEquals(configData, provenData, name, provenData.get(0).getName()));
+    }
+
 
     public static void testProvenanceMarshalling(ObjectProvenance inputProvenance) {
         List<ObjectMarshalledProvenance> provenanceList = ProvenanceUtil.marshalProvenance(inputProvenance);

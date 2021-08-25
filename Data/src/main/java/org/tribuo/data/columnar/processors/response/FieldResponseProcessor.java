@@ -78,6 +78,7 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
                 throw new PropertyException(configName, "defaultValues", "if fieldName is populated, defaultValues must be blank");
             }
             fieldNames = Collections.singletonList(fieldName);
+            fieldName = null;
             if (defaultValue != null) {
                 defaultValues = Collections.singletonList(defaultValue);
             } else {

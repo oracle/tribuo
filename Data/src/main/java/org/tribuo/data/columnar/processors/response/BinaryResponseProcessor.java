@@ -86,8 +86,10 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
                 throw new PropertyException(configName, "positiveResponses", "if fieldName is populated, positiveResponses must be blank");
             }
             fieldNames = Collections.singletonList(fieldName);
+            fieldName = null;
             if(positiveResponse != null) {
                 positiveResponses = Collections.singletonList(positiveResponse);
+                positiveResponse = null;
             } else {
                 throw new PropertyException(configName, "positiveResponse", "if fieldName is populated positiveResponse must be populated");
             }
