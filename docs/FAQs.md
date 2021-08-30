@@ -151,8 +151,8 @@ systems come from [OLCUT](https://github.com/oracle/olcut) (Oracle Labs
 Configuration and Utility Toolkit), a long lived internal library from Oracle
 Labs which has roots in the configuration system used in Sphinx4. OLCUT
 provides configuration files in multiple formats and includes ways to operate
-on provenance in JSON format (other provenance file formats will be added in
-the future).
+on provenance in XML, JSON and protobuf format (other provenance file formats
+may be added in the future).
 
 ### What's the difference between configuration and provenance?
 
