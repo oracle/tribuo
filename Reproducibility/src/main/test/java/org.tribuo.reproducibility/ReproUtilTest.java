@@ -69,11 +69,13 @@ class ReproUtilTest {
     @BeforeAll
     public static void setup() {
         Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class, BaggingTrainer.class};
-        for (Class c : classes) {
+        for (Class<?> c : classes) {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
         }
     }
+
+
     private CSVDataSource getCSVDatasource(){
         URL u = ReproUtilTest.class.getResource("/test.csv");
         Path csvPath = null;
@@ -112,7 +114,7 @@ class ReproUtilTest {
 
         return(dataSource);
     }
-    
+
 
     @Test
     public void testReproduceFromProvenanceWithSplitter(){
@@ -305,4 +307,6 @@ class ReproUtilTest {
         Model<Regressor> new_model = new_rfT.train(p.getA());
 
     }
+
+     
 }

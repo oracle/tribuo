@@ -3,10 +3,12 @@ package org.tribuo.reproducibility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.property.SimpleProperty;
-import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.PrimitiveProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
@@ -16,10 +18,12 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.ConfigurableDataSource;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
+import org.tribuo.Output;
 import org.tribuo.Trainer;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.ExternalTrainerProvenance;
@@ -41,7 +45,7 @@ public class ReproUtil {
     private ConfigurationManager CM;
 
     private ModelProvenance modelProvenance;
-    private Model originalModel;
+    private Model<?> originalModel;
 
     private ReproUtil () {}
 
@@ -49,11 +53,11 @@ public class ReproUtil {
         this(provenance, null);
     }
 
-    public ReproUtil(Model originalModel) throws Exception {
+    public ReproUtil(Model<?> originalModel) throws Exception {
         this(originalModel.getProvenance(), originalModel);
     }
 
-    private ReproUtil(ModelProvenance provenance, Model originalModel) throws Exception {
+    private ReproUtil(ModelProvenance provenance, Model<?> originalModel) throws Exception {
         if (provenance.getTrainerProvenance() instanceof ExternalTrainerProvenance){
             throw new Exception("This version of this tool cannot reproduce external models.");
         }
@@ -69,21 +73,21 @@ public class ReproUtil {
         this.originalModel = originalModel;
     }
 
-    public Trainer recoverTrainer(){
-        Class trainerClass = null;
+    public <T extends Output<T>> Trainer<T> recoverTrainer(){
+        Class<? extends Trainer<T>> trainerClass = null;
 
         // Recover the name of the trainer class from the model's provenance
         // Convert to a class object so it can be passed to the config manager to recover the trainer object
         try {
-            trainerClass = Class.forName(this.modelProvenance.getTrainerProvenance().getClassName());
+            trainerClass = (Class<? extends Trainer<T>>) Class.forName(this.modelProvenance.getTrainerProvenance().getClassName());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
         // Use the class identified from the prov to create a new Trainer from the config manager that
         // is the same as the original trainer used.
-        String trainerName = (String) CM.listAll(trainerClass).get(0);
-        Trainer newTrainer = (Trainer) CM.lookup(trainerName);
+        String trainerName = CM.listAll(trainerClass).get(0);
+        Trainer<T> newTrainer = (Trainer) CM.lookup(trainerName);
 
         // RNG changes state each time train is called, so examine prov for how many invocations of train
         // had been called when the original model was trained. Then, set the RNG to the same state
@@ -99,19 +103,20 @@ public class ReproUtil {
     // This method takes a class object and will recover that datasource from the ConfigurationManager
     // It also can take a list of properties to overwrite, allowing users to change the datapath to their data
     // or other similar properties.
-    private DataSource getDatasourceFromCM(Class dataSourceClass, List<Pair<String, String>> propertyNameAndValues){
+    private DataSource<?> getDatasourceFromCM(Class<? extends Configurable> dataSourceClass, List<Pair<String, String>> propertyNameAndValues){
 
         // Since this utility created a CM from a model, contained within should only be the datasource used to
         // create the model. Unless a user has manually added another datasource.
-        List sources = CM.listAll(dataSourceClass);
+        List<String> sources = CM.listAll(dataSourceClass);
         String sourceName = null;
         if (sources.size() > 0){
-            sourceName = (String) sources.get(0);
+            //TODO: what if there are more than one sources?
+            sourceName = sources.get(0);
         }
 
         // If the data source can be recovered from CM, override the properties before the dataSource is
         // instantiated, and then instantiate the source.
-        DataSource dataSource = null;
+        DataSource<?> dataSource = null;
         if (sourceName != null){
             if(propertyNameAndValues != null){
                 for(Pair<String, String> propertyNameAndValue : propertyNameAndValues){
@@ -132,10 +137,10 @@ public class ReproUtil {
 
     // Attempts to use reflection to determine the correct type a dataset should be and then instantiates it
     // returns null if cannot be done.
-    private Dataset datasetReflection(DataSource modelSource){
+    private Dataset<?> datasetReflection(DataSource<?> modelSource){
         // The first step is to find the classname as a String so it can use reflection to instantiate the correct type
         // The class name is contained within the provenance accessible through the iterator.
-        Dataset modelDataset = null;
+        Dataset<?> modelDataset = null;
         Iterator<Pair<String, Provenance>> sourceProv = this.modelProvenance.getDatasetProvenance().iterator();
         String datasetClassname = null;
         while (sourceProv.hasNext()){
@@ -164,22 +169,28 @@ public class ReproUtil {
     }
 
     // Return a dataset used when a model was trained.
-    private Dataset recoverDataset(List<Pair<String, String>> propertyNameAndValues){
-        Class dataSourceClass = null;
-        Dataset modelDataset = null;
+    private Dataset<?> recoverDataset(List<Pair<String, String>> propertyNameAndValues) throws Exception {
+        Class<? extends ConfigurableDataSource<?>> dataSourceClass = null;
+        Dataset<?> modelDataset = null;
+
+        if(!(this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof ConfiguredObjectProvenance)){
+            // TODO: expand this to be more informative
+            throw new Exception("Datasource is not configurable and cannot be recovered.");
+        }
 
         // The class is used to query the ConfigurationManager for the datasource object
         try {
-            dataSourceClass = Class.forName(this.modelProvenance.getDatasetProvenance().getSourceProvenance().getClassName());
+            dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(this.modelProvenance.getDatasetProvenance().getSourceProvenance().getClassName());
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
 
         // If the source is a TrainTestSplitter, we need to extract the correct data from the Splitter first.
         // While it is likely they trained on the "train" dataset, in the future they also might have used cross-validation.
-        if (this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof TrainTestSplitter.SplitDataSourceProvenance) {
+        if (this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof
+                TrainTestSplitter.SplitDataSourceProvenance splitterSource) {
 
-            Iterator<Pair<String, Provenance>> sourceProv = this.modelProvenance.getDatasetProvenance().getSourceProvenance().iterator();
+            Iterator<Pair<String, Provenance>> sourceProv = splitterSource.iterator();
 
             // First collect all the information about the TrainTestSplitter possible including the inner data source
             long seed = 0;
@@ -199,15 +210,15 @@ public class ReproUtil {
                 }
             }
             try {
-                dataSourceClass = Class.forName(innerProvenance.getClassName());
+                dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
 
             // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
             // innerSource, should return the same Dataset used to train the model
-            DataSource innerSource = getDatasourceFromCM(dataSourceClass, propertyNameAndValues);
-            TrainTestSplitter trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
+            DataSource<?> innerSource = getDatasourceFromCM(dataSourceClass, propertyNameAndValues);
+            TrainTestSplitter<?> trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
 
             if(isTrain){
                 modelDataset = datasetReflection(trainTestSplitter.getTrain());
@@ -217,7 +228,7 @@ public class ReproUtil {
 
         } else {
             // When it's not a splitter, recover the Datasource and then Dataset.
-            DataSource modelSource = getDatasourceFromCM(dataSourceClass, propertyNameAndValues);
+            DataSource<?> modelSource = getDatasourceFromCM(dataSourceClass, propertyNameAndValues);
             modelDataset = datasetReflection(modelSource);
         }
 
@@ -239,7 +250,7 @@ public class ReproUtil {
      * Recovers the trainer and dataset information before training an identical model.
      * @return A reproduced model identical to the one described in the provenance.
      */
-    public Model reproduceFromProvenance(){
+    public Model<?> reproduceFromProvenance(){
         return(reproduceFromProvenance(null));
     }
 
@@ -252,15 +263,22 @@ public class ReproUtil {
      *                             a new value for that configuration.
      * @return A reproduced model identical to the one described in the provenance.
      */
-    public Model reproduceFromProvenance(List<Pair<String, String>> propertyNameAndValues){
+    public Model<?> reproduceFromProvenance(List<Pair<String, String>> propertyNameAndValues){
 
         // Until now the object only holds the configuration for these objects, the following
         // functions will actually re-instantiate them.
-        Trainer newTrainer = recoverTrainer();
-        Dataset newDataset = recoverDataset(propertyNameAndValues);
+        Trainer<?> newTrainer = recoverTrainer();
+        Dataset newDataset = null;
+        try {
+            newDataset = recoverDataset(propertyNameAndValues);
+        } catch (Exception e) {
+
+            //TODO Decide what to do when this exception is encountered
+            e.printStackTrace();
+        }
 
         // This function actually re-trains a model rather than copy the original
-        Model newModel = newTrainer.train(newDataset);
+        Model<?> newModel = newTrainer.train(newDataset);
 
         return newModel;
     }
