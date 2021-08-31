@@ -91,11 +91,7 @@ public class TestSGDLinear {
 
         MultiLabelEvaluation evaluation = (MultiLabelEvaluation) train.getOutputFactory().getEvaluator().evaluate(model,test);
 
-        if (trainer == hinge) {
-            Assertions.assertEquals(0.6, evaluation.microAveragedRecall());
-        } else {
-            Assertions.assertEquals(1.0, evaluation.microAveragedRecall());
-        }
+        Assertions.assertEquals(1.0, evaluation.microAveragedRecall());
 
         Helpers.testModelSerialization(model, MultiLabel.class);
     }
