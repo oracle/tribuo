@@ -182,7 +182,7 @@ public class NonlinearGaussianDataSource implements ConfigurableDataSource<Regre
      * @param seed The rng seed to use.
      * @return A dataset drawn from a gaussian.
      */
-    public static Dataset<Regressor> generateDataset(int numSamples, float[] weights, float intercept, float variance,
+    public static MutableDataset<Regressor> generateDataset(int numSamples, float[] weights, float intercept, float variance,
                                                      float xZeroMin, float xZeroMax, float xOneMin, float xOneMax,
                                                      long seed) {
         NonlinearGaussianDataSource source = new NonlinearGaussianDataSource(numSamples,weights,intercept,variance,
