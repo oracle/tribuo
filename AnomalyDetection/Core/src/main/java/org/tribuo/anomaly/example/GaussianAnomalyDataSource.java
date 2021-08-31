@@ -251,7 +251,7 @@ public final class GaussianAnomalyDataSource implements ConfigurableDataSource<E
      * @param seed               The rng seed to use.
      * @return A dataset drawn from a gaussian.
      */
-    public static Dataset<Event> generateDataset(int numSamples, double[] expectedMeans, double[] expectedVariances,
+    public static MutableDataset<Event> generateDataset(int numSamples, double[] expectedMeans, double[] expectedVariances,
                                                  double[] anomalousMeans, double[] anomalousVariances,
                                                  float fractionAnomalous, long seed) {
         GaussianAnomalyDataSource source = new GaussianAnomalyDataSource(numSamples, expectedMeans, expectedVariances, anomalousMeans, anomalousVariances, fractionAnomalous, seed);

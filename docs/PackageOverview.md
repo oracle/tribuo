@@ -105,11 +105,12 @@ The independent binary predictor breaks each multi-label prediction into n
 binary predictions, one for each possible label.  To achieve this, the supplied
 trainer takes a classification trainer and uses it to build n models, one per
 label, which are then run in sequence on a test example to produce the final
-multi-label output.
+multi-label output. A similar approach is used in the classifier chains to
+convert a classification trainer into a multi-label trainer.
 
 | Folder | ArtifactID | Package root | Description |
 | --- | --- | --- | --- |
-| Core | `tribuo-multilabel-core` | `org.tribuo.multilabel` | Contains an Output subclass for multi-label prediction, evaluation code for checking the performance of a multi-label model, and a basic implementation of independent binary predictions. |
+| Core | `tribuo-multilabel-core` | `org.tribuo.multilabel` | Contains an Output subclass for multi-label prediction, evaluation code for checking the performance of a multi-label model, and a basic implementation of independent binary predictions. It also contains implementations of Classifier Chains and Classifier Chain Ensembles, which are more powerful ensemble techniques for multi-label prediction tasks. |
 | SGD | `tribuo-multilabel-sgd` | `org.tribuo.multilabel.sgd` | An implementation of stochastic gradient descent based classifiers. It includes a linear package for independent logistic regression and linear-SVM (using log and hinge losses, respectively) for each output label. These implementations depend upon the stochastic gradient optimisers in the main Math package. The linear package can use any of the provided gradient optimisers, which enforce various different kinds of regularisation or convergence metrics. |
 
 ## Regression
