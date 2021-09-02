@@ -46,9 +46,9 @@
 
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.43</liblinear.version>
-        <libsvm.version>3.24</libsvm.version>
+        <libsvm.version>3.25</libsvm.version>
         <onnxruntime.version>1.7.0</onnxruntime.version>
-        <tensorflow.version>0.3.1</tensorflow.version>
+        <tensorflow.version>0.3.3</tensorflow.version>
         <xgboost.version>1.4.1</xgboost.version>
 
         <!-- 3rd party other dependencies -->
