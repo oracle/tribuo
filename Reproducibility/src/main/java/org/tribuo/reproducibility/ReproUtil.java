@@ -173,11 +173,6 @@ public class ReproUtil {
         Class<? extends ConfigurableDataSource<?>> dataSourceClass = null;
         Dataset<?> modelDataset = null;
 
-        if(!(this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof ConfiguredObjectProvenance)){
-            // TODO: expand this to be more informative
-            throw new Exception("Datasource is not configurable and cannot be recovered.");
-        }
-
         // The class is used to query the ConfigurationManager for the datasource object
         try {
             dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(this.modelProvenance.getDatasetProvenance().getSourceProvenance().getClassName());
@@ -209,6 +204,12 @@ public class ReproUtil {
                     isTrain = ((BooleanProvenance) provPair.getB()).getValue();
                 }
             }
+
+            if(!(innerProvenance instanceof ConfiguredObjectProvenance)){
+                // TODO: expand this to be more informative
+                throw new Exception("Datasource is not configurable and cannot be recovered.");
+            }
+
             try {
                 dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
             } catch (ClassNotFoundException e) {
@@ -228,6 +229,12 @@ public class ReproUtil {
 
         } else {
             // When it's not a splitter, recover the Datasource and then Dataset.
+
+            if(!(this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof ConfiguredObjectProvenance)){
+                // TODO: expand this to be more informative
+                throw new Exception("Datasource is not configurable and cannot be recovered.");
+            }
+
             DataSource<?> modelSource = getDatasourceFromCM(dataSourceClass, propertyNameAndValues);
             modelDataset = datasetReflection(modelSource);
         }
