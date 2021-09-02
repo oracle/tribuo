@@ -37,17 +37,17 @@ import java.util.stream.Collectors;
  * In a multi-label confusion matrix M,
  * <pre>
  * tn = M[:, 0, 0]
- * fn = M[:, 1, 0]
+ * fn = M[:, 0, 1]
+ * fp = M[:, 1, 0]
  * tp = M[:, 1, 1]
- * fp = M[:, 0, 1]
  * </pre>
  * <p>
  * For class-wise values,
  * <pre>
  * tn(class i) = M[i, 0, 0]
- * fn(class i) = M[i, 1, 0]
+ * fn(class i) = M[i, 0, 1]
+ * fp(class i) = M[i, 1, 0]
  * tp(class i) = M[i, 1, 1]
- * fp(class i) = M[i, 0, 1]
  * </pre>
  */
 public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLabel> {
