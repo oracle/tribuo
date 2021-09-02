@@ -64,14 +64,16 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     public void postConfig() {
         if (fieldName != null && fieldNames != null) {
             throw new PropertyException(configName, "fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
-        } else if (fieldNames != null) {
-            if(defaultValue != null) {
-                defaultValues = defaultValues == null ? Collections.nCopies(fieldNames.size(), defaultValue) : defaultValues;
+        } else if (fieldNames != null) { // multiple fields
+            if (defaultValues != null && defaultValues.size() == fieldNames.size()) { // check first for multiple defaults
+                // this is the default case, nothing needs to be done
+            } else if (defaultValue != null) { // next fill in a single default
+                defaultValues = Collections.nCopies(fieldNames.size(), defaultValue);
+                defaultValue = null;
+            } else if (defaultValues != null) { // size mismatch between defaultValues and fieldNames
+                throw new PropertyException(configName, "defaultValues", "must either be empty or match the length of fieldNames");
             } else {
                 throw new PropertyException(configName, "defaultValue, defaultValues", "one of defaultValue or defaultValues must be populated");
-            }
-            if(defaultValues.size() != fieldNames.size()) {
-                throw new PropertyException(configName, "defaultValues", "must either be empty or match the length of fieldNames");
             }
         } else if (fieldName != null) {
             if(defaultValues != null) {
