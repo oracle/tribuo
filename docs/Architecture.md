@@ -113,7 +113,7 @@ Many of Tribuo's trainers, datasources and other classes implement the
 `Configurable` interface. This is provided by
 [OLCUT](https://github.com/oracle/olcut), and allows for runtime configuration
 of classes based on configuration files written in a variety of formats. The
-default format is xml. Other available formats include JSON & edn.
+default format is xml. Other available formats include JSON, protobuf & edn.
 
 The configuration system is integrated into the command line arguments
 `Options` system build into OLCUT's `ConfigurationManager`. Values in
@@ -250,8 +250,8 @@ Example :
 </config>
 ```
 
-It's also possible to access this information programmatically, but there are several ways of doing that in OLCUT
-each appropriate to different use cases.
+It's also possible to access this information programmatically, but there are
+several ways of doing that in OLCUT each appropriate to different use cases.
 
 
 ## Data Loading
@@ -276,9 +276,11 @@ objects.
 There are two CSV loaders:  A simple one for reading a CSV file (with or
 without a header) where all the columns are either features or responses, and a
 complex loader based on Tribuo's `RowProcessor`. The `RowProcessor` also
-underlies the SQL and JSON loaders, and is extremely configurable. For more
-details see the [Columnar Inputs](#columnar-inputs) section below or look at
-the [columnar data tutorial](https://github.com/oracle/tribuo/blob/main/tutorials/columnar-tribuo-v4.ipynb).
+underlies the SQL and JSON loaders, and is extremely configurable. From v4.2
+the simple `CSVLoader` wraps a `RowProcessor` to allow simple upgrading as the
+CSVs become more complicated. For more details see the [Columnar
+Inputs](#columnar-inputs) section below or look at the 
+[columnar data tutorial](https://github.com/oracle/tribuo/blob/main/tutorials/columnar-tribuo-v4.ipynb).
 If there are other common formats of interest, let us know by filing an issue.
 
 Tribuo's interfaces are extensible, and implementing another format simply

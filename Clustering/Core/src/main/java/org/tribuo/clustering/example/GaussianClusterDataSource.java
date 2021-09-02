@@ -316,7 +316,7 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
      * @param seed               The rng seed to use.
      * @return A dataset drawn from a mixture of Gaussians.
      */
-    public static Dataset<ClusterID> generateDataset(int numSamples, double[] mixingDistribution,
+    public static MutableDataset<ClusterID> generateDataset(int numSamples, double[] mixingDistribution,
                                                      double[] firstMean, double[] firstVariance,
                                                      double[] secondMean, double[] secondVariance,
                                                      double[] thirdMean, double[] thirdVariance,
