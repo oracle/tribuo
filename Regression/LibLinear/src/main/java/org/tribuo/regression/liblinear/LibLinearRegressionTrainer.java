@@ -25,6 +25,7 @@ import org.tribuo.Trainer;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.liblinear.LinearRegressionType.LinearType;
 import de.bwaldvogel.liblinear.FeatureNode;
@@ -136,11 +137,7 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     @Override
     protected Pair<FeatureNode[][], double[][]> extractData(Dataset<Regressor> data, ImmutableOutputInfo<Regressor> outputInfo, ImmutableFeatureMap featureMap) {
         int numOutputs = outputInfo.size();
-        String[] dimensionNames = data.getExample(0).getOutput().getNames();
-        int[] dimensionIds = new int[dimensionNames.length];
-        for (int i = 0; i < dimensionNames.length; i++) {
-            dimensionIds[i] = outputInfo.getID(new Regressor.DimensionTuple(dimensionNames[i],Double.NaN));
-        }
+        int[] dimensionIds = ((ImmutableRegressionInfo) outputInfo).getNaturalOrderToIDMapping();
         List<FeatureNode> featureCache = new ArrayList<>();
         FeatureNode[][] features = new FeatureNode[data.size()][];
         double[][] outputs = new double[numOutputs][data.size()];

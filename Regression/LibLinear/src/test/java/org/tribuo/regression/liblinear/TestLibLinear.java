@@ -17,8 +17,10 @@
 package org.tribuo.regression.liblinear;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import de.bwaldvogel.liblinear.Linear;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
@@ -91,13 +93,27 @@ public class TestLibLinear {
 
     @Test
     public void testThreeDenseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
-        Model<Regressor> llModel = t.train(p.getA());
+        Linear.resetRandom();
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+        LibLinearModel<Regressor> llModel = t.train(p.getA());
         RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
         double expectedDim1 = 0.6675344910192738;
         double expectedDim2 = 0.3378593973073041;
         double expectedDim3 = 0.19100332567358957;
         double expectedAve = 0.39879907133338915;
+        //double[][] unmappedFeatures = ((LibLinearRegressionModel)llModel).getFeatureWeights();
+
+        assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,llEval.averageR2(),1e-6);
+
+        Linear.resetRandom();
+        p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
+        llModel = t.train(p.getA());
+        llEval = e.evaluate(llModel,p.getB());
+
+        //double[][] mappedFeatures = ((LibLinearRegressionModel)llModel).getFeatureWeights();
 
         assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
