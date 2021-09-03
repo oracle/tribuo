@@ -17,9 +17,11 @@
 package org.tribuo.regression.libsvm;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import libsvm.svm_model;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.common.libsvm.KernelType;
+import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.common.libsvm.SVMParameters;
 import org.tribuo.regression.Regressor;
@@ -31,10 +33,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestLibSVM {
@@ -43,6 +48,7 @@ public class TestLibSVM {
     private static final LibSVMRegressionTrainer linear = new LibSVMRegressionTrainer(linearParams);
     private static final SVMParameters<Regressor> rbfParams = new SVMParameters<>(new SVMRegressionType(SVMMode.NU_SVR), KernelType.RBF);
     private static final LibSVMRegressionTrainer rbf = new LibSVMRegressionTrainer(rbfParams);
+    private static final LibSVMRegressionTrainer linStandardize = new LibSVMRegressionTrainer(new SVMParameters<>(new SVMRegressionType(SVMMode.NU_SVR), KernelType.LINEAR),true);
     private static final RegressionEvaluator eval = new RegressionEvaluator();
 
     @BeforeAll
@@ -52,9 +58,9 @@ public class TestLibSVM {
     }
 
     public static Model<Regressor> testLibSVM(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        Model<Regressor> linearModel = linear.train(p.getA());
+        LibSVMModel<Regressor> linearModel = linear.train(p.getA());
         RegressionEvaluation linearEval = eval.evaluate(linearModel,p.getB());
-        Model<Regressor> rbfModel = rbf.train(p.getA());
+        LibSVMRegressionModel rbfModel = (LibSVMRegressionModel) rbf.train(p.getA());
         RegressionEvaluation rbfEval = eval.evaluate(rbfModel,p.getB());
         return rbfModel;
     }
@@ -98,7 +104,7 @@ public class TestLibSVM {
 
     @Test
     public void testThreeDenseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0);
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0,true);
         Model<Regressor> rbfModel = rbf.train(p.getA());
         RegressionEvaluation rbfEval = eval.evaluate(rbfModel,p.getB());
         double expectedDim1 = 0.041236330466452364;
@@ -110,6 +116,38 @@ public class TestLibSVM {
         assertEquals(expectedDim2,rbfEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedDim3,rbfEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedAve,rbfEval.averageR2(),1e-6);
+    }
+
+    @Test
+    public void testMultiModelsDifferent() {
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
+
+        LibSVMRegressionModel rbfModel = (LibSVMRegressionModel) rbf.train(p.getA());
+        List<svm_model> rbfModelList = rbfModel.getInnerModels();
+        assertEquals(2, rbfModelList.size());
+        double[] firstSV = rbfModelList.get(0).sv_coef[0];
+        double[] secondSV = rbfModelList.get(1).sv_coef[0];
+        // The two dimensions are the inverse of each other, and should have inverted sv_coef.
+        for (int i = 0; i < firstSV.length; i++) {
+            firstSV[i] = -firstSV[i];
+        }
+        assertArrayEquals(firstSV, secondSV);
+    }
+
+    @Test
+    public void testMultiStandardizedModelsDifferent() {
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
+
+        LibSVMRegressionModel linSModel = (LibSVMRegressionModel) linStandardize.train(p.getA());
+        List<svm_model> linModelList = linSModel.getInnerModels();
+        assertEquals(2,linModelList.size());
+        double[] firstSV = linModelList.get(0).sv_coef[0];
+        double[] secondSV = linModelList.get(1).sv_coef[0];
+        // The two dimensions are the inverse of each other, and should have inverted sv_coef.
+        for (int i = 0; i < firstSV.length; i++) {
+            firstSV[i] = -firstSV[i];
+        }
+        assertArrayEquals(firstSV,secondSV);
     }
 
     @Test

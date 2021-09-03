@@ -56,7 +56,7 @@ public class TestXGBoost {
 
     @Test
     public void testThreeDenseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0);
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
         Model<Regressor> xgbModel = t.train(p.getA());
         RegressionEvaluation xgbEval = e.evaluate(xgbModel,p.getB());
         double expectedDim1 = -0.6516752237887062;
