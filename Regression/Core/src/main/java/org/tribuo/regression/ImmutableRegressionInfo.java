@@ -29,7 +29,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -211,6 +213,52 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
         String[] sortedNames = Arrays.copyOf(names,names.length);
         Arrays.sort(sortedNames);
         return Arrays.equals(names,sortedNames);
+    }
+
+    /**
+     * Computes the mapping between ID numbers and regressor dimension indices.
+     * <p>
+     * In some situations the regressor dimension ID numbers may not use the natural ordering (i.e., the
+     * lexicographic order of the dimension names).
+     * This method computes the mapping from the id numbers to the natural ordering.
+     * @return An array where arr[id] = natural_idx.
+     */
+    public int[] getIDtoNaturalOrderMapping() {
+        int[] mapping = new int[idLabelMap.size()];
+
+        SortedMap<String,Integer> sortedMap = new TreeMap<>(String::compareTo);
+        sortedMap.putAll(labelIDMap);
+
+        int i = 0;
+        for (Map.Entry<String,Integer> e : sortedMap.entrySet()) {
+            mapping[e.getValue()] = i;
+            i++;
+        }
+
+        return mapping;
+    }
+
+    /**
+     * Computes the mapping between regressor dimension indices and ID numbers.
+     * <p>
+     * In some situations the regressor dimension ID numbers may not use the natural ordering (i.e., the
+     * lexicographic order of the dimension names).
+     * This method computes the mapping from the natural ordering to the id numbers.
+     * @return An array where arr[natural_idx] = id.
+     */
+    public int[] getNaturalOrderToIDMapping() {
+        int[] mapping = new int[idLabelMap.size()];
+
+        SortedMap<String,Integer> sortedMap = new TreeMap<>(String::compareTo);
+        sortedMap.putAll(labelIDMap);
+
+        int i = 0;
+        for (Map.Entry<String,Integer> e : sortedMap.entrySet()) {
+            mapping[i] = e.getValue();
+            i++;
+        }
+
+        return mapping;
     }
 
     @Override

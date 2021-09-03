@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,6 +59,13 @@ public class RegressorTest {
 
         assertTrue(immutableInfo.validateMapping());
 
+        // Check mapping functions are the identity
+        int[] actualIDtoNative = immutableInfo.getIDtoNaturalOrderMapping();
+        int[] trueOrdering = new int[]{0,1,2,3,4,5,6,7,8};
+        assertArrayEquals(trueOrdering,actualIDtoNative);
+        int[] actualNativeToID = immutableInfo.getNaturalOrderToIDMapping();
+        assertArrayEquals(trueOrdering,actualNativeToID);
+
         Map<Regressor,Integer> mapping = new HashMap<>();
         mapping.put(new Regressor.DimensionTuple(dimNames[0],dimValues[0]),8);
         mapping.put(new Regressor.DimensionTuple(dimNames[1],dimValues[1]),0);
@@ -72,6 +80,14 @@ public class RegressorTest {
         ImmutableRegressionInfo mappedInfo = new ImmutableRegressionInfo(info,mapping);
 
         assertFalse(mappedInfo.validateMapping());
+
+        // Check mapping functions respect the mapping
+        int[] mappingIDtoNative = mappedInfo.getIDtoNaturalOrderMapping();
+        int[] trueOrderingID = new int[]{1,3,5,7,8,6,4,2,0};
+        assertArrayEquals(trueOrderingID,mappingIDtoNative);
+        int[] mappingNativeToID = mappedInfo.getNaturalOrderToIDMapping();
+        int[] trueOrderingNative = new int[]{8,0,7,1,6,2,5,3,4};
+        assertArrayEquals(trueOrderingNative,mappingNativeToID);
     }
 
     @Test
