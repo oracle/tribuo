@@ -16,6 +16,9 @@
 
 package org.tribuo.data.csv;
 
+import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.Example;
@@ -36,6 +39,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -101,11 +105,23 @@ public class CSVLoaderTest {
         //
         // Test behavior when CSV file does not have a header row and the user instead supplies the header.
         URL noheader = CSVLoader.class.getResource("/org/tribuo/data/csv/test-noheader.csv");
-        checkDataTestCsv(loader.loadDataSource(noheader, "RESPONSE", header));
+        DataSource<MockOutput> source = loader.loadDataSource(noheader, "RESPONSE", header);
+
+        // Check that the source persisted the headers in the provenance
+        CSVDataSource.CSVDataSourceProvenance prov = (CSVDataSource.CSVDataSourceProvenance) source.getProvenance();
+        Provenance headerProv = prov.getConfiguredParameters().get("headers");
+        assertTrue(headerProv instanceof ListProvenance);
+        @SuppressWarnings("unchecked")
+        ListProvenance<StringProvenance> listProv = (ListProvenance<StringProvenance>) headerProv;
+        assertEquals(header.length,listProv.getList().size());
+        assertEquals(Arrays.asList(header),listProv.getList().stream().map(StringProvenance::getValue).collect(Collectors.toList()));
+
+        // Check the data loaded correctly.
+        checkDataTestCsv(source);
         checkDataTestCsv(loader.loadDataSource(noheader, Collections.singleton("RESPONSE"), header));
     }
 
-    private void checkDataTestCsv(DataSource<MockOutput> source) {
+    private static void checkDataTestCsv(DataSource<MockOutput> source) {
         MutableDataset<MockOutput> data = new MutableDataset<>(source);
         assertEquals(6, data.size());
         assertEquals("monkey", data.getExample(0).getOutput().label);
