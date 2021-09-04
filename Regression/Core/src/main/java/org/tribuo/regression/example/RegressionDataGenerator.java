@@ -184,8 +184,8 @@ public abstract class RegressionDataGenerator {
         if (remapIndices) {
             Map<Regressor,Integer> mapping = new HashMap<>();
             mapping.put(new Regressor.DimensionTuple(firstDimensionName,Double.NaN),2);
-            mapping.put(new Regressor.DimensionTuple(secondDimensionName,Double.NaN),1);
-            mapping.put(new Regressor.DimensionTuple(thirdDimensionName,Double.NaN),0);
+            mapping.put(new Regressor.DimensionTuple(secondDimensionName,Double.NaN),0);
+            mapping.put(new Regressor.DimensionTuple(thirdDimensionName,Double.NaN),1);
             ImmutableOutputInfo<Regressor> newInfo = REGRESSION_FACTORY.constructInfoForExternalModel(mapping);
 
             ImmutableDataset<Regressor> newTrain = ImmutableDataset.copyDataset(train, train.getFeatureIDMap(), newInfo);

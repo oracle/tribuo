@@ -93,7 +93,6 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
         // constructed correctly.
         for (int i = 0; i < regressedValues.length; i++) {
             regressedValues[mapping[i]] = Linear.predictValues(models.get(i), features, scores);
-            //regressedValues[i] = Linear.predictValues(models.get(i),features,scores);
         }
 
         Regressor regressor = new Regressor(dimensionNames,regressedValues);
