@@ -127,6 +127,8 @@ public class LibLinearAnomalyTrainer extends LibLinearTrainer<Event> {
         data.x = features;
         data.n = numFeatures;
 
+        // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
+        Linear.resetRandom();
         return Collections.singletonList(Linear.train(data,curParams));
     }
 

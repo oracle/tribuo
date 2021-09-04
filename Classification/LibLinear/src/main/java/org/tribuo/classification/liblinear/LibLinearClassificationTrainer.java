@@ -114,6 +114,8 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
         data.n = numFeatures;
         data.bias = 1.0;
 
+        // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
+        Linear.resetRandom();
         return Collections.singletonList(Linear.train(data,curParams));
     }
 

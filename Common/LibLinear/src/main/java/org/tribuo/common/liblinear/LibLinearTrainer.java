@@ -44,6 +44,8 @@ import java.util.logging.Logger;
 /**
  * A {@link Trainer} which wraps a liblinear-java trainer.
  * <p>
+ * Note the train method is synchronized due to a global RNG in liblinear-java.
+ * <p>
  * See:
  * <pre>
  * Fan RE, Chang KW, Hsieh CJ, Wang XR, Lin CJ.
@@ -125,7 +127,7 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     }
 
     @Override
-    public LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+    public synchronized LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }

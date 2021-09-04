@@ -98,6 +98,8 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
         ArrayList<Model> models = new ArrayList<>();
 
         for (int i = 0; i < outputs.length; i++) {
+            // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
+            Linear.resetRandom();
             Problem data = new Problem();
 
             data.l = features.length;
