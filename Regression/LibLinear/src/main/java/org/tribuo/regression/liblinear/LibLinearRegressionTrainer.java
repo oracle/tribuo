@@ -42,6 +42,8 @@ import java.util.logging.Logger;
  * <p>
  * This generates an independent liblinear model for each regression dimension.
  * <p>
+ * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
+ * <p>
  * See:
  * <pre>
  * Fan RE, Chang KW, Hsieh CJ, Wang XR, Lin CJ.
@@ -98,8 +100,6 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
         ArrayList<Model> models = new ArrayList<>();
 
         for (int i = 0; i < outputs.length; i++) {
-            // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
-            Linear.resetRandom();
             Problem data = new Problem();
 
             data.l = features.length;
@@ -108,6 +108,8 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
             data.n = numFeatures;
             data.bias = 1.0;
 
+            // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
+            Linear.resetRandom();
             models.add(Linear.train(data, curParams));
         }
 

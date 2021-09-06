@@ -41,7 +41,9 @@ import java.util.logging.Logger;
 
 /**
  * A {@link Trainer} which wraps a liblinear-java anomaly detection trainer using a one-class SVM.
- *
+ * <p>
+ * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
+ * <p>
  * See:
  * <pre>
  * Fan RE, Chang KW, Hsieh CJ, Wang XR, Lin CJ.

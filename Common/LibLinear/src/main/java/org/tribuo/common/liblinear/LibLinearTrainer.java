@@ -44,7 +44,7 @@ import java.util.logging.Logger;
 /**
  * A {@link Trainer} which wraps a liblinear-java trainer.
  * <p>
- * Note the train method is synchronized due to a global RNG in liblinear-java.
+ * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
  * <p>
  * See:
  * <pre>
@@ -127,7 +127,7 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     }
 
     @Override
-    public synchronized LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+    public LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -141,7 +141,10 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
 
         Pair<FeatureNode[][],double[][]> data = extractData(examples,outputIDInfo,featureIDMap);
 
-        List<de.bwaldvogel.liblinear.Model> models = trainModels(curParams,featureIDMap.size()+1,data.getA(),data.getB());
+        List<de.bwaldvogel.liblinear.Model> models;
+        synchronized (LibLinearTrainer.class) {
+            models = trainModels(curParams, featureIDMap.size() + 1, data.getA(), data.getB());
+        }
 
         return createModel(provenance,featureIDMap,outputIDInfo,models);
     }
