@@ -22,6 +22,7 @@ import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Trainer;
 import org.tribuo.anomaly.Event;
 import org.tribuo.anomaly.Event.EventType;
 import org.tribuo.common.libsvm.LibSVMModel;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -66,11 +68,20 @@ public class LibSVMAnomalyTrainer extends LibSVMTrainer<Event> {
     protected LibSVMAnomalyTrainer() {}
 
     /**
-     * Creates a one-class LibSVM trainer using the supplied parameters.
-     * @param parameters The training parameters.
+     * Creates a one-class LibSVM trainer using the supplied parameters and {@link Trainer#DEFAULT_SEED}.
+     * @param parameters The SVM training parameters.
      */
     public LibSVMAnomalyTrainer(SVMParameters<Event> parameters) {
-        super(parameters);
+        this(parameters, Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Creates a one-class LibSVM trainer using the supplied parameters and RNG seed.
+     * @param parameters The SVM parameters.
+     * @param seed The RNG seed for LibSVM's internal RNG.
+     */
+    public LibSVMAnomalyTrainer(SVMParameters<Event> parameters, long seed) {
+        super(parameters,seed);
     }
 
     /**
@@ -100,7 +111,7 @@ public class LibSVMAnomalyTrainer extends LibSVMTrainer<Event> {
     }
 
     @Override
-    protected List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs) {
+    protected List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs, SplittableRandom localRNG) {
         svm_problem problem = new svm_problem();
         problem.l = outputs[0].length;
         problem.x = features;
@@ -112,6 +123,8 @@ public class LibSVMAnomalyTrainer extends LibSVMTrainer<Event> {
         if(checkString != null) {
             throw new IllegalArgumentException("Error checking SVM parameters: " + checkString);
         }
+        // This is safe because we synchronize on LibSVMTrainer.class in the train method.
+        svm.rand.setSeed(localRNG.nextLong());
         return Collections.singletonList(svm.svm_train(problem, curParams));
     }
 

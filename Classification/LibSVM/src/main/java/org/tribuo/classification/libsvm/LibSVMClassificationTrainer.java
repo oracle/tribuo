@@ -22,6 +22,7 @@ import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.WeightedLabels;
 import org.tribuo.common.libsvm.LibSVMModel;
@@ -39,6 +40,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
@@ -69,10 +71,27 @@ public class LibSVMClassificationTrainer extends LibSVMTrainer<Label> implements
     @Config(description="Use Label specific weights.")
     private Map<String,Float> labelWeights = Collections.emptyMap();
 
+    /**
+     * For OLCUT.
+     */
     protected LibSVMClassificationTrainer() {}
 
+    /**
+     * Constructs a classification LibSVM trainer using the specified parameters
+     * and {@link Trainer#DEFAULT_SEED}.
+     * @param parameters The SVM parameters.
+     */
     public LibSVMClassificationTrainer(SVMParameters<Label> parameters) {
-        super(parameters);
+        this(parameters, Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Constructs a classification LibSVM trainer using the specified parameters and seed.
+     * @param parameters The SVM parameters.
+     * @param seed The RNG seed for LibSVM's internal RNG.
+     */
+    public LibSVMClassificationTrainer(SVMParameters<Label> parameters, long seed) {
+        super(parameters,seed);
     }
 
     /**
@@ -92,7 +111,7 @@ public class LibSVMClassificationTrainer extends LibSVMTrainer<Label> implements
     }
 
     @Override
-    protected List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs) {
+    protected List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs, SplittableRandom localRNG) {
         svm_problem problem = new svm_problem();
         problem.l = outputs[0].length;
         problem.x = features;
@@ -104,6 +123,8 @@ public class LibSVMClassificationTrainer extends LibSVMTrainer<Label> implements
         if(checkString != null) {
             throw new IllegalArgumentException("Error checking SVM parameters: " + checkString);
         }
+        // This is safe because we synchronize on LibSVMTrainer.class in the train method.
+        svm.rand.setSeed(localRNG.nextLong());
         return Collections.singletonList(svm.svm_train(problem, curParams));
     }
 

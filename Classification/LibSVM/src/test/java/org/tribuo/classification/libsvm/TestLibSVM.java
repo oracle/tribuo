@@ -17,6 +17,7 @@
 package org.tribuo.classification.libsvm;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import libsvm.svm_model;
 import org.tribuo.CategoricalIDInfo;
 import org.tribuo.CategoricalInfo;
 import org.tribuo.Dataset;
@@ -184,6 +185,26 @@ public class TestLibSVM {
         Assertions.assertNotNull(features);
         Assertions.assertTrue(features.isEmpty());
         return m;
+    }
+
+    @Test
+    public void testReproducibility() {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        long seed = 42L;
+        SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC),KernelType.RBF);
+        params.setProbability();
+        LibSVMTrainer<Label> first = new LibSVMClassificationTrainer(params,seed);
+        LibSVMModel<Label> firstModel = first.train(p.getA());
+
+        LibSVMTrainer<Label> second = new LibSVMClassificationTrainer(params,seed);
+        LibSVMModel<Label> secondModel = second.train(p.getA());
+
+        svm_model m = firstModel.getInnerModels().get(0);
+        svm_model mTwo = secondModel.getInnerModels().get(0);
+
+        assertArrayEquals(m.sv_coef,mTwo.sv_coef);
+        assertArrayEquals(m.probA,mTwo.probA);
+        assertArrayEquals(m.probB,mTwo.probB);
     }
 
     @Test
