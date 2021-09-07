@@ -17,5 +17,11 @@
 /**
  * Interfaces and utilities for exporting Tribuo {@link org.tribuo.Model}s in
  * <a href="https://onnx.ai">ONNX</a> format.
+ * <p>
+ * ONNX exported models use floats where Tribuo uses doubles, this is due
+ * to comparatively poor support for fp64 in ONNX deployment environments
+ * as compared to fp32. In addition fp32 executes better on the various
+ * accelerator backends available in
+ * <a href="https://onnxruntime.ai">ONNX Runtime</a>.
  */
 package org.tribuo.onnx;

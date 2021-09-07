@@ -64,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {
+    private static final Logger logger = Logger.getLogger(TestSGDLinear.class.getName());
 
     private static final LinearSGDTrainer t = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
 
@@ -110,24 +111,31 @@ public class TestSGDLinear {
             outputMapping.put(l.getB(), l.getA());
         }
 
-        // Load in via ORT
-        OrtEnvironment env = OrtEnvironment.getEnvironment();
-        env.close();
-        ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(),featureMapping,outputMapping,new DenseTransformer(),new RegressorTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
+        String arch = System.getProperty("os.arch");
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+            // Initialise the OrtEnvironment to load the native library
+            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
+            OrtEnvironment env = OrtEnvironment.getEnvironment();
+            env.close();
+            // Load in via ORT
+            ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(),featureMapping,outputMapping,new DenseTransformer(),new RegressorTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
 
-        // Generate predictions
-        List<Prediction<Regressor>> nativePredictions = model.predict(p.getB());
-        List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
+            // Generate predictions
+            List<Prediction<Regressor>> nativePredictions = model.predict(p.getB());
+            List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
 
-        // Assert the predictions are identical
-        for (int i = 0; i < nativePredictions.size(); i++) {
-            Prediction<Regressor> tribuo = nativePredictions.get(i);
-            Prediction<Regressor> external = onnxPredictions.get(i);
-            assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
-            assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-6);
+            // Assert the predictions are identical
+            for (int i = 0; i < nativePredictions.size(); i++) {
+                Prediction<Regressor> tribuo = nativePredictions.get(i);
+                Prediction<Regressor> external = onnxPredictions.get(i);
+                assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
+                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-6);
+            }
+
+            onnxModel.close();
+        } else {
+            logger.warning("ORT based tests only supported on x86_64, found " + arch);
         }
-
-        onnxModel.close();
 
         onnxFile.toFile().delete();
     }
