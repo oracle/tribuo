@@ -47,50 +47,50 @@ public final class FMParameters implements FeedForwardParameters {
     private DenseVector biasVector;
     private DenseMatrix weightMatrix;
 
-    private final double l2;
     private final int numFactors;
 
     /**
      * Constructor. The number of features and the number of outputs must be fixed and known in advance.
-     * @param rng The RNG to use for initialization.
+     *
+     * @param rng         The RNG to use for initialization.
      * @param numFeatures The number of features in the training dataset.
-     * @param numLabels The number of outputs in the training dataset.
-     * @param numFactors The size of the factorized feature representation.
+     * @param numLabels   The number of outputs in the training dataset.
+     * @param numFactors  The size of the factorized feature representation.
+     * @param variance    The variance of the factor initializer.
      */
-    public FMParameters(SplittableRandom rng, int numFeatures, int numLabels, int numFactors, double l2, double variance) {
+    public FMParameters(SplittableRandom rng, int numFeatures, int numLabels, int numFactors, double variance) {
         weights = new Tensor[numLabels + 2];
         biasVector = new DenseVector(numLabels);
-        weightMatrix = new DenseMatrix(numLabels,numFeatures);
+        weightMatrix = new DenseMatrix(numLabels, numFeatures);
         weights[0] = biasVector;
         weights[1] = weightMatrix;
         for (int i = 0; i < numLabels; i++) {
-            DenseMatrix curMatrix = new DenseMatrix(numFactors,numFeatures);
+            DenseMatrix curMatrix = new DenseMatrix(numFactors, numFeatures);
             initializeMatrix(rng, variance, curMatrix);
-            weights[i+2] = curMatrix;
+            weights[i + 2] = curMatrix;
         }
-        this.l2 = l2;
         this.numFactors = numFactors;
     }
 
     /**
      * Constructs a FMParameters wrapped around the weight array.
-     * @param weights The weights to wrap.
+     *
+     * @param weights    The weights to wrap.
      * @param numFactors The size of the factorized feature representation.
-     * @param l2 The l2 regularization penalty.
      */
-    private FMParameters(Tensor[] weights, int numFactors, double l2) {
+    private FMParameters(Tensor[] weights, int numFactors) {
         this.weights = weights;
         this.biasVector = (DenseVector) weights[0];
         this.weightMatrix = (DenseMatrix) weights[1];
-        this.l2 = l2;
         this.numFactors = numFactors;
     }
 
     /**
      * Initializes the weight matrix by drawing from a zero mean gaussian with the specified variance.
-     * @param rng The RNG to use.
+     *
+     * @param rng      The RNG to use.
      * @param variance The variance of the gaussian.
-     * @param matrix The matrix to initialize.
+     * @param matrix   The matrix to initialize.
      */
     private void initializeMatrix(SplittableRandom rng, double variance, DenseMatrix matrix) {
         // This is to get a nextGaussian method. In Java 17 we can use the SplittableRandom directly
@@ -99,13 +99,14 @@ public final class FMParameters implements FeedForwardParameters {
         int dim2 = matrix.getDimension2Size();
         for (int i = 0; i < dim1; i++) {
             for (int j = 0; j < dim2; j++) {
-                matrix.set(i,j,innerRNG.nextGaussian()*variance);
+                matrix.set(i, j, innerRNG.nextGaussian() * variance);
             }
         }
     }
 
     /**
      * Generates an unnormalised prediction by leftMultiply'ing the weights with the incoming features.
+     *
      * @param example A feature vector
      * @return A {@link DenseVector} containing a score for each label.
      */
@@ -126,15 +127,15 @@ public final class FMParameters implements FeedForwardParameters {
                 double sumOfSquares = 0.0;
                 double sum = 0.0;
                 for (VectorTuple v : example) {
-                    double curWeight = curMatrix.get(k,v.index);
+                    double curWeight = curMatrix.get(k, v.index);
                     double value = curWeight * v.value;
                     sum += value;
-                    sumOfSquares += value*value;
+                    sumOfSquares += value * value;
                 }
-                curValue += (sum*sum) - sumOfSquares;
+                curValue += (sum * sum) - sumOfSquares;
             }
             curValue = curValue / 2;
-            factorizedPred.set(i-2,curValue);
+            factorizedPred.set(i - 2, curValue);
         }
 
         // Add factorized portion
@@ -147,7 +148,8 @@ public final class FMParameters implements FeedForwardParameters {
      * the loss and the per output gradients.
      * <p>
      * This parameters returns a {@link Tensor} array with numLabels + 2 elements.
-     * @param score The Pair returned by the objective.
+     *
+     * @param score    The Pair returned by the objective.
      * @param features The feature vector.
      * @return A {@link Tensor} array containing all the gradients.
      */
@@ -169,7 +171,7 @@ public final class FMParameters implements FeedForwardParameters {
         // factorised representation gradients
         // per label
         for (int i = 2; i < weights.length; i++) {
-            double curOutputGradient = outputGradient.get(i-2);
+            double curOutputGradient = outputGradient.get(i - 2);
             DenseMatrix curFactors = (DenseMatrix) weights[i];
             if (curOutputGradient != 0.0) {
                 // compute /sum_j v_{j,f}x_j
@@ -184,10 +186,10 @@ public final class FMParameters implements FeedForwardParameters {
                     }
                     factorGradMatrix = new DenseSparseMatrix(vectors);
                 } else {
-                    factorGradMatrix = new DenseMatrix(numFactors,features.size());
+                    factorGradMatrix = new DenseMatrix(numFactors, features.size());
                     for (int j = 0; j < numFactors; j++) {
                         for (int k = 0; k < features.size(); k++) {
-                            factorGradMatrix.set(j,k,features.get(k));
+                            factorGradMatrix.set(j, k, features.get(k));
                         }
                     }
                 }
@@ -198,7 +200,7 @@ public final class FMParameters implements FeedForwardParameters {
                     final int jFinal = j;
 
                     // Compute the gradient for this element of the factor vector
-                    curFactorGrad.foreachIndexedInPlace((Integer idx, Double a) -> a*curFactorSum - curFactors.get(jFinal,idx)*a*a);
+                    curFactorGrad.foreachIndexedInPlace((Integer idx, Double a) -> a * curFactorSum - curFactors.get(jFinal, idx) * a * a);
 
                     // Multiply by the output gradient
                     curFactorGrad.scaleInPlace(curOutputGradient);
@@ -207,7 +209,7 @@ public final class FMParameters implements FeedForwardParameters {
             } else {
                 // If the output gradient is 0.0 then all the factor gradients are zero.
                 // Technically with regularization we should shrink the weights for the specified features.
-                gradients[i] = new DenseSparseMatrix(numFactors,features.size());
+                gradients[i] = new DenseSparseMatrix(numFactors, features.size());
             }
         }
 
@@ -216,16 +218,17 @@ public final class FMParameters implements FeedForwardParameters {
 
     /**
      * This returns a {@link DenseMatrix} the same size as the Parameters.
+     *
      * @return A {@link Tensor} array containing a single {@link DenseMatrix}.
      */
     @Override
     public Tensor[] getEmptyCopy() {
         Tensor[] output = new Tensor[weights.length];
         output[0] = new DenseVector(biasVector.size());
-        output[1] = new DenseMatrix(weightMatrix.getDimension1Size(),weightMatrix.getDimension2Size());
+        output[1] = new DenseMatrix(weightMatrix.getDimension1Size(), weightMatrix.getDimension2Size());
         for (int i = 2; i < weights.length; i++) {
             DenseMatrix curMatrix = (DenseMatrix) weights[i];
-            output[i] = new DenseMatrix(curMatrix.getDimension1Size(),curMatrix.getDimension2Size());
+            output[i] = new DenseMatrix(curMatrix.getDimension1Size(), curMatrix.getDimension2Size());
         }
         return output;
     }
@@ -287,6 +290,6 @@ public final class FMParameters implements FeedForwardParameters {
         for (int i = 0; i < weights.length; i++) {
             weightCopy[i] = weights[i].copy();
         }
-        return new FMParameters(weightCopy,numFactors,l2);
+        return new FMParameters(weightCopy, numFactors);
     }
 }

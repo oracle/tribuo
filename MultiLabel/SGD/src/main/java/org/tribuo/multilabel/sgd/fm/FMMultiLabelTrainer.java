@@ -42,28 +42,28 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel,SGDVector> {
+public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel, SGDVector> {
     private static final Logger logger = Logger.getLogger(FMMultiLabelTrainer.class.getName());
 
-    @Config(description="The classification objective function to use.")
+    @Config(description = "The classification objective function to use.")
     private MultiLabelObjective objective = new BinaryCrossEntropy();
 
     /**
      * Constructs an SGD trainer for a multi-label factorization machine.
-     * @param objective The objective function to optimise.
-     * @param optimiser The gradient optimiser to use.
-     * @param epochs The number of epochs (complete passes through the training data).
-     * @param loggingInterval Log the loss after this many iterations. If -1 don't log anything.
-     * @param minibatchSize The size of any minibatches.
-     * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     *
+     * @param objective         The objective function to optimise.
+     * @param optimiser         The gradient optimiser to use.
+     * @param epochs            The number of epochs (complete passes through the training data).
+     * @param loggingInterval   Log the loss after this many iterations. If -1 don't log anything.
+     * @param minibatchSize     The size of any minibatches.
+     * @param seed              A seed for the random number generator, used to shuffle the examples before each epoch.
      * @param factorizedDimSize Size of the factorized feature representation.
-     * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
      */
     public FMMultiLabelTrainer(MultiLabelObjective objective, StochasticGradientOptimiser optimiser, int epochs,
                                int loggingInterval, int minibatchSize, long seed,
-                               int factorizedDimSize, double l2, double variance) {
-        super(optimiser,epochs,loggingInterval,minibatchSize,seed, factorizedDimSize, l2, variance);
+                               int factorizedDimSize, double variance) {
+        super(optimiser, epochs, loggingInterval, minibatchSize, seed, factorizedDimSize, variance);
         this.objective = objective;
     }
 
@@ -71,36 +71,36 @@ public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel,SGDVector>
      * Constructs an SGD trainer for a multi-label factorization machine.
      * <p>
      * Sets the minibatch size to 1.
-     * @param objective The objective function to optimise.
-     * @param optimiser The gradient optimiser to use.
-     * @param epochs The number of epochs (complete passes through the training data).
-     * @param loggingInterval Log the loss after this many iterations. If -1 don't log anything.
-     * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     *
+     * @param objective         The objective function to optimise.
+     * @param optimiser         The gradient optimiser to use.
+     * @param epochs            The number of epochs (complete passes through the training data).
+     * @param loggingInterval   Log the loss after this many iterations. If -1 don't log anything.
+     * @param seed              A seed for the random number generator, used to shuffle the examples before each epoch.
      * @param factorizedDimSize Size of the factorized feature representation.
-     * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
      */
     public FMMultiLabelTrainer(MultiLabelObjective objective, StochasticGradientOptimiser optimiser, int epochs,
                                int loggingInterval, long seed,
-                               int factorizedDimSize, double l2, double variance) {
-        this(objective,optimiser,epochs,loggingInterval,1,seed, factorizedDimSize, l2, variance);
+                               int factorizedDimSize, double variance) {
+        this(objective, optimiser, epochs, loggingInterval, 1, seed, factorizedDimSize, variance);
     }
 
     /**
      * Constructs an SGD trainer for a multi-label factorization machine.
      * <p>
      * Sets the minibatch size to 1 and the logging interval to 1000.
-     * @param objective The objective function to optimise.
-     * @param optimiser The gradient optimiser to use.
-     * @param epochs The number of epochs (complete passes through the training data).
-     * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     *
+     * @param objective         The objective function to optimise.
+     * @param optimiser         The gradient optimiser to use.
+     * @param epochs            The number of epochs (complete passes through the training data).
+     * @param seed              A seed for the random number generator, used to shuffle the examples before each epoch.
      * @param factorizedDimSize Size of the factorized feature representation.
-     * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
      */
     public FMMultiLabelTrainer(MultiLabelObjective objective, StochasticGradientOptimiser optimiser, int epochs,
-                               long seed, int factorizedDimSize, double l2, double variance) {
-        this(objective,optimiser,epochs,1000,1,seed, factorizedDimSize, l2, variance);
+                               long seed, int factorizedDimSize, double variance) {
+        this(objective, optimiser, epochs, 1000, 1, seed, factorizedDimSize, variance);
     }
 
     /**
@@ -122,7 +122,7 @@ public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel,SGDVector>
 
     @Override
     protected FMMultiLabelModel createModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureMap, ImmutableOutputInfo<MultiLabel> outputInfo, FMParameters parameters) {
-        return new FMMultiLabelModel(name,provenance,featureMap,outputInfo,parameters,objective.getNormalizer(),objective.isProbabilistic(),objective.threshold());
+        return new FMMultiLabelModel(name, provenance, featureMap, outputInfo, parameters, objective.getNormalizer(), objective.isProbabilistic(), objective.threshold());
     }
 
     @Override
@@ -134,7 +134,7 @@ public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel,SGDVector>
     public String toString() {
         return "FMMultiLabelTrainer(objective=" + objective.toString() + ",optimiser=" + optimiser.toString() +
                 ",epochs=" + epochs + ",minibatchSize=" + minibatchSize + ",seed=" + seed +
-                ",factorizedDimSize=" + factorizedDimSize + ",l2=" + l2 + ",variance=" + variance +
+                ",factorizedDimSize=" + factorizedDimSize + ",variance=" + variance +
                 ")";
     }
 

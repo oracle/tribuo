@@ -43,32 +43,32 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector> {
+public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVector> {
     private static final Logger logger = Logger.getLogger(FMRegressionTrainer.class.getName());
 
-    @Config(mandatory = true,description="The regression objective to use.")
+    @Config(mandatory = true, description = "The regression objective to use.")
     private RegressionObjective objective;
 
-    @Config(mandatory = true,description="Standardise the output variables before fitting the model.")
+    @Config(mandatory = true, description = "Standardise the output variables before fitting the model.")
     private boolean standardise;
 
     /**
      * Constructs an SGD trainer for a factorization machine.
-     * @param objective The objective function to optimise.
-     * @param optimiser The gradient optimiser to use.
-     * @param epochs The number of epochs (complete passes through the training data).
-     * @param loggingInterval Log the loss after this many iterations. If -1 don't log anything.
-     * @param minibatchSize The size of any minibatches.
-     * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     *
+     * @param objective         The objective function to optimise.
+     * @param optimiser         The gradient optimiser to use.
+     * @param epochs            The number of epochs (complete passes through the training data).
+     * @param loggingInterval   Log the loss after this many iterations. If -1 don't log anything.
+     * @param minibatchSize     The size of any minibatches.
+     * @param seed              A seed for the random number generator, used to shuffle the examples before each epoch.
      * @param factorizedDimSize Size of the factorized feature representation.
-     * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
      * @param standardise       Standardise the output regressors before fitting the model.
      */
     public FMRegressionTrainer(RegressionObjective objective, StochasticGradientOptimiser optimiser, int epochs,
                                int loggingInterval, int minibatchSize, long seed,
-                               int factorizedDimSize, double l2, double variance, boolean standardise) {
-        super(optimiser, epochs, loggingInterval, minibatchSize, seed, factorizedDimSize, l2, variance);
+                               int factorizedDimSize, double variance, boolean standardise) {
+        super(optimiser, epochs, loggingInterval, minibatchSize, seed, factorizedDimSize, variance);
         this.objective = objective;
         this.standardise = standardise;
     }
@@ -77,38 +77,38 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
      * Constructs an SGD trainer for a factorization machine.
      * <p>
      * Sets the minibatch size to 1.
-     * @param objective The objective function to optimise.
-     * @param optimiser The gradient optimiser to use.
-     * @param epochs The number of epochs (complete passes through the training data).
-     * @param loggingInterval Log the loss after this many iterations. If -1 don't log anything.
-     * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     *
+     * @param objective         The objective function to optimise.
+     * @param optimiser         The gradient optimiser to use.
+     * @param epochs            The number of epochs (complete passes through the training data).
+     * @param loggingInterval   Log the loss after this many iterations. If -1 don't log anything.
+     * @param seed              A seed for the random number generator, used to shuffle the examples before each epoch.
      * @param factorizedDimSize Size of the factorized feature representation.
-     * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
      * @param standardise       Standardise the output regressors before fitting the model.
      */
     public FMRegressionTrainer(RegressionObjective objective, StochasticGradientOptimiser optimiser, int epochs,
                                int loggingInterval, long seed,
-                               int factorizedDimSize, double l2, double variance, boolean standardise) {
-        this(objective,optimiser,epochs,loggingInterval,1,seed,factorizedDimSize,l2,variance,standardise);
+                               int factorizedDimSize, double variance, boolean standardise) {
+        this(objective, optimiser, epochs, loggingInterval, 1, seed, factorizedDimSize, variance, standardise);
     }
 
     /**
      * Constructs an SGD trainer for a factorization machine.
      * <p>
      * Sets the minibatch size to 1 and the logging interval to 1000.
-     * @param objective The objective function to optimise.
-     * @param optimiser The gradient optimiser to use.
-     * @param epochs The number of epochs (complete passes through the training data).
-     * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     *
+     * @param objective         The objective function to optimise.
+     * @param optimiser         The gradient optimiser to use.
+     * @param epochs            The number of epochs (complete passes through the training data).
+     * @param seed              A seed for the random number generator, used to shuffle the examples before each epoch.
      * @param factorizedDimSize Size of the factorized feature representation.
-     * @param l2                The l2 regularisation penalty.
      * @param variance          The variance of the initializer.
      * @param standardise       Standardise the output regressors before fitting the model.
      */
     public FMRegressionTrainer(RegressionObjective objective, StochasticGradientOptimiser optimiser, int epochs,
-                               long seed, int factorizedDimSize, double l2, double variance, boolean standardise) {
-        this(objective,optimiser,epochs,1000,1,seed,factorizedDimSize,l2,variance,standardise);
+                               long seed, int factorizedDimSize, double variance, boolean standardise) {
+        this(objective, optimiser, epochs, 1000, 1, seed, factorizedDimSize, variance, standardise);
     }
 
     /**
@@ -145,7 +145,7 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
             int id = outputInfo.getID(r);
             dimensionNames[id] = r.getNames()[0];
         }
-        return new FMRegressionModel(name,dimensionNames,provenance,featureMap,outputInfo,parameters,standardise);
+        return new FMRegressionModel(name, dimensionNames, provenance, featureMap, outputInfo, parameters, standardise);
     }
 
     @Override
@@ -157,7 +157,7 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor,DenseVector
     public String toString() {
         return "FMRegressionTrainer(objective=" + objective.toString() + ",optimiser=" + optimiser.toString() +
                 ",epochs=" + epochs + ",minibatchSize=" + minibatchSize + ",seed=" + seed +
-                ",factorizedDimSize=" + factorizedDimSize + ",l2=" + l2 + ",variance=" + variance +
+                ",factorizedDimSize=" + factorizedDimSize + ",variance=" + variance +
                 ",standardise=" + standardise + ")";
     }
 }

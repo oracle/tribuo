@@ -61,8 +61,6 @@ public class FMClassificationOptions implements ClassificationOptions<FMClassifi
     private long fmSeed = Trainer.DEFAULT_SEED;
     @Option(longName = "fm-factor-size", usage = "Factor size.")
     public int fmFactorSize = 6;
-    @Option(longName = "fm-l2-penalty", usage = "L2 regularization penalty.")
-    public double fmL2 = 0.001;
     @Option(longName = "fm-variance", usage = "Variance of the initialization gaussian.")
     public double fmVariance = 0.1;
 
@@ -85,6 +83,6 @@ public class FMClassificationOptions implements ClassificationOptions<FMClassifi
     public FMClassificationTrainer getTrainer() {
         logger.info(String.format("Set logging interval to %d", fmLoggingInterval));
         return new FMClassificationTrainer(getLoss(), sgoOptions.getOptimiser(), fmEpochs, fmLoggingInterval,
-                fmMinibatchSize, fmSeed, fmFactorSize, fmL2, fmVariance);
+                fmMinibatchSize, fmSeed, fmFactorSize, fmVariance);
     }
 }

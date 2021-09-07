@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
-import org.tribuo.Example;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
@@ -31,7 +30,6 @@ import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.classification.sgd.objectives.Hinge;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
-import org.tribuo.dataset.DatasetView;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.test.Helpers;
 
@@ -40,13 +38,12 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestFMClassification {
 
     private static final FMClassificationTrainer t = new FMClassificationTrainer(new Hinge(),
-            new AdaGrad(0.1,0.1),5,1000,Trainer.DEFAULT_SEED,6,0.0,0.1);
+            new AdaGrad(0.1,0.1),5,1000,Trainer.DEFAULT_SEED,6,0.1);
 
     @BeforeAll
     public static void setup() {

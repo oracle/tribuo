@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestFMRegression {
 
-    private static final FMRegressionTrainer t = new FMRegressionTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,1,0.0,0.1,true);
+    private static final FMRegressionTrainer t = new FMRegressionTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,1,0.1,true);
 
     private static final RegressionEvaluator e = new RegressionEvaluator();
 

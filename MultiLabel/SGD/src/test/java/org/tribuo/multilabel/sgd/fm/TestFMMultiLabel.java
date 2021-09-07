@@ -43,8 +43,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestFMMultiLabel {
 
-    private static final FMMultiLabelTrainer hinge = new FMMultiLabelTrainer(new Hinge(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED, 5,0.0,0.1);
-    private static final FMMultiLabelTrainer sigmoid = new FMMultiLabelTrainer(new BinaryCrossEntropy(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,5,0.0,0.1);
+    private static final FMMultiLabelTrainer hinge = new FMMultiLabelTrainer(new Hinge(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED, 5,0.1);
+    private static final FMMultiLabelTrainer sigmoid = new FMMultiLabelTrainer(new BinaryCrossEntropy(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,5,0.1);
 
     @BeforeAll
     public static void setup() {
@@ -77,7 +77,7 @@ public class TestFMMultiLabel {
 
         MultiLabelEvaluation evaluation = (MultiLabelEvaluation) train.getOutputFactory().getEvaluator().evaluate(model,test);
 
-        Assertions.assertEquals(1.0,evaluation.microAveragedRecall());
+        Assertions.assertEquals(1.0, evaluation.microAveragedRecall());
 
         Helpers.testModelSerialization(model, MultiLabel.class);
     }

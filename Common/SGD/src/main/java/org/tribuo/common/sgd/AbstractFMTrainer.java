@@ -36,34 +36,30 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public abstract class AbstractFMTrainer<T extends Output<T>,U> extends AbstractSGDTrainer<T,U,AbstractFMModel<T>, FMParameters> {
+public abstract class AbstractFMTrainer<T extends Output<T>, U> extends AbstractSGDTrainer<T, U, AbstractFMModel<T>, FMParameters> {
     private static final Logger logger = Logger.getLogger(AbstractFMTrainer.class.getName());
 
     @Config(mandatory = true, description = "The size of the factorized feature representation.")
     protected int factorizedDimSize;
-
-    @Config(mandatory = true, description = "The l2 regularization penalty (i.e., weight decay)")
-    protected double l2;
 
     @Config(mandatory = true, description = "The variance of the initializer.")
     protected double variance;
 
     /**
      * Constructs an SGD trainer for a factorization machine.
-     * @param optimiser The gradient optimiser to use.
-     * @param epochs The number of epochs (complete passes through the training data).
-     * @param loggingInterval Log the loss after this many iterations. If -1 don't log anything.
-     * @param minibatchSize The size of any minibatches.
-     * @param seed A seed for the random number generator, used to shuffle the examples before each epoch.
+     *
+     * @param optimiser         The gradient optimiser to use.
+     * @param epochs            The number of epochs (complete passes through the training data).
+     * @param loggingInterval   Log the loss after this many iterations. If -1 don't log anything.
+     * @param minibatchSize     The size of any minibatches.
+     * @param seed              A seed for the random number generator, used to shuffle the examples before each epoch.
      * @param factorizedDimSize Size of the factorized feature representation.
-     * @param l2 The l2 regularisation penalty.
-     * @param variance The variance of the initializer.
+     * @param variance          The variance of the initializer.
      */
     protected AbstractFMTrainer(StochasticGradientOptimiser optimiser, int epochs, int loggingInterval,
-                                int minibatchSize, long seed, int factorizedDimSize, double l2, double variance) {
-        super(optimiser,epochs,loggingInterval,minibatchSize,seed,false);
+                                int minibatchSize, long seed, int factorizedDimSize, double variance) {
+        super(optimiser, epochs, loggingInterval, minibatchSize, seed, false);
         this.factorizedDimSize = factorizedDimSize;
-        this.l2 = l2;
         this.variance = variance;
         postConfig();
     }
@@ -79,18 +75,16 @@ public abstract class AbstractFMTrainer<T extends Output<T>,U> extends AbstractS
     public void postConfig() {
         super.postConfig();
         if (factorizedDimSize < 1) {
-            throw new PropertyException("","factorizedDimSize","Value must be positive.");
-        }
-        if (l2 < 0.0) {
-            throw new PropertyException("","l2","Value must be non-negative.");
+            throw new PropertyException("", "factorizedDimSize", "Value must be positive.");
         }
         if (variance <= 0.0) {
-            throw new PropertyException("","variance","Value must be positive.");
+            throw new PropertyException("", "variance", "Value must be positive.");
         }
     }
 
     /**
      * Returns the default model name.
+     *
      * @return The default model name.
      */
     @Override
@@ -102,14 +96,15 @@ public abstract class AbstractFMTrainer<T extends Output<T>,U> extends AbstractS
      * Constructs the trainable parameters object, in this case a {@link FMParameters} containing
      * a weight matrix for the feature weights and a series of weight matrices for the factorized
      * feature representation.
+     *
      * @param numFeatures The number of input features.
-     * @param numOutputs The number of output dimensions.
-     * @param localRNG The RNG to use for parameter initialisation.
+     * @param numOutputs  The number of output dimensions.
+     * @param localRNG    The RNG to use for parameter initialisation.
      * @return The trainable parameters.
      */
     @Override
     protected FMParameters createParameters(int numFeatures, int numOutputs, SplittableRandom localRNG) {
-        return new FMParameters(localRNG,numFeatures,numOutputs,factorizedDimSize,l2,variance);
+        return new FMParameters(localRNG, numFeatures, numOutputs, factorizedDimSize, variance);
     }
 
 }

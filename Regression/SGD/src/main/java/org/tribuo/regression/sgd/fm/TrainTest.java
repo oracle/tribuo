@@ -147,7 +147,7 @@ public class TrainTest {
 
         logger.info("Feature domain - " + train.getFeatureIDMap());
 
-        Trainer<Regressor> trainer = new FMRegressionTrainer(obj,grad,o.epochs,o.loggingInterval,o.minibatchSize,o.general.seed,o.factorSize,o.l2,o.variance,o.standardise);
+        Trainer<Regressor> trainer = new FMRegressionTrainer(obj,grad,o.epochs,o.loggingInterval,o.minibatchSize,o.general.seed,o.factorSize,o.variance,o.standardise);
         logger.info("Training using " + trainer.toString());
         final long trainStart = System.currentTimeMillis();
         Model<Regressor> model = trainer.train(train);
