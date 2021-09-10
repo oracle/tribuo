@@ -43,6 +43,8 @@ import java.util.logging.Logger;
  * A {@link Trainer} which wraps a liblinear-java anomaly detection trainer using a one-class SVM.
  * <p>
  * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
+ * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
  * <p>
  * See:
  * <pre>
@@ -130,6 +132,7 @@ public class LibLinearAnomalyTrainer extends LibLinearTrainer<Event> {
         data.n = numFeatures;
 
         // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
+        // Concurrency safety is handled by the global lock on LibLinearTrainer.class in LibLinearTrainer.train.
         Linear.resetRandom();
         return Collections.singletonList(Linear.train(data,curParams));
     }

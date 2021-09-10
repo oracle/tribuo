@@ -45,6 +45,8 @@ import java.util.logging.Logger;
  * A {@link Trainer} which wraps a liblinear-java trainer.
  * <p>
  * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
+ * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
  * <p>
  * See:
  * <pre>

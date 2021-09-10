@@ -46,6 +46,10 @@ import java.util.logging.Logger;
 /**
  * A trainer for classification models that uses LibSVM.
  * <p>
+ * Note the train method is synchronized on {@code LibSVMTrainer.class} due to a global RNG in LibSVM.
+ * This is insufficient to ensure reproducibility if LibSVM is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
+ * <p>
  * See:
  * <pre>
  * Chang CC, Lin CJ.
@@ -123,7 +127,8 @@ public class LibSVMClassificationTrainer extends LibSVMTrainer<Label> implements
         if(checkString != null) {
             throw new IllegalArgumentException("Error checking SVM parameters: " + checkString);
         }
-        // This is safe because we synchronize on LibSVMTrainer.class in the train method.
+        // This is safe because we synchronize on LibSVMTrainer.class in the train method to
+        // ensure there is no concurrent use of the rng.
         svm.rand.setSeed(localRNG.nextLong());
         return Collections.singletonList(svm.svm_train(problem, curParams));
     }

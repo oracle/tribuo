@@ -44,6 +44,10 @@ import java.util.logging.Logger;
 /**
  * A trainer for regression models that uses LibSVM. Trains an independent model for each output dimension.
  * <p>
+ * Note the train method is synchronized on {@code LibSVMTrainer.class} due to a global RNG in LibSVM.
+ * This is insufficient to ensure reproducibility if LibSVM is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
+ * <p>
  * See:
  * <pre>
  * Chang CC, Lin CJ.
@@ -144,7 +148,8 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
             if (curParams.gamma == 0) {
                 curParams.gamma = 1.0 / numFeatures;
             }
-            // This is safe because we synchronize on LibSVMTrainer.class in the train method.
+            // This is safe because we synchronize on LibSVMTrainer.class in the train method to
+            // ensure there is no concurrent use of the rng.
             svm.rand.setSeed(localRNG.nextLong());
             if (standardize) {
                 Pair<Double,Double> meanVar = Util.meanAndVariance(outputs[i]);

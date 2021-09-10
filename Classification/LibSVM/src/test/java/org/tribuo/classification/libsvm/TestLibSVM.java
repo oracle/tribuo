@@ -57,12 +57,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -199,12 +201,20 @@ public class TestLibSVM {
         LibSVMTrainer<Label> second = new LibSVMClassificationTrainer(params,seed);
         LibSVMModel<Label> secondModel = second.train(p.getA());
 
+        LibSVMModel<Label> thirdModel = second.train(p.getA());
+
         svm_model m = firstModel.getInnerModels().get(0);
         svm_model mTwo = secondModel.getInnerModels().get(0);
+        svm_model mThree = thirdModel.getInnerModels().get(0);
 
+        // One and two use the same RNG seed and should be identical
         assertArrayEquals(m.sv_coef,mTwo.sv_coef);
         assertArrayEquals(m.probA,mTwo.probA);
         assertArrayEquals(m.probB,mTwo.probB);
+
+        // The RNG state of three has diverged and should produce a different model.
+        assertFalse(Arrays.equals(mTwo.probA,mThree.probA));
+        assertFalse(Arrays.equals(mTwo.probB,mThree.probB));
     }
 
     @Test

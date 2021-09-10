@@ -45,6 +45,10 @@ import java.util.logging.Logger;
 /**
  * A trainer that will train using libsvm's Java implementation.
  * <p>
+ * Note the train method is synchronized on {@code LibSVMTrainer.class} due to a global RNG in LibSVM.
+ * This is insufficient to ensure reproducibility if LibSVM is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
+ * <p>
  * See:
  * <pre>
  * Chang CC, Lin CJ.
@@ -210,6 +214,7 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
 
         List<svm_model> models;
         synchronized (LibSVMTrainer.class) {
+            // localRNG is used to seed LibSVM's global RNG before each call to svm.svm_train
             models = trainModels(curParams, featureIDMap.size() + 1, data.getA(), data.getB(), localRNG);
         }
 
