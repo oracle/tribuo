@@ -36,14 +36,18 @@ import org.tribuo.util.Util;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
  * A trainer that will train using libsvm's Java implementation.
+ * <p>
+ * Note the train method is synchronized on {@code LibSVMTrainer.class} due to a global RNG in LibSVM.
+ * This is insufficient to ensure reproducibility if LibSVM is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
  * <p>
  * See:
  * <pre>
@@ -112,6 +116,11 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
     @Config(description="Generate probability estimates.")
     private boolean probability = false;
 
+    @Config(description="RNG seed.")
+    private long seed = Trainer.DEFAULT_SEED;
+
+    private SplittableRandom rng;
+
     private int trainInvocationCounter = 0;
 
     /**
@@ -123,7 +132,7 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
      * Constructs a LibSVMTrainer from the parameters.
      * @param parameters The SVM parameters.
      */
-    protected LibSVMTrainer(SVMParameters<T> parameters) {
+    protected LibSVMTrainer(SVMParameters<T> parameters, long seed) {
         this.parameters = parameters.getParameters();
         // Unpack the parameters for the provenance system.
         this.svmType = parameters.getSvmType();
@@ -138,6 +147,8 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         this.p = this.parameters.p;
         this.shrinking = this.parameters.shrinking == 1;
         this.probability = this.parameters.probability == 1;
+        this.seed = seed;
+        this.rng = new SplittableRandom(seed);
     }
 
     /**
@@ -158,6 +169,7 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         parameters.p = p;
         parameters.shrinking = shrinking ? 1 : 0;
         parameters.probability = probability ? 1 : 0;
+        this.rng = new SplittableRandom(seed);
     }
 
     @Override
@@ -167,6 +179,8 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         buffer.append("LibSVMTrainer(");
         buffer.append("svm_params=");
         buffer.append(SVMParameters.svmParamsToString(parameters));
+        buffer.append(",seed=");
+        buffer.append(seed);
         buffer.append(")");
 
         return buffer.toString();
@@ -185,16 +199,26 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
 
-        TrainerProvenance trainerProvenance = getProvenance();
-        ModelProvenance provenance = new ModelProvenance(LibSVMModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
-        trainInvocationCounter++;
+        // Creates a new RNG, adds one to the invocation count, generates a local optimiser.
+        TrainerProvenance trainerProvenance;
+        SplittableRandom localRNG;
+        synchronized(this) {
+            localRNG = rng.split();
+            trainerProvenance = getProvenance();
+            trainInvocationCounter++;
+        }
 
         svm_parameter curParams = setupParameters(outputIDInfo);
 
         Pair<svm_node[][],double[][]> data = extractData(examples,outputIDInfo,featureIDMap);
 
-        List<svm_model> models = trainModels(curParams,featureIDMap.size()+1,data.getA(),data.getB());
+        List<svm_model> models;
+        synchronized (LibSVMTrainer.class) {
+            // localRNG is used to seed LibSVM's global RNG before each call to svm.svm_train
+            models = trainModels(curParams, featureIDMap.size() + 1, data.getA(), data.getB(), localRNG);
+        }
 
+        ModelProvenance provenance = new ModelProvenance(LibSVMModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
         return createModel(provenance,featureIDMap,outputIDInfo,models);
     }
 
@@ -209,17 +233,18 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
     protected abstract LibSVMModel<T> createModel(ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, List<svm_model> models);
 
     /**
-     * Train all the liblinear instances necessary for this dataset.
-     * @param curParams The LibLinear parameters.
+     * Train all the LibSVM instances necessary for this dataset.
+     * @param curParams The LibSVM parameters.
      * @param numFeatures The number of features in this dataset.
      * @param features The features themselves.
      * @param outputs The outputs.
-     * @return A list of liblinear models.
+     * @param localRNG The RNG to use for seeding LibSVM's RNG.
+     * @return A list of LibSVM models.
      */
-    protected abstract List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs);
+    protected abstract List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs, SplittableRandom localRNG);
 
     /**
-     * Extracts the features and {@link Output}s in LibLinear's format.
+     * Extracts the features and {@link Output}s in LibSVM's format.
      * @param data The input data.
      * @param outputInfo The output info.
      * @param featureMap The feature info.

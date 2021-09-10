@@ -17,6 +17,7 @@
 package org.tribuo.classification.libsvm;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import libsvm.svm_model;
 import org.tribuo.CategoricalIDInfo;
 import org.tribuo.CategoricalInfo;
 import org.tribuo.Dataset;
@@ -56,12 +57,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -184,6 +187,42 @@ public class TestLibSVM {
         Assertions.assertNotNull(features);
         Assertions.assertTrue(features.isEmpty());
         return m;
+    }
+
+    @Test
+    public void testReproducibility() {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        long seed = 42L;
+        SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC),KernelType.RBF);
+        params.setProbability();
+        LibSVMTrainer<Label> first = new LibSVMClassificationTrainer(params,seed);
+        LibSVMModel<Label> firstModel = first.train(p.getA());
+
+        LibSVMTrainer<Label> second = new LibSVMClassificationTrainer(params,seed);
+        LibSVMModel<Label> secondModel = second.train(p.getA());
+
+        LibSVMModel<Label> thirdModel = first.train(p.getA());
+        LibSVMModel<Label> fourthModel = second.train(p.getA());
+
+        svm_model m = firstModel.getInnerModels().get(0);
+        svm_model mTwo = secondModel.getInnerModels().get(0);
+        svm_model mThre = thirdModel.getInnerModels().get(0);
+        svm_model mFour = fourthModel.getInnerModels().get(0);
+
+        // One and two use the same RNG seed and should be identical
+        assertArrayEquals(m.sv_coef,mTwo.sv_coef);
+        assertArrayEquals(m.probA,mTwo.probA);
+        assertArrayEquals(m.probB,mTwo.probB);
+
+        // The RNG state of three has diverged and should produce a different model.
+        assertFalse(Arrays.equals(mTwo.probA,mFour.probA));
+        assertFalse(Arrays.equals(mTwo.probB,mFour.probB));
+
+        // The RNG state for three and four are the same so the two models should be the same.
+        assertArrayEquals(mFour.sv_coef,mThre.sv_coef);
+        assertArrayEquals(mFour.probA,mThre.probA);
+        assertArrayEquals(mFour.probB,mThre.probB);
+
     }
 
     @Test
