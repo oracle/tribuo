@@ -201,11 +201,13 @@ public class TestLibSVM {
         LibSVMTrainer<Label> second = new LibSVMClassificationTrainer(params,seed);
         LibSVMModel<Label> secondModel = second.train(p.getA());
 
-        LibSVMModel<Label> thirdModel = second.train(p.getA());
+        LibSVMModel<Label> thirdModel = first.train(p.getA());
+        LibSVMModel<Label> fourthModel = second.train(p.getA());
 
         svm_model m = firstModel.getInnerModels().get(0);
         svm_model mTwo = secondModel.getInnerModels().get(0);
-        svm_model mThree = thirdModel.getInnerModels().get(0);
+        svm_model mThre = thirdModel.getInnerModels().get(0);
+        svm_model mFour = fourthModel.getInnerModels().get(0);
 
         // One and two use the same RNG seed and should be identical
         assertArrayEquals(m.sv_coef,mTwo.sv_coef);
@@ -213,8 +215,14 @@ public class TestLibSVM {
         assertArrayEquals(m.probB,mTwo.probB);
 
         // The RNG state of three has diverged and should produce a different model.
-        assertFalse(Arrays.equals(mTwo.probA,mThree.probA));
-        assertFalse(Arrays.equals(mTwo.probB,mThree.probB));
+        assertFalse(Arrays.equals(mTwo.probA,mFour.probA));
+        assertFalse(Arrays.equals(mTwo.probB,mFour.probB));
+
+        // The RNG state for three and four are the same so the two models should be the same.
+        assertArrayEquals(mFour.sv_coef,mThre.sv_coef);
+        assertArrayEquals(mFour.probA,mThre.probA);
+        assertArrayEquals(mFour.probB,mThre.probB);
+
     }
 
     @Test
