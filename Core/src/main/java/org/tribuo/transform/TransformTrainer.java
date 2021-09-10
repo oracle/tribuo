@@ -112,7 +112,7 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     @Override
     public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance) {
         
-        logger.fine(String.format("Creating transformers"));
+        logger.fine("Creating transformers");
 
         TransformerMap transformerMap = examples.createTransformers(transformations, includeImplicitZeroFeatures);
 
@@ -121,12 +121,17 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
         Dataset<T> transformedDataset = transformerMap.transformDataset(examples,densify);
 
         logger.fine("Running inner trainer");
-        
-        Model<T> innerModel = innerTrainer.train(transformedDataset);
 
-        ModelProvenance provenance = new ModelProvenance(TransformedModel.class.getName(), OffsetDateTime.now(), transformedDataset.getProvenance(), getProvenance(), instanceProvenance);
+        TrainerProvenance provenance;
+        Model<T> innerModel;
+        synchronized (innerTrainer) {
+            provenance = getProvenance();
+            innerModel = innerTrainer.train(transformedDataset);
+        }
 
-        return new TransformedModel<>(provenance,innerModel,transformerMap,densify);
+        ModelProvenance modelProvenance = new ModelProvenance(TransformedModel.class.getName(), OffsetDateTime.now(), transformedDataset.getProvenance(), provenance, instanceProvenance);
+
+        return new TransformedModel<>(modelProvenance,innerModel,transformerMap,densify);
     }
 
     @Override
