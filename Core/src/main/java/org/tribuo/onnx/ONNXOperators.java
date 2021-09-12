@@ -144,7 +144,6 @@ public enum ONNXOperators {
             new ONNXAttribute("transB", OnnxMl.AttributeProto.AttributeType.INT,false)
     )),
     /**
-     * Greater than, returns the element-wise greater than operation on the two tensors.
      * <p>
      * Tensors must be broadcastable to the same shape.
      */
@@ -172,6 +171,35 @@ public enum ONNXOperators {
      * the second or third input. When the test is true, return the second input, otherwise return the third input.
      */
     WHERE("Where",3,1)
+    /**
+     * SVM Classifier.
+     * <ul>
+     *     <li>{@code classlabels_ints} - Class labels if using integer labels. One and only one of the 'classlabels_*' attributes must be defined.</li>
+     *     <li>{@code classlabels_strings} - Class labels if using string labels. One and only one of the 'classlabels_*' attributes must be defined.</li>
+     *     <li>{@code coefficients} - SVM coefficients</li>
+     *     <li>{@code kernel_params} - Tuple of gamma, coef0 and degree. Set to zero if unused by the kernel.</li>
+     *     <li>{@code kernel_type} - One of 'LINEAR,' 'POLY,' 'RBF,' 'SIGMOID'.</li>
+     *     <li>{@code post_transforms} - Transform to apply to the score (usually unused by SVMs), one of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'.</li>
+     *     <li>{@code prob_a} - Probability coefficients, if set must be the same size as prob_b.</li>
+     *     <li>{@code prob_b} - Probability coefficients, if set must be the same size as prob_a.</li>
+     *     <li>{@code rho} - Rho vector.</li>
+     *     <li>{@code support_vectors} - linearised support vectors.</li>
+     *     <li>{@code vectors_per_class} - the number of support vectors in each class.</li>
+     * </ul>
+     */
+    SVM_CLASSIFIER("SVMClassifier",1,2, Arrays.asList(
+            new ONNXAttribute("classlabels_ints",OnnxMl.AttributeProto.AttributeType.INTS,false),
+            new ONNXAttribute("classlabels_strings",OnnxMl.AttributeProto.AttributeType.STRINGS,false),
+            new ONNXAttribute("coefficients",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("kernel_params",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("kernel_type",OnnxMl.AttributeProto.AttributeType.STRING,false),
+            new ONNXAttribute("post_transform",OnnxMl.AttributeProto.AttributeType.STRING,false),
+            new ONNXAttribute("prob_a",OnnxMl.AttributeProto.AttributeType.FLOATS,false),
+            new ONNXAttribute("prob_b",OnnxMl.AttributeProto.AttributeType.FLOATS,false),
+            new ONNXAttribute("rho",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("support_vectors",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("vectors_per_class",OnnxMl.AttributeProto.AttributeType.INTS,true)
+    ))
     ;
 
     /**

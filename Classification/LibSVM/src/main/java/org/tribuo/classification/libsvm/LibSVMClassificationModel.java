@@ -16,19 +16,28 @@
 
 package org.tribuo.classification.libsvm;
 
+import ai.onnx.proto.OnnxMl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
+import org.tribuo.Tribuo;
 import org.tribuo.classification.Label;
+import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXShape;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import libsvm.svm;
 import libsvm.svm_model;
 import libsvm.svm_node;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -60,7 +69,7 @@ import java.util.Set;
  * Machine Learning, 1995.
  * </pre>
  */
-public class LibSVMClassificationModel extends LibSVMModel<Label> {
+public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONNXExportable {
     private static final long serialVersionUID = 3L;
 
     /**
@@ -153,4 +162,60 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> {
         return new LibSVMClassificationModel(newName,newProvenance,featureIDMap,outputIDInfo,Collections.singletonList(LibSVMModel.copyModel(models.get(0))));
     }
 
+    @Override
+    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
+        ONNXContext context = new ONNXContext();
+
+        // Build graph
+        OnnxMl.GraphProto graph = exportONNXGraph(context);
+
+        // Build model
+        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
+        builder.setGraph(graph);
+        builder.setDomain(domain);
+        builder.setProducerName("Tribuo");
+        builder.setProducerVersion(Tribuo.VERSION);
+        builder.setModelVersion(modelVersion);
+        builder.setDocString(toString());
+        builder.addOpsetImport(ONNXOperators.getOpsetProto());
+        builder.setIrVersion(6);
+        return builder.build();
+    }
+
+    @Override
+    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
+        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        graphBuilder.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        graphBuilder.addOutput(outputValueProto);
+
+        svm_model model = models.get(0);
+        int numOneVOne = model.label.length * (model.label.length - 1) / 2;
+
+        // Extract the attributes
+        Map<String,Object> attributes = new HashMap<>();
+        attributes.put("classlabels_ints",model.label);
+        attributes.put("coefficients",coefficients);
+        attributes.put("kernel_params",new float[]{(float)model.param.gamma,(float)model.param.coef0,model.param.degree});
+        attributes.put("kernel_type", KernelType.getKernelType(model.param.kernel_type).name());
+        attributes.put("rho",rho);
+        attributes.put("support_vectors",supportVectors);
+        attributes.put("vectors_per_class", Arrays.copyOf(model.nSV,model.label.length));
+        if (generatesProbabilities) {
+            attributes.put("prob_a",Arrays.copyOf(model.probA,numOneVOne));
+            attributes.put("prob_b",Arrays.copyOf(model.probB,numOneVOne));
+        }
+
+        // Build SVM node
+        String[] outputs = new String[]{context.generateUniqueName("class_output"),outputValueProto.getName()};
+        OnnxMl.NodeProto svm = ONNXOperators.SVM_CLASSIFIER.build(context,new String[]{inputValueProto.getName()},outputs,attributes);
+        graphBuilder.addNode(svm);
+
+        return graphBuilder.build();
+    }
 }
