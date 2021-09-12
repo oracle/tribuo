@@ -38,9 +38,9 @@ import org.tribuo.regression.rtree.impurity.RegressorImpurity;
 import org.tribuo.util.Util;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -188,7 +188,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
 
             AbstractTrainingNode<Regressor> root = new RegressorTrainingNode(impurity,data,dimIdx,dimName,
                     examples.size(),featureIDMap,outputIDInfo, leafDeterminer);
-            Deque<AbstractTrainingNode<Regressor>> queue = new LinkedList<>();
+            Deque<AbstractTrainingNode<Regressor>> queue = new ArrayDeque<>();
             queue.add(root);
 
             while (!queue.isEmpty()) {

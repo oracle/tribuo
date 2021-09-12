@@ -30,9 +30,9 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.util.Util;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SplittableRandom;
@@ -198,7 +198,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
                 minChildWeight, scaledMinImpurityDecrease);
 
         AbstractTrainingNode<T> root = mkTrainingNode(examples, leafDeterminer);
-        Deque<AbstractTrainingNode<T>> queue = new LinkedList<>();
+        Deque<AbstractTrainingNode<T>> queue = new ArrayDeque<>();
         queue.add(root);
 
         while (!queue.isEmpty()) {
