@@ -82,7 +82,13 @@ public interface EvaluationMetric<T extends Output<T>, C extends MetricContext<T
      */
     // Note, if we extend this enum, update MetricTarget with new singletons.
     enum Average {
+        /**
+         * The macro average.
+         */
         MACRO,
+        /**
+         * The micro average.
+         */
         MICRO
     }
 }

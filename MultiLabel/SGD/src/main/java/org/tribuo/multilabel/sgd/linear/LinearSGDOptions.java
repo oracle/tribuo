@@ -36,23 +36,48 @@ public class LinearSGDOptions implements Options {
     /**
      * Available loss types.
      */
-    public enum LossEnum {HINGE, SIGMOID}
+    public enum LossEnum {
+        /**
+         * Hinge loss.
+         */
+        HINGE,
+        /**
+         * Log loss, i.e., binary cross-entropy.
+         */
+        SIGMOID
+    }
 
     public GradientOptimiserOptions sgoOptions;
 
+    /**
+     * Number of SGD epochs.
+     */
     @Option(longName = "sgd-epochs", usage = "Number of SGD epochs.")
     public int sgdEpochs = 5;
+    /**
+     * Loss function.
+     */
     @Option(longName = "sgd-objective", usage = "Loss function.")
     public LossEnum sgdObjective = LossEnum.SIGMOID;
+    /**
+     * Log the objective after n examples.
+     */
     @Option(longName = "sgd-logging-interval", usage = "Log the objective after <int> examples.")
     public int sgdLoggingInterval = 100;
+    /**
+     * Minibatch size.
+     */
     @Option(longName = "sgd-minibatch-size", usage = "Minibatch size.")
     public int sgdMinibatchSize = 1;
+    /**
+     * Sets the random seed for the LinearSGDTrainer.
+     */
     @Option(longName = "sgd-seed", usage = "Sets the random seed for the LinearSGDTrainer.")
-    private long sgdSeed = Trainer.DEFAULT_SEED;
+    public long sgdSeed = Trainer.DEFAULT_SEED;
 
     /**
      * Returns the loss function specified in the arguments.
+     *
      * @return The loss function.
      */
     public MultiLabelObjective getLoss() {

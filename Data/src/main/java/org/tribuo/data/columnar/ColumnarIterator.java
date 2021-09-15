@@ -36,7 +36,13 @@ import java.util.logging.Logger;
 public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Row> implements Iterator<ColumnarIterator.Row> {
     private static final Logger logger = Logger.getLogger(ColumnarIterator.class.getName());
 
+    /**
+     * The column headers for this iterator.
+     */
     protected List<String> fields;
+    /**
+     * The current row.
+     */
     protected Optional<Row> currentRow = Optional.empty();
 
     /**

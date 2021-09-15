@@ -73,16 +73,35 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and tests a linear SGD regression model on the specified datasets.";
         }
+
+        /**
+         * The dataset loading options.
+         */
         public DataOptions general;
+        /**
+         * Gradient descent options.
+         */
         public GradientOptimiserOptions gradientOptions;
 
-        @Option(charName='i',longName="epochs",usage="Number of SGD epochs. Defaults to 5.")
+        /**
+         * Number of SGD epochs. Defaults to 5.
+         */
+        @Option(charName = 'i', longName = "epochs", usage = "Number of SGD epochs. Defaults to 5.")
         public int epochs = 5;
-        @Option(charName='o',longName="objective",usage="Loss function. Defaults to SQUARED.")
+        /**
+         * Loss function. Defaults to SQUARED.
+         */
+        @Option(charName = 'o', longName = "objective", usage = "Loss function. Defaults to SQUARED.")
         public LossEnum loss = LossEnum.SQUARED;
-        @Option(charName='p',longName="logging-interval",usage="Log the objective after <int> examples. Defaults to 100.")
+        /**
+         * Log the objective after n examples. Defaults to 100.
+         */
+        @Option(charName = 'p', longName = "logging-interval", usage = "Log the objective after <int> examples. Defaults to 100.")
         public int loggingInterval = 100;
-        @Option(charName='z',longName="minibatch-size",usage="Minibatch size. Defaults to 1.")
+        /**
+         * Minibatch size. Defaults to 1.
+         */
+        @Option(charName = 'z', longName = "minibatch-size", usage = "Minibatch size. Defaults to 1.")
         public int minibatchSize = 1;
     }
 

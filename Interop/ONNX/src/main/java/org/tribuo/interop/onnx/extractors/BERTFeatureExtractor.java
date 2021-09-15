@@ -1011,11 +1011,20 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * CLI options for running BERT.
      */
     public static class BERTFeatureExtractorOptions implements Options {
-        @Option(charName='b',longName="bert",usage="BERTFeatureExtractor instance")
+        /**
+         * BERTFeatureExtractor instance
+         */
+        @Option(charName = 'b', longName = "bert", usage = "BERTFeatureExtractor instance")
         public BERTFeatureExtractor<?> bert;
-        @Option(charName='i',longName="input-file",usage="Input file to read, one doc per line")
+        /**
+         * Input file to read, one doc per line
+         */
+        @Option(charName = 'i', longName = "input-file", usage = "Input file to read, one doc per line")
         public Path inputFile;
-        @Option(charName='o',longName="output-file",usage="Output json file.")
+        /**
+         * Output json file.
+         */
+        @Option(charName = 'o', longName = "output-file", usage = "Output json file.")
         public Path outputFile;
     }
 

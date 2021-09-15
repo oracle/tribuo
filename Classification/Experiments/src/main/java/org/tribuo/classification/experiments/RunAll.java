@@ -61,9 +61,16 @@ public class RunAll {
         public String getOptionsDescription() {
             return "Performs the same training and test experiment on all Trainers in the supplied configuration file.";
         }
+
+        /**
+         * Options for loading in data.
+         */
         public DataOptions general;
 
-        @Option(charName='d',longName="output-directory",usage="Directory to write out the models and test reports.")
+        /**
+         * Directory to write out the models and test reports.
+         */
+        @Option(charName = 'd', longName = "output-directory", usage = "Directory to write out the models and test reports.")
         public File directory;
     }
 

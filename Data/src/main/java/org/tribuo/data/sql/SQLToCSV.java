@@ -55,17 +55,35 @@ public class SQLToCSV {
      * Command line options.
      */
     public static class SQLToCSVOptions implements Options {
-        @Option(charName='n', longName="connection", usage="Connection string to the SQL database")
+        /**
+         * Connection string to the SQL database
+         */
+        @Option(charName = 'n', longName = "connection", usage = "Connection string to the SQL database")
         public String connString;
-        @Option(charName='p', longName="password", usage="Password for the SQL database")
+        /**
+         * Password for the SQL database
+         */
+        @Option(charName = 'p', longName = "password", usage = "Password for the SQL database")
         public String password;
-        @Option(charName='u', longName="username", usage="Username for the SQL database")
+        /**
+         * Username for the SQL database
+         */
+        @Option(charName = 'u', longName = "username", usage = "Username for the SQL database")
         public String username;
-        @Option(charName='i', longName="input-sql", usage="SQL File to run as a query, defaults to stdin")
+        /**
+         * SQL File to run as a query, defaults to stdin
+         */
+        @Option(charName = 'i', longName = "input-sql", usage = "SQL File to run as a query, defaults to stdin")
         public Path inputPath;
-        @Option(charName='o', longName="output-csv", usage="File to write query results as CSV, defaults to stdout")
+        /**
+         * File to write query results as CSV, defaults to stdout
+         */
+        @Option(charName = 'o', longName = "output-csv", usage = "File to write query results as CSV, defaults to stdout")
         public Path outputPath;
-        @Option(longName="db-config", usage="Name of the DBConfig to use")
+        /**
+         * Name of the DBConfig to use
+         */
+        @Option(longName = "db-config", usage = "Name of the DBConfig to use")
         public SQLDBConfig dbConfig;
 
     }

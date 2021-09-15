@@ -24,9 +24,21 @@ import org.tensorflow.proto.framework.GraphDef;
  * Will be a record one day.
  */
 public final class GraphDefTuple {
+    /**
+     * The graph definition protobuf.
+     */
     public final GraphDef graphDef;
+    /**
+     * Name of the input operation.
+     */
     public final String inputName;
+    /**
+     * Name of the output operation.
+     */
     public final String outputName;
+    /**
+     * Name of the initialization operation.
+     */
     public final String initName;
 
     /**

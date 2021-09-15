@@ -141,7 +141,11 @@ public class InformationTheoryDemo {
         public String getOptionsDescription() {
             return "A demo class showing how to calculate various mutual informations from different inputs.";
         }
-        @Option(charName='t',longName="type",usage="The type of the input distribution.")
+
+        /**
+         * The type of the input distribution.
+         */
+        @Option(charName = 't', longName = "type", usage = "The type of the input distribution.")
         public DistributionType type = DistributionType.RANDOM;
     }
 

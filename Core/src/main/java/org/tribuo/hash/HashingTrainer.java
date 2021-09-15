@@ -52,6 +52,11 @@ public final class HashingTrainer<T extends Output<T>> implements Trainer<T> {
      */
     private HashingTrainer() {}
 
+    /**
+     * Constructs a hashing trainer using the supplied parameters.
+     * @param trainer The trainer to use.
+     * @param hasher The feature hasher to apply.
+     */
     public HashingTrainer(Trainer<T> trainer, Hasher hasher) {
         this.innerTrainer = trainer;
         this.hasher = hasher;

@@ -363,6 +363,10 @@ public class CSVLoader<T extends Output<T>> {
             this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE, RESOURCE_HASH, ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE, path));
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public CSVLoaderProvenance(Map<String, Provenance> map) {
             this.className = ObjectProvenance.checkAndExtractProvenance(map, CLASS_NAME, StringProvenance.class, CSVLoaderProvenance.class.getSimpleName());
             this.factoryProvenance = ObjectProvenance.checkAndExtractProvenance(map, OUTPUT_FACTORY, OutputFactoryProvenance.class, CSVLoaderProvenance.class.getSimpleName());

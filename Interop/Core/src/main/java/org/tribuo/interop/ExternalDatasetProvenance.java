@@ -35,10 +35,23 @@ import java.util.Map;
 public class ExternalDatasetProvenance extends DatasetProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * An empty provenance used as a placeholder for externally trained models.
+     * @param description The model description.
+     * @param factory The output factory.
+     * @param isSequence Is it a sequence model?
+     * @param numFeatures The number of features.
+     * @param numOutputs The output dimensionality.
+     * @param <T> The type of the output.
+     */
     public <T extends Output<T>> ExternalDatasetProvenance(String description, OutputFactory<T> factory, boolean isSequence, int numFeatures, int numOutputs) {
         super(new SimpleDataSourceProvenance(description, OffsetDateTime.now(),factory), new ListProvenance<>(), Dataset.class.getName(), false, isSequence, -1, numFeatures, numOutputs);
     }
 
+    /**
+     * Deserialization constructor.
+     * @param map The provenances.
+     */
     public ExternalDatasetProvenance(Map<String, Provenance> map) {
         super(map);
     }

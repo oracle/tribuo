@@ -37,7 +37,7 @@ public final class ModHashCodeHasher extends Hasher {
 
     static final String DIMENSION = "dimension";
 
-    @Config(mandatory = true,description="Salt used in the hash.")
+    @Config(mandatory = true,redact = true,description="Salt used in the hash.")
     private transient String salt = null;
 
     @Config(mandatory = true,description="Range of the hashing function.")
@@ -50,10 +50,19 @@ public final class ModHashCodeHasher extends Hasher {
      */
     private ModHashCodeHasher() { }
 
+    /**
+     * Constructs a ModHashCodeHasher with a fixed dimensionality of 100.
+     * @param salt The salt value.
+     */
     public ModHashCodeHasher(String salt) {
         this(100,salt);
     }
 
+    /**
+     * Constructs a ModHashCodeHasher with the supplied parameters.
+     * @param dimension The dimensionality.
+     * @param salt The salt value.
+     */
     public ModHashCodeHasher(int dimension, String salt) {
         this.dimension = dimension;
         this.salt = salt;
@@ -113,6 +122,10 @@ public final class ModHashCodeHasher extends Hasher {
             this.dimension = new IntProvenance(DIMENSION,dimension);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public ModHashCodeHasherProvenance(Map<String, Provenance> map) {
             dimension = ObjectProvenance.checkAndExtractProvenance(map,DIMENSION,IntProvenance.class,ModHashCodeHasherProvenance.class.getSimpleName());
         }

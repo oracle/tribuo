@@ -53,14 +53,29 @@ public class SeqTrainTest {
             return "Trains and tests a sequence classification model on the specified dataset.";
         }
 
+        /**
+         * Name of the example dataset, options are {gorilla}.
+         */
         @Option(charName = 'd', longName = "dataset-name", usage = "Name of the example dataset, options are {gorilla}.")
         public String datasetName = "";
+        /**
+         * Path to serialize model to.
+         */
         @Option(charName = 'f', longName = "output-path", usage = "Path to serialize model to.")
         public Path outputPath;
+        /**
+         * Path to a serialised SequenceDataset used for training.
+         */
         @Option(charName = 'u', longName = "train-dataset", usage = "Path to a serialised SequenceDataset used for training.")
         public Path trainDataset = null;
+        /**
+         * Path to a serialised SequenceDataset used for testing.
+         */
         @Option(charName = 'v', longName = "test-dataset", usage = "Path to a serialised SequenceDataset used for testing.")
         public Path testDataset = null;
+        /**
+         * Name of the trainer in the configuration file.
+         */
         @Option(charName = 't', longName = "trainer-name", usage = "Name of the trainer in the configuration file.")
         public SequenceTrainer<Label> trainer;
     }

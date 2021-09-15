@@ -45,10 +45,13 @@ import java.util.logging.Logger;
 public final class DatasetExplorer implements CommandGroup {
     private static final Logger logger = Logger.getLogger(DatasetExplorer.class.getName());
 
-    protected CommandInterpreter shell;
+    private final CommandInterpreter shell;
 
     private Dataset<?> dataset;
 
+    /**
+     * Constructs a dataset explorer.
+     */
     public DatasetExplorer() {
         shell = new CommandInterpreter();
         shell.setPrompt("dataset sh% ");
@@ -64,6 +67,10 @@ public final class DatasetExplorer implements CommandGroup {
         return "Commands for inspecting a Dataset.";
     }
 
+    /**
+     * The filename completer.
+     * @return The completer array.
+     */
     public Completer[] fileCompleter() {
         return new Completer[]{
                 new Completers.FileNameCompleter(),
@@ -159,7 +166,10 @@ public final class DatasetExplorer implements CommandGroup {
      * Command line options.
      */
     public static class DatasetExplorerOptions implements Options {
-        @Option(charName='f',longName="filename",usage="Dataset file to load. Optional.")
+        /**
+         * Dataset file to load. Optional.
+         */
+        @Option(charName = 'f', longName = "filename", usage = "Dataset file to load. Optional.")
         public String modelFilename;
     }
 

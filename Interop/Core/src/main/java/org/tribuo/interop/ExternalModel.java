@@ -58,6 +58,15 @@ public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
 
     private int batchSize = DEFAULT_BATCH_SIZE;
 
+    /**
+     * Constructs an external model from a model trained outside of Tribuo.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param generatesProbabilities Does this model generate probabilistic predictions.
+     * @param featureMapping The mapping from Tribuo's feature names to the model's feature indices.
+     */
     protected ExternalModel(String name, ModelProvenance provenance,
                             ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                             boolean generatesProbabilities, Map<String,Integer> featureMapping) {
@@ -88,6 +97,16 @@ public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
         }
     }
 
+    /**
+     * Constructs an external model from a model trained outside of Tribuo.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param generatesProbabilities Does this model generate probabilistic predictions.
+     * @param featureForwardMapping The mapping from Tribuo's indices to the model's indices.
+     * @param featureBackwardMapping The mapping from the model's indices to Tribuo's indices.
+     */
     protected ExternalModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, int[] featureForwardMapping, int[] featureBackwardMapping, boolean generatesProbabilities) {
         super(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities);
         this.featureBackwardMapping = Arrays.copyOf(featureBackwardMapping,featureBackwardMapping.length);

@@ -88,14 +88,34 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
      */
     private ElasticNetCDTrainer() { }
 
+    /**
+     * Constructs an elastic net trainer using the supplied parameters, with a tolerance of 1e-4, max iterations of 500, randomising the feature choice and using {@link Trainer#DEFAULT_SEED} as the RNG seed.
+     * @param alpha The regularisation strength.
+     * @param l1Ratio The ratio between the l1 and l2 penalties.
+     */
     public ElasticNetCDTrainer(double alpha, double l1Ratio) {
         this(alpha,l1Ratio,1e-4,500,false,Trainer.DEFAULT_SEED);
     }
 
+    /**
+     * Constructs an elastic net trainer using the supplied parameters, with a tolerance of 1e-4, max iterations of 500, and randomising the feature choice.
+     * @param alpha The regularisation strength.
+     * @param l1Ratio The ratio between the l1 and l2 penalties.
+     * @param seed The RNG seed.
+     */
     public ElasticNetCDTrainer(double alpha, double l1Ratio, long seed) {
         this(alpha,l1Ratio,1e-4,500,true,seed);
     }
 
+    /**
+     * Constructs an elastic net trainer using the supplied parameters.
+     * @param alpha The regularisation strength.
+     * @param l1Ratio The ratio between the l1 and l2 penalties.
+     * @param tolerance The convergence tolerance.
+     * @param maxIterations The maximum number of iterations.
+     * @param randomise Randomise the feature choice order.
+     * @param seed The RNG seed.
+     */
     public ElasticNetCDTrainer(double alpha, double l1Ratio, double tolerance, int maxIterations, boolean randomise, long seed) {
         this.alpha = alpha;
         this.l1Ratio = l1Ratio;

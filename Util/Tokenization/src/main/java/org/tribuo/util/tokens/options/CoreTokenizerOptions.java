@@ -30,9 +30,21 @@ import java.util.logging.Logger;
 public class CoreTokenizerOptions implements TokenizerOptions {
 
     private static final Logger logger = Logger.getLogger(CoreTokenizerOptions.class.getName());
+    /**
+     * Options for the break iterator tokenizer.
+     */
     public BreakIteratorTokenizerOptions breakIteratorOptions;
+    /**
+     * Options for the split characters tokenizer.
+     */
     public SplitCharactersTokenizerOptions splitCharactersTokenizerOptions;
+    /**
+     * Options for the split pattern tokenizer.
+     */
     public SplitPatternTokenizerOptions splitPatternTokenizerOptions;
+    /**
+     * Type of tokenizer
+     */
     @Option(longName = "core-tokenizer-type", usage = "Type of tokenizer")
     public CoreTokenizerType coreTokenizerType = CoreTokenizerType.SPLIT_CHARACTERS;
 

@@ -32,6 +32,13 @@ public class EnsembleExcuse<T extends Output<T>> extends Excuse<T> {
 
     private final List<Excuse<T>> innerExcuses;
 
+    /**
+     * Constructs an ensemble excuse, comprising the excuses from each ensemble member, along with the feature weights.
+     * @param example The example.
+     * @param prediction The prediction to excuse.
+     * @param weights The weights.
+     * @param innerExcuses The ensemble member excuses.
+     */
     public EnsembleExcuse(Example<T> example, Prediction<T> prediction, Map<String,List<Pair<String,Double>>> weights, List<Excuse<T>> innerExcuses) {
         super(example,prediction,weights);
         this.innerExcuses = innerExcuses;

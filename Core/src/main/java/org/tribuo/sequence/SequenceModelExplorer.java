@@ -150,7 +150,10 @@ public class SequenceModelExplorer implements CommandGroup {
      * Command line options.
      */
     public static class SequenceModelExplorerOptions implements Options {
-        @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
+        /**
+         * Model file to load. Optional.
+         */
+        @Option(charName = 'f', longName = "filename", usage = "Model file to load. Optional.")
         public String modelFilename;
     }
 

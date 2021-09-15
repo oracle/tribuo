@@ -64,21 +64,39 @@ public final class ConfigurableTrainTest {
             return "Loads a Trainer from a config file, trains a Model (optionally with cross-validation), tests it and optionally saves it to disk.";
         }
 
+        /**
+         * Data loading options.
+         */
         public DataOptions general;
 
-        @Option(charName='t',longName="trainer",usage="Load a trainer from the config file.")
+        /**
+         * Load a trainer from the config file.
+         */
+        @Option(charName = 't', longName = "trainer", usage = "Load a trainer from the config file.")
         public Trainer<?> trainer;
 
-        @Option(longName="transformer",usage="Load a transformation map from the config file.")
+        /**
+         * Load a transformation map from the config file.
+         */
+        @Option(longName = "transformer", usage = "Load a transformation map from the config file.")
         public TransformationMap transformationMap;
 
-        @Option(charName='a',longName="output-factory",usage="The output factory to construct.")
+        /**
+         * The output factory to construct.
+         */
+        @Option(charName = 'a', longName = "output-factory", usage = "The output factory to construct.")
         public OutputFactory<?> outputFactory;
 
-        @Option(charName='x',longName="cross-validate",usage="Cross-validate the output metrics.")
+        /**
+         * Cross-validate the output metrics.
+         */
+        @Option(charName = 'x', longName = "cross-validate", usage = "Cross-validate the output metrics.")
         public boolean crossValidation;
 
-        @Option(charName='n',longName="num-folds",usage="The number of cross validation folds.")
+        /**
+         * The number of cross validation folds.
+         */
+        @Option(charName = 'n', longName = "num-folds", usage = "The number of cross validation folds.")
         public int numFolds = 5;
     }
 

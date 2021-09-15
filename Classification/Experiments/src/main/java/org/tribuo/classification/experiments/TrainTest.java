@@ -43,7 +43,14 @@ public class TrainTest {
             return "Trains and tests the specified classifier on the supplied datasets.";
         }
 
+        /**
+         * All the classification trainer options.
+         */
         public AllTrainerOptions trainerOptions;
+
+        /**
+         * Options for loading in data.
+         */
         public DataOptions general;
     }
 

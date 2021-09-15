@@ -198,9 +198,9 @@ public class ModelExplorer implements CommandGroup {
      */
     public static class ModelExplorerOptions implements Options {
         /**
-         * Model file to load.
+         * Model file to load. Optional.
          */
-        @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
+        @Option(charName = 'f', longName = "filename", usage = "Model file to load. Optional.")
         public String modelFilename;
     }
 
