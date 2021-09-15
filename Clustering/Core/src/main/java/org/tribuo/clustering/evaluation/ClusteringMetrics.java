@@ -47,10 +47,19 @@ public enum ClusteringMetrics {
         this.impl = impl;
     }
 
+    /**
+     * Gets the implementing function for this metric.
+     * @return The implementing function.
+     */
     public BiFunction<MetricTarget<ClusterID>, ClusteringMetric.Context, Double> getImpl() {
         return impl;
     }
 
+    /**
+     * Constructs the metric for the specified metric target.
+     * @param tgt The metric target.
+     * @return The clustering metric for that target.
+     */
     public ClusteringMetric forTarget(MetricTarget<ClusterID> tgt) {
         return new ClusteringMetric(tgt, this.name(), this.getImpl());
     }

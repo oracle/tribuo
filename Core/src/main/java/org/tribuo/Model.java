@@ -35,7 +35,6 @@ import java.util.Set;
  * <p>
  * If two features map to the same id in the featureIDMap, then
  * occurrences of those features will be combined at prediction time.
- * <p>
  * @param <T> the type of prediction produced by the model.
  */
 public abstract class Model<T extends Output<T>> implements Provenancable<ModelProvenance>, Serializable {

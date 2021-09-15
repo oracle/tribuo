@@ -81,7 +81,13 @@ public abstract class ConfidencePredictingSequenceModel extends SequenceModel<La
      */
     public static class Subsequence implements Serializable {
         private static final long serialVersionUID = 1L;
+        /**
+         * The subsequence start index.
+         */
         public final int begin;
+        /**
+         * The subsequence end index.
+         */
         public final int end;
 
         /**

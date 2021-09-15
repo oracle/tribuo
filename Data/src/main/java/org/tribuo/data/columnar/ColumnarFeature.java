@@ -29,8 +29,14 @@ import org.tribuo.Feature;
 public class ColumnarFeature extends Feature {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The string used as the field name of conjunction features.
+     */
     public static final String CONJUNCTION = "CONJ";
 
+    /**
+     * The joiner between the field name and feature name.
+     */
     public static final String JOINER = "@";
 
     private final String fieldName;

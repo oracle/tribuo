@@ -74,10 +74,23 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
      */
     protected BaggingTrainer() { }
 
+    /**
+     * Constructs a bagging trainer with the supplied parameters using {@link Trainer#DEFAULT_SEED} as the RNG seed.
+     * @param trainer The ensemble member trainer.
+     * @param combiner The combination function.
+     * @param numMembers The number of ensemble members to train.
+     */
     public BaggingTrainer(Trainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers) {
         this(trainer, combiner, numMembers, Trainer.DEFAULT_SEED);
     }
 
+    /**
+     * Constructs a bagging trainer with the supplied parameters.
+     * @param trainer The ensemble member trainer.
+     * @param combiner The combination function.
+     * @param numMembers The number of ensemble members to train.
+     * @param seed The RNG seed used to bootstrap the datasets.
+     */
     public BaggingTrainer(Trainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed) {
         this.innerTrainer = trainer;
         this.combiner = combiner;
@@ -94,6 +107,10 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         this.rng = new SplittableRandom(seed);
     }
 
+    /**
+     * Default name of the generated ensemble.
+     * @return The default ensemble name.
+     */
     protected String ensembleName() {
         return "bagging-ensemble";
     }
@@ -137,6 +154,15 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         return new WeightedEnsembleModel<>(ensembleName(),provenance,featureIDs,labelIDs,models,combiner);
     }
 
+    /**
+     * Trains a single model.
+     * @param examples The training dataset.
+     * @param featureIDs The feature domain.
+     * @param labelIDs The output domain.
+     * @param localRNG The local RNG instance.
+     * @param runProvenance Provenance for this instance.
+     * @return The trained ensemble member.
+     */
     protected Model<T> trainSingleModel(Dataset<T> examples, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, SplittableRandom localRNG, Map<String,Provenance> runProvenance) {
         DatasetView<T> bag = DatasetView.createBootstrapView(examples,examples.size(),localRNG.nextInt(),featureIDs,labelIDs);
         Model<T> newModel = innerTrainer.train(bag,runProvenance);

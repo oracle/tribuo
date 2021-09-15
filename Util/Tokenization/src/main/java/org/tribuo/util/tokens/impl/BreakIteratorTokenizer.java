@@ -30,7 +30,7 @@ import java.util.Locale;
  */
 public class BreakIteratorTokenizer implements Tokenizer {
 
-    @Config(mandatory = true)
+    @Config(mandatory = true, description="The locale language tag string.")
     private String localeStr;
 
     private Locale locale;
@@ -52,9 +52,12 @@ public class BreakIteratorTokenizer implements Tokenizer {
      * Default constructor for configuration system.
      */
     @SuppressWarnings("unused")
-    private BreakIteratorTokenizer() {
-    }
+    private BreakIteratorTokenizer() {}
 
+    /**
+     * Constructs a BreakIteratorTokenizer using the specified locale.
+     * @param locale The locale to use.
+     */
     public BreakIteratorTokenizer(Locale locale) {
         this.locale = locale;
         this.localeStr = locale.toLanguageTag();

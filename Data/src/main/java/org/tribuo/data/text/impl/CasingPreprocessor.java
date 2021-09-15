@@ -30,7 +30,14 @@ public class CasingPreprocessor implements DocumentPreprocessor {
      * The possible casing operations.
      */
     public enum CasingOperation {
-        LOWERCASE, UPPERCASE;
+        /**
+         * Lowercase the input text.
+         */
+        LOWERCASE,
+        /**
+         * Uppercase the input text.
+         */
+        UPPERCASE;
 
         /**
          * Apply the appropriate casing operation.
