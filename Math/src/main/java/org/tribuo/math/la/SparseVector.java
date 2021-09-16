@@ -810,6 +810,13 @@ public class SparseVector implements SGDVector {
         return distance(other,Math::abs,DoubleUnaryOperator.identity());
     }
 
+    /**
+     * Computes the distance between this vector and the other vector.
+     * @param other The other vector.
+     * @param transformFunc The transformation function to apply to each paired dimension difference.
+     * @param normalizeFunc The normalization to apply after summing the transformed differences.
+     * @return The distance between the two vectors.
+     */
     public double distance(SGDVector other, DoubleUnaryOperator transformFunc, DoubleUnaryOperator normalizeFunc) {
         if (other.size() != size) {
             throw new IllegalArgumentException("Can't measure the distance between two vectors of different lengths, this = " + size + ", other = " + other.size());

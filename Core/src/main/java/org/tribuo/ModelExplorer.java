@@ -44,7 +44,7 @@ public class ModelExplorer implements CommandGroup {
     /**
      * The command shell instance.
      */
-    protected CommandInterpreter shell;
+    private final CommandInterpreter shell;
 
     private Model<?> model;
 

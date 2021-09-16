@@ -29,6 +29,12 @@ import org.tribuo.evaluation.Evaluation;
 public final class MetricID<T extends Output<T>> extends Pair<MetricTarget<T>, String> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a metric id.
+     * @param target The metric target.
+     * @param metricName The name of the metric.
+     */
+    // Should be a record one day.
     public MetricID(MetricTarget<T> target, String metricName) {
         super(target, metricName);
     }

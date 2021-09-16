@@ -57,6 +57,10 @@ public final class PreprocessAndSerialize {
         public Path output;
     }
 
+    /**
+     * Run the PreprocessAndSerialize CLI.
+     * @param args The CLI args.
+     */
     public static void main(String[] args) {
 
         LabsLogFormatter.setAllLogFormatters();

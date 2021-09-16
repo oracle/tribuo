@@ -54,14 +54,15 @@ public class IndependentMultiLabelModel extends Model<MultiLabel> {
 
     /**
      * The list of Label and list of Model must be in the same order, and have a bijection.
-     * @param labels The list of labels this model was trained on.
-     * @param models The list of individual binary models.
+     *
+     * @param labels      The list of labels this model was trained on.
+     * @param models      The list of individual binary models.
      * @param description A description of the trainer.
-     * @param featureMap The feature domain used in training.
-     * @param labelInfo The label domain used in training.
+     * @param featureMap  The feature domain used in training.
+     * @param labelInfo   The label domain used in training.
      */
     IndependentMultiLabelModel(List<Label> labels, List<Model<Label>> models, ModelProvenance description, ImmutableFeatureMap featureMap, ImmutableOutputInfo<MultiLabel> labelInfo) {
-        super("binary-relevance",description,featureMap,labelInfo,models.get(0).generatesProbabilities());
+        super("binary-relevance", description, featureMap, labelInfo, models.get(0).generatesProbabilities());
         this.labels = labels;
         this.models = models;
     }
@@ -69,7 +70,7 @@ public class IndependentMultiLabelModel extends Model<MultiLabel> {
     @Override
     public Prediction<MultiLabel> predict(Example<MultiLabel> example) {
         Set<Label> predictedLabels = new HashSet<>();
-        BinaryExample e = new BinaryExample(example,null);
+        BinaryExample e = new BinaryExample(example, null);
         int numUsed = 0;
         for (Model<Label> m : models) {
             Prediction<Label> p = m.predict(e);
@@ -80,7 +81,7 @@ public class IndependentMultiLabelModel extends Model<MultiLabel> {
                 predictedLabels.add(p.getOutput());
             }
         }
-        return new Prediction<>(new MultiLabel(predictedLabels),numUsed,example);
+        return new Prediction<>(new MultiLabel(predictedLabels), numUsed, example);
     }
 
     /**
@@ -88,23 +89,26 @@ public class IndependentMultiLabelModel extends Model<MultiLabel> {
      * <p>
      * If the individual models support per label features, then only the features
      * for the positive label are aggregated.
-     * <p>
+     *
      * @param n the number of features to return. If this value is less than 0,
-     * all features should be returned for each class.
+     *          all features should be returned for each class.
      * @return The top n features.
      */
     @Override
     public Map<String, List<Pair<String, Double>>> getTopFeatures(int n) {
-        Map<String,List<Pair<String,Double>>> map = new HashMap<>();
+        Map<String, List<Pair<String, Double>>> map = new HashMap<>();
         for (int i = 0; i < models.size(); i++) {
             Model<Label> m = models.get(i);
             String label = labels.get(i).getLabel();
-            Map<String,List<Pair<String,Double>>> modelMap = m.getTopFeatures(n);
+            Map<String, List<Pair<String, Double>>> modelMap = m.getTopFeatures(n);
             if (modelMap != null) {
                 if (modelMap.size() == 1) {
-                    map.put(label,modelMap.get(Model.ALL_OUTPUTS));
+                    map.put(label, modelMap.get(Model.ALL_OUTPUTS));
                 } else {
-                    map.merge(label,modelMap.get(label),(List<Pair<String,Double>> l, List<Pair<String,Double>> r) -> {l.addAll(r); return l;});
+                    map.merge(label, modelMap.get(label), (List<Pair<String, Double>> l, List<Pair<String, Double>> r) -> {
+                        l.addAll(r);
+                        return l;
+                    });
                 }
             }
         }
@@ -123,6 +127,6 @@ public class IndependentMultiLabelModel extends Model<MultiLabel> {
         for (Model<Label> e : models) {
             newModels.add(e.copy());
         }
-        return new IndependentMultiLabelModel(labels,newModels,newProvenance,featureIDMap,outputIDInfo);
+        return new IndependentMultiLabelModel(labels, newModels, newProvenance, featureIDMap, outputIDInfo);
     }
 }

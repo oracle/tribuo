@@ -34,7 +34,16 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
     /**
      * The type of combination function.
      */
-    public enum EnsembleCombinerType {VOTING, FULLY_WEIGHTED_VOTING}
+    public enum EnsembleCombinerType {
+        /**
+         * Use a {@link VotingCombiner}.
+         */
+        VOTING,
+        /**
+         * Use a {@link FullyWeightedVotingCombiner}.
+         */
+        FULLY_WEIGHTED_VOTING
+    }
 
     /**
      * K nearest neighbours to use. Defaults to 1.

@@ -58,6 +58,10 @@ public class KMeansOptions implements Options {
     @Option(longName = "kmeans-seed", usage = "Sets the random seed for K-Means.")
     private long seed = Trainer.DEFAULT_SEED;
 
+    /**
+     * Gets the configured KMeansTrainer using the options in this object.
+     * @return A KMeansTrainer.
+     */
     public KMeansTrainer getTrainer() {
         logger.info("Configuring K-Means Trainer");
         //public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, int seed) {

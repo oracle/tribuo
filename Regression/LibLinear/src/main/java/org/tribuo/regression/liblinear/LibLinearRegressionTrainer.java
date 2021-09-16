@@ -70,6 +70,9 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
         this(new LinearRegressionType(LinearType.L2R_L2LOSS_SVR));
     }
 
+    /**
+     * Creates a trainer using the default values (1, 1000, 0.1, 0.1) and specified algorithm.
+     */
     public LibLinearRegressionTrainer(LinearRegressionType trainerType) {
         this(trainerType,1.0,1000,0.1,0.1);
     }

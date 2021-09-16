@@ -32,6 +32,7 @@ import org.tribuo.Output;
 import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.DatasetProvenance;
+import sun.nio.cs.UTF_8;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -166,6 +167,10 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
             this.minCardinality = new IntProvenance(MIN_CARDINALITY,dataset.minCardinality);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public MinimumCardinalityDatasetProvenance(Map<String,Provenance> map) {
             super(map);
             this.minCardinality = ObjectProvenance.checkAndExtractProvenance(map,MIN_CARDINALITY,IntProvenance.class,MinimumCardinalityDatasetProvenance.class.getSimpleName());

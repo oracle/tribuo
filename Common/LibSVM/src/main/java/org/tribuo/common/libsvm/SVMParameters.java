@@ -37,6 +37,11 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
     
     protected final svm_parameter parameters = new svm_parameter();
 
+    /**
+     * Constructs the default SVMParameters using the specified SVMType and KernelType.
+     * @param svmType The SVM algorithm.
+     * @param kernelType The kernel.
+     */
     public SVMParameters(SVMType<T> svmType, KernelType kernelType) {
         this.svmType = svmType;
         this.kernelType = kernelType;
@@ -60,14 +65,26 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
         parameters.weight = new double[0];
     }
 
+    /**
+     * Gets the SVM type.
+     * @return The SVM type.
+     */
     public SVMType<T> getSvmType() {
         return svmType;
     }
 
+    /**
+     * Gets the kernel type.
+     * @return The kernel type.
+     */
     public KernelType getKernelType() {
         return kernelType;
     }
 
+    /**
+     * Gets the underlying SVM parameter object.
+     * @return The SVM parameters.
+     */
     public svm_parameter getParameters() {
         return parameters;
     }
@@ -83,14 +100,22 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
     public void setProbability() {
         parameters.probability = 1;
     }
-    
+
+    /**
+     * Sets the cost for C_SVC.
+     * @param c The cost.
+     */
     public void setCost(double c) {
         if(svmType.isNu() || !svmType.isClassification()) {
             logger.warning(String.format("Setting cost %f for non-C_SVC model", c));
         }
         parameters.C = c;
     }
-    
+
+    /**
+     * Sets the value of nu for NU_SVM.
+     * @param nu The nu.
+     */
     public void setNu(double nu) {
         if(!svmType.isNu()) {
             logger.warning(String.format("Setting nu %f for non-NU_SVM model", nu));
@@ -98,26 +123,50 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
         parameters.nu = nu;
     }
 
+    /**
+     * Sets the coefficient.
+     * @param coeff The coefficient.
+     */
     public void setCoeff(double coeff) {
         parameters.coef0 = coeff;
     }
 
+    /**
+     * Sets the termination closeness.
+     * @param epsilon The termination criterion.
+     */
     public void setEpsilon(double epsilon) {
         parameters.p = epsilon;
     }
 
+    /**
+     * Sets the degree of the polynomial kernel.
+     * @param degree The polynomial degree.
+     */
     public void setDegree(int degree) {
         parameters.degree = degree;
     }
 
+    /**
+     * Sets gamma in the RBF kernel.
+     * @param gamma The gamma.
+     */
     public void setGamma(double gamma) {
         parameters.gamma = gamma;
     }
-    
+
+    /**
+     * Gets the gamma value.
+     * @return The gamma value.
+     */
     public double getGamma() {
         return parameters.gamma;
     }
-    
+
+    /**
+     * Sets the cache size.
+     * @param cacheMB The cache size.
+     */
     public void setCacheSize(double cacheMB) {
         if(cacheMB <= 0) {
             throw new IllegalArgumentException("Cache must be larger than 0MB");

@@ -40,6 +40,9 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
 
     private static final Logger logger = Logger.getLogger(SequenceExample.class.getName());
 
+    /**
+     * The default sequence example weight.
+     */
     public static final float DEFAULT_WEIGHT = 1.0f;
 
     private final List<Example<T>> examples;
@@ -99,10 +102,29 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
         this(outputs, features, weight, false);
     }
 
+    /**
+     * Creates a sequence example from the supplied weight, outputs and list of list of features.
+     * <p>
+     * The features are copied out by this constructor. The outputs and features lists
+     * must be of the same length. Sets the weight to {@link SequenceExample#DEFAULT_WEIGHT}.
+     * @param outputs The outputs for each sequence element.
+     * @param features The features for each sequence element.
+     * @param attemptBinaryFeatures Attempt to use {@link BinaryFeaturesExample} as the inner examples.
+     */
     public SequenceExample(List<T> outputs, List<? extends List<? extends Feature>> features, boolean attemptBinaryFeatures) {
         this(outputs, features, DEFAULT_WEIGHT, attemptBinaryFeatures);
     }
-    
+
+    /**
+     * Creates a sequence example from the supplied weight, outputs and list of list of features.
+     * <p>
+     * The features are copied out by this constructor. The outputs and features lists
+     * must be of the same length.
+     * @param outputs The outputs for each sequence element.
+     * @param features The features for each sequence element.
+     * @param weight The weight for this sequence example.
+     * @param attemptBinaryFeatures Attempt to use {@link BinaryFeaturesExample} as the inner examples.
+     */
     public SequenceExample(List<T> outputs, List<? extends List<? extends Feature>> features, float weight, boolean attemptBinaryFeatures) {
         if (outputs.size() != features.size()) {
             throw new IllegalArgumentException("outputs.size() = " + outputs.size() + ", features.size() = " + features.size());

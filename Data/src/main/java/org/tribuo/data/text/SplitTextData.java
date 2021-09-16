@@ -83,6 +83,11 @@ public class SplitTextData {
         public long seed = 1;
     }
 
+    /**
+     * Runs the SplitTextData CLI.
+     * @param args The CLI arguments.
+     * @throws IOException If the files could not be read or written to.
+     */
     public static void main(String[] args) throws IOException {
         
         //

@@ -47,6 +47,9 @@ public class LinearSGDOptions implements Options {
         SIGMOID
     }
 
+    /**
+     * The gradient descent optimiser options.
+     */
     public GradientOptimiserOptions sgoOptions;
 
     /**
@@ -91,6 +94,10 @@ public class LinearSGDOptions implements Options {
         }
     }
 
+    /**
+     * Gets the LinearSGDTrainer specified by the options in this object.
+     * @return The configured trainer.
+     */
     public LinearSGDTrainer getTrainer() {
         logger.info(String.format("Set logging interval to %d", sgdLoggingInterval));
         return new LinearSGDTrainer(getLoss(), sgoOptions.getOptimiser(), sgdEpochs, sgdLoggingInterval, sgdMinibatchSize, sgdSeed);

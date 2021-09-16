@@ -511,10 +511,25 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
     public static final class IDXDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * The name of the output file modified time provenance field.
+         */
         public static final String OUTPUT_FILE_MODIFIED_TIME = "output-file-modified-time";
+        /**
+         * The name of the features file modified time provenance field.
+         */
         public static final String FEATURES_FILE_MODIFIED_TIME = "features-file-modified-time";
+        /**
+         * The name of the provenance field for the feature file hash.
+         */
         public static final String FEATURES_RESOURCE_HASH = "features-resource-hash";
+        /**
+         * The name of the provenance field for the output file hash.
+         */
         public static final String OUTPUT_RESOURCE_HASH = "output-resource-hash";
+        /**
+         * The name of the provenance field for the idx feature type.
+         */
         public static final String FEATURE_TYPE = "idx-feature-type";
 
         private final DateTimeProvenance featuresFileModifiedTime;

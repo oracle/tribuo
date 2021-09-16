@@ -38,6 +38,12 @@ public class MultiLabelMetric implements EvaluationMetric<MultiLabel, MultiLabel
     private final String name;
     private final BiFunction<MetricTarget<MultiLabel>, Context, Double> impl;
 
+    /**
+     * Constructs a multi-label metric.
+     * @param target The metric target.
+     * @param name The name of the metric.
+     * @param impl The implementing function for this metric.
+     */
     public MultiLabelMetric(MetricTarget<MultiLabel> target, String name, BiFunction<MetricTarget<MultiLabel>, Context, Double> impl) {
         this.target = target;
         this.name = name;

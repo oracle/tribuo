@@ -45,6 +45,12 @@ public class LabelSequenceEvaluation implements SequenceEvaluation<Label> {
     private final ConfusionMatrix<Label> cm;
     private final EvaluationProvenance provenance;
 
+    /**
+     * Constructs a LabelSequenceEvaluation using the supplied parameters.
+     * @param results The metric values.
+     * @param ctx The context.
+     * @param provenance The evaluation provenance.
+     */
     protected LabelSequenceEvaluation(Map<MetricID<Label>, Double> results,
                                       LabelMetric.Context ctx,
                                       EvaluationProvenance provenance) {
@@ -85,98 +91,204 @@ public class LabelSequenceEvaluation implements SequenceEvaluation<Label> {
         return cm.confusion(predictedLabel, trueLabel);
     }
 
+    /**
+     * Gets the true positive count for that label.
+     * @param label The label.
+     * @return The true positive count.
+     */
     public double tp(Label label) {
         return get(label, LabelMetrics.TP);
     }
 
+    /**
+     * Gets the micro averaged true positive count.
+     * @return The micro averaged true positive count.
+     */
     public double tp() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.TP);
     }
 
+    /**
+     * Gets the macro averaged true positive count.
+     * @return The macro averaged true positive count.
+     */
     public double macroTP() {
         return get(EvaluationMetric.Average.MACRO, LabelMetrics.TP);
     }
 
+    /**
+     * The false positive count for this label.
+     * @param label The label.
+     * @return The false positive count.
+     */
     public double fp(Label label) {
         return get(label, LabelMetrics.FP);
     }
 
+    /**
+     * Gets the micro averaged false positive count.
+     * @return The micro averaged false positive count.
+     */
     public double fp() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.FP);
     }
 
+    /**
+     * Gets the macro averaged false positive count.
+     * @return The macro averaged false positive count.
+     */
     public double macroFP() {
         return get(EvaluationMetric.Average.MACRO, LabelMetrics.FP);
     }
 
+    /**
+     * The true negative count for this label.
+     * @param label The label.
+     * @return The true negative count.
+     */
     public double tn(Label label) {
         return get(label, LabelMetrics.TN);
     }
 
+    /**
+     * Gets the micro averaged true negative count.
+     * @return The micro averaged true negative count.
+     */
     public double tn() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.TN);
     }
 
+    /**
+     * Gets the macro averaged true negative count.
+     * @return The macro averaged true negative count.
+     */
     public double macroTN() {
         return get(EvaluationMetric.Average.MACRO, LabelMetrics.TN);
     }
 
+    /**
+     * The false negative count for this label.
+     * @param label The label.
+     * @return The false negative count.
+     */
     public double fn(Label label) {
         return get(label, LabelMetrics.FN);
     }
 
+    /**
+     * Gets the micro averaged false negative count.
+     * @return The micro averaged false negative count.
+     */
     public double fn() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.FN);
     }
 
+    /**
+     * Gets the macro averaged false negative count.
+     * @return The macro averaged false negative count.
+     */
     public double macroFN() {
         return get(EvaluationMetric.Average.MACRO, LabelMetrics.FN);
     }
 
+    /**
+     * The precision for this label.
+     * @param label The label.
+     * @return The precision.
+     */
     public double precision(Label label) {
         return get(label, LabelMetrics.PRECISION);
     }
 
+    /**
+     * The micro averaged precision.
+     * @return The micro averaged precision.
+     */
     public double microAveragedPrecision() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.PRECISION);
     }
 
+    /**
+     * The macro averaged precision.
+     * @return The macro averaged precision.
+     */
     public double macroAveragedPrecision() {
         return get(EvaluationMetric.Average.MACRO, LabelMetrics.PRECISION);
     }
 
+    /**
+     * The recall for this label.
+     * @param label The label.
+     * @return The recall.
+     */
     public double recall(Label label) {
         return get(label, LabelMetrics.RECALL);
     }
 
+    /**
+     * The micro averaged recall.
+     * @return The micro averaged recall.
+     */
     public double microAveragedRecall() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.RECALL);
     }
 
+    /**
+     * The macro averaged recall.
+     * @return The macro averaged recall.
+     */
     public double macroAveragedRecall() {
         return get(EvaluationMetric.Average.MACRO, LabelMetrics.RECALL);
     }
 
+    /**
+     * The F1 for this label.
+     * @param label The label.
+     * @return The F1.
+     */
     public double f1(Label label) {
         return get(label, LabelMetrics.RECALL);
     }
 
+    /**
+     * The micro averaged F1.
+     * @return The micro averaged F1.
+     */
     public double microAveragedF1() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.F1);
     }
 
+    /**
+     * The macro averaged F1.
+     * @return The macro averaged F1.
+     */
     public double macroAveragedF1() {
         return get(EvaluationMetric.Average.MACRO, LabelMetrics.F1);
     }
 
+    /**
+     * The accuracy.
+     * @return The accuracy.
+     */
     public double accuracy() {
         return get(EvaluationMetric.Average.MICRO, LabelMetrics.ACCURACY);
     }
 
+    /**
+     * Gets the accuracy for this label.
+     * @param label The label.
+     * @return The accuracy.
+     */
     public double accuracy(Label label) {
         return get(label, LabelMetrics.ACCURACY);
     }
 
+    /**
+     * Gets the balanced error rate.
+     * <p>
+     * Also known as 1 - the macro averaged recall.
+     * @return The balanced error rate.
+     */
     public double balancedErrorRate() {
         // Target doesn't matter for balanced error rate, so we just use Average.macro
         // as it's the macro averaged recall.

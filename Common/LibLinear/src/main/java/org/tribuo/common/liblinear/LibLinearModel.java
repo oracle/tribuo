@@ -100,7 +100,6 @@ public abstract class LibLinearModel<T extends Output<T>> extends Model<T> {
      * LibLinear model.
      * <p>
      * Prefer {@link LibLinearModel#getExcuses} to get multiple excuses.
-     * <p>
      * @param e The example to excuse.
      * @return An {@link Excuse} for this example.
      */

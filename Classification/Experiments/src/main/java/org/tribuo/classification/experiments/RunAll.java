@@ -74,6 +74,11 @@ public class RunAll {
         public File directory;
     }
 
+    /**
+     * Runs the RunALL CLI.
+     * @param args The CLI arguments.
+     * @throws IOException If it failed to load the data.
+     */
     public static void main(String[] args) throws IOException {
         LabsLogFormatter.setAllLogFormatters();
 

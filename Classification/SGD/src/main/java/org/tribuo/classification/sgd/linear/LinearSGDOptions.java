@@ -47,6 +47,9 @@ public class LinearSGDOptions implements ClassificationOptions<LinearSGDTrainer>
         LOG
     }
 
+    /**
+     * The gradient descent optimiser options.
+     */
     public GradientOptimiserOptions sgoOptions;
 
     /**

@@ -55,6 +55,12 @@ public class ImageTransformer implements ExampleTransformer {
      */
     private ImageTransformer() {}
 
+    /**
+     * Constructs an image transformer with the specified parameters.
+     * @param channels The number of colour channels.
+     * @param height The height.
+     * @param width The width.
+     */
     public ImageTransformer(int channels, int height, int width) {
         if (width < 1 || height < 1 || channels < 1) {
             throw new PropertyException("","Inputs must be positive integers, found [c="+channels+",h="+height+",w="+width+"]");

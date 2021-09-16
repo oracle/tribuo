@@ -27,7 +27,13 @@ import java.util.logging.Logger;
 public class IntArrayContainer {
     private static final Logger logger = Logger.getLogger(IntArrayContainer.class.getName());
 
+    /**
+     * The array of ints.
+     */
     public int[] array;
+    /**
+     * The number of elements in the array.
+     */
     public int size;
 
     /**

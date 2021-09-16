@@ -66,6 +66,13 @@ public class RMSProp implements StochasticGradientOptimiser {
 
     private DoubleUnaryOperator square;
 
+    /**
+     * Constructs an RMSProp gradient optimiser using the specified parameters.
+     * @param initialLearningRate The initial learning rate.
+     * @param rho The momentum parameter.
+     * @param epsilon The epsilon to ensure division stability.
+     * @param decay The decay parameter.
+     */
     public RMSProp(double initialLearningRate, double rho, double epsilon, double decay) {
         this.initialLearningRate = initialLearningRate;
         this.rho = rho;
@@ -75,6 +82,11 @@ public class RMSProp implements StochasticGradientOptimiser {
         postConfig();
     }
 
+    /**
+     * Constructs an RMSProp gradient optimiser using the specified parameters with epsilon set to 1e-8 and decay to 0.0.
+     * @param initialLearningRate The initial learning rate.
+     * @param rho The momentum parameter.
+     */
     public RMSProp(double initialLearningRate, double rho) {
         this(initialLearningRate,rho,1e-8,0.0);
     }

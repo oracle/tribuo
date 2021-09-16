@@ -149,6 +149,10 @@ public class InformationTheoryDemo {
         public DistributionType type = DistributionType.RANDOM;
     }
 
+    /**
+     * Runs a simple demo of the information theory functions.
+     * @param args The CLI arguments.
+     */
     public static void main(String[] args) {
 
         DemoOptions options = new DemoOptions();
