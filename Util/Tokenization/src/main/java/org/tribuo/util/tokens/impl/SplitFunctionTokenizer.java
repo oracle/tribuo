@@ -79,34 +79,118 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
      * already been determined.
      */
     public enum SplitResult {
-        NO_SPLIT_WORD(SplitType.NO_SPLIT, TokenType.WORD), 
+        /**
+         * Not a split, is a word.
+         */
+        NO_SPLIT_WORD(SplitType.NO_SPLIT, TokenType.WORD),
+        /**
+         * Not a split, is a ngram.
+         */
         NO_SPLIT_NGRAM(SplitType.NO_SPLIT, TokenType.NGRAM),
+        /**
+         * Not a split, is punctuation.
+         */
         NO_SPLIT_PUNCTUATION(SplitType.NO_SPLIT, TokenType.PUNCTUATION),
+        /**
+         * Not a split, is whitespace.
+         */
         NO_SPLIT_WHITESPACE(SplitType.NO_SPLIT, TokenType.WHITESPACE),
+        /**
+         * Not a split, is a prefix.
+         */
         NO_SPLIT_PREFIX(SplitType.NO_SPLIT, TokenType.PREFIX),
+        /**
+         * Not a split, is a suffix.
+         */
         NO_SPLIT_SUFFIX(SplitType.NO_SPLIT, TokenType.SUFFIX),
-        NO_SPLIT_INFIX(SplitType.NO_SPLIT, TokenType.INFIX), 
+        /**
+         * Not a split, is infix.
+         */
+        NO_SPLIT_INFIX(SplitType.NO_SPLIT, TokenType.INFIX),
+        /**
+         * Not a split, is unknown.
+         */
         NO_SPLIT_UNKNOWN(SplitType.NO_SPLIT, TokenType.UNKNOWN),
+        /**
+         * Split at.
+         */
         SPLIT_AT(SplitType.SPLIT_AT, TokenType.WORD), //the token type is ignored
+        /**
+         * Split before.
+         */
         SPLIT_BEFORE(SplitType.SPLIT_BEFORE, TokenType.WORD), //the token type is ignored
+        /**
+         * Split after a word.
+         */
         SPLIT_AFTER_WORD(SplitType.SPLIT_AFTER, TokenType.WORD),
+        /**
+         * Split after a ngram.
+         */
         SPLIT_AFTER_NGRAM(SplitType.SPLIT_AFTER, TokenType.NGRAM),
+        /**
+         * Split after punctuation.
+         */
         SPLIT_AFTER_PUNCTUATION(SplitType.SPLIT_AFTER, TokenType.PUNCTUATION),
+        /**
+         * Split after whitespace.
+         */
         SPLIT_AFTER_WHITESPACE(SplitType.SPLIT_AFTER, TokenType.WHITESPACE),
+        /**
+         * Split after a prefix.
+         */
         SPLIT_AFTER_PREFIX(SplitType.SPLIT_AFTER, TokenType.PREFIX),
+        /**
+         * Split after a suffix.
+         */
         SPLIT_AFTER_SUFFIX(SplitType.SPLIT_AFTER, TokenType.SUFFIX),
+        /**
+         * Split after infix.
+         */
         SPLIT_AFTER_INFIX(SplitType.SPLIT_AFTER, TokenType.INFIX),
+        /**
+         * Split after an unknown value.
+         */
         SPLIT_AFTER_UNKNOWN(SplitType.SPLIT_AFTER, TokenType.UNKNOWN),
+        /**
+         * Split before and after a word.
+         */
         SPLIT_BEFORE_AND_AFTER_WORD(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.WORD),
+        /**
+         * Split before and after a ngram.
+         */
         SPLIT_BEFORE_AND_AFTER_NGRAM(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.NGRAM),
+        /**
+         * Split before and after punctuation.
+         */
         SPLIT_BEFORE_AND_AFTER_PUNCTUATION(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.PUNCTUATION),
+        /**
+         * Split before and after whitespace.
+         */
         SPLIT_BEFORE_AND_AFTER_WHITESPACE(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.WHITESPACE),
+        /**
+         * Split before and after prefix.
+         */
         SPLIT_BEFORE_AND_AFTER_PREFIX(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.PREFIX),
+        /**
+         * Split before and after suffix.
+         */
         SPLIT_BEFORE_AND_AFTER_SUFFIX(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.SUFFIX),
+        /**
+         * Split before and after infix.
+         */
         SPLIT_BEFORE_AND_AFTER_INFIX(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.INFIX),
+        /**
+         * Split before and after unknown.
+         */
         SPLIT_BEFORE_AND_AFTER_UNKNOWN(SplitType.SPLIT_BEFORE_AND_AFTER, TokenType.UNKNOWN);
 
+        /**
+         * The split type.
+         */
         public final SplitType splitType;
+        /**
+         * The token type.
+         */
         public final TokenType tokenType;
 
         SplitResult(SplitType splitType, TokenType tokenType) {

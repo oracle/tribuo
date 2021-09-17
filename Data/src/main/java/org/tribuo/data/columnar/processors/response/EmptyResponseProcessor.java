@@ -38,6 +38,9 @@ import java.util.Optional;
  */
 public final class EmptyResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
+    /**
+     * The field name this response processor looks for, which is ignored anyway as this processor always returns {@link Optional#empty()}.
+     */
     public static final String FIELD_NAME = "TRIBUO##NULL_RESPONSE_PROCESSOR";
 
     @Config(mandatory = true,description="Output factory to type the columnar loader.")

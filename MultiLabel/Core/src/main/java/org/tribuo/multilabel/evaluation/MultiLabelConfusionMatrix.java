@@ -56,6 +56,11 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
     private final DenseMatrix[] mcm;
     private final DenseMatrix confusion;
 
+    /**
+     * Constructs a multi-label confusion matrix for the specified model and predictions.
+     * @param model The model.
+     * @param predictions The predictions.
+     */
     public MultiLabelConfusionMatrix(Model<MultiLabel> model, List<Prediction<MultiLabel>> predictions) {
         this(model.getOutputIDInfo(), predictions);
     }

@@ -32,12 +32,24 @@ import java.util.Map.Entry;
  */
 public class WeightedPairDistribution<T1,T2> {
 
+    /**
+     * The sample count.
+     */
     public final long count;
 
     private final Map<CachedPair<T1,T2>,WeightCountTuple> jointCounts;
     private final Map<T1,WeightCountTuple> firstCount;
     private final Map<T2,WeightCountTuple> secondCount;
 
+    /**
+     * Constructs a weighted pair distribution from the supplied values.
+     * <p>
+     * Copies the maps out into LinkedHashMaps for iteration speed.
+     * @param count The sample count.
+     * @param jointCounts The joint distribution.
+     * @param firstCount The first marginal distribution.
+     * @param secondCount The second marginal distribution.
+     */
     public WeightedPairDistribution(long count, Map<CachedPair<T1,T2>,WeightCountTuple> jointCounts, Map<T1,WeightCountTuple> firstCount, Map<T2,WeightCountTuple> secondCount) {
         this.count = count;
         this.jointCounts = new LinkedHashMap<>(jointCounts);
@@ -45,21 +57,40 @@ public class WeightedPairDistribution<T1,T2> {
         this.secondCount = new LinkedHashMap<>(secondCount);
     }
 
+    /**
+     * Constructs a weighted pair distribution from the supplied values.
+     * @param count The sample count.
+     * @param jointCounts The joint distribution.
+     * @param firstCount The first marginal distribution.
+     * @param secondCount The second marginal distribution.
+     */
     public WeightedPairDistribution(long count, LinkedHashMap<CachedPair<T1,T2>,WeightCountTuple> jointCounts, LinkedHashMap<T1,WeightCountTuple> firstCount, LinkedHashMap<T2,WeightCountTuple> secondCount) {
         this.count = count;
         this.jointCounts = jointCounts;
         this.firstCount = firstCount;
         this.secondCount = secondCount;
     }
-    
+
+    /**
+     * Gets the joint distribution.
+     * @return The joint distribution.
+     */
     public Map<CachedPair<T1,T2>,WeightCountTuple> getJointCounts() {
         return jointCounts;
     }
-    
+
+    /**
+     * Gets the first marginal distribution.
+     * @return The first marginal distribution.
+     */
     public Map<T1,WeightCountTuple> getFirstCount() {
         return firstCount;
     }
-    
+
+    /**
+     * Gets the second marginal distribution.
+     * @return The second marginal distribution.
+     */
     public Map<T2,WeightCountTuple> getSecondCount() {
         return secondCount;
     }

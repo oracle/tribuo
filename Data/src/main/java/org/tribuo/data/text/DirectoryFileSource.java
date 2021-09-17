@@ -110,20 +110,15 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
      * document preprocessors on the data read from the files in the directories
      * representing classes.
      *
+     * @param dataDir The directory to inspect.
      * @param outputFactory The output factory used to generate the outputs.
      * @param extractor The text feature extractor that will run on the
      * documents.
      * @param preprocessors Pre-processors that we will run on the documents
      * before extracting their features.
      */
-    public DirectoryFileSource(OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor, DocumentPreprocessor... preprocessors) {
-        this.outputFactory = outputFactory;
-        this.extractor = extractor;
-        this.preprocessors.addAll(Arrays.asList(preprocessors));
-    }
-
-    public DirectoryFileSource(Path newsDir, OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor, DocumentPreprocessor... preprocessors) {
-        this.dataDir = newsDir;
+    public DirectoryFileSource(Path dataDir, OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor, DocumentPreprocessor... preprocessors) {
+        this.dataDir = dataDir;
         this.outputFactory = outputFactory;
         this.extractor = extractor;
         this.preprocessors.addAll(Arrays.asList(preprocessors));
@@ -269,6 +264,10 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
             this.dataSourceCreationTime = new DateTimeProvenance(DATASOURCE_CREATION_TIME,OffsetDateTime.now());
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public DirectoryFileSourceProvenance(Map<String,Provenance> map) {
             this(extractProvenanceInfo(map));
         }
@@ -279,6 +278,11 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
             this.fileModifiedTime = (DateTimeProvenance) info.instanceValues.get(FILE_MODIFIED_TIME);
         }
 
+        /**
+         * Splits the provenance into configured and non-configured values.
+         * @param map the provenances.
+         * @return The extracted information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, DirectoryFileSourceProvenance.class.getSimpleName()).getValue();

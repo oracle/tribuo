@@ -17,18 +17,32 @@
 package org.tribuo.util.infotheory.impl;
 
 /**
- * An mutable tuple of a double and a long.
+ * A mutable tuple of a double and a long.
  */
 public final class WeightCountTuple {
 
+    /**
+     * The current weight.
+     */
     public double weight;
+    /**
+     * The current count.
+     */
     public long count;
 
+    /**
+     * Creates a zeroed WeightCountTuple.
+     */
     public WeightCountTuple() {
         this.weight = 0.0;
         this.count = 0;
     }
 
+    /**
+     * Creates a WeightCountTuple with the specifed values.
+     * @param weight The current weight.
+     * @param count The current count.
+     */
     public WeightCountTuple(double weight, long count) {
         this.weight = weight;
         this.count = count;

@@ -51,8 +51,17 @@ public class RegexFieldProcessor implements FieldProcessor {
      * Matching mode.
      */
     public enum Mode {
+        /**
+         * Triggers feature generation if the whole string matches.
+         */
         MATCH_ALL,
+        /**
+         * Triggers feature generation if the string contains a match.
+         */
         MATCH_CONTAINS,
+        /**
+         * Triggers feature generation for each matching group in the string.
+         */
         GROUPS
     }
 

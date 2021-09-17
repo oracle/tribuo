@@ -55,15 +55,25 @@ public class ClassificationEnsembleOptions implements Options {
         RF
     }
 
-    @Option(longName="ensemble-type",usage="Ensemble method, options are {ADABOOST, BAGGING, RF}.")
+    /**
+     * Ensemble method, options are {ADABOOST, BAGGING, RF}.
+     */
+    @Option(longName = "ensemble-type", usage = "Ensemble method, options are {ADABOOST, BAGGING, RF}.")
     public EnsembleType type = EnsembleType.BAGGING;
-    @Option(longName="ensemble-size",usage="Number of base learners in the ensemble.")
+    /**
+     * Number of base learners in the ensemble.
+     */
+    @Option(longName = "ensemble-size", usage = "Number of base learners in the ensemble.")
     public int ensembleSize = -1;
-    @Option(longName="ensemble-seed",usage="RNG seed.")
+    /**
+     * RNG seed.
+     */
+    @Option(longName = "ensemble-seed", usage = "RNG seed.")
     public long seed = Trainer.DEFAULT_SEED;
 
     /**
      * Wraps the supplied trainer using the ensemble trainer described by these options.
+     *
      * @param trainer The trainer to wrap.
      * @return An ensemble trainer.
      */
@@ -72,21 +82,21 @@ public class ClassificationEnsembleOptions implements Options {
             switch (type) {
                 case ADABOOST:
                     logger.info("Using Adaboost with " + ensembleSize + " members.");
-                    return new AdaBoostTrainer(trainer,ensembleSize,seed);
+                    return new AdaBoostTrainer(trainer, ensembleSize, seed);
                 case BAGGING:
                     logger.info("Using Bagging with " + ensembleSize + " members.");
-                    return new BaggingTrainer<>(trainer,new VotingCombiner(),ensembleSize,seed);
+                    return new BaggingTrainer<>(trainer, new VotingCombiner(), ensembleSize, seed);
                 case EXTRA_TREES:
                     if (trainer instanceof DecisionTreeTrainer) {
                         logger.info("Using Extra Trees with " + ensembleSize + " members.");
-                        return new ExtraTreesTrainer<>((DecisionTreeTrainer<Label>)trainer,new VotingCombiner(),ensembleSize,seed);
+                        return new ExtraTreesTrainer<>((DecisionTreeTrainer<Label>) trainer, new VotingCombiner(), ensembleSize, seed);
                     } else {
                         throw new IllegalArgumentException("ExtraTreesTrainer requires a DecisionTreeTrainer");
                     }
                 case RF:
                     if (trainer instanceof DecisionTreeTrainer) {
                         logger.info("Using Random Forests with " + ensembleSize + " members.");
-                        return new RandomForestTrainer<>((DecisionTreeTrainer<Label>)trainer,new VotingCombiner(),ensembleSize,seed);
+                        return new RandomForestTrainer<>((DecisionTreeTrainer<Label>) trainer, new VotingCombiner(), ensembleSize, seed);
                     } else {
                         throw new IllegalArgumentException("RandomForestTrainer requires a DecisionTreeTrainer");
                     }

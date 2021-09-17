@@ -22,8 +22,15 @@ import org.tribuo.math.la.Tensor;
  * An interface which tags a {@link Tensor} with a convertToDense method.
  */
 public interface ShrinkingTensor {
+    /**
+     * The tolerance below which the scale factor is applied to the stored values and reset to 1.0.
+     */
     public static final double tolerance = 1e-6;
 
+    /**
+     * Converts the tensor into a dense tensor.
+     * @return A dense tensor copy of this shrinking tensor.
+     */
     public Tensor convertToDense();
 }
 

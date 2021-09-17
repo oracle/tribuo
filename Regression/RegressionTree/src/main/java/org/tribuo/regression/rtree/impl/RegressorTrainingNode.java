@@ -76,6 +76,17 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
 
     private final float weightSum;
 
+    /**
+     * Constructs a tree training node for regression problems.
+     * @param impurity The impurity function.
+     * @param tuple The data tuple.
+     * @param dimIndex The output dimension index of this node.
+     * @param dimName The output dimension name.
+     * @param numExamples The number of examples.
+     * @param featureIDMap The feature domain.
+     * @param outputInfo The output domain.
+     * @param leafDeterminer The leaf determination parameters.
+     */
     public RegressorTrainingNode(RegressorImpurity impurity, InvertedData tuple, int dimIndex, String dimName,
                                  int numExamples, ImmutableFeatureMap featureIDMap,
                                  ImmutableOutputInfo<Regressor> outputInfo, LeafDeterminer leafDeterminer) {

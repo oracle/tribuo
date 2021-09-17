@@ -22,15 +22,39 @@ import org.tribuo.util.tokens.Token;
  * A range currently being segmented.
  */
 public final class Range implements CharSequence {
+    /**
+     * The character buffer.
+     */
     public char[] buff = new char[16];
+    /**
+     * The token length.
+     */
     public int len;
+    /**
+     * The start index.
+     */
     public int start;
+    /**
+     * The end index.
+     */
     public int end;
+    /**
+     * The value to increment by.
+     */
     public int incr;
+    /**
+     * The current token type.
+     */
     public Token.TokenType type;
 
     Range() {}
 
+    /**
+     * Sets the first two characters in the range, and the type to NGRAM.
+     * @param c1 The first character.
+     * @param c2 The second character.
+     * @param start The start value.
+     */
     public void set(char c1, char c2, int start) {
         buff[0] = c1;
         buff[1] = c2;
@@ -41,6 +65,11 @@ public final class Range implements CharSequence {
         this.type = Token.TokenType.NGRAM;
     }
 
+    /**
+     * Sets the first character in the range.
+     * @param c The first character.
+     * @param start The start value.
+     */
     public void set(char c, int start) {
         buff[0] = c;
         this.start = start;
@@ -50,6 +79,12 @@ public final class Range implements CharSequence {
         this.type = Token.TokenType.WORD;
     }
 
+    /**
+     * Sets the character range.
+     * @param buff The characters.
+     * @param len The length of the character buffer.
+     * @param start The start index.
+     */
     public void set(char[] buff, int len, int start) {
         if (this.buff.length < buff.length) {
             this.buff = new char[buff.length + 1];
@@ -62,6 +97,11 @@ public final class Range implements CharSequence {
         this.type = Token.TokenType.WORD;
     }
 
+    /**
+     * Sets this range to represent a punctuation character.
+     * @param p The punctuation character.
+     * @param start The start index.
+     */
     public void punct(char p, int start) {
         buff[0] = p;
         this.len = 1;
@@ -71,6 +111,10 @@ public final class Range implements CharSequence {
         this.type = Token.TokenType.PUNCTUATION;
     }
 
+    /**
+     * Sets the token type.
+     * @param type The token type.
+     */
     public void setType(Token.TokenType type) {
         this.type = type;
     }

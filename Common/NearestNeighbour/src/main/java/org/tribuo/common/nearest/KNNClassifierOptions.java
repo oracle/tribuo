@@ -34,17 +34,41 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
     /**
      * The type of combination function.
      */
-    public enum EnsembleCombinerType { VOTING, FULLY_WEIGHTED_VOTING}
+    public enum EnsembleCombinerType {
+        /**
+         * Use a {@link VotingCombiner}.
+         */
+        VOTING,
+        /**
+         * Use a {@link FullyWeightedVotingCombiner}.
+         */
+        FULLY_WEIGHTED_VOTING
+    }
 
-    @Option(longName="knn-k",usage="K nearest neighbours to use. Defaults to 1.")
+    /**
+     * K nearest neighbours to use. Defaults to 1.
+     */
+    @Option(longName = "knn-k", usage = "K nearest neighbours to use.")
     public int knnK = 1;
-    @Option(longName="knn-num-threads",usage="Number of threads to use. Defaults to 1.")
+    /**
+     * Number of threads to use. Defaults to 1.
+     */
+    @Option(longName = "knn-num-threads", usage = "Number of threads to use.")
     public int knnNumThreads = 1;
-    @Option(longName="knn-distance",usage="Distance metric to use. Defaults to L2.")
+    /**
+     * Distance metric to use. Defaults to L2.
+     */
+    @Option(longName = "knn-distance", usage = "Distance metric to use.")
     public Distance knnDistance = Distance.L2;
-    @Option(longName="knn-backend",usage="Parallel backend to use.")
+    /**
+     * Parallel backend to use.
+     */
+    @Option(longName = "knn-backend", usage = "Parallel backend to use.")
     public Backend knnBackend = Backend.STREAMS;
-    @Option(longName="knn-voting",usage="Parallel backend to use.")
+    /**
+     * Parallel backend to use.
+     */
+    @Option(longName = "knn-voting", usage = "Parallel backend to use.")
     public EnsembleCombinerType knnEnsembleCombiner = EnsembleCombinerType.VOTING;
 
     @Override
@@ -65,6 +89,6 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
 
     @Override
     public KNNTrainer<Label> getTrainer() {
-    	return new KNNTrainer<>(knnK, knnDistance, knnNumThreads, getEnsembleCombiner(), knnBackend);
+        return new KNNTrainer<>(knnK, knnDistance, knnNumThreads, getEnsembleCombiner(), knnBackend);
     }
 }

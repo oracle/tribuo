@@ -305,6 +305,10 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
             this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE,RESOURCE_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.dataPath));
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public CSVDataSourceProvenance(Map<String,Provenance> map) {
             this(extractProvenanceInfo(map));
         }
@@ -316,6 +320,11 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
             this.sha256Hash = (HashProvenance) info.instanceValues.get(RESOURCE_HASH);
         }
 
+        /**
+         * Separates this class's non-configurable fields from the configurable fields.
+         * @param map The provenances.
+         * @return The extracted provenance information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, CSVDataSourceProvenance.class.getSimpleName()).getValue();

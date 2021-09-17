@@ -71,6 +71,14 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
 
     private Parameters parameters = null;
 
+    /**
+     * Creates an AdaGradRDA optimiser with the specified parameter values.
+     * @param initialLearningRate The learning rate.
+     * @param epsilon The epsilon value for stabilising the gradient inversion.
+     * @param l1 The l1 penalty.
+     * @param l2 The l2 penalty.
+     * @param numExamples The number of examples to scale the l1 and l2 penalties.
+     */
     public AdaGradRDA(double initialLearningRate, double epsilon, double l1, double l2, int numExamples) {
         this.initialLearningRate = initialLearningRate;
         this.epsilon = epsilon;
@@ -79,12 +87,19 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
         this.numExamples = numExamples;
     }
 
+    /**
+     * Creates an AdaGradRDA optimiser with the specified parameter values.
+     * <p>
+     * Sets the regularisation parameters to zero.
+     * @param initialLearningRate The learning rate.
+     * @param epsilon The epsilon value for stabilising the gradient inversion.
+     */
     public AdaGradRDA(double initialLearningRate, double epsilon) {
         this(initialLearningRate,epsilon,0,0,1);
     }
 
     /**
-     * For olcut.
+     * For OLCUT.
      */
     private AdaGradRDA() { }
 
@@ -152,8 +167,18 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
      * An interface which tags a {@link Tensor} with a convertToDense method.
      */
     private static interface AdaGradRDATensor {
+        /**
+         * Returns a dense copy of this tensor.
+         * @return A dense copy.
+         */
         public Tensor convertToDense();
 
+        /**
+         * Zeros the value around the threshold.
+         * @param input The value to truncate.
+         * @param threshold The threshold to zero.
+         * @return The input value with the region around the threshold removed.
+         */
         public static double truncate(double input, double threshold) {
             if (input > threshold) {
                 return input - threshold;

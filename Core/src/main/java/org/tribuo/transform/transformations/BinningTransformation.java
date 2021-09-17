@@ -134,6 +134,10 @@ public final class BinningTransformation implements Transformation {
             this.type = new EnumProvenance<>(TYPE,host.type);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenance map.
+         */
         @SuppressWarnings("unchecked") // Enum cast
         public BinningTransformationProvenance(Map<String,Provenance> map) {
             numBins = ObjectProvenance.checkAndExtractProvenance(map,NUM_BINS,IntProvenance.class,BinningTransformationProvenance.class.getSimpleName());

@@ -24,12 +24,17 @@ import org.tribuo.evaluation.Evaluation;
  * Just an easier-to-read alias for {@code Pair<MetricTarget<T>, String>}.
  * <p>
  * Used as a key in metric result maps. See {@link Evaluation#asMap()}.
- * <p>
  * @param <T> The type of output.
  */
 public final class MetricID<T extends Output<T>> extends Pair<MetricTarget<T>, String> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a metric id.
+     * @param target The metric target.
+     * @param metricName The name of the metric.
+     */
+    // Should be a record one day.
     public MetricID(MetricTarget<T> target, String metricName) {
         super(target, metricName);
     }

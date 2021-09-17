@@ -41,6 +41,9 @@ import java.util.Objects;
 public class SimpleDataSourceProvenance implements DataSourceProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The description field in the provenance.
+     */
     public static final String DESCRIPTION = "description";
 
     private final String className = DataSource.class.getName();

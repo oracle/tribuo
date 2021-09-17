@@ -17,6 +17,7 @@
 package org.tribuo.data.text.impl;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Feature;
@@ -47,6 +48,12 @@ public class BasicPipeline implements TextPipeline {
     @Config(description="n in the n-gram to emit.")
     private int ngram = 2;
 
+    /**
+     * Constructs a basic text pipeline which tokenizes the input and generates word
+     * n-gram features in the range 1 to {@code ngram}.
+     * @param tokenizer The tokenizer.
+     * @param ngram The size of the n-grams to generate.
+     */
     public BasicPipeline(Tokenizer tokenizer, int ngram) {
         this.tokenizer = tokenizer;
         this.ngram = ngram;
@@ -54,7 +61,7 @@ public class BasicPipeline implements TextPipeline {
     }
 
     /**
-     * For olcut
+     * For OLCUT.
      */
     private BasicPipeline() {}
 
@@ -63,6 +70,9 @@ public class BasicPipeline implements TextPipeline {
      */
     @Override
     public void postConfig() {
+        if (ngram < 1) {
+            throw new PropertyException("","ngram","ngram must be positive, found " + ngram);
+        }
         for (int i = 1; i <= ngram; ++i) {
             processors.add(new NgramProcessor(tokenizer,i,1.0));
         }
@@ -84,7 +94,6 @@ public class BasicPipeline implements TextPipeline {
                 logger.log(Level.INFO, String.format("TextProcessingException thrown by processor %s with text %s",p,data), e);
             }
         }
-        //logger.log(Level.INFO,features.toString());
 
         return aggregator.aggregate(features);
     }

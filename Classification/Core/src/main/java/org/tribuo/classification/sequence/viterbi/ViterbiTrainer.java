@@ -60,11 +60,24 @@ public final class ViterbiTrainer implements SequenceTrainer<Label> {
 
     private int trainInvocationCounter = 0;
 
+    /**
+     * Constructs a ViterbiTrainer wrapping the specified trainer, with an unbounded stack size.
+     * @param trainer The trainer to wrap.
+     * @param labelFeatureExtractor The feature extraction function for labels.
+     * @param scoreAggregation The score aggregation function.
+     */
     public ViterbiTrainer(Trainer<Label> trainer, LabelFeatureExtractor labelFeatureExtractor,
                           ScoreAggregation scoreAggregation) {
         this(trainer, labelFeatureExtractor, -1, scoreAggregation);
     }
 
+    /**
+     * Constructs a ViterbiTrainer wrapping the specified trainer.
+     * @param trainer The trainer to wrap.
+     * @param labelFeatureExtractor The feature extraction function for labels.
+     * @param stackSize The stack size.
+     * @param scoreAggregation The score aggregation function.
+     */
     public ViterbiTrainer(Trainer<Label> trainer, LabelFeatureExtractor labelFeatureExtractor, int stackSize,
                           ScoreAggregation scoreAggregation) {
         this.trainer = trainer;

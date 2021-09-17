@@ -39,6 +39,11 @@ import java.util.function.Supplier;
  */
 public interface Tokenizer extends Configurable, Cloneable, Provenancable<ConfiguredObjectProvenance> {
 
+    /**
+     * Creates a supplier from the specified tokenizer by cloning it.
+     * @param tokenizer The tokenizer to copy.
+     * @return A supplier of tokenizers.
+     */
     static Supplier<Tokenizer> createSupplier(Tokenizer tokenizer) {
         Supplier<Tokenizer> supplier = () -> {
             try {
@@ -50,6 +55,11 @@ public interface Tokenizer extends Configurable, Cloneable, Provenancable<Config
         return supplier;
     }
 
+    /**
+     * Creates a thread local source of tokenizers by making a Tokenizer supplier using {@link #createSupplier(Tokenizer)}.
+     * @param tokenizer The tokenizer to copy.
+     * @return A thread local for tokenizers.
+     */
     static ThreadLocal<Tokenizer> createThreadLocal(Tokenizer tokenizer) {
         return ThreadLocal.withInitial(createSupplier(tokenizer));
     }

@@ -59,6 +59,9 @@ public class MultiLabelConverter implements OutputConverter<MultiLabel> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(MultiLabelConverter.class.getName());
 
+    /**
+     * The threshold to determine if a label has been predicted.
+     */
     public static final double THRESHOLD = 0.5;
 
     /**

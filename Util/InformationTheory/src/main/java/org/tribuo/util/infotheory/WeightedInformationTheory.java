@@ -46,9 +46,21 @@ import java.util.logging.Logger;
 public final class WeightedInformationTheory {
     private static final Logger logger = Logger.getLogger(WeightedInformationTheory.class.getName());
 
+    /**
+     * The ratio of samples to symbols before emitting a warning.
+     */
     public static final double SAMPLES_RATIO = 5.0;
+    /**
+     * The initial size of the various maps.
+     */
     public static final int DEFAULT_MAP_SIZE = 20;
+    /**
+     * Log base 2.
+     */
     public static final double LOG_2 = Math.log(2);
+    /**
+     * Log base e.
+     */
     public static final double LOG_E = Math.log(Math.E);
 
     /**
@@ -61,7 +73,18 @@ public final class WeightedInformationTheory {
      * Chooses which variable is the one with associated weights.
      */
     public enum VariableSelector {
-        FIRST, SECOND, THIRD
+        /**
+         * The first variable is weighted.
+         */
+        FIRST,
+        /**
+         * The second variable is weighted.
+         */
+        SECOND,
+        /**
+         * The third variable is weighted.
+         */
+        THIRD
     }
 
     /**
@@ -79,7 +102,7 @@ public final class WeightedInformationTheory {
      * @param second Another array of values.
      * @param target Target array of values.
      * @param weights Array of weight values.
-     * @return The mutual information I(first,second;joint)
+     * @return The weighted mutual information I_w(first,second;joint)
      */
     public static <T1,T2,T3> double jointMI(List<T1> first, List<T2> second, List<T3> target, List<Double> weights) {
         WeightedTripleDistribution<T1, T2, T3> tripleRV = WeightedTripleDistribution.constructFromLists(first, second, target, weights);
@@ -87,6 +110,15 @@ public final class WeightedInformationTheory {
         return jointMI(tripleRV);
     }
 
+    /**
+     * Calculates the discrete weighted joint mutual information, using
+     * histogram probability estimators.
+     * @param tripleRV The weighted triple distribution.
+     * @param <T1> The first element type.
+     * @param <T2> The second element type.
+     * @param <T3> The third element type.
+     * @return The weighted mutual information I_w(first,second;joint)
+     */
     public static <T1,T2,T3> double jointMI(WeightedTripleDistribution<T1,T2,T3> tripleRV) {
         Map<CachedTriple<T1,T2,T3>, WeightCountTuple> jointCount = tripleRV.getJointCount();
         Map<CachedPair<T1,T2>,WeightCountTuple> abCount = tripleRV.getABCount();
@@ -114,6 +146,17 @@ public final class WeightedInformationTheory {
         return jmi;
     }
 
+    /**
+     * Calculates the discrete weighted joint mutual information, using
+     * histogram probability estimators.
+     * @param rv The triple distribution.
+     * @param weights The weights for one of the variables.
+     * @param vs The weighted variable id.
+     * @param <T1> The first element type.
+     * @param <T2> The second element type.
+     * @param <T3> The third element type.
+     * @return The weighted mutual information I_w(first,second;joint)
+     */
     public static <T1,T2,T3> double jointMI(TripleDistribution<T1,T2,T3> rv, Map<?,Double> weights, VariableSelector vs){
         Double boxedWeight;
         double vecLength = rv.count;
@@ -167,7 +210,7 @@ public final class WeightedInformationTheory {
      * @param second Another array of values.
      * @param condition Array to condition upon.
      * @param weights Array of weight values.
-     * @return The conditional mutual information I(first;second|condition)
+     * @return The weighted conditional mutual information I_w(first;second|condition)
      */
     public static <T1,T2,T3> double conditionalMI(List<T1> first, List<T2> second, List<T3> condition, List<Double> weights) {
         if ((first.size() == second.size()) && (first.size() == condition.size()) && (first.size() == weights.size())) {
@@ -179,6 +222,15 @@ public final class WeightedInformationTheory {
         }
     }
 
+    /**
+     * Calculates the discrete weighted conditional mutual information, using
+     * histogram probability estimators.
+     * @param tripleRV The weighted triple distribution.
+     * @param <T1> The first element type.
+     * @param <T2> The second element type.
+     * @param <T3> The condition element type.
+     * @return The weighted conditional mutual information I_w(first;second|condition)
+     */
     public static <T1,T2,T3> double conditionalMI(WeightedTripleDistribution<T1,T2,T3> tripleRV) {
         Map<CachedTriple<T1,T2,T3>,WeightCountTuple> jointCount = tripleRV.getJointCount();
         Map<CachedPair<T1,T3>,WeightCountTuple> acCount = tripleRV.getACCount();
@@ -209,6 +261,17 @@ public final class WeightedInformationTheory {
         return cmi;
     }
 
+    /**
+     * Calculates the discrete weighted conditional mutual information, using
+     * histogram probability estimators.
+     * @param rv The triple distribution.
+     * @param weights The element weights.
+     * @param vs The variable to apply the weights to.
+     * @param <T1> The first element type.
+     * @param <T2> The second element type.
+     * @param <T3> The condition element type.
+     * @return The weighted conditional mutual information I_w(first;second|condition)
+     */
     public static <T1,T2,T3> double conditionalMI(TripleDistribution<T1,T2,T3> rv, Map<?,Double> weights, VariableSelector vs) {
         Double boxedWeight;
         Map<CachedTriple<T1,T2,T3>,MutableLong> jointCount = rv.getJointCount();
@@ -264,7 +327,7 @@ public final class WeightedInformationTheory {
      * @param first An array of values
      * @param second Another array of values
      * @param weights Array of weight values.
-     * @return The mutual information I(first;Second)
+     * @return The weighted mutual information I_w(first;Second)
      */
     public static <T1,T2> double mi(ArrayList<T1> first, ArrayList<T2> second, ArrayList<Double> weights) {
         if ((first.size() == second.size()) && (first.size() == weights.size())) {
@@ -275,6 +338,14 @@ public final class WeightedInformationTheory {
         }
     }
 
+    /**
+     * Calculates the discrete weighted mutual information, using histogram
+     * probability estimators.
+     * @param jointDist The weighted joint distribution.
+     * @param <T1> Type of the first element.
+     * @param <T2> Type of the second element.
+     * @return The weighted mutual information I_w(first;Second)
+     */
     public static <T1,T2> double mi(WeightedPairDistribution<T1,T2> jointDist) {
         double vectorLength = jointDist.count;
         double mi = 0.0;
@@ -301,6 +372,16 @@ public final class WeightedInformationTheory {
         return mi;
     }
 
+    /**
+     * Calculates the discrete weighted mutual information, using histogram
+     * probability estimators.
+     * @param pairDist The joint distribution.
+     * @param weights The element weights.
+     * @param vs The variable to apply the weights to.
+     * @param <T1> Type of the first element.
+     * @param <T2> Type of the second element.
+     * @return The weighted mutual information I_w(first;Second)
+     */
     public static <T1,T2> double mi(PairDistribution<T1,T2> pairDist, Map<?,Double> weights, VariableSelector vs) {
         if (vs == VariableSelector.THIRD) {
             throw new IllegalArgumentException("MI only has two variables");

@@ -57,22 +57,49 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
         ENTROPY
     }
 
+    /**
+     * Maximum depth in the decision tree.
+     */
     @Option(longName = "cart-max-depth", usage = "Maximum depth in the decision tree.")
     public int cartMaxDepth = 6;
+    /**
+     * Minimum child weight.
+     */
     @Option(longName = "cart-min-child-weight", usage = "Minimum child weight.")
     public float cartMinChildWeight = 5.0f;
+    /**
+     * Minimum impurity decrease.
+     */
     @Option(longName = "cart-min-impurity-decrease", usage = "Minimum impurity decrease.")
     public float cartMinImpurityDecrease = 0.0f;
+    /**
+     * Fraction of features in split.
+     */
     @Option(longName = "cart-split-fraction", usage = "Fraction of features in split.")
     public float cartSplitFraction = 1.0f;
+    /**
+     * Whether to choose split points for features at random.
+     */
     @Option(longName = "cart-random-split", usage = "Whether to choose split points for features at random.")
     public boolean cartRandomSplit = false;
+    /**
+     * Impurity measure to use. Defaults to GINI.
+     */
     @Option(longName = "cart-impurity", usage = "Impurity measure to use. Defaults to GINI.")
     public ImpurityType cartImpurity = ImpurityType.GINI;
+    /**
+     * Prints the decision tree.
+     */
     @Option(longName = "cart-print-tree", usage = "Prints the decision tree.")
     public boolean cartPrintTree;
+    /**
+     * Tree algorithm to use (options are CART).
+     */
     @Option(longName = "cart-tree-algorithm", usage = "Tree algorithm to use (options are CART).")
     public TreeType cartTreeAlgorithm = TreeType.CART;
+    /**
+     * RNG seed.
+     */
     @Option(longName = "cart-seed", usage = "RNG seed.")
     public long cartSeed = Trainer.DEFAULT_SEED;
 
@@ -93,8 +120,8 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
         CARTClassificationTrainer trainer;
         switch (cartTreeAlgorithm) {
             case CART:
-                    trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease
-                            ,cartSplitFraction, cartRandomSplit, impurity, cartSeed);
+                trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease,
+                        cartSplitFraction, cartRandomSplit, impurity, cartSeed);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown tree type " + cartTreeAlgorithm);

@@ -50,21 +50,41 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and evaluates a K-Means model on the specified dataset.";
         }
+
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
 
-        @Option(charName='n',longName="num-clusters",usage="Number of clusters to infer.")
+        /**
+         * Number of clusters to infer.
+         */
+        @Option(charName = 'n', longName = "num-clusters", usage = "Number of clusters to infer.")
         public int centroids = 5;
-        @Option(charName='i',longName="iterations",usage="Maximum number of iterations.")
+        /**
+         * Maximum number of iterations.
+         */
+        @Option(charName = 'i', longName = "iterations", usage = "Maximum number of iterations.")
         public int iterations = 10;
-        @Option(charName='d',longName="distance",usage="Distance function to use in the e step.")
+        /**
+         * Distance function to use in the e step.
+         */
+        @Option(charName = 'd', longName = "distance", usage = "Distance function to use in the e step.")
         public Distance distance = Distance.EUCLIDEAN;
-        @Option(charName='s',longName="initialisation",usage="Type of initialisation to use for centroids.")
+        /**
+         * Type of initialisation to use for centroids.
+         */
+        @Option(charName = 's', longName = "initialisation", usage = "Type of initialisation to use for centroids.")
         public Initialisation initialisation = Initialisation.RANDOM;
-        @Option(charName='t',longName="num-threads",usage="Number of threads to use (range (1, num hw threads)).")
+        /**
+         * Number of threads to use (range (1, num hw threads)).
+         */
+        @Option(charName = 't', longName = "num-threads", usage = "Number of threads to use (range (1, num hw threads)).")
         public int numThreads = 4;
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

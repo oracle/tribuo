@@ -40,6 +40,12 @@ public final class LabelledDataGenerator {
 
     private static final LabelFactory labelFactory = new LabelFactory();
 
+    /**
+     * Generates a train/test dataset pair which is dense in the features,
+     * each example has 4 features,{A,B,C,D}, and there are 4 classes,
+     * {Foo,Bar,Baz,Quux}.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<Label>,Dataset<Label>> denseTrainTest() {
         return denseTrainTest(-1.0);
     }
@@ -99,6 +105,12 @@ public final class LabelledDataGenerator {
         return new Pair<>(train,test);
     }
 
+    /**
+     * Generates a pair of datasets, where the features are sparse,
+     * and unknown features appear in the test data. It has the same
+     * 4 classes {Foo,Bar,Baz,Quux}.
+     * @return A pair of train and test datasets.
+     */
     public static Pair<Dataset<Label>,Dataset<Label>> sparseTrainTest() {
         return sparseTrainTest(-1.0);
     }
@@ -173,6 +185,11 @@ public final class LabelledDataGenerator {
         return new Pair<>(train,test);
     }
 
+    /**
+     * Generates a pair of datasets with sparse features and unknown features
+     * in the test data. Has binary labels {Foo,Bar}.
+     * @return A pair of train and test datasets.
+     */
     public static Pair<Dataset<Label>,Dataset<Label>> binarySparseTrainTest() {
         return binarySparseTrainTest(-1.0);
     }

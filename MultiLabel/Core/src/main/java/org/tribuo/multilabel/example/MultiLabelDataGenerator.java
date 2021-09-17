@@ -38,9 +38,12 @@ public class MultiLabelDataGenerator {
 
     private static final MultiLabelFactory factory = new MultiLabelFactory();
 
-    private MultiLabelDataGenerator() {
-    }
+    private MultiLabelDataGenerator() {}
 
+    /**
+     * Simple training data for checking multi-label trainers.
+     * @return Simple 3 class training data.
+     */
     public static Dataset<MultiLabel> generateTrainData() {
         DataSourceProvenance provenance = new SimpleDataSourceProvenance("TrainingData", OffsetDateTime.now(), factory);
         MutableDataset<MultiLabel> dataset = new MutableDataset<>(provenance, factory);
@@ -90,6 +93,10 @@ public class MultiLabelDataGenerator {
         return dataset;
     }
 
+    /**
+     * Simple test data for checking multi-label trainers.
+     * @return Simple 3 class test data.
+     */
     public static Dataset<MultiLabel> generateTestData() {
         DataSourceProvenance provenance = new SimpleDataSourceProvenance("TestingData", OffsetDateTime.now(), factory);
         MutableDataset<MultiLabel> dataset = new MutableDataset<>(provenance,factory);
@@ -121,6 +128,10 @@ public class MultiLabelDataGenerator {
         return dataset;
     }
 
+    /**
+     * Generate training and testing datasets.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<MultiLabel>,Dataset<MultiLabel>> generateDataset() {
         return new Pair<>(generateTrainData(),generateTestData());
     }

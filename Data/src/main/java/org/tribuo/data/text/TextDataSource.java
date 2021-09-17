@@ -30,34 +30,34 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A base class for textual data sets. We assume that all textual data is 
+ * A base class for textual data sets. We assume that all textual data is
  * written and read using UTF-8.
  */
 public abstract class TextDataSource<T extends Output<T>> implements ConfigurableDataSource<T> {
-    
+
     /**
      * Document preprocessors that should be run on the documents that make up
      * this data set.
      */
-    @Config(description="The document preprocessors to run on each document in the data source.")
+    @Config(description = "The document preprocessors to run on each document in the data source.")
     protected List<DocumentPreprocessor> preprocessors = new ArrayList<>();
-    
+
     /**
      * The path that data was read from.
      */
-    @Config(mandatory=true,description="The path to read the data from.")
+    @Config(mandatory = true, description = "The path to read the data from.")
     protected Path path;
 
     /**
      * The factory that converts a String into an {@link Output}.
      */
-    @Config(mandatory=true,description="The factory that converts a String into an Output instance.")
+    @Config(mandatory = true, description = "The factory that converts a String into an Output instance.")
     protected OutputFactory<T> outputFactory;
 
     /**
      * The extractor that we'll use to turn text into examples.
      */
-    @Config(mandatory=true,description="The feature extractor that generates Features from text.")
+    @Config(mandatory = true, description = "The feature extractor that generates Features from text.")
     protected TextFeatureExtractor<T> extractor;
 
     /**
@@ -68,15 +68,17 @@ public abstract class TextDataSource<T extends Output<T>> implements Configurabl
     /**
      * for olcut
      */
-    protected TextDataSource() {}
+    protected TextDataSource() {
+    }
 
     /**
      * Creates a text data set by reading it from a path.
-     * @param path the path to read data from
-     * @param outputFactory the output factory used to generate the outputs.
-     * @param extractor The feature extractor to run on the text.
-     * @param preprocessors processors that will be run on the data before it
-     * is added as examples.
+     *
+     * @param path          The path to read data from
+     * @param outputFactory The output factory used to generate the outputs.
+     * @param extractor     The feature extractor to run on the text.
+     * @param preprocessors Processors that will be run on the data before it
+     *                      is added as examples.
      */
     public TextDataSource(Path path, OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor, DocumentPreprocessor... preprocessors) {
         this.path = path;
@@ -84,11 +86,20 @@ public abstract class TextDataSource<T extends Output<T>> implements Configurabl
         this.extractor = extractor;
         this.preprocessors.addAll(Arrays.asList(preprocessors));
     }
-    
+
+    /**
+     * Creates a text data set by reading it from a file.
+     *
+     * @param file          The file to read data from
+     * @param outputFactory The output factory used to generate the outputs.
+     * @param extractor     The feature extractor to run on the text.
+     * @param preprocessors Processors that will be run on the data before it
+     *                      is added as examples.
+     */
     public TextDataSource(File file, OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor, DocumentPreprocessor... preprocessors) {
         this(file.toPath(), outputFactory, extractor, preprocessors);
     }
-    
+
     @Override
     public Iterator<Example<T>> iterator() {
         if (!data.isEmpty()) {
@@ -131,6 +142,7 @@ public abstract class TextDataSource<T extends Output<T>> implements Configurabl
 
     /**
      * Reads the data from the Path.
+     *
      * @throws java.io.IOException if there is any error reading the data.
      */
     protected abstract void read() throws java.io.IOException;

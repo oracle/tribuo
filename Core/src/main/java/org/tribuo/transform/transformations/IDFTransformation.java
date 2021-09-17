@@ -16,6 +16,11 @@ public class IDFTransformation implements Transformation {
     
     private TransformationProvenance provenance;
 
+    /**
+     * Constructs an IDFTransformation.
+     */
+    public IDFTransformation() {}
+
     @Override
     public TransformStatistics createStats() {
         return new IDFStatistics();
@@ -72,10 +77,15 @@ public class IDFTransformation implements Transformation {
     private static class IDFTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
-        private double df;
+        private final double df;
         
-        private double N;
-        
+        private final double N;
+
+        /**
+         * Constructs an IDFTransformer using the supplied parameters.
+         * @param df The document frequency.
+         * @param N The number of documents.
+         */
         public IDFTransformer(int df, int N) {
             this.df = df;
             this.N = N;
@@ -96,6 +106,10 @@ public class IDFTransformation implements Transformation {
 
         IDFTransformationProvenance() { }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         // IDFTransformation has no state to record.
         public IDFTransformationProvenance(Map<String,Provenance> map) { }
 

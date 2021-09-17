@@ -50,6 +50,9 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
     private static final String OPERAND = "operand";
     private static final String SECOND_OPERAND = "secondOperand";
 
+    /**
+     * Epsilon for determining when two double values are the same.
+     */
     public static final double EPSILON = 1e-12;
 
     /**
@@ -202,6 +205,10 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
             this.secondOperand = new DoubleProvenance(SECOND_OPERAND,host.secondOperand);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         @SuppressWarnings("unchecked") // Enum cast
         public SimpleTransformProvenance(Map<String,Provenance> map) {
             op = ObjectProvenance.checkAndExtractProvenance(map,OP,EnumProvenance.class, SimpleTransformProvenance.class.getSimpleName());

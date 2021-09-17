@@ -99,6 +99,21 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
 
     protected int trainInvocationCounter;
 
+    /**
+     * Constructs a TensorFlowSequenceTrainer using the specified parameters.
+     * @param graphPath The path to the TF graph.
+     * @param featureConverter The feature conversion object.
+     * @param outputConverter The output conversion object.
+     * @param minibatchSize The training minibatch size.
+     * @param epochs The number of training epochs.
+     * @param loggingInterval The logging interval.
+     * @param seed The RNG seed.
+     * @param initOp The name of the init operation.
+     * @param trainOp The name of the training operation.
+     * @param getLossOp The name of the loss operation.
+     * @param predictOp The name of the prediction operation.
+     * @throws IOException If the graph can not be read from disk.
+     */
     public TensorFlowSequenceTrainer(Path graphPath,
                                      SequenceFeatureConverter featureConverter,
                                      SequenceOutputConverter<T> outputConverter,
@@ -279,10 +294,19 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
         return new TensorFlowSequenceTrainerProvenance(this);
     }
 
+    /**
+     * Provenance for {@link TensorFlowSequenceTrainer}.
+     */
     public static class TensorFlowSequenceTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * The name of the provenance field containing the graph hash.
+         */
         public static final String GRAPH_HASH = "graph-hash";
+        /**
+         * The name of the provenance field containing the graph modified timestamp.
+         */
         public static final String GRAPH_LAST_MOD = "graph-last-modified";
 
         private final StringProvenance graphHash;
@@ -295,6 +319,10 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
             this.graphLastModified = new DateTimeProvenance(GRAPH_LAST_MOD,OffsetDateTime.ofInstant(Instant.ofEpochMilli(host.graphPath.toFile().lastModified()), ZoneId.systemDefault()));
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public TensorFlowSequenceTrainerProvenance(Map<String,Provenance> map) {
             this(extractTFProvenanceInfo(map));
         }

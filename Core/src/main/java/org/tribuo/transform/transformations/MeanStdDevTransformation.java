@@ -56,6 +56,11 @@ public final class MeanStdDevTransformation implements Transformation {
      */
     public MeanStdDevTransformation() { }
 
+    /**
+     * Constructs a MeanStdDevTransformation targetting the specified mean and standard deviation.
+     * @param targetMean The target mean.
+     * @param targetStdDev The target standard deviation.
+     */
     public MeanStdDevTransformation(double targetMean, double targetStdDev) {
         this.targetMean = targetMean;
         this.targetStdDev = targetStdDev;
@@ -99,6 +104,10 @@ public final class MeanStdDevTransformation implements Transformation {
             this.targetStdDev = new DoubleProvenance(TARGET_STDDEV, host.targetStdDev);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public MeanStdDevTransformationProvenance(Map<String, Provenance> map) {
             targetMean = ObjectProvenance.checkAndExtractProvenance(map, TARGET_MEAN, DoubleProvenance.class, MeanStdDevTransformationProvenance.class.getSimpleName());
             targetStdDev = ObjectProvenance.checkAndExtractProvenance(map, TARGET_STDDEV, DoubleProvenance.class, MeanStdDevTransformationProvenance.class.getSimpleName());

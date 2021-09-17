@@ -48,8 +48,12 @@ import java.util.logging.Logger;
  */
 public class CSVSaver implements Configurable {
 
-    public final static String DEFAULT_RESPONSE = "Response";
     private static final Logger logger = Logger.getLogger(CSVSaver.class.getName());
+
+    /**
+     * The default response column name.
+     */
+    public final static String DEFAULT_RESPONSE = "Response";
 
     @Config(description="The column separator.")
     private char separator = CSVIterator.SEPARATOR;

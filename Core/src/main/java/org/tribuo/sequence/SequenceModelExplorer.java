@@ -42,10 +42,13 @@ import java.util.logging.Logger;
 public class SequenceModelExplorer implements CommandGroup {
     private static final Logger logger = Logger.getLogger(SequenceModelExplorer.class.getName());
 
-    protected CommandInterpreter shell;
+    private final CommandInterpreter shell;
 
     private SequenceModel<?> model;
 
+    /**
+     * Builds a sequence model explorer shell.
+     */
     public SequenceModelExplorer() {
         shell = new CommandInterpreter();
         shell.setPrompt("model sh% ");
@@ -61,6 +64,10 @@ public class SequenceModelExplorer implements CommandGroup {
         return "Commands for inspecting a SequenceModel.";
     }
 
+    /**
+     * Completers for files.
+     * @return The completers for file commands.
+     */
     public Completer[] fileCompleter() {
         return new Completer[]{
                 new Completers.FileNameCompleter(),
@@ -76,6 +83,12 @@ public class SequenceModelExplorer implements CommandGroup {
         shell.start();
     }
 
+    /**
+     * Loads a model.
+     * @param ci The shell instance.
+     * @param path The path to load.
+     * @return A status string.
+     */
     @Command(usage = "<filename> - Load a model from disk.", completers="fileCompleter")
     public String loadModel(CommandInterpreter ci, File path) {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
@@ -94,11 +107,22 @@ public class SequenceModelExplorer implements CommandGroup {
         return "Loaded model from path " + path.toString();
     }
 
+    /**
+     * Shows the model description.
+     * @param ci The command interpreter.
+     * @return The model description.
+     */
     @Command(usage="Shows the model description")
     public String modelDescription(CommandInterpreter ci) {
         return model.toString();
     }
 
+    /**
+     * Shows information on a particular feature.
+     * @param ci The command interpreter.
+     * @param featureName The feature name.
+     * @return The feature information.
+     */
     @Command(usage="Shows the information on a particular feature")
     public String featureInfo(CommandInterpreter ci, String featureName) {
         VariableInfo f = model.getFeatureIDMap().get(featureName);
@@ -109,21 +133,43 @@ public class SequenceModelExplorer implements CommandGroup {
         }
     }
 
+    /**
+     * Shows the output information.
+     * @param ci The command interpreter.
+     * @return The output information.
+     */
     @Command(usage="Shows the output information.")
     public String outputInfo(CommandInterpreter ci) {
         return model.getOutputIDInfo().toReadableString();
     }
 
+    /**
+     * Shows the top n features in this model.
+     * @param ci The command interpreter.
+     * @param numFeatures The number of features to display.
+     * @return The top features.
+     */
     @Command(usage="<int> - Shows the top N features in the model")
     public String topFeatures(CommandInterpreter ci, int numFeatures) {
         return ""+ model.getTopFeatures(numFeatures);
     }
 
+    /**
+     * Shows the number of features in this model.
+     * @param ci The command interpreter.
+     * @return The number of features.
+     */
     @Command(usage="Shows the number of features in the model")
     public String numFeatures(CommandInterpreter ci) {
         return ""+ model.getFeatureIDMap().size();
     }
 
+    /**
+     * Shows the number of features which occurred more than minCount times in the training data.
+     * @param ci The command interpreter.
+     * @param minCount The minimum occurrence count.
+     * @return The number of features which occurred more than minCount times.
+     */
     @Command(usage="<min count> - Shows the number of features that occurred more than min count times.")
     public String minCount(CommandInterpreter ci, int minCount) {
         int counter = 0;
@@ -135,25 +181,21 @@ public class SequenceModelExplorer implements CommandGroup {
         return counter + " features occurred more than " + minCount + " times.";
     }
 
-    public static String usage() {
-        StringBuilder string = new StringBuilder();
-        string.append("Usage: ModelExplorer\n");
-
-        string.append("Optional parameters\n");
-        string.append("     -f <model-filename>\n");
-        string.append("         Load in a model from file.\n");
-
-        return string.toString();
-    }
-
     /**
      * Command line options.
      */
     public static class SequenceModelExplorerOptions implements Options {
-        @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
+        /**
+         * Model file to load. Optional.
+         */
+        @Option(charName = 'f', longName = "filename", usage = "Model file to load. Optional.")
         public String modelFilename;
     }
 
+    /**
+     * Runs the sequence model explorer.
+     * @param args CLI arguments.
+     */
     public static void main(String[] args) {
         SequenceModelExplorerOptions options = new SequenceModelExplorerOptions();
         ConfigurationManager cm = new ConfigurationManager(args,options,false);

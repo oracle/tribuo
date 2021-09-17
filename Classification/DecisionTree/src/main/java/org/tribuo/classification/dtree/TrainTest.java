@@ -44,10 +44,21 @@ public class TrainTest {
             return "A simple train/test program for Classification trees.";
         }
 
+        /**
+         * The data loading options.
+         */
         public DataOptions generalOptions;
+        /**
+         * The CART trainer options.
+         */
         public CARTClassificationOptions cartOptions;
     }
 
+    /**
+     * Runs a TrainTest CLI.
+     * @param args the command line arguments
+     * @throws IOException if there is any error reading the examples.
+     */
     public static void main(String[] args) throws IOException {
         TrainTestOptions o = new TrainTestOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args,o)){

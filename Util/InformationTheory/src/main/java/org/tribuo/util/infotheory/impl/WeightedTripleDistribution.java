@@ -31,8 +31,14 @@ import java.util.Map.Entry;
  * @param <T3> Type of the third list.
  */
 public class WeightedTripleDistribution<T1,T2,T3> {
+    /**
+     * The default map size.
+     */
     public static final int DEFAULT_MAP_SIZE = 20;
 
+    /**
+     * The sample count.
+     */
     public final long count;
 
     private final Map<CachedTriple<T1,T2,T3>,WeightCountTuple> jointCount;
@@ -43,6 +49,17 @@ public class WeightedTripleDistribution<T1,T2,T3> {
     private final Map<T2,WeightCountTuple> bCount;
     private final Map<T3,WeightCountTuple> cCount;
 
+    /**
+     * Constructs a weighted triple distribution from the supplied values.
+     * @param count The sample count.
+     * @param jointCount The ABC joint distribution.
+     * @param abCount The AB joint distribution.
+     * @param acCount The AC joint distribution.
+     * @param bcCount The BC joint distribution.
+     * @param aCount The A marginal distribution.
+     * @param bCount The B marginal distribution.
+     * @param cCount The C marginal distribution.
+     */
     public WeightedTripleDistribution(long count, Map<CachedTriple<T1,T2,T3>,WeightCountTuple> jointCount, Map<CachedPair<T1,T2>,WeightCountTuple> abCount, Map<CachedPair<T1,T3>,WeightCountTuple> acCount, Map<CachedPair<T2,T3>,WeightCountTuple> bcCount, Map<T1,WeightCountTuple> aCount, Map<T2,WeightCountTuple> bCount, Map<T3,WeightCountTuple> cCount) {
         this.count = count;
         this.jointCount = jointCount;
@@ -54,34 +71,75 @@ public class WeightedTripleDistribution<T1,T2,T3> {
         this.cCount = cCount;
     }
 
+    /**
+     * The joint distribution over the three variables.
+     * @return The joint distribution.
+     */
     public Map<CachedTriple<T1,T2,T3>,WeightCountTuple> getJointCount() {
         return jointCount;
     }
-    
+
+    /**
+     * The joint distribution over the first and second variables.
+     * @return The joint distribution over A and B.
+     */
     public Map<CachedPair<T1,T2>,WeightCountTuple> getABCount() {
         return abCount;
     }
-    
+
+    /**
+     * The joint distribution over the first and third variables.
+     * @return The joint distribution over A and C.
+     */
     public Map<CachedPair<T1,T3>,WeightCountTuple> getACCount() {
         return acCount;
     }
-    
+
+    /**
+     * The joint distribution over the second and third variables.
+     * @return The joint distribution over B and C.
+     */
     public Map<CachedPair<T2,T3>,WeightCountTuple> getBCCount() {
         return bcCount;
     }
-    
+
+    /**
+     * The marginal distribution over the first variable.
+     * @return The marginal distribution for A.
+     */
     public Map<T1,WeightCountTuple> getACount() {
         return aCount;
     }
-    
+
+    /**
+     * The marginal distribution over the second variable.
+     * @return The marginal distribution for B.
+     */
     public Map<T2,WeightCountTuple> getBCount() {
         return bCount;
     }
-    
+
+    /**
+     * The marginal distribution over the third variable.
+     * @return The marginal distribution for C.
+     */
     public Map<T3,WeightCountTuple> getCCount() {
         return cCount;
     }
-    
+
+    /**
+     * Constructs a WeightedTripleDistribution from three lists of the same length and a list of weights of the same length.
+     * <p>
+     * If they are not the same length it throws IllegalArgumentException.
+     * @param first The first list.
+     * @param second The second list.
+     * @param third The third list.
+     * @param weights The weight list.
+     * @param <T1> The first type.
+     * @param <T2> The second type.
+     * @param <T3> The third type.
+     * @return The WeightedTripleDistribution.
+     */
     public static <T1,T2,T3> WeightedTripleDistribution<T1,T2,T3> constructFromLists(List<T1> first, List<T2> second, List<T3> third, List<Double> weights) {
         Map<CachedTriple<T1,T2,T3>,WeightCountTuple> jointCount = new HashMap<>(DEFAULT_MAP_SIZE);
         Map<CachedPair<T1,T2>,WeightCountTuple> abCount = new HashMap<>(DEFAULT_MAP_SIZE);
@@ -147,6 +205,14 @@ public class WeightedTripleDistribution<T1,T2,T3> {
         }
     }
 
+    /**
+     * Constructs a WeightedTripleDistribution by marginalising the supplied joint distribution.
+     * @param jointCount The joint distribution.
+     * @param <T1> The type of A.
+     * @param <T2> The type of B.
+     * @param <T3> The type of C.
+     * @return A WeightedTripleDistribution.
+     */
     public static <T1,T2,T3> WeightedTripleDistribution<T1,T2,T3> constructFromMap(Map<CachedTriple<T1,T2,T3>,WeightCountTuple> jointCount) {
         Map<CachedPair<T1,T2>,WeightCountTuple> abCount = new HashMap<>(DEFAULT_MAP_SIZE);
         Map<CachedPair<T1,T3>,WeightCountTuple> acCount = new HashMap<>(DEFAULT_MAP_SIZE);

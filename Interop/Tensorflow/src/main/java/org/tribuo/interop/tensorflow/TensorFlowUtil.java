@@ -42,10 +42,25 @@ import java.util.logging.Logger;
 public abstract class TensorFlowUtil {
     private static final Logger logger = Logger.getLogger(TensorFlowUtil.class.getName());
 
+    /**
+     * The name of the variable op.
+     */
     public static final String VARIABLE_V2 = "VariableV2";
+    /**
+     * The name of the assignment op.
+     */
     public static final String ASSIGN_OP = "Assign";
+    /**
+     * The name given to the assignment operation from the placeholders.
+     */
     public static final String ASSIGN_PLACEHOLDER = "Assign_from_Placeholder";
+    /**
+     * The name of the placeholder op.
+     */
     public static final String PLACEHOLDER = "Placeholder";
+    /**
+     * The name of the data type.
+     */
     public static final String DTYPE = "dtype";
 
     private TensorFlowUtil() {}
@@ -190,8 +205,17 @@ public abstract class TensorFlowUtil {
     public static final class TensorTuple implements Serializable {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * The tensor class name.
+         */
         public final String className;
+        /**
+         * The shape of the tensor.
+         */
         public final long[] shape;
+        /**
+         * The tensor data.
+         */
         public final byte[] data;
 
         /**

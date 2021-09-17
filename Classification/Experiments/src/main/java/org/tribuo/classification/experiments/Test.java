@@ -70,26 +70,60 @@ public class Test {
         public String getOptionsDescription() {
             return "Tests an already trained classifier on a dataset.";
         }
-        @Option(longName="hashing-dimension",usage="Hashing dimension used for standard text format.")
+
+        /**
+         * Hashing dimension used for standard text format.
+         */
+        @Option(longName = "hashing-dimension", usage = "Hashing dimension used for standard text format.")
         public int hashDim = 0;
-        @Option(longName="ngram",usage="Ngram size to generate when using standard text format. Defaults to 2.")
+        /**
+         * Ngram size to generate when using standard text format. Defaults to 2.
+         */
+        @Option(longName = "ngram", usage = "Ngram size to generate when using standard text format. Defaults to 2.")
         public int ngram = 2;
-        @Option(longName="term-counting",usage="Use term counts instead of boolean when using the standard text format.")
+        /**
+         * Use term counts instead of boolean when using the standard text format.
+         */
+        @Option(longName = "term-counting", usage = "Use term counts instead of boolean when using the standard text format.")
         public boolean termCounting;
-        @Option(longName="csv-response-name",usage="Response name in the csv file.")
+        /**
+         * Response name in the csv file.
+         */
+        @Option(longName = "csv-response-name", usage = "Response name in the csv file.")
         public String csvResponseName;
-        @Option(longName="libsvm-zero-indexed",usage="Is the libsvm file zero indexed.")
+        /**
+         * Is the libsvm file zero indexed.
+         */
+        @Option(longName = "libsvm-zero-indexed", usage = "Is the libsvm file zero indexed.")
         public boolean zeroIndexed = false;
-        @Option(charName='f',longName="model-path",usage="Load a trainer from the config file.")
+        /**
+         * Load a trainer from the config file.
+         */
+        @Option(charName = 'f', longName = "model-path", usage = "Load a trainer from the config file.")
         public Path modelPath;
-        @Option(charName='o',longName="predictions",usage="Path to write model predictions")
+        /**
+         * Path to write model predictions
+         */
+        @Option(charName = 'o', longName = "predictions", usage = "Path to write model predictions")
         public Path predictionPath;
-        @Option(charName='s',longName="input-format",usage="Loads the data using the specified format. Defaults to LIBSVM.")
+        /**
+         * Loads the data using the specified format. Defaults to LIBSVM.
+         */
+        @Option(charName = 's', longName = "input-format", usage = "Loads the data using the specified format. Defaults to LIBSVM.")
         public DataOptions.InputFormat inputFormat = DataOptions.InputFormat.LIBSVM;
-        @Option(charName='v',longName="testing-file",usage="Path to the testing file.")
+        /**
+         * Path to the testing file.
+         */
+        @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
         public Path testingPath;
     }
 
+    /**
+     * Loads in the model and the dataset from the options.
+     * @param o The options.
+     * @return The model and the dataset.
+     * @throws IOException If either the model or dataset could not be read.
+     */
     @SuppressWarnings("unchecked") // deserialising generically typed datasets.
     public static Pair<Model<Label>,Dataset<Label>> load(ConfigurableTestOptions o) throws IOException {
         Path modelPath = o.modelPath;
@@ -160,6 +194,7 @@ public class Test {
     }
 
     /**
+     * Runs the Test CLI.
      * @param args the command line arguments
      */
     public static void main(String[] args) {

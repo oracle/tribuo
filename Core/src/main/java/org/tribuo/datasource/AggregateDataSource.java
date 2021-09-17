@@ -197,12 +197,21 @@ public class AggregateDataSource<T extends Output<T>> implements DataSource<T> {
         private final ListProvenance<DataSourceProvenance> provenances;
         private EnumProvenance<IterationOrder> orderProvenance;
 
+        /**
+         * Constructs an AggregateDataSourceProvenance from the host object.
+         * @param host The host data source.
+         * @param <T> The data source type.
+         */
         <T extends Output<T>> AggregateDataSourceProvenance(AggregateDataSource<T> host) {
             this.className = new StringProvenance(CLASS_NAME,host.getClass().getName());
             this.provenances = ListProvenance.createListProvenance(host.sources);
             this.orderProvenance = new EnumProvenance<>(ORDER,host.order);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenance map.
+         */
         @SuppressWarnings({"unchecked","rawtypes"}) //ListProvenance cast, EnumProvenance cast
         public AggregateDataSourceProvenance(Map<String,Provenance> map) {
             this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME, StringProvenance.class,AggregateDataSourceProvenance.class.getSimpleName());

@@ -45,12 +45,22 @@ public final class PreprocessAndSerialize {
      * Command line options.
      */
     public static class PreprocessAndSerializeOptions implements Options {
-        @Option(charName='d', longName="dataSource", usage="Datasource to load from a config file")
+        /**
+         * Datasource to load from a config file
+         */
+        @Option(charName = 'd', longName = "dataSource", usage = "Datasource to load from a config file")
         public ConfigurableDataSource<? extends Output<?>> dataSource;
-        @Option(charName='o', longName="serialized-dataset", usage="path to serialize the dataset")
+        /**
+         * path to serialize the dataset
+         */
+        @Option(charName = 'o', longName = "serialized-dataset", usage = "path to serialize the dataset")
         public Path output;
     }
 
+    /**
+     * Run the PreprocessAndSerialize CLI.
+     * @param args The CLI args.
+     */
     public static void main(String[] args) {
 
         LabsLogFormatter.setAllLogFormatters();

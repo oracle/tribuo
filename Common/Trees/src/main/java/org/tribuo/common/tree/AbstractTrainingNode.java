@@ -160,25 +160,44 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     /**
      * Contains parameters needed to determine whether a node is a leaf.
      */
+    // Will be a record one day.
     public static class LeafDeterminer {
         private final int maxDepth;
         private final float minChildWeight;
         private final float scaledMinImpurityDecrease;
 
+        /**
+         * Constructs a leaf determiner using the supplied parameters.
+         * @param maxDepth The maximum tree depth.
+         * @param minChildWeight The minimum example weight of each child node.
+         * @param scaledMinImpurityDecrease  The scaled minimum impurity decrease necessary to split a node.
+         */
         public LeafDeterminer(int maxDepth, float minChildWeight, float scaledMinImpurityDecrease) {
             this.maxDepth = maxDepth;
             this.minChildWeight = minChildWeight;
             this.scaledMinImpurityDecrease = scaledMinImpurityDecrease;
         }
 
+        /**
+         * Gets the maximum tree depth.
+         * @return The maximum tree depth.
+         */
         public int getMaxDepth() {
             return maxDepth;
         }
 
+        /**
+         * Gets the minimum example weight of a child node.
+         * @return The mimimum weight of a child node.
+         */
         public float getMinChildWeight() {
             return minChildWeight;
         }
 
+        /**
+         * Gets the minimum impurity decrease necessary to split a node.
+         * @return The minimum impurity decrease to split a node.
+         */
         public float getScaledMinImpurityDecrease() {
             return scaledMinImpurityDecrease;
         }

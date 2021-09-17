@@ -52,9 +52,9 @@ import java.util.Set;
  * <p>
  * The functions are:
  * <ul>
- *     <li>y_0 is positive if N(w_00*x_0 + w_01*x_1 + w_02*x_1*x_0 + w_03*x_1*x_1*x_1,variance) > threshold_0.</li>
- *     <li>y_1 is positive if N(w_10*x_0 + w_11*x_1 + w_12*x_1*x_0 + w_13*x_1*x_1*x_1,variance) < threshold_1.</li>
- *     <li>y_2 is positive if N(w_20*x_0 + w_21*x_2 + w_22*x_1*x_0 + w_23*x_1*x_2*x_2,variance) > threshold_2.</li>
+ *     <li>y_0 is positive if N(w_00*x_0 + w_01*x_1 + w_02*x_1*x_0 + w_03*x_1*x_1*x_1,variance) &gt; threshold_0.</li>
+ *     <li>y_1 is positive if N(w_10*x_0 + w_11*x_1 + w_12*x_1*x_0 + w_13*x_1*x_1*x_1,variance) &lt; threshold_1.</li>
+ *     <li>y_2 is positive if N(w_20*x_0 + w_21*x_2 + w_22*x_1*x_0 + w_23*x_1*x_2*x_2,variance) &gt; threshold_2.</li>
  * </ul>
  * There are 4 features x_0, x_1, x_2, x_3. x_0 and x_1 are used by all three labels,
  * x_2 is only used by y_2, and x_3 is irrelevant.
@@ -279,9 +279,9 @@ public final class MultiLabelGaussianDataSource implements ConfigurableDataSourc
      * <p>
      * The functions are:
      * <ul>
-     *     <li>y_0 is positive if N(w_00*x_0 + w_01*x_1 + w_02*x_1*x_0 + w_03*x_1*x_1*x_1,variance) > threshold_0.</li>
-     *     <li>y_1 is positive if N(w_10*x_0 + w_11*x_1 + w_12*x_1*x_0 + w_13*x_1*x_1*x_1,variance) < threshold_1.</li>
-     *     <li>y_2 is positive if N(w_20*x_0 + w_21*x_2 + w_22*x_1*x_0 + w_23*x_1*x_2*x_2,variance) > threshold_2.</li>
+     *     <li>y_0 is positive if N(w_00*x_0 + w_01*x_1 + w_02*x_1*x_0 + w_03*x_1*x_1*x_1,variance) &gt; threshold_0.</li>
+     *     <li>y_1 is positive if N(w_10*x_0 + w_11*x_1 + w_12*x_1*x_0 + w_13*x_1*x_1*x_1,variance) &lt; threshold_1.</li>
+     *     <li>y_2 is positive if N(w_20*x_0 + w_21*x_2 + w_22*x_1*x_0 + w_23*x_1*x_2*x_2,variance) &gt; threshold_2.</li>
      * </ul>
      * There are 4 features x_0, x_1, x_2, x_3. x_0 and x_1 are used by all three labels,
      * x_2 is only used by y_2, and x_3 is irrelevant.

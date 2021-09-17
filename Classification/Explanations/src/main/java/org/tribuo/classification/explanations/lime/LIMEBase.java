@@ -68,7 +68,13 @@ import java.util.logging.Logger;
 public class LIMEBase implements TabularExplainer<Regressor> {
     private static final Logger logger = Logger.getLogger(LIMEBase.class.getName());
 
+    /**
+     * Width of the noise gaussian.
+     */
     public static final double WIDTH_CONSTANT = 0.75;
+    /**
+     * Delta to consider two distances equal.
+     */
     public static final double DISTANCE_DELTA = 1e-12;
 
     protected static final OutputFactory<Regressor> regressionFactory = new RegressionFactory();

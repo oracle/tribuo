@@ -61,27 +61,63 @@ public class SeqTest {
             return "Tests a linear chain CRF model on the specified dataset.";
         }
 
+        /**
+         * Gradient descent options.
+         */
         public GradientOptimiserOptions gradientOptions;
+        /**
+         * Name of the example dataset, options are {gorilla}.
+         */
         @Option(charName = 'd', longName = "dataset-name", usage = "Name of the example dataset, options are {gorilla}.")
         public String datasetName = "";
+        /**
+         * Path to serialize model to.
+         */
         @Option(charName = 'f', longName = "output-path", usage = "Path to serialize model to.")
         public Path outputPath;
+        /**
+         * Number of SGD epochs.
+         */
         @Option(charName = 'i', longName = "epochs", usage = "Number of SGD epochs.")
         public int epochs = 5;
+        /**
+         * Print out feature, label and other model details.
+         */
         @Option(charName = 'o', longName = "print-model", usage = "Print out feature, label and other model details.")
         public boolean logModel = false;
+        /**
+         * Log the objective after n examples.
+         */
         @Option(charName = 'p', longName = "logging-interval", usage = "Log the objective after <int> examples.")
         public int loggingInterval = 100;
+        /**
+         * RNG seed.
+         */
         @Option(charName = 'r', longName = "seed", usage = "RNG seed.")
         public long seed = 1;
+        /**
+         * Shuffle the data each epoch (default: true).
+         */
         @Option(longName = "shuffle", usage = "Shuffle the data each epoch (default: true).")
         public boolean shuffle = true;
+        /**
+         * Path to a serialised SequenceDataset used for training.
+         */
         @Option(charName = 'u', longName = "train-dataset", usage = "Path to a serialised SequenceDataset used for training.")
         public Path trainDataset = null;
+        /**
+         * Path to a serialised SequenceDataset used for testing.
+         */
         @Option(charName = 'v', longName = "test-dataset", usage = "Path to a serialised SequenceDataset used for testing.")
         public Path testDataset = null;
+        /**
+         * Hash the model during training. Defaults to no hashing.
+         */
         @Option(longName = "model-hashing-algorithm", usage = "Hash the model during training. Defaults to no hashing.")
         public ModelHashingType modelHashingAlgorithm = ModelHashingType.NONE;
+        /**
+         * Salt for hashing the model.
+         */
         @Option(longName = "model-hashing-salt", usage = "Salt for hashing the model.")
         public String modelHashingSalt = "";
     }

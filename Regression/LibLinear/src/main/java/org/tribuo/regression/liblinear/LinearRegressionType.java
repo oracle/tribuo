@@ -73,6 +73,10 @@ public final class LinearRegressionType implements LibLinearType<Regressor> {
      */
     private LinearRegressionType() {}
 
+    /**
+     * Constructs a LinearRegressionType with the specified LibLinear algorithm.
+     * @param type The liblinear algorithm.
+     */
     public LinearRegressionType(LinearType type) {
         this.type = type;
     }
