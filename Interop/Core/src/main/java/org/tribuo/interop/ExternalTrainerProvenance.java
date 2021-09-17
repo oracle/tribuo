@@ -26,7 +26,9 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.URLProvenance;
 import org.tribuo.Trainer;
 import org.tribuo.provenance.TrainerProvenance;
 
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,6 +40,9 @@ import java.util.Optional;
  * A dummy provenance for a model trained outside Tribuo.
  * <p>
  * It records the timestamp, hash and location of the loaded model.
+ * <p>
+ * If the model is already loaded into memory then the location is the current working directory and the timestamp
+ * is when this class is instantiated.
  */
 public final class ExternalTrainerProvenance implements TrainerProvenance {
     private static final long serialVersionUID = 1L;
@@ -56,6 +61,21 @@ public final class ExternalTrainerProvenance implements TrainerProvenance {
         Optional<OffsetDateTime> time = ProvenanceUtil.getModifiedTime(location);
         this.fileModifiedTime = time.map(offsetDateTime -> new DateTimeProvenance("fileModifiedTime", offsetDateTime)).orElseGet(() -> new DateTimeProvenance("fileModifiedTime", OffsetDateTime.MIN));
         this.modelHash = new HashProvenance(DEFAULT_HASH_TYPE,"modelHash", ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,location));
+    }
+
+    /**
+     * Creates an external trainer provenance, computing the hash from the byte array and storing this
+     * instant as the timestamp, and the current working directory as the location.
+     * @param model The model as a byte array.
+     */
+    public ExternalTrainerProvenance(byte[] model) {
+        try {
+            this.location = new URLProvenance("location", Paths.get(".").toAbsolutePath().normalize().toUri().toURL());
+        } catch (MalformedURLException e) {
+            throw new IllegalStateException("Invalid URL for current working directory.",e);
+        }
+        this.fileModifiedTime = new DateTimeProvenance("fileModifiedTime", OffsetDateTime.now());
+        this.modelHash = new HashProvenance(DEFAULT_HASH_TYPE,"modelHash", ProvenanceUtil.hashArray(DEFAULT_HASH_TYPE,model));
     }
 
     /**
