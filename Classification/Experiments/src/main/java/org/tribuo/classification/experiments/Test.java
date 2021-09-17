@@ -118,6 +118,12 @@ public class Test {
         public Path testingPath;
     }
 
+    /**
+     * Loads in the model and the dataset from the options.
+     * @param o The options.
+     * @return The model and the dataset.
+     * @throws IOException If either the model or dataset could not be read.
+     */
     @SuppressWarnings("unchecked") // deserialising generically typed datasets.
     public static Pair<Model<Label>,Dataset<Label>> load(ConfigurableTestOptions o) throws IOException {
         Path modelPath = o.modelPath;
@@ -188,6 +194,7 @@ public class Test {
     }
 
     /**
+     * Runs the Test CLI.
      * @param args the command line arguments
      */
     public static void main(String[] args) {

@@ -515,6 +515,12 @@ public final class Util {
         }
     }
 
+    /**
+     * Generates an array of the specified length filled with the specified value.
+     * @param length The array length.
+     * @param value The array value.
+     * @return A filled array.
+     */
     public static double[] generateUniformVector(int length, double value) {
         double[] output = new double[length];
 
@@ -523,6 +529,12 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Generates an array of the specified length filled with the specified value.
+     * @param length The array length.
+     * @param value The array value.
+     * @return A filled array.
+     */
     public static float[] generateUniformVector(int length, float value) {
         float[] output = new float[length];
 
@@ -531,6 +543,13 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Generates a normalized version of the input array.
+     * <p>
+     * Normalization in this case means the array sums to 1.0.
+     * @param input The input array.
+     * @return A normalized probability distribution.
+     */
     public static double[] normalizeToDistribution(double[] input) {
         double[] output = new double[input.length];
         double sum = 0.0;
@@ -547,6 +566,13 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Generates a normalized version of the input array.
+     * <p>
+     * Normalization in this case means the array sums to 1.0.
+     * @param input The input array.
+     * @return A normalized probability distribution.
+     */
     public static double[] normalizeToDistribution(float[] input) {
         double[] output = new double[input.length];
         double sum = 0.0;
@@ -563,6 +589,13 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Normalizes the input array in place.
+     * <p>
+     * Normalization in this case means the array sums to 1.0.
+     * @param input The input array.
+     * @return The input array after it has been normalized into a probability distribution.
+     */
     public static double[] inplaceNormalizeToDistribution(double[] input) {
         double sum = 0.0;
 
@@ -577,6 +610,13 @@ public final class Util {
         return input;
     }
 
+    /**
+     * Normalizes the input array in place.
+     * <p>
+     * Normalization in this case means the array sums to 1.0.
+     * @param input The input array.
+     */
+    // TODO why does this not return the array and the one for doubles does?
     public static void inplaceNormalizeToDistribution(float[] input) {
         float sum = 0.0f;
 
@@ -590,6 +630,14 @@ public final class Util {
 
     }
 
+    /**
+     * Logs the supplied array to the supplied logger at the specified level.
+     * <p>
+     * Prints the array as tuples of index and value.
+     * @param otherLogger The logger.
+     * @param level The log level.
+     * @param input The input array to log.
+     */
     public static void logVector(Logger otherLogger, Level level, double[] input) {
         StringBuilder buffer = new StringBuilder();
 
@@ -604,6 +652,14 @@ public final class Util {
         otherLogger.log(level, buffer.toString());
     }
 
+    /**
+     * Logs the supplied array to the supplied logger at the specified level.
+     * <p>
+     * Prints the array as tuples of index and value.
+     * @param otherLogger The logger.
+     * @param level The log level.
+     * @param input The input array to log.
+     */
     public static void logVector(Logger otherLogger, Level level, float[] input) {
         StringBuilder buffer = new StringBuilder();
 
@@ -618,6 +674,11 @@ public final class Util {
         otherLogger.log(level, buffer.toString());
     }
 
+    /**
+     * Converts a boxed list of integers into an array of primitive doubles.
+     * @param input The input integer list.
+     * @return An array of doubles.
+     */
     public static double[] toPrimitiveDoubleFromInteger(List<Integer> input) {
         double[] output = new double[input.size()];
 
@@ -628,6 +689,11 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Converts a boxed list of doubles into an array of primitive doubles.
+     * @param input The input double list.
+     * @return An array of doubles.
+     */
     public static double[] toPrimitiveDouble(List<Double> input) {
         double[] output = new double[input.size()];
 
@@ -638,6 +704,11 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Converts a boxed list of floats into an array of primitive floats.
+     * @param input The input float list.
+     * @return An array of floats.
+     */
     public static float[] toPrimitiveFloat(List<Float> input) {
         float[] output = new float[input.size()];
 
@@ -648,6 +719,11 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Converts a boxed list of integers into an array of primitive ints.
+     * @param input The input integer list.
+     * @return An array of ints.
+     */
     public static int[] toPrimitiveInt(List<Integer> input) {
         int[] output = new int[input.size()];
 
@@ -658,6 +734,11 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Converts a boxed list of longs into an array of primitive longs.
+     * @param input The input long list.
+     * @return An array of longs.
+     */
     public static long[] toPrimitiveLong(List<Long> input) {
         long[] output = new long[input.size()];
 
@@ -668,6 +749,13 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Samples an array of ints from the supplied rng in [0,range).
+     * @param rng The RNG to sample from.
+     * @param size The number of samples to draw.
+     * @param range The range of the samples.
+     * @return A sampled int array.
+     */
     public static int[] sampleInts(Random rng, int size, int range) {
         int[] output = new int[size];
 
@@ -678,38 +766,68 @@ public final class Util {
         return output;
     }
 
+    /**
+     * Adds update to input in place.
+     * @param input The input array.
+     * @param update The array to add.
+     */
     public static void inPlaceAdd(double[] input, double[] update) {
         for (int i = 0; i < input.length; i++) {
             input[i] += update[i];
         }
     }
 
+    /**
+     * Subtracts update from input in place.
+     * @param input The input array.
+     * @param update The array to subtract.
+     */
     public static void inPlaceSubtract(double[] input, double[] update) {
         for (int i = 0; i < input.length; i++) {
             input[i] -= update[i];
         }
     }
 
+    /**
+     * Adds update to input in place.
+     * @param input The input array.
+     * @param update The array to add.
+     */
     public static void inPlaceAdd(float[] input, float[] update) {
         for (int i = 0; i < input.length; i++) {
             input[i] += update[i];
         }
     }
 
+    /**
+     * Subtracts update from input in place.
+     * @param input The input array.
+     * @param update The array to subtract.
+     */
     public static void inPlaceSubtract(float[] input, float[] update) {
         for (int i = 0; i < input.length; i++) {
             input[i] -= update[i];
         }
     }
 
+    /**
+     * Computes the vector two-norm.
+     * @param input The input vector.
+     * @return The euclidean norm of the vector.
+     */
     public static double vectorNorm(double[] input) {
         double norm = 0.0;
         for (double d : input) {
             norm += d * d;
         }
-        return norm;
+        return Math.sqrt(norm);
     }
 
+    /**
+     * Computes the sum of the input vector.
+     * @param input The vector to sum.
+     * @return The vector sum.
+     */
     public static double sum(double[] input) {
         double sum = 0.0;
         for (double d : input) {
@@ -718,6 +836,11 @@ public final class Util {
         return sum;
     }
 
+    /**
+     * Computes the sum of the input vector.
+     * @param input The vector to sum.
+     * @return The vector sum.
+     */
     public static float sum(float[] input) {
         float sum = 0.0f;
         for (float d : input) {
@@ -726,6 +849,12 @@ public final class Util {
         return sum;
     }
 
+    /**
+     * Computes the sum of the input vector up to length elements.
+     * @param array The vector to sum.
+     * @param length The number of elements to sum.
+     * @return The vector sum.
+     */
     public static double sum(double[] array, int length) {
         double sum = 0.0;
         for (int i = 0; i < length; i++) {
@@ -734,6 +863,12 @@ public final class Util {
         return sum;
     }
 
+    /**
+     * Computes the sum of the input vector up to length elements.
+     * @param array The vector to sum.
+     * @param length The number of elements to sum.
+     * @return The vector sum.
+     */
     public static float sum(float[] array, int length) {
         float sum = 0.0f;
         for (int i = 0; i < length; i++) {
@@ -742,6 +877,13 @@ public final class Util {
         return sum;
     }
 
+    /**
+     * Computes the sum of the specified indices in the input array.
+     * @param indices The indices to sum.
+     * @param indicesLength The number of elements of indices to sum over.
+     * @param input The input array to sum the values of.
+     * @return The sum of the input array.
+     */
     public static float sum(int[] indices, int indicesLength, float[] input) {
         float sum = 0.0f;
         for (int i = 0; i < indicesLength; i++) {
@@ -750,10 +892,22 @@ public final class Util {
         return sum;
     }
 
+    /**
+     * Computes the sum of the specified indices in the input array.
+     * @param indices The indices to sum.
+     * @param input The input array to sum the values of.
+     * @return The sum of the input array.
+     */
     public static float sum(int[] indices, float[] input) {
         return sum(indices,indices.length,input);
     }
 
+    /**
+     * Generates a float vector of the specified length filled with the specified value.
+     * @param length The vector length.
+     * @param value The initial value.
+     * @return A float vector initialised with the value.
+     */
     public static float[] generateUniformFloatVector(int length, float value) {
         float[] output = new float[length];
 
@@ -936,11 +1090,23 @@ public final class Util {
         return output / inputs.length;
     }
 
+    /**
+     * Computes the mean of the first length elements of array.
+     * @param array The array to take the mean of.
+     * @param length The number of elements to take the mean over.
+     * @return The mean.
+     */
     public static double mean(double[] array, int length) {
         double sum = sum(array,length);
         return sum / length;
     }
 
+    /**
+     * Computes the mean of the collection.
+     * @param values The collection.
+     * @param <V> The collection type.
+     * @return The mean of the collection.
+     */
     public static <V extends Number> double mean(Collection<V> values) {
         double total = 0d;
         for (V v : values) {
@@ -949,6 +1115,12 @@ public final class Util {
         return total / values.size();
     }
 
+    /**
+     * Computes the sample variance of the collection.
+     * @param values The collection.
+     * @param <V> The collection type.
+     * @return The sample variance of the collection.
+     */
     public static <V extends Number> double sampleVariance(Collection<V> values) {
         double mean = mean(values);
         double total = 0d;
@@ -958,15 +1130,35 @@ public final class Util {
         return total / (values.size() - 1);
     }
 
+    /**
+     * Computes the sample standard deviation of the collection.
+     * @param values The collection.
+     * @param <V> The collection type.
+     * @return The sample standard deviation.
+     */
     public static <V extends Number> double sampleStandardDeviation(Collection<V> values) {
         return Math.sqrt(sampleVariance(values));
     }
 
+    /**
+     * Computes the weighted mean of the first length elements of the array.
+     * @param array The array to mean.
+     * @param weights The element weights.
+     * @param length The number of elements to use.
+     * @return The weighted mean.
+     */
     public static double weightedMean(double[] array, float[] weights, int length) {
         double sum = weightedSum(array,weights,length);
         return sum / sum(weights,length);
     }
 
+    /**
+     * Computes the weighted sum of the first length elements of the array.
+     * @param array The array to sum.
+     * @param weights The element weights.
+     * @param length The number of elements to use.
+     * @return The weighted sum.
+     */
     public static double weightedSum(double[] array, float[] weights, int length) {
         if (array.length != weights.length) {
             throw new IllegalArgumentException("array and weights must be the same length, array.length = " + array.length + ", weights.length = " + weights.length);

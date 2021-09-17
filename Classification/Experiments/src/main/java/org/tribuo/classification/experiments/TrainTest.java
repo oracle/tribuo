@@ -54,6 +54,11 @@ public class TrainTest {
         public DataOptions general;
     }
 
+    /**
+     * Runs a TrainTest CLI.
+     * @param args the command line arguments
+     * @throws IOException if there is any error reading the examples.
+     */
     public static void main(String[] args) throws IOException {
         AllClassificationOptions o = new AllClassificationOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args,o)){

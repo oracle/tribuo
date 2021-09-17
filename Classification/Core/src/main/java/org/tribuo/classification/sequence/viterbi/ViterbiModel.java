@@ -47,7 +47,14 @@ public class ViterbiModel extends SequenceModel<Label> {
      * Types of label score aggregation.
      */
     public enum ScoreAggregation {
-        ADD, MULTIPLY
+        /**
+         * Adds the scores.
+         */
+        ADD,
+        /**
+         * Multiplies the scores.
+         */
+        MULTIPLY
     }
 
     private final Model<Label> model;
@@ -215,10 +222,18 @@ public class ViterbiModel extends SequenceModel<Label> {
 
     }
 
+    /**
+     * Gets the stack size of this model.
+     * @return The stack size.
+     */
     public int getStackSize() {
         return stackSize;
     }
 
+    /**
+     * Gets the score aggregation function.
+     * @return The score aggregation function.
+     */
     public ScoreAggregation getScoreAggregation() {
         return scoreAggregation;
     }

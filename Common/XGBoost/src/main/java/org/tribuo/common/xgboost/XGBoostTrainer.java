@@ -108,6 +108,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
          */
         GPU_HIST("gpu_hist");
 
+        /**
+         * The parameter name used by the XGBoost native library.
+         */
         public final String paramName;
 
         TreeMethod(String paramName) {
@@ -119,11 +122,27 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
      * The logging verbosity of the native library.
      */
     public enum LoggingVerbosity {
+        /**
+         * No logging.
+         */
         SILENT(0),
+        /**
+         * Only warnings are logged.
+         */
         WARNING(1),
+        /**
+         * Tree building info is logged as well as warnings.
+         */
         INFO(2),
+        /**
+         * All the logging.
+         */
+        // You've never seen so much logging.
         DEBUG(3);
 
+        /**
+         * The log value used by the XGBoost native library.
+         */
         public final int value;
 
         LoggingVerbosity(int value) {
@@ -148,6 +167,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
          */
         DART("dart");
 
+        /**
+         * The parameter value used by the XGBoost native library.
+         */
         public final String paramName;
 
         BoosterType(String paramName) {
@@ -208,10 +230,20 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
 
     protected int trainInvocationCounter = 0;
 
+    /**
+     * Constructs an XGBoost trainer using the specified number of trees.
+     * @param numTrees The number of trees.
+     */
     protected XGBoostTrainer(int numTrees) {
         this(numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, 4, true, Trainer.DEFAULT_SEED);
     }
 
+    /**
+     * Constructs an XGBoost trainer using the specified number of trees.
+     * @param numTrees The number of trees.
+     * @param numThreads The number of training threads.
+     * @param silent Should the logging be silenced?
+     */
     protected XGBoostTrainer(int numTrees, int numThreads, boolean silent) {
         this(numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, numThreads, silent, Trainer.DEFAULT_SEED);
     }

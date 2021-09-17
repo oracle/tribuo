@@ -93,6 +93,9 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
          */
         PSEUDOHUBER("reg:pseudohubererror");
 
+        /**
+         * The parameter name used by the XGBoost native library.
+         */
         public final String paramName;
 
         RegressionType(String paramName) {
@@ -103,14 +106,33 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
     @Config(description="The type of regression.")
     private RegressionType rType = RegressionType.LINEAR;
 
+    /**
+     * Create an XGBoost trainer using the squared error loss function.
+     *
+     * @param numTrees Number of trees to boost.
+     */
     public XGBoostRegressionTrainer(int numTrees) {
         this(RegressionType.LINEAR, numTrees);
     }
 
+    /**
+     * Create an XGBoost trainer.
+     *
+     * @param rType The type of regression to build.
+     * @param numTrees Number of trees to boost.
+     */
     public XGBoostRegressionTrainer(RegressionType rType, int numTrees) {
         this(rType, numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, 4, true, Trainer.DEFAULT_SEED);
     }
 
+    /**
+     * Create an XGBoost trainer.
+     *
+     * @param rType The type of regression to build.
+     * @param numTrees Number of trees to boost.
+     * @param numThreads Number of threads to use (default 4).
+     * @param silent Silence the training output text.
+     */
     public XGBoostRegressionTrainer(RegressionType rType, int numTrees, int numThreads, boolean silent) {
         this(rType, numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, numThreads, silent, Trainer.DEFAULT_SEED);
     }

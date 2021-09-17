@@ -32,14 +32,41 @@ public class GradientOptimiserOptions implements Options {
      * Type of the gradient optimisers available in CLIs.
      */
     public enum StochasticGradientOptimiserType {
+        /**
+         * The AdaDelta optimiser.
+         */
         ADADELTA,
+        /**
+         * The AdaGrad optimiser.
+         */
         ADAGRAD,
+        /**
+         * The AdaGrad Regularised Dual Averaging optimiser.
+         */
         ADAGRADRDA,
+        /**
+         * The Adam optimiser.
+         */
         ADAM,
+        /**
+         * The Pegasos optimiser.
+         */
         PEGASOS,
+        /**
+         * The RMSProp optimiser.
+         */
         RMSPROP,
+        /**
+         * SGD with a constant learning rate.
+         */
         CONSTANTSGD,
+        /**
+         * SGD with a linear-decay learning rate.
+         */
         LINEARSGD,
+        /**
+         * SGD with a square root decay learning rate.
+         */
         SQRTSGD
     }
 

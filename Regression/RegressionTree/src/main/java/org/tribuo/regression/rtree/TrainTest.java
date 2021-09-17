@@ -83,6 +83,9 @@ public class TrainTest {
             return "Trains and tests a CART regression model on the specified datasets.";
         }
 
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
         /**
          * Character to split the CSV response on to generate multiple regression dimensions. Defaults to ':'.
@@ -104,11 +107,15 @@ public class TrainTest {
          */
         @Option(charName = 'm', longName = "min-child-weight", usage = "Minimum child weight.")
         public float minChildWeight = 5.0f;
-        @Option(charName = 'p', longName = "min-impurity-decrease", usage = "Minimumum decrease in impurity required in order" +
-                " for the node to be split.")
+        /**
+         * Minimumum decrease in impurity required in order for the node to be split.
+         */
+        @Option(charName = 'p', longName = "min-impurity-decrease", usage = "Minimumum decrease in impurity required in order for the node to be split.")
         public float minImpurityDecrease = 0.0f;
-        @Option(charName = 'r', longName = "use-random-split-points", usage = "Whether to choose split points for features at" +
-                " random.")
+        /**
+         * Whether to choose split points for features at random.
+         */
+        @Option(charName = 'r', longName = "use-random-split-points", usage = "Whether to choose split points for features at random.")
         public boolean useRandomSplitPoints = false;
         /**
          * Normalize the leaf outputs so each leaf sums to 1.0.
@@ -133,6 +140,7 @@ public class TrainTest {
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

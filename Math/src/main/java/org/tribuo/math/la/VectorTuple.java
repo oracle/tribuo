@@ -19,21 +19,40 @@ package org.tribuo.math.la;
 /**
  * A mutable tuple used to avoid allocation when iterating a vector.
  * <p>
+ * It's basically a cursor into a vector.
+ * <p>
  * While it does implement hashcode, don't use it as a key as the hashcode is data dependent.
  */
 public class VectorTuple {
 
+    /**
+     * The tolerance for equality in value comparisons.
+     */
     public static final double DELTA = 1e-12;
 
+    /**
+     * The current index.
+     */
     public int index;
 
+    /**
+     * The current value.
+     */
     public double value;
 
+    /**
+     * Creates an empty vector tuple.
+     */
     public VectorTuple() {
         this.index = -1;
         this.value = Double.NaN;
     }
 
+    /**
+     * Creates a vector tuple with the specified values.
+     * @param index The current index.
+     * @param value The current value.
+     */
     public VectorTuple(int index, int value) {
         this.index = index;
         this.value = value;

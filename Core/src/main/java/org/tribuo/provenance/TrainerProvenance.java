@@ -23,10 +23,19 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
  */
 public interface TrainerProvenance extends ConfiguredObjectProvenance {
 
+    /**
+     * The name of the provenance field recording the train invocation count.
+     */
     public static final String TRAIN_INVOCATION_COUNT = "train-invocation-count";
 
+    /**
+     * The name of the provenance field recording if this is a sequence trainer.
+     */
     public static final String IS_SEQUENCE = DatasetProvenance.IS_SEQUENCE;
 
+    /**
+     * The name of the provenance field recording the Tribuo version used in training.
+     */
     public static final String TRIBUO_VERSION_STRING = "tribuo-version";
 
 }

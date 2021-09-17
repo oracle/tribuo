@@ -39,6 +39,14 @@ public class ShrinkingVector extends DenseVector implements ShrinkingTensor {
     private int iteration;
     private double multiplier;
 
+    /**
+     * Constructs a shrinking vector copy of the supplied dense matrix.
+     * <p>
+     * This vector shrinks during each call to {@link #intersectAndAddInPlace(Tensor, DoubleUnaryOperator)}.
+     * @param v The vector to copy.
+     * @param baseRate The base amount of shrinking to apply after each update.
+     * @param scaleShrinking If true reduce the shrinking value over time proportionally to the number of updates.
+     */
     public ShrinkingVector(DenseVector v, double baseRate, boolean scaleShrinking) {
         super(v);
         this.baseRate = baseRate;
@@ -49,6 +57,15 @@ public class ShrinkingVector extends DenseVector implements ShrinkingTensor {
         this.multiplier = 1.0;
     }
 
+    /**
+     * Constructs a shrinking vector copy of the supplied dense vector.
+     * <p>
+     * This vector shrinks during each call to {@link #intersectAndAddInPlace(Tensor, DoubleUnaryOperator)},
+     * and then reprojects the vector so it has the same twoNorm.
+     * @param v The vector to copy.
+     * @param baseRate The base rate of shrinkage.
+     * @param lambda The lambda value (see {@link org.tribuo.math.optimisers.Pegasos}).
+     */
     public ShrinkingVector(DenseVector v, double baseRate, double lambda) {
         super(v);
         this.baseRate = baseRate;

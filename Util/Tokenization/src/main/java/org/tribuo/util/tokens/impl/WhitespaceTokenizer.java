@@ -21,15 +21,20 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 
 /**
  * A simple tokenizer that splits on whitespace.  This tokenizer does not create
- * tokens that corresond to whitespace - only those spans of text delimited by 
+ * tokens that correspond to whitespace - only those spans of text delimited by
  * whitespace.  For example, the text "a b" will result in two tokens "a" and "b". 
- *
  */
 public class WhitespaceTokenizer extends SplitFunctionTokenizer {
 
-    public static SplitFunction whitespaceSplitCharacterFunction = (codepoint, index,
+    /**
+     * The splitting function for whitespace, using {@link Character#isWhitespace(char)}.
+     */
+    public static final SplitFunction whitespaceSplitCharacterFunction = (codepoint, index,
             cs) -> Character.isWhitespace(codepoint) ? SplitResult.SPLIT_AT : SplitResult.NO_SPLIT_WORD;
 
+    /**
+     * Constructs a tokenizer that splits on whitespace.
+     */
     public WhitespaceTokenizer() {
         super(whitespaceSplitCharacterFunction);
     }

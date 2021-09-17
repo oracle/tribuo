@@ -67,6 +67,11 @@ public class TransformationMap implements Configurable, Provenancable<Configured
      */
     private TransformationMap() {}
 
+    /**
+     * Creates a transformation map from the supplied global transformation list, and per feature transformations.
+     * @param globalTransformations The global transformations.
+     * @param featureTransformations The per feature transformations.
+     */
     public TransformationMap(List<Transformation> globalTransformations, Map<String,List<Transformation>> featureTransformations) {
         this.globalTransformations = new ArrayList<>(globalTransformations);
         this.featureTransformations.putAll(featureTransformations);
@@ -78,10 +83,18 @@ public class TransformationMap implements Configurable, Provenancable<Configured
         
     }
 
+    /**
+     * Creates a TransformationMap with only global transformations.
+     * @param globalTransformations The global transformations.
+     */
     public TransformationMap(List<Transformation> globalTransformations) {
         this(globalTransformations, Collections.emptyMap());
     }
 
+    /**
+     * Creates a TransformationMap with only per feature transformations.
+     * @param featureTransformations The per feature transformations.
+     */
     public TransformationMap(Map<String,List<Transformation>> featureTransformations) {
         this(Collections.emptyList(),featureTransformations);
     }
@@ -175,11 +188,18 @@ public class TransformationMap implements Configurable, Provenancable<Configured
      * Will be deprecated if/when OLCUT supports this.
      */
     public final static class TransformationList implements Configurable, Provenancable<ConfiguredObjectProvenance> {
+        /**
+         * The list of transformations.
+         */
         @Config(description="A list of transformations to apply.")
         public List<Transformation> list;
 
         private TransformationList() {}
 
+        /**
+         * Constructs a transformation list.
+         * @param list The list of transformations.
+         */
         public TransformationList(List<Transformation> list) {
             this.list = list;
         }

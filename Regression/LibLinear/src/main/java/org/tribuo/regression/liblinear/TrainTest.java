@@ -51,6 +51,9 @@ public class TrainTest {
             return "Trains and tests a LibLinear regression model on the specified datasets.";
         }
 
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
 
         /**
@@ -81,6 +84,7 @@ public class TrainTest {
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

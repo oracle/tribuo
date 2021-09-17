@@ -20,17 +20,29 @@ package org.tribuo.util.tokens;
  * Wraps exceptions thrown by tokenizers.
  */
 public class TokenizationException extends RuntimeException {
-
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a TokenizationException with the specified message.
+     * @param message The exception message.
+     */
     public TokenizationException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a TokenizationException wrapping the supplied throwable with the specified message.
+     * @param message The exception message.
+     * @param throwable The throwable to wrap.
+     */
     public TokenizationException(String message, Throwable throwable) {
-        super(message, throwable);
+        super(message,throwable);
     }
 
+    /**
+     * Creates a TokenizationException wrapping the supplied throwable.
+     * @param throwable The throwable to wrap.
+     */
     public TokenizationException(Throwable throwable) {
         super(throwable);
     }

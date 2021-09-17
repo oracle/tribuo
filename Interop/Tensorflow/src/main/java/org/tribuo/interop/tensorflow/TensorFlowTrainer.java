@@ -597,10 +597,19 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
         return new TensorFlowTrainerProvenance(this);
     }
 
+    /**
+     * Provenance for {@link TensorFlowTrainer}.
+     */
     public static final class TensorFlowTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * The name of the provenance field containing the graph hash.
+         */
         public static final String GRAPH_HASH = "graph-hash";
+        /**
+         * The name of the provenance field containing the graph modified timestamp.
+         */
         public static final String GRAPH_LAST_MOD = "graph-last-modified";
 
         private final HashProvenance graphHash;
@@ -618,6 +627,10 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
             }
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public TensorFlowTrainerProvenance(Map<String,Provenance> map) {
             this(extractTFProvenanceInfo(map));
         }

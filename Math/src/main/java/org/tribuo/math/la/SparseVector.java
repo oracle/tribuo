@@ -90,6 +90,12 @@ public class SparseVector implements SGDVector {
         this.shape = new int[]{size};
     }
 
+    /**
+     * Creates a sparse vector of the specified size, with the supplied value at each of the indices.
+     * @param size The vector size.
+     * @param indices The indices of the sparse vector.
+     * @param value The initial value.
+     */
     public SparseVector(int size, int[] indices, double value) {
         this.indices = Arrays.copyOf(indices,indices.length);
         this.values = new double[indices.length];

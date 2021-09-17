@@ -32,7 +32,6 @@ import org.tribuo.Output;
 import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.DatasetProvenance;
-import sun.nio.cs.UTF_8;
 
 import java.util.ArrayList;
 import java.util.HashSet;

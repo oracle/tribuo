@@ -50,6 +50,9 @@ public class TrainTest {
             return "Trains and tests an XGBoost regression model on the specified datasets.";
         }
 
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
 
         /**
@@ -115,8 +118,9 @@ public class TrainTest {
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
-     * @throws java.io.IOException if there is any error reading the examples.
+     * @throws IOException if there is any error reading the examples.
      */
     public static void main(String[] args) throws IOException {
         //

@@ -72,6 +72,7 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
 
     /**
      * Creates a trainer using the default values (1, 1000, 0.1, 0.1) and specified algorithm.
+     * @param trainerType The linear regression algorithm.
      */
     public LibLinearRegressionTrainer(LinearRegressionType trainerType) {
         this(trainerType,1.0,1000,0.1,0.1);
