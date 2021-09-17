@@ -120,8 +120,8 @@ public class CARTClassificationOptions implements ClassificationOptions<CARTClas
         CARTClassificationTrainer trainer;
         switch (cartTreeAlgorithm) {
             case CART:
-                trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease
-                        , cartSplitFraction, cartRandomSplit, impurity, cartSeed);
+                trainer = new CARTClassificationTrainer(cartMaxDepth, cartMinChildWeight, cartMinImpurityDecrease,
+                        cartSplitFraction, cartRandomSplit, impurity, cartSeed);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown tree type " + cartTreeAlgorithm);
