@@ -124,6 +124,7 @@ public class TestSGDLinear {
             // Generate predictions
             List<Prediction<Regressor>> nativePredictions = model.predict(p.getB());
             List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
+<<<<<<< HEAD
 
             // Assert the predictions are identical
             for (int i = 0; i < nativePredictions.size(); i++) {
@@ -133,6 +134,17 @@ public class TestSGDLinear {
                 assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-6);
             }
 
+=======
+
+            // Assert the predictions are identical
+            for (int i = 0; i < nativePredictions.size(); i++) {
+                Prediction<Regressor> tribuo = nativePredictions.get(i);
+                Prediction<Regressor> external = onnxPredictions.get(i);
+                assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
+                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-6);
+            }
+
+>>>>>>> 51418f5c2a7210f537193704332786dee5b3abc0
             onnxModel.close();
         } else {
             logger.warning("ORT based tests only supported on x86_64, found " + arch);
