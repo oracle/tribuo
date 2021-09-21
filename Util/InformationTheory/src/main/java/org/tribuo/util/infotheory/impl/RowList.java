@@ -37,8 +37,12 @@ import java.util.Set;
  */
 public final class RowList<T> implements List<Row<T>> {
     private final Set<List<T>> set;
-    private final int size;    
+    private final int size;
 
+    /**
+     * Constructs a RowList from a set of lists.
+     * @param set The feature lists.
+     */
     public RowList(Set<List<T>> set) {
         this.set = Collections.unmodifiableSet(new LinkedHashSet<>(set));
         size = set.iterator().next().size();

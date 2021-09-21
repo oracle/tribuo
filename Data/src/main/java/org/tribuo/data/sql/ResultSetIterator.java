@@ -39,6 +39,11 @@ public class ResultSetIterator extends ColumnarIterator {
 
     private int rowNum = 0;
 
+    /**
+     * Construct a result set iterator over the supplied result set.
+     * @param rs The result set.
+     * @throws SQLException If the result set cannot be inspected.
+     */
     public ResultSetIterator(ResultSet rs) throws SQLException {
         resultSet = rs;
         ResultSetMetaData rsm = resultSet.getMetaData();
@@ -48,6 +53,12 @@ public class ResultSetIterator extends ColumnarIterator {
         }
     }
 
+    /**
+     * Constructs a result set iterator over the supplied result set using the specified fetch buffer size.
+     * @param rs The result set.
+     * @param fetchSize The fetch size.
+     * @throws SQLException If the result set cannot be inspected.
+     */
     public ResultSetIterator(ResultSet rs, int fetchSize) throws SQLException {
         super(IOSpliterator.DEFAULT_CHARACTERISTICS, fetchSize, Long.MAX_VALUE);
         resultSet = rs;

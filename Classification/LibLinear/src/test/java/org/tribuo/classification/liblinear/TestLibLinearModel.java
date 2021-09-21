@@ -112,7 +112,6 @@ public class TestLibLinearModel {
         for (Example<Label> example : examples) {
             model.getExcuse(example);
         }
-        //System.out.println("*** PASSED: " + prefix);
     }
 
     private void checkModelType(LinearType modelType) throws IOException, ClassNotFoundException {
@@ -129,7 +128,6 @@ public class TestLibLinearModel {
         for (Example<Label> example : examples) {
             model.getExcuse(example);
         }
-        //System.out.println("*** PASSED: " + prefix);
     }
 
 
@@ -182,6 +180,19 @@ public class TestLibLinearModel {
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         return m;
+    }
+
+    @Test
+    public void testReproducible() {
+        // Note this test will need to change if LibLinearTrainer grows a per Problem RNG.
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        Model<Label> m = t.train(p.getA());
+        Map<String, List<Pair<String,Double>>> mFeatures = m.getTopFeatures(-1);
+
+        Model<Label> mTwo = t.train(p.getA());
+        Map<String, List<Pair<String,Double>>> mTwoFeatures = mTwo.getTopFeatures(-1);
+
+        assertEquals(mFeatures,mTwoFeatures);
     }
 
     @Test

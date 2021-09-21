@@ -63,6 +63,11 @@ public class Pegasos implements StochasticGradientOptimiser {
      */
     private Pegasos() { }
 
+    /**
+     * Constructs a Pegasos optimiser with the specified parameters.
+     * @param baseRate The base learning rate.
+     * @param lambda The regularisation parameter.
+     */
     public Pegasos(double baseRate, double lambda) {
         this.baseRate = baseRate;
         this.lambda = lambda;

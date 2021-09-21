@@ -70,11 +70,29 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
      * The possible IDX input formats.
      */
     public enum IDXType {
+        /**
+         * An unsigned byte.
+         */
         UBYTE((byte) 0x08),
+        /**
+         * A signed byte.
+         */
         BYTE((byte) 0x09),
+        /**
+         * A 16-bit integer.
+         */
         SHORT((byte) 0x0B),
+        /**
+         * A 32-bit integer.
+         */
         INT((byte) 0x0C),
+        /**
+         * A 32-bit float.
+         */
         FLOAT((byte) 0x0D),
+        /**
+         * A 64-bit float.
+         */
         DOUBLE((byte) 0x0E);
 
         /**
@@ -493,10 +511,25 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
     public static final class IDXDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * The name of the output file modified time provenance field.
+         */
         public static final String OUTPUT_FILE_MODIFIED_TIME = "output-file-modified-time";
+        /**
+         * The name of the features file modified time provenance field.
+         */
         public static final String FEATURES_FILE_MODIFIED_TIME = "features-file-modified-time";
+        /**
+         * The name of the provenance field for the feature file hash.
+         */
         public static final String FEATURES_RESOURCE_HASH = "features-resource-hash";
+        /**
+         * The name of the provenance field for the output file hash.
+         */
         public static final String OUTPUT_RESOURCE_HASH = "output-resource-hash";
+        /**
+         * The name of the provenance field for the idx feature type.
+         */
         public static final String FEATURE_TYPE = "idx-feature-type";
 
         private final DateTimeProvenance featuresFileModifiedTime;
@@ -516,6 +549,10 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
             this.featureType = new EnumProvenance<>(FEATURE_TYPE, host.dataType);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public IDXDataSourceProvenance(Map<String, Provenance> map) {
             this(extractProvenanceInfo(map));
         }
@@ -532,6 +569,11 @@ public final class IDXDataSource<T extends Output<T>> implements ConfigurableDat
             this.featureType = (EnumProvenance<IDXType>) info.instanceValues.get(FEATURE_TYPE);
         }
 
+        /**
+         * Separates out the configured and non-configured provenance values.
+         * @param map The provenances to separate.
+         * @return The extracted provenance information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String, Provenance> map) {
             Map<String, Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters, CLASS_NAME, StringProvenance.class, IDXDataSourceProvenance.class.getSimpleName()).getValue();

@@ -58,6 +58,10 @@ public class SVMRegressionType implements SVMType<Regressor> {
      */
     private SVMRegressionType() {}
 
+    /**
+     * Constructs an SVMRegressionType using the specified SVM algorithm.
+     * @param type The SVM algorithm.
+     */
     public SVMRegressionType(SVMMode type) {
         this.type = type;
     }

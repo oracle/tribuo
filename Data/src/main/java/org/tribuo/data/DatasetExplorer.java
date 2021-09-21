@@ -45,10 +45,13 @@ import java.util.logging.Logger;
 public final class DatasetExplorer implements CommandGroup {
     private static final Logger logger = Logger.getLogger(DatasetExplorer.class.getName());
 
-    protected CommandInterpreter shell;
+    private final CommandInterpreter shell;
 
     private Dataset<?> dataset;
 
+    /**
+     * Constructs a dataset explorer.
+     */
     public DatasetExplorer() {
         shell = new CommandInterpreter();
         shell.setPrompt("dataset sh% ");
@@ -64,6 +67,10 @@ public final class DatasetExplorer implements CommandGroup {
         return "Commands for inspecting a Dataset.";
     }
 
+    /**
+     * The filename completer.
+     * @return The completer array.
+     */
     public Completer[] fileCompleter() {
         return new Completer[]{
                 new Completers.FileNameCompleter(),
@@ -79,6 +86,12 @@ public final class DatasetExplorer implements CommandGroup {
         shell.start();
     }
 
+    /**
+     * Loads a serialized dataset.
+     * @param ci The command interpreter.
+     * @param path The path to load.
+     * @return A status string.
+     */
     @Command(usage = "<filename> - Load a dataset from disk.", completers="fileCompleter")
     public String loadDataset(CommandInterpreter ci, File path) {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
@@ -97,6 +110,12 @@ public final class DatasetExplorer implements CommandGroup {
         return "Loaded dataset from path " + path.toString();
     }
 
+    /**
+     * Shows information on a particular feature.
+     * @param ci The command interpreter.
+     * @param featureName The feature name.
+     * @return The feature information.
+     */
     @Command(usage="Shows the information on a particular feature")
     public String featureInfo(CommandInterpreter ci, String featureName) {
         VariableInfo f = dataset.getFeatureMap().get(featureName);
@@ -107,21 +126,42 @@ public final class DatasetExplorer implements CommandGroup {
         }
     }
 
+    /**
+     * Shows the output information.
+     * @param ci The command interpreter.
+     * @return The output information.
+     */
     @Command(usage="Shows the output information.")
     public String outputInfo(CommandInterpreter ci) {
         return dataset.getOutputInfo().toReadableString();
     }
 
+    /**
+     * Shows the number of examples in this dataset.
+     * @param ci The command interpreter.
+     * @return The number of examples.
+     */
     @Command(usage="Shows the number of rows in the dataset")
     public String numExamples(CommandInterpreter ci) {
         return ""+dataset.getData().size();
     }
 
+    /**
+     * Shows the number of features in this dataset.
+     * @param ci The command interpreter.
+     * @return The number of features.
+     */
     @Command(usage="Shows the number of features in the dataset")
     public String numFeatures(CommandInterpreter ci) {
         return ""+dataset.getFeatureMap().size();
     }
 
+    /**
+     * Shows the number of features which occurred more than minCount times in the dataset.
+     * @param ci The command interpreter.
+     * @param minCount The minimum occurrence count.
+     * @return The number of features which occurred more than minCount times.
+     */
     @Command(usage="<min count> - Shows the number of features that occurred more than min count times.")
     public String minCount(CommandInterpreter ci, int minCount) {
         int counter = 0;
@@ -133,11 +173,22 @@ public final class DatasetExplorer implements CommandGroup {
         return counter + " features occurred more than " + minCount + " times.";
     }
 
+    /**
+     * Shows the output statistics.
+     * @param ci The command interpreter.
+     * @return The output statistics string.
+     */
     @Command(usage="Shows the output statistics")
-    public String showLabelStats(CommandInterpreter ci) {
-        return "Label histogram : \n" + dataset.getOutputInfo().toReadableString();
+    public String showOutputStats(CommandInterpreter ci) {
+        return "Output statistics: \n" + dataset.getOutputInfo().toReadableString();
     }
 
+    /**
+     * Saves out the dataset as a CSV file.
+     * @param ci The command interpreter.
+     * @param path The path to save to.
+     * @return A status message.
+     */
     @Command(usage="Saves out the data as a CSV.")
     public String saveCSV(CommandInterpreter ci, String path) {
         CSVSaver saver = new CSVSaver();
@@ -150,6 +201,11 @@ public final class DatasetExplorer implements CommandGroup {
         }
     }
 
+    /**
+     * Shows the dataset provenance.
+     * @param ci The command interpreter.
+     * @return The dataset provenance string.
+     */
     @Command(usage="Shows the dataset provenance")
     public String showProvenance(CommandInterpreter ci) {
         return dataset.getProvenance().toString();
@@ -159,10 +215,17 @@ public final class DatasetExplorer implements CommandGroup {
      * Command line options.
      */
     public static class DatasetExplorerOptions implements Options {
-        @Option(charName='f',longName="filename",usage="Dataset file to load. Optional.")
+        /**
+         * Dataset file to load. Optional.
+         */
+        @Option(charName = 'f', longName = "filename", usage = "Dataset file to load. Optional.")
         public String modelFilename;
     }
 
+    /**
+     * Runs a dataset explorer.
+     * @param args CLI arguments.
+     */
     public static void main(String[] args) {
         DatasetExplorerOptions options = new DatasetExplorerOptions();
         ConfigurationManager cm = new ConfigurationManager(args,options,false);

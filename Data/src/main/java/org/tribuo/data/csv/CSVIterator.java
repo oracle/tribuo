@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
     }
 
     /**
-     * Builds a CSVIterator for the supplied URI.
+     * Builds a CSVIterator for the supplied URI. If headers is null or an empty array, read the headers from the csv file.
      * @param dataFile The source to read.
      * @param separator The separator character to use.
      * @param quote The quote character to use.
@@ -125,7 +125,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
     }
 
     /**
-     * Builds a CSVIterator for the supplied Reader. If headers is null, read the headers from the csv file.
+     * Builds a CSVIterator for the supplied Reader. If headers is null or an empty array, read the headers from the csv file.
      * @param rdr The source to read.
      * @param separator The separator character to use.
      * @param quote The quote character to use.
@@ -136,7 +136,7 @@ public class CSVIterator extends ColumnarIterator implements AutoCloseable {
     }
 
     /**
-     * Builds a CSVIterator for the supplied Reader. If headers is null, read the headers from the csv file.
+     * Builds a CSVIterator for the supplied Reader. If headers is null or an empty list, read the headers from the csv file.
      * @param rdr The source to read.
      * @param separator The separator character to use.
      * @param quote The quote character to use.

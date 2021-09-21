@@ -44,6 +44,10 @@ import java.util.logging.Logger;
 /**
  * A {@link Trainer} which wraps a liblinear-java trainer.
  * <p>
+ * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
+ * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
+ * <p>
  * See:
  * <pre>
  * Fan RE, Chang KW, Hsieh CJ, Wang XR, Lin CJ.
@@ -145,7 +149,10 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
 
         Pair<FeatureNode[][],double[][]> data = extractData(examples,outputIDInfo,featureIDMap);
 
-        List<de.bwaldvogel.liblinear.Model> models = trainModels(curParams,featureIDMap.size()+1,data.getA(),data.getB());
+        List<de.bwaldvogel.liblinear.Model> models;
+        synchronized (LibLinearTrainer.class) {
+            models = trainModels(curParams, featureIDMap.size() + 1, data.getA(), data.getB());
+        }
 
         return createModel(provenance,featureIDMap,outputIDInfo,models);
     }

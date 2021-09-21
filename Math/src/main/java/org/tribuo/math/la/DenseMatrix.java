@@ -171,6 +171,11 @@ public class DenseMatrix implements Matrix {
         return values[i][j];
     }
 
+    /**
+     * Constructs a dense vector by gathering values across dimension 1.
+     * @param elements The indices to gather.
+     * @return A dense vector.
+     */
     public DenseVector gatherAcrossDim1(int[] elements) {
         if (elements.length != dim2) {
             throw new IllegalArgumentException("Invalid number of elements to gather, must select one per value of dim2");
@@ -184,6 +189,11 @@ public class DenseMatrix implements Matrix {
         return new DenseVector(outputValues);
     }
 
+    /**
+     * Constructs a dense vector by gathering values across dimension 2.
+     * @param elements The indices to gather.
+     * @return A dense vector.
+     */
     public DenseVector gatherAcrossDim2(int[] elements) {
         if (elements.length != dim1) {
             throw new IllegalArgumentException("Invalid number of elements to gather, must select one per value of dim1");
@@ -512,6 +522,11 @@ public class DenseMatrix implements Matrix {
         values[i][j] += value;
     }
 
+    /**
+     * Adds the specified value to the specified elements across dimension 1.
+     * @param indices The indices to update.
+     * @param value The value to add.
+     */
     public void addAcrossDim1(int[] indices, double value) {
         if (indices.length != dim2) {
             throw new IllegalArgumentException("Invalid number of elements to add, must select one per value of dim2");
@@ -521,6 +536,11 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * Adds the specified value to the specified elements across dimension 2.
+     * @param indices The indices to update.
+     * @param value The value to add.
+     */
     public void addAcrossDim2(int[] indices, double value) {
         if (indices.length != dim1) {
             throw new IllegalArgumentException("Invalid number of elements to indices, must select one per value of dim1");

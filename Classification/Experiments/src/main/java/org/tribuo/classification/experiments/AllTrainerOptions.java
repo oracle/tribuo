@@ -78,19 +78,52 @@ public class AllTrainerOptions implements ClassificationOptions<Trainer<Label>> 
         XGBOOST,
     }
 
+    /**
+     * Type of learner (or base learner). Defaults to SGD_LINEAR.
+     */
     @Option(longName = "algorithm", usage = "Type of learner (or base learner). Defaults to SGD_LINEAR.")
     public AlgorithmType algorithm = AlgorithmType.SGD_LINEAR;
 
+    /**
+     * Options for CART trainers.
+     */
     public CARTClassificationOptions cartOptions;
+    /**
+     * Options for K-NN trainers.
+     */
     public KNNClassifierOptions knnOptions;
+    /**
+     * Options for LibLinear trainers.
+     */
     public LibLinearOptions liblinearOptions;
+    /**
+     * Options for LibSVM trainers.
+     */
     public LibSVMOptions libsvmOptions;
+    /**
+     * Options for Multinomial Naive Bayes trainers.
+     */
     public MultinomialNaiveBayesOptions mnbOptions;
+    /**
+     * Options for Kernel SVM trainers.
+     */
     public KernelSVMOptions kernelSVMOptions;
+    /**
+     * Options for Linear SGD trainers.
+     */
     public LinearSGDOptions linearSGDOptions;
+    /**
+     * Options for XGBoost trainers.
+     */
     public XGBoostOptions xgBoostOptions;
 
+    /**
+     * Options for classifier ensembles.
+     */
     public ClassificationEnsembleOptions ensemble;
+    /**
+     * Options for hashing trainers.
+     */
     public HashingOptions hashingOptions;
 
     @Override

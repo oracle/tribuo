@@ -24,13 +24,13 @@ import org.tribuo.MutableDataset;
 import org.tribuo.OutputFactory;
 import org.tribuo.Prediction;
 import org.tribuo.classification.baseline.DummyClassifierTrainer;
-import org.tribuo.classification.evaluation.ClassifierEvaluation;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.multilabel.baseline.IndependentMultiLabelTrainer;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.junit.jupiter.api.Test;
+import org.tribuo.util.Util;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -46,56 +46,77 @@ public class MultiLabelEvaluatorTest {
     @Test
     public void test() {
         List<Prediction<MultiLabel>> predictions = Arrays.asList(
+                // mkPrediction(MultiLabel trueVal, MultiLabel predVal)
                 mkPrediction(label("a"), label("a", "b")),
-                mkPrediction(label("c", "b"), label("b")),
+                mkPrediction(label("c", "b", "d"), label("b")),
+                mkPrediction(label("a","b"),label("a","b")),
+                mkPrediction(label("a","b","c"),label("a")),
+                mkPrediction(label("a","b","c"),label("d")),
                 mkPrediction(label("b"), label("b")),
-                mkPrediction(label("b"), label("c"))
+                mkPrediction(label("c"), label("d","b")),
+                mkPrediction(label("b"), label("b", "a")),
+                mkPrediction(label("b"), label("b", "c")),
+                mkPrediction(label("c"), label("c")),
+                mkPrediction(label("a"), label())
         );
+
         Dataset<MultiLabel> dataset = mkDataset(predictions);
         Model<MultiLabel> model = new IndependentMultiLabelTrainer(DummyClassifierTrainer.createMostFrequentTrainer()).train(dataset); // noop model
-        assertEquals(3, model.getOutputIDInfo().size());
+        assertEquals(4, model.getOutputIDInfo().size());
         MultiLabelEvaluation evaluation = new MultiLabelEvaluator().evaluate(model, predictions, dataset.getProvenance());
 
         MultiLabel a = label("a");
         MultiLabel b = label("b");
         MultiLabel c = label("c");
+        MultiLabel d = label("d");
 
-        assertEquals(1, evaluation.tp(a));
-        assertEquals(0, evaluation.fp(a));
-        assertEquals(3, evaluation.tn(a));
-        assertEquals(0, evaluation.fn(a));
+        assertEquals(3, evaluation.tp(a));
+        assertEquals(1, evaluation.fp(a));
+        assertEquals(5, evaluation.tn(a));
+        assertEquals(2, evaluation.fn(a));
 
-        assertEquals(2, evaluation.tp(b));
-        assertEquals(1, evaluation.fp(b));
-        assertEquals(0, evaluation.tn(b));
-        assertEquals(1, evaluation.fn(b));
+        assertEquals(5, evaluation.tp(b));
+        assertEquals(2, evaluation.fp(b));
+        assertEquals(2, evaluation.tn(b));
+        assertEquals(2, evaluation.fn(b));
 
-        assertEquals(0, evaluation.tp(c));
+        assertEquals(1, evaluation.tp(c));
         assertEquals(1, evaluation.fp(c));
-        assertEquals(2, evaluation.tn(c));
-        assertEquals(1, evaluation.fn(c));
+        assertEquals(5, evaluation.tn(c));
+        assertEquals(4, evaluation.fn(c));
 
-        assertEquals(1d, evaluation.precision(a));
-        assertEquals(1d, evaluation.recall(a));
-        assertEquals(1d, evaluation.f1(a));
+        assertEquals(0, evaluation.tp(d));
+        assertEquals(2, evaluation.fp(d));
+        assertEquals(8, evaluation.tn(d));
+        assertEquals(1, evaluation.fn(d));
 
-        assertEquals(0.6666666666666666, evaluation.precision(b));
-        assertEquals(0.6666666666666666, evaluation.recall(b));
-        assertEquals(0.6666666666666666, evaluation.f1(b));
+        assertEquals(0.75, evaluation.precision(a),1e-10);
+        assertEquals(0.6, evaluation.recall(a),1e-10);
+        assertEquals(0.666666666666666, evaluation.f1(a),1e-10);
 
-        assertEquals(0d, evaluation.precision(c));
-        assertEquals(0d, evaluation.recall(c));
-        assertEquals(0d, evaluation.f1(c));
+        assertEquals(0.714285714285714, evaluation.precision(b),1e-10);
+        assertEquals(0.714285714285714, evaluation.recall(b),1e-10);
+        assertEquals(0.714285714285714, evaluation.f1(b),1e-10);
 
-        assertEquals(0.44444444444444453, evaluation.balancedErrorRate());
-        assertEquals(0.5555555555555555, evaluation.macroAveragedPrecision());
-        assertEquals(0.5555555555555555, evaluation.macroAveragedRecall());
-        assertEquals(0.5555555555555555, evaluation.macroAveragedF1());
-        assertEquals(0.6, evaluation.microAveragedPrecision());
-        assertEquals(0.6, evaluation.microAveragedRecall());
-        assertEquals(0.6, evaluation.microAveragedF1());
+        assertEquals(0.5, evaluation.precision(c),1e-10);
+        assertEquals(0.2, evaluation.recall(c),1e-10);
+        assertEquals(0.285714285714285, evaluation.f1(c),1e-10);
 
-        assertEquals(0.5, evaluation.jaccardScore());
+        assertEquals(0d, evaluation.precision(d));
+        assertEquals(0d, evaluation.recall(d));
+        assertEquals(0d, evaluation.f1(d));
+
+        assertEquals(0.6214285714285714, evaluation.balancedErrorRate(),1e-10);
+        assertEquals(0.4910714285714286, evaluation.macroAveragedPrecision(),1e-10);
+        assertEquals(0.37857142857142856, evaluation.macroAveragedRecall(),1e-10);
+        assertEquals(0.41666666666666663, evaluation.macroAveragedF1(),1e-10);
+        assertEquals(0.6, evaluation.microAveragedPrecision(),1e-10);
+        assertEquals(0.5, evaluation.microAveragedRecall(),1e-10);
+        assertEquals(0.5454545454545454, evaluation.microAveragedF1(),1e-10);
+
+        double[] jaccard = new double[]{0.5,0.333333333,1,0.333333333,0,1,0,0.5,0.5,1,0};
+        double jaccardScore = Util.mean(jaccard);
+        assertEquals(jaccardScore, evaluation.jaccardScore(),1e-10);
     }
 
     @Test

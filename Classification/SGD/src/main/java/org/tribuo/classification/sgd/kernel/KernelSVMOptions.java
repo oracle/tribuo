@@ -63,22 +63,46 @@ public class KernelSVMOptions implements ClassificationOptions<KernelSVMTrainer>
         RBF
     }
 
+    /**
+     * Intercept in kernel function. Defaults to 1.0.
+     */
     @Option(longName = "kernel-intercept", usage = "Intercept in kernel function. Defaults to 1.0.")
     public double kernelIntercept = 1.0;
+    /**
+     * Degree in polynomial kernel function. Defaults to 1.0.
+     */
     @Option(longName = "kernel-degree", usage = "Degree in polynomial kernel function. Defaults to 1.0.")
     public double kernelDegree = 1.0;
+    /**
+     * Gamma value in kernel function. Defaults to 1.0.
+     */
     @Option(longName = "kernel-gamma", usage = "Gamma value in kernel function. Defaults to 1.0.")
     public double kernelGamma = 1.0;
+    /**
+     * Number of SGD epochs. Defaults to 5.
+     */
     @Option(longName = "kernel-epochs", usage = "Number of SGD epochs. Defaults to 5.")
     public int kernelEpochs = 5;
+    /**
+     * Kernel function. Defaults to LINEAR.
+     */
     @Option(longName = "kernel-kernel", usage = "Kernel function. Defaults to LINEAR.")
     public KernelEnum kernelKernel = KernelEnum.LINEAR; //TODO should the default be KernelEnum.RBF?
+    /**
+     * Lambda value in gradient optimisation. Defaults to 0.01.
+     */
     @Option(longName = "kernel-lambda", usage = "Lambda value in gradient optimisation. Defaults to 0.01.")
     public double kernelLambda = 0.01;
+    /**
+     * Log the objective after n examples. Defaults to 100.
+     */
     @Option(longName = "kernel-logging-interval", usage = "Log the objective after <int> examples. Defaults to 100.")
     public int kernelLoggingInterval = 100;
+    /**
+     * Sets the random seed for the Kernel SVM.
+     */
     @Option(longName = "kernel-seed", usage = "Sets the random seed for the Kernel SVM.")
-    private long kernelSeed = Trainer.DEFAULT_SEED;
+    public long kernelSeed = Trainer.DEFAULT_SEED;
 
     @Override
     public KernelSVMTrainer getTrainer() {

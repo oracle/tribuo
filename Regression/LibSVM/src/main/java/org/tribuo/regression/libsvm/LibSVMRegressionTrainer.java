@@ -22,6 +22,7 @@ import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Trainer;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.common.libsvm.SVMParameters;
@@ -37,10 +38,15 @@ import org.tribuo.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
  * A trainer for regression models that uses LibSVM. Trains an independent model for each output dimension.
+ * <p>
+ * Note the train method is synchronized on {@code LibSVMTrainer.class} due to a global RNG in LibSVM.
+ * This is insufficient to ensure reproducibility if LibSVM is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
  * <p>
  * See:
  * <pre>
@@ -77,16 +83,26 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
      * @param parameters The SVM parameters.
      */
     public LibSVMRegressionTrainer(SVMParameters<Regressor> parameters) {
-        this(parameters, false);
+        this(parameters, false, Trainer.DEFAULT_SEED);
     }
 
     /**
-     * Constructs a LibSVMRegressionTrainer using the supplied parameters.
+     * Constructs a LibSVMRegressionTrainer using the supplied parameters and {@link Trainer#DEFAULT_SEED}.
      * @param parameters The SVM parameters.
      * @param standardize Standardize the regression outputs before training.
      */
     public LibSVMRegressionTrainer(SVMParameters<Regressor> parameters, boolean standardize) {
-        super(parameters);
+        this(parameters,standardize,Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Constructs a LibSVMRegressionTrainer using the supplied parameters and seed.
+     * @param parameters The SVM parameters.
+     * @param standardize Standardize the regression outputs before training.
+     * @param seed The RNG seed for LibSVM's internal RNG.
+     */
+    public LibSVMRegressionTrainer(SVMParameters<Regressor> parameters, boolean standardize, long seed) {
+        super(parameters,seed);
         this.standardize = standardize;
     }
 
@@ -121,7 +137,7 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
     }
 
     @Override
-    protected List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs) {
+    protected List<svm_model> trainModels(svm_parameter curParams, int numFeatures, svm_node[][] features, double[][] outputs, SplittableRandom localRNG) {
         ArrayList<svm_model> models = new ArrayList<>();
 
         for (int i = 0; i < outputs.length; i++) {
@@ -132,13 +148,16 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
             if (curParams.gamma == 0) {
                 curParams.gamma = 1.0 / numFeatures;
             }
+            // This is safe because we synchronize on LibSVMTrainer.class in the train method to
+            // ensure there is no concurrent use of the rng.
+            svm.rand.setSeed(localRNG.nextLong());
             if (standardize) {
                 Pair<Double,Double> meanVar = Util.meanAndVariance(outputs[i]);
                 double mean = meanVar.getA();
                 double variance = meanVar.getB();
                 Util.standardizeInPlace(outputs[i],mean,variance);
                 String checkString = svm.svm_check_parameter(problem, curParams);
-                if(checkString != null) {
+                if (checkString != null) {
                     throw new IllegalArgumentException("Error checking SVM parameters: " + checkString);
                 }
                 svm_model trained = svm.svm_train(problem, curParams);

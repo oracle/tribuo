@@ -62,10 +62,19 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
 
     private static final Logger logger = Logger.getLogger(BinaryFeaturesExample.class.getName());
 
+    /**
+     * Default initial size of the backing arrays.
+     */
     public static final int DEFAULT_SIZE = 10;
 
+    /**
+     * Feature names array.
+     */
     protected String[] featureNames;
 
+    /**
+     * Number of valid features in this example.
+     */
     protected int size = 0;
 
     /**
@@ -212,10 +221,19 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
         sort();
     }
 
+    /**
+     * Is the supplied feature binary (i.e., does it have a value of 1.0)?
+     * @param feature The feature to check.
+     * @return True if it's a binary feature.
+     */
     public static boolean isBinary(Feature feature) {
         return feature.getValue() == 1.0;
     }
 
+    /**
+     * Checks if the supplied feature is binary, if not throw an {@link IllegalArgumentException}.
+     * @param feature The feature to check.
+     */
     public static void checkIsBinary(Feature feature) {
         if(!isBinary(feature)) {
             throw new IllegalArgumentException("non-binary features are not allowed in BinaryFeaturesExample: value="+feature.getValue());

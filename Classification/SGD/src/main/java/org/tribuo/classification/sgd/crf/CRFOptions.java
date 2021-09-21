@@ -26,6 +26,9 @@ import org.tribuo.math.optimisers.GradientOptimiserOptions;
  */
 public class CRFOptions implements Options {
 
+    /**
+     * Options for the gradient optimiser.
+     */
     public GradientOptimiserOptions sgoOptions;
 
     @Option(longName = "crf-epochs", usage = "Epochs of SGD.")

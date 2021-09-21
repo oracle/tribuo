@@ -27,10 +27,21 @@ public final class MurmurHash3 {
 
     /** 128 bits of state */
     public static final class LongPair {
+        /**
+         * First value.
+         */
         public long val1;
+        /**
+         * Second value.
+         */
         public long val2;
     }
 
+    /**
+     * 32-bit mixing function.
+     * @param h Value to mix.
+     * @return Mixed value.
+     */
     public static final int fmix32(int h) {
         h ^= h >>> 16;
         h *= 0x85ebca6b;
@@ -40,6 +51,11 @@ public final class MurmurHash3 {
         return h;
     }
 
+    /**
+     * 64-bit mixing function.
+     * @param k Value to mix.
+     * @return Mixed value.
+     */
     public static final long fmix64(long k) {
         k ^= k >>> 33;
         k *= 0xff51afd7ed558ccdL;
@@ -125,7 +141,6 @@ public final class MurmurHash3 {
 
         return h1;
     }
-
 
     /**
      * Returns the MurmurHash3_x86_32 hash of the UTF-8 bytes of the String without actually encoding
@@ -254,7 +269,6 @@ public final class MurmurHash3 {
 
         return h1;
     }
-
 
     /**
      * Returns the MurmurHash3_x64_128 hash, placing the result in "out".

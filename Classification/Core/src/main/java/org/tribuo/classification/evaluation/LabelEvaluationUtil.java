@@ -207,8 +207,17 @@ public final class LabelEvaluationUtil {
      * Not yet a record, but it will be one day.
      */
     public static class ROC {
+        /**
+         * The false positive rate at the corresponding threshold.
+         */
         public final double[] fpr;
+        /**
+         * The true positive rate at the corresponding threshold.
+         */
         public final double[] tpr;
+        /**
+         * The threshold values.
+         */
         public final double[] thresholds;
 
         /**
@@ -231,8 +240,17 @@ public final class LabelEvaluationUtil {
      * Not yet a record, but it will be one day.
      */
     public static class PRCurve {
+        /**
+         * The precision at the corresponding threshold.
+         */
         public final double[] precision;
+        /**
+         * The recall at the corresponding threshold.
+         */
         public final double[] recall;
+        /**
+         * The threshold values.
+         */
         public final double[] thresholds;
 
         /**

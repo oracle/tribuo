@@ -25,6 +25,11 @@ import java.util.function.DoubleUnaryOperator;
  */
 public interface Tensor extends Serializable {
 
+    /**
+     * The number of elements in this shape, i.e., the product of the shape array.
+     * @param shape The tensor shape.
+     * @return The number of elements in the shape.
+     */
     public static int shapeSum(int[] shape) {
         int sum = 1;
         for (int i = 0; i < shape.length; i++) {
@@ -33,6 +38,15 @@ public interface Tensor extends Serializable {
         return sum;
     }
 
+    /**
+     * Checks that the two tensors have compatible shapes.
+     * <p>
+     * Compatible shapes are those which are exactly equal, as Tribuo does not
+     * support broadcasting.
+     * @param first The first tensor.
+     * @param second The second tensor.
+     * @return True if the shapes are the same.
+     */
     public static boolean shapeCheck(Tensor first, Tensor second) {
         if ((first != null) && (second != null)) {
             return Arrays.equals(first.getShape(),second.getShape());

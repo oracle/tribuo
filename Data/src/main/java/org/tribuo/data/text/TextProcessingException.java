@@ -22,14 +22,27 @@ package org.tribuo.data.text;
 public class TextProcessingException extends Exception {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Creates a TextProcessingException with the specified message.
+     * @param message The exception message.
+     */
     public TextProcessingException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a TextProcessingException wrapping the supplied throwable with the specified message.
+     * @param message The exception message.
+     * @param throwable The throwable to wrap.
+     */
     public TextProcessingException(String message, Throwable throwable) {
         super(message,throwable);
     }
 
+    /**
+     * Creates a TextProcessingException wrapping the supplied throwable.
+     * @param throwable The throwable to wrap.
+     */
     public TextProcessingException(Throwable throwable) {
         super(throwable);
     }

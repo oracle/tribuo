@@ -91,6 +91,12 @@ public abstract class ClusteringDataGenerator {
         return new MutableDataset<>(new ListDataSource<>(trainingData,clusteringFactory,trainingProvenance));
     }
 
+    /**
+     * Generates a train/test dataset pair which is dense in the features,
+     * each example has 4 features,{A,B,C,D}, and there are 4 clusters,
+     * {0,1,2,3}.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<ClusterID>,Dataset<ClusterID>> denseTrainTest() {
         return denseTrainTest(-1.0);
     }
@@ -148,6 +154,12 @@ public abstract class ClusteringDataGenerator {
         return new Pair<>(train,test);
     }
 
+    /**
+     * Generates a pair of datasets, where the features are sparse,
+     * and unknown features appear in the test data. It has the same
+     * 4 clusters {0,1,2,3}.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<ClusterID>,Dataset<ClusterID>> sparseTrainTest() {
         return sparseTrainTest(-1.0);
     }

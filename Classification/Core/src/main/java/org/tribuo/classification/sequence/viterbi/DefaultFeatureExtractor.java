@@ -70,10 +70,21 @@ public class DefaultFeatureExtractor implements LabelFeatureExtractor {
     @Config(mandatory = true, description = "Use 4-grams of the labels as features.")
     private boolean use4gram;
 
+    /**
+     * Constructs a default feature extractor for bigrams and trigrams using the past 3 outcomes.
+     */
     public DefaultFeatureExtractor() {
         this(1, 3, true, true, false);
     }
 
+    /**
+     * Constructs a default feature extractor using the supplied parameters.
+     * @param mostRecentOutcome The most recent outcome to include as a feature.
+     * @param leastRecentOutcome The least recent outcome to include as a feature.
+     * @param useBigram Use bigrams of the outcomes.
+     * @param useTrigram Use trigrams of the outcomes.
+     * @param use4gram Use 4-grams of the outcomes.
+     */
     public DefaultFeatureExtractor(int mostRecentOutcome, int leastRecentOutcome, boolean useBigram, boolean useTrigram, boolean use4gram) {
         this.mostRecentOutcome = mostRecentOutcome;
         this.leastRecentOutcome = leastRecentOutcome;

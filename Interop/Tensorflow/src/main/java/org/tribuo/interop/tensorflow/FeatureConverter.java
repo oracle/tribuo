@@ -67,7 +67,6 @@ public interface FeatureConverter extends Configurable, Provenancable<Configured
 
     /**
      * Converts a list of {@link SGDVector}s representing a batch of features into a {@link TensorMap}.
-     * <p>
      * @param vectors The batch of features to convert.
      * @return A TensorMap (similar to a TF Python feed_dict) representing this minibatch.
      */

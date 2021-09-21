@@ -58,7 +58,7 @@ import static org.tribuo.multilabel.baseline.ClassifierChainTrainer.CC_SEPARATOR
  * <p>
  * See:
  * <pre>
- * Read, J., Pfahringer, B., Holmes, G., & Frank, E.
+ * Read, J., Pfahringer, B., Holmes, G., &amp; Frank, E.
  * "Classifier Chains for Multi-Label Classification"
  * Machine Learning, pages 333-359, 2011.
  * </pre>

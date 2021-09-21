@@ -395,6 +395,10 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
             this.indices = storeIndices ? dataset.indices : new int[0];
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public DatasetViewProvenance(Map<String,Provenance> map) {
             super(map);
             this.size = ObjectProvenance.checkAndExtractProvenance(map,SIZE,IntProvenance.class, DatasetViewProvenance.class.getSimpleName());

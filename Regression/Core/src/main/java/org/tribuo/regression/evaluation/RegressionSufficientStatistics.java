@@ -47,6 +47,12 @@ public final class RegressionSufficientStatistics {
     // if useExampleWeights is false, weightSum == n
     final float weightSum;
 
+    /**
+     * Constructs the sufficient statistics for regression metrics.
+     * @param domain The output domain.
+     * @param predictions The predictions.
+     * @param useExampleWeights Should example weights be used.
+     */
     public RegressionSufficientStatistics(ImmutableOutputInfo<Regressor> domain, List<Prediction<Regressor>> predictions, boolean useExampleWeights) {
         this.domain = domain;
         this.n = predictions.size();

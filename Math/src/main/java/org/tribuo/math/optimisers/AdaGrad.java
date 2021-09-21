@@ -52,21 +52,41 @@ public class AdaGrad implements StochasticGradientOptimiser {
 
     private Tensor[] gradsSquared;
 
-    public AdaGrad(double initialLearningRate, double epsilon) {
+    /**
+     * Creates an AdaGrad optimiser using the specified learning rate, epsilon and initial accumulator value.
+     * @param initialLearningRate The learning rate.
+     * @param epsilon The epsilon value for stabilising the gradient inversion.
+     * @param initialValue The initial value for the gradient accumulator.
+     */
+    public AdaGrad(double initialLearningRate, double epsilon, double initialValue) {
         this.initialLearningRate = initialLearningRate;
         this.epsilon = epsilon;
+        this.initialValue = initialValue;
     }
 
     /**
-     * Sets epsilon to 1e-6.
+     * Creates an AdaGrad optimiser using the specified learning rate and epsilon.
+     * <p>
+     * Sets the initial value for the accumulator to zero.
+     * @param initialLearningRate The learning rate.
+     * @param epsilon The epsilon value for stabilising the gradient inversion.
+     */
+    public AdaGrad(double initialLearningRate, double epsilon) {
+        this(initialLearningRate,epsilon,0.0);
+    }
+
+    /**
+     * Creates an AdaGrad optimiser using the specified initial learning rate.
+     * <p>
+     * Sets epsilon to 1e-6, and the initial accumulator value to zero.
      * @param initialLearningRate The learning rate.
      */
     public AdaGrad(double initialLearningRate) {
-        this(initialLearningRate,1e-6);
+        this(initialLearningRate,1e-6,0.0);
     }
 
     /**
-     * For olcut.
+     * For OLCUT.
      */
     private AdaGrad() { }
 

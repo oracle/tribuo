@@ -60,6 +60,12 @@ public class SimpleStringDataSource<T extends Output<T>> extends SimpleTextDataS
      */
     private SimpleStringDataSource() {}
 
+    /**
+     * Constructs a simple string data source from the supplied lines.
+     * @param rawLines The lines to parse.
+     * @param outputFactory The output factory.
+     * @param extractor The feature extractor.
+     */
     public SimpleStringDataSource(List<String> rawLines, OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor) {
         super(outputFactory, extractor);
         this.rawLines = rawLines;
@@ -119,6 +125,10 @@ public class SimpleStringDataSource<T extends Output<T>> extends SimpleTextDataS
             this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE,RESOURCE_HASH, ProvenanceUtil.hashList(DEFAULT_HASH_TYPE,host.rawLines));
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public SimpleStringDataSourceProvenance(Map<String, Provenance> map) {
             this(extractProvenanceInfo(map));
         }

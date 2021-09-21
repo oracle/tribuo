@@ -49,6 +49,9 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
      */
     protected final MutableFeatureMap featureMap;
 
+    /**
+     * Does this dataset have a dense feature space.
+     */
     protected boolean dense = true;
 
     /**
@@ -78,10 +81,20 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
         }
     }
 
+    /**
+     * Builds a dataset from the supplied data source.
+     * @param dataSource The data source.
+     */
     public MutableSequenceDataset(SequenceDataSource<T> dataSource) {
         this(dataSource,dataSource.getProvenance(),dataSource.getOutputFactory());
     }
 
+    /**
+     * Copies the immutable dataset into a mutable dataset.
+     * <p>
+     * This should be infrequently used and mostly exists for the ViterbiTrainer.
+     * @param dataset The dataset to copy.
+     */
     //special purpose constructor created for ViterbiTrainer
     public MutableSequenceDataset(ImmutableSequenceDataset<T> dataset) {
         super(dataset.getProvenance(),dataset.getOutputFactory());

@@ -58,16 +58,50 @@ public final class DataOptions implements Options {
      * The input formats supported by this options object.
      */
     public enum InputFormat {
-        SERIALIZED, LIBSVM, TEXT, CSV, COLUMNAR
+        /**
+         * Serialized Tribuo datasets.
+         */
+        SERIALIZED,
+        /**
+         * LibSVM format data.
+         */
+        LIBSVM,
+        /**
+         * Text data in Tribuo's default text format "output ## text".
+         */
+        TEXT,
+        /**
+         * Simple numeric CSV file.
+         */
+        CSV,
+        /**
+         * A CSV file using a {@link RowProcessor}.
+         */
+        COLUMNAR
     }
 
     /**
      * The delimiters supported by CSV files in this options object.
      */
     public enum Delimiter {
-        COMMA(','), TAB('\t'), SEMICOLON(';');
+        /**
+         * Comma separator.
+         */
+        COMMA(','),
+        /**
+         * Tab separator.
+         */
+        TAB('\t'),
+        /**
+         * Semicolon separator.
+         */
+        SEMICOLON(';');
 
+        /**
+         * The delimiter character.
+         */
         public final char value;
+
         Delimiter(char value) {
             this.value = value;
         }
@@ -78,34 +112,80 @@ public final class DataOptions implements Options {
         return "Options for loading and processing train and test data.";
     }
 
-    @Option(longName="hashing-dimension",usage="Hashing dimension used for standard text format.")
+    /**
+     * Hashing dimension used for standard text format.
+     */
+    @Option(longName = "hashing-dimension", usage = "Hashing dimension used for standard text format.")
     public int hashDim = 0;
-    @Option(longName="ngram",usage="Ngram size to generate when using standard text format.")
+    /**
+     * Ngram size to generate when using standard text format.
+     */
+    @Option(longName = "ngram", usage = "Ngram size to generate when using standard text format.")
     public int ngram = 2;
-    @Option(longName="term-counting",usage="Use term counts instead of boolean when using the standard text format.")
+    /**
+     * Use term counts instead of boolean when using the standard text format.
+     */
+    @Option(longName = "term-counting", usage = "Use term counts instead of boolean when using the standard text format.")
     public boolean termCounting;
-    @Option(charName='f',longName="model-output-path",usage="Path to serialize model to.")
+    /**
+     * Path to serialize model to.
+     */
+    @Option(charName = 'f', longName = "model-output-path", usage = "Path to serialize model to.")
     public Path outputPath;
-    @Option(charName='r',longName="seed",usage="RNG seed.")
+    /**
+     * RNG seed.
+     */
+    @Option(charName = 'r', longName = "seed", usage = "RNG seed.")
     public long seed = Trainer.DEFAULT_SEED;
-    @Option(charName='s',longName="input-format",usage="Loads the data using the specified format.")
+    /**
+     * Loads the data using the specified format.
+     */
+    @Option(charName = 's', longName = "input-format", usage = "Loads the data using the specified format.")
     public InputFormat inputFormat = InputFormat.LIBSVM;
-    @Option(longName="csv-response-name",usage="Response name in the csv file.")
+    /**
+     * Response name in the csv file.
+     */
+    @Option(longName = "csv-response-name", usage = "Response name in the csv file.")
     public String csvResponseName;
-    @Option(longName="csv-delimiter",usage="Delimiter")
+    /**
+     * Delimiter
+     */
+    @Option(longName = "csv-delimiter", usage = "Delimiter")
     public Delimiter delimiter = Delimiter.COMMA;
-    @Option(longName="csv-quote-char",usage="Quote character in the CSV file.")
+    /**
+     * Quote character in the CSV file.
+     */
+    @Option(longName = "csv-quote-char", usage = "Quote character in the CSV file.")
     public char csvQuoteChar = '"';
-    @Option(longName="columnar-row-processor",usage="The name of the row processor from the config file.")
+    /**
+     * The name of the row processor from the config file.
+     */
+    @Option(longName = "columnar-row-processor", usage = "The name of the row processor from the config file.")
     public RowProcessor<?> rowProcessor;
-    @Option(longName="min-count",usage="Minimum cardinality of the features.")
+    /**
+     * Minimum cardinality of the features.
+     */
+    @Option(longName = "min-count", usage = "Minimum cardinality of the features.")
     public int minCount = 0;
-    @Option(charName='u',longName="training-file",usage="Path to the training file.")
+    /**
+     * Path to the training file.
+     */
+    @Option(charName = 'u', longName = "training-file", usage = "Path to the training file.")
     public Path trainingPath;
-    @Option(charName='v',longName="testing-file",usage="Path to the testing file.")
+    /**
+     * Path to the testing file.
+     */
+    @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
     public Path testingPath;
 
-    public <T extends Output<T>> Pair<Dataset<T>,Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
+    /**
+     * Loads the datasets specified in this options.
+     * @param outputFactory The output factory to use.
+     * @param <T> The type of the dataset.
+     * @return A pair of training and test datasets.
+     * @throws IOException If the datasets failed to load.
+     */
+    public <T extends Output<T>> Pair<Dataset<T>, Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
         logger.info(String.format("Loading data from %s", trainingPath));
         Dataset<T> train;
         Dataset<T> test;
@@ -123,13 +203,13 @@ public final class DataOptions implements Options {
                     if (minCount > 0) {
                         logger.info("Found " + train.getFeatureIDMap().size() + " features");
                         logger.info("Removing features that occur fewer than " + minCount + " times.");
-                        train = new MinimumCardinalityDataset<>(train,minCount);
+                        train = new MinimumCardinalityDataset<>(train, minCount);
                     }
                     logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
                     logger.info("Found " + train.getFeatureIDMap().size() + " features, and " + train.getOutputInfo().size() + " response dimensions");
                     @SuppressWarnings("unchecked")
                     Dataset<T> deserTest = (Dataset<T>) oits.readObject();
-                    test = new ImmutableDataset<>(deserTest,deserTest.getSourceProvenance(),deserTest.getOutputFactory(),train.getFeatureIDMap(),train.getOutputIDInfo(),true);
+                    test = new ImmutableDataset<>(deserTest, deserTest.getSourceProvenance(), deserTest.getOutputFactory(), train.getFeatureIDMap(), train.getOutputIDInfo(), true);
                 } catch (ClassNotFoundException e) {
                     throw new IllegalArgumentException("Unknown class in serialised files", e);
                 }
@@ -137,17 +217,17 @@ public final class DataOptions implements Options {
             case LIBSVM:
                 //
                 // Load the libsvm text-based data format.
-                LibSVMDataSource<T> trainSVMSource = new LibSVMDataSource<>(trainingPath,outputFactory);
+                LibSVMDataSource<T> trainSVMSource = new LibSVMDataSource<>(trainingPath, outputFactory);
                 train = new MutableDataset<>(trainSVMSource);
                 boolean zeroIndexed = trainSVMSource.isZeroIndexed();
                 int maxFeatureID = trainSVMSource.getMaxFeatureID();
                 if (minCount > 0) {
                     logger.info("Removing features that occur fewer than " + minCount + " times.");
-                    train = new MinimumCardinalityDataset<>(train,minCount);
+                    train = new MinimumCardinalityDataset<>(train, minCount);
                 }
                 logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
                 logger.info("Found " + train.getFeatureIDMap().size() + " features, and " + train.getOutputInfo().size() + " response dimensions");
-                test = new ImmutableDataset<>(new LibSVMDataSource<>(testingPath,outputFactory,zeroIndexed,maxFeatureID), train.getFeatureIDMap(), train.getOutputIDInfo(), false);
+                test = new ImmutableDataset<>(new LibSVMDataSource<>(testingPath, outputFactory, zeroIndexed, maxFeatureID), train.getFeatureIDMap(), train.getOutputIDInfo(), false);
                 break;
             case TEXT:
                 //
@@ -163,7 +243,7 @@ public final class DataOptions implements Options {
                 train = new MutableDataset<>(trainSource);
                 if (minCount > 0) {
                     logger.info("Removing features that occur fewer than " + minCount + " times.");
-                    train = new MinimumCardinalityDataset<>(train,minCount);
+                    train = new MinimumCardinalityDataset<>(train, minCount);
                 }
 
                 logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
@@ -179,11 +259,11 @@ public final class DataOptions implements Options {
                     throw new IllegalArgumentException("Please supply a response column name");
                 }
                 separator = delimiter.value;
-                CSVLoader<T> loader = new CSVLoader<>(separator,outputFactory);
-                train = new MutableDataset<>(loader.loadDataSource(trainingPath,csvResponseName));
+                CSVLoader<T> loader = new CSVLoader<>(separator, outputFactory);
+                train = new MutableDataset<>(loader.loadDataSource(trainingPath, csvResponseName));
                 logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
                 logger.info("Found " + train.getFeatureIDMap().size() + " features, and " + train.getOutputInfo().size() + " response dimensions");
-                test = new MutableDataset<>(loader.loadDataSource(testingPath,csvResponseName));
+                test = new MutableDataset<>(loader.loadDataSource(testingPath, csvResponseName));
                 break;
             case COLUMNAR:
                 if (rowProcessor == null) {
@@ -196,24 +276,28 @@ public final class DataOptions implements Options {
                 @SuppressWarnings("unchecked") // checked by the if statement above
                 RowProcessor<T> typedRowProcessor = (RowProcessor<T>) rowProcessor;
                 separator = delimiter.value;
-                train = new MutableDataset<>(new CSVDataSource<>(trainingPath,typedRowProcessor,true,separator,csvQuoteChar));
+                train = new MutableDataset<>(new CSVDataSource<>(trainingPath, typedRowProcessor, true, separator, csvQuoteChar));
                 logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
                 logger.info("Found " + train.getFeatureIDMap().size() + " features, and " + train.getOutputInfo().size() + " response dimensions");
-                test = new MutableDataset<>(new CSVDataSource<>(testingPath,typedRowProcessor,true,separator,csvQuoteChar));
+                test = new MutableDataset<>(new CSVDataSource<>(testingPath, typedRowProcessor, true, separator, csvQuoteChar));
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported input format " + inputFormat);
         }
         logger.info(String.format("Loaded %d testing examples", test.size()));
-        return new Pair<>(train,test);
+        return new Pair<>(train, test);
     }
 
+    /**
+     * Saves the model out to the path specified in this options.
+     * @param model The model to save.
+     * @param <T> The type of the model output.
+     * @throws IOException If the model could not be saved.
+     */
     public <T extends Output<T>> void saveModel(Model<T> model) throws IOException {
-        FileOutputStream fout = new FileOutputStream(outputPath.toFile());
-        ObjectOutputStream oout = new ObjectOutputStream(fout);
-        oout.writeObject(model);
-        oout.close();
-        fout.close();
-        logger.info("Serialized model to file: " + outputPath);
+        try (ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(outputPath.toFile()))) {
+            objOut.writeObject(model);
+            logger.info("Serialized model to file: " + outputPath);
+        }
     }
 }

@@ -73,10 +73,22 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
     @Config(description="Evaluation metric to use. The default value is set based on the objective function, so this can be usually left blank.")
     private String evalMetric = "";
 
+    /**
+     * Create an XGBoost trainer.
+     *
+     * @param numTrees Number of trees to boost.
+     */
     public XGBoostClassificationTrainer(int numTrees) {
         this(numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, 4, true, Trainer.DEFAULT_SEED);
     }
 
+    /**
+     * Create an XGBoost trainer.
+     *
+     * @param numTrees Number of trees to boost.
+     * @param numThreads Number of threads to use.
+     * @param silent Silence the training output text.
+     */
     public XGBoostClassificationTrainer(int numTrees, int numThreads, boolean silent) {
         this(numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, numThreads, silent, Trainer.DEFAULT_SEED);
     }

@@ -55,18 +55,39 @@ public class SplitTextData {
         public String getOptionsDescription() {
             return "Splits a standard text format dataset in two.";
         }
-        @Option(charName='s',longName="split-fraction",usage="Split fraction.")
+
+        /**
+         * Split fraction.
+         */
+        @Option(charName = 's', longName = "split-fraction", usage = "Split fraction.")
         public float splitFraction;
-        @Option(charName='i',longName="input-file",usage="Input data file in standard text format.")
+        /**
+         * Input data file in standard text format.
+         */
+        @Option(charName = 'i', longName = "input-file", usage = "Input data file in standard text format.")
         public Path inputPath;
-        @Option(charName='t',longName="training-output-file",usage="Output training data file.")
+        /**
+         * Output training data file.
+         */
+        @Option(charName = 't', longName = "training-output-file", usage = "Output training data file.")
         public Path trainPath;
-        @Option(charName='v',longName="validation-output-file",usage="Output validation data file.")
+        /**
+         * Output validation data file.
+         */
+        @Option(charName = 'v', longName = "validation-output-file", usage = "Output validation data file.")
         public Path validationPath;
-        @Option(charName='r',longName="rng-seed",usage="Seed for the RNG.")
+        /**
+         * Seed for the RNG.
+         */
+        @Option(charName = 'r', longName = "rng-seed", usage = "Seed for the RNG.")
         public long seed = 1;
     }
 
+    /**
+     * Runs the SplitTextData CLI.
+     * @param args The CLI arguments.
+     * @throws IOException If the files could not be read or written to.
+     */
     public static void main(String[] args) throws IOException {
         
         //

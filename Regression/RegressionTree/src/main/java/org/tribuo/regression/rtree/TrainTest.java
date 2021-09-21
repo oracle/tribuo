@@ -82,32 +82,65 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and tests a CART regression model on the specified datasets.";
         }
+
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
-        @Option(longName="csv-response-split-char",usage="Character to split the CSV response on to generate multiple regression dimensions. Defaults to ':'.")
+        /**
+         * Character to split the CSV response on to generate multiple regression dimensions. Defaults to ':'.
+         */
+        @Option(longName = "csv-response-split-char", usage = "Character to split the CSV response on to generate multiple regression dimensions. Defaults to ':'.")
         public char splitChar = ':';
-        @Option(charName='d',longName="max-depth",usage="Maximum depth in the decision tree.")
+        /**
+         * Maximum depth in the decision tree.
+         */
+        @Option(charName = 'd', longName = "max-depth", usage = "Maximum depth in the decision tree.")
         public int depth = 6;
-        @Option(charName='e',longName="split-fraction",usage="Fraction of features in split.")
+        /**
+         * Fraction of features in split.
+         */
+        @Option(charName = 'e', longName = "split-fraction", usage = "Fraction of features in split.")
         public float fraction = 1.0f;
-        @Option(charName='m',longName="min-child-weight",usage="Minimum child weight.")
+        /**
+         * Minimum child weight.
+         */
+        @Option(charName = 'm', longName = "min-child-weight", usage = "Minimum child weight.")
         public float minChildWeight = 5.0f;
-        @Option(charName='p',longName="min-impurity-decrease",usage="Minimumum decrease in impurity required in order" +
-                " for the node to be split.")
+        /**
+         * Minimumum decrease in impurity required in order for the node to be split.
+         */
+        @Option(charName = 'p', longName = "min-impurity-decrease", usage = "Minimumum decrease in impurity required in order for the node to be split.")
         public float minImpurityDecrease = 0.0f;
-        @Option(charName='r',longName="use-random-split-points",usage="Whether to choose split points for features at" +
-                " random.")
+        /**
+         * Whether to choose split points for features at random.
+         */
+        @Option(charName = 'r', longName = "use-random-split-points", usage = "Whether to choose split points for features at random.")
         public boolean useRandomSplitPoints = false;
-        @Option(charName='n',longName="normalize",usage="Normalize the leaf outputs so each leaf sums to 1.0.")
+        /**
+         * Normalize the leaf outputs so each leaf sums to 1.0.
+         */
+        @Option(charName = 'n', longName = "normalize", usage = "Normalize the leaf outputs so each leaf sums to 1.0.")
         public boolean normalize = false;
-        @Option(charName='i',longName="impurity",usage="Impurity measure to use. Defaults to MSE.")
+        /**
+         * Impurity measure to use. Defaults to MSE.
+         */
+        @Option(charName = 'i', longName = "impurity", usage = "Impurity measure to use. Defaults to MSE.")
         public ImpurityType impurityType = ImpurityType.MSE;
-        @Option(charName='t',longName="tree-type",usage="Tree type.")
+        /**
+         * Tree type.
+         */
+        @Option(charName = 't', longName = "tree-type", usage = "Tree type.")
         public TreeType treeType = TreeType.CART_INDEPENDENT;
-        @Option(longName="print-tree",usage="Prints the decision tree.")
+        /**
+         * Prints the decision tree.
+         */
+        @Option(longName = "print-tree", usage = "Prints the decision tree.")
         public boolean printTree;
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

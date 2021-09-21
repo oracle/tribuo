@@ -33,10 +33,10 @@ import java.util.Random;
 public final class GaussianLabelDataSource extends DemoLabelDataSource {
 
     @Config(mandatory = true, description = "2d mean of the first Gaussian.")
-    public double[] firstMean;
+    private double[] firstMean;
 
     @Config(mandatory = true, description = "4 element covariance matrix of the first Gaussian.")
-    public double[] firstCovarianceMatrix;
+    private double[] firstCovarianceMatrix;
 
     @Config(mandatory = true, description = "2d mean of the second Gaussian.")
     private double[] secondMean;

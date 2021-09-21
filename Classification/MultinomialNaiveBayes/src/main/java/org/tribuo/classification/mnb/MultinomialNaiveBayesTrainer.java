@@ -57,10 +57,17 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
 
     private int invocationCount = 0;
 
+    /**
+     * Constructs a multinomial naive bayes trainer using a smoothing value of 1.0.
+     */
     public MultinomialNaiveBayesTrainer() {
         this(1.0);
     }
 
+    /**
+     * Constructs a multinomial naive bayes trainer with the specified smoothing value.
+     * @param alpha The smoothing value.
+     */
     //TODO support different alphas for different features?
     public MultinomialNaiveBayesTrainer(double alpha) {
         if(alpha <= 0.0) {

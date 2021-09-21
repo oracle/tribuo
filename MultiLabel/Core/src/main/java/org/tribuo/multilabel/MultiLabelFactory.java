@@ -40,6 +40,9 @@ import java.util.Set;
 public final class MultiLabelFactory implements OutputFactory<MultiLabel> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The sentinel unknown multi-label output used to signal there is no ground truth value.
+     */
     public static final MultiLabel UNKNOWN_MULTILABEL = new MultiLabel(LabelFactory.UNKNOWN_LABEL);
 
     private static final MultiLabelFactoryProvenance provenance = new MultiLabelFactoryProvenance();

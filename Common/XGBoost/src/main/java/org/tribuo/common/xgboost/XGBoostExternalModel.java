@@ -16,6 +16,7 @@
 
 package org.tribuo.common.xgboost;
 
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.DMatrix;
@@ -220,7 +221,8 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
     public static <T extends Output<T>> XGBoostExternalModel<T> createXGBoostModel(OutputFactory<T> factory, Map<String, Integer> featureMapping, Map<T,Integer> outputMapping, XGBoostOutputConverter<T> outputFunc, String path) {
         try {
             Booster model = XGBoost.loadModel(path);
-            return createXGBoostModel(factory,featureMapping,outputMapping,outputFunc,model,new File(path).toURI().toURL());
+            ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance(new File(path).toURI().toURL());
+            return createXGBoostModel(factory,featureMapping,outputMapping,outputFunc,model,trainerProvenance,Collections.emptyMap());
         } catch (XGBoostError | MalformedURLException e) {
             throw new IllegalArgumentException("Unable to load model from path " + path, e);
         }
@@ -239,7 +241,8 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
     public static <T extends Output<T>> XGBoostExternalModel<T> createXGBoostModel(OutputFactory<T> factory, Map<String, Integer> featureMapping, Map<T,Integer> outputMapping, XGBoostOutputConverter<T> outputFunc, Path path) {
         try {
             Booster model = XGBoost.loadModel(Files.newInputStream(path));
-            return createXGBoostModel(factory,featureMapping,outputMapping,outputFunc,model,path.toUri().toURL());
+            ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance(path.toUri().toURL());
+            return createXGBoostModel(factory,featureMapping,outputMapping,outputFunc,model,trainerProvenance,Collections.emptyMap());
         } catch (XGBoostError | IOException e) {
             throw new IllegalArgumentException("Unable to load model from path " + path, e);
         }
@@ -251,9 +254,6 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
      * Note: the provenance system requires that the URL point to a valid local file and
      * will throw an exception if it is not. However it doesn't check that the file is
      * where the Booster was created from.
-     * We will replace this entry point with one that accepts useful provenance information
-     * for an in-memory {@code Booster} object in a future release, and deprecate this
-     * endpoint at that time.
      * @param factory The output factory to use.
      * @param featureMapping The feature mapping between Tribuo names and XGBoost integer ids.
      * @param outputMapping The output mapping between Tribuo outputs and XGBoost integer ids.
@@ -262,17 +262,54 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
      * @param provenanceLocation The location where the model was loaded from.
      * @param <T> The type of the output.
      * @return An XGBoostExternalModel ready to score new inputs.
+     * @deprecated As the URL argument must always be valid. To wrap an in-memory booster use {@link #createXGBoostModel(OutputFactory, Map, Map, XGBoostOutputConverter, Booster, Map)}.
      */
+    @Deprecated
     public static <T extends Output<T>> XGBoostExternalModel<T> createXGBoostModel(OutputFactory<T> factory, Map<String,Integer> featureMapping, Map<T,Integer> outputMapping, XGBoostOutputConverter<T> outputFunc, Booster model, URL provenanceLocation) {
-        //TODO: add a new version of this method which accepts useful instance provenance information and deprecate this one
+        ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance(provenanceLocation);
+        return createXGBoostModel(factory,featureMapping,outputMapping,outputFunc,model,trainerProvenance,Collections.emptyMap());
+    }
+
+    /**
+     * Creates an {@code XGBoostExternalModel} from the supplied in-memory XGBoost {@code Booster}.
+     * @param factory The output factory to use.
+     * @param featureMapping The feature mapping between Tribuo names and XGBoost integer ids.
+     * @param outputMapping The output mapping between Tribuo outputs and XGBoost integer ids.
+     * @param outputFunc The XGBoostOutputConverter function for the output type.
+     * @param model The XGBoost model to wrap.
+     * @param instanceProvenance Provenance for this model.
+     * @param <T> The type of the output.
+     * @return An XGBoostExternalModel ready to score new inputs.
+     */
+    public static <T extends Output<T>> XGBoostExternalModel<T> createXGBoostModel(OutputFactory<T> factory, Map<String,Integer> featureMapping, Map<T,Integer> outputMapping, XGBoostOutputConverter<T> outputFunc, Booster model, Map<String, Provenance> instanceProvenance) {
+        try {
+            ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance(model.toByteArray());
+            return createXGBoostModel(factory,featureMapping,outputMapping,outputFunc,model,trainerProvenance,instanceProvenance);
+        } catch (XGBoostError e) {
+            throw new IllegalStateException("Unable to extract byte array from booster",e);
+        }
+    }
+
+    /**
+     * Creates an {@code XGBoostExternalModel} from the supplied model.
+     * @param factory The output factory to use.
+     * @param featureMapping The feature mapping between Tribuo names and XGBoost integer ids.
+     * @param outputMapping The output mapping between Tribuo outputs and XGBoost integer ids.
+     * @param outputFunc The XGBoostOutputConverter function for the output type.
+     * @param model The XGBoost model to wrap.
+     * @param trainerProvenance The constructed trainer provenance.
+     * @param instanceProvenance Provenance for this model.
+     * @param <T> The type of the output.
+     * @return An XGBoostExternalModel ready to score new inputs.
+     */
+    private static <T extends Output<T>> XGBoostExternalModel<T> createXGBoostModel(OutputFactory<T> factory, Map<String,Integer> featureMapping, Map<T,Integer> outputMapping, XGBoostOutputConverter<T> outputFunc, Booster model, ExternalTrainerProvenance trainerProvenance, Map<String, Provenance> instanceProvenance) {
         ImmutableFeatureMap featureMap = ExternalModel.createFeatureMap(featureMapping.keySet());
         ImmutableOutputInfo<T> outputInfo = ExternalModel.createOutputInfo(factory,outputMapping);
         OffsetDateTime now = OffsetDateTime.now();
-        ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance(provenanceLocation);
         DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data",factory,false,featureMapping.size(),outputMapping.size());
-        ModelProvenance provenance = new ModelProvenance(XGBoostExternalModel.class.getName(),now,datasetProvenance,trainerProvenance);
+        ModelProvenance provenance = new ModelProvenance(XGBoostExternalModel.class.getName(),now,datasetProvenance,trainerProvenance,instanceProvenance);
         return new XGBoostExternalModel<>("external-model",provenance,featureMap,outputInfo,
-                                          featureMapping,model,outputFunc);
+                featureMapping,model,outputFunc);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

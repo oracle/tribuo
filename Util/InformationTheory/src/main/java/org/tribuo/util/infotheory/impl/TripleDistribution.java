@@ -27,13 +27,21 @@ import java.util.Map.Entry;
 /**
  * Generates the counts for a triplet of vectors. Contains the joint
  * count, the three pairwise counts, and the three marginal counts.
+ * <p>
+ * Relies upon hashCode and equals to determine element equality for counting.
  * @param <T1> Type of the first list.
  * @param <T2> Type of the second list.
  * @param <T3> Type of the third list.
  */
 public class TripleDistribution<T1,T2,T3> {
+    /**
+     * The default map size to initialise the marginalised count maps with.
+     */
     public static final int DEFAULT_MAP_SIZE = 20;
 
+    /**
+     * The number of samples in this distribution.
+     */
     public final long count;
 
     private final Map<CachedTriple<T1,T2,T3>,MutableLong> jointCount;
@@ -44,6 +52,17 @@ public class TripleDistribution<T1,T2,T3> {
     private final Map<T2,MutableLong> bCount;
     private final Map<T3,MutableLong> cCount;
 
+    /**
+     * Constructs a triple distribution from the supplied distributions.
+     * @param count The sample count.
+     * @param jointCount The joint distribution over the three variables.
+     * @param abCount The joint distribution over A and B.
+     * @param acCount The joint distribution over A and C.
+     * @param bcCount The joint distribution over B and C.
+     * @param aCount The marginal distribution over A.
+     * @param bCount The marginal distribution over B.
+     * @param cCount The marginal distribution over C.
+     */
     public TripleDistribution(long count, Map<CachedTriple<T1,T2,T3>,MutableLong> jointCount, Map<CachedPair<T1,T2>,MutableLong> abCount, Map<CachedPair<T1,T3>,MutableLong> acCount, Map<CachedPair<T2,T3>,MutableLong> bcCount, Map<T1,MutableLong> aCount, Map<T2,MutableLong> bCount, Map<T3,MutableLong> cCount) {
         this.count = count;
         this.jointCount = jointCount;
@@ -55,34 +74,74 @@ public class TripleDistribution<T1,T2,T3> {
         this.cCount = cCount;
     }
 
+    /**
+     * The joint distribution over the three variables.
+     * @return The joint distribution.
+     */
     public Map<CachedTriple<T1,T2,T3>,MutableLong> getJointCount() {
         return jointCount;
     }
-    
+
+    /**
+     * The joint distribution over the first and second variables.
+     * @return The joint distribution over A and B.
+     */
     public Map<CachedPair<T1,T2>,MutableLong> getABCount() {
         return abCount;
     }
-    
+
+    /**
+     * The joint distribution over the first and third variables.
+     * @return The joint distribution over A and C.
+     */
     public Map<CachedPair<T1,T3>,MutableLong> getACCount() {
         return acCount;
     }
-    
+
+    /**
+     * The joint distribution over the second and third variables.
+     * @return The joint distribution over B and C.
+     */
     public Map<CachedPair<T2,T3>,MutableLong> getBCCount() {
         return bcCount;
     }
-    
+
+    /**
+     * The marginal distribution over the first variable.
+     * @return The marginal distribution for A.
+     */
     public Map<T1,MutableLong> getACount() {
         return aCount;
     }
-    
+
+    /**
+     * The marginal distribution over the second variable.
+     * @return The marginal distribution for B.
+     */
     public Map<T2,MutableLong> getBCount() {
         return bCount;
     }
-    
+
+    /**
+     * The marginal distribution over the third variable.
+     * @return The marginal distribution for C.
+     */
     public Map<T3,MutableLong> getCCount() {
         return cCount;
     }
-    
+
+    /**
+     * Constructs a TripleDistribution from three lists of the same length.
+     * <p>
+     * If they are not the same length it throws IllegalArgumentException.
+     * @param first The first list.
+     * @param second The second list.
+     * @param third The third list.
+     * @param <T1> The first type.
+     * @param <T2> The second type.
+     * @param <T3> The third type.
+     * @return The TripleDistribution.
+     */
     public static <T1,T2,T3> TripleDistribution<T1,T2,T3> constructFromLists(List<T1> first, List<T2> second, List<T3> third) {
         Map<CachedTriple<T1,T2,T3>,MutableLong> jointCount = new LinkedHashMap<>(DEFAULT_MAP_SIZE);
         Map<CachedPair<T1,T2>,MutableLong> abCount = new HashMap<>(DEFAULT_MAP_SIZE);
@@ -128,6 +187,14 @@ public class TripleDistribution<T1,T2,T3> {
         }
     }
 
+    /**
+     * Constructs a TripleDistribution by marginalising the supplied joint distribution.
+     * @param jointCount The joint distribution.
+     * @param <T1> The type of A.
+     * @param <T2> The type of B.
+     * @param <T3> The type of C.
+     * @return A TripleDistribution.
+     */
     public static <T1,T2,T3> TripleDistribution<T1,T2,T3> constructFromMap(Map<CachedTriple<T1,T2,T3>,MutableLong> jointCount) {
         Map<CachedPair<T1,T2>,MutableLong> abCount = new HashMap<>(DEFAULT_MAP_SIZE);
         Map<CachedPair<T1,T3>,MutableLong> acCount = new HashMap<>(DEFAULT_MAP_SIZE);
@@ -139,6 +206,22 @@ public class TripleDistribution<T1,T2,T3> {
         return constructFromMap(jointCount,abCount,acCount,bcCount,aCount,bCount,cCount);
     }
 
+    /**
+     * Constructs a TripleDistribution by marginalising the supplied joint distribution.
+     * <p>
+     * Sizes are used to preallocate the HashMaps.
+     * @param jointCount The joint distribution.
+     * @param abSize The number of unique AB states.
+     * @param acSize The number of unique AC states.
+     * @param bcSize The number of unique BC states.
+     * @param aSize The number of unique A states.
+     * @param bSize The number of unique B states.
+     * @param cSize The number of unique C states.
+     * @param <T1> The type of A.
+     * @param <T2> The type of B.
+     * @param <T3> The type of C.
+     * @return A TripleDistribution.
+     */
     public static <T1,T2,T3> TripleDistribution<T1,T2,T3> constructFromMap(Map<CachedTriple<T1,T2,T3>,MutableLong> jointCount,
                                                                            int abSize, int acSize, int bcSize,
                                                                            int aSize, int bSize, int cSize) {
@@ -152,6 +235,22 @@ public class TripleDistribution<T1,T2,T3> {
         return constructFromMap(jointCount,abCount,acCount,bcCount,aCount,bCount,cCount);
     }
 
+    /**
+     * Constructs a TripleDistribution by marginalising the supplied joint distribution.
+     * <p>
+     * Sizes are used to preallocate the HashMaps.
+     * @param jointCount The joint distribution.
+     * @param abCount An empty hashmap for AB.
+     * @param acCount An empty hashmap for AC.
+     * @param bcCount An empty hashmap for BC.
+     * @param aCount An empty hashmap for A.
+     * @param bCount An empty hashmap for B.
+     * @param cCount An empty hashmap for C.
+     * @param <T1> The type of A.
+     * @param <T2> The type of B.
+     * @param <T3> The type of C.
+     * @return A TripleDistribution.
+     */
     public static <T1,T2,T3> TripleDistribution<T1,T2,T3> constructFromMap(Map<CachedTriple<T1,T2,T3>,MutableLong> jointCount,
                                                                            Map<CachedPair<T1,T2>,MutableLong> abCount,
                                                                            Map<CachedPair<T1,T3>,MutableLong> acCount,
