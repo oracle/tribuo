@@ -106,7 +106,9 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
                 featureMap.merge(featureInfos.getID(feat.getName()), curWeight*feat.getValue(), Double::sum);
             }
         }
-        if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         TrainerProvenance trainerProvenance = getProvenance();
         ModelProvenance provenance = new ModelProvenance(MultinomialNaiveBayesModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
         invocationCount++;

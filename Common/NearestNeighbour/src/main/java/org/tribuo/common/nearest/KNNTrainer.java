@@ -128,7 +128,9 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
             i++;
         }
 
-        if(invocationCount != INCREMENT_INVOCATION_COUNT){setInvocationCount(invocationCount);}
+        if(invocationCount != INCREMENT_INVOCATION_COUNT){
+            setInvocationCount(invocationCount);
+        }
         invocationCount++;
 
         ModelProvenance provenance = new ModelProvenance(KNNModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);

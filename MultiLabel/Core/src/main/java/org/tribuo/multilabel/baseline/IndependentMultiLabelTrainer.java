@@ -105,7 +105,9 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
             trainingData.regenerateOutputInfo();
             modelsList.add(innerTrainer.train(trainingData));
         }
-        if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         ModelProvenance provenance = new ModelProvenance(IndependentMultiLabelModel.class.getName(), OffsetDateTime.now(), datasetProvenance, getProvenance(), runProvenance);
         trainInvocationCounter++;
         return new IndependentMultiLabelModel(labelList,modelsList,provenance,featureMap,labelInfo);

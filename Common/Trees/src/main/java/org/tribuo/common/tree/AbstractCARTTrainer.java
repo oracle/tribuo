@@ -191,7 +191,9 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         SplittableRandom localRNG;
         TrainerProvenance trainerProvenance;
         synchronized(this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;

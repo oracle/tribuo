@@ -474,7 +474,9 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
         ArrayList<Example<T>> batch = new ArrayList<>();
         Path curCheckpointPath;
         synchronized (this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             curCheckpointPath = checkpointPath != null ? Paths.get(checkpointPath.toString(),"invocation-"+trainInvocationCounter, "tribuo") : null;
             trainInvocationCounter++;
         }

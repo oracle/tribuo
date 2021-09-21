@@ -140,7 +140,9 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
         }
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
-        if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         TrainerProvenance trainerProvenance = getProvenance();
         ModelProvenance provenance = new ModelProvenance(LibLinearModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
         trainInvocationCount++;

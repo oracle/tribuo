@@ -151,7 +151,9 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized(this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;

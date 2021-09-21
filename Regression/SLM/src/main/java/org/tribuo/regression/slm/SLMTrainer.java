@@ -129,7 +129,9 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
 
         TrainerProvenance trainerProvenance;
         synchronized(this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
         }

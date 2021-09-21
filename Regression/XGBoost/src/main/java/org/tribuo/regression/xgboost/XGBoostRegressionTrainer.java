@@ -236,7 +236,9 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<Regressor> outputInfo = examples.getOutputIDInfo();
         int numOutputs = outputInfo.size();
-        if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         TrainerProvenance trainerProvenance = getProvenance();
         trainInvocationCounter++;
         List<Booster> models = new ArrayList<>();

@@ -146,7 +146,9 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized(this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;

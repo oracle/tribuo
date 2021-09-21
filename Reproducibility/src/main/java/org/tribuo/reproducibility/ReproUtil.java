@@ -112,6 +112,8 @@ public class ReproUtil {
         String sourceName = null;
         if (sources.size() > 0){
             //TODO: what if there are more than one sources?
+            //If configuration data only comes from a model prov there should only be one source
+            //but since we expose the configuration manager, a user theoretically could add a new source
             sourceName = sources.get(0);
         }
 

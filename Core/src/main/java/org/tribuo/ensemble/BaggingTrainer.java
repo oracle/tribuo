@@ -144,7 +144,9 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         SplittableRandom localRNG;
         TrainerProvenance trainerProvenance;
         synchronized(this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT){ setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT){
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;

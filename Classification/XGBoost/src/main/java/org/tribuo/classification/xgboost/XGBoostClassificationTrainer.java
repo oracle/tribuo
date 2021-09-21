@@ -186,7 +186,9 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<Label> outputInfo = examples.getOutputIDInfo();
-        if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         TrainerProvenance trainerProvenance = getProvenance();
         trainInvocationCounter++;
         parameters.put("num_class", outputInfo.size());

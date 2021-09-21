@@ -147,7 +147,9 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         SplittableRandom localRNG;
         StochasticGradientOptimiser localOptimiser;
         synchronized(this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             localOptimiser = optimiser.copy();
             trainerProvenance = getProvenance();

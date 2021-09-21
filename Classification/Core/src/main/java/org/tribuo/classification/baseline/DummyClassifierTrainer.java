@@ -92,7 +92,9 @@ public final class DummyClassifierTrainer implements Trainer<Label> {
 
     @Override
     public Model<Label> train(Dataset<Label> examples, Map<String, Provenance> instanceProvenance, int invocationCount) {
-        if(invocationCount != INCREMENT_INVOCATION_COUNT) {this.invocationCount = invocationCount;}
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            this.invocationCount = invocationCount;
+        }
         ModelProvenance provenance = new ModelProvenance(DummyClassifierModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), instanceProvenance);
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         this.invocationCount++;

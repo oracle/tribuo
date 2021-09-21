@@ -193,7 +193,9 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized (this) {
-            if(invocationCount != INCREMENT_INVOCATION_COUNT) {setInvocationCount(invocationCount);}
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
