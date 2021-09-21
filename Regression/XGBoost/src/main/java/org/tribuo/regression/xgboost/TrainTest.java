@@ -49,37 +49,78 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and tests an XGBoost regression model on the specified datasets.";
         }
+
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
 
-        @Option(longName="regression-metric", usage="Regression type to use. Defaults to LINEAR.")
+        /**
+         * Regression type to use. Defaults to LINEAR.
+         */
+        @Option(longName = "regression-metric", usage = "Regression type to use. Defaults to LINEAR.")
         public RegressionType rType = RegressionType.LINEAR;
-        @Option(charName='m',longName="ensemble-size",usage="Number of trees in the ensemble.")
+        /**
+         * Number of trees in the ensemble.
+         */
+        @Option(charName = 'm', longName = "ensemble-size", usage = "Number of trees in the ensemble.")
         public int ensembleSize = -1;
-        @Option(charName='a',longName="alpha",usage="L1 regularization term for weights (default 0).")
+        /**
+         * L1 regularization term for weights (default 0).
+         */
+        @Option(charName = 'a', longName = "alpha", usage = "L1 regularization term for weights (default 0).")
         public float alpha = 0.0f;
-        @Option(longName="min-weight",usage="Minimum sum of instance weights needed in a leaf (default 1, range [0,inf]).")
+        /**
+         * Minimum sum of instance weights needed in a leaf (default 1, range [0,inf]).
+         */
+        @Option(longName = "min-weight", usage = "Minimum sum of instance weights needed in a leaf (default 1, range [0,inf]).")
         public float minWeight = 1;
-        @Option(charName='d',longName="max-depth",usage="Max tree depth (default 6, range (0,inf]).")
+        /**
+         * Max tree depth (default 6, range (0,inf]).
+         */
+        @Option(charName = 'd', longName = "max-depth", usage = "Max tree depth (default 6, range (0,inf]).")
         public int depth = 6;
-        @Option(charName='e',longName="eta",usage="Step size shrinkage parameter (default 0.3, range [0,1]).")
+        /**
+         * Step size shrinkage parameter (default 0.3, range [0,1]).
+         */
+        @Option(charName = 'e', longName = "eta", usage = "Step size shrinkage parameter (default 0.3, range [0,1]).")
         public float eta = 0.3f;
-        @Option(longName="subsample-features",usage="Subsample features for each tree (default 1, range (0,1]).")
+        /**
+         * Subsample features for each tree (default 1, range (0,1]).
+         */
+        @Option(longName = "subsample-features", usage = "Subsample features for each tree (default 1, range (0,1]).")
         public float subsampleFeatures = 1.0f;
-        @Option(charName='g',longName="gamma",usage="Minimum loss reduction to make a split (default 0, range [0,inf]).")
+        /**
+         * Minimum loss reduction to make a split (default 0, range [0,inf]).
+         */
+        @Option(charName = 'g', longName = "gamma", usage = "Minimum loss reduction to make a split (default 0, range [0,inf]).")
         public float gamma = 0.0f;
-        @Option(charName='l',longName="lambda",usage="L2 regularization term for weights (default 1).")
+        /**
+         * L2 regularization term for weights (default 1).
+         */
+        @Option(charName = 'l', longName = "lambda", usage = "L2 regularization term for weights (default 1).")
         public float lambda = 1.0f;
-        @Option(charName='q',longName="quiet",usage="Make the XGBoost training procedure quiet.")
+        /**
+         * Make the XGBoost training procedure quiet.
+         */
+        @Option(charName = 'q', longName = "quiet", usage = "Make the XGBoost training procedure quiet.")
         public boolean quiet;
-        @Option(longName="subsample",usage="Subsample size for each tree (default 1, range (0,1]).")
+        /**
+         * Subsample size for each tree (default 1, range (0,1]).
+         */
+        @Option(longName = "subsample", usage = "Subsample size for each tree (default 1, range (0,1]).")
         public float subsample = 1.0f;
-        @Option(charName='t',longName="num-threads",usage="Number of threads to use (default 4, range (1, num hw threads)).")
+        /**
+         * Number of threads to use (default 4, range (1, num hw threads)).
+         */
+        @Option(charName = 't', longName = "num-threads", usage = "Number of threads to use (default 4, range (1, num hw threads)).")
         public int numThreads = 4;
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
-     * @throws java.io.IOException if there is any error reading the examples.
+     * @throws IOException if there is any error reading the examples.
      */
     public static void main(String[] args) throws IOException {
         //

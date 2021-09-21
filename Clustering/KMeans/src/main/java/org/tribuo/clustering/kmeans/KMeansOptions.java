@@ -30,22 +30,41 @@ import java.util.logging.Logger;
 public class KMeansOptions implements Options {
     private static final Logger logger = Logger.getLogger(KMeansOptions.class.getName());
 
-    @Option(longName="kmeans-interations",usage="Iterations of the k-means algorithm. Defaults to 10.")
+    /**
+     * Iterations of the k-means algorithm. Defaults to 10.
+     */
+    @Option(longName = "kmeans-interations", usage = "Iterations of the k-means algorithm. Defaults to 10.")
     public int iterations = 10;
-    @Option(longName="kmeans-num-centroids",usage="Number of centroids in K-Means. Defaults to 10.")
+    /**
+     * Number of centroids in K-Means. Defaults to 10.
+     */
+    @Option(longName = "kmeans-num-centroids", usage = "Number of centroids in K-Means. Defaults to 10.")
     public int centroids = 10;
-    @Option(longName="kmeans-distance",usage="Distance function in K-Means. Defaults to EUCLIDEAN.")
+    /**
+     * Distance function in K-Means. Defaults to EUCLIDEAN.
+     */
+    @Option(longName = "kmeans-distance", usage = "Distance function in K-Means. Defaults to EUCLIDEAN.")
     public Distance distance = Distance.EUCLIDEAN;
-    @Option(longName="kmeans-initialisation",usage="Initialisation function in K-Means. Defaults to RANDOM.")
+    /**
+     * Initialisation function in K-Means. Defaults to RANDOM.
+     */
+    @Option(longName = "kmeans-initialisation", usage = "Initialisation function in K-Means. Defaults to RANDOM.")
     public Initialisation initialisation = Initialisation.RANDOM;
-    @Option(longName="kmeans-num-threads",usage="Number of computation threads in K-Means. Defaults to 4.")
+    /**
+     * Number of computation threads in K-Means. Defaults to 4.
+     */
+    @Option(longName = "kmeans-num-threads", usage = "Number of computation threads in K-Means. Defaults to 4.")
     public int numThreads = 4;
-    @Option(longName="kmeans-seed", usage = "Sets the random seed for K-Means.")
+    @Option(longName = "kmeans-seed", usage = "Sets the random seed for K-Means.")
     private long seed = Trainer.DEFAULT_SEED;
 
+    /**
+     * Gets the configured KMeansTrainer using the options in this object.
+     * @return A KMeansTrainer.
+     */
     public KMeansTrainer getTrainer() {
         logger.info("Configuring K-Means Trainer");
         //public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, int seed) {
-        return new KMeansTrainer(centroids,iterations,distance,initialisation,numThreads,seed);
+        return new KMeansTrainer(centroids, iterations, distance, initialisation, numThreads, seed);
     }
 }

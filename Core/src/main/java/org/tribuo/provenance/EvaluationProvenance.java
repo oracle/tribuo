@@ -42,6 +42,11 @@ public final class EvaluationProvenance implements ObjectProvenance {
     private final DataProvenance datasetProvenance;
     private final StringProvenance versionString;
 
+    /**
+     * Constructs an evaluation provenance from the supplied provenances.
+     * @param modelProvenance The model provenance.
+     * @param datasetProvenance The test data provenance.
+     */
     public EvaluationProvenance(ModelProvenance modelProvenance, DataProvenance datasetProvenance) {
         this.className = new StringProvenance(CLASS_NAME, EvaluationProvenance.class.getName());
         this.modelProvenance = modelProvenance;
@@ -49,6 +54,10 @@ public final class EvaluationProvenance implements ObjectProvenance {
         this.versionString = new StringProvenance(TRIBUO_VERSION_STRING,Tribuo.VERSION);
     }
 
+    /**
+     * Deserialization constructor.
+     * @param map The provenances.
+     */
     public EvaluationProvenance(Map<String,Provenance> map) {
         this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME,StringProvenance.class, EvaluationProvenance.class.getSimpleName());
         this.modelProvenance = ObjectProvenance.checkAndExtractProvenance(map,MODEL_PROVENANCE_NAME,ModelProvenance.class, EvaluationProvenance.class.getSimpleName());

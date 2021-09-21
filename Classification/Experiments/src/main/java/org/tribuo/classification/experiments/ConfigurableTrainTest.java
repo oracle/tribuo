@@ -65,15 +65,27 @@ public class ConfigurableTrainTest {
             return "Loads a Trainer (and optionally a Datasource) from a config file, trains a Model, tests it and optionally saves it to disk.";
         }
 
+        /**
+         * Options for loading in data.
+         */
         public DataOptions general;
 
-        @Option(charName='t',longName="trainer",usage="Load a trainer from the config file.")
+        /**
+         * Load a trainer from the config file.
+         */
+        @Option(charName = 't', longName = "trainer", usage = "Load a trainer from the config file.")
         public Trainer<Label> trainer;
 
-        @Option(charName='w',longName="weights",usage="A list of weights to use in classification. Format = LABEL_NAME:weight,LABEL_NAME:weight...")
+        /**
+         * A list of weights to use in classification. Format = LABEL_NAME:weight,LABEL_NAME:weight...
+         */
+        @Option(charName = 'w', longName = "weights", usage = "A list of weights to use in classification. Format = LABEL_NAME:weight,LABEL_NAME:weight...")
         public List<String> weights;
 
-        @Option(charName='o',longName="predictions",usage="Path to write model predictions")
+        /**
+         * Path to write model predictions
+         */
+        @Option(charName = 'o', longName = "predictions", usage = "Path to write model predictions")
         public Path predictionPath;
     }
 

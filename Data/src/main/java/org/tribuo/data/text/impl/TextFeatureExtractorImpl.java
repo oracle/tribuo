@@ -25,13 +25,12 @@ import org.tribuo.Output;
 import org.tribuo.data.text.TextFeatureExtractor;
 import org.tribuo.data.text.TextPipeline;
 import org.tribuo.impl.ArrayExample;
-import org.tribuo.impl.ListExample;
 
 import java.util.List;
 
 /**
  * An implementation of {@link TextFeatureExtractor} that takes a
- * {@link TextPipeline} and generates {@link ListExample}.
+ * {@link TextPipeline} and generates {@link ArrayExample}.
  */
 public class TextFeatureExtractorImpl<T extends Output<T>> implements TextFeatureExtractor<T> {
 
@@ -42,7 +41,11 @@ public class TextFeatureExtractorImpl<T extends Output<T>> implements TextFeatur
      * for olcut
      */
     private TextFeatureExtractorImpl() {}
-    
+
+    /**
+     * Constructs a text feature extractor wrapping the supplied text pipeline.
+     * @param pipeline The text processing pipeline.
+     */
     public TextFeatureExtractorImpl(TextPipeline pipeline) {
         this.pipeline = pipeline;
     }

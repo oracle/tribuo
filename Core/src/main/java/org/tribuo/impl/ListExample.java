@@ -49,14 +49,27 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
 
     private final List<Feature> features = new ArrayList<>();
 
+    /**
+     * Constructs a ListExample for the specified output and weight.
+     * @param output The output.
+     * @param weight The example weight.
+     */
     public ListExample(T output, float weight) {
         super(output,weight);
     }
-     
+
+    /**
+     * Constructs a ListExample for the specified output with a weight of {@link Example#DEFAULT_WEIGHT}.
+     * @param output The output.
+     */
     public ListExample(T output) {
         super(output);
     }
 
+    /**
+     * Copies the supplied example's features, weight, output and metadata into this example.
+     * @param other The example to copy.
+     */
     public ListExample(Example<T> other) {
         super(other);
         for (Feature f : other) {
@@ -65,6 +78,11 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
         sort();
     }
 
+    /**
+     * Constructs a ListExample using the specified output and feature list.
+     * @param output The output.
+     * @param features The features.
+     */
     public ListExample(T output, List<? extends Feature> features) {
         super(output);
         for (Feature f : features) {
@@ -73,6 +91,12 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
         sort();
     }
 
+    /**
+     * Constructs a ListExample from the specified output, feature names and feature values.
+     * @param output The output.
+     * @param featureNames The feature names.
+     * @param featureValues The feature values.
+     */
     public ListExample(T output, String[] featureNames, double[] featureValues) {
         super(output);
         if (featureNames.length != featureValues.length) {
@@ -103,7 +127,10 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
         this.features.addAll(features);
         sort();
     }
-    
+
+    /**
+     * Clears the features from this example.
+     */
     public void clear() {
         features.clear();
     }

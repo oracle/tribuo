@@ -76,6 +76,10 @@ public final class LinearClassificationType implements LibLinearType<Label> {
             this.type = type;
         }
 
+        /**
+         * Gets the LibLinear solver type.
+         * @return The solver type.
+         */
         public SolverType getSolverType() {
             return type;
         }
@@ -89,6 +93,10 @@ public final class LinearClassificationType implements LibLinearType<Label> {
      */
     private LinearClassificationType() {}
 
+    /**
+     * Constructs a LinearClassificationType using the supplied algorithm.
+     * @param type The liblinear algorithm.
+     */
     public LinearClassificationType(LinearType type) {
         this.type = type;
     }

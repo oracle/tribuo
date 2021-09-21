@@ -32,6 +32,9 @@ import java.util.function.DoubleUnaryOperator;
  */
 public class Huber implements RegressionObjective {
 
+    /**
+     * The default cost beyond which the function is linear.
+     */
     public static final double DEFAULT_COST = 5;
 
     @Config(description="Cost beyond which the loss function is linear.")

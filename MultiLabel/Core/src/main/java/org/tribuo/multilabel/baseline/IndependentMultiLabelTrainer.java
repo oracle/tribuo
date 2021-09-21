@@ -61,6 +61,10 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
      */
     private IndependentMultiLabelTrainer() {}
 
+    /**
+     * Constructs an independent multi-label trainer wrapped around the supplied classification trainer.
+     * @param innerTrainer The trainer to use for each individual label.
+     */
     public IndependentMultiLabelTrainer(Trainer<Label> innerTrainer) {
         this.innerTrainer = innerTrainer;
     }

@@ -166,6 +166,10 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
             this.minCardinality = new IntProvenance(MIN_CARDINALITY,dataset.minCardinality);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public MinimumCardinalityDatasetProvenance(Map<String,Provenance> map) {
             super(map);
             this.minCardinality = ObjectProvenance.checkAndExtractProvenance(map,MIN_CARDINALITY,IntProvenance.class,MinimumCardinalityDatasetProvenance.class.getSimpleName());

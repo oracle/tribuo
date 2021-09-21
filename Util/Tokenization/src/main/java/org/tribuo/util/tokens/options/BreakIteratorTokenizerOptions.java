@@ -27,6 +27,9 @@ import java.util.Locale;
  */
 public class BreakIteratorTokenizerOptions implements TokenizerOptions {
 
+    /**
+     * BreakIteratorTokenizer - The language tag of the locale to be used.
+     */
     @Option(longName = "bi-tokenizer-language-tag", usage = "BreakIteratorTokenizer - The language tag of the locale to be used.")
     public String languageTag;
 

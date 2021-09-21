@@ -56,6 +56,11 @@ public final class LinearScalingTransformation implements Transformation {
      */
     public LinearScalingTransformation() { }
 
+    /**
+     * Constructs a LinearScalingTransformation which puts feature values into the specified range.
+     * @param targetMin The new minimum feature value.
+     * @param targetMax The new maximum feature value.
+     */
     public LinearScalingTransformation(double targetMin, double targetMax) {
         this.targetMin = targetMin;
         this.targetMax = targetMax;
@@ -99,6 +104,10 @@ public final class LinearScalingTransformation implements Transformation {
             this.targetMax = new DoubleProvenance(TARGET_MAX,host.targetMax);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public LinearScalingTransformationProvenance(Map<String,Provenance> map) {
             targetMin = ObjectProvenance.checkAndExtractProvenance(map,TARGET_MIN,DoubleProvenance.class,LinearScalingTransformationProvenance.class.getSimpleName());
             targetMax = ObjectProvenance.checkAndExtractProvenance(map,TARGET_MAX,DoubleProvenance.class,LinearScalingTransformationProvenance.class.getSimpleName());

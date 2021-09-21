@@ -41,6 +41,10 @@ public class TreeFeature implements Iterable<InvertedFeature> {
 
     private boolean sorted = true;
 
+    /**
+     * Constructs an inverted feature with the specified feature id.
+     * @param id The feature id.
+     */
     public TreeFeature(int id) {
         this.id = id;
         this.feature = new ArrayList<>();
@@ -78,6 +82,10 @@ public class TreeFeature implements Iterable<InvertedFeature> {
         return feature.iterator();
     }
 
+    /**
+     * Gets the inverted feature values for this feature.
+     * @return The list of feature values.
+     */
     public List<InvertedFeature> getFeature() {
         return feature;
     }

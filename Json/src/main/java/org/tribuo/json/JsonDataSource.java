@@ -145,6 +145,10 @@ public class JsonDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
             this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE,RESOURCE_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.dataPath));
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public JsonDataSourceProvenance(Map<String,Provenance> map) {
             this(extractProvenanceInfo(map));
         }
@@ -156,6 +160,11 @@ public class JsonDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
             this.sha256Hash = (HashProvenance) info.instanceValues.get(RESOURCE_HASH);
         }
 
+        /**
+         * Splits the provenance into configurable and non-configurable provenances.
+         * @param map The provenances to split.
+         * @return The extracted information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, JsonDataSourceProvenance.class.getSimpleName()).getValue();

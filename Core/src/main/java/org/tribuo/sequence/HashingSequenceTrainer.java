@@ -48,6 +48,11 @@ public final class HashingSequenceTrainer<T extends Output<T>> implements Sequen
      */
     private HashingSequenceTrainer() {}
 
+    /**
+     * Constructs a hashing sequence trainer using the supplied parameters.
+     * @param trainer The sequence trainer to use.
+     * @param hasher The feature hasher to apply.
+     */
     public HashingSequenceTrainer(SequenceTrainer<T> trainer, Hasher hasher) {
         this.innerTrainer = trainer;
         this.hasher = hasher;
@@ -103,6 +108,10 @@ public final class HashingSequenceTrainer<T extends Output<T>> implements Sequen
             super(host);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public HashingSequenceTrainerProvenance(Map<String, Provenance> map) {
             super(extractProvenanceInfo(map));
         }

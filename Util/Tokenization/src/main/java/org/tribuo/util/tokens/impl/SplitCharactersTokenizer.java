@@ -39,8 +39,14 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
  */
 public class SplitCharactersTokenizer extends SplitFunctionTokenizer {
 
+    /**
+     * The default split characters.
+     */
     public static final char[] DEFAULT_SPLIT_CHARACTERS = new char[] { '*', '(', ')', '&', '[', ']', '{', '}', '`',
             '\'', '|', ';', ':', '\\', '!', '-', '?' };
+    /**
+     * The default characters which don't cause splits inside digits.
+     */
     public static final char[] DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS = new char[] { '.', ',', '/', };
 
     /**

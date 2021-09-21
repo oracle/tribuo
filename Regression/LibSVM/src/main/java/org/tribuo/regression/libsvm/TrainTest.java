@@ -52,23 +52,46 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and tests a LibSVM regression model on the specified datasets.";
         }
+
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
 
-        @Option(longName="coefficient",usage="Intercept in kernel function.")
+        /**
+         * Intercept in kernel function.
+         */
+        @Option(longName = "coefficient", usage = "Intercept in kernel function.")
         public double coeff = 1.0;
-        @Option(charName='d',longName="degree",usage="Degree in polynomial kernel.")
+        /**
+         * Degree in polynomial kernel.
+         */
+        @Option(charName = 'd', longName = "degree", usage = "Degree in polynomial kernel.")
         public int degree = 3;
-        @Option(charName='g',longName="gamma",usage="Gamma value in kernel function.")
+        /**
+         * Gamma value in kernel function.
+         */
+        @Option(charName = 'g', longName = "gamma", usage = "Gamma value in kernel function.")
         public double gamma = 0.0;
-        @Option(charName='k',longName="kernel",usage="Type of SVM kernel.")
+        /**
+         * Type of SVM kernel.
+         */
+        @Option(charName = 'k', longName = "kernel", usage = "Type of SVM kernel.")
         public KernelType kernelType = KernelType.LINEAR;
-        @Option(charName='t',longName="type",usage="Type of SVM.")
+        /**
+         * Type of SVM.
+         */
+        @Option(charName = 't', longName = "type", usage = "Type of SVM.")
         public SVMRegressionType.SVMMode svmType = SVMMode.EPSILON_SVR;
-        @Option(longName="standardize",usage="Standardize the regression outputs internally to the SVM")
+        /**
+         * Standardize the regression outputs internally to the SVM
+         */
+        @Option(longName = "standardize", usage = "Standardize the regression outputs internally to the SVM")
         public boolean standardize = false;
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

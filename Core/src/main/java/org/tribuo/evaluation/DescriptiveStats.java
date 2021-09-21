@@ -31,8 +31,15 @@ public final class DescriptiveStats {
 
     private final List<Double> samples = new ArrayList<>();
 
+    /**
+     * Create an empty DescriptiveStats.
+     */
     public DescriptiveStats() {}
 
+    /**
+     * Create a DescriptiveStats initialized with the supplied values.
+     * @param values The initial values.
+     */
     public DescriptiveStats(List<Double> values) {
         this.samples.addAll(values);
     }

@@ -29,8 +29,15 @@ import java.util.Map;
 public final class EmptyTrainerProvenance implements TrainerProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs an empty trainer provenance.
+     */
     public EmptyTrainerProvenance() { }
 
+    /**
+     * Deserialization constructor.
+     * @param map The provenances, which are ignored as this provenance is empty.
+     */
     public EmptyTrainerProvenance(Map<String,Provenance> map) {}
 
     @Override

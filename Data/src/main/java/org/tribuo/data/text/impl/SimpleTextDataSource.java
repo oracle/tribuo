@@ -76,11 +76,25 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
      */
     protected SimpleTextDataSource() {}
 
+    /**
+     * Constructs a simple text data source by reading lines from the supplied path.
+     * @param path The path to load.
+     * @param outputFactory The output factory to use.
+     * @param extractor The feature extractor.
+     * @throws IOException If the path could not be read.
+     */
     public SimpleTextDataSource(Path path, OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor) throws IOException {
         super(path, outputFactory, extractor);
         postConfig();
     }
 
+    /**
+     * Constructs a simple text data source by reading lines from the supplied file.
+     * @param file The file to load.
+     * @param outputFactory The output factory to use.
+     * @param extractor The feature extractor.
+     * @throws IOException If the file could not be read.
+     */
     public SimpleTextDataSource(File file, OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor) throws IOException {
         super(file, outputFactory, extractor);
         postConfig();
@@ -165,6 +179,10 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
             this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE,RESOURCE_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.path));
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public SimpleTextDataSourceProvenance(Map<String,Provenance> map) {
             this(extractProvenanceInfo(map));
         }

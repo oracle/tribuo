@@ -29,10 +29,17 @@ import java.util.Map;
 public final class EmptyDatasetProvenance extends DatasetProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * An empty dataset provenance.
+     */
     public EmptyDatasetProvenance() {
         super(new EmptyDataSourceProvenance(), new ListProvenance<>(), Dataset.class.getName(), false, false, -1, -1, -1);
     }
 
+    /**
+     * Deserialization constructor.
+     * @param map The provenance map, which is ignored as this provenance is empty.
+     */
     public EmptyDatasetProvenance(Map<String, Provenance> map) {
         this();
     }

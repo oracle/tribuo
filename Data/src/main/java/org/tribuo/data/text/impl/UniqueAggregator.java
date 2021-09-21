@@ -37,10 +37,19 @@ public class UniqueAggregator implements FeatureAggregator {
     @Config(description="Value to emit, if unset emits the last value observed for that token.")
     private double value = Double.NaN;
 
+    /**
+     * Constructs an aggregator that replaces all features with the same
+     * name with a single feature with the specified value.
+     * @param value The inserted feature value.
+     */
     public UniqueAggregator(double value) {
         this.value = value;
     }
 
+    /**
+     * Constructs an aggregator that replaces all features with the same
+     * name with a single feature with the last observed value of that feature.
+     */
     public UniqueAggregator() { }
 
     @Override

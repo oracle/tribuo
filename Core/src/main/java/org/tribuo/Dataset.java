@@ -48,7 +48,6 @@ import java.util.regex.Pattern;
  * A class for sets of data, which are used to train and evaluate classifiers.
  * <p>
  * Subclass {@link MutableDataset} rather than this class.
- * <p>
  * @param <T> the type of the features in the data set.
  */
 public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T>>, Provenancable<DatasetProvenance>, Serializable {

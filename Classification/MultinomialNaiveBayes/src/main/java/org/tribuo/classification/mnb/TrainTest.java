@@ -39,8 +39,17 @@ public class TrainTest {
      * Command line options.
      */
     public static class TrainTestOptions implements Options {
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
+        /**
+         * The multinomial naive bayes options.
+         */
         public MultinomialNaiveBayesOptions mnbOptions;
+        /**
+         * The ensemble options.
+         */
         public ClassificationEnsembleOptions ensembleOptions;
 
         @Override
@@ -50,6 +59,11 @@ public class TrainTest {
 
     }
 
+    /**
+     * Runs a TrainTest CLI.
+     * @param args the command line arguments
+     * @throws IOException if there is any error reading the examples.
+     */
     public static void main(String[] args) throws IOException {
         TrainTestOptions o = new TrainTestOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args,o)){

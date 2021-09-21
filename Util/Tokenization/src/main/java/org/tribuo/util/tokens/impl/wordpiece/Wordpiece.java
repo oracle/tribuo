@@ -45,6 +45,9 @@ import com.oracle.labs.mlrg.olcut.util.IOUtil;
  */
 public class Wordpiece implements Configurable {
 
+    /**
+     * The default unknown token string.
+     */
     public static final String DEFAULT_UNKNOWN_TOKEN = "[UNK]";
 
     @Config(mandatory=true, description="path to a vocabulary data file.")

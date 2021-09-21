@@ -33,15 +33,43 @@ public class HashingOptions implements Options {
     /**
      * Supported types of hashes in CLI programs.
      */
-    public enum ModelHashingType { NONE, MOD, HC, SHA1, SHA256 }
+    public enum ModelHashingType {
+        /**
+         * No hashing applied.
+         */
+        NONE,
+        /**
+         * Takes the String hash code mod some value.
+         */
+        MOD,
+        /**
+         * Uses the String hash code.
+         */
+        HC,
+        /**
+         * Uses SHA-1.
+         */
+        SHA1,
+        /**
+         * Uses SHA-256.
+         */
+        SHA256
+    }
 
-    @Option(longName="model-hashing-algorithm",usage="Hash the model during training, options are {NONE,MOD,HC,SHA1,SHA256}")
+    /**
+     * Hash the model during training, options are {NONE,MOD,HC,SHA1,SHA256}
+     */
+    @Option(longName = "model-hashing-algorithm", usage = "Hash the model during training, options are {NONE,MOD,HC,SHA1,SHA256}")
     public ModelHashingType modelHashingAlgorithm = ModelHashingType.NONE;
-    @Option(longName="model-hashing-salt",usage="Salt for hashing the model")
+    /**
+     * Salt for hashing the model
+     */
+    @Option(longName = "model-hashing-salt", usage = "Salt for hashing the model")
     public String modelHashingSalt = "";
 
     /**
      * Get the specified hasher.
+     *
      * @return The configured hasher.
      */
     public Optional<Hasher> getHasher() {
@@ -69,14 +97,15 @@ public class HashingOptions implements Options {
 
     /**
      * Gets the trainer wrapped in a hashing trainer.
+     *
      * @param innerTrainer The inner trainer.
-     * @param <T> The output type.
+     * @param <T>          The output type.
      * @return The hashing trainer.
      */
     public <T extends Output<T>> Trainer<T> getHashedTrainer(Trainer<T> innerTrainer) {
         Optional<Hasher> hasherOpt = getHasher();
         if (hasherOpt.isPresent()) {
-            return new HashingTrainer<>(innerTrainer,hasherOpt.get());
+            return new HashingTrainer<>(innerTrainer, hasherOpt.get());
         } else {
             throw new IllegalArgumentException("Invalid Hasher");
         }

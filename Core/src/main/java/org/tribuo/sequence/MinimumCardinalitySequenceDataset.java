@@ -188,6 +188,10 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
             this.minCardinality = new IntProvenance(MIN_CARDINALITY, dataset.minCardinality);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public MinimumCardinalitySequenceDatasetProvenance(Map<String, Provenance> map) {
             super(map);
             this.minCardinality = ObjectProvenance.checkAndExtractProvenance(map, MIN_CARDINALITY, IntProvenance.class,

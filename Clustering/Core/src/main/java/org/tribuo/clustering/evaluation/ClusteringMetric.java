@@ -38,6 +38,12 @@ public class ClusteringMetric implements EvaluationMetric<ClusterID, ClusteringM
     private final String name;
     private final BiFunction<MetricTarget<ClusterID>, Context, Double> impl;
 
+    /**
+     * Constructs a clustering metric using the supplied parameters.
+     * @param target The metric target.
+     * @param name The metric name.
+     * @param impl The implementation function.
+     */
     public ClusteringMetric(MetricTarget<ClusterID> target, String name, BiFunction<MetricTarget<ClusterID>, Context, Double> impl) {
         this.target = target;
         this.name = name;
@@ -92,10 +98,18 @@ public class ClusteringMetric implements EvaluationMetric<ClusterID, ClusteringM
             }
         }
 
+        /**
+         * Gets the predicted cluster ids.
+         * @return The predicted cluster ids.
+         */
         public ArrayList<Integer> getPredictedIDs() {
             return predictedIDs;
         }
 
+        /**
+         * Gets the ground truth cluster ids.
+         * @return The ground truth cluster ids.
+         */
         public ArrayList<Integer> getTrueIDs() {
             return trueIDs;
         }

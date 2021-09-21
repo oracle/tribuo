@@ -32,7 +32,7 @@ import java.util.Map;
 public final class HashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
 
-    @Config(mandatory = true,description="Salt used in the hash.")
+    @Config(mandatory = true, redact = true, description="Salt used in the hash.")
     private transient String salt = null;
 
     private static final HashCodeHasherProvenance provenance = new HashCodeHasherProvenance();
@@ -42,6 +42,10 @@ public final class HashCodeHasher extends Hasher {
      */
     private HashCodeHasher() { }
 
+    /**
+     * Constructs a HashCodeHasher using the specified salt value.
+     * @param salt The salt value.
+     */
     public HashCodeHasher(String salt) {
         this.salt = salt;
     }
@@ -87,6 +91,10 @@ public final class HashCodeHasher extends Hasher {
 
         HashCodeHasherProvenance() {}
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public HashCodeHasherProvenance(Map<String, Provenance> map) { }
 
         @Override

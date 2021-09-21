@@ -64,10 +64,21 @@ public class ImmutableSequenceDataset<T extends Output<T>> extends SequenceDatas
         super(sourceProvenance,outputFactory);
     }
 
+    /**
+     * Creates a dataset from a data source, taking the output and feature domains from the supplied model.
+     * @param dataSource The input data.
+     * @param model The model to use for the feature and output domains.
+     */
     public ImmutableSequenceDataset(SequenceDataSource<T> dataSource, SequenceModel<T> model) {
         this(dataSource,dataSource.getProvenance(),model.getFeatureIDMap(),model.getOutputIDInfo(),dataSource.getOutputFactory());
     }
 
+    /**
+     * Creates a dataset from a data source, using the specified output and feature domains.
+     * @param dataSource The input data.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     */
     public ImmutableSequenceDataset(SequenceDataSource<T> dataSource, FeatureMap featureIDMap, OutputInfo<T> outputIDInfo) {
         this(dataSource,dataSource.getProvenance(),featureIDMap,outputIDInfo,dataSource.getOutputFactory());
     }

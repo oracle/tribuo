@@ -39,6 +39,13 @@ import java.util.List;
 public abstract class ConfidencePredictingSequenceModel extends SequenceModel<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a ConfidencePredictingSequenceModel with the supplied parameters.
+     * @param name The model name.
+     * @param description The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param labelIDMap The output domain.
+     */
     protected ConfidencePredictingSequenceModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap) {
         super(name,description,featureIDMap,labelIDMap);
     }
@@ -81,7 +88,13 @@ public abstract class ConfidencePredictingSequenceModel extends SequenceModel<La
      */
     public static class Subsequence implements Serializable {
         private static final long serialVersionUID = 1L;
+        /**
+         * The subsequence start index.
+         */
         public final int begin;
+        /**
+         * The subsequence end index.
+         */
         public final int end;
 
         /**

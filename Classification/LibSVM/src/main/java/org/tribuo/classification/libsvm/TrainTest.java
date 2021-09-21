@@ -46,11 +46,25 @@ public class TrainTest {
             return "Trains and tests a LibSVM model on the specified datasets.";
         }
 
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
+        /**
+         * The LibSVM options.
+         */
         public LibSVMOptions libsvmOptions;
+        /**
+         * The ensemble options.
+         */
         public ClassificationEnsembleOptions ensembleOptions;
     }
 
+    /**
+     * Runs a TrainTest CLI.
+     * @param args the command line arguments
+     * @throws IOException if there is any error reading the examples.
+     */
     public static void main(String[] args) throws IOException {
         TrainTestOptions o = new TrainTestOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args, o)) {

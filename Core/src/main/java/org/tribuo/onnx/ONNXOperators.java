@@ -42,7 +42,6 @@ public enum ONNXOperators {
     SIGMOID("Sigmoid",1,1),
     /**
      * Softmax.
-     * <p>
      * <ul>
      *     <li>{@code axis} defaults to -1.</li>
      * </ul>
@@ -68,7 +67,6 @@ public enum ONNXOperators {
     DIV("Div",2,1),
     /**
      * Compute the minimum along the specified axes of the tensor.
-     * <p>
      * <ul>
      *     <li>{@code axes} defaults to all dimensions.</li>
      *     <li>{@code keepdims} defaults to 1 which means keep.</li>
@@ -80,7 +78,6 @@ public enum ONNXOperators {
     )),
     /**
      * Compute the sum along the specified axes of the tensor.
-     * <p>
      * <ul>
      *     <li>{@code axes} defaults to all dimensions.</li>
      *     <li>{@code keepdims} defaults to 1 which means keep.</li>
@@ -92,7 +89,6 @@ public enum ONNXOperators {
     )),
     /**
      * General Matrix Multiply: alpha*AB + beta*C.
-     * <p>
      * <ul>
      *     <li>{@code alpha} defaults to 1.0</li>
      *     <li>{@code beta} defaults to 1.0</li>

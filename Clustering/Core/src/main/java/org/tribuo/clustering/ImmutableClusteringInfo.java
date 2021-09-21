@@ -38,6 +38,10 @@ public class ImmutableClusteringInfo extends ClusteringInfo implements Immutable
 
     private final Set<ClusterID> domain;
 
+    /**
+     * Constructs an immutable clustering info from the supplied cluster counts.
+     * @param counts The cluster counts.
+     */
     public ImmutableClusteringInfo(Map<Integer,MutableLong> counts) {
         super();
         clusterCounts.putAll(MutableNumber.copyMap(counts));
@@ -49,6 +53,10 @@ public class ImmutableClusteringInfo extends ClusteringInfo implements Immutable
         domain = Collections.unmodifiableSet(outputs);
     }
 
+    /**
+     * Copies the supplied clustering info, generating id numbers.
+     * @param other The clustering info to copy.
+     */
     public ImmutableClusteringInfo(ClusteringInfo other) {
         super(other);
         Set<ClusterID> outputs = new HashSet<>();

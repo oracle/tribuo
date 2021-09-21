@@ -36,6 +36,9 @@ public class InvertedFeature implements Comparable<InvertedFeature> {
 
     private static final int DEFAULT_SIZE = 8;
 
+    /**
+     * The feature value of this object.
+     */
     public final double value;
 
     /**
@@ -49,12 +52,22 @@ public class InvertedFeature implements Comparable<InvertedFeature> {
      */
     private int index;
 
+    /**
+     * Constructs an inverted feature for the specified value which occurs at the specified indices.
+     * @param value The value.
+     * @param indices The indices where the value occurs.
+     */
     public InvertedFeature(double value, int[] indices) {
         this.value = value;
         this.indices = indices;
         this.curSize = indices.length;
     }
 
+    /**
+     * Constructs an inverted feature for the specifed value which occurs at a single index.
+     * @param value The value.
+     * @param index The index where the value occurs.
+     */
     public InvertedFeature(double value, int index) {
         this.value = value;
         this.index = index;
@@ -71,6 +84,10 @@ public class InvertedFeature implements Comparable<InvertedFeature> {
         }
     }
 
+    /**
+     * Adds an index where the feature value occurs.
+     * @param index The index.
+     */
     public void add(int index) {
         if (indices == null) {
             initArrays();
@@ -87,6 +104,10 @@ public class InvertedFeature implements Comparable<InvertedFeature> {
         curSize++;
     }
 
+    /**
+     * Gets the indices where this feature value occurs.
+     * @return The indices.
+     */
     public int[] indices() {
         if (indices != null) {
             return indices;
@@ -97,6 +118,11 @@ public class InvertedFeature implements Comparable<InvertedFeature> {
         }
     }
 
+    /**
+     * Fixes the size of the backing array.
+     * <p>
+     * Used when all the feature values have been observed.
+     */
     public void fixSize() {
         if (indices != null) {
             indices = Arrays.copyOf(indices, curSize);
@@ -219,6 +245,10 @@ public class InvertedFeature implements Comparable<InvertedFeature> {
         }
     }
 
+    /**
+     * Copies this inverted feature.
+     * @return A copy of this feature.
+     */
     public InvertedFeature deepCopy() {
         return new InvertedFeature(this);
     }

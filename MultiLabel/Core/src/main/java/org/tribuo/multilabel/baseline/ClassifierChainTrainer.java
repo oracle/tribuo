@@ -65,7 +65,7 @@ import java.util.logging.Logger;
  * <p>
  * See:
  * <pre>
- * Read, J., Pfahringer, B., Holmes, G., & Frank, E.
+ * Read, J., Pfahringer, B., Holmes, G., &amp; Frank, E.
  * "Classifier Chains for Multi-Label Classification"
  * Machine Learning, pages 333-359, 2011.
  * </pre>
@@ -73,9 +73,21 @@ import java.util.logging.Logger;
 public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
     private static final Logger logger = Logger.getLogger(ClassifierChainTrainer.class.getName());
 
+    /**
+     * The prefix for classifier chain added features.
+     */
     public static final String CC_PREFIX = "CC_FEATURES";
+    /**
+     * The string used in the feature name for positive labels.
+     */
     public static final String CC_POSITIVE = "POSITIVE";
+    /**
+     * The string used in the feature name for negative labels.
+     */
     public static final String CC_NEGATIVE = "NEGATIVE";
+    /**
+     * The joiner character for classifier chain added features.
+     */
     public static final String CC_SEPARATOR = "_";
 
     @Config(mandatory = true, description = "The trainer to use.")

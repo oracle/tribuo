@@ -33,14 +33,29 @@ public class LibSVMOptions implements ClassificationOptions<LibSVMClassification
         return "Options for parameterising a LibSVM classification trainer.";
     }
 
+    /**
+     * Intercept in kernel function. Defaults to 0.0.
+     */
     @Option(longName = "svm-coefficient", usage = "Intercept in kernel function. Defaults to 0.0.")
     public double svmCoefficient = 0.0;  //TODO should this be 1.0?
+    /**
+     * Degree in polynomial kernel. Defaults to 3.
+     */
     @Option(longName = "svm-degree", usage = "Degree in polynomial kernel. Defaults to 3.")
     public int svmDegree = 3;
+    /**
+     * Gamma value in kernel function. Defaults to 0.0.
+     */
     @Option(longName = "svm-gamma", usage = "Gamma value in kernel function. Defaults to 0.0.")
     public double svmGamma = 0.0;  //TODO should the default be 0.1
+    /**
+     * Type of SVM kernel. Defaults to LINEAR.
+     */
     @Option(longName = "svm-kernel", usage = "Type of SVM kernel. Defaults to LINEAR.")
     public KernelType svmKernel = KernelType.LINEAR;
+    /**
+     * Type of SVM. Defaults to C_SVC.
+     */
     @Option(longName = "svm-type", usage = "Type of SVM. Defaults to C_SVC.")
     public SVMClassificationType.SVMMode svmType = SVMMode.C_SVC;
 

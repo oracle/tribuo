@@ -50,7 +50,11 @@ import java.util.stream.Collectors;
 public class MultiLabel implements Classifiable<MultiLabel> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The string for the binary negative label.
+     */
     public static final String NEGATIVE_LABEL_STRING = "ML##NEGATIVE";
+
     /**
      * A Label representing the binary negative label. Used in binary
      * approaches to multi-label classification to represent the absence

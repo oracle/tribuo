@@ -34,6 +34,9 @@ import java.util.Objects;
 public class ClusterID implements Output<ClusterID> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The sentinel unassigned cluster ID.
+     */
     public static final int UNASSIGNED = -1;
 
     private final int id;

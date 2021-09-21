@@ -31,9 +31,14 @@ import java.nio.file.Path;
  * Utils for working with classpath resources at test time.
  */
 public final class Resources {
-    private Resources() {
-    }
+    private Resources() {}
 
+    /**
+     * Copies a classpath resource to a temporary file.
+     * @param resource The resource to copy.
+     * @return The path of the temporary file.
+     * @throws IOException If the resource could not be copied.
+     */
     public static Path copyResourceToTmp(String resource) throws IOException {
         Path path = Files.createTempFile("test", ".csv");
         path.toFile().deleteOnExit();

@@ -60,22 +60,40 @@ public final class CompletelyConfigurableTrainTest {
             return "Loads a Trainer and two DataSources from a config file, trains a Model, tests it and optionally saves it to disk.";
         }
 
-        @Option(charName='f',longName="model-output-path",usage="Path to serialize model to.")
+        /**
+         * Path to serialize model to.
+         */
+        @Option(charName = 'f', longName = "model-output-path", usage = "Path to serialize model to.")
         public Path outputPath;
 
-        @Option(charName='u',longName="train-source",usage="Load the training DataSource from the config file.")
+        /**
+         * Load the training DataSource from the config file.
+         */
+        @Option(charName = 'u', longName = "train-source", usage = "Load the training DataSource from the config file.")
         public ConfigurableDataSource<?> trainSource;
 
-        @Option(charName='v',longName="test-source",usage="Load the testing DataSource from the config file.")
+        /**
+         * Load the testing DataSource from the config file.
+         */
+        @Option(charName = 'v', longName = "test-source", usage = "Load the testing DataSource from the config file.")
         public ConfigurableDataSource<?> testSource;
 
-        @Option(charName='t',longName="trainer",usage="Load a trainer from the config file.")
+        /**
+         * Load a trainer from the config file.
+         */
+        @Option(charName = 't', longName = "trainer", usage = "Load a trainer from the config file.")
         public Trainer<?> trainer;
 
-        @Option(longName="transformer",usage="Load a transformation map from the config file.")
+        /**
+         * Load a transformation map from the config file.
+         */
+        @Option(longName = "transformer", usage = "Load a transformation map from the config file.")
         public TransformationMap transformationMap;
 
-        @Option(charName='m',longName="minimum-count",usage="Remove features which occur fewer than <int> times.")
+        /**
+         * Remove features which occur fewer than m times.
+         */
+        @Option(charName = 'm', longName = "minimum-count", usage = "Remove features which occur fewer than <int> times.")
         public int minCount = -1;
     }
 

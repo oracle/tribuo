@@ -48,9 +48,21 @@ import java.util.stream.Stream;
 public final class InformationTheory {
     private static final Logger logger = Logger.getLogger(InformationTheory.class.getName());
 
+    /**
+     * The ratio of samples to symbols before emitting a warning.
+     */
     public static final double SAMPLES_RATIO = 5.0;
+    /**
+     * The initial size of the various maps.
+     */
     public static final int DEFAULT_MAP_SIZE = 20;
+    /**
+     * Log base 2.
+     */
     public static final double LOG_2 = Math.log(2);
+    /**
+     * Log base e.
+     */
     public static final double LOG_E = Math.log(Math.E);
 
     /**
@@ -528,13 +540,18 @@ public final class InformationTheory {
 
     /**
      * A tuple of the information theoretic value, along with the number of
-     * states in the random variable.
+     * states in the random variable. Will be a record one day.
      */
     private static class ScoreStateCountTuple {
         public final double score;
         public final int stateCount;
 
-        public ScoreStateCountTuple(double score, int stateCount) {
+        /**
+         * Construct a score state tuple
+         * @param score The score.
+         * @param stateCount The number of states.
+         */
+        ScoreStateCountTuple(double score, int stateCount) {
             this.score = score;
             this.stateCount = stateCount;
         }
@@ -547,12 +564,30 @@ public final class InformationTheory {
 
     /**
      * An immutable named tuple containing the statistics from a G test.
+     * <p>
+     * Will be a record one day.
      */
     public static final class GTestStatistics {
+        /**
+         * The G test statistic.
+         */
         public final double gStatistic;
+        /**
+         * The number of states.
+         */
         public final int numStates;
+        /**
+         * The probability of that statistic.
+         */
         public final double probability;
 
+        /**
+         * Constructs a GTestStatistics tuple with the supplied values.
+         * @param gStatistic The g test statistic.
+         * @param numStates The number of states.
+         * @param probability The probability of that statistic.
+         */
+        // TODO should be package private.
         public GTestStatistics(double gStatistic, int numStates, double probability) {
             this.gStatistic = gStatistic;
             this.numStates = numStates;

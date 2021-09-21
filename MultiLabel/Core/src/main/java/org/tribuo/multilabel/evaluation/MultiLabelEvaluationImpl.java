@@ -271,4 +271,13 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
                 .getID());
     }
 
+    @Override
+    public double get(MetricID<MultiLabel> key) {
+        Double value = results.get(key);
+        if (value == null) {
+            throw new IllegalArgumentException("Metric value not found: " + key.toString());
+        }
+        return value;
+    }
+
 }

@@ -25,10 +25,16 @@ import org.tribuo.util.tokens.impl.SplitCharactersTokenizer;
  */
 public class SplitCharactersTokenizerOptions implements TokenizerOptions {
 
+    /**
+     * The characters to split on.
+     */
     @Option(longName = "sc-tokenizer-split-characters", usage = "The characters to split on.")
     public char[] splitChars = SplitCharactersTokenizer.DEFAULT_SPLIT_CHARACTERS;
     ;
 
+    /**
+     * Characters to split on unless they appear between digits
+     */
     @Option(longName = "sc-tokenizer-split-x-digits", usage = "Characters to split on unless they appear between digits")
     public char[] splitXDigitsChars = SplitCharactersTokenizer.DEFAULT_SPLIT_EXCEPTING_IN_DIGITS_CHARACTERS;
 

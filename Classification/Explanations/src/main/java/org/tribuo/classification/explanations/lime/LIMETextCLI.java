@@ -57,7 +57,7 @@ import java.util.logging.Logger;
 public class LIMETextCLI implements CommandGroup {
     private static final Logger logger = Logger.getLogger(LIMETextCLI.class.getName());
 
-    protected CommandInterpreter shell;
+    private final CommandInterpreter shell;
 
     private Model<Label> model;
 
@@ -74,6 +74,9 @@ public class LIMETextCLI implements CommandGroup {
 
     private LIMEText limeText = null;
 
+    /**
+     * Constructs a LIME CLI.
+     */
     public LIMETextCLI() {
         shell = new CommandInterpreter();
         shell.setPrompt("lime-text sh% ");
@@ -89,6 +92,10 @@ public class LIMETextCLI implements CommandGroup {
         return "Commands for experimenting with LIME Text.";
     }
 
+    /**
+     * Completers for filenames.
+     * @return The filename completers.
+     */
     public Completer[] fileCompleter() {
         return new Completer[]{
                 new Completers.FileNameCompleter(),
@@ -104,6 +111,12 @@ public class LIMETextCLI implements CommandGroup {
         shell.start();
     }
 
+    /**
+     * Loads a model in from disk.
+     * @param ci The command interpreter.
+     * @param path The path to load the model from.
+     * @return A status message.
+     */
     @Command(usage = "<filename> - Load a model from disk.", completers="fileCompleter")
     public String loadModel(CommandInterpreter ci, File path) {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
@@ -126,16 +139,32 @@ public class LIMETextCLI implements CommandGroup {
         return "Loaded model from path " + path.toString();
     }
 
+    /**
+     * Does the model generate probabilities.
+     * @param ci The command interpreter.
+     * @return True if the model generates probabilities.
+     */
     @Command(usage="Does the model generate probabilities")
     public String generatesProbabilities(CommandInterpreter ci) {
         return ""+model.generatesProbabilities();
     }
 
+    /**
+     * Shows the model description.
+     * @param ci The command interpreter.
+     * @return The model description.
+     */
     @Command(usage="Shows the model description")
     public String modelDescription(CommandInterpreter ci) {
         return model.toString();
     }
 
+    /**
+     * Shows information on a particular feature.
+     * @param ci The command interpreter.
+     * @param featureName The feature to show.
+     * @return Feature information.
+     */
     @Command(usage="Shows the information on a particular feature")
     public String featureInfo(CommandInterpreter ci, String featureName) {
         VariableInfo f = model.getFeatureIDMap().get(featureName);
@@ -146,21 +175,33 @@ public class LIMETextCLI implements CommandGroup {
         }
     }
 
-    @Command(usage="Shows the output information.")
-    public String outputInfo(CommandInterpreter ci) {
-        return model.getOutputIDInfo().toReadableString();
-    }
-
+    /**
+     * Shows the top features of the loaded model.
+     * @param ci The command interpeter.
+     * @param numFeatures The number of features to show.
+     * @return The top features of the model.
+     */
     @Command(usage="<int> - Shows the top N features in the model")
     public String topFeatures(CommandInterpreter ci, int numFeatures) {
         return ""+ model.getTopFeatures(numFeatures);
     }
 
+    /**
+     * Shows the number of features.
+     * @param ci The command interpreter.
+     * @return The number of features in the model.
+     */
     @Command(usage="Shows the number of features in the model")
     public String numFeatures(CommandInterpreter ci) {
         return ""+ model.getFeatureIDMap().size();
     }
 
+    /**
+     * Shows the number of features that occurred more than minCount times.
+     * @param ci The command interpreter.
+     * @param minCount The minimum feature occurrence.
+     * @return The number of features with more than minCount occurrences.
+     */
     @Command(usage="<min count> - Shows the number of features that occurred more than min count times.")
     public String minCount(CommandInterpreter ci, int minCount) {
         int counter = 0;
@@ -172,17 +213,34 @@ public class LIMETextCLI implements CommandGroup {
         return counter + " features occurred more than " + minCount + " times.";
     }
 
+    /**
+     * Shows the output statistics.
+     * @param ci The command interpreter.
+     * @return The output statistics.
+     */
     @Command(usage="Shows the output statistics")
     public String showLabelStats(CommandInterpreter ci) {
         return "Label histogram : \n" + model.getOutputIDInfo().toReadableString();
     }
 
+    /**
+     * Sets the number of samples to use in LIME.
+     * @param ci The command interpreter.
+     * @param newNumSamples The number of samples to use in LIME.
+     * @return A status message.
+     */
     @Command(usage="Sets the number of samples to use in LIME")
     public String setNumSamples(CommandInterpreter ci, int newNumSamples) {
         numSamples = newNumSamples;
         return "Set number of samples to " + numSamples;
     }
 
+    /**
+     * Explains a text classification.
+     * @param ci The command interpreter.
+     * @param tokens A space separated token stream.
+     * @return An explanation.
+     */
     @Command(usage="Explain a text classification")
     public String explain(CommandInterpreter ci, String[] tokens) {
         String text = String.join(" ",tokens);
@@ -196,6 +254,12 @@ public class LIMETextCLI implements CommandGroup {
         return "Explanation = " + explanation.toString();
     }
 
+    /**
+     * Sets the number of features LIME should use in an explanation.
+     * @param ci The command interpreter.
+     * @param newNumFeatures The number of features.
+     * @return A status message.
+     */
     @Command(usage="Sets the number of features LIME should use in an explanation")
     public String setNumFeatures(CommandInterpreter ci, int newNumFeatures) {
         numFeatures = newNumFeatures;
@@ -205,6 +269,12 @@ public class LIMETextCLI implements CommandGroup {
         return "Set the number of features in LIME to " + numFeatures;
     }
 
+    /**
+     * Makes a prediction using the loaded model.
+     * @param ci The command interpreter.
+     * @param tokens A space separated token stream.
+     * @return The prediction.
+     */
     @Command(usage="Make a prediction")
     public String predict(CommandInterpreter ci, String[] tokens) {
         String text = String.join(" ",tokens);
@@ -218,10 +288,17 @@ public class LIMETextCLI implements CommandGroup {
      * Command line options.
      */
     public static class LIMETextCLIOptions implements Options {
-        @Option(charName='f',longName="filename",usage="Model file to load. Optional.")
+        /**
+         * Model file to load. Optional.
+         */
+        @Option(charName = 'f', longName = "filename", usage = "Model file to load. Optional.")
         public String modelFilename;
     }
 
+    /**
+     * Runs a LIMETextCLI.
+     * @param args The CLI arguments.
+     */
     public static void main(String[] args) {
         LIMETextCLI.LIMETextCLIOptions options = new LIMETextCLI.LIMETextCLIOptions();
         try {

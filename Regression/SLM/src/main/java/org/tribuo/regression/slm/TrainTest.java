@@ -77,21 +77,41 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and tests a sparse linear regression model on the specified datasets.";
         }
+
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
 
-        @Option(charName='m',longName="max-features-num", usage="Set the maximum number of features.")
+        /**
+         * Set the maximum number of features.
+         */
+        @Option(charName = 'm', longName = "max-features-num", usage = "Set the maximum number of features.")
         public int maxNumFeatures = -1;
-        @Option(charName='a',longName="algorithm", usage="Choose the training algorithm (stepwise forward selection or least angle regression).")
+        /**
+         * Choose the training algorithm (stepwise forward selection or least angle regression).
+         */
+        @Option(charName = 'a', longName = "algorithm", usage = "Choose the training algorithm (stepwise forward selection or least angle regression).")
         public SLMType algorithm = SLMType.LARS;
-        @Option(charName='b',longName="alpha", usage="Regularisation strength in the Elastic Net.")
+        /**
+         * Regularisation strength in the Elastic Net.
+         */
+        @Option(charName = 'b', longName = "alpha", usage = "Regularisation strength in the Elastic Net.")
         public double alpha = 1.0;
-        @Option(charName='l',longName="l1Ratio", usage="Ratio between the l1 and l2 penalties in the Elastic Net. Must be between 0 and 1.")
+        /**
+         * Ratio between the l1 and l2 penalties in the Elastic Net. Must be between 0 and 1.
+         */
+        @Option(charName = 'l', longName = "l1Ratio", usage = "Ratio between the l1 and l2 penalties in the Elastic Net. Must be between 0 and 1.")
         public double l1Ratio = 1.0;
-        @Option(longName="iterations",usage="Iterations of Elastic Net.")
+        /**
+         * Iterations of Elastic Net.
+         */
+        @Option(longName = "iterations", usage = "Iterations of Elastic Net.")
         public int iterations = 500;
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

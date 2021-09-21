@@ -58,6 +58,10 @@ public class SVMClassificationType implements SVMType<Label> {
      */
     private SVMClassificationType() {}
 
+    /**
+     * Constructs an SVMClassificationType using the supplied SVM algorithm.
+     * @param type The SVM algorithm.
+     */
     public SVMClassificationType(SVMMode type) {
         this.type = type;
     }

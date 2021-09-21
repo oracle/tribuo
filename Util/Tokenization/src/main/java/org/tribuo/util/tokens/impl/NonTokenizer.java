@@ -32,6 +32,9 @@ public class NonTokenizer implements Tokenizer {
 
     private boolean done = false;
 
+    /**
+     * Constructs a NonTokenizer.
+     */
     public NonTokenizer() { }
 
     @Override

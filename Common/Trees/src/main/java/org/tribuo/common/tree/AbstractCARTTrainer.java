@@ -91,7 +91,6 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
 
     protected int trainInvocationCounter;
 
-
     /**
      * After calls to this superconstructor subclasses must call postConfig().
      * @param maxDepth The maximum depth of the tree.
@@ -246,6 +245,12 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         return new TreeModel<>("cart-tree", provenance, featureIDMap, outputIDInfo, false, root.convertTree());
     }
 
+    /**
+     * Makes the initial training node.
+     * @param examples The dataset to use.
+     * @param leafDeterminer The leaf determination function.
+     * @return The initial training node.
+     */
     protected abstract AbstractTrainingNode<T> mkTrainingNode(Dataset<T> examples,
                                                               AbstractTrainingNode.LeafDeterminer leafDeterminer);
 
@@ -256,10 +261,19 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     protected static abstract class AbstractCARTTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Constructs a provenance for the host AbstractCARTTrainer.
+         * @param host The host trainer.
+         * @param <T> The trainer type.
+         */
         protected <T extends Output<T>> AbstractCARTTrainerProvenance(AbstractCARTTrainer<T> host) {
             super(host);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenance map.
+         */
         protected AbstractCARTTrainerProvenance(Map<String,Provenance> map) {
             super(map);
         }
