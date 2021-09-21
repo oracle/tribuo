@@ -237,6 +237,7 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
 
         rng = new SplittableRandom(seed);
         SplittableRandom localRNG;
+        trainInvocationCounter = 0;
 
         for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
             localRNG = rng.split();

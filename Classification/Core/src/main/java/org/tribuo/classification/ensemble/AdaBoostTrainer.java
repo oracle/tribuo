@@ -235,7 +235,7 @@ public class AdaBoostTrainer implements Trainer<Label> {
 
         rng = new SplittableRandom(seed);
         SplittableRandom localRNG;
-
+        trainInvocationCounter = 0;
         for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
             localRNG = rng.split();
             trainInvocationCounter++;

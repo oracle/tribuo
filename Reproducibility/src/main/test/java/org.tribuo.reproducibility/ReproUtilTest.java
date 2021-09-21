@@ -31,9 +31,12 @@ import org.tribuo.data.columnar.processors.field.TextFieldProcessor;
 import org.tribuo.data.columnar.processors.response.FieldResponseProcessor;
 import org.tribuo.data.csv.CSVDataSource;
 import org.tribuo.data.csv.CSVLoader;
+import org.tribuo.data.csv.CSVSaver;
 import org.tribuo.data.text.impl.BasicPipeline;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.evaluation.TrainTestSplitter;
+import org.tribuo.provenance.impl.TrainerProvenanceImpl;
+import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
 import org.tribuo.regression.example.RegressionDataGenerator;
@@ -70,12 +73,30 @@ class ReproUtilTest {
     @TempDir
     static Path tempDir;
 
+    static Path tempFile;
+
     @BeforeAll
     public static void setup() {
         Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class, BaggingTrainer.class};
         for (Class<?> c : classes) {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
+        }
+
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+
+        tempFile = null;
+        try {
+            tempFile = Files.createFile(tempDir.resolve("dense.csv"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        CSVSaver saver = new CSVSaver();
+
+        try {
+            saver.save(tempFile, p.getA(), "response");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -157,6 +178,19 @@ class ReproUtilTest {
 
         try {
             tempSource = csvLoader.loadDataSource(tempFile,"response", tempHeaders);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return tempSource;
+    }
+
+    private DataSource getConfigurableRegressionDenseTrain(){
+        DataSource tempSource = null;
+        RegressionFactory regressionFactory = new RegressionFactory();
+        CSVLoader csvLoader = new CSVLoader(regressionFactory);
+        try {
+            tempSource = csvLoader.loadDataSource(tempFile,"response");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -314,15 +348,12 @@ class ReproUtilTest {
 
     @Test
     public void testBaggingTrainer(){
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-
+        //TODO: Will need more extensive testing here
         CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE,
                 MIN_EXAMPLES, 0.0f, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
         RandomForestTrainer<Regressor> rfT = new RandomForestTrainer<>(subsamplingTree,new AveragingCombiner(),10);
-
-        Model<Regressor> model = rfT.train(p.getA());
-        rfT.train(p.getA());
-        Model<Regressor> diff_model = rfT.train(p.getA());
+        Dataset<Regressor> trainData = new MutableDataset<>(getConfigurableRegressionDenseTrain());
+        Model<Regressor> model = rfT.train(trainData);
 
         ReproUtil reproUtil = null;
         try {
@@ -330,9 +361,49 @@ class ReproUtilTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        RandomForestTrainer<Regressor> new_rfT = (RandomForestTrainer<Regressor>) reproUtil.recoverTrainer();
-        Model<Regressor> new_model = new_rfT.train(p.getA());
 
+        Model<Regressor> reproducedModel = reproUtil.reproduceFromProvenance();
+
+        assertEquals(model.getProvenance().getTrainerProvenance().getInstanceValues().get("train-invocation-count"),
+                reproducedModel.getProvenance().getTrainerProvenance().getInstanceValues().get("train-invocation-count"));
+
+    }
+
+    @Test
+    public void testBaggingTrainerInnerInvocationChange(){
+        //TODO: Modify reproutil or bagging trainer to account for this case
+        CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE,
+                MIN_EXAMPLES, 0.0f, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
+        RandomForestTrainer<Regressor> rfT = new RandomForestTrainer<>(subsamplingTree,new AveragingCombiner(),10);
+        Dataset<Regressor> trainData = new MutableDataset<>(getConfigurableRegressionDenseTrain());
+        Model<Regressor> model1 = rfT.train(trainData);
+        subsamplingTree.setInvocationCount(15);
+        Model<Regressor> model2 = rfT.train(trainData);
+
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(model2.getProvenance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Model<Regressor> reproducedModel = reproUtil.reproduceFromProvenance();
+
+        /*
+        assertEquals(((TrainerProvenanceImpl) model2.getProvenance()
+                        .getTrainerProvenance()
+                        .getConfiguredParameters()
+                        .get("innerTrainer"))
+                        .getInstanceValues()
+                        .get("train-invocation-count"),
+                ((TrainerProvenanceImpl) reproducedModel.getProvenance()
+                        .getTrainerProvenance()
+                        .getConfiguredParameters()
+                        .get("innerTrainer"))
+                .getInstanceValues()
+                .get("train-invocation-count"));
+
+         */
     }
 
     @Test
