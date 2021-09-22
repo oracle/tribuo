@@ -184,9 +184,16 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
-        // Add mapping field to 4.0, 4.1 models.
+        // Add mapping field to 4.0, 4.1 models and rearrange the dimensions.
         if (mapping == null) {
             this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
+            List<de.bwaldvogel.liblinear.Model> newModels = new ArrayList<>(this.models);
+
+            for (int i = 0; i < mapping.length; i++) {
+                newModels.set(i,this.models.get(mapping[i]));
+            }
+
+            this.models = Collections.unmodifiableList(newModels);
         }
     }
 }

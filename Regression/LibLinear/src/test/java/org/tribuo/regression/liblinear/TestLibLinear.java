@@ -17,7 +17,6 @@
 package org.tribuo.regression.liblinear;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import de.bwaldvogel.liblinear.Linear;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.common.liblinear.LibLinearModel;
@@ -31,6 +30,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.URL;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,8 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestLibLinear {
 
-    private static final LibLinearRegressionTrainer t = new LibLinearRegressionTrainer(new LinearRegressionType(LinearType.L2R_L2LOSS_SVR_DUAL));
+    private static final LibLinearRegressionTrainer t = new LibLinearRegressionTrainer(new LinearRegressionType(LinearType.L2R_L2LOSS_SVR_DUAL),1.0,1000,0.1,0.5);
     private static final RegressionEvaluator e = new RegressionEvaluator();
+
+    private static final URL TEST_REGRESSION_REORDER_MODEL = TestLibLinear.class.getResource("liblinear-4.1.0.model");
 
     @BeforeAll
     public static void setup() {
@@ -96,10 +100,10 @@ public class TestLibLinear {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
         LibLinearModel<Regressor> llModel = t.train(p.getA());
         RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
-        double expectedDim1 = 0.6675344910192738;
-        double expectedDim2 = 0.6675344910192738;
-        double expectedDim3 = 0.11494576372884069;
-        double expectedAve = 0.4833382485891294;
+        double expectedDim1 = 0.6634367596601265;
+        double expectedDim2 = 0.6634367596601265;
+        double expectedDim3 = 0.01112107563226139;
+        double expectedAve = 0.4459981983175048;
 
         assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
@@ -138,5 +142,24 @@ public class TestLibLinear {
             Model<Regressor> m = t.train(p.getA());
             m.predict(RegressionDataGenerator.emptyMultiDimExample());
         });
+    }
+
+    @Test
+    public void testRegressionReordering() throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(TEST_REGRESSION_REORDER_MODEL.openStream())) {
+            @SuppressWarnings("unchecked")
+            Model<Regressor> serializedModel = (Model<Regressor>) ois.readObject();
+            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+            RegressionEvaluation llEval = e.evaluate(serializedModel,p.getB());
+            double expectedDim1 = 0.6634367596601265;
+            double expectedDim2 = 0.6634367596601265;
+            double expectedDim3 = 0.01112107563226139;
+            double expectedAve = 0.4459981983175048;
+
+            assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedAve,llEval.averageR2(),1e-6);
+        }
     }
 }
