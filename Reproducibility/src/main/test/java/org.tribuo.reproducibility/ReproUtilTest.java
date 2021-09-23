@@ -370,8 +370,8 @@ class ReproUtilTest {
     }
 
     @Test
-    public void testBaggingTrainerInnerInvocationChange(){
-        //TODO: Modify reproutil or bagging trainer to account for this case
+    public void testBaggingTrainerAllInvocationsChange(){
+        // This example has multiple trainers in the form of an ensemble, and all need to be set to the correct value
         CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE,
                 MIN_EXAMPLES, 0.0f, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
         RandomForestTrainer<Regressor> rfT = new RandomForestTrainer<>(subsamplingTree,new AveragingCombiner(),10);
@@ -389,7 +389,7 @@ class ReproUtilTest {
 
         Model<Regressor> reproducedModel = reproUtil.reproduceFromProvenance();
 
-        /*
+        // Make sure the inner trainer's setinvocation count has occurred
         assertEquals(((TrainerProvenanceImpl) model2.getProvenance()
                         .getTrainerProvenance()
                         .getConfiguredParameters()
@@ -403,7 +403,9 @@ class ReproUtilTest {
                 .getInstanceValues()
                 .get("train-invocation-count"));
 
-         */
+        // make sure the main rft setInvocationCount has occurred correctly.
+        assertEquals(model2.getProvenance().getTrainerProvenance().getInstanceValues().get("train-invocation-count"),
+                reproducedModel.getProvenance().getTrainerProvenance().getInstanceValues().get("train-invocation-count"));
     }
 
     @Test

@@ -28,6 +28,7 @@ import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.ExternalTrainerProvenance;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
@@ -68,6 +69,7 @@ public class ReproUtil {
         // Load configurations from provenance so it can re-instantiate objects using the ConfigManager
         // Additionally allows us to change the values of certain configurable fields before re-instantiation
         List<ConfigurationData> provConfig = ProvenanceUtil.extractConfiguration(this.modelProvenance);
+
         this.CM = new ConfigurationManager();
         this.CM.addConfiguration(provConfig);
 
@@ -75,6 +77,29 @@ public class ReproUtil {
     }
 
     public <T extends Output<T>> Trainer<T> recoverTrainer(){
+
+        // We need to set the state of the RNG for each trainer used in the provenance.
+        // ProvenanceUtil.orderProvenances allows us to iterate through the provObjects,
+        // construct the correct component name using ProvenanceUtil.computeName, and
+        // link a provObject to its corresponding configuration in the CM.
+        ProvenanceUtil.ProvenanceOrdering ordering = ProvenanceUtil.orderProvenances(this.modelProvenance);
+
+        for (int i = 0; i < ordering.traversalOrder.size(); i++){
+            if(ordering.traversalOrder.get(i) instanceof TrainerProvenanceImpl trainerProvenance){
+                String componentName = ProvenanceUtil.computeName(trainerProvenance, i);
+                Configurable configurableObject = CM.lookup(componentName);
+                // Once a Trainer is identified we need to set the invocationCount as identified
+                // in the provenance. Invocation count is not configurable since it is a provenance value,
+                // it is an immutable value mapping one-to-one to a single execution.
+                if(configurableObject instanceof Trainer trainer){
+                    //TODO: More instanceof match?
+                    trainer.setInvocationCount((int) trainerProvenance.getInstanceValues().get("train-invocation-count").getValue());
+                } else {
+                    // TODO: Make some kind of exception, but also this shouldn't happen if provenance is trainer?
+                }
+            }
+        }
+
         Class<? extends Trainer<T>> trainerClass = null;
 
         // Recover the name of the trainer class from the model's provenance
@@ -89,14 +114,6 @@ public class ReproUtil {
         // is the same as the original trainer used.
         String trainerName = CM.listAll(trainerClass).get(0);
         Trainer<T> newTrainer = (Trainer<T>) CM.lookup(trainerName);
-
-        // RNG changes state each time train is called, so examine prov for how many invocations of train
-        // had been called when the original model was trained. Then, set the RNG to the same state
-        newTrainer.setInvocationCount((int) this.modelProvenance
-                .getTrainerProvenance()
-                .getInstanceValues()
-                .get("train-invocation-count")
-                .getValue());
 
         return newTrainer;
     }
@@ -288,9 +305,10 @@ public class ReproUtil {
         }
 
         Model<T> newModel = reproduceFromProvenance();
-
         ImmutableFeatureMap newFeatureMap = newModel.getFeatureIDMap();
         ImmutableFeatureMap oldFeatureMap = originalModel.getFeatureIDMap();
+
+        //TODO: Find a better way to compare the features than using a string comparison
         if(newFeatureMap.size() == oldFeatureMap.size()){
             for(int featureIndex = 0; featureIndex < newFeatureMap.size(); featureIndex++){
                 if(!newFeatureMap.get(featureIndex).toString().equals(oldFeatureMap.get(featureIndex).toString())){
@@ -339,7 +357,9 @@ public class ReproUtil {
     }
 
 
-    /*
+
+    // This function is used to recurse through prov objects and
+    // add them to a report when there is nothing to compare them to
     private static void addProvWithoutDiff(ObjectNode report, Set<String> keys, TreeMap<String, Provenance> provMap, String provIdentifier){
         ObjectMapper mapper = new ObjectMapper();
         for(String key : keys){
@@ -355,7 +375,7 @@ public class ReproUtil {
                     Iterator<Pair<String, Provenance>> subIter = provIterable.iterator();
 
                     TreeMap<String, Provenance> subProvMap = iterToMap(subIter);
-                    addSingleProv(subNode, subProvMap.keySet(), subProvMap, provIdentifier);
+                    addProvWithoutDiff(subNode, subProvMap.keySet(), subProvMap, provIdentifier);
                     report.set(key, subNode);
                 } else {
                     //TODO: Probably throw an exception here
@@ -365,33 +385,8 @@ public class ReproUtil {
             }
         }
     }
-    * */
 
-
-    private static ObjectNode addProvWithoutDiff(Set<String> keys,  TreeMap<String, Provenance> provMap){
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode provNode = mapper.createObjectNode();
-
-        for (String key : keys) {
-            if (provMap.get(key) instanceof PrimitiveProvenance primitiveProvenance) {
-                provNode.put(key, primitiveProvenance.getValue().toString());
-            } else if (provMap.get(key) instanceof ListProvenance listProvenance) {
-                //TODO: Fill out here, is it best to do it this way?
-            } else if (provMap.get(key) instanceof Iterable provIterable) {
-                Iterator<Pair<String, Provenance>> provIter = provIterable.iterator();
-                TreeMap<String, Provenance> subProvMap = iterToMap(provIter);
-
-                provNode.set(key, addProvWithoutDiff(subProvMap.keySet(), subProvMap));
-            } else {
-                //TODO: Probably throw an exception here
-                System.out.println("Missing type of provenance");
-            }
-        }
-
-        return provNode;
-    }
-
-        // This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
+    // This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
     private static <T extends Provenance> ObjectNode diffProvenanceIterators(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
         // The report ObjectNode is the ultimate return value of the method,
         // All diff values are put in it.
@@ -402,13 +397,16 @@ public class ReproUtil {
         TreeMap<String, Provenance> provMapA = iterToMap(iterA);
         TreeMap<String, Provenance> provMapB = iterToMap(iterB);
 
+        // Get the keys of the maps and perform an intersection to find all provenance that exists in both models
         TreeSet<String> mapAkeys = new TreeSet<>(provMapA.keySet());
         TreeSet<String> mapBkeys = new TreeSet<>(provMapB.keySet());
         TreeSet<String> intersectionOfKeys = new TreeSet<>(provMapA.keySet());
 
         intersectionOfKeys.retainAll(mapBkeys);
 
+        // Loop through all of the keys, and when a difference in primitive provenances is found, record both values
         for(String key : intersectionOfKeys){
+
             // When provenance is primitive and they share a key simply compare their values
             // If different, place each prov's value in the report
             if(provMapA.get(key) instanceof PrimitiveProvenance && provMapB.get(key) instanceof PrimitiveProvenance){
@@ -419,11 +417,15 @@ public class ReproUtil {
                     report.set(key, val_diff);
                 }
             }
+
             // In the event it's a different prov object, and they are the same class, recursively call
             // this method on the iterators of the respective prov objects, and then merge the resulting
             // ObjectNode into the report in this frame.
             else if(provMapA.get(key).getClass() == provMapB.get(key).getClass()){
 
+                // When prov is a ListProvenance, we have to make sure we get the right iterator,
+                // as some ListProvenances cannot recurse normally as they hold prov objects rather
+                // than something with "keys"
                 if (provMapA.get(key) instanceof ListProvenance){
 
                     ListProvenance<T> listProvA = ((ListProvenance<T>) provMapA.get(key));
@@ -441,6 +443,7 @@ public class ReproUtil {
                     }
                     // If the list contains ConfiguredObjectProvenanceImpl, they are the same size, and not empty
                     // do an element-wise comparison of the objects and add any diffs to an array that is reported
+                    // TODO: Diff different sized lists
                     else if (listProvA.getList().size() > 0 &&
                             listProvB.getList().size() > 0 &&
                             listProvA.getList().get(0) instanceof ConfiguredObjectProvenanceImpl &&
@@ -467,6 +470,7 @@ public class ReproUtil {
                 }
                 // If it's not a ListProvenance it should be an ObjectProvenance or MapProvenance, in which case the
                 // iterator will return a Pair<String,Provenance>
+                //TODO: Can we provide a better enforcement of this assumption?
                 else if (provMapA.get(key) instanceof Iterable provIterableA &&
                          provMapB.get(key) instanceof Iterable provIterableB){
 
@@ -496,14 +500,8 @@ public class ReproUtil {
         mapAkeys.removeAll(intersectionOfKeys);
         mapBkeys.removeAll(intersectionOfKeys);
 
-        ObjectNode provNode = addProvWithoutDiff(mapAkeys, provMapA);
-        if (!provNode.isEmpty()){
-            report.set(OLD, provNode);
-        }
-        provNode = addProvWithoutDiff(mapBkeys, provMapB);
-        if (!provNode.isEmpty()){
-            report.set(NEW, provNode);
-        }
+        addProvWithoutDiff(report, mapAkeys, provMapA, OLD);
+        addProvWithoutDiff(report, mapBkeys, provMapB, NEW);
 
         return report;
     }
