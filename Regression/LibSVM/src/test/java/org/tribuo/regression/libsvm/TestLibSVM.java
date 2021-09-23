@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import libsvm.svm_model;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
-import org.tribuo.Prediction;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;

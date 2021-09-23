@@ -36,10 +36,13 @@ import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
 import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.provenance.TrainerProvenance;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.Regressor.DimensionTuple;
 import org.tribuo.regression.impl.SkeletalIndependentRegressionSparseModel;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -63,12 +66,12 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
     private static final long serialVersionUID = 3L;
     private static final Logger logger = Logger.getLogger(SparseLinearModel.class.getName());
 
-    private final SparseVector[] weights;
+    private SparseVector[] weights;
     private final DenseVector featureMeans;
     private final DenseVector featureVariance;
     private final boolean bias;
-    private final double[] yMean;
-    private final double[] yVariance;
+    private double[] yMean;
+    private double[] yVariance;
 
     SparseLinearModel(String name, String[] dimensionNames, ModelProvenance description,
                       ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
@@ -345,5 +348,31 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         graphBuilder.addNode(meanScale);
 
         return graphBuilder.build();
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        // Rearrange the dimensions in ElasticNet models from 4.1.0 and earlier because they are corrupted.
+        String tribuoVersion = (String) provenance.getTrainerProvenance().getInstanceValues().get(TrainerProvenance.TRIBUO_VERSION_STRING).getValue();
+        if (provenance.getTrainerProvenance().getClassName().equals("org.tribuo.regression.slm.ElasticNetCDTrainer") &&
+                (tribuoVersion.startsWith("4.0.0") || tribuoVersion.startsWith("4.0.1") || tribuoVersion.startsWith("4.0.2") || tribuoVersion.startsWith("4.1.0")
+                        // This is explicit to catch the test model which has a 4.1.1-SNAPSHOT Tribuo version.
+                        || tribuoVersion.equals("4.1.1-SNAPSHOT"))) {
+            int[] mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
+            SparseVector[] newWeights = new SparseVector[weights.length];
+            double[] newYMeans = new double[weights.length];
+            double[] newYVariances = new double[weights.length];
+
+            for (int i = 0; i < mapping.length; i++) {
+                newWeights[i] = this.weights[mapping[i]];
+                newYMeans[i] = this.yMean[mapping[i]];
+                newYVariances[i] = this.yVariance[mapping[i]];
+            }
+
+            this.yMean = newYMeans;
+            this.yVariance = newYVariances;
+            this.weights = newWeights;
+        }
     }
 }
