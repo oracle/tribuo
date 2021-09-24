@@ -250,8 +250,9 @@ public class TestSGDLinear {
 
     @Test
     public void testThreeDenseData() {
+        LinearSGDTrainer freshTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(1.0,0.1),10,1000, 1L);
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
-        AbstractLinearSGDModel<Regressor> llModel = t.train(p.getA());
+        AbstractLinearSGDModel<Regressor> llModel = freshTrainer.train(p.getA());
         RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
         double expectedDim1 = 0.5008176578612609;
         double expectedDim2 = 0.5008176578612609;
@@ -264,7 +265,7 @@ public class TestSGDLinear {
         assertEquals(expectedAve,llEval.averageR2(),1e-6);
 
         p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
-        LinearSGDTrainer freshTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(1.0,0.1),10,1000, 1L);
+        freshTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(1.0,0.1),10,1000, 1L);
         AbstractLinearSGDModel<Regressor> reorderedModel = freshTrainer.train(p.getA());
         RegressionEvaluation reorderedEval = e.evaluate(reorderedModel,p.getB());
 
