@@ -16,6 +16,8 @@
 
 package org.tribuo.common.sgd;
 
+import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -25,10 +27,16 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.Tribuo;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -139,4 +147,71 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
     public DenseMatrix getWeightsCopy() {
         return ((DenseMatrix)modelParameters.get()[0]).copy();
     }
+
+    /**
+     * Builds the ModelProto according to the standards for this model.
+     * @param graph The model graph.
+     * @param domain The model domain string.
+     * @param modelVersion The model version number.
+     * @return The ModelProto.
+     */
+    protected OnnxMl.ModelProto innerExportONNXModel(OnnxMl.GraphProto graph, String domain, long modelVersion) {
+        // Build model
+        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
+        builder.setGraph(graph);
+        builder.setDomain(domain);
+        builder.setProducerName("Tribuo");
+        builder.setProducerVersion(Tribuo.VERSION);
+        builder.setModelVersion(modelVersion);
+        builder.setDocString(toString());
+        builder.addOpsetImport(ONNXOperators.getOpsetProto());
+        builder.setIrVersion(6);
+        return builder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the model weights.
+     * @param context The naming context.
+     * @return The weight TensorProto.
+     */
+    protected OnnxMl.TensorProto weightBuilder(ONNXContext context) {
+        DenseMatrix weightMatrix = (DenseMatrix) modelParameters.get()[0];
+        OnnxMl.TensorProto.Builder weightBuilder = OnnxMl.TensorProto.newBuilder();
+        weightBuilder.setName(context.generateUniqueName("linear_sgd_weights"));
+        weightBuilder.addDims(featureIDMap.size());
+        weightBuilder.addDims(outputIDInfo.size());
+        weightBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(featureIDMap.size() * outputIDInfo.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
+            for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+                floatBuffer.put((float) weightMatrix.get(i, j));
+            }
+        }
+        floatBuffer.rewind();
+        weightBuilder.setRawData(ByteString.copyFrom(buffer));
+        return weightBuilder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the model biases.
+     * @param context The naming context.
+     * @return The bias TensorProto.
+     */
+    protected OnnxMl.TensorProto biasBuilder(ONNXContext context) {
+        DenseMatrix weightMatrix = (DenseMatrix) modelParameters.get()[0];
+        OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
+        biasBuilder.setName(context.generateUniqueName("linear_sgd_biases"));
+        biasBuilder.addDims(outputIDInfo.size());
+        biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(outputIDInfo.size()*4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+            floatBuffer.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
+        }
+        floatBuffer.rewind();
+        biasBuilder.setRawData(ByteString.copyFrom(buffer));
+        return biasBuilder.build();
+    }
+
 }

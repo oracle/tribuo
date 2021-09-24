@@ -73,10 +73,19 @@ public enum MultiLabelMetrics {
         this.impl = impl;
     }
 
+    /**
+     * Get the implementation function for this metric.
+     * @return The function.
+     */
     public BiFunction<MetricTarget<MultiLabel>, MultiLabelMetric.Context, Double> getImpl() {
         return impl;
     }
 
+    /**
+     * Get the metric for the supplied target.
+     * @param tgt The metric target.
+     * @return The metric.
+     */
     public MultiLabelMetric forTarget(MetricTarget<MultiLabel> tgt) {
         return new MultiLabelMetric(tgt, this.name(), this.getImpl());
     }

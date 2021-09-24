@@ -41,6 +41,9 @@ import java.util.function.Supplier;
 public final class MessageDigestHasher extends Hasher {
     private static final long serialVersionUID = 3L;
 
+    /**
+     * Alias for {@link StandardCharsets#UTF_8}.
+     */
     public static final Charset utf8Charset = StandardCharsets.UTF_8;
 
     static final String HASH_TYPE = "hashType";
@@ -65,6 +68,11 @@ public final class MessageDigestHasher extends Hasher {
      */
     private MessageDigestHasher() {}
 
+    /**
+     * Constructs a message digest hasher.
+     * @param hashType The hash function to use.
+     * @param salt The salt value.
+     */
     public MessageDigestHasher(String hashType, String salt) {
         this.hashType = hashType;
         this.salt = salt.getBytes(utf8Charset);
@@ -151,6 +159,10 @@ public final class MessageDigestHasher extends Hasher {
             this.hashType = new StringProvenance(HASH_TYPE,hashType);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public MessageDigestHasherProvenance(Map<String, Provenance> map) {
             hashType = ObjectProvenance.checkAndExtractProvenance(map,HASH_TYPE,StringProvenance.class,MessageDigestHasherProvenance.class.getSimpleName());
         }

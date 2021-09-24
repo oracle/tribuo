@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 
 /**
  * Hashes the feature names to reduce the dimensionality.
+ * <p>
+ * Uses murmurhash3_x86_32 as the hashing function for the feature names.
  */
 public class FeatureHasher implements FeatureTransformer {
 
@@ -36,7 +38,11 @@ public class FeatureHasher implements FeatureTransformer {
 
     @Config(mandatory = true,description="Dimension to map the hash into.")
     private int dimension;
-    
+
+    /**
+     * Constructs a feature hasher using the supplied hash dimension.
+     * @param dimension The dimension to reduce the hashed features into.
+     */
     public FeatureHasher(int dimension) {
         this.dimension = dimension;
     }

@@ -93,24 +93,57 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     }
 
     // BERT input names
+    /**
+     * Input name for the token ids.
+     */
     public static final String INPUT_IDS = "input_ids";
+    /**
+     * Input name for the attention mask.
+     */
     public static final String ATTENTION_MASK = "attention_mask";
+    /**
+     * Input name for the token type ids.
+     */
     public static final String TOKEN_TYPE_IDS = "token_type_ids";
 
     // BERT output names
+    /**
+     * Output name for the token level outputs.
+     */
     public static final String TOKEN_OUTPUT = "output_0";
+    /**
+     * Output name for the classification token output.
+     */
     public static final String CLS_OUTPUT = "output_1";
 
     // Token names
+    /**
+     * Default classification token name.
+     */
     public static final String CLASSIFICATION_TOKEN = "[CLS]";
+    /**
+     * Default separator token name.
+     */
     public static final String SEPARATOR_TOKEN = "[SEP]";
+    /**
+     * Default unknown token name.
+     */
     public static final String UNKNOWN_TOKEN = "[UNK]";
 
     // Metadata name for the token
+    /**
+     * Metadata key for the token value stored in a Tribuo {@link org.tribuo.Example}.
+     */
     public static final String TOKEN_METADATA = "Token";
 
     // Values expected by BERT inputs
+    /**
+     * Mask value.
+     */
     public static final long MASK_VALUE = 1;
+    /**
+     * Token type value for the first sentence.
+     */
     public static final long TOKEN_TYPE_VALUE = 0;
 
     @Config(mandatory = true,description="Output factory to use.")
@@ -978,11 +1011,20 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * CLI options for running BERT.
      */
     public static class BERTFeatureExtractorOptions implements Options {
-        @Option(charName='b',longName="bert",usage="BERTFeatureExtractor instance")
+        /**
+         * BERTFeatureExtractor instance
+         */
+        @Option(charName = 'b', longName = "bert", usage = "BERTFeatureExtractor instance")
         public BERTFeatureExtractor<?> bert;
-        @Option(charName='i',longName="input-file",usage="Input file to read, one doc per line")
+        /**
+         * Input file to read, one doc per line
+         */
+        @Option(charName = 'i', longName = "input-file", usage = "Input file to read, one doc per line")
         public Path inputFile;
-        @Option(charName='o',longName="output-file",usage="Output json file.")
+        /**
+         * Output json file.
+         */
+        @Option(charName = 'o', longName = "output-file", usage = "Output json file.")
         public Path outputFile;
     }
 

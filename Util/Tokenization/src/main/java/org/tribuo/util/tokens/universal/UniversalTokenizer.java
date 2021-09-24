@@ -137,7 +137,7 @@ public class UniversalTokenizer implements Tokenizer {
      * Is the tokenizer ready?
      */
     private boolean ready;
-    @Config
+    @Config(description="Send punctuation through as tokens.")
     private boolean sendPunct = false;
     /**
      * A set of tokens that were generated and need to be returned.
@@ -150,6 +150,7 @@ public class UniversalTokenizer implements Tokenizer {
     private char c;
 
     /**
+     * Constructs a universal tokenizer.
      * @param sendPunct if sendPunct is true, then the tokenizer will generate punctuation tokens.
      */
     public UniversalTokenizer(boolean sendPunct) {
@@ -279,26 +280,50 @@ public class UniversalTokenizer implements Tokenizer {
         }
     }
 
+    /**
+     * Does this tokenizer generate unigrams?
+     * @return True if the tokenizer generates unigram tokens.
+     */
     public boolean isGenerateUnigrams() {
         return generateUnigrams;
     }
 
+    /**
+     * Controls if the tokenizer generates unigrams.
+     * @param generateUnigrams If true generates unigram tokens.
+     */
     public void setGenerateUnigrams(boolean generateUnigrams) {
         this.generateUnigrams = generateUnigrams;
     }
 
+    /**
+     * Does this tokenizer generate ngrams?
+     * @return True if the tokenizer generates ngram tokens.
+     */
     public boolean isGenerateNgrams() {
         return generateNgrams;
     }
 
+    /**
+     * Controls if the tokenizer generates ngrams.
+     * @param generateNgrams If true generates ngram tokens.
+     */
     public void setGenerateNgrams(boolean generateNgrams) {
         this.generateNgrams = generateNgrams;
     }
 
+    /**
+     * Returns the maximum token length this tokenizer will generate.
+     * @return The maximum token length.
+     */
     public int getMaxTokenLength() {
         return maxTokenLength;
     }
 
+    /**
+     * Sets the maximum token length this tokenizer will generate.
+     * @param maxTokenLength The maximum token length.
+     */
     public void setMaxTokenLength(int maxTokenLength) {
         this.maxTokenLength = maxTokenLength;
     }
@@ -554,6 +579,10 @@ public class UniversalTokenizer implements Tokenizer {
         }
     }
 
+    /**
+     * Gets the current position in the input.
+     * @return The current position.
+     */
     public int getPos() {
         return currPos;
     }

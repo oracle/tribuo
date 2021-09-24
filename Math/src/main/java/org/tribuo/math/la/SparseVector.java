@@ -90,6 +90,12 @@ public class SparseVector implements SGDVector {
         this.shape = new int[]{size};
     }
 
+    /**
+     * Creates a sparse vector of the specified size, with the supplied value at each of the indices.
+     * @param size The vector size.
+     * @param indices The indices of the sparse vector.
+     * @param value The initial value.
+     */
     public SparseVector(int size, int[] indices, double value) {
         this.indices = Arrays.copyOf(indices,indices.length);
         this.values = new double[indices.length];
@@ -810,6 +816,13 @@ public class SparseVector implements SGDVector {
         return distance(other,Math::abs,DoubleUnaryOperator.identity());
     }
 
+    /**
+     * Computes the distance between this vector and the other vector.
+     * @param other The other vector.
+     * @param transformFunc The transformation function to apply to each paired dimension difference.
+     * @param normalizeFunc The normalization to apply after summing the transformed differences.
+     * @return The distance between the two vectors.
+     */
     public double distance(SGDVector other, DoubleUnaryOperator transformFunc, DoubleUnaryOperator normalizeFunc) {
         if (other.size() != size) {
             throw new IllegalArgumentException("Can't measure the distance between two vectors of different lengths, this = " + size + ", other = " + other.size());

@@ -23,12 +23,24 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
  */
 public interface DataSourceProvenance extends DataProvenance, ObjectProvenance {
 
+    /**
+     * The name of the provenance field for the resource hash.
+     */
     public static final String RESOURCE_HASH = "resource-hash";
 
+    /**
+     * The name of the provenance field for the file timestamp.
+     */
     public static final String FILE_MODIFIED_TIME = "file-modified-time";
 
+    /**
+     * The name of the provenance field for the datasource timestamp.
+     */
     public static final String DATASOURCE_CREATION_TIME = "datasource-creation-time";
 
+    /**
+     * The name of the provenance field for the output factory.
+     */
     public static final String OUTPUT_FACTORY = "outputFactory";
 
 }

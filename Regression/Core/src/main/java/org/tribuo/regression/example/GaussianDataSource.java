@@ -159,7 +159,7 @@ public class GaussianDataSource implements ConfigurableDataSource<Regressor> {
      * @param seed The rng seed to use.
      * @return A dataset drawn from a gaussian.
      */
-    public static Dataset<Regressor> generateDataset(int numSamples, float slope, float intercept, float variance, float xMin, float xMax, long seed) {
+    public static MutableDataset<Regressor> generateDataset(int numSamples, float slope, float intercept, float variance, float xMin, float xMax, long seed) {
         GaussianDataSource source = new GaussianDataSource(numSamples,slope,intercept,variance,xMin,xMax,seed);
         return new MutableDataset<>(source);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,17 +37,17 @@ import java.util.stream.Collectors;
  * In a multi-label confusion matrix M,
  * <pre>
  * tn = M[:, 0, 0]
- * fn = M[:, 1, 0]
+ * fn = M[:, 0, 1]
+ * fp = M[:, 1, 0]
  * tp = M[:, 1, 1]
- * fp = M[:, 0, 1]
  * </pre>
  * <p>
  * For class-wise values,
  * <pre>
  * tn(class i) = M[i, 0, 0]
- * fn(class i) = M[i, 1, 0]
+ * fn(class i) = M[i, 0, 1]
+ * fp(class i) = M[i, 1, 0]
  * tp(class i) = M[i, 1, 1]
- * fp(class i) = M[i, 0, 1]
  * </pre>
  */
 public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLabel> {
@@ -56,6 +56,11 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
     private final DenseMatrix[] mcm;
     private final DenseMatrix confusion;
 
+    /**
+     * Constructs a multi-label confusion matrix for the specified model and predictions.
+     * @param model The model.
+     * @param predictions The predictions.
+     */
     public MultiLabelConfusionMatrix(Model<MultiLabel> model, List<Prediction<MultiLabel>> predictions) {
         this(model.getOutputIDInfo(), predictions);
     }
@@ -114,12 +119,12 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
 
     @Override
     public double fp(MultiLabel cls) {
-        return compute(cls, (cm) -> cm.get(0, 1));
+        return compute(cls, (cm) -> cm.get(1, 0));
     }
 
     @Override
     public double fn(MultiLabel cls) {
-        return compute(cls, (cm) -> cm.get(1, 0));
+        return compute(cls, (cm) -> cm.get(0, 1));
     }
 
     @Override

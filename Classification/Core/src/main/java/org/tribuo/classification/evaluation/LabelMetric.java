@@ -102,16 +102,30 @@ public class LabelMetric implements EvaluationMetric<Label, LabelMetric.Context>
 
         private final ConfusionMatrix<Label> cm;
 
+        /**
+         * Constructs a context and compute the confusion matrix using the specified model and predictions.
+         * @param model The model.
+         * @param predictions The predictions.
+         */
         public Context(Model<Label> model, List<Prediction<Label>> predictions) {
             super(model, predictions);
             this.cm = new LabelConfusionMatrix(model.getOutputIDInfo(), predictions);
         }
 
+        /**
+         * Constructs a context and compute the confusion matrix using the specified model and predictions.
+         * @param model The model.
+         * @param predictions The predictions.
+         */
         public Context(SequenceModel<Label> model, List<Prediction<Label>> predictions) {
             super(model, predictions);
             this.cm = new LabelConfusionMatrix(model.getOutputIDInfo(), predictions);
         }
 
+        /**
+         * Gets the confusion matrix.
+         * @return The confusion matrix.
+         */
         public ConfusionMatrix<Label> getCM() {
             return cm;
         }

@@ -33,16 +33,15 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- *
  * N.B. This class accepts raw SQL strings and executes them directly via JDBC. It DOES NOT perform
  * any SQL escaping or other injection prevention. It is the user's responsibility to ensure that SQL passed to this
  * class performs as desired.
- *
+ * <p>
  * SQL database configuration. If you specify the {@linkplain SQLDBConfig#host}, {@linkplain SQLDBConfig#port}, and
  * {@linkplain SQLDBConfig#db} strings and use {@code oracle.jdbc.OracleDriver} as your JDBC Driver, then this will
  * automatically generate a connectionString, otherwise it must be specified manually and host, port, and db fields
  * can be omitted.
- *
+ * <p>
  * {@link java.sql.DriverManager}'s default logic will be used to determine which {@link java.sql.Driver} to use for
  * a given connection string.
  */
@@ -70,12 +69,32 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
 
     private SQLDBConfig() {}
 
+    /**
+     * Constructs a SQL database configuration.
+     * <p>
+     * Note it is recommended that wallet based connections are used rather than this constructor using {@link SQLDBConfig(String,Map)}.
+     * @param connectionString The connection string.
+     * @param username The username.
+     * @param password The password.
+     * @param properties The connection properties.
+     */
     public SQLDBConfig(String connectionString, String username, String password, Map<String, String> properties) {
         this(connectionString, properties);
         this.username = username;
         this.password = password;
     }
 
+    /**
+     * Constructs a SQL database configuration.
+     * <p>
+     * Note it is recommended that wallet based connections are used rather than this constructor using {@link SQLDBConfig(String,Map)}.
+     * @param host The host to connect to.
+     * @param port The port to connect on.
+     * @param db The db name.
+     * @param username The username.
+     * @param password The password.
+     * @param properties The connection properties.
+     */
     public SQLDBConfig(String host, String port, String db, String username, String password, Map<String, String> properties) {
         this(makeConnectionString(host, port, db), properties);
         this.host = host;
@@ -85,6 +104,11 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
         this.password = password;
     }
 
+    /**
+     * Constructs a SQL database configuration.
+     * @param connectionString The connection string.
+     * @param properties The connection properties.
+     */
     public SQLDBConfig(String connectionString, Map<String, String> properties) {
         this.connectionString = connectionString;
         this.propMap = properties;

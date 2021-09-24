@@ -20,10 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Prediction;
-import org.tribuo.classification.sgd.linear.LinearSGDTrainer;
-import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
-import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
-import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.classification.baseline.DummyClassifierTrainer;
 import org.tribuo.ensemble.WeightedEnsembleModel;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
@@ -48,10 +45,7 @@ public class CCEnsembleTest {
     public static void setup() {
         Class<?>[] classes = new Class<?>[]{
                 CCEnsembleTrainer.class,
-                ClassifierChainTrainer.class,
-                AbstractSGDTrainer.class,
-                AbstractLinearSGDTrainer.class,
-                LinearSGDTrainer.class
+                ClassifierChainTrainer.class
         };
         for (Class<?> c : classes) {
             Logger logger = Logger.getLogger(c.getName());
@@ -61,9 +55,7 @@ public class CCEnsembleTest {
 
     @Test
     public void testInvalidEnsemble() {
-        LogisticRegressionTrainer lr = new LogisticRegressionTrainer();
-
-        assertThrows(IllegalArgumentException.class, () -> new CCEnsembleTrainer(lr,0,0));
+        assertThrows(IllegalArgumentException.class, () -> new CCEnsembleTrainer(DummyClassifierTrainer.createMostFrequentTrainer(),0,0));
     }
 
     @Test
@@ -73,7 +65,7 @@ public class CCEnsembleTest {
         Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
 
         // Build model
-        CCEnsembleTrainer trainer = new CCEnsembleTrainer(new LogisticRegressionTrainer(),10,1);
+        CCEnsembleTrainer trainer = new CCEnsembleTrainer(DummyClassifierTrainer.createMostFrequentTrainer(),10,1);
         WeightedEnsembleModel<MultiLabel> model = trainer.train(train);
 
         // Test basic properties

@@ -47,7 +47,14 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     @Config(mandatory = true, description="Output factory to use to create the response.")
     private OutputFactory<T> outputFactory;
 
+    /**
+     * The default positive response.
+     */
     public static final String POSITIVE_NAME = "1";
+
+    /**
+     * The default negative response.
+     */
     public static final String NEGATIVE_NAME = "0";
 
     @Config(description="The positive response to emit.")

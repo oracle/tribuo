@@ -101,12 +101,23 @@ public interface RegressorImpurity extends Configurable, Provenancable<Configure
     }
 
     /**
-     * Tuple class for the impurity and summed weight.
+     * Tuple class for the impurity and summed weight. Will be a record one day.
      */
     public static class ImpurityTuple {
+        /**
+         * The impurity value.
+         */
         public final float impurity;
+        /**
+         * The sum of the weights.
+         */
         public final float weight;
 
+        /**
+         * Construct an impurity tuple.
+         * @param impurity The impurity value.
+         * @param weight The sum of the weights.
+         */
         public ImpurityTuple(float impurity, float weight) {
             this.impurity = impurity;
             this.weight = weight;

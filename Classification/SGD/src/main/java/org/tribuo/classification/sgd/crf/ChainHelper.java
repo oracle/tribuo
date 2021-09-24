@@ -251,9 +251,21 @@ public final class ChainHelper {
      * Belief Propagation results. One day it'll be a record, but not today.
      */
     public static final class ChainBPResults {
+        /**
+         * The normalization constant.
+         */
         public final double logZ;
+        /**
+         * The alpha values array from forward propagation.
+         */
         public final DenseVector[] alphas;
+        /**
+         * The beta values array from backward propagation.
+         */
         public final DenseVector[] betas;
+        /**
+         * The local clique scores (i.e., the linear model scores).
+         */
         public final ChainCliqueValues scores;
 
         ChainBPResults(double logZ, DenseVector[] alphas, DenseVector[] betas, ChainCliqueValues scores) {
@@ -268,7 +280,13 @@ public final class ChainHelper {
      * Clique scores within a chain. One day it'll be a record, but not today.
      */
     public static final class ChainCliqueValues {
+        /**
+         * The per element values.
+         */
         public final DenseVector[] localValues;
+        /**
+         * The label-label transition matrix.
+         */
         public final DenseMatrix transitionValues;
 
         ChainCliqueValues(DenseVector[] localValues, DenseMatrix transitionValues) {
@@ -281,8 +299,17 @@ public final class ChainHelper {
      * Viterbi output from a linear chain. One day it'll be a record, but not today.
      */
     public static final class ChainViterbiResults {
+        /**
+         * The score for this result.
+         */
         public final double mapScore;
+        /**
+         * The viterbi states.
+         */
         public final int[] mapValues;
+        /**
+         * The pre-viterbi scores.
+         */
         public final ChainCliqueValues scores;
 
         ChainViterbiResults(double mapScore, int[] mapValues, ChainCliqueValues scores) {

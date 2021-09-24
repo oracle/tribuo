@@ -32,8 +32,15 @@ import java.util.Map;
 public final class EmptyDataSourceProvenance implements DataSourceProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs an empty data source provenance.
+     */
     EmptyDataSourceProvenance() { }
 
+    /**
+     * Deserialization constructor.
+     * @param map The provenances, which are ignored as this provenance is empty.
+     */
     public EmptyDataSourceProvenance(Map<String,Provenance> map) {}
 
     @Override

@@ -20,22 +20,16 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
-import org.tribuo.classification.sgd.linear.LinearSGDTrainer;
-import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
-import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
-import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.classification.baseline.DummyClassifierTrainer;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -44,22 +38,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class IndependentMultiLabelTest {
 
-    @BeforeAll
-    public static void setup() {
-        Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
-        for (Class<?> c : classes) {
-            Logger logger = Logger.getLogger(c.getName());
-            logger.setLevel(Level.WARNING);
-        }
-    }
-
     @Test
     public void testIndependentBinaryPredictions() {
         MultiLabelFactory factory = new MultiLabelFactory();
         Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
         Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
 
-        IndependentMultiLabelTrainer trainer = new IndependentMultiLabelTrainer(new LogisticRegressionTrainer());
+        IndependentMultiLabelTrainer trainer = new IndependentMultiLabelTrainer(DummyClassifierTrainer.createMostFrequentTrainer());
         Model<MultiLabel> model = trainer.train(train);
 
         List<Prediction<MultiLabel>> predictions = model.predict(test);

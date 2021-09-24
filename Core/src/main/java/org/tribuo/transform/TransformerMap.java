@@ -207,6 +207,10 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
             this.datasetProvenance = host.datasetProvenance;
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public TransformerMapProvenance(Map<String,Provenance> map) {
             this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME,StringProvenance.class,TransformerMapProvenance.class.getSimpleName()).getValue();
             this.transformationMapProvenance = ObjectProvenance.checkAndExtractProvenance(map,TRANSFORMATION_MAP,ConfiguredObjectProvenance.class,TransformerMapProvenance.class.getSimpleName());

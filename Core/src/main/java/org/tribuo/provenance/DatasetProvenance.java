@@ -73,14 +73,39 @@ public class DatasetProvenance implements DataProvenance, ObjectProvenance {
 
     private final String versionString;
 
+    /**
+     * Creates a dataset provenance from the supplied dataset.
+     * @param sourceProvenance The data source provenance.
+     * @param transformationProvenance The transformations applied to this dataset.
+     * @param dataset The dataset itself.
+     * @param <T> The output type of the dataset.
+     */
     public <T extends Output<T>> DatasetProvenance(DataProvenance sourceProvenance, ListProvenance<ObjectProvenance> transformationProvenance, Dataset<T> dataset) {
         this(sourceProvenance,transformationProvenance,dataset.getClass().getName(),dataset instanceof MutableDataset && ((MutableDataset<T>) dataset).isDense(),false,dataset.size(),dataset.getFeatureMap().size(),dataset.getOutputInfo().size());
     }
 
+    /**
+     * Creates a dataset provenance from the supplied sequence dataset.
+     * @param sourceProvenance The data source provenance.
+     * @param transformationProvenance The transformations applied to this sequence dataset.
+     * @param dataset The sequence dataset itself.
+     * @param <T> The output type of the sequence dataset.
+     */
     public <T extends Output<T>> DatasetProvenance(DataProvenance sourceProvenance, ListProvenance<ObjectProvenance> transformationProvenance, SequenceDataset<T> dataset) {
         this(sourceProvenance,transformationProvenance,dataset.getClass().getName(),dataset instanceof MutableSequenceDataset && ((MutableSequenceDataset<T>) dataset).isDense(),true,dataset.size(),dataset.getFeatureMap().size(),dataset.getOutputInfo().size());
     }
 
+    /**
+     * Constructs a dataset provenance using the supplied information.
+     * @param sourceProvenance The data source provenance.
+     * @param transformationProvenance The transformations applied to the dataset.
+     * @param datasetClassName The dataset class name.
+     * @param isDense Is the dataset dense?
+     * @param isSequence Is it a sequence dataset?
+     * @param numExamples The number of examples in this dataset.
+     * @param numFeatures The number of features in this dataset.
+     * @param numOutputs The output dimensionality.
+     */
     protected DatasetProvenance(DataProvenance sourceProvenance, ListProvenance<ObjectProvenance> transformationProvenance, String datasetClassName, boolean isDense, boolean isSequence, int numExamples, int numFeatures, int numOutputs) {
         this.className = datasetClassName;
         this.sourceProvenance = sourceProvenance;
@@ -93,6 +118,10 @@ public class DatasetProvenance implements DataProvenance, ObjectProvenance {
         this.versionString = Tribuo.VERSION;
     }
 
+    /**
+     * Deserialization constructor.
+     * @param map The provenances.
+     */
     @SuppressWarnings("unchecked") //ListProvenance assignment
     public DatasetProvenance(Map<String,Provenance> map) {
         this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME,StringProvenance.class, DatasetProvenance.class.getSimpleName()).getValue();
@@ -181,6 +210,10 @@ public class DatasetProvenance implements DataProvenance, ObjectProvenance {
         return iterable.iterator();
     }
 
+    /**
+     * Returns a list of all the provenances.
+     * @return The provenances.
+     */
     protected List<Pair<String,Provenance>> allProvenances() {
         ArrayList<Pair<String,Provenance>> provenances = new ArrayList<>();
         provenances.add(new Pair<>(CLASS_NAME,new StringProvenance(CLASS_NAME,className)));

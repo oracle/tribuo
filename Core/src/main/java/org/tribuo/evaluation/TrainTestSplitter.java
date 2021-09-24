@@ -154,6 +154,10 @@ public class TrainTestSplitter<T extends Output<T>> {
             this.isTrain = new BooleanProvenance(IS_TRAIN,isTrain);
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public SplitDataSourceProvenance(Map<String, Provenance> map) {
             this.className = ObjectProvenance.checkAndExtractProvenance(map,CLASS_NAME,StringProvenance.class,SplitDataSourceProvenance.class.getSimpleName());
             this.innerSourceProvenance = ObjectProvenance.checkAndExtractProvenance(map,SOURCE,DataSourceProvenance.class,SplitDataSourceProvenance.class.getSimpleName());

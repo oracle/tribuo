@@ -68,8 +68,20 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
 
     private final Set<Statement> statements = new HashSet<>();
 
+    /**
+     * For OLCUT.
+     */
     private SQLDataSource() {}
 
+    /**
+     * Constructs a SQLDataSource.
+     * @param sqlString The SQL query to run.
+     * @param sqlConfig The SQL connection configuration.
+     * @param outputFactory The output factory to use.
+     * @param rowProcessor The row processor to convert the returned rows into examples.
+     * @param outputRequired Is an output required from this source.
+     * @throws SQLException If the database could not be read.
+     */
     public SQLDataSource(String sqlString, SQLDBConfig sqlConfig, OutputFactory<T> outputFactory, RowProcessor<T> rowProcessor, boolean outputRequired) throws SQLException {
         super(outputFactory, rowProcessor, outputRequired);
         this.sqlConfig = sqlConfig;
@@ -122,6 +134,10 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
             this.dataSourceCreationTime = new DateTimeProvenance(DATASOURCE_CREATION_TIME,OffsetDateTime.now());
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public SQLDataSourceProvenance(Map<String,Provenance> map) {
             this(extractProvenanceInfo(map));
         }

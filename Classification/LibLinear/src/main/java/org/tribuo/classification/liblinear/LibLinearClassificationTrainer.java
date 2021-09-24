@@ -44,7 +44,11 @@ import java.util.logging.Logger;
 
 /**
  * A {@link Trainer} which wraps a liblinear-java classifier trainer.
- *
+ * <p>
+ * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
+ * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
+ * avoids locking on classes Tribuo does not control.
+ * <p>
  * See:
  * <pre>
  * Fan RE, Chang KW, Hsieh CJ, Wang XR, Lin CJ.
@@ -114,6 +118,9 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
         data.n = numFeatures;
         data.bias = 1.0;
 
+        // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
+        // Concurrency safety is handled by the global lock on LibLinearTrainer.class in LibLinearTrainer.train.
+        Linear.resetRandom();
         return Collections.singletonList(Linear.train(data,curParams));
     }
 

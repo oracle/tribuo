@@ -85,8 +85,7 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
 
     /**
      * Returns an unmodifiable copy of the underlying list of libsvm models.
-     * <p>
-     * Deprecated to unify the names across LibLinear, LibSVM and XGBoost.
+     * @deprecated Deprecated to unify the names across LibLinear, LibSVM and XGBoost.
      * @return The underlying model list.
      */
     @Deprecated

@@ -39,6 +39,9 @@ class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
 
     private static final int DEFAULT_SIZE = 8;
 
+    /**
+     * The value of this feature.
+     */
     public final double value;
 
     private final int numLabels;

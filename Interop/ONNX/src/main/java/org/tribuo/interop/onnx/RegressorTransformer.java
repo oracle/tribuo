@@ -38,6 +38,11 @@ import java.util.List;
 public class RegressorTransformer implements OutputTransformer<Regressor> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs a RegressorTransformer.
+     */
+    public RegressorTransformer() {}
+
     @Override
     public Prediction<Regressor> transformToPrediction(List<OnnxValue> tensor, ImmutableOutputInfo<Regressor> outputIDInfo, int numValidFeatures, Example<Regressor> example) {
         Regressor r = transformToOutput(tensor,outputIDInfo);

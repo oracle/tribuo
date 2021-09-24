@@ -19,13 +19,25 @@ package org.tribuo.util.tokens;
 /**
  * A single token extracted from a String.
  * <p>
- * Tokens are immutable.
+ * Tokens are immutable, and may be records one day.
  */
 public class Token {
 
+    /**
+     * The token text.
+     */
     public final String text;
+    /**
+     * The start index.
+     */
     public final int start;
+    /**
+     * The end index.
+     */
     public final int end;
+    /**
+     * The token type.
+     */
     public final TokenType type;
 
     /**

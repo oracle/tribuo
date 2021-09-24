@@ -20,14 +20,29 @@ package org.tribuo.classification.sgd.crf;
  * Chunk class used for chunk level confidence prediction in the {@link CRFModel}.
  */
 public class Chunk {
+    /**
+     * The starting point of this chunk.
+     */
     public final int begin;
+    /**
+     * The labels for the next labels.length values.
+     */
     public final int[] labels;
 
+    /**
+     * Constructs a chunk.
+     * @param begin The starting point of this chunk.
+     * @param labels The chunk labels.
+     */
     public Chunk(int begin, int[] labels) {
         this.begin = begin;
         this.labels = labels;
     }
 
+    /**
+     * Copies the labels into the constraints array starting at {@link #begin}.
+     * @param constraints The constraints array.
+     */
     public void unpack(int[] constraints) {
         System.arraycopy(labels, 0, constraints, begin, labels.length);
     }

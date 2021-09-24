@@ -37,9 +37,18 @@ import java.time.OffsetDateTime;
  */
 public abstract class RegressionDataGenerator {
 
+    /**
+     * Name of the first output dimension.
+     */
     public static final String firstDimensionName = "dim1";
+    /**
+     * Name of the second output dimension.
+     */
     public static final String secondDimensionName= "dim2";
 
+    /**
+     * Name of the single dimension.
+     */
     public static final String SINGLE_DIM_NAME = "REGRESSOR";
 
     private static final RegressionFactory REGRESSION_FACTORY = new RegressionFactory();
@@ -50,6 +59,11 @@ public abstract class RegressionDataGenerator {
      */
     private RegressionDataGenerator() {}
 
+    /**
+     * Generates a train/test dataset pair which is dense in the features,
+     * each example has 4 features,{A,B,C,D}.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<Regressor>,Dataset<Regressor>> multiDimDenseTrainTest() {
         return multiDimDenseTrainTest(-1.0);
     }
@@ -106,6 +120,11 @@ public abstract class RegressionDataGenerator {
         return new Pair<>(train,test);
     }
 
+    /**
+     * Generates a pair of datasets, where the features are sparse,
+     * and unknown features appear in the test data.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<Regressor>,Dataset<Regressor>> multiDimSparseTrainTest() {
         return multiDimSparseTrainTest(-1.0);
     }
@@ -194,6 +213,11 @@ public abstract class RegressionDataGenerator {
         return new ArrayExample<>(new Regressor(dimensionNames,new double[]{1,-1}),new String[]{},new double[]{});
     }
 
+    /**
+     * Generates a train/test dataset pair which is dense in the features,
+     * each example has 4 features,{A,B,C,D}.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<Regressor>,Dataset<Regressor>> denseTrainTest() {
         return denseTrainTest(-1.0);
     }
@@ -252,6 +276,11 @@ public abstract class RegressionDataGenerator {
         return new Pair<>(train,test);
     }
 
+    /**
+     * Generates a pair of datasets, where the features are sparse,
+     * and unknown features appear in the test data.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<Regressor>,Dataset<Regressor>> sparseTrainTest() {
         return sparseTrainTest(-1.0);
     }

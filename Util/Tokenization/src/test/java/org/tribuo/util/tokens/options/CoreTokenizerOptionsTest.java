@@ -114,6 +114,9 @@ public class CoreTokenizerOptionsTest extends TokenizerTestBase {
 
     public static class CommaOptions implements Options {
 
+        /**
+         * The characters.
+         */
         @Option(longName = "my-chars", usage = "The characters.")
         public char[] myChars;
 

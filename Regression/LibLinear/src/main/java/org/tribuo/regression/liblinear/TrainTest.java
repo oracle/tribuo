@@ -50,21 +50,41 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and tests a LibLinear regression model on the specified datasets.";
         }
+
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
 
-        @Option(charName='p',longName="cost-penalty",usage="Cost penalty for SVM.")
+        /**
+         * Cost penalty for SVM.
+         */
+        @Option(charName = 'p', longName = "cost-penalty", usage = "Cost penalty for SVM.")
         public double cost = 1.0;
+        /**
+         * Max iterations over the data.
+         */
         @Option(longName = "max-iterations", usage = "Max iterations over the data.")
         public int maxIterations = 1000;
-        @Option(longName="epsilon-insensitivity",usage="Regression value insensitivity for margin.")
+        /**
+         * Regression value insensitivity for margin.
+         */
+        @Option(longName = "epsilon-insensitivity", usage = "Regression value insensitivity for margin.")
         public double epsilon = 0.1;
-        @Option(charName='e',longName="termination-criterion",usage="Tolerance of the optimization termination criterion.")
+        /**
+         * Tolerance of the optimization termination criterion.
+         */
+        @Option(charName = 'e', longName = "termination-criterion", usage = "Tolerance of the optimization termination criterion.")
         public double terminationCriterion = 0.01;
-        @Option(charName='t',longName="algorithm",usage="Type of SVR.")
+        /**
+         * Type of SVR.
+         */
+        @Option(charName = 't', longName = "algorithm", usage = "Type of SVR.")
         public LinearType algorithm = LinearType.L2R_L2LOSS_SVR;
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

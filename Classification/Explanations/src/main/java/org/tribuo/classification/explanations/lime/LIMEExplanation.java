@@ -49,6 +49,12 @@ public class LIMEExplanation implements Explanation<Regressor> {
 
     private final RegressionEvaluation evaluation;
 
+    /**
+     * Constructs a LIME explanation.
+     * @param model The explanation model.
+     * @param prediction The prediction being explained.
+     * @param evaluation The evaluation of the explanation model on the sampled data.
+     */
     public LIMEExplanation(SparseModel<Regressor> model, Prediction<Label> prediction, RegressionEvaluation evaluation) {
         this.model = model;
         this.prediction = prediction;

@@ -43,11 +43,18 @@ public class TrainTest {
             return "Trains and tests a Kernel SVM model using SGD on the specified datasets.";
         }
 
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
+        /**
+         * The Kernel SVM SGD options.
+         */
         public KernelSVMOptions trainerOptions;
     }
 
     /**
+     * Runs a TrainTest CLI.
      * @param args the command line arguments
      * @throws IOException if there is any error reading the examples.
      */

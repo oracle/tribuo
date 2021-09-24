@@ -249,16 +249,34 @@ public final class StripProvenance {
             return "A program for removing Provenance information from a Tribuo Model or SequenceModel.";
         }
 
+        /**
+         * Stores a hash of the model provenance in the stripped model.
+         */
         @Option(charName = 'h', longName = "store-provenance-hash", usage = "Stores a hash of the model provenance in the stripped model.")
         public boolean storeHash;
+        /**
+         * The model to load.
+         */
         @Option(charName = 'i', longName = "input-model-path", usage = "The model to load.")
         public File inputModel;
+        /**
+         * The location to write out the stripped model.
+         */
         @Option(charName = 'o', longName = "output-model-path", usage = "The location to write out the stripped model.")
         public File outputModel;
+        /**
+         * Write out the stripped provenance as json.
+         */
         @Option(charName = 'p', longName = "provenance-path", usage = "Write out the stripped provenance as json.")
         public File provenanceFile;
+        /**
+         * The provenances to remove
+         */
         @Option(charName = 'r', longName = "remove-provenances", usage = "The provenances to remove")
         public EnumSet<ProvenanceTypes> removeProvenances = EnumSet.noneOf(ProvenanceTypes.class);
+        /**
+         * The hash type to use.
+         */
         @Option(charName = 't', longName = "hash-type", usage = "The hash type to use.")
         public ProvenanceUtil.HashType hashType = ObjectProvenance.DEFAULT_HASH_TYPE;
     }

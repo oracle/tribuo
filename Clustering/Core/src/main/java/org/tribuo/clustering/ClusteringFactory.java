@@ -37,6 +37,9 @@ import java.util.Map;
 public final class ClusteringFactory implements OutputFactory<ClusterID> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The sentinel unassigned cluster id, used when there is no ground truth clustering.
+     */
     public static final ClusterID UNASSIGNED_CLUSTER_ID = new ClusterID(ClusterID.UNASSIGNED);
 
     private static final ClusteringFactoryProvenance provenance = new ClusteringFactoryProvenance();

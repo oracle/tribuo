@@ -127,10 +127,25 @@ public class Util {
      * A nominal tuple. One day it'll be a record, but not today.
      */
     public static class ExampleArray {
+        /**
+         * The examples encoded as sparse vectors.
+         */
         public final SparseVector[] features;
+        /**
+         * The label indices.
+         */
         public final int[] labels;
+        /**
+         * The example weights.
+         */
         public final double[] weights;
 
+        /**
+         * Constructs an example array.
+         * @param features The examples' features.
+         * @param labels The label indices.
+         * @param weights The example weights.
+         */
         public ExampleArray(SparseVector[] features, int[] labels, double[] weights) {
             this.features = features;
             this.labels = labels;
@@ -206,8 +221,17 @@ public class Util {
      * A nominal tuple. One day it'll be a record, but not today.
      */
     public static class SequenceExampleArray {
+        /**
+         * The array of sequence example features.
+         */
         public final SGDVector[][] features;
+        /**
+         * The sequence example label indices.
+         */
         public final int[][] labels;
+        /**
+         * The sequence example weights.
+         */
         public final double[] weights;
 
         SequenceExampleArray(SGDVector[][] features, int[][] labels, double[] weights) {

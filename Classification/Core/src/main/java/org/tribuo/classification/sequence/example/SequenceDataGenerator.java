@@ -38,6 +38,11 @@ public final class SequenceDataGenerator {
 
     private SequenceDataGenerator() { }
 
+    /**
+     * Generates a simple dataset consisting of numCopies repeats of two sequences.
+     * @param numCopies The number of times to repeat the two sequence examples.
+     * @return The dataset.
+     */
     public static MutableSequenceDataset<Label> generateGorillaDataset(int numCopies) {
         List<SequenceExample<Label>> examples = new ArrayList<>();
 
@@ -49,6 +54,10 @@ public final class SequenceDataGenerator {
         return new MutableSequenceDataset<>(examples, new SimpleDataSourceProvenance("ExampleSequenceDataset", OffsetDateTime.now(),labelFactory),labelFactory);
     }
 
+    /**
+     * Generates a sequence example with a mixture of features and three labels "O", "Status" and "Monkey".
+     * @return A sequence example.
+     */
     public static SequenceExample<Label> generateGorillaA() {
         //"The silverback gorilla is angry"
         List<Example<Label>> examples = new ArrayList<>();
@@ -85,6 +94,10 @@ public final class SequenceDataGenerator {
         return new SequenceExample<>(examples);
     }
 
+    /**
+     * Generates a sequence example with a mixture of features and three labels "O", "Status" and "Monkey".
+     * @return A sequence example.
+     */
     public static SequenceExample<Label> generateGorillaB() {
         //"That is one angry looking gorilla"
         List<Example<Label>> examples = new ArrayList<>();

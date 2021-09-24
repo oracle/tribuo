@@ -25,17 +25,35 @@ import java.util.Objects;
  */
 public class MatrixTuple {
 
+    /**
+     * The i index.
+     */
     public int i;
+    /**
+     * The j index.
+     */
     public int j;
 
+    /**
+     * The value.
+     */
     public double value;
 
+    /**
+     * Constructs an empty matrix tuple.
+     */
     public MatrixTuple() {
         this.i = -1;
         this.j = -1;
         this.value = Double.NaN;
     }
 
+    /**
+     * Constructs a matrix tuple with the specified values.
+     * @param i The i index.
+     * @param j The j index.
+     * @param value The value.
+     */
     public MatrixTuple(int i, int j, int value) {
         this.i = i;
         this.j = j;

@@ -57,6 +57,9 @@ public class ShapeTokenizer implements Tokenizer {
 
     private boolean ready;
 
+    /**
+     * Constructs a ShapeTokenizer.
+     */
     public ShapeTokenizer() { }
 
     @Override

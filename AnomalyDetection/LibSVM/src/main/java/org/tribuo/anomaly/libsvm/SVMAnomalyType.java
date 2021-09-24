@@ -64,7 +64,7 @@ public class SVMAnomalyType implements SVMType<Event> {
 
     @Override
     public boolean isClassification() {
-        return true;
+        return false;
     }
 
     @Override
@@ -74,7 +74,7 @@ public class SVMAnomalyType implements SVMType<Event> {
 
     @Override
     public boolean isAnomaly() {
-        return false;
+        return true;
     }
 
     @Override

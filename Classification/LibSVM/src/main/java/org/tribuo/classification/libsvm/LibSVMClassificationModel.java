@@ -92,6 +92,10 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> {
         }
     }
 
+    /**
+     * Returns the number of support vectors.
+     * @return The number of support vectors.
+     */
     public int getNumberOfSupportVectors() {
         return models.get(0).SV.length;
     }

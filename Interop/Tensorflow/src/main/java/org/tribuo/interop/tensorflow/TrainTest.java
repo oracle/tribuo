@@ -90,6 +90,7 @@ public class TrainTest {
     public static class TensorflowOptions implements Options {
         private static List<String> DEFAULT_PARAM_NAMES = new ArrayList<>();
         private static List<Float> DEFAULT_PARAM_VALUES = new ArrayList<>();
+
         static {
             DEFAULT_PARAM_NAMES.add("learningRate");
             DEFAULT_PARAM_NAMES.add("initialAccumulatorValue");
@@ -101,54 +102,107 @@ public class TrainTest {
         public String getOptionsDescription() {
             return "Trains and tests a Tensorflow classification model.";
         }
-        @Option(charName='f',longName="model-output-path",usage="Path to serialize model to.")
+
+        /**
+         * Path to serialize model to.
+         */
+        @Option(charName = 'f', longName = "model-output-path", usage = "Path to serialize model to.")
         public Path outputPath;
-        @Option(charName='u',longName="training-file",usage="Path to the libsvm format training file.")
+        /**
+         * Path to the libsvm format training file.
+         */
+        @Option(charName = 'u', longName = "training-file", usage = "Path to the libsvm format training file.")
         public Path trainingPath;
-        @Option(charName='v',longName="testing-file",usage="Path to the libsvm format testing file.")
+        /**
+         * Path to the libsvm format testing file.
+         */
+        @Option(charName = 'v', longName = "testing-file", usage = "Path to the libsvm format testing file.")
         public Path testingPath;
 
-        @Option(charName='i',longName="init-name",usage="Name of the initialisation operation.")
+        /**
+         * Name of the initialisation operation.
+         */
+        @Option(charName = 'i', longName = "init-name", usage = "Name of the initialisation operation.")
         public String initName = Init.DEFAULT_NAME;
-        @Option(charName='l',longName="output-name",usage="Name of the output operation.")
+        /**
+         * Name of the output operation.
+         */
+        @Option(charName = 'l', longName = "output-name", usage = "Name of the output operation.")
         public String outputName;
-        @Option(longName="optimizer-param-names",usage="Gradient optimizer param names, see org.tribuo.interop.tensorflow.GradientOptimiser.")
+        /**
+         * Gradient optimizer param names, see org.tribuo.interop.tensorflow.GradientOptimiser.
+         */
+        @Option(longName = "optimizer-param-names", usage = "Gradient optimizer param names, see org.tribuo.interop.tensorflow.GradientOptimiser.")
         public List<String> gradientParamNames = DEFAULT_PARAM_NAMES;
-        @Option(longName="optimizer-param-values",usage="Gradient optimizer param values, see org.tribuo.interop.tensorflow.GradientOptimiser.")
+        /**
+         * Gradient optimizer param values, see org.tribuo.interop.tensorflow.GradientOptimiser.
+         */
+        @Option(longName = "optimizer-param-values", usage = "Gradient optimizer param values, see org.tribuo.interop.tensorflow.GradientOptimiser.")
         public List<Float> gradientParamValues = DEFAULT_PARAM_VALUES;
-        @Option(charName='g',longName="gradient-optimizer",usage="The gradient optimizer to use.")
+        /**
+         * The gradient optimizer to use.
+         */
+        @Option(charName = 'g', longName = "gradient-optimizer", usage = "The gradient optimizer to use.")
         public GradientOptimiser optimiser = GradientOptimiser.ADAGRAD;
-        @Option(longName="test-batch-size",usage="Test time minibatch size.")
+        /**
+         * Test time minibatch size.
+         */
+        @Option(longName = "test-batch-size", usage = "Test time minibatch size.")
         public int testBatchSize = 16;
-        @Option(charName='b',longName="batch-size",usage="Minibatch size.")
+        /**
+         * Minibatch size.
+         */
+        @Option(charName = 'b', longName = "batch-size", usage = "Minibatch size.")
         public int batchSize = 128;
-        @Option(charName='e',longName="num-epochs",usage="Number of gradient descent epochs.")
+        /**
+         * Number of gradient descent epochs.
+         */
+        @Option(charName = 'e', longName = "num-epochs", usage = "Number of gradient descent epochs.")
         public int epochs = 5;
-        @Option(longName="logging-interval",usage="Interval between logging the loss.")
+        /**
+         * Interval between logging the loss.
+         */
+        @Option(longName = "logging-interval", usage = "Interval between logging the loss.")
         public int loggingInterval = 1000;
-        @Option(charName='n',longName="input-name",usage="Name of the input placeholder.")
+        /**
+         * Name of the input placeholder.
+         */
+        @Option(charName = 'n', longName = "input-name", usage = "Name of the input placeholder.")
         public String inputName;
-        @Option(longName="image-format",usage="Image format, in [W,H,C]. Defaults to MNIST.")
+        /**
+         * Image format, in [W,H,C]. Defaults to MNIST.
+         */
+        @Option(longName = "image-format", usage = "Image format, in [W,H,C]. Defaults to MNIST.")
         public String imageFormat = "28,28,1";
-        @Option(charName='t',longName="input-type",usage="Input type.")
+        /**
+         * Input type.
+         */
+        @Option(charName = 't', longName = "input-type", usage = "Input type.")
         public InputType inputType = InputType.IMAGE;
-        @Option(charName='m',longName="model-protobuf",usage="Path to the protobuf containing the network description.")
+        /**
+         * Path to the protobuf containing the network description.
+         */
+        @Option(charName = 'm', longName = "model-protobuf", usage = "Path to the protobuf containing the network description.")
         public Path protobufPath;
-        @Option(charName='p',longName="checkpoint-dir",usage="Path to the checkpoint base directory.")
+        /**
+         * Path to the checkpoint base directory.
+         */
+        @Option(charName = 'p', longName = "checkpoint-dir", usage = "Path to the checkpoint base directory.")
         public Path checkpointPath;
 
         /**
          * Zips the gradient parameter names and values.
+         *
          * @return The gradient parameter map.
          */
-        public Map<String,Float> getGradientParams() {
+        public Map<String, Float> getGradientParams() {
             if (gradientParamNames.size() != gradientParamValues.size()) {
                 throw new IllegalArgumentException("Must supply both name and value for the gradient parameters, " +
                         "found " + gradientParamNames.size() + " names, and " + gradientParamValues.size() + "values.");
             }
-            Map<String,Float> output = new HashMap<>();
-            for (int i = 0 ; i < gradientParamNames.size(); i++) {
-                output.put(gradientParamNames.get(i),gradientParamValues.get(i));
+            Map<String, Float> output = new HashMap<>();
+            for (int i = 0; i < gradientParamNames.size(); i++) {
+                output.put(gradientParamNames.get(i), gradientParamValues.get(i));
             }
             return output;
         }

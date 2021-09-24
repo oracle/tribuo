@@ -33,11 +33,15 @@ import java.util.Objects;
 
 /**
  * A TrainerProvenance with a timestamp, used when there was no trainer
- * involved in model construction (e.g., creating an EnsembleModel from existing models).
+ * involved in model construction (e.g., creating an {@link org.tribuo.ensemble.EnsembleModel}
+ * from existing models).
  */
 public final class TimestampedTrainerProvenance implements TrainerProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The name of the provenance field storing the model creation time.
+     */
     public static final String CREATION_TIME = "creation-time";
 
     private final DateTimeProvenance creationTime;

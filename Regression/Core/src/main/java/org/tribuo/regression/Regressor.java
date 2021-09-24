@@ -237,7 +237,6 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
 
     /**
      * Returns a dimension tuple for the requested dimension index.
-     * <p>
      * @throws IndexOutOfBoundsException if the index is outside the range.
      * @param idx The dimension index.
      * @return A tuple representing that dimension.

@@ -32,7 +32,12 @@ public class CachedPair<T1, T2> extends Pair<T1,T2> {
     private static final long serialVersionUID = 1L;
 
     private final int cachedHash;
-    
+
+    /**
+     * Constructs a CachedPair.
+     * @param a The first element.
+     * @param b The second element.
+     */
     public CachedPair(T1 a, T2 b) {
         super(a,b);
         this.cachedHash = super.hashCode();

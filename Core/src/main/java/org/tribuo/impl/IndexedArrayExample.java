@@ -44,8 +44,15 @@ import java.util.PriorityQueue;
 public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Feature id numbers from the internal featureMap.
+     */
     protected int[] featureIDs;
 
+    /**
+     * Output id from the internal output map. Note this only works for single
+     * dimensional outputs, in multi-dimensional cases it is likely to be -1.
+     */
     protected final int outputID;
 
     private final ImmutableFeatureMap featureMap;
@@ -327,12 +334,32 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
      * A tuple of the feature name, id and value.
      */
     public static class FeatureTuple {
+        /**
+         * The feature name.
+         */
         public String name;
+        /**
+         * The feature id number.
+         */
         public int id;
+        /**
+         * The feature value.
+         */
         public double value;
 
+        /**
+         * Constructs an empty feature tuple.
+         */
+        // TODO this should be made package private.
         public FeatureTuple() { }
 
+        /**
+         * Constructs a feature tuple using the specified values.
+         * @param name The feature name.
+         * @param id The feature id number.
+         * @param value The feature value.
+         */
+        // TODO this should be made package private.
         public FeatureTuple(String name, int id, double value) {
             this.name = name;
             this.id = id;

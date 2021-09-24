@@ -43,10 +43,22 @@ public class TrainTest {
             return "Trains and tests the specified classifier on the supplied datasets.";
         }
 
+        /**
+         * All the classification trainer options.
+         */
         public AllTrainerOptions trainerOptions;
+
+        /**
+         * Options for loading in data.
+         */
         public DataOptions general;
     }
 
+    /**
+     * Runs a TrainTest CLI.
+     * @param args the command line arguments
+     * @throws IOException if there is any error reading the examples.
+     */
     public static void main(String[] args) throws IOException {
         AllClassificationOptions o = new AllClassificationOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args,o)){

@@ -48,6 +48,13 @@ public abstract class SequenceModel<T extends Output<T>> implements Provenancabl
 
     protected final ImmutableOutputInfo<T> outputIDMap;
 
+    /**
+     * Builds a SequenceModel.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDMap The output domain.
+     */
     public SequenceModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap) {
         this.name = name;
         this.provenance = provenance;
@@ -174,6 +181,12 @@ public abstract class SequenceModel<T extends Output<T>> implements Provenancabl
      */
     public abstract Map<String, List<Pair<String, Double>>> getTopFeatures(int n);
 
+    /**
+     * Extracts a list of the predicted outputs from the list of prediction objects.
+     * @param predictions The predictions.
+     * @param <T> The prediction type.
+     * @return A list of predicted outputs.
+     */
     public static <T extends Output<T>> List<T> toMaxLabels(List<Prediction<T>> predictions) {
         return predictions.stream().map(Prediction::getOutput).collect(Collectors.toList());
     }

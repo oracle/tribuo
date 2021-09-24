@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -146,7 +146,7 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
      * @param quote The quote character in the data file.
      */
     public CSVDataSource(URI dataFile, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote) {
-        this(dataFile, Paths.get(dataFile),rowProcessor,outputRequired,separator,quote);
+        this(dataFile, Paths.get(dataFile),rowProcessor,outputRequired,separator,quote,Collections.emptyList());
     }
 
     /**
@@ -154,6 +154,9 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
      * characters to read the input data file.
      * <p>
      * Used in {@link CSVLoader} to read a CSV without headers.
+     * <p>
+     * If headers is the empty list then the headers are read from the file, otherwise the file is assumed to
+     * not contain headers.
      * @param dataFile A URI for the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
      * @param outputRequired Is the output required to exist in the data file.
@@ -161,9 +164,8 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
      * @param quote The quote character in the data file.
      * @param headers The CSV file headers.
      */
-    CSVDataSource(URI dataFile, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote, List<String> headers) {
-        this(dataFile, Paths.get(dataFile),rowProcessor,outputRequired,separator,quote);
-        this.headers = headers;
+    public CSVDataSource(URI dataFile, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote, List<String> headers) {
+        this(dataFile, Paths.get(dataFile),rowProcessor,outputRequired,separator,quote,headers);
     }
 
     /**
@@ -176,24 +178,46 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
      * @param quote The quote character in the data file.
      */
     public CSVDataSource(Path dataPath, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote) {
-        this(dataPath.toUri(),dataPath,rowProcessor,outputRequired,separator,quote);
+        this(dataPath.toUri(),dataPath,rowProcessor,outputRequired,separator,quote,Collections.emptyList());
+    }
+
+    /**
+     * Creates a CSVDataSource using the specified RowProcessor to process the data, and the supplied separator and quote
+     * characters to read the input data file.
+     * <p>
+     * If headers is the empty list then the headers are read from the file, otherwise the file is assumed to
+     * not contain headers.
+     * @param dataPath The Path to the data file.
+     * @param rowProcessor The row processor which converts a row into an {@link Example}.
+     * @param outputRequired Is the output required to exist in the data file.
+     * @param separator The separator character in the data file.
+     * @param quote The quote character in the data file.
+     * @param headers The CSV file headers.
+     */
+    public CSVDataSource(Path dataPath, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote, List<String> headers) {
+        this(dataPath.toUri(),dataPath,rowProcessor,outputRequired,separator,quote,headers);
     }
 
     /**
      * Creates a CSVDataSource using the specified RowProcessor to process the data, and the supplied separator, quote
      * characters to read the input data file.
+     * <p>
+     * If headers is the empty list then the headers are read from the file, otherwise the file is assumed to
+     * not contain headers.
      * @param dataFile A URI for the data file.
      * @param rowProcessor The row processor which converts a row into an {@link Example}.
      * @param outputRequired Is the output required to exist in the data file.
      * @param separator The separator character in the data file.
      * @param quote The quote character in the data file.
+     * @param headers The CSV file headers, or an empty list.
      */
-    private CSVDataSource(URI dataFile, Path dataPath, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote) {
+    private CSVDataSource(URI dataFile, Path dataPath, RowProcessor<T> rowProcessor, boolean outputRequired, char separator, char quote, List<String> headers) {
         super(rowProcessor.getResponseProcessor().getOutputFactory(), rowProcessor, outputRequired);
         this.dataPath = dataPath;
         this.dataFile = dataFile;
         this.separator = separator;
         this.quote = quote;
+        this.headers = headers;
         this.provenance = new CSVDataSourceProvenance(this);
     }
 
@@ -281,6 +305,10 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
             this.sha256Hash = new HashProvenance(DEFAULT_HASH_TYPE,RESOURCE_HASH,ProvenanceUtil.hashResource(DEFAULT_HASH_TYPE,host.dataPath));
         }
 
+        /**
+         * Deserialization constructor.
+         * @param map The provenances.
+         */
         public CSVDataSourceProvenance(Map<String,Provenance> map) {
             this(extractProvenanceInfo(map));
         }
@@ -292,6 +320,11 @@ public class CSVDataSource<T extends Output<T>> extends ColumnarDataSource<T> {
             this.sha256Hash = (HashProvenance) info.instanceValues.get(RESOURCE_HASH);
         }
 
+        /**
+         * Separates this class's non-configurable fields from the configurable fields.
+         * @param map The provenances.
+         * @return The extracted provenance information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, CSVDataSourceProvenance.class.getSimpleName()).getValue();

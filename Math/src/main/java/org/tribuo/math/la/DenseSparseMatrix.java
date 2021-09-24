@@ -42,16 +42,29 @@ public class DenseSparseMatrix implements Matrix {
         this.shape = new int[]{dim1,dim2};
     }
 
+    /***
+     * Constructs a DenseSparseMatrix out of the supplied sparse vector list.
+     * <p>
+     * Throws IllegalArgumentException if the list forms a ragged matrix.
+     * @param values The list of sparse vectors.
+     */
     public DenseSparseMatrix(List<SparseVector> values) {
         this.values = new SparseVector[values.size()];
         this.dim1 = values.size();
         this.dim2 = values.get(0).size();
         this.shape = new int[]{dim1,dim2};
         for (int i = 0; i < values.size(); i++) {
+            if (values.get(i).size() != dim2) {
+                throw new IllegalArgumentException("Unexpected size, found " + values.get(i).size() + ", expected " + dim2);
+            }
             this.values[i] = values.get(i);
         }
     }
 
+    /**
+     * Creates a new DenseSparseMatrix by deep copying the supplied DenseSparseMatrix.
+     * @param other The matrix to copy.
+     */
     public DenseSparseMatrix(DenseSparseMatrix other) {
         this.dim1 = other.dim1;
         this.dim2 = other.dim2;

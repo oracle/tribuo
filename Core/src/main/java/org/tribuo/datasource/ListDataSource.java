@@ -42,6 +42,12 @@ public class ListDataSource<T extends Output<T>> implements DataSource<T> {
 
     private final DataSourceProvenance provenance;
 
+    /**
+     * Constructs an in-memory data source wrapping the supplied examples.
+     * @param list The examples.
+     * @param factory The output factory.
+     * @param provenance The data source provenance.
+     */
     public ListDataSource(List<Example<T>> list, OutputFactory<T> factory, DataSourceProvenance provenance) {
         this.data = Collections.unmodifiableList(new ArrayList<>(list));
         this.factory = factory;

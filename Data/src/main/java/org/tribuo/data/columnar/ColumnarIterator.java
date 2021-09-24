@@ -36,7 +36,13 @@ import java.util.logging.Logger;
 public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Row> implements Iterator<ColumnarIterator.Row> {
     private static final Logger logger = Logger.getLogger(ColumnarIterator.class.getName());
 
+    /**
+     * The column headers for this iterator.
+     */
     protected List<String> fields;
+    /**
+     * The current row.
+     */
     protected Optional<Row> currentRow = Optional.empty();
 
     /**
@@ -50,20 +56,38 @@ public abstract class ColumnarIterator extends IOSpliterator<ColumnarIterator.Ro
         private final List<String> fields;
         private final Map<String, String> rowData;
 
+        /**
+         * Constructs a row from a columnar source.
+         * @param index The row index.
+         * @param fields The field names, assumed to be immutable.
+         * @param rowData The row data.
+         */
         public Row(long index, List<String> fields, Map<String, String> rowData) {
             this.index = index;
             this.fields = fields;
             this.rowData = Collections.unmodifiableMap(rowData);
         }
 
+        /**
+         * Gets the field headers.
+         * @return The field headers.
+         */
         public List<String> getFields() {
             return fields;
         }
 
+        /**
+         * Gets the row index.
+         * @return The row index.
+         */
         public long getIndex() {
             return index;
         }
 
+        /**
+         * Gets the row data.
+         * @return The row data.
+         */
         public Map<String, String> getRowData() {
             return rowData;
         }

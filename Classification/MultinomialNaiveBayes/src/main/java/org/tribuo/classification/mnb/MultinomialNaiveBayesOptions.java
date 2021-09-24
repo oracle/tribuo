@@ -24,6 +24,9 @@ import org.tribuo.classification.ClassificationOptions;
  */
 public class MultinomialNaiveBayesOptions implements ClassificationOptions<MultinomialNaiveBayesTrainer> {
 
+    /**
+     * Smoothing parameter for the conditional probabilities.
+     */
     @Option(charName = 'a', longName = "mnb-alpha", usage = "Smoothing parameter for the conditional probabilities.")
     public double mnbAlpha;
 

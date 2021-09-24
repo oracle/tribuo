@@ -32,6 +32,9 @@ import java.util.List;
 public final class XGBoostClassificationConverter implements XGBoostOutputConverter<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Constructs an XGBoostClassificationConverter.
+     */
     public XGBoostClassificationConverter() {}
 
     @Override

@@ -112,6 +112,11 @@ public final class DateFieldProcessor implements FieldProcessor {
             this.extractionFunction = func;
         }
 
+        /**
+         * Applies this enum's extraction function to the supplied date.
+         * @param date The date to extract from.
+         * @return The output of the extraction function.
+         */
         public int extract(LocalDate date) {
             return extractionFunction.applyAsInt(date);
         }

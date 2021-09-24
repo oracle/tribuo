@@ -38,9 +38,12 @@ public class MultiLabelDataGenerator {
 
     private static final MultiLabelFactory factory = new MultiLabelFactory();
 
-    private MultiLabelDataGenerator() {
-    }
+    private MultiLabelDataGenerator() {}
 
+    /**
+     * Simple training data for checking multi-label trainers.
+     * @return Simple 3 class training data.
+     */
     public static Dataset<MultiLabel> generateTrainData() {
         DataSourceProvenance provenance = new SimpleDataSourceProvenance("TrainingData", OffsetDateTime.now(), factory);
         MutableDataset<MultiLabel> dataset = new MutableDataset<>(provenance, factory);
@@ -81,9 +84,19 @@ public class MultiLabelDataGenerator {
         e.add(new Feature("C-TREE",1.0));
         dataset.add(e);
 
+        e = new ArrayExample<>(factory.generateOutput("MONKEY,TREE,PUZZLE"));
+        e.add(new Feature("A-MONKEY",0.5));
+        e.add(new Feature("B-PUZZLE",0.5));
+        e.add(new Feature("C-TREE",0.5));
+        dataset.add(e);
+
         return dataset;
     }
 
+    /**
+     * Simple test data for checking multi-label trainers.
+     * @return Simple 3 class test data.
+     */
     public static Dataset<MultiLabel> generateTestData() {
         DataSourceProvenance provenance = new SimpleDataSourceProvenance("TestingData", OffsetDateTime.now(), factory);
         MutableDataset<MultiLabel> dataset = new MutableDataset<>(provenance,factory);
@@ -115,6 +128,10 @@ public class MultiLabelDataGenerator {
         return dataset;
     }
 
+    /**
+     * Generate training and testing datasets.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<MultiLabel>,Dataset<MultiLabel>> generateDataset() {
         return new Pair<>(generateTrainData(),generateTestData());
     }

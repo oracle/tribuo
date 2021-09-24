@@ -32,12 +32,31 @@ import java.util.Map.Entry;
  */
 public class PairDistribution<T1,T2> {
 
+    /**
+     * The number of samples this distribution has seen.
+     */
     public final long count;
 
+    /**
+     * The joint distribution.
+     */
     public final Map<CachedPair<T1,T2>,MutableLong> jointCounts;
+    /**
+     * The first marginal distribution.
+     */
     public final Map<T1,MutableLong> firstCount;
+    /**
+     * The second marginal distribution.
+     */
     public final Map<T2,MutableLong> secondCount;
 
+    /**
+     * Constructs a pair distribution.
+     * @param count The total sample count.
+     * @param jointCounts The joint counts.
+     * @param firstCount The first variable count.
+     * @param secondCount The second variable count.
+     */
     public PairDistribution(long count, Map<CachedPair<T1,T2>,MutableLong> jointCounts, Map<T1,MutableLong> firstCount, Map<T2,MutableLong> secondCount) {
         this.count = count;
         this.jointCounts = new LinkedHashMap<>(jointCounts);
@@ -45,6 +64,13 @@ public class PairDistribution<T1,T2> {
         this.secondCount = new LinkedHashMap<>(secondCount);
     }
 
+    /**
+     * Constructs a pair distribution.
+     * @param count The total sample count.
+     * @param jointCounts The joint counts.
+     * @param firstCount The first variable count.
+     * @param secondCount The second variable count.
+     */
     public PairDistribution(long count, LinkedHashMap<CachedPair<T1,T2>,MutableLong> jointCounts, LinkedHashMap<T1,MutableLong> firstCount, LinkedHashMap<T2,MutableLong> secondCount) {
         this.count = count;
         this.jointCounts = jointCounts;
@@ -91,6 +117,13 @@ public class PairDistribution<T1,T2> {
         }
     }
 
+    /**
+     * Constructs a distribution from a joint count.
+     * @param jointCount The joint count.
+     * @param <T1> The type of the first variable.
+     * @param <T2> The type of the second variable.
+     * @return A pair distribution.
+     */
     public static <T1,T2> PairDistribution<T1,T2> constructFromMap(Map<CachedPair<T1,T2>,MutableLong> jointCount) {
         Map<T1,MutableLong> aCount = new HashMap<>(InformationTheory.DEFAULT_MAP_SIZE);
         Map<T2,MutableLong> bCount = new HashMap<>(InformationTheory.DEFAULT_MAP_SIZE);
@@ -98,6 +131,15 @@ public class PairDistribution<T1,T2> {
         return constructFromMap(jointCount,aCount,bCount);
     }
 
+    /**
+     * Constructs a distribution from a joint count.
+     * @param jointCount The joint count.
+     * @param aSize The initial size of the first marginal hash map.
+     * @param bSize The initial size of the second marginal hash map.
+     * @param <T1> The type of the first variable.
+     * @param <T2> The type of the second variable.
+     * @return A pair distribution.
+     */
     public static <T1,T2> PairDistribution<T1,T2> constructFromMap(Map<CachedPair<T1,T2>,MutableLong> jointCount, int aSize, int bSize) {
         Map<T1,MutableLong> aCount = new HashMap<>(aSize);
         Map<T2,MutableLong> bCount = new HashMap<>(bSize);
@@ -105,6 +147,15 @@ public class PairDistribution<T1,T2> {
         return constructFromMap(jointCount,aCount,bCount);
     }
 
+    /**
+     * Constructs a joint distribution from the counts.
+     * @param jointCount The joint count.
+     * @param aCount The first marginal count.
+     * @param bCount The second marginal count.
+     * @param <T1> The type of the first variable.
+     * @param <T2> The type of the second variable.
+     * @return A pair distribution.
+     */
     public static <T1,T2> PairDistribution<T1,T2> constructFromMap(Map<CachedPair<T1,T2>,MutableLong> jointCount,
                                                                            Map<T1,MutableLong> aCount,
                                                                            Map<T2,MutableLong> bCount) {

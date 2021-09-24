@@ -32,6 +32,9 @@ import java.util.Objects;
 public class EnsembleModelProvenance extends ModelProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The name of the provenance field where the member provenances are stored.
+     */
     protected static final String MEMBERS = "member-provenance";
 
     private final ListProvenance<? extends ModelProvenance> memberProvenance;

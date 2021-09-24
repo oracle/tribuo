@@ -44,6 +44,12 @@ public class CachedTriple<T1, T2, T3> implements Serializable {
 
     private final int cachedHash;
 
+    /**
+     * Constructs a CachedTriple.
+     * @param a The first element.
+     * @param b The second element.
+     * @param c The third element.
+     */
     public CachedTriple(T1 a, T2 b, T3 c) {
         this.a = a;
         this.b = b;
@@ -54,26 +60,50 @@ public class CachedTriple<T1, T2, T3> implements Serializable {
         this.cachedHash = calculateHashCode();
     }
 
+    /**
+     * Gets the first element.
+     * @return The first element.
+     */
     public T1 getA() {
         return a;
     }
 
+    /**
+     * Gets the second element.
+     * @return The second element.
+     */
     public T2 getB() {
         return b;
     }
-    
+
+    /**
+     * Gets the third element.
+     * @return The third element.
+     */
     public T3 getC() {
         return c;
     }
 
+    /**
+     * Gets the pair of the first and second elements.
+     * @return A pair of the first and second elements.
+     */
     public CachedPair<T1,T2> getAB() {
         return ab;
     }
 
+    /**
+     * Gets the pair of the first and third elements.
+     * @return A pair of the first and third elements.
+     */
     public CachedPair<T1,T3> getAC() {
         return ac;
     }
 
+    /**
+     * Gets the pair of the second and third elements.
+     * @return A pair of the second and third elements.
+     */
     public CachedPair<T2,T3> getBC() {
         return bc;
     }

@@ -101,6 +101,11 @@ public class AggregateConfigurableDataSource<T extends Output<T>> implements Con
     public static class AggregateConfigurableDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements DataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Creates a AggregateConfigurableDataSourceProvenance from the host object.
+         * @param host The data source to provenance.
+         * @param <T> The type of the data source.
+         */
         <T extends Output<T>> AggregateConfigurableDataSourceProvenance(AggregateConfigurableDataSource<T> host) {
             super(host, "DataSource");
         }
@@ -113,10 +118,19 @@ public class AggregateConfigurableDataSource<T extends Output<T>> implements Con
             this(extractProvenanceInfo(map));
         }
 
+        /**
+         * Inner deserialization constructor.
+         * @param info The extracted information.
+         */
         private AggregateConfigurableDataSourceProvenance(ExtractedInfo info) {
             super(info);
         }
 
+        /**
+         * Extracts the class name and host type fields from the provenance map.
+         * @param map The provenance map.
+         * @return The extracted information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String, Provenance> map) {
             Map<String, Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, AggregateConfigurableDataSourceProvenance.class.getSimpleName()).getValue();
