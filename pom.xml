@@ -42,12 +42,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- MLRG dependencies -->
-        <olcut.version>5.1.6</olcut.version>
+        <olcut.version>5.2.0</olcut.version>
 
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.43</liblinear.version>
         <libsvm.version>3.25</libsvm.version>
-        <onnxruntime.version>1.7.0</onnxruntime.version>
+        <onnxruntime.version>1.9.0</onnxruntime.version>
         <tensorflow.version>0.3.1</tensorflow.version>
         <xgboost.version>1.4.1</xgboost.version>
 
@@ -55,7 +55,7 @@
         <junit.version>5.7.1</junit.version>
         <opencsv.version>5.4</opencsv.version>
         <commonsmath.version>3.6.1</commonsmath.version>
-        <protobuf.version>3.16.0</protobuf.version>
+        <protobuf.version>3.17.3</protobuf.version>
 
         <!-- Other properties -->
         <!-- Turn off tests which rely on native code -->
@@ -123,6 +123,11 @@
             <dependency>
                 <groupId>com.oracle.labs.olcut</groupId>
                 <artifactId>olcut-core</artifactId>
+                <version>${olcut.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.oracle.labs.olcut</groupId>
+                <artifactId>olcut-config-protobuf</artifactId>
                 <version>${olcut.version}</version>
             </dependency>
             <dependency>

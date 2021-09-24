@@ -38,6 +38,10 @@
             <artifactId>olcut-core</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.oracle.labs.olcut</groupId>
+            <artifactId>olcut-config-protobuf</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
         </dependency>
