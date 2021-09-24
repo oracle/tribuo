@@ -82,6 +82,11 @@ public final class Helpers {
     }
 
 
+    /**
+     * Takes an object that is both {@link Provenancable} and {@link Configurable} and tests whether the configuration
+     * and provenance representations are the same using {@link ConfigurationData#structuralEquals(List, List, String, String)}.
+     * @param itm The object whose equality is to be tested
+     */
     public static <P extends ObjectProvenance, C extends Configurable & Provenancable<P>> void testConfigurableRoundtrip(C itm) {
         ConfigurationManager cm = new ConfigurationManager();
         String name = cm.importConfigurable(itm, "item");

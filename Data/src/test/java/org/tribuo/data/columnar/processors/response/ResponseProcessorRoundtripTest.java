@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class ResponseProcessorRoundtripTest {
 
     @Test
-    public void binaryTest() throws NoSuchFieldException, IllegalAccessException {
+    public void binaryTest() {
         BinaryResponseProcessor<MockMultiOutput> multiRespProc = new BinaryResponseProcessor<>(
                 Arrays.asList("R1", "R2"),
                 Arrays.asList("TRUE", "TRUE"),
