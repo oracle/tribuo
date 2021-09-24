@@ -73,6 +73,9 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
     private double[] yMean;
     private double[] yVariance;
 
+    // Used to signal if the model has been rewritten to fix the issue with ElasticNet models in 4.0 and 4.1.0.
+    private boolean enet41MappingFix;
+
     SparseLinearModel(String name, String[] dimensionNames, ModelProvenance description,
                       ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
                       SparseVector[] weights, DenseVector featureMeans, DenseVector featureVariance, double[] yMean, double[] yVariance, boolean bias) {
@@ -83,6 +86,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         this.bias = bias;
         this.yVariance = yVariance;
         this.yMean = yMean;
+        this.enet41MappingFix = true;
     }
 
     private static Map<String, List<String>> generateActiveFeatures(String[] dimensionNames, ImmutableFeatureMap featureMap, SparseVector[] weightsArray) {
@@ -355,10 +359,11 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
 
         // Rearrange the dimensions in ElasticNet models from 4.1.0 and earlier because they are corrupted.
         String tribuoVersion = (String) provenance.getTrainerProvenance().getInstanceValues().get(TrainerProvenance.TRIBUO_VERSION_STRING).getValue();
-        if (provenance.getTrainerProvenance().getClassName().equals("org.tribuo.regression.slm.ElasticNetCDTrainer") &&
+        if (provenance.getTrainerProvenance().getClassName().equals("org.tribuo.regression.slm.ElasticNetCDTrainer") && !enet41MappingFix &&
                 (tribuoVersion.startsWith("4.0.0") || tribuoVersion.startsWith("4.0.1") || tribuoVersion.startsWith("4.0.2") || tribuoVersion.startsWith("4.1.0")
                         // This is explicit to catch the test model which has a 4.1.1-SNAPSHOT Tribuo version.
                         || tribuoVersion.equals("4.1.1-SNAPSHOT"))) {
+            enet41MappingFix = true;
             int[] mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
             SparseVector[] newWeights = new SparseVector[weights.length];
             double[] newYMeans = new double[weights.length];

@@ -319,7 +319,7 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
             try {
                 Class<?> regressionClass = Class.forName("org.tribuo.regression.ImmutableRegressionInfo");
                 String tribuoVersion = (String) provenance.getTrainerProvenance().getInstanceValues().get(TrainerProvenance.TRIBUO_VERSION_STRING).getValue();
-                if (regressionClass.isInstance(outputIDInfo) &&
+                if (regressionClass.isInstance(outputIDInfo) && !regression41MappingFix &&
                         (tribuoVersion.startsWith("4.0.0") || tribuoVersion.startsWith("4.0.1") || tribuoVersion.startsWith("4.0.2") || tribuoVersion.startsWith("4.1.0")
                                 // This is explicit to catch the test model which has a 4.1.1-SNAPSHOT Tribuo version.
                                 || tribuoVersion.equals("4.1.1-SNAPSHOT"))) {
