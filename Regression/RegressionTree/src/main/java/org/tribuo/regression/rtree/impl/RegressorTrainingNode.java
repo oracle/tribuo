@@ -406,7 +406,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             data.add(new TreeFeature(i));
         }
 
-        int[] ids = ((ImmutableRegressionInfo) labelInfo).getIDtoNaturalOrderMapping();
+        int[] ids = ((ImmutableRegressionInfo) labelInfo).getNaturalOrderToIDMapping();
         for (int i = 0; i < examples.size(); i++) {
             Example<Regressor> e = examples.getExample(i);
             indices[i] = i;
