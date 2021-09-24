@@ -181,10 +181,10 @@ public class RegressorConverter implements OutputConverter<Regressor> {
         // We map through the id to natural order mapping as regressor might not
         // be stored in the id order.
         int[] ids = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
-        double[] values = new double[outputIDInfo.size()];
+        double[] values = example.getValues();
         for (Pair<Integer,Regressor> p : outputIDInfo) {
             int id = p.getA();
-            output.setFloat((float) values[ids[id]],1,id);
+            output.setFloat((float) values[ids[id]],0,id);
         }
         return output;
     }
