@@ -16,17 +16,25 @@
 
 package org.tribuo.common.sgd;
 
+import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
+import org.tribuo.Tribuo;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Tensor;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -160,4 +168,80 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
      */
     protected abstract String getDimensionName(int index);
 
+    /**
+     * Builds the ModelProto according to the standards for this model.
+     * @param graph The model graph.
+     * @param domain The model domain string.
+     * @param modelVersion The model version number.
+     * @return The ModelProto.
+     */
+    protected OnnxMl.ModelProto innerExportONNXModel(OnnxMl.GraphProto graph, String domain, long modelVersion) {
+        // Build model
+        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
+        builder.setGraph(graph);
+        builder.setDomain(domain);
+        builder.setProducerName("Tribuo");
+        builder.setProducerVersion(Tribuo.VERSION);
+        builder.setModelVersion(modelVersion);
+        builder.setDocString(toString());
+        builder.addOpsetImport(ONNXOperators.getOpsetProto());
+        builder.setIrVersion(6);
+        return builder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the supplied DenseMatrix.
+     * @param context The ONNX context for naming.
+     * @return The linear weight TensorProto.
+     */
+    protected OnnxMl.TensorProto matrixBuilder(ONNXContext context, String name, DenseMatrix matrix, boolean transpose) {
+        OnnxMl.TensorProto.Builder matrixBuilder = OnnxMl.TensorProto.newBuilder();
+        matrixBuilder.setName(context.generateUniqueName(name));
+        int dim1, dim2;
+        if (transpose) {
+            dim1 = matrix.getDimension2Size();
+            dim2 = matrix.getDimension1Size();
+        } else {
+            dim1 = matrix.getDimension1Size();
+            dim2 = matrix.getDimension2Size();
+        }
+        matrixBuilder.addDims(dim1);
+        matrixBuilder.addDims(dim2);
+        matrixBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(dim1 * dim2 * 4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                if (transpose) {
+                    floatBuffer.put((float) matrix.get(j, i));
+                } else {
+                    floatBuffer.put((float) matrix.get(i, j));
+                }
+            }
+        }
+        floatBuffer.rewind();
+        matrixBuilder.setRawData(ByteString.copyFrom(buffer));
+        return matrixBuilder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the biases for this Factorization Machine.
+     * @param context The ONNX context for naming.
+     * @return The bias TensorProto.
+     */
+    protected OnnxMl.TensorProto biasBuilder(ONNXContext context) {
+        OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
+        biasBuilder.setName(context.generateUniqueName("fm_biases"));
+        biasBuilder.addDims(outputIDInfo.size());
+        biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(outputIDInfo.size()*4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        DenseVector biases = (DenseVector) modelParameters.get()[0];
+        for (int i = 0; i < biases.size(); i++) {
+            floatBuffer.put((float)biases.get(i));
+        }
+        floatBuffer.rewind();
+        biasBuilder.setRawData(ByteString.copyFrom(buffer));
+        return biasBuilder.build();
+    }
 }

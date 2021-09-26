@@ -16,31 +16,50 @@
 
 package org.tribuo.classification.sgd.fm;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
+import org.tribuo.classification.sgd.linear.LinearSGDModel;
+import org.tribuo.classification.sgd.linear.TestSGDLinear;
 import org.tribuo.classification.sgd.objectives.Hinge;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.LabelTransformer;
+import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestFMClassification {
+    private static final Logger logger = Logger.getLogger(TestFMClassification.class.getName());
 
     private static final FMClassificationTrainer t = new FMClassificationTrainer(new Hinge(),
             new AdaGrad(0.1,0.1),5,1000,Trainer.DEFAULT_SEED,6,0.1);
@@ -103,4 +122,62 @@ public class TestFMClassification {
             m.predict(LabelledDataGenerator.emptyExample());
         });
     }
+    @Test
+
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        FMClassificationModel model = (FMClassificationModel) t.train(p.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");
+        model.saveONNXModel("org.tribuo.classification.sgd.fm.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Label, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Label> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        String arch = System.getProperty("os.arch");
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+            // Initialise the OrtEnvironment to load the native library
+            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
+            OrtEnvironment env = OrtEnvironment.getEnvironment();
+            env.close();
+            // Load in via ORT
+            ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), new LabelTransformer(), new OrtSession.SessionOptions(), onnxFile, "input");
+
+            // Generate predictions
+            List<Prediction<Label>> nativePredictions = model.predict(p.getB());
+            List<Prediction<Label>> onnxPredictions = onnxModel.predict(p.getB());
+
+            // Assert the predictions are identical
+            for (int i = 0; i < nativePredictions.size(); i++) {
+                Prediction<Label> tribuo = nativePredictions.get(i);
+                Prediction<Label> external = onnxPredictions.get(i);
+                assertEquals(tribuo.getOutput().getLabel(), external.getOutput().getLabel());
+                assertEquals(tribuo.getOutput().getScore(), external.getOutput().getScore(), 1e-6);
+                for (Map.Entry<String, Label> l : tribuo.getOutputScores().entrySet()) {
+                    Label other = external.getOutputScores().get(l.getKey());
+                    if (other == null) {
+                        fail("Failed to find label " + l.getKey() + " in ORT prediction.");
+                    } else {
+                        assertEquals(l.getValue().getScore(), other.getScore(), 1e-6);
+                    }
+                }
+            }
+
+            onnxModel.close();
+        } else {
+            logger.warning("ORT based tests only supported on x86_64, found " + arch);
+        }
+
+        onnxFile.toFile().delete();
+    }
+
 }

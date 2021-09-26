@@ -94,6 +94,8 @@ public final class FMParameters implements FeedForwardParameters {
      */
     private void initializeMatrix(SplittableRandom rng, double variance, DenseMatrix matrix) {
         // This is to get a nextGaussian method. In Java 17 we can use the SplittableRandom directly
+        // though that will prevent reproducibility as there will be different draws from the RNG and
+        // the PRNG algorithm is different.
         Random innerRNG = new Random(rng.nextLong());
         int dim1 = matrix.getDimension1Size();
         int dim2 = matrix.getDimension2Size();
@@ -105,7 +107,8 @@ public final class FMParameters implements FeedForwardParameters {
     }
 
     /**
-     * Generates an unnormalised prediction by leftMultiply'ing the weights with the incoming features.
+     * Generates an unnormalised prediction by multiplying the weights with the incoming features,
+     * adding the bias and adding the feature factors.
      *
      * @param example A feature vector
      * @return A {@link DenseVector} containing a score for each label.
