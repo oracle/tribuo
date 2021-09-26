@@ -36,22 +36,55 @@ public class FMMultiLabelOptions implements Options {
     /**
      * Available loss types.
      */
-    public enum LossEnum {HINGE, SIGMOID}
+    public enum LossEnum {
+        /**
+         * Hinge loss.
+         */
+        HINGE,
+        /**
+         * Log loss, i.e., binary cross-entropy.
+         */
+        SIGMOID
+    }
 
+    /**
+     * The gradient descent optimiser options.
+     */
     public GradientOptimiserOptions sgoOptions;
 
+    /**
+     * Number of SGD epochs.
+     */
     @Option(longName = "fm-epochs", usage = "Number of SGD epochs.")
     public int fmEpochs = 5;
+    /**
+     * Loss function.
+     */
     @Option(longName = "fm-objective", usage = "Loss function.")
     public LossEnum fmObjective = LossEnum.SIGMOID;
+    /**
+     * Log the objective after n examples.
+     */
     @Option(longName = "fm-logging-interval", usage = "Log the objective after <int> examples.")
     public int fmLoggingInterval = 100;
+    /**
+     * Minibatch size.
+     */
     @Option(longName = "fm-minibatch-size", usage = "Minibatch size.")
     public int fmMinibatchSize = 1;
+    /**
+     * Sets the random seed for the FMMultiLabelTrainer.
+     */
     @Option(longName = "fm-seed", usage = "Sets the random seed for the FMMultiLabelTrainer.")
     private long fmSeed = Trainer.DEFAULT_SEED;
+    /**
+     * Factor size.
+     */
     @Option(longName = "fm-factor-size", usage = "Factor size.")
     public int fmFactorSize = 6;
+    /**
+     * Variance of the initialization gaussian.
+     */
     @Option(longName = "fm-variance", usage = "Variance of the initialization gaussian.")
     public double fmVariance = 0.1;
 
@@ -70,6 +103,10 @@ public class FMMultiLabelOptions implements Options {
         }
     }
 
+    /**
+     * Gets the trainer as configured by these options.
+     * @return The trainer.
+     */
     public FMMultiLabelTrainer getTrainer() {
         logger.info(String.format("Set logging interval to %d", fmLoggingInterval));
         return new FMMultiLabelTrainer(getLoss(), sgoOptions.getOptimiser(), fmEpochs, fmLoggingInterval,

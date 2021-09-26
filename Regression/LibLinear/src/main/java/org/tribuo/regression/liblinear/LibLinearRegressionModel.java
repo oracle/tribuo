@@ -156,7 +156,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
      * <p>
      * If it becomes a problem then we could cache the feature weights in the
      * model.
-     * <p>
+     *
      * @param e The example.
      * @param allFeatureWeights The feature weights.
      * @return An excuse for this example.

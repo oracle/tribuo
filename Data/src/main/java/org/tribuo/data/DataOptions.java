@@ -181,21 +181,18 @@ public final class DataOptions implements Options {
      */
     @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
     public Path testingPath;
+    /**
+     * Scales the features to the range 0-1 independently.
+     */
     @Option(longName="scale-features",usage="Scales the features to the range 0-1 independently.")
     public boolean scaleFeatures;
-    @Option(longName="scale-including-zeros",usage="Includes implicit zeros in the scale range calculation")
+    /**
+     * Includes implicit zeros in the scale range calculation.
+     */
+    @Option(longName="scale-including-zeros",usage="Includes implicit zeros in the scale range calculation.")
     public boolean scaleIncZeros;
 
     /**
-<<<<<<< HEAD
-     * Loads the datasets specified in this options.
-     * @param outputFactory The output factory to use.
-     * @param <T> The type of the dataset.
-     * @return A pair of training and test datasets.
-     * @throws IOException If the datasets failed to load.
-     */
-    public <T extends Output<T>> Pair<Dataset<T>, Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
-=======
      * Loads the training and testing data from {@link #trainingPath} and {@link #testingPath}
      * according to the other parameters specified in this class.
      * @param outputFactory The output factory to use to process the inputs.
@@ -205,7 +202,6 @@ public final class DataOptions implements Options {
      * @throws IOException If the paths could not be loaded.
      */
     public <T extends Output<T>> Pair<Dataset<T>,Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
->>>>>>> c459390 (Adding another rescaling option to DataOptions.)
         logger.info(String.format("Loading data from %s", trainingPath));
         Dataset<T> train;
         Dataset<T> test;

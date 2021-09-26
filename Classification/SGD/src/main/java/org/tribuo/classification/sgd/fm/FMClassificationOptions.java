@@ -49,18 +49,39 @@ public class FMClassificationOptions implements ClassificationOptions<FMClassifi
 
     public GradientOptimiserOptions sgoOptions;
 
+    /**
+     * Number of SGD epochs.
+     */
     @Option(longName = "fm-epochs", usage = "Number of SGD epochs.")
     public int fmEpochs = 5;
+    /**
+     * Loss function.
+     */
     @Option(longName = "fm-objective", usage = "Loss function.")
     public LossEnum fmObjective = LossEnum.LOG;
+    /**
+     * Log the objective after n examples.
+     */
     @Option(longName = "fm-logging-interval", usage = "Log the objective after <int> examples.")
     public int fmLoggingInterval = 100;
+    /**
+     * Minibatch size.
+     */
     @Option(longName = "fm-minibatch-size", usage = "Minibatch size.")
     public int fmMinibatchSize = 1;
+    /**
+     * Sets the random seed for the FMClassificationTrainer.
+     */
     @Option(longName = "fm-seed", usage = "Sets the random seed for the FMClassificationTrainer.")
     private long fmSeed = Trainer.DEFAULT_SEED;
+    /**
+     * Factor size.
+     */
     @Option(longName = "fm-factor-size", usage = "Factor size.")
     public int fmFactorSize = 6;
+    /**
+     * Variance of the initialization gaussian.
+     */
     @Option(longName = "fm-variance", usage = "Variance of the initialization gaussian.")
     public double fmVariance = 0.1;
 

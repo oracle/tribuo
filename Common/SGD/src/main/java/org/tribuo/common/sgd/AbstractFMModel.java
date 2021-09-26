@@ -192,7 +192,10 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
     /**
      * Builds a TensorProto containing the supplied DenseMatrix.
      * @param context The ONNX context for naming.
-     * @return The linear weight TensorProto.
+     * @param name The name for this tensor proto.
+     * @param matrix The matrix to store.
+     * @param transpose Should the matrix be transposed into the tensor?
+     * @return The matrix TensorProto.
      */
     protected OnnxMl.TensorProto matrixBuilder(ONNXContext context, String name, DenseMatrix matrix, boolean transpose) {
         OnnxMl.TensorProto.Builder matrixBuilder = OnnxMl.TensorProto.newBuilder();

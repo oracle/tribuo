@@ -98,7 +98,13 @@ public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
      * A nominal tuple used to capture the prediction and the number of active features used by the model.
      */
     protected static final class PredAndActive {
+        /**
+         * The vector prediction.
+         */
         public final DenseVector prediction;
+        /**
+         * The number of active features used in the prediction.
+         */
         public final int numActiveFeatures;
 
         PredAndActive(DenseVector prediction, int numActiveFeatures) {
