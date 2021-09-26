@@ -70,7 +70,7 @@ public class Normalizer implements VectorNormalizer, Serializable {
         List<OnnxMl.NodeProto> protos = new ArrayList<>();
 
         String minOutput = context.generateUniqueName("min_output");
-        OnnxMl.NodeProto min = ONNXOperators.REDUCE_MIN.build(context,input,minOutput,Collections.singletonMap("axes",1));
+        OnnxMl.NodeProto min = ONNXOperators.REDUCE_MIN.build(context,input,minOutput,Collections.singletonMap("axes",new int[]{1}));
         protos.add(min);
 
         String subOutput = context.generateUniqueName("sub_output");
@@ -78,7 +78,7 @@ public class Normalizer implements VectorNormalizer, Serializable {
         protos.add(sub);
 
         String sumOutput = context.generateUniqueName("sum_output");
-        OnnxMl.NodeProto sum = ONNXOperators.REDUCE_SUM.build(context,subOutput,sumOutput,Collections.singletonMap("axes",1));
+        OnnxMl.NodeProto sum = ONNXOperators.REDUCE_SUM.build(context,subOutput,sumOutput,Collections.singletonMap("axes",new int[]{1}));
         protos.add(sum);
 
         OnnxMl.NodeProto div = ONNXOperators.DIV.build(context,new String[]{subOutput,sumOutput},output);

@@ -195,7 +195,7 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
             OnnxMl.NodeProto sumOverEmbeddings = ONNXOperators.REDUCE_SUM.build(context,
                     subtract.getOutput(0),
                     context.generateUniqueName("sum_over_embeddings"),
-                    Collections.singletonMap("axes",1));
+                    Collections.singletonMap("axes",new int[]{1}));
             graphBuilder.addNode(sumOverEmbeddings);
             // Divide by 2
             OnnxMl.NodeProto scaledInteraction = ONNXOperators.DIV.build(context,
@@ -208,7 +208,7 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
 
         // Make concat
         OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context, embeddingOutputs, context.generateUniqueName("fm_concat"),
-                    Collections.singletonMap("axes",1)
+                    Collections.singletonMap("axis",1)
                 );
         graphBuilder.addNode(concat);
 
