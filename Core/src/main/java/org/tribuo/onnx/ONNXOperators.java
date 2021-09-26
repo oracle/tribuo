@@ -26,16 +26,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.tribuo.onnx.ONNXAttribute.VARIADIC_INPUT;
+
 /**
  * The supported ONNX operators.
  */
 public enum ONNXOperators {
-
-
     /**
-     * Identity,
+     * Identity.
      */
     IDENTITY("Identity",1,1),
+    /**
+     * Concatenates tensors.
+     */
+    CONCAT("Constant",VARIADIC_INPUT,1, Collections.singletonList(
+            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, true)
+    )),
     /**
      * Sigmoid element-wise.
      */
@@ -47,7 +53,7 @@ public enum ONNXOperators {
      * </ul>
      */
     SOFTMAX("Softmax",1,1, Collections.singletonList(
-            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT,false)
+            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, false)
     )),
     /**
      * Element-wise addition with broadcasting.
@@ -66,6 +72,10 @@ public enum ONNXOperators {
      */
     DIV("Div",2,1),
     /**
+     * Element-wise exponentiation with broadcasting.
+     */
+    POW("Pow",2,1),
+    /**
      * Compute the minimum along the specified axes of the tensor.
      * <ul>
      *     <li>{@code axes} defaults to all dimensions.</li>
@@ -83,7 +93,7 @@ public enum ONNXOperators {
      *     <li>{@code keepdims} defaults to 1 which means keep.</li>
      * </ul>
      */
-    REDUCE_SUM("ReduceSum",2,1,Arrays.asList(
+    REDUCE_SUM("ReduceSum",1,1,Arrays.asList(
             new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS, false), //Opset 11
             new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT, false)
     )),
@@ -170,6 +180,58 @@ public enum ONNXOperators {
     }
 
     /**
+     * Builds this node based on the supplied inputs and output.
+     * Throws {@link IllegalArgumentException} if this operator takes more than a single input or output.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param input The name of the input.
+     * @param output The name of the output.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String input, String output) {
+        return build(context,new String[]{input},new String[]{output},Collections.emptyMap());
+    }
+
+    /**
+     * Builds this node based on the supplied inputs and output.
+     * Throws {@link IllegalArgumentException} if this operator takes more than a single input or output.
+     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param input The names of the input.
+     * @param output The name of the output.
+     * @param attributeValues The attribute names and values.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String input, String output, Map<String,Object> attributeValues) {
+        return build(context,new String[]{input},new String[]{output},attributeValues);
+    }
+
+    /**
+     * Builds this node based on the supplied inputs and output.
+     * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param inputs The names of the inputs.
+     * @param output The name of the output.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String output) {
+        return build(context,inputs,new String[]{output},Collections.emptyMap());
+    }
+
+    /**
+     * Builds this node based on the supplied inputs and output.
+     * Throws {@link IllegalArgumentException} if the number of inputs, outputs or attributes is wrong.
+     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param inputs The names of the inputs.
+     * @param output The name of the output.
+     * @param attributeValues The attribute names and values.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String output, Map<String,Object> attributeValues) {
+        return build(context,inputs,new String[]{output},attributeValues);
+    }
+
+    /**
      * Builds this node based on the supplied inputs and outputs.
      * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
      * @param context The onnx context used to ensure this node has a unique name.
@@ -192,7 +254,7 @@ public enum ONNXOperators {
      * @return The NodeProto.
      */
     public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String[] outputs, Map<String,Object> attributeValues) {
-        if (inputs.length != numInputs) {
+        if ((numInputs != VARIADIC_INPUT) && (inputs.length != numInputs)) {
             throw new IllegalArgumentException("Expected " + numInputs + " inputs, but received " + inputs.length);
         }
         if (outputs.length != numOutputs) {

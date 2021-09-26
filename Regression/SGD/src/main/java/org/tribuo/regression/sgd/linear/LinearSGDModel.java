@@ -123,7 +123,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> implements
 
         // Make gemm
         String[] gemmInputs = new String[]{inputValueProto.getName(),weightInitializerProto.getName(),biasInitializerProto.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,new String[]{"output"}, Collections.emptyMap());
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,"output");
         graphBuilder.addNode(gemm);
 
         return graphBuilder.build();

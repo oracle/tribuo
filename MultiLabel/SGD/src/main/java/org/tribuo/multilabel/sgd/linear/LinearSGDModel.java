@@ -137,7 +137,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> implement
 
         // Make gemm
         String[] gemmInputs = new String[]{inputValueProto.getName(),weightInitializerProto.getName(),biasInitializerProto.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,new String[]{context.generateUniqueName("gemm_output")}, Collections.emptyMap());
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,context.generateUniqueName("gemm_output"));
         graphBuilder.addNode(gemm);
 
         // Make output normalizer
