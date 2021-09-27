@@ -16,19 +16,26 @@
 
 package org.tribuo.regression.sgd.fm;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
-import org.tribuo.common.sgd.AbstractFMModel;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
-import org.tribuo.math.la.DenseMatrix;
-import org.tribuo.math.la.DenseVector;
+import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.RegressorTransformer;
 import org.tribuo.math.optimisers.AdaGrad;
+import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -36,15 +43,21 @@ import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.sgd.objectives.SquaredLoss;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestFMRegression {
+    private static final Logger logger = Logger.getLogger(TestFMRegression.class.getName());
 
     private static final FMRegressionTrainer t = new FMRegressionTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,1,0.1,true);
 
@@ -119,4 +132,54 @@ public class TestFMRegression {
             m.predict(RegressionDataGenerator.emptyMultiDimExample());
         });
     }
+
+    @Test
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        FMRegressionModel model = (FMRegressionModel) t.train(p.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");
+        model.saveONNXModel("org.tribuo.regression.sgd.fm.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Regressor, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Regressor> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        String arch = System.getProperty("os.arch");
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+            // Initialise the OrtEnvironment to load the native library
+            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
+            OrtEnvironment env = OrtEnvironment.getEnvironment();
+            env.close();
+            // Load in via ORT
+            ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(),featureMapping,outputMapping,new DenseTransformer(),new RegressorTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
+
+            // Generate predictions
+            List<Prediction<Regressor>> nativePredictions = model.predict(p.getB());
+            List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
+
+            // Assert the predictions are identical
+            for (int i = 0; i < nativePredictions.size(); i++) {
+                Prediction<Regressor> tribuo = nativePredictions.get(i);
+                Prediction<Regressor> external = onnxPredictions.get(i);
+                assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
+                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-5);
+            }
+
+            onnxModel.close();
+        } else {
+            logger.warning("ORT based tests only supported on x86_64, found " + arch);
+        }
+
+        onnxFile.toFile().delete();
+    }
+
 }

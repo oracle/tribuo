@@ -16,15 +16,20 @@
 
 package org.tribuo.regression.sgd.fm;
 
+import ai.onnx.proto.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXShape;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
-import org.tribuo.regression.RegressionInfo;
 import org.tribuo.regression.Regressor;
 
 import java.util.Arrays;
@@ -41,7 +46,7 @@ import java.util.Arrays;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMRegressionModel extends AbstractFMModel<Regressor> {
+public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONNXExportable {
     private static final long serialVersionUID = 3L;
 
     private final String[] dimensionNames;
@@ -100,4 +105,36 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> {
         return dimensionNames[index];
     }
 
+    @Override
+    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
+        ONNXContext context = new ONNXContext();
+
+        // Build graph
+        OnnxMl.GraphProto graph = exportONNXGraph(context);
+
+        return innerExportONNXModel(graph,domain,modelVersion);
+    }
+
+    @Override
+    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
+        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+        graphBuilder.setName("FMMultiLabelModel");
+
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        graphBuilder.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        graphBuilder.addOutput(outputValueProto);
+
+        // Build the output neutral bits of the onnx graph
+        String outputName = generateONNXGraph(context, graphBuilder, inputValueProto.getName());
+
+        // Link up the output to the graph output
+        OnnxMl.NodeProto output = ONNXOperators.IDENTITY.build(context,outputName,"output");
+        graphBuilder.addNode(output);
+
+        return graphBuilder.build();
+    }
 }

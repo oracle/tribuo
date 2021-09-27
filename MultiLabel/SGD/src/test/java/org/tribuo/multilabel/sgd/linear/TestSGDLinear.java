@@ -96,6 +96,7 @@ public class TestSGDLinear {
 
         Helpers.testModelSerialization(model, MultiLabel.class);
     }
+
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {
         Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
@@ -104,7 +105,7 @@ public class TestSGDLinear {
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");
-        model.saveONNXModel("org.tribuo.classification.sgd.linear.test",1,onnxFile);
+        model.saveONNXModel("org.tribuo.multilabel.sgd.linear.test",1,onnxFile);
 
         // Prep mappings
         Map<String, Integer> featureMapping = new HashMap<>();

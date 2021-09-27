@@ -61,11 +61,12 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
 
     /**
      * Constructs a factorization machine model trained via SGD.
-     * @param name The model name.
-     * @param provenance The model provenance.
-     * @param featureIDMap The feature domain.
-     * @param outputIDInfo The output domain.
-     * @param parameters The model parameters.
+     *
+     * @param name                   The model name.
+     * @param provenance             The model provenance.
+     * @param featureIDMap           The feature domain.
+     * @param outputIDInfo           The output domain.
+     * @param parameters             The model parameters.
      * @param generatesProbabilities Does this model generate probabilities?
      */
     protected AbstractFMModel(String name, ModelProvenance provenance,
@@ -80,18 +81,18 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         DenseMatrix baseWeights = (DenseMatrix) modelParameters.get()[1];
         int maxFeatures = n < 0 ? featureIDMap.size() + 1 : n;
 
-        Comparator<Pair<String,Double>> comparator = Comparator.comparingDouble(p -> Math.abs(p.getB()));
+        Comparator<Pair<String, Double>> comparator = Comparator.comparingDouble(p -> Math.abs(p.getB()));
 
         //
         // Use a priority queue to find the top N features.
         int numClasses = baseWeights.getDimension1Size();
         int numFeatures = baseWeights.getDimension2Size();
-        Map<String, List<Pair<String,Double>>> map = new HashMap<>();
+        Map<String, List<Pair<String, Double>>> map = new HashMap<>();
         for (int i = 0; i < numClasses; i++) {
-            PriorityQueue<Pair<String,Double>> q = new PriorityQueue<>(maxFeatures, comparator);
+            PriorityQueue<Pair<String, Double>> q = new PriorityQueue<>(maxFeatures, comparator);
 
             for (int j = 0; j < numFeatures; j++) {
-                Pair<String,Double> curr = new Pair<>(featureIDMap.get(j).getName(), baseWeights.get(i,j));
+                Pair<String, Double> curr = new Pair<>(featureIDMap.get(j).getName(), baseWeights.get(i, j));
 
                 if (q.size() < maxFeatures) {
                     q.offer(curr);
@@ -100,7 +101,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
                     q.offer(curr);
                 }
             }
-            Pair<String,Double> curr = new Pair<>(BIAS_FEATURE, biases.get(i));
+            Pair<String, Double> curr = new Pair<>(BIAS_FEATURE, biases.get(i));
 
             if (q.size() < maxFeatures) {
                 q.offer(curr);
@@ -108,7 +109,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
                 q.poll();
                 q.offer(curr);
             }
-            List<Pair<String,Double>> b = new ArrayList<>();
+            List<Pair<String, Double>> b = new ArrayList<>();
             while (q.size() > 0) {
                 b.add(q.poll());
             }
@@ -121,18 +122,20 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
 
     /**
      * Returns a copy of the linear weights.
+     *
      * @return The linear weights.
      */
     public DenseMatrix getLinearWeightsCopy() {
-        return ((DenseMatrix)modelParameters.get()[1]).copy();
+        return ((DenseMatrix) modelParameters.get()[1]).copy();
     }
 
     /**
      * Returns a copy of the output dimension biases.
+     *
      * @return The biases.
      */
     public DenseVector getBiasesCopy() {
-        return ((DenseVector)modelParameters.get()[0]).copy();
+        return ((DenseVector) modelParameters.get()[0]).copy();
     }
 
     /**
@@ -140,19 +143,21 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
      * There is one factor matrix per output dimension.
      * The first factor matrix dimension is the factor dimension,
      * the second is the number of features.
+     *
      * @return The factors.
      */
     public Tensor[] getFactorsCopy() {
         Tensor[] params = modelParameters.get();
-        Tensor[] paramCopy = new Tensor[params.length-2];
+        Tensor[] paramCopy = new Tensor[params.length - 2];
         for (int i = 0; i < paramCopy.length; i++) {
-            paramCopy[i] = params[i+2].copy();
+            paramCopy[i] = params[i + 2].copy();
         }
         return paramCopy;
     }
 
     /**
      * Factorization machines don't provide excuses, use an explainer.
+     *
      * @param example The input example.
      * @return Optional.emtpy.
      */
@@ -163,6 +168,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
 
     /**
      * Gets the name of the indexed output dimension.
+     *
      * @param index The output dimension index.
      * @return The name of the requested output dimension.
      */
@@ -170,8 +176,9 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
 
     /**
      * Builds the ModelProto according to the standards for this model.
-     * @param graph The model graph.
-     * @param domain The model domain string.
+     *
+     * @param graph        The model graph.
+     * @param domain       The model domain string.
      * @param modelVersion The model version number.
      * @return The ModelProto.
      */
@@ -191,9 +198,10 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
 
     /**
      * Builds a TensorProto containing the supplied DenseMatrix.
-     * @param context The ONNX context for naming.
-     * @param name The name for this tensor proto.
-     * @param matrix The matrix to store.
+     *
+     * @param context   The ONNX context for naming.
+     * @param name      The name for this tensor proto.
+     * @param matrix    The matrix to store.
      * @param transpose Should the matrix be transposed into the tensor?
      * @return The matrix TensorProto.
      */
@@ -229,6 +237,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
 
     /**
      * Builds a TensorProto containing the biases for this Factorization Machine.
+     *
      * @param context The ONNX context for naming.
      * @return The bias TensorProto.
      */
@@ -237,14 +246,116 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         biasBuilder.setName(context.generateUniqueName("fm_biases"));
         biasBuilder.addDims(outputIDInfo.size());
         biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer buffer = ByteBuffer.allocate(outputIDInfo.size()*4).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer buffer = ByteBuffer.allocate(outputIDInfo.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
         DenseVector biases = (DenseVector) modelParameters.get()[0];
         for (int i = 0; i < biases.size(); i++) {
-            floatBuffer.put((float)biases.get(i));
+            floatBuffer.put((float) biases.get(i));
         }
         floatBuffer.rewind();
         biasBuilder.setRawData(ByteString.copyFrom(buffer));
         return biasBuilder.build();
     }
+
+    /**
+     * Constructs the shared stem of the Factorization Machine, used by all output types.
+     * <p>
+     * Writes into the supplied graph builder.
+     *
+     * @param context      The ONNX context.
+     * @param graphBuilder The graph builder.
+     * @return The name of the output.
+     */
+    protected String generateONNXGraph(ONNXContext context, OnnxMl.GraphProto.Builder graphBuilder, String inputName) {
+        Tensor[] modelParams = modelParameters.get();
+
+        // Add constants
+        OnnxMl.TensorProto twoConst = OnnxMl.TensorProto.newBuilder()
+                .setName(context.generateUniqueName("two_const"))
+                .setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber())
+                .addFloatData(2.0f)
+                .build();
+        graphBuilder.addInitializer(twoConst);
+
+        // Add weights
+        OnnxMl.TensorProto weightInitializerProto = matrixBuilder(context, "fm_linear_weights", (DenseMatrix) modelParams[1], true);
+        graphBuilder.addInitializer(weightInitializerProto);
+
+        // Add biases
+        OnnxMl.TensorProto biasInitializerProto = biasBuilder(context);
+        graphBuilder.addInitializer(biasInitializerProto);
+
+        // Add embedding vectors
+        OnnxMl.TensorProto[] embeddingProtos = new OnnxMl.TensorProto[outputIDInfo.size()];
+        for (int i = 0; i < outputIDInfo.size(); i++) {
+            embeddingProtos[i] = matrixBuilder(context, "fm_embedding_" + i, (DenseMatrix) modelParams[i + 2], true);
+            graphBuilder.addInitializer(embeddingProtos[i]);
+        }
+
+        // Make gemm
+        String[] gemmInputs = new String[]{inputName, weightInitializerProto.getName(), biasInitializerProto.getName()};
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context, gemmInputs, context.generateUniqueName("gemm_output"));
+        graphBuilder.addNode(gemm);
+
+        // Make feature pow
+        OnnxMl.NodeProto featurePow = ONNXOperators.POW.build(context, new String[]{inputName, twoConst.getName()},
+                context.generateUniqueName("feature_pow"));
+        graphBuilder.addNode(featurePow);
+
+        // Make interaction terms
+        String[] embeddingOutputs = new String[outputIDInfo.size()];
+        for (int i = 0; i < outputIDInfo.size(); i++) {
+            // Feature matrix * embedding matrix = batch_size, embedding dim
+            OnnxMl.NodeProto gemmFeatureEmb = ONNXOperators.GEMM.build(context,
+                    new String[]{inputName, embeddingProtos[i].getName()},
+                    context.generateUniqueName("gemm_input_emb"));
+            graphBuilder.addNode(gemmFeatureEmb);
+            // Square the output
+            OnnxMl.NodeProto powFeatureEmb = ONNXOperators.POW.build(context,
+                    new String[]{gemmFeatureEmb.getOutput(0), twoConst.getName()},
+                    context.generateUniqueName("pow_input_emb"));
+            graphBuilder.addNode(powFeatureEmb);
+            // Square the embeddings
+            OnnxMl.NodeProto powEmb = ONNXOperators.POW.build(context,
+                    new String[]{embeddingProtos[i].getName(), twoConst.getName()},
+                    context.generateUniqueName("pow_emb"));
+            graphBuilder.addNode(powEmb);
+            // squared features * squared embeddings
+            OnnxMl.NodeProto gemmSquaredFeatureSquaredEmb = ONNXOperators.GEMM.build(context,
+                    new String[]{featurePow.getOutput(0), powEmb.getOutput(0)},
+                    context.generateUniqueName("gemm_squared_input_squared_emb"));
+            graphBuilder.addNode(gemmSquaredFeatureSquaredEmb);
+            // squared product subtract product of squares
+            OnnxMl.NodeProto subtract = ONNXOperators.SUB.build(context,
+                    new String[]{powFeatureEmb.getOutput(0), gemmSquaredFeatureSquaredEmb.getOutput(0)},
+                    context.generateUniqueName("squared_prod_subtract_prod_of_squares"));
+            graphBuilder.addNode(subtract);
+            // sum over embedding dimensions
+            OnnxMl.NodeProto sumOverEmbeddings = ONNXOperators.REDUCE_SUM.build(context,
+                    subtract.getOutput(0),
+                    context.generateUniqueName("sum_over_embeddings"),
+                    Collections.singletonMap("axes", new int[]{1}));
+            graphBuilder.addNode(sumOverEmbeddings);
+            // Divide by 2
+            OnnxMl.NodeProto scaledInteraction = ONNXOperators.DIV.build(context,
+                    new String[]{sumOverEmbeddings.getOutput(0), twoConst.getName()},
+                    context.generateUniqueName("scaled_interaction"));
+            graphBuilder.addNode(scaledInteraction);
+            // Store the output name
+            embeddingOutputs[i] = scaledInteraction.getOutput(0);
+        }
+
+        // Make concat
+        OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context, embeddingOutputs, context.generateUniqueName("fm_concat"),
+                Collections.singletonMap("axis", 1)
+        );
+        graphBuilder.addNode(concat);
+
+        // Add to gemm
+        OnnxMl.NodeProto addGemmConcat = ONNXOperators.ADD.build(context, new String[]{gemm.getOutput(0), concat.getOutput(0)}, context.generateUniqueName("fm_output"));
+        graphBuilder.addNode(addGemmConcat);
+
+        return addGemmConcat.getOutput(0);
+    }
+
 }
