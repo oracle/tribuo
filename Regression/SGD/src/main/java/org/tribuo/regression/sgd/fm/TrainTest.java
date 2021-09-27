@@ -32,7 +32,6 @@ import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.sgd.RegressionObjective;
-import org.tribuo.regression.sgd.linear.LinearSGDTrainer;
 import org.tribuo.regression.sgd.objectives.AbsoluteLoss;
 import org.tribuo.regression.sgd.objectives.Huber;
 import org.tribuo.regression.sgd.objectives.SquaredLoss;
@@ -44,7 +43,7 @@ import java.util.logging.Logger;
 /**
  * Build and run a regression factorization machine for a standard dataset.
  */
-public class TrainTest {
+public final class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
@@ -69,28 +68,53 @@ public class TrainTest {
     /**
      * Command line options.
      */
-    public static class SGDOptions implements Options {
+    public static class FMRegressionOptions implements Options {
         @Override
         public String getOptionsDescription() {
             return "Trains and tests a linear SGD regression model on the specified datasets.";
         }
+        /**
+         * The dataset loading options.
+         */
         public DataOptions general;
+        /**
+         * Gradient descent options.
+         */
         public GradientOptimiserOptions gradientOptions;
 
-        @Option(charName='i',longName="epochs",usage="Number of SGD epochs. Defaults to 5.")
+        /**
+         * Number of SGD epochs. Defaults to 5.
+         */
+        @Option(charName = 'i', longName = "epochs", usage = "Number of SGD epochs.")
         public int epochs = 5;
-        @Option(charName='o',longName="objective",usage="Loss function. Defaults to SQUARED.")
+        /**
+         * Loss function. Defaults to SQUARED.
+         */
+        @Option(charName = 'o', longName = "objective", usage = "Loss function.")
         public LossEnum loss = LossEnum.SQUARED;
-        @Option(charName='p',longName="logging-interval",usage="Log the objective after <int> examples. Defaults to 100.")
+        /**
+         * Log the objective after n examples. Defaults to 100.
+         */
+        @Option(charName = 'p', longName = "logging-interval", usage = "Log the objective after <int> examples.")
         public int loggingInterval = 100;
-        @Option(charName='z',longName="minibatch-size",usage="Minibatch size. Defaults to 1.")
+        /**
+         * Minibatch size. Defaults to 1.
+         */
+        @Option(charName = 'z', longName = "minibatch-size", usage = "Minibatch size.")
         public int minibatchSize = 1;
+        /**
+         * Factor size.
+         */
         @Option(charName = 'd', longName = "factor-size", usage = "Factor size.")
         public int factorSize = 6;
-        @Option(charName = 'k', longName = "l2-penalty", usage = "L2 regularization penalty.")
-        public double l2 = 0.001;
+        /**
+         * Variance of the initialization gaussian.
+         */
         @Option(longName = "variance", usage = "Variance of the initialization gaussian.")
         public double variance = 0.1;
+        /**
+         * Standardise the output regressors before model fitting.
+         */
         @Option(longName = "standardise", usage = "Standardise the output regressors before model fitting.")
         public boolean standardise = false;
     }
@@ -105,7 +129,7 @@ public class TrainTest {
         // Use the labs format logging.
         LabsLogFormatter.setAllLogFormatters();
 
-        SGDOptions o = new SGDOptions();
+        FMRegressionOptions o = new FMRegressionOptions();
         ConfigurationManager cm;
         try {
             cm = new ConfigurationManager(args,o);

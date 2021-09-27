@@ -86,22 +86,22 @@ public class TrainTest {
         /**
          * Number of SGD epochs. Defaults to 5.
          */
-        @Option(charName = 'i', longName = "epochs", usage = "Number of SGD epochs. Defaults to 5.")
+        @Option(charName = 'i', longName = "epochs", usage = "Number of SGD epochs.")
         public int epochs = 5;
         /**
          * Loss function. Defaults to SQUARED.
          */
-        @Option(charName = 'o', longName = "objective", usage = "Loss function. Defaults to SQUARED.")
+        @Option(charName = 'o', longName = "objective", usage = "Loss function.")
         public LossEnum loss = LossEnum.SQUARED;
         /**
          * Log the objective after n examples. Defaults to 100.
          */
-        @Option(charName = 'p', longName = "logging-interval", usage = "Log the objective after <int> examples. Defaults to 100.")
+        @Option(charName = 'p', longName = "logging-interval", usage = "Log the objective after <int> examples.")
         public int loggingInterval = 100;
         /**
          * Minibatch size. Defaults to 1.
          */
-        @Option(charName = 'z', longName = "minibatch-size", usage = "Minibatch size. Defaults to 1.")
+        @Option(charName = 'z', longName = "minibatch-size", usage = "Minibatch size.")
         public int minibatchSize = 1;
     }
 
