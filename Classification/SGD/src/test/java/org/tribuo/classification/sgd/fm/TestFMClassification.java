@@ -161,13 +161,13 @@ public class TestFMClassification {
                 Prediction<Label> tribuo = nativePredictions.get(i);
                 Prediction<Label> external = onnxPredictions.get(i);
                 assertEquals(tribuo.getOutput().getLabel(), external.getOutput().getLabel());
-                assertEquals(tribuo.getOutput().getScore(), external.getOutput().getScore(), 1e-6);
+                assertEquals(tribuo.getOutput().getScore(), external.getOutput().getScore(), 1e-5);
                 for (Map.Entry<String, Label> l : tribuo.getOutputScores().entrySet()) {
                     Label other = external.getOutputScores().get(l.getKey());
                     if (other == null) {
                         fail("Failed to find label " + l.getKey() + " in ORT prediction.");
                     } else {
-                        assertEquals(l.getValue().getScore(), other.getScore(), 1e-6);
+                        assertEquals(l.getValue().getScore(), other.getScore(), 1e-5);
                     }
                 }
             }

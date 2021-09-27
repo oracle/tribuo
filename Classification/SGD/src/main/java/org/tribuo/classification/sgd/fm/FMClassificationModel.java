@@ -168,8 +168,7 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
             // Feature matrix * embedding matrix = batch_size, embedding dim
             OnnxMl.NodeProto gemmFeatureEmb = ONNXOperators.GEMM.build(context,
                     new String[]{inputValueProto.getName(),embeddingProtos[i].getName()},
-                    context.generateUniqueName("gemm_input_emb"),
-                    Collections.singletonMap("transB",1));
+                    context.generateUniqueName("gemm_input_emb"));
             graphBuilder.addNode(gemmFeatureEmb);
             // Square the output
             OnnxMl.NodeProto powFeatureEmb = ONNXOperators.POW.build(context,
@@ -184,8 +183,7 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
             // squared features * squared embeddings
             OnnxMl.NodeProto gemmSquaredFeatureSquaredEmb = ONNXOperators.GEMM.build(context,
                     new String[]{featurePow.getOutput(0),powEmb.getOutput(0)},
-                    context.generateUniqueName("gemm_squared_input_squared_emb"),
-                    Collections.singletonMap("transB",1));
+                    context.generateUniqueName("gemm_squared_input_squared_emb"));
             graphBuilder.addNode(gemmSquaredFeatureSquaredEmb);
             // squared product subtract product of squares
             OnnxMl.NodeProto subtract = ONNXOperators.SUB.build(context,
