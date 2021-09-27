@@ -171,7 +171,7 @@ public class TestFMRegression {
                 Prediction<Regressor> tribuo = nativePredictions.get(i);
                 Prediction<Regressor> external = onnxPredictions.get(i);
                 assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
-                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-5);
+                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-4);
             }
 
             onnxModel.close();
