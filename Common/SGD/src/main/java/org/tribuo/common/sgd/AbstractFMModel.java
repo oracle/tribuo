@@ -205,7 +205,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
      * @param transpose Should the matrix be transposed into the tensor?
      * @return The matrix TensorProto.
      */
-    protected OnnxMl.TensorProto matrixBuilder(ONNXContext context, String name, DenseMatrix matrix, boolean transpose) {
+    protected static OnnxMl.TensorProto matrixBuilder(ONNXContext context, String name, DenseMatrix matrix, boolean transpose) {
         OnnxMl.TensorProto.Builder matrixBuilder = OnnxMl.TensorProto.newBuilder();
         matrixBuilder.setName(context.generateUniqueName(name));
         int dim1, dim2;
@@ -236,25 +236,26 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
     }
 
     /**
-     * Builds a TensorProto containing the biases for this Factorization Machine.
+     * Builds a TensorProto containing the supplied dense vector.
      *
      * @param context The ONNX context for naming.
-     * @return The bias TensorProto.
+     * @param name    The name for this tensor proto.
+     * @param vector  The vector to store.
+     * @return The vector TensorProto.
      */
-    protected OnnxMl.TensorProto biasBuilder(ONNXContext context) {
-        OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
-        biasBuilder.setName(context.generateUniqueName("fm_biases"));
-        biasBuilder.addDims(outputIDInfo.size());
-        biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer buffer = ByteBuffer.allocate(outputIDInfo.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
+    protected static OnnxMl.TensorProto vectorBuilder(ONNXContext context, String name, DenseVector vector) {
+        OnnxMl.TensorProto.Builder vectorBuilder = OnnxMl.TensorProto.newBuilder();
+        vectorBuilder.setName(context.generateUniqueName(name));
+        vectorBuilder.addDims(vector.size());
+        vectorBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(vector.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        DenseVector biases = (DenseVector) modelParameters.get()[0];
-        for (int i = 0; i < biases.size(); i++) {
-            floatBuffer.put((float) biases.get(i));
+        for (int i = 0; i < vector.size(); i++) {
+            floatBuffer.put((float) vector.get(i));
         }
         floatBuffer.rewind();
-        biasBuilder.setRawData(ByteString.copyFrom(buffer));
-        return biasBuilder.build();
+        vectorBuilder.setRawData(ByteString.copyFrom(buffer));
+        return vectorBuilder.build();
     }
 
     /**
@@ -282,7 +283,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         graphBuilder.addInitializer(weightInitializerProto);
 
         // Add biases
-        OnnxMl.TensorProto biasInitializerProto = biasBuilder(context);
+        OnnxMl.TensorProto biasInitializerProto = vectorBuilder(context, "fm_biases", (DenseVector) modelParams[0]);
         graphBuilder.addInitializer(biasInitializerProto);
 
         // Add embedding vectors
