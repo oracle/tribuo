@@ -122,6 +122,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONN
     @Override
     public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
         OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+        graphBuilder.setName("Classification-LinearSGDModel");
 
         // Make inputs and outputs
         OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);

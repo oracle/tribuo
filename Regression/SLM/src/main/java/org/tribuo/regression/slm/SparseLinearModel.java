@@ -295,6 +295,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
     @Override
     public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
         OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+        graphBuilder.setName("Regression-SparseLinearModel");
 
         // Make inputs and outputs
         OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1, featureIDMap.size()}, new String[]{"batch", null}), OnnxMl.TensorProto.DataType.FLOAT);
