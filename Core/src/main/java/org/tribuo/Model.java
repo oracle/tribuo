@@ -280,7 +280,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
     }
 
     /**
-     * Copies a model, replacing it's provenance and name with the supplied values.
+     * Copies a model, replacing its provenance and name with the supplied values.
      * <p>
      * Used to provide the provenance removal functionality.
      * @param newName The new name.
@@ -295,6 +295,25 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
             return name + " - " + provenanceOutput;
         } else {
             return provenanceOutput;
+        }
+    }
+
+    /**
+     * Casts the model to the specified output type, assuming it is valid.
+     * <p>
+     * If it's not valid, throws {@link ClassCastException}.
+     * @param inputModel The model to cast.
+     * @param outputType The output type to cast to.
+     * @param <T> The output type.
+     * @return The model cast to the correct value.
+     */
+    public static <T extends Output<T>> Model<T> castModel(Model<?> inputModel, Class<T> outputType) {
+        if (inputModel.validate(outputType)) {
+            @SuppressWarnings("unchecked") // guarded by validate
+            Model<T> castedModel = (Model<T>) inputModel;
+            return castedModel;
+        } else {
+            throw new ClassCastException("Attempted to cast model to " + outputType.getName() + " which is not valid for model " + inputModel.toString());
         }
     }
     
