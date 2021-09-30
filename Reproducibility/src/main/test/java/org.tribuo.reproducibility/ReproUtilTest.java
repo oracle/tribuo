@@ -14,6 +14,8 @@ import org.tribuo.MutableDataset;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
+import org.tribuo.classification.evaluation.LabelEvaluation;
+import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.sgd.linear.LinearSGDModel;
 import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
@@ -39,6 +41,7 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
+import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.rtree.CARTRegressionTrainer;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
@@ -326,6 +329,33 @@ class ReproUtilTest {
         LinearSGDModel model_3 = (LinearSGDModel) repro.reproduceFromProvenance();
         String report = ReproUtil.diffProvenance(model_1.getProvenance(), model_3.getProvenance());
         System.out.println(report);
+    }
+
+    @Test
+    public void reproduceTransformTrainer(){
+        CSVDataSource csvSource = getCSVDatasource();
+        TrainTestSplitter splitter = new TrainTestSplitter(csvSource);
+        MutableDataset datasetFromCSV = new MutableDataset<Label>(splitter.getTrain());
+        MutableDataset testData = new MutableDataset(splitter.getTest());
+
+        LogisticRegressionTrainer trainer = new LogisticRegressionTrainer();
+        TransformationMap transformations = new TransformationMap(List.of(new LinearScalingTransformation(0,1)));
+        TransformTrainer transformed = new TransformTrainer(trainer, transformations);
+        Model transformedModel = transformed.train(datasetFromCSV);
+
+        ReproUtil reproUtil = null;
+        try {
+            reproUtil = new ReproUtil(transformedModel.getProvenance());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Model newModel = reproUtil.reproduceFromProvenance();
+
+        LabelEvaluator evaluator = new LabelEvaluator();
+
+        LabelEvaluation oldEvalualtion = evaluator.evaluate(transformedModel, testData);
+        LabelEvaluation newEvalualtion = evaluator.evaluate(newModel, testData);
+        assertEquals(oldEvalualtion.toString(), newEvalualtion.toString());
     }
 
     @Test

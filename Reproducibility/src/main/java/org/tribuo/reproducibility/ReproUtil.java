@@ -27,6 +27,7 @@ import org.tribuo.Trainer;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.ExternalTrainerProvenance;
 import org.tribuo.provenance.DataSourceProvenance;
+import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
@@ -152,22 +153,14 @@ public class ReproUtil {
 
     // Attempts to use reflection to determine the correct type a dataset should be and then instantiates it
     // returns null if cannot be done.
-    private <T extends Output<T>> Dataset<T> datasetReflection(DataSource<?> modelSource){
+    private <T extends Output<T>> Dataset<T> datasetReflection(DataSource<?> modelSource, Class datasetClass){
         // The first step is to find the classname as a String so it can use reflection to instantiate the correct type
         // The class name is contained within the provenance accessible through the iterator.
         Dataset<T> modelDataset = null;
-        Iterator<Pair<String, Provenance>> sourceProv = this.modelProvenance.getDatasetProvenance().iterator();
-        String datasetClassname = null;
-        while (sourceProv.hasNext()){
-            Pair<String, Provenance> provPair = sourceProv.next();
-            if(provPair.getA() == "class-name"){
-                datasetClassname = ((StringProvenance) provPair.getB()).getValue();
-            }
-        }
 
         // Once the class is identified, reflection will allow us to search for a constructor for that class and instantiate it
         try {
-            modelDataset = (Dataset<T>) Class.forName(datasetClassname).getConstructor(DataSource.class).newInstance(modelSource);
+            modelDataset = (Dataset<T>) datasetClass.getConstructor(DataSource.class).newInstance(modelSource);
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -176,28 +169,71 @@ public class ReproUtil {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         }
 
         return modelDataset;
     }
 
+    private Class[] getSourcesClassNames(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
+        Class[] dataClasses = null;
+        if(datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
+            dataClasses = getSourcesClassNames(innerDatasetProvenance);
+        } else {
+            Class dataSourceClass = Class.forName(datasetProvenance.getSourceProvenance().getClassName());
+            Iterator<Pair<String, Provenance>> sourceProv = datasetProvenance.iterator();
+            String datasetClassname = null;
+            while (sourceProv.hasNext()){
+                Pair<String, Provenance> provPair = sourceProv.next();
+                if(provPair.getA() == "class-name"){
+                    datasetClassname = ((StringProvenance) provPair.getB()).getValue();
+                }
+            }
+            Class datasetClass = Class.forName(datasetClassname);
+            dataClasses = new Class[] {dataSourceClass, datasetClass};
+        }
+
+        return dataClasses;
+    }
+
+    private Provenance[] getSources(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
+        Provenance[] sourceProvenance = null;
+        if(datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
+            sourceProvenance = getSources(innerDatasetProvenance);
+        } else {
+            DataSourceProvenance dataSource = null;
+
+            if(datasetProvenance.getSourceProvenance() instanceof DataSourceProvenance dataSourceProvenance){
+                dataSource = dataSourceProvenance;
+            }
+            sourceProvenance = new Provenance[] {dataSource, datasetProvenance};
+        }
+
+        return sourceProvenance;
+    }
+
     // Return a dataset used when a model was trained.
     private <T extends Output<T>> Dataset<T> recoverDataset() throws Exception {
-        Class<? extends ConfigurableDataSource<?>> dataSourceClass = null;
-        Dataset<T> modelDataset = null;
 
-        // The class is used to query the ConfigurationManager for the datasource object
-        try {
-            dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(this.modelProvenance.getDatasetProvenance().getSourceProvenance().getClassName());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        // Get the class names for the dataset and datasource
+        Class[] dataClasses = getSourcesClassNames(this.modelProvenance.getDatasetProvenance());
+        Class<? extends ConfigurableDataSource<?>> dataSourceClass = dataClasses[0];
+        Class datasetClass = dataClasses[1];
+
+        Provenance[] sourceProvenance = getSources(this.modelProvenance.getDatasetProvenance());
+        DataSourceProvenance dataSourceProv = null;
+        if(sourceProvenance[0] instanceof DataSourceProvenance dataSourceProvenance){
+            dataSourceProv = dataSourceProvenance;
         }
+        DatasetProvenance datasetProv = null;
+        if(sourceProvenance[1] instanceof DatasetProvenance datasetProvenance){
+            datasetProv = datasetProvenance;
+        }
+
+        Dataset<T> modelDataset = null;
 
         // If the source is a TrainTestSplitter, we need to extract the correct data from the Splitter first.
         // While it is likely they trained on the "train" dataset, in the future they also might have used cross-validation.
-        if (this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof
+        if (dataSourceProv instanceof
                 TrainTestSplitter.SplitDataSourceProvenance splitterSource) {
 
             Iterator<Pair<String, Provenance>> sourceProv = splitterSource.iterator();
@@ -220,38 +256,48 @@ public class ReproUtil {
                 }
             }
 
-            if(!(innerProvenance instanceof ConfiguredObjectProvenance)){
-                // TODO: expand this to be more informative
-                throw new Exception("Datasource is not configurable and cannot be recovered.");
-            }
+            if(innerProvenance instanceof DatasetProvenance datasetProvenance){
+                dataClasses = getSourcesClassNames(datasetProvenance);
+                dataSourceClass = dataClasses[0];
+                datasetClass = dataClasses[1];
 
-            try {
-                dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+                if(!(ConfigurableDataSource.class.isAssignableFrom(dataSourceClass))){
+                    // TODO: expand this to be more informative
+                    throw new Exception("Datasource is not configurable and cannot be recovered.");
+                }
+            } else {
+                if(!(innerProvenance instanceof ConfiguredObjectProvenance)){
+                    // TODO: expand this to be more informative
+                    throw new Exception("Datasource is not configurable and cannot be recovered.");
+                }
 
+                try {
+                    dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
             // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
             // innerSource, should return the same Dataset used to train the model
             DataSource<?> innerSource = getDatasourceFromCM(dataSourceClass);
             TrainTestSplitter<?> trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
 
             if(isTrain){
-                modelDataset = datasetReflection(trainTestSplitter.getTrain());
+                modelDataset = datasetReflection(trainTestSplitter.getTrain(), datasetClass);
             } else {
-                modelDataset = datasetReflection(trainTestSplitter.getTest());
+                modelDataset = datasetReflection(trainTestSplitter.getTest(), datasetClass);
             }
 
         } else {
             // When it's not a splitter, recover the Datasource and then Dataset.
 
-            if(!(this.modelProvenance.getDatasetProvenance().getSourceProvenance() instanceof ConfiguredObjectProvenance)){
+            if(!(ConfigurableDataSource.class.isAssignableFrom(dataSourceClass))){
                 // TODO: expand this to be more informative
                 throw new Exception("Datasource is not configurable and cannot be recovered.");
             }
 
             DataSource<?> modelSource = getDatasourceFromCM(dataSourceClass);
-            modelDataset = datasetReflection(modelSource);
+            modelDataset = datasetReflection(modelSource, datasetClass);
         }
 
         return modelDataset;
@@ -285,6 +331,16 @@ public class ReproUtil {
             //TODO Decide what to do when this exception is encountered
             e.printStackTrace();
         }
+
+        // Exposing the configuration manager means there could be an edge case were
+        // the invocation count is changed before the model is trained.
+        // Pass through a desired invocation count to prevent this behavior
+        // TODO: does not apply to inner trainers, figure out how to address this
+        int trainedInvocationCount = (int) this.modelProvenance
+                .getTrainerProvenance()
+                .getInstanceValues()
+                .get("train-invocation-count")
+                .getValue();
 
         // This function actually re-trains a model rather than copy the original
         Model<T> newModel = newTrainer.train(newDataset);
