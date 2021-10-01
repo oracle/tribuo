@@ -33,21 +33,22 @@ import org.tribuo.test.Helpers;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestCARTJointRegressionTrainer {
 
+    private static final RegressionEvaluator e = new RegressionEvaluator();
     private static final CARTJointRegressionTrainer t = new CARTJointRegressionTrainer();
-    private static final CARTJointRegressionTrainer normedt = new CARTJointRegressionTrainer(Integer.MAX_VALUE,true);
+    private static final CARTJointRegressionTrainer normedt = new CARTJointRegressionTrainer(Integer.MAX_VALUE, true);
     private static final CARTJointRegressionTrainer randomt = new CARTJointRegressionTrainer(Integer.MAX_VALUE, 5, 0.0f,
             0.75f, true, new MeanSquaredError(), false, Trainer.DEFAULT_SEED);
 
-    public static Model<Regressor> testJointRegressionTree(Pair<Dataset<Regressor>,Dataset<Regressor>> p, CARTJointRegressionTrainer trainer) {
+    public static Model<Regressor> testJointRegressionTree(Pair<Dataset<Regressor>, Dataset<Regressor>> p, CARTJointRegressionTrainer trainer) {
         TreeModel<Regressor> m = trainer.train(p.getA());
-        RegressionEvaluator e = new RegressionEvaluator();
-        RegressionEvaluation evaluation = e.evaluate(m,p.getB());
+        RegressionEvaluation evaluation = e.evaluate(m, p.getB());
 
-        Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+        Map<String, List<Pair<String, Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         features = m.getTopFeatures(-1);
@@ -59,38 +60,38 @@ public class TestCARTJointRegressionTrainer {
 
     @Test
     public void testDenseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> model = testJointRegressionTree(p, t);
         Helpers.testModelSerialization(model, Regressor.class);
     }
 
     @Test
     public void testNormedDenseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         testJointRegressionTree(p, normedt);
     }
 
     @Test
     public void testRandomDenseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         testJointRegressionTree(p, randomt);
     }
 
     @Test
     public void testSparseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
         testJointRegressionTree(p, t);
     }
 
     @Test
     public void testNormedSparseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
         testJointRegressionTree(p, normedt);
     }
 
     @Test
     public void testRandomSparseData() {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
         testJointRegressionTree(p, randomt);
     }
 
@@ -127,14 +128,16 @@ public class TestCARTJointRegressionTrainer {
 
     @Test
     public void testEmptyExample() {
-       runEmptyExample(t);
+        runEmptyExample(t);
 
     }
+
     @Test
     public void testNormedEmptyExample() {
         runEmptyExample(normedt);
 
     }
+
     @Test
     public void testRandomEmptyExample() {
         runEmptyExample(randomt);
@@ -142,7 +145,7 @@ public class TestCARTJointRegressionTrainer {
 
 
     public void runMultiDenseData(CARTJointRegressionTrainer trainer) {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
         testJointRegressionTree(p, trainer);
     }
 
@@ -162,7 +165,7 @@ public class TestCARTJointRegressionTrainer {
     }
 
     public void runMultiSparseData(CARTJointRegressionTrainer trainer) {
-        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimSparseTrainTest();
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimSparseTrainTest();
         testJointRegressionTree(p, trainer);
     }
 
@@ -225,5 +228,31 @@ public class TestCARTJointRegressionTrainer {
     @Test
     public void testRandomMultiEmptyExample() {
         runMultiEmptyExample(randomt);
+    }
+
+    @Test
+    public void testThreeDenseData() {
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+        TreeModel<Regressor> llModel = t.train(p.getA());
+        RegressionEvaluation llEval = e.evaluate(llModel, p.getB());
+        double expectedDim1 = -0.6618655170782572;
+        double expectedDim2 = -0.6618655170782572;
+        double expectedDim3 = -2.072009095885796;
+        double expectedAve = -1.1319133766807703;
+
+        assertEquals(expectedDim1, llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName, Double.NaN)), 1e-6);
+        assertEquals(expectedDim2, llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName, Double.NaN)), 1e-6);
+        assertEquals(expectedDim3, llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName, Double.NaN)), 1e-6);
+        assertEquals(expectedAve, llEval.averageR2(), 1e-6);
+
+        p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
+        llModel = t.train(p.getA());
+        llEval = e.evaluate(llModel, p.getB());
+
+        assertEquals(expectedDim1, llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName, Double.NaN)), 1e-6);
+        assertEquals(expectedDim2, llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName, Double.NaN)), 1e-6);
+        assertEquals(expectedDim3, llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName, Double.NaN)), 1e-6);
+        assertEquals(expectedAve, llEval.averageR2(), 1e-6);
+
     }
 }

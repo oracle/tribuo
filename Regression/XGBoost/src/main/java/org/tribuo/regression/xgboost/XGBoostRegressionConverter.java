@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,16 @@ import java.util.List;
 
 /**
  * Converts XGBoost outputs into {@link Regressor} {@link Prediction}s.
+ * <p>
+ * Instances of this class are stateless and thread-safe.
  */
 public final class XGBoostRegressionConverter implements XGBoostOutputConverter<Regressor> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Construct an XGBoostRegressionConverter.
+     */
+    public XGBoostRegressionConverter() {}
 
     @Override
     public boolean generatesProbabilities() {
@@ -55,16 +62,15 @@ public final class XGBoostRegressionConverter implements XGBoostOutputConverter<
                     + ", probabilities.get(0).length = " + probabilities.get(0).length);
         }
         Regressor.DimensionTuple[][] tuples = new Regressor.DimensionTuple[numValidFeatures.length][probabilities.size()];
-        int i = 0;
-        for (float[][] f : probabilities) {
+        for (int i = 0; i < probabilities.size(); i++) {
+            float[][] f = probabilities.get(i);
             String curName = info.getOutput(i).getNames()[0];
             for (int j = 0; j < numValidFeatures.length; j++) {
                 tuples[j][i] = new Regressor.DimensionTuple(curName, f[j][0]);
             }
-            i++;
         }
         List<Prediction<Regressor>> predictions = new ArrayList<>();
-        for (i = 0; i < numValidFeatures.length; i++) {
+        for (int i = 0; i < numValidFeatures.length; i++) {
             predictions.add(new Prediction<>(new Regressor(tuples[i]),numValidFeatures[i],examples[i]));
         }
         return predictions;

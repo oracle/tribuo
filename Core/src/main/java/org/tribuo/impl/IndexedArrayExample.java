@@ -40,6 +40,9 @@ import java.util.PriorityQueue;
  * <p>
  * Used in feature selection to provide log n lookups. May be used
  * elsewhere in the future as a performance optimisation.
+ * <p>
+ * Note: output id caching is only valid with single dimensional {@link Output}s like ClusterID, Event and Label.
+ * Other outputs may return -1 from {@link #getOutputID()}.
  */
 public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
     private static final long serialVersionUID = 1L;

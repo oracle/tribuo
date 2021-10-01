@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,15 @@ public abstract class RegressionInfo implements OutputInfo<Regressor> {
 
     protected int unknownCount = 0;
 
+    /**
+     * Creates an empty RegressionInfo.
+     */
     RegressionInfo() { }
 
+    /**
+     * Copies a RegressionInfo, apart from the unknownCount.
+     * @param other The RegressionInfo to copy.
+     */
     RegressionInfo(RegressionInfo other) {
         this.maxMap = MutableNumber.copyMap(other.maxMap);
         this.minMap = MutableNumber.copyMap(other.minMap);

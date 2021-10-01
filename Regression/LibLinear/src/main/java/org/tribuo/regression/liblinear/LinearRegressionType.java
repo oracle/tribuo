@@ -79,12 +79,12 @@ public final class LinearRegressionType implements LibLinearType<Regressor> {
 
     @Override
     public boolean isClassification() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean isRegression() {
-        return false;
+        return true;
     }
 
     @Override

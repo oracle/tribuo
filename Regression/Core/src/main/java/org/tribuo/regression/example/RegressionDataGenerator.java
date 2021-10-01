@@ -19,6 +19,8 @@ package org.tribuo.regression.example;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
+import org.tribuo.ImmutableDataset;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableDataset;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.DataSourceProvenance;
@@ -27,6 +29,8 @@ import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Generates two example train and test datasets, used for unit testing.
@@ -37,13 +41,24 @@ import java.time.OffsetDateTime;
  */
 public abstract class RegressionDataGenerator {
 
+    /**
+     * Name of the first output dimension.
+     */
     public static final String firstDimensionName = "dim1";
+    /**
+     * Name of the second output dimension.
+     */
     public static final String secondDimensionName= "dim2";
+    /**
+     * Name of the third output dimension.
+     */
+    public static final String thirdDimensionName = "dim3";
 
     public static final String SINGLE_DIM_NAME = "REGRESSOR";
 
     private static final RegressionFactory REGRESSION_FACTORY = new RegressionFactory();
     private static final String[] dimensionNames = new String[]{firstDimensionName,secondDimensionName};
+    private static final String[] threeNames = new String[]{firstDimensionName,secondDimensionName,thirdDimensionName};
 
     /**
      * Abstract utility class with private constructor.
@@ -106,6 +121,79 @@ public abstract class RegressionDataGenerator {
         return new Pair<>(train,test);
     }
 
+    /**
+     * Generates a train/test dataset pair which is dense in the features,
+     * each example has 4 features,{A,B,C,D}.
+     * @param negate Supply -1.0 to negate some features.
+     * @param remapIndices If true invert the indices of the output features.
+     *                     Warning: this should only be used as part of unit testing, it is not expected from
+     *                     standard datasets.
+     * @return A pair of datasets.
+     */
+    public static Pair<Dataset<Regressor>,Dataset<Regressor>> threeDimDenseTrainTest(double negate, boolean remapIndices) {
+        MutableDataset<Regressor> train = new MutableDataset<>(new SimpleDataSourceProvenance("TrainingData", OffsetDateTime.now(), REGRESSION_FACTORY), REGRESSION_FACTORY);
+
+        String[] names = new String[]{"A","B","C","D"};
+        double[] values = new double[]{1.0,0.5,1.0,negate*1.0};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{5.0,-5.0,0.0}),names,values));
+        values = new double[]{1.5,0.35,1.3,negate*1.2};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{5.8,-5.8,1.0}),names,values));
+        values = new double[]{1.2,0.45,1.5,negate*1.0};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{8.0,-8.0,9.0}),names,values));
+
+        values = new double[]{negate*1.1,0.55,negate*1.5,0.5};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{10.0,-10.0,0.5}),names,values));
+        values = new double[]{negate*1.5,0.25,negate*1,0.125};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{10.0,-10.0,0.5}),names,values));
+        values = new double[]{negate*1,0.5,negate*1.123,0.123};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{10.0,-10.0,0.5}),names,values));
+
+        values = new double[]{1.5,5.0,0.5,4.5};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{20,-20,5.0}),names,values));
+        values = new double[]{1.234,5.1235,0.1235,6.0};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{20,-20,4.0}),names,values));
+        values = new double[]{1.734,4.5,0.5123,5.5};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{20,-20,2.0}),names,values));
+
+        values = new double[]{negate*1,0.25,5,10.0};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{50,-50,10}),names,values));
+        values = new double[]{negate*1.4,0.55,5.65,12.0};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{50,-50,15}),names,values));
+        values = new double[]{negate*1.9,0.25,5.9,15};
+        train.add(new ArrayExample<>(new Regressor(threeNames,new double[]{50,-50,10}),names,values));
+
+        MutableDataset<Regressor> test = new MutableDataset<>(new SimpleDataSourceProvenance("TestingData", OffsetDateTime.now(), REGRESSION_FACTORY), REGRESSION_FACTORY);
+
+        values = new double[]{2.0,0.45,3.5,negate*2.0};
+        test.add(new ArrayExample<>(new Regressor(threeNames,new double[]{5.1,-5.1,1.2}),names,values));
+        values = new double[]{negate*2.0,0.55,negate*2.5,2.5};
+        test.add(new ArrayExample<>(new Regressor(threeNames,new double[]{10.0,-10.0,0.5}),names,values));
+        values = new double[]{1.75,5.0,1.0,6.5};
+        test.add(new ArrayExample<>(new Regressor(threeNames,new double[]{20,-20,6.0}),names,values));
+        values = new double[]{negate*1.5,0.25,5.0,20.0};
+        test.add(new ArrayExample<>(new Regressor(threeNames,new double[]{50,-50,10}),names,values));
+
+        if (remapIndices) {
+            Map<Regressor,Integer> mapping = new HashMap<>();
+            mapping.put(new Regressor.DimensionTuple(firstDimensionName,Double.NaN),2);
+            mapping.put(new Regressor.DimensionTuple(secondDimensionName,Double.NaN),0);
+            mapping.put(new Regressor.DimensionTuple(thirdDimensionName,Double.NaN),1);
+            ImmutableOutputInfo<Regressor> newInfo = REGRESSION_FACTORY.constructInfoForExternalModel(mapping);
+
+            ImmutableDataset<Regressor> newTrain = ImmutableDataset.copyDataset(train, train.getFeatureIDMap(), newInfo);
+            ImmutableDataset<Regressor> newTest = ImmutableDataset.copyDataset(test, train.getFeatureIDMap(), newInfo);
+
+            return new Pair<>(newTrain, newTest);
+        } else {
+            return new Pair<>(train, test);
+        }
+    }
+
+    /** 
+     * Generates a pair of datasets, where the features are sparse,
+     * and unknown features appear in the test data.
+     * @return A pair of datasets.
+     */
     public static Pair<Dataset<Regressor>,Dataset<Regressor>> multiDimSparseTrainTest() {
         return multiDimSparseTrainTest(-1.0);
     }

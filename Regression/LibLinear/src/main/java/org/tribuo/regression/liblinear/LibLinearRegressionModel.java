@@ -27,10 +27,12 @@ import org.tribuo.Prediction;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Linear;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -67,9 +69,13 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
 
     private final String[] dimensionNames;
 
+    // Not final as it doesn't exist in 4.0 or 4.1 and so must be created on deserialization.
+    private int[] mapping;
+
     LibLinearRegressionModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputInfo, List<de.bwaldvogel.liblinear.Model> models) {
         super(name, description, featureIDMap, outputInfo, false, models);
         this.dimensionNames = Regressor.extractNames(outputInfo);
+        this.mapping = ((ImmutableRegressionInfo) outputInfo).getIDtoNaturalOrderMapping();
     }
 
     @Override
@@ -83,8 +89,10 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
         double[] scores = new double[models.get(0).getNrClass()];
         double[] regressedValues = new double[models.size()];
 
+        // Map through the id -> regressor dimension natural order (i.e., lexicographic) to ensure the regressor is
+        // constructed correctly.
         for (int i = 0; i < regressedValues.length; i++) {
-            regressedValues[i] = Linear.predictValues(models.get(i),features,scores);
+            regressedValues[mapping[i]] = Linear.predictValues(models.get(i), features, scores);
         }
 
         Regressor regressor = new Regressor(dimensionNames,regressedValues);
@@ -100,8 +108,8 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
         Map<String, List<Pair<String, Double>>> map = new HashMap<>();
         PriorityQueue<Pair<String, Double>> q = new PriorityQueue<>(maxFeatures, comparator);
 
-        for (int i = 0; i < models.size(); i++) {
-            int numFeatures = models.get(i).getNrFeature();
+        for (int i = 0; i < featureWeights.length; i++) {
+            int numFeatures = featureWeights[i].length;
             for (int j = 0; j < numFeatures; j++) {
                 Pair<String, Double> cur = new Pair<>(featureIDMap.get(j).getName(), featureWeights[i][j]);
                 if (maxFeatures < 0 || q.size() < maxFeatures) {
@@ -116,7 +124,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
                 list.add(q.poll());
             }
             Collections.reverse(list);
-            map.put(dimensionNames[i], list);
+            map.put(dimensionNames[mapping[i]], list);
         }
 
         return map;
@@ -167,9 +175,25 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
                 }
             }
             scores.sort((o1, o2) -> o2.getB().compareTo(o1.getB()));
-            weightMap.put(dimensionNames[i], scores);
+            weightMap.put(dimensionNames[mapping[i]], scores);
         }
 
         return new Excuse<>(e, prediction, weightMap);
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        // Add mapping field to 4.0, 4.1 models and rearrange the dimensions.
+        if (mapping == null) {
+            this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
+            List<de.bwaldvogel.liblinear.Model> newModels = new ArrayList<>(this.models);
+
+            for (int i = 0; i < mapping.length; i++) {
+                newModels.set(i,this.models.get(mapping[i]));
+            }
+
+            this.models = Collections.unmodifiableList(newModels);
+        }
     }
 }

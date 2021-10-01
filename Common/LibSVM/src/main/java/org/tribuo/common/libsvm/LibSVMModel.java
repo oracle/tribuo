@@ -66,8 +66,11 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
 
     /**
      * The LibSVM models. Multiple models are used for multi-label or multidimensional regression outputs.
+     * <p>
+     * Not final to support deserialization reordering of multidimensional regression models which have an incorrect id mapping.
+     * Will be final again in some future version which doesn't maintain serialization compatibility with 4.X.
      */
-    protected final List<svm_model> models;
+    protected List<svm_model> models;
 
     /**
      * Constructs a LibSVMModel from the supplied arguments.

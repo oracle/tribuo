@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.tribuo.common.xgboost.XGBoostTrainer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import ml.dmlc.xgboost4j.java.Booster;
 import ml.dmlc.xgboost4j.java.XGBoost;
@@ -103,14 +104,33 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
     @Config(description="The type of regression.")
     private RegressionType rType = RegressionType.LINEAR;
 
+    /**
+     * Creates an XGBoostRegressionTrainer using the default parameters, the squared error loss
+     * and the supplied number of trees.
+     * @param numTrees The number of trees.
+     */
     public XGBoostRegressionTrainer(int numTrees) {
         this(RegressionType.LINEAR, numTrees);
     }
 
+    /**
+     * Creates an XGBoostRegressionTrainer using the default parameters, the supplied loss
+     * and the supplied number of trees.
+     * @param rType The regression loss function.
+     * @param numTrees The number of trees.
+     */
     public XGBoostRegressionTrainer(RegressionType rType, int numTrees) {
         this(rType, numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, 4, true, Trainer.DEFAULT_SEED);
     }
 
+    /**
+     * Creates an XGBoostRegressionTrainer using the default parameters with the supplied
+     * loss, number of trees, number of threads, and logging level.
+     * @param rType The regression loss function.
+     * @param numTrees The number of trees.
+     * @param numThreads The number of threads.
+     * @param silent Silence the XGBoost logger.
+     */
     public XGBoostRegressionTrainer(RegressionType rType, int numTrees, int numThreads, boolean silent) {
         this(rType, numTrees, 0.3, 0, 6, 1, 1, 1, 1, 0, numThreads, silent, Trainer.DEFAULT_SEED);
     }
@@ -216,6 +236,9 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
             // Use a null response extractor as we'll do the per dimension regression extraction later.
             DMatrixTuple<Regressor> trainingData = convertExamples(examples, featureMap, null);
 
+            // Map the natural order into ids
+            int[] dimensionIds = ((ImmutableRegressionInfo) outputInfo).getNaturalOrderToIDMapping();
+
             // Extract the weights and the regression targets.
             float[][] outputs = new float[numOutputs][examples.size()];
             float[] weights = new float[examples.size()];
@@ -225,7 +248,7 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
                 double[] curOutputs = e.getOutput().getValues();
                 // Transpose them for easy training.
                 for (int j = 0; j < numOutputs; j++) {
-                    outputs[j][i] = (float) curOutputs[j];
+                    outputs[dimensionIds[j]][i] = (float) curOutputs[j];
                 }
                 i++;
             }
