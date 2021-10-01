@@ -23,12 +23,17 @@ import org.tribuo.Prediction;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import libsvm.svm;
 import libsvm.svm_model;
 import libsvm.svm_node;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,11 +66,14 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
 
     private final String[] dimensionNames;
 
-    private final double[] means;
+    private double[] means;
 
-    private final double[] variances;
+    private double[] variances;
 
     private final boolean standardized;
+
+    // Not final as it doesn't exist in 4.0 or 4.1 and so must be created on deserialization.
+    private int[] mapping;
 
     /**
      * Constructs a LibSVMRegressionModel with regular outputs.
@@ -81,6 +89,7 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
         this.means = null;
         this.variances = null;
         this.standardized = false;
+        this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
     }
 
     /**
@@ -99,6 +108,7 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
         this.means = means;
         this.variances = variances;
         this.standardized = true;
+        this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
     }
 
     /**
@@ -125,14 +135,38 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
         double[] regressedValues = new double[models.size()];
 
         for (int i = 0; i < regressedValues.length; i++) {
-            regressedValues[i] = svm.svm_predict_values(models.get(i), features, scores);
+            regressedValues[mapping[i]] = svm.svm_predict_values(models.get(i), features, scores);
             if (standardized) {
-                regressedValues[i] = (regressedValues[i] * variances[i]) + means[i];
+                regressedValues[i] = (regressedValues[i] * variances[mapping[i]]) + means[mapping[i]];
             }
         }
 
         Regressor regressor = new Regressor(dimensionNames,regressedValues);
         return new Prediction<>(regressor, features.length, example);
+    }
+
+    /**
+     * Accessor used in the tests. May be considered to be made public.
+     * @return The means used for standardization.
+     */
+    protected double[] getMeans() {
+        if (means != null) {
+            return Arrays.copyOf(means, means.length);
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Accessor used in the tests. May be considered to be made public.
+     * @return The variances used for standardization.
+     */
+    protected double[] getVariances() {
+        if (variances != null) {
+            return Arrays.copyOf(variances, variances.length);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -144,4 +178,27 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> {
         return new LibSVMRegressionModel(newName,newProvenance,featureIDMap,outputIDInfo,newModels);
     }
 
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        // Add mapping field to 4.0, 4.1 models and rearrange the dimensions.
+        if (mapping == null) {
+            this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
+            List<svm_model> newModels = new ArrayList<>(this.models);
+            double[] newMeans = new double[newModels.size()];
+            double[] newVariances = new double[newModels.size()];
+
+            for (int i = 0; i < mapping.length; i++) {
+                newModels.set(i,this.models.get(mapping[i]));
+                if (this.means != null) {
+                    newMeans[i] = this.means[mapping[i]];
+                    newVariances[i] = this.variances[mapping[i]];
+                }
+            }
+
+            this.models = Collections.unmodifiableList(newModels);
+            this.means = newMeans;
+            this.variances = newVariances;
+        }
+    }
 }

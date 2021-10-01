@@ -57,6 +57,9 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
         } else if (predictions[0].length != outputIDInfo.size()) {
             throw new IllegalArgumentException("Supplied tensor has an incorrect number of dimensions, predictions[0].length = " + predictions[0].length + ", expected " + outputIDInfo.size());
         }
+        // Note this inserts in an ordering which is not necessarily the natural one,
+        // but the Regressor constructor sorts it to maintain the natural ordering.
+        // The names and the values still line up, so this code is valid.
         String[] names = new String[outputIDInfo.size()];
         double[] values = new double[outputIDInfo.size()];
         for (Pair<Integer,Regressor> p : outputIDInfo) {
@@ -116,6 +119,9 @@ public class RegressorTransformer implements OutputTransformer<Regressor> {
         float[][] predictions = getBatchPredictions(tensor);
         List<Regressor> output = new ArrayList<>();
 
+        // Similar to transformToOutput, names and values are ordered by
+        // the id, not the natural ordering, but the Regressor constructor
+        // fixes that.
         String[] names = new String[outputIDInfo.size()];
         for (Pair<Integer,Regressor> p : outputIDInfo) {
             int id = p.getA();

@@ -33,6 +33,7 @@ import org.tensorflow.types.family.TNumber;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tensorflow.Tensor;
 
@@ -89,6 +90,9 @@ public class RegressorConverter implements OutputConverter<Regressor> {
         }
         String[] names = new String[outputIDInfo.size()];
         double[] values = new double[outputIDInfo.size()];
+        // Note this inserts in an ordering which is not necessarily the natural one,
+        // but the Regressor constructor sorts it to maintain the natural ordering.
+        // The names and the values still line up, so this code is valid.
         for (Pair<Integer,Regressor> p : outputIDInfo) {
             int id = p.getA();
             names[id] = p.getB().getNames()[0];
@@ -152,6 +156,9 @@ public class RegressorConverter implements OutputConverter<Regressor> {
         List<Regressor> output = new ArrayList<>();
         int batchSize = (int) predictions.shape().asArray()[0];
 
+        // Similar to convertToOutput, names and values are ordered by
+        // the id, not the natural ordering, but the Regressor constructor
+        // fixes that.
         String[] names = new String[outputIDInfo.size()];
         for (Pair<Integer,Regressor> p : outputIDInfo) {
             int id = p.getA();
@@ -171,9 +178,13 @@ public class RegressorConverter implements OutputConverter<Regressor> {
     @Override
     public Tensor convertToTensor(Regressor example, ImmutableOutputInfo<Regressor> outputIDInfo) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(1,outputIDInfo.size()));
+        // We map through the id to natural order mapping as regressor might not
+        // be stored in the id order.
+        int[] ids = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
         double[] values = example.getValues();
-        for (int i = 0; i < values.length; i++) {
-            output.setFloat((float) values[i],i);
+        for (Pair<Integer,Regressor> p : outputIDInfo) {
+            int id = p.getA();
+            output.setFloat((float) values[ids[id]],0,id);
         }
         return output;
     }
@@ -181,11 +192,14 @@ public class RegressorConverter implements OutputConverter<Regressor> {
     @Override
     public Tensor convertToTensor(List<Example<Regressor>> examples, ImmutableOutputInfo<Regressor> outputIDInfo) {
         TFloat32 output = TFloat32.tensorOf(Shape.of(examples.size(),outputIDInfo.size()));
+        // We map through the id to natural order mapping as regressor might not
+        // be stored in the id order.
+        int[] ids = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
         int i = 0;
         for (Example<Regressor> e : examples) {
             double[] values = e.getOutput().getValues();
             for (int j = 0; j < outputIDInfo.size(); j++) {
-                output.setFloat((float)values[j],i,j);
+                output.setFloat((float)values[ids[j]],i,j);
             }
             i++;
         }

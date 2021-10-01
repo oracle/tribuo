@@ -25,6 +25,7 @@ import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
+import org.tribuo.SparseModel;
 import org.tribuo.Trainer;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
@@ -43,6 +44,8 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -52,6 +55,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSLM {
@@ -59,9 +63,14 @@ public class TestSLM {
 
     private static final SLMTrainer SFS = new SLMTrainer(false,-1);
     private static final SLMTrainer SFSN = new SLMTrainer(false,-1);
-    private static final ElasticNetCDTrainer ELASTIC_NET = new ElasticNetCDTrainer(1.0,0.5);
-    private static final LARSTrainer LARS = new LARSTrainer(-1);
+    private static final ElasticNetCDTrainer ELASTIC_NET = new ElasticNetCDTrainer(1.0,0.5,1e-4,500,false,0);
+    private static final LARSTrainer LARS = new LARSTrainer(10);
     private static final LARSLassoTrainer LARS_LASSO = new LARSLassoTrainer(-1);
+
+    private static final RegressionEvaluator e = new RegressionEvaluator();
+
+    private static final URL TEST_REGRESSION_REORDER_ENET_MODEL = TestSLM.class.getResource("enet-4.1.0.model");
+    private static final URL TEST_REGRESSION_REORDER_LARS_MODEL = TestSLM.class.getResource("lars-4.1.0.model");
 
     @BeforeAll
     public static void turnDownLogging() {
@@ -76,7 +85,6 @@ public class TestSLM {
                                                Pair<Dataset<Regressor>,Dataset<Regressor>> p,
                                                boolean testONNX) {
         Model<Regressor> m = trainer.train(p.getA());
-        RegressionEvaluator e = new RegressionEvaluator();
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
@@ -213,4 +221,87 @@ public class TestSLM {
         testElasticNet(p,true);
     }
 
+    @Test
+    public void testThreeDenseDataLARS() {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+        SparseModel<Regressor> llModel = LARS.train(p.getA());
+        RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
+        double expectedDim1 = 0.5671244360433836;
+        double expectedDim2 = 0.5671244360433927;
+        double expectedDim3 = -2.457128076868633;
+        double expectedAve = -0.44095973492728563;
+
+        assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,llEval.averageR2(),1e-6);
+
+        p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
+        SparseModel<Regressor> reorderedModel = LARS.train(p.getA());
+        RegressionEvaluation reorderedEval = e.evaluate(reorderedModel,p.getB());
+
+        assertEquals(expectedDim1,reorderedEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,reorderedEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,reorderedEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,reorderedEval.averageR2(),1e-6);
+    }
+
+    @Test
+    public void testThreeDenseDataENet() {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+        SparseModel<Regressor> llModel = ELASTIC_NET.train(p.getA());
+        RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
+        double expectedDim1 = 0.5902193395184064;
+        double expectedDim2 = 0.5902193395184064;
+        double expectedDim3 = 0.2563468291737646;
+        double expectedAve = 0.4789285027368592;
+
+        assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,llEval.averageR2(),1e-6);
+
+        p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
+        SparseModel<Regressor> reorderedModel = ELASTIC_NET.train(p.getA());
+        RegressionEvaluation reorderedEval = e.evaluate(reorderedModel,p.getB());
+
+        assertEquals(expectedDim1,reorderedEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,reorderedEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,reorderedEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,reorderedEval.averageR2(),1e-6);
+    }
+
+    @Test
+    public void testRegressionReordering() throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(TEST_REGRESSION_REORDER_LARS_MODEL.openStream())) {
+            @SuppressWarnings("unchecked")
+            Model<Regressor> serializedModel = (Model<Regressor>) ois.readObject();
+            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+            RegressionEvaluation llEval = e.evaluate(serializedModel,p.getB());
+            double expectedDim1 = 0.5671244360433836;
+            double expectedDim2 = 0.5671244360433927;
+            double expectedDim3 = -2.457128076868633;
+            double expectedAve = -0.44095973492728563;
+
+            assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedAve,llEval.averageR2(),1e-6);
+        }
+        try (ObjectInputStream ois = new ObjectInputStream(TEST_REGRESSION_REORDER_ENET_MODEL.openStream())) {
+            @SuppressWarnings("unchecked")
+            Model<Regressor> serializedModel = (Model<Regressor>) ois.readObject();
+            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+            RegressionEvaluation llEval = e.evaluate(serializedModel,p.getB());
+            double expectedDim1 = 0.5902193395184064;
+            double expectedDim2 = 0.5902193395184064;
+            double expectedDim3 = 0.2563468291737646;
+            double expectedAve = 0.4789285027368592;
+
+            assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedAve,llEval.averageR2(),1e-6);
+        }
+    }
 }
