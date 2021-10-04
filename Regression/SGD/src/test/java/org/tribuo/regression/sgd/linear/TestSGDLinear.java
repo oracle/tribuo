@@ -25,7 +25,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
-import org.tribuo.Trainer;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
@@ -51,6 +50,7 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -67,9 +67,11 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestSGDLinear {
     private static final Logger logger = Logger.getLogger(TestSGDLinear.class.getName());
 
-    private static final LinearSGDTrainer t = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
+    private static final LinearSGDTrainer t = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(1.0,0.1),10,1000, 1L);
 
     private static final RegressionEvaluator e = new RegressionEvaluator();
+
+    private static final URL TEST_REGRESSION_REORDER_MODEL = TestSGDLinear.class.getResource("linear-4.1.0.model");
 
     @BeforeAll
     public static void setup() {
@@ -130,7 +132,7 @@ public class TestSGDLinear {
                 Prediction<Regressor> tribuo = nativePredictions.get(i);
                 Prediction<Regressor> external = onnxPredictions.get(i);
                 assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
-                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-6);
+                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-5);
             }
 
             onnxModel.close();
@@ -228,7 +230,7 @@ public class TestSGDLinear {
     @Test
     public void testSetInvocationCount() {
         // Create new trainer and dataset so as not to mess with the other tests
-        LinearSGDTrainer originalTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
+        LinearSGDTrainer originalTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000);
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
 
         // The number of times to call train before final training.
@@ -245,7 +247,7 @@ public class TestSGDLinear {
         // Create a new model with same configuration, but set the invocation count to numOfInvocations
         // Assert that this succeeded, this means RNG will be at state where originalTrainer was before
         // it performed its last train.
-        LinearSGDTrainer newTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
+        LinearSGDTrainer newTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000);
         newTrainer.setInvocationCount(numOfInvocations);
         assertEquals(numOfInvocations,newTrainer.getInvocationCount());
 
@@ -262,7 +264,7 @@ public class TestSGDLinear {
     @Test
     public void testNegativeInvocationCount(){
         assertThrows(IllegalArgumentException.class, () -> {
-            LinearSGDTrainer t = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
+            LinearSGDTrainer t = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000);
             t.setInvocationCount(-1);
         });
     }
@@ -286,6 +288,52 @@ public class TestSGDLinear {
             } else {
                 fail("Invalid model type found, expected Label");
             }
+        }
+    }
+
+    @Test
+    public void testThreeDenseData() {
+        LinearSGDTrainer freshTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(1.0,0.1),10,1000, 1L);
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+        AbstractLinearSGDModel<Regressor> llModel = freshTrainer.train(p.getA());
+        RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
+        double expectedDim1 = 0.5008176578612609;
+        double expectedDim2 = 0.5008176578612609;
+        double expectedDim3 = 0.3273674684274661;
+        double expectedAve = 0.44300092804999597;
+
+        assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,llEval.averageR2(),1e-6);
+
+        p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
+        freshTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(1.0,0.1),10,1000, 1L);
+        AbstractLinearSGDModel<Regressor> reorderedModel = freshTrainer.train(p.getA());
+        RegressionEvaluation reorderedEval = e.evaluate(reorderedModel,p.getB());
+
+        assertEquals(expectedDim1,reorderedEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,reorderedEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,reorderedEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,reorderedEval.averageR2(),1e-6);
+    }
+
+    @Test
+    public void testRegressionReordering() throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(TEST_REGRESSION_REORDER_MODEL.openStream())) {
+            @SuppressWarnings("unchecked")
+            Model<Regressor> serializedModel = (Model<Regressor>) ois.readObject();
+            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+            RegressionEvaluation llEval = e.evaluate(serializedModel,p.getB());
+            double expectedDim1 = 0.5008176578612609;
+            double expectedDim2 = 0.5008176578612609;
+            double expectedDim3 = 0.3273674684274661;
+            double expectedAve = 0.44300092804999597;
+
+            assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+            assertEquals(expectedAve,llEval.averageR2(),1e-6);
         }
     }
 }

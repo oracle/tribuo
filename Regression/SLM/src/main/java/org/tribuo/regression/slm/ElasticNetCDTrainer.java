@@ -172,10 +172,8 @@ public class ElasticNetCDTrainer implements SparseTrainer<Regressor> {
         }
         int i = 0;
         for (Example<Regressor> e : examples) {
-            int j = 0;
             for (DimensionTuple d : e.getOutput()) {
-                regressionTargets[j].set(i, d.getValue());
-                j++;
+                regressionTargets[outputInfo.getID(d)].set(i, d.getValue());
             }
             i++;
         }

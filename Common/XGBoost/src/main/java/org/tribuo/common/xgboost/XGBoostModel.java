@@ -31,11 +31,13 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.common.xgboost.XGBoostTrainer.DMatrixTuple;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.provenance.TrainerProvenance;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -82,6 +84,9 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
 
     private final XGBoostOutputConverter<T> converter;
 
+    // Used to signal if the model has been rewritten to fix the issue with multidimensional XGBoost regression models in 4.0 and 4.1.0.
+    private boolean regression41MappingFix;
+
     /**
      * The XGBoost4J Boosters.
      */
@@ -93,6 +98,7 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
         super(name,description,featureIDMap,labelIDMap,converter.generatesProbabilities());
         this.converter = converter;
         this.models = models;
+        this.regression41MappingFix = true;
     }
 
     /**
@@ -198,11 +204,10 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
     public Map<String, List<Pair<String,Double>>> getTopFeatures(int n) {
         try {
             int maxFeatures = n < 0 ? featureIDMap.size() : n;
-            // Aggregate feature scores across all the models.
-            // This throws away model specific information which is useful in the case of regression,
-            // but it's very tricky to get the dimension name associated with the model.
-            Map<String, MutableDouble> outputMap = new HashMap<>();
-            for (Booster model : models) {
+            Map<String, List<Pair<String,Double>>> map = new HashMap<>();
+            for (int i = 0; i < models.size(); i++) {
+                Booster model = models.get(i);
+                Map<String, MutableDouble> outputMap = new HashMap<>();
                 Map<String, Integer> xgboostMap = model.getFeatureScore("");
                 for (Map.Entry<String,Integer> f : xgboostMap.entrySet()) {
                     int id = Integer.parseInt(f.getKey().substring(1));
@@ -210,27 +215,32 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
                     MutableDouble curVal = outputMap.computeIfAbsent(name,(k)->new MutableDouble());
                     curVal.increment(f.getValue());
                 }
-            }
-            Comparator<Pair<String, Double>> comparator = Comparator.comparingDouble(p -> Math.abs(p.getB()));
-            PriorityQueue<Pair<String,Double>> q = new PriorityQueue<>(maxFeatures,comparator);
-            for (Map.Entry<String,MutableDouble> e : outputMap.entrySet()) {
-                Pair<String,Double> cur = new Pair<>(e.getKey(), e.getValue().doubleValue());
 
-                if (q.size() < maxFeatures) {
-                    q.offer(cur);
-                } else if (comparator.compare(cur,q.peek()) > 0) {
-                    q.poll();
-                    q.offer(cur);
+                Comparator<Pair<String, Double>> comparator = Comparator.comparingDouble(p -> Math.abs(p.getB()));
+                PriorityQueue<Pair<String,Double>> q = new PriorityQueue<>(maxFeatures,comparator);
+                for (Map.Entry<String,MutableDouble> e : outputMap.entrySet()) {
+                    Pair<String,Double> cur = new Pair<>(e.getKey(), e.getValue().doubleValue());
+
+                    if (q.size() < maxFeatures) {
+                        q.offer(cur);
+                    } else if (comparator.compare(cur,q.peek()) > 0) {
+                        q.poll();
+                        q.offer(cur);
+                    }
+                }
+                List<Pair<String,Double>> list = new ArrayList<>();
+                while(q.size() > 0) {
+                    list.add(q.poll());
+                }
+                Collections.reverse(list);
+
+                if (models.size() == 1) {
+                    map.put(Model.ALL_OUTPUTS, list);
+                } else {
+                    String dimensionName = outputIDInfo.getOutput(i).toString();
+                    map.put(dimensionName, list);
                 }
             }
-            List<Pair<String,Double>> list = new ArrayList<>();
-            while(q.size() > 0) {
-                list.add(q.poll());
-            }
-            Collections.reverse(list);
-
-            Map<String, List<Pair<String,Double>>> map = new HashMap<>();
-            map.put(Model.ALL_OUTPUTS,list);
 
             return map;
         } catch (XGBoostError e) {
@@ -299,12 +309,34 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         try {
-            models = new ArrayList<>();
+            this.models = new ArrayList<>();
             int numModels = in.readInt();
             for (int i = 0; i < numModels; i++) {
                 // Now read in the byte array and rebuild each Booster
                 byte[] serialisedBooster = (byte[]) in.readObject();
-                models.add(XGBoost.loadModel(serialisedBooster));
+                this.models.add(XGBoost.loadModel(serialisedBooster));
+            }
+            try {
+                Class<?> regressionClass = Class.forName("org.tribuo.regression.ImmutableRegressionInfo");
+                String tribuoVersion = (String) provenance.getTrainerProvenance().getInstanceValues().get(TrainerProvenance.TRIBUO_VERSION_STRING).getValue();
+                if (regressionClass.isInstance(outputIDInfo) && !regression41MappingFix &&
+                        (tribuoVersion.startsWith("4.0.0") || tribuoVersion.startsWith("4.0.1") || tribuoVersion.startsWith("4.0.2") || tribuoVersion.startsWith("4.1.0")
+                                // This is explicit to catch the test model which has a 4.1.1-SNAPSHOT Tribuo version.
+                                || tribuoVersion.equals("4.1.1-SNAPSHOT"))) {
+                    // rewrite the model stream
+                    regression41MappingFix = true;
+                    int[] mapping = (int[]) regressionClass.getDeclaredMethod("getIDtoNaturalOrderMapping").invoke(outputIDInfo);
+                    List<Booster> copy = new ArrayList<>(models);
+                    for (int i = 0; i < mapping.length; i++) {
+                        copy.set(i,models.get(mapping[i]));
+                    }
+                    this.models = copy;
+                }
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException("Failed to rewrite 4.1.0 or earlier regression model due to a reflection failure.",e);
+            } catch (ClassNotFoundException e) {
+                // pass as this isn't a regression model as otherwise it would have thrown ClassNotFoundException
+                // during the reading of the input stream.
             }
         } catch (XGBoostError e) {
             throw new IOException("Failed to deserialize the XGBoost model",e);

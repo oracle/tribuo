@@ -28,6 +28,7 @@ import org.tribuo.common.tree.SplitNode;
 import org.tribuo.common.tree.impl.IntArrayContainer;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity.ImpurityTuple;
@@ -53,9 +54,6 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
 
     private static final ThreadLocal<IntArrayContainer> mergeBufferOne = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
     private static final ThreadLocal<IntArrayContainer> mergeBufferTwo = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
-    private static final ThreadLocal<IntArrayContainer> mergeBufferThree = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
-    private static final ThreadLocal<IntArrayContainer> mergeBufferFour = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
-    private static final ThreadLocal<IntArrayContainer> mergeBufferFive = ThreadLocal.withInitial(() -> new IntArrayContainer(DEFAULT_SIZE));
 
     private transient ArrayList<TreeFeature> data;
 
@@ -417,10 +415,12 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
                 names[i] = labelIDMap.getOutput(i).getNames()[0];
                 sum += mean[i];
             }
-            // Normalize all the outputs so they sum to 1.0.
+            // Normalize all the outputs so that they sum to 1.0.
             for (int i = 0; i < targets.length; i++) {
                 mean[i] /= sum;
             }
+            // Both names and mean are in id order, so the regressor constructor
+            // will convert them to natural order if they are different.
             leafPred = new Regressor(names, mean);
         } else {
             double[] variance = new double[targets.length];
@@ -441,6 +441,8 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
                 names[i] = labelIDMap.getOutput(i).getNames()[0];
                 variance[i] = leafIndices.length > 1 ? variance[i] / (leafWeightSum - 1) : 0;
             }
+            // Both names, mean and variance are in id order, so the regressor constructor
+            // will convert them to natural order if they are different.
             leafPred = new Regressor(names, mean, variance);
         }
         return new LeafNode<>(impurityScore,leafPred,Collections.emptyMap(),false);
@@ -468,13 +470,14 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             data.add(new TreeFeature(i));
         }
 
+        int[] ids = ((ImmutableRegressionInfo) labelInfo).getNaturalOrderToIDMapping();
         for (int i = 0; i < examples.size(); i++) {
             Example<Regressor> e = examples.getExample(i);
             indices[i] = i;
             weights[i] = e.getWeight();
-            double[] newTargets = e.getOutput().getValues();
+            double[] output = e.getOutput().getValues();
             for (int j = 0; j < targets.length; j++) {
-                targets[j][i] = (float) newTargets[j];
+                targets[ids[j]][i] = (float) output[j];
             }
             SparseVector vec = SparseVector.createSparseVector(e,featureInfos,false);
             int lastID = 0;

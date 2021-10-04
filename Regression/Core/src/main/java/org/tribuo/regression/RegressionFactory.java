@@ -149,6 +149,7 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
             variances[i] = r.getVariances()[0];
             i++;
         }
+
         Regressor newRegressor = new Regressor(names,values,variances);
 
         MutableRegressionInfo info = new MutableRegressionInfo();
