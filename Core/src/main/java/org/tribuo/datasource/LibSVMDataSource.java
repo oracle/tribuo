@@ -106,7 +106,7 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
      * @throws IOException If the file could not be read or is an invalid format.
      */
     public LibSVMDataSource(Path path, OutputFactory<T> outputFactory) throws IOException {
-        this(path,path.normalize().toUri().toURL(),outputFactory,false,false,0);
+        this(path.normalize(),path.normalize().toUri().toURL(),outputFactory,false,false,0);
     }
 
     /**
@@ -126,7 +126,7 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
      * @throws IOException If the file could not be read or is an invalid format.
      */
     public LibSVMDataSource(Path path, OutputFactory<T> outputFactory, boolean zeroIndexed, int maxFeatureID) throws IOException {
-        this(path,path.normalize().toUri().toURL(),outputFactory,true,zeroIndexed,maxFeatureID);
+        this(path.normalize(),path.normalize().toUri().toURL(),outputFactory,true,zeroIndexed,maxFeatureID);
     }
 
     /**
