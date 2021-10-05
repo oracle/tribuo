@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.tribuo.datasource;
 
+import com.oracle.labs.mlrg.olcut.provenance.PrimitiveProvenance;
 import org.tribuo.DataSource;
 import org.tribuo.Example;
 import org.tribuo.FeatureMap;
@@ -32,6 +33,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -69,13 +72,30 @@ public class LibSVMDataSourceTest {
 
         MutableDataset<MockOutput> dataset = new MutableDataset<>(source);
 
-        PrintStream stream = new PrintStream(temp, StandardCharsets.UTF_8.name());
-        LibSVMDataSource.writeLibSVMFormat(dataset,stream,false, (MockOutput a) -> Integer.parseInt(a.label));
-        stream.close();
+        try (PrintStream stream = new PrintStream(temp, StandardCharsets.UTF_8.name())) {
+            LibSVMDataSource.writeLibSVMFormat(dataset, stream, false, (MockOutput a) -> Integer.parseInt(a.label));
+        }
 
         LibSVMDataSource<MockOutput> loadedSource = new LibSVMDataSource<>(temp.toPath(),factory);
 
         assertTrue(compareDataSources(source,loadedSource), "Saved data source was not the same as the loaded one.");
+
+        // Now we check provenance path normalization on the saved file
+        // First generate a path with a relative element in it (i.e., ".")
+        Path newPath = temp.toPath().resolveSibling(Paths.get(".",temp.getName()));
+
+        // Load the datasource back in using the relativised path
+        LibSVMDataSource<MockOutput> newSource = new LibSVMDataSource<>(newPath,factory);
+        LibSVMDataSource.LibSVMDataSourceProvenance sourceProv = (LibSVMDataSource.LibSVMDataSourceProvenance) newSource.getProvenance();
+
+        // Extract the two provenance fields
+        @SuppressWarnings("unchecked") // test code and the provenance exists
+        URL sourceURL = ((PrimitiveProvenance<URL>)sourceProv.getConfiguredParameters().get("url")).getValue();
+        @SuppressWarnings("unchecked") // test code and the provenance exists
+        File sourceFile = ((PrimitiveProvenance<File>)sourceProv.getConfiguredParameters().get("path")).getValue();
+
+        // Assert they match
+        assertEquals(sourceFile.toPath().toUri().toURL(),sourceURL);
     }
 
     public static <T extends Output<T>> boolean compareDataSources(DataSource<T> first, DataSource<T> second) {
@@ -100,5 +120,4 @@ public class LibSVMDataSourceTest {
         }
 
     }
-
 }
