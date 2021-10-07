@@ -68,7 +68,7 @@ public abstract class AbstractFMTrainer<T extends Output<T>, U> extends Abstract
      * For olcut.
      */
     protected AbstractFMTrainer() {
-        super(true);
+        super(false);
     }
 
     @Override

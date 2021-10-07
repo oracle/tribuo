@@ -19,6 +19,9 @@ package org.tribuo.classification.sgd.fm;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
+import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,6 +58,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -78,10 +82,10 @@ public class TestFMClassification {
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
-        Assertions.assertNotNull(features);
+        assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         features = m.getTopFeatures(-1);
-        Assertions.assertNotNull(features);
+        assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         return m;
     }
@@ -178,6 +182,21 @@ public class TestFMClassification {
         }
 
         onnxFile.toFile().delete();
+    }
+
+    @Test
+    public void fmRoundTripTest() {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        Model<Label> model = testFMClassification(p);
+
+        ConfigurationManager cm = new ConfigurationManager();
+        List<ConfigurationData> provConfig = ProvenanceUtil.extractConfiguration(model.getProvenance());
+        cm.addConfiguration(provConfig);
+
+        FMClassificationTrainer trainer = (FMClassificationTrainer) cm.lookup("fmclassificationtrainer-0");
+        Model<Label> newModel = trainer.train(p.getA());
+
+        assertNotNull(newModel);
     }
 
 }
