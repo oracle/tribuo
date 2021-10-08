@@ -32,6 +32,7 @@ import org.tribuo.VariableInfo;
 import org.tribuo.interop.onnx.DenseTransformer;
 import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.RegressorTransformer;
+import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
@@ -51,11 +52,14 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSLM {
@@ -130,6 +134,15 @@ public class TestSLM {
                         assertArrayEquals(tribuo.getOutput().getNames(), external.getOutput().getNames());
                         assertArrayEquals(tribuo.getOutput().getValues(), external.getOutput().getValues(), 1e-5);
                     }
+
+                    // Check that the provenance can be extracted and is the same
+                    ModelProvenance modelProv = m.getProvenance();
+                    Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
+                    assertTrue(optProv.isPresent());
+                    ModelProvenance onnxProv = optProv.get();
+                    assertNotSame(onnxProv, modelProv);
+                    assertEquals(modelProv,onnxProv);
+
                     onnxModel.close();
                 } else {
                     logger.warning("ORT based tests only supported on x86_64, found " + arch);

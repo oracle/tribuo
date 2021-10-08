@@ -36,6 +36,7 @@ import org.tribuo.interop.onnx.RegressorTransformer;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.optimisers.AdaGrad;
+import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
@@ -55,12 +56,15 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {
@@ -133,6 +137,14 @@ public class TestSGDLinear {
                 assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
                 assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-5);
             }
+
+            // Check that the provenance can be extracted and is the same
+            ModelProvenance modelProv = model.getProvenance();
+            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
+            assertTrue(optProv.isPresent());
+            ModelProvenance onnxProv = optProv.get();
+            assertNotSame(onnxProv, modelProv);
+            assertEquals(modelProv,onnxProv);
 
             onnxModel.close();
         } else {

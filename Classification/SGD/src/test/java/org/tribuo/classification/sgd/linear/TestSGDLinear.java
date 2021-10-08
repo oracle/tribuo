@@ -46,6 +46,7 @@ import org.tribuo.math.optimisers.AdaGrad;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
@@ -55,11 +56,15 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {
@@ -82,10 +87,10 @@ public class TestSGDLinear {
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
-        Assertions.assertFalse(features.isEmpty());
+        assertFalse(features.isEmpty());
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
-        Assertions.assertFalse(features.isEmpty());
+        assertFalse(features.isEmpty());
         return m;
     }
 
@@ -152,6 +157,14 @@ public class TestSGDLinear {
                 }
             }
 
+            // Check that the provenance can be extracted and is the same
+            ModelProvenance modelProv = model.getProvenance();
+            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
+            assertTrue(optProv.isPresent());
+            ModelProvenance onnxProv = optProv.get();
+            assertNotSame(onnxProv, modelProv);
+            assertEquals(modelProv,onnxProv);
+
             onnxModel.close();
         } else {
             logger.warning("ORT based tests only supported on x86_64, found " + arch);
@@ -209,10 +222,10 @@ public class TestSGDLinear {
                LabelEvaluation evaluation = e.evaluate(m,LabelledDataGenerator.denseTrainTest().getB());
                Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
                Assertions.assertNotNull(features);
-               Assertions.assertFalse(features.isEmpty());
+               assertFalse(features.isEmpty());
                features = m.getTopFeatures(-1);
                Assertions.assertNotNull(features);
-               Assertions.assertFalse(features.isEmpty());
+               assertFalse(features.isEmpty());
            } else {
                fail("Invalid model type found, expected Label");
            }
