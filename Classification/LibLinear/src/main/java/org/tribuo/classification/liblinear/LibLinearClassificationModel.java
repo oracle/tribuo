@@ -313,36 +313,59 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
     public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
         OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
 
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        graphBuilder.addOutput(outputValueProto);
-
         de.bwaldvogel.liblinear.Model model = models.get(0);
         double[] weights = model.getFeatureWeights();
+        int[] labels = model.getLabels();
+        int numFeatures = featureIDMap.size();
+        int numLabels = labels.length;
+        if (numLabels != outputIDInfo.size()) {
+            throw new IllegalStateException("Unexpected number of labels, output domain = " + outputIDInfo.size() + ", LibLinear's internal count = " + numLabels);
+        }
+
+        // setup weight arrays for easy processing
         if (model.getNrClass() == 2) {
-            // Replicate weights for ease of processing
+            // Replicate weights in binary problems
             double[] newWeights = new double[weights.length*2];
             for (int i = 0; i < weights.length; i++) {
-                newWeights[i*2] = weights[i];
-                newWeights[(i*2)+1] = -weights[i];
+                if (labels[0] == 0) {
+                    newWeights[i * 2] = weights[i];
+                    newWeights[(i * 2) + 1] = -weights[i];
+                } else {
+                    newWeights[i * 2] = -weights[i];
+                    newWeights[(i * 2) + 1] = weights[i];
+                }
+            }
+            weights = newWeights;
+        } else {
+            double[] newWeights = new double[weights.length];
+            for (int j = 0; j < numFeatures + 1; j++) {
+                for (int i = 0; i < numLabels; i++) {
+                    int newIdx = (j * numLabels) + labels[i];
+                    int oldIdx = (j * numLabels) + i;
+                    newWeights[newIdx] = weights[oldIdx];
+                }
             }
             weights = newWeights;
         }
 
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,numFeatures}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        graphBuilder.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,numLabels}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        graphBuilder.addOutput(outputValueProto);
+
         // Add weights
         OnnxMl.TensorProto.Builder weightBuilder = OnnxMl.TensorProto.newBuilder();
         weightBuilder.setName(context.generateUniqueName("liblinear-weights"));
-        weightBuilder.addDims(featureIDMap.size());
-        weightBuilder.addDims(outputIDInfo.size());
+        weightBuilder.addDims(numFeatures);
+        weightBuilder.addDims(numLabels);
         weightBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer buffer = ByteBuffer.allocate(featureIDMap.size() * outputIDInfo.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer buffer = ByteBuffer.allocate(numFeatures * numLabels * 4).order(ByteOrder.LITTLE_ENDIAN);
         FloatBuffer floatBuffer = buffer.asFloatBuffer();
         // Biases are stored last in the weight matrix, and it's in column major order
-        for (int i = 0; i < weights.length - outputIDInfo.size(); i++) {
+        for (int i = 0; i < weights.length - numLabels; i++) {
             floatBuffer.put((float) weights[i]);
         }
         floatBuffer.rewind();
@@ -352,12 +375,12 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
         // Add biases
         OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
         biasBuilder.setName(context.generateUniqueName("liblinear-biases"));
-        biasBuilder.addDims(outputIDInfo.size());
+        biasBuilder.addDims(numLabels);
         biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer biasBuffer = ByteBuffer.allocate(outputIDInfo.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
+        ByteBuffer biasBuffer = ByteBuffer.allocate(numLabels * 4).order(ByteOrder.LITTLE_ENDIAN);
         FloatBuffer floatBiasBuffer = biasBuffer.asFloatBuffer();
         // Biases are stored last in the weight matrix, and it's in column major order
-        for (int i = featureIDMap.size() * outputIDInfo.size(); i < weights.length; i++) {
+        for (int i = numFeatures * numLabels; i < weights.length; i++) {
             floatBiasBuffer.put((float) weights[i]);
         }
         floatBiasBuffer.rewind();
