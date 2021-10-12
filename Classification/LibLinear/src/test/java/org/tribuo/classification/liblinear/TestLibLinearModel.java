@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.classification.liblinear;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.CategoricalIDInfo;
 import org.tribuo.CategoricalInfo;
@@ -27,6 +30,8 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
@@ -43,6 +48,9 @@ import org.tribuo.impl.ListExample;
 import de.bwaldvogel.liblinear.FeatureNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.LabelTransformer;
+import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
@@ -50,9 +58,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,6 +74,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestLibLinearModel {
     private static final Logger logger = Logger.getLogger(TestLibLinearModel.class.getName());
@@ -257,6 +268,63 @@ public class TestLibLinearModel {
             Model<Label> m = t.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
+    }
+
+    @Test
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        LibLinearClassificationModel model = (LibLinearClassificationModel) t.train(p.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-liblinear-test",".onnx");
+        model.saveONNXModel("org.tribuo.classification.liblinear.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Label, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Label> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        String arch = System.getProperty("os.arch");
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+            // Initialise the OrtEnvironment to load the native library
+            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
+            OrtEnvironment env = OrtEnvironment.getEnvironment();
+            env.close();
+            // Load in via ORT
+            ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), new LabelTransformer(), new OrtSession.SessionOptions(), onnxFile, "input");
+
+            // Generate predictions
+            List<Prediction<Label>> nativePredictions = model.predict(p.getB());
+            List<Prediction<Label>> onnxPredictions = onnxModel.predict(p.getB());
+
+            // Assert the predictions are identical
+            for (int i = 0; i < nativePredictions.size(); i++) {
+                Prediction<Label> tribuo = nativePredictions.get(i);
+                Prediction<Label> external = onnxPredictions.get(i);
+                assertEquals(tribuo.getOutput().getLabel(), external.getOutput().getLabel());
+                assertEquals(tribuo.getOutput().getScore(), external.getOutput().getScore(), 1e-6);
+                for (Map.Entry<String, Label> l : tribuo.getOutputScores().entrySet()) {
+                    Label other = external.getOutputScores().get(l.getKey());
+                    if (other == null) {
+                        fail("Failed to find label " + l.getKey() + " in ORT prediction.");
+                    } else {
+                        assertEquals(l.getValue().getScore(), other.getScore(), 1e-6);
+                    }
+                }
+            }
+
+            onnxModel.close();
+        } else {
+            logger.warning("ORT based tests only supported on x86_64, found " + arch);
+        }
+
+        onnxFile.toFile().delete();
     }
 
     private static int[] getIndices(FeatureNode[] nodes) {
