@@ -159,7 +159,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
      * Factorization machines don't provide excuses, use an explainer.
      *
      * @param example The input example.
-     * @return Optional.emtpy.
+     * @return Optional.empty.
      */
     @Override
     public Optional<Excuse<T>> getExcuse(Example<T> example) {

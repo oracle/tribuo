@@ -176,8 +176,8 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
             n++;
         }
         logger.info(String.format("Training SGD model with %d examples", n));
-        logger.fine("Average feature size = " + featureSize / (double)n);
-        logger.fine("Dense count = " + denseCount);
+        logger.fine("Mean number of active features = " + featureSize / (double)n);
+        logger.fine("Number of dense examples = " + denseCount);
         logger.info("Outputs - " + outputIDInfo.toReadableString());
 
         X parameters = createParameters(featureIDMap.size(), outputIDInfo.size(), localRNG);

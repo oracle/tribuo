@@ -472,9 +472,7 @@ public class SparseVector implements SGDVector {
     }
 
     /**
-     * Applies a {@link ToDoubleBiFunction} elementwise to this {@link SGDVector}.
-     * <p>
-     * The first argument to the function is the index, the second argument is the current value.
+     * Applies a {@link DoubleUnaryOperator} elementwise to this {@link SGDVector}.
      * <p>
      * Only applies the function to the elements which are present.
      * <p>

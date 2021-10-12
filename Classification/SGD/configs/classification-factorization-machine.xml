@@ -22,14 +22,13 @@
 -->
 
 <config>
-    <component name="fm" type="org.tribuo.classification.sgd.fm.LinearSGDTrainer">
+    <component name="fm" type="org.tribuo.classification.sgd.fm.FMClassificationTrainer">
         <property name="objective" value="log"/>
         <property name="optimiser" value="adagrad"/>
         <property name="epochs" value="10"/>
         <property name="loggingInterval" value="1000"/>
         <property name="minibatchSize" value="1"/>
         <property name="seed" value="1"/>
-        <property name="standardise" value="true"/>
         <property name="factoredDimSize" value="5"/>
         <property name="variance" value="0.5"/>
     </component>

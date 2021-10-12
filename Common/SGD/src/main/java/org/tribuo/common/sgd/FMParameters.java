@@ -150,7 +150,7 @@ public final class FMParameters implements FeedForwardParameters {
      * Generate the gradients for a particular feature vector given
      * the loss and the per output gradients.
      * <p>
-     * This parameters returns a {@link Tensor} array with numLabels + 2 elements.
+     * This method returns a {@link Tensor} array with numLabels + 2 elements.
      *
      * @param score    The Pair returned by the objective.
      * @param features The feature vector.
@@ -266,12 +266,12 @@ public final class FMParameters implements FeedForwardParameters {
                     gradients[0][i].intersectAndAddInPlace(gradients[j][i]);
                 }
                 output[i] = gradients[0][i];
-            } else if (gradients[0][0] instanceof DenseMatrix) {
+            } else if (gradients[0][i] instanceof DenseMatrix) {
                 for (int j = 1; j < size; j++) {
                     gradients[0][i].intersectAndAddInPlace(gradients[j][i]);
                 }
                 output[i] = gradients[0][i];
-            } else if (gradients[0][0] instanceof DenseSparseMatrix) {
+            } else if (gradients[0][i] instanceof DenseSparseMatrix) {
                 DenseSparseMatrix[] updates = new DenseSparseMatrix[size];
                 for (int j = 0; j < updates.length; j++) {
                     updates[j] = (DenseSparseMatrix) gradients[j][0];
@@ -281,7 +281,7 @@ public final class FMParameters implements FeedForwardParameters {
 
                 output[i] = update;
             } else {
-                throw new IllegalStateException("Unexpected gradient type, expected DenseMatrix or DenseSparseMatrix, received " + gradients[0][0].getClass().getName());
+                throw new IllegalStateException("Unexpected gradient type, expected DenseVector, DenseMatrix or DenseSparseMatrix, received " + gradients[0][i].getClass().getName());
             }
         }
         return output;

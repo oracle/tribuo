@@ -22,7 +22,7 @@
 -->
 
 <config>
-    <component name="fm" type="org.tribuo.regression.sgd.fm.LinearSGDTrainer">
+    <component name="fm" type="org.tribuo.regression.sgd.fm.FMRegressionTrainer">
         <property name="objective" value="squared"/>
         <property name="optimiser" value="adagrad"/>
         <property name="epochs" value="10"/>
