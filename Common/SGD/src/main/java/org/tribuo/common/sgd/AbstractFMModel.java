@@ -29,6 +29,7 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.provenance.ModelProvenance;
 
@@ -204,6 +205,14 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         builder.setDocString(toString());
         builder.addOpsetImport(ONNXOperators.getOpsetProto());
         builder.setIrVersion(6);
+
+        // Extract provenance and store in metadata
+        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
+        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
+        String serializedProvenance = ONNXExportable.SERIALIZER.marshalAndSerialize(getProvenance());
+        metaBuilder.setValue(serializedProvenance);
+        builder.addMetadataProps(metaBuilder.build());
+
         return builder.build();
     }
 
