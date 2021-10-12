@@ -213,7 +213,7 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
 
         // Build SVM node
         String[] outputs = new String[]{context.generateUniqueName("class_output"),outputValueProto.getName()};
-        OnnxMl.NodeProto svm = ONNXOperators.SVM_CLASSIFIER.build(context,new String[]{inputValueProto.getName()},outputs,attributes);
+        OnnxMl.NodeProto svm = ONNXOperators.SVM_CLASSIFIER.build(context,inputValueProto.getName(),outputs,attributes);
         graphBuilder.addNode(svm);
 
         return graphBuilder.build();

@@ -389,15 +389,15 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
 
         // Make gemm
         String[] gemmInputs = new String[]{inputValueProto.getName(),weightBuilder.getName(),biasBuilder.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,new String[]{context.generateUniqueName("gemm_output")});
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,context.generateUniqueName("gemm_output"));
         graphBuilder.addNode(gemm);
 
         if (model.isProbabilityModel()) {
             // Make output normalizer if producing probabilities
-            graphBuilder.addNode(ONNXOperators.SOFTMAX.build(context,new String[]{gemm.getOutput(0)},new String[]{"output"}, Collections.singletonMap("axis",1)));
+            graphBuilder.addNode(ONNXOperators.SOFTMAX.build(context,gemm.getOutput(0),"output", Collections.singletonMap("axis",1)));
         } else {
             // Add identity path if not
-            graphBuilder.addNode(ONNXOperators.IDENTITY.build(context,new String[]{gemm.getOutput(0)},new String[]{"output"}));
+            graphBuilder.addNode(ONNXOperators.IDENTITY.build(context,gemm.getOutput(0),"output"));
         }
 
         return graphBuilder.build();

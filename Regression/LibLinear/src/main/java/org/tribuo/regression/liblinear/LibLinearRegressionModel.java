@@ -265,7 +265,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
 
         // Make gemm
         String[] gemmInputs = new String[]{inputValueProto.getName(),weightBuilder.getName(),biasBuilder.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,new String[]{"output"});
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,"output");
         graphBuilder.addNode(gemm);
 
         return graphBuilder.build();

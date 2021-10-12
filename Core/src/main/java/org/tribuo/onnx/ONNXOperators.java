@@ -350,6 +350,32 @@ public enum ONNXOperators {
     }
 
     /**
+     * Builds this node based on the supplied input and outputs.
+     * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param input The name of the input.
+     * @param outputs The names of the outputs.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String input, String[] outputs) {
+        return build(context,new String[]{input},outputs,Collections.emptyMap());
+    }
+
+    /**
+     * Builds this node based on the supplied input and outputs.
+     * Throws {@link IllegalArgumentException} if the number of inputs, outputs or attributes is wrong.
+     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param input The name of the input.
+     * @param outputs The names of the outputs.
+     * @param attributeValues The attribute names and values.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String input, String[] outputs, Map<String,Object> attributeValues) {
+        return build(context,new String[]{input},outputs,attributeValues);
+    }
+
+    /**
      * Builds this node based on the supplied inputs and outputs.
      * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
      * @param context The onnx context used to ensure this node has a unique name.
