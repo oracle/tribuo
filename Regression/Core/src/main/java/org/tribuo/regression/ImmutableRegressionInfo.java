@@ -21,6 +21,7 @@ import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -50,6 +51,11 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
 
     private final Set<Regressor> domain;
 
+    private transient double[] minArray;
+    private transient double[] maxArray;
+    private transient double[] meanArray;
+    private transient double[] varianceArray;
+
     /**
      * Copies an ImmutableRegressionInfo including the ids.
      * @param info The info to copy.
@@ -61,6 +67,7 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
         labelIDMap = new LinkedHashMap<>();
         labelIDMap.putAll(info.labelIDMap);
         domain = calculateDomain(minMap);
+        computeStatisticArrays();
     }
 
     /**
@@ -82,6 +89,7 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
             counter++;
         }
         domain = calculateDomain(minMap);
+        computeStatisticArrays();
     }
 
     /**
@@ -125,6 +133,7 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
             throw new IllegalArgumentException("Mapping must contain an entry for each element in the info, found " + labelIDMap.keySet() + " and " + countMap.keySet());
         }
         domain = calculateDomain(minMap);
+        computeStatisticArrays();
     }
 
     /**
@@ -167,9 +176,63 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
         }
     }
 
+    /**
+     * Gets the minimum value this RegressionInfo has seen for that id.
+     * @param id The dimension to check.
+     * @return The minimum value for that dimension.
+     */
+    public double getMin(int id) {
+        return minArray[id];
+    }
+
+    /**
+     * Gets the maximum value this RegressionInfo has seen for that id.
+     * @param id The dimension to check.
+     * @return The maximum value for that dimension.
+     */
+    public double getMax(int id) {
+        return maxArray[id];
+    }
+
+    /**
+     * Gets the mean value this RegressionInfo has seen for that id.
+     * @param id The dimension to check.
+     * @return The mean value for that dimension.
+     */
+    public double getMean(int id) {
+        return meanArray[id];
+    }
+
+    /**
+     * Gets the variance this RegressionInfo has seen for that id.
+     * @param id The dimension to check.
+     * @return The variance for that dimension.
+     */
+    public double getVariance(int id) {
+        return varianceArray[id];
+    }
+
     @Override
     public long getTotalObservations() {
         return overallCount;
+    }
+
+    /**
+     * Computes the statistic arrays on construction and after deserialization.
+     */
+    private void computeStatisticArrays() {
+        int size = labelIDMap.size();
+        minArray = new double[size];
+        maxArray = new double[size];
+        meanArray = new double[size];
+        varianceArray = new double[size];
+        for (int i = 0; i < size; i++) {
+            String name = idLabelMap.get(i);
+            minArray[i] = minMap.get(name).doubleValue();
+            maxArray[i] = maxMap.get(name).doubleValue();
+            meanArray[i] = meanMap.get(name).doubleValue();
+            varianceArray[i] = sumSquaresMap.get(name).doubleValue() / (countMap.get(name).longValue()-1);
+        }
     }
 
     @Override
@@ -289,5 +352,12 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
             Map.Entry<Integer,String> e = itr.next();
             return new Pair<>(e.getKey(),new Regressor.DimensionTuple(e.getValue(),1.0));
         }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        // Rebuild statistic arrays
+        computeStatisticArrays();
     }
 }

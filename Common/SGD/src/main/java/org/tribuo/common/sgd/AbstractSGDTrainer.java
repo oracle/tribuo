@@ -53,6 +53,10 @@ import java.util.logging.Logger;
  * "Large-Scale Machine Learning with Stochastic Gradient Descent"
  * Proceedings of COMPSTAT, 2010.
  * </pre>
+ * @param <T> The output type.
+ * @param <U> The intermediate representation of the labels.
+ * @param <V> The model type.
+ * @param <X> The parameter type.
  */
 public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T>,X extends FeedForwardParameters> implements Trainer<T>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(AbstractSGDTrainer.class.getName());
@@ -97,7 +101,6 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         this.minibatchSize = minibatchSize;
         this.seed = seed;
         this.addBias = addBias;
-        postConfig();
     }
 
     /**
@@ -158,17 +161,23 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         U[] sgdTargets = (U[]) new Object[examples.size()];
         double[] weights = new double[examples.size()];
         int n = 0;
+        long featureSize = 0;
+        long denseCount = 0;
         for (Example<T> example : examples) {
             weights[n] = example.getWeight();
             if (example.size() == featureSpaceSize) {
                 sgdFeatures[n] = DenseVector.createDenseVector(example, featureIDMap, addBias);
+                denseCount++;
             } else {
                 sgdFeatures[n] = SparseVector.createSparseVector(example, featureIDMap, addBias);
             }
             sgdTargets[n] = getTarget(outputIDInfo,example.getOutput());
+            featureSize += sgdFeatures[n].numActiveElements();
             n++;
         }
         logger.info(String.format("Training SGD model with %d examples", n));
+        logger.fine("Mean number of active features = " + featureSize / (double)n);
+        logger.fine("Number of dense examples = " + denseCount);
         logger.info("Outputs - " + outputIDInfo.toReadableString());
 
         X parameters = createParameters(featureIDMap.size(), outputIDInfo.size(), localRNG);

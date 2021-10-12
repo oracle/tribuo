@@ -65,6 +65,9 @@ public interface Parameters extends Serializable {
      * Merge together an array of gradient arrays. Assumes the first dimension
      * is the number of gradient arrays and the second dimension is the
      * number of parameter {@link Tensor}s.
+     * <p>
+     * For performance reasons this call may mutate the input gradient array, and
+     * may return a subset of those elements as the merge output.
      * @param gradients An array of gradient update arrays.
      * @param size The number of elements of gradients to merge. Allows gradients to have unused elements.
      * @return A single {@link Tensor} array of the summed gradients.

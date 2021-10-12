@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.ToDoubleBiFunction;
 
 /**
  * A dense vector, backed by a double array.
@@ -130,6 +131,7 @@ public class DenseVector implements SGDVector {
      * get function has been modified.
      * @return A copy of the values in this DenseVector.
      */
+    @Override
     public double[] toArray() {
         return Arrays.copyOf(elements, elements.length);
     }
@@ -318,6 +320,13 @@ public class DenseVector implements SGDVector {
     public void foreachInPlace(DoubleUnaryOperator f) {
         for (int i = 0; i < elements.length; i++) {
             elements[i] = f.applyAsDouble(elements[i]);
+        }
+    }
+
+    @Override
+    public void foreachIndexedInPlace(ToDoubleBiFunction<Integer,Double> f) {
+        for (int i = 0; i < elements.length; i++) {
+            elements[i] = f.applyAsDouble(i,elements[i]);
         }
     }
 

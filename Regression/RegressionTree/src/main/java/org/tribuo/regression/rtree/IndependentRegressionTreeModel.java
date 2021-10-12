@@ -90,6 +90,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
      * Probes the trees to find the depth.
      * @return The maximum depth across the trees.
      */
+    @Override
     public int getDepth() {
         int maxDepth = 0;
         for (Node<Regressor> curRoot : roots.values()) {

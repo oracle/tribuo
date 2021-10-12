@@ -46,6 +46,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.PriorityQueue;
 
+/**
+ * A linear model trained using SGD.
+ * <p>
+ * It's an {@link AbstractSGDModel} containing a {@link LinearParameters}, with
+ * the bias folded into the features.
+ * <p>
+ * See:
+ * <pre>
+ * Bottou L.
+ * "Large-Scale Machine Learning with Stochastic Gradient Descent"
+ * Proceedings of COMPSTAT, 2010.
+ * </pre>
+ */
 public abstract class AbstractLinearSGDModel<T extends Output<T>> extends AbstractSGDModel<T> {
     private static final long serialVersionUID = 1L;
 

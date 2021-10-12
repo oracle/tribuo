@@ -24,6 +24,13 @@ package org.tribuo.math.la;
 public interface Matrix extends Tensor, Iterable<MatrixTuple> {
 
     /**
+     * Copies the matrix.
+     * @return A copy of the matrix.
+     */
+    @Override
+    public Matrix copy();
+
+    /**
      * Gets an element from this {@link Matrix}.
      * @param i The index for the first dimension.
      * @param j The index for the second dimension.
@@ -120,7 +127,7 @@ public interface Matrix extends Tensor, Iterable<MatrixTuple> {
     public void rowScaleInPlace(DenseVector scalingCoefficients);
 
     /**
-     * Extract a row as an {@link SGDVector}.
+     * An {@link SGDVector} view of the row.
      * <p>
      * This refers to the same values as the matrix, so updating this vector will update the matrix.
      * @param i The index of the row to extract.

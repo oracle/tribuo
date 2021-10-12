@@ -428,7 +428,7 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
 
     @Override
     public void transform(TransformerMap transformerMap) {
-        if(transformerMap.size() < featureNames.length) {
+        if(transformerMap.size() < size) {
             //
             // We have fewer transformers than feature names, so let's
             // iterate through the map and find the features.

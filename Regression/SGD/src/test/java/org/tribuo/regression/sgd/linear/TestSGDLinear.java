@@ -75,7 +75,7 @@ public class TestSGDLinear {
     @BeforeAll
     public static void setup() {
         Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
-        for (Class c : classes) {
+        for (Class<?> c : classes) {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
         }
@@ -100,7 +100,7 @@ public class TestSGDLinear {
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");
-        model.saveONNXModel("org.tribuo.classification.sgd.linear.test",1,onnxFile);
+        model.saveONNXModel("org.tribuo.regression.sgd.linear.test",1,onnxFile);
 
         // Prep mappings
         Map<String, Integer> featureMapping = new HashMap<>();
