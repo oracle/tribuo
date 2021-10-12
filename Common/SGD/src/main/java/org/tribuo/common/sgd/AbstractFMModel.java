@@ -75,6 +75,17 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         super(name, provenance, featureIDMap, outputIDInfo, parameters, generatesProbabilities, false);
     }
 
+    /**
+     * Gets the top {@code n} features for each output dimension.
+     * <p>
+     * Note that the feature rankings are based only off the linear portion of the
+     * factorization machine.
+     * @param n The number of features to return. If this value is less than 0,
+     * all features are returned for each class.
+     * @return A map from string outputs to an ordered list of pairs of
+     * feature names and weights associated with that feature in the factorization machine.
+     */
+    // TODO investigate using the factorized representation magnitude as an additional feature weight.
     @Override
     public Map<String, List<Pair<String, Double>>> getTopFeatures(int n) {
         DenseVector biases = (DenseVector) modelParameters.get()[0];

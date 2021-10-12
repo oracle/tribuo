@@ -25,8 +25,8 @@
     <component name="fm" type="org.tribuo.multilabel.sgd.fm.FMMultiLabelTrainer">
         <property name="objective" value="bce"/>
         <property name="optimiser" value="adagrad"/>
-        <property name="epochs" value="10"/>
-        <property name="loggingInterval" value="1000"/>
+        <property name="epochs" value="5"/>
+        <property name="loggingInterval" value="100"/>
         <property name="minibatchSize" value="1"/>
         <property name="seed" value="1"/>
         <property name="factoredDimSize" value="5"/>

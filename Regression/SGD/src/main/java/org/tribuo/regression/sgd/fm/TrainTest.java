@@ -106,12 +106,12 @@ public final class TrainTest {
          * Factor size.
          */
         @Option(charName = 'd', longName = "factor-size", usage = "Factor size.")
-        public int factorSize = 6;
+        public int factorSize = 5;
         /**
          * Variance of the initialization gaussian.
          */
         @Option(longName = "variance", usage = "Variance of the initialization gaussian.")
-        public double variance = 0.1;
+        public double variance = 0.5;
         /**
          * Standardise the output regressors before model fitting.
          */

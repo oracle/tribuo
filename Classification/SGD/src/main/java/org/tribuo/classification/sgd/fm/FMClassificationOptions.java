@@ -78,12 +78,12 @@ public class FMClassificationOptions implements ClassificationOptions<FMClassifi
      * Factor size.
      */
     @Option(longName = "fm-factor-size", usage = "Factor size.")
-    public int fmFactorSize = 6;
+    public int fmFactorSize = 5;
     /**
      * Variance of the initialization gaussian.
      */
     @Option(longName = "fm-variance", usage = "Variance of the initialization gaussian.")
-    public double fmVariance = 0.1;
+    public double fmVariance = 0.5;
 
     /**
      * Returns the loss function specified in the arguments.
