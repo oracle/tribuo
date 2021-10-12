@@ -18,6 +18,9 @@ package org.tribuo.classification.libsvm;
 
 import ai.onnx.proto.OnnxMl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import libsvm.svm;
+import libsvm.svm_model;
+import libsvm.svm_node;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -33,9 +36,6 @@ import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
 import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
-import libsvm.svm;
-import libsvm.svm_model;
-import libsvm.svm_node;
 
 import java.util.Arrays;
 import java.util.Collections;

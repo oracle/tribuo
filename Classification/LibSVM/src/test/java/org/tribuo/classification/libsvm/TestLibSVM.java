@@ -21,6 +21,9 @@ import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import libsvm.svm_model;
+import libsvm.svm_node;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.tribuo.CategoricalIDInfo;
 import org.tribuo.CategoricalInfo;
 import org.tribuo.Dataset;
@@ -50,9 +53,6 @@ import org.tribuo.data.text.impl.SimpleTextDataSource;
 import org.tribuo.data.text.impl.TextFeatureExtractorImpl;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.impl.ListExample;
-import libsvm.svm_node;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.tribuo.interop.onnx.DenseTransformer;
 import org.tribuo.interop.onnx.LabelTransformer;
 import org.tribuo.interop.onnx.ONNXExternalModel;
@@ -95,28 +95,28 @@ public class TestLibSVM {
 
     @Test
     public void testSingleClassTraining() {
-        Pair<Dataset<Label>,Dataset<Label>> data = LabelledDataGenerator.denseTrainTest();
+        Pair<Dataset<Label>, Dataset<Label>> data = LabelledDataGenerator.denseTrainTest();
 
-        DatasetView<Label> trainingData = DatasetView.createView(data.getA(),(Example<Label> e) -> e.getOutput().getLabel().equals("Foo"), "Foo selector");
+        DatasetView<Label> trainingData = DatasetView.createView(data.getA(), (Example<Label> e) -> e.getOutput().getLabel().equals("Foo"), "Foo selector");
         Model<Label> model = t.train(trainingData);
-        LabelEvaluation evaluation = (LabelEvaluation) trainingData.getOutputFactory().getEvaluator().evaluate(model,data.getB());
-        assertEquals(0.0,evaluation.accuracy(new Label("Bar")));
-        assertEquals(0.0,evaluation.accuracy(new Label("Baz")));
-        assertEquals(0.0,evaluation.accuracy(new Label("Quux")));
-        assertEquals(1.0,evaluation.recall(new Label("Foo")));
+        LabelEvaluation evaluation = (LabelEvaluation) trainingData.getOutputFactory().getEvaluator().evaluate(model, data.getB());
+        assertEquals(0.0, evaluation.accuracy(new Label("Bar")));
+        assertEquals(0.0, evaluation.accuracy(new Label("Baz")));
+        assertEquals(0.0, evaluation.accuracy(new Label("Quux")));
+        assertEquals(1.0, evaluation.recall(new Label("Foo")));
     }
 
     @Test
     public void testPredictDataset() throws IOException, ClassNotFoundException {
         for (KernelType kType : KernelType.values()) {
-            checkModelType(SVMClassificationType.SVMMode.C_SVC,kType);
-            checkModelType(SVMClassificationType.SVMMode.NU_SVC,kType);
+            checkModelType(SVMClassificationType.SVMMode.C_SVC, kType);
+            checkModelType(SVMClassificationType.SVMMode.NU_SVC, kType);
         }
     }
 
     private void checkModelType(SVMMode modelType, KernelType kernelType) throws IOException, ClassNotFoundException {
         String prefix = String.format("model %s-%s", modelType, kernelType);
-        LibSVMModel<Label> model = loadModel(modelType,kernelType,false);
+        LibSVMModel<Label> model = loadModel(modelType, kernelType, false);
         Dataset<Label> examples = loadTestDataset(model);
         assertNotNull(model, prefix);
         List<Prediction<Label>> predictions = model.predict(examples);
@@ -128,7 +128,7 @@ public class TestLibSVM {
         for (Example<Label> e : examples) {
             model.getExcuse(e);
         }
-        model = loadModel(modelType,kernelType,true);
+        model = loadModel(modelType, kernelType, true);
         examples = loadMulticlassTestDataset(model);
         assertNotNull(model, prefix);
         predictions = model.predict(examples);
@@ -173,7 +173,7 @@ public class TestLibSVM {
     }
 
     private Dataset<Label> loadDataset(LibSVMModel<Label> model, Path path) throws IOException {
-        TextFeatureExtractor<Label> extractor = new TextFeatureExtractorImpl<>(new BasicPipeline(new BreakIteratorTokenizer(Locale.US),2));
+        TextFeatureExtractor<Label> extractor = new TextFeatureExtractorImpl<>(new BasicPipeline(new BreakIteratorTokenizer(Locale.US), 2));
         TextDataSource<Label> src = new SimpleTextDataSource<>(path, new LabelFactory(), extractor);
         return new ImmutableDataset<>(src, model.getFeatureIDMap(), model.getOutputIDInfo(), false);
     }
@@ -181,18 +181,18 @@ public class TestLibSVM {
     private void checkPrediction(String msgPrefix, LibSVMModel<Label> model, Prediction<Label> prediction) {
         assertNotNull(prediction);
         ImmutableOutputInfo<Label> labelMap = model.getOutputIDInfo();
-        Map<String,Label> dist = prediction.getOutputScores();
+        Map<String, Label> dist = prediction.getOutputScores();
         for (Label k : labelMap.getDomain()) {
             String msg = String.format("%s --> dist did not contain entry for label %s", msgPrefix, k);
             assertTrue(dist.containsKey(k.getLabel()), msg);
         }
     }
 
-    public Model<Label> testLibSVM(Pair<Dataset<Label>,Dataset<Label>> p) {
+    public Model<Label> testLibSVM(Pair<Dataset<Label>, Dataset<Label>> p) {
         Model<Label> m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
-        LabelEvaluation evaluation = e.evaluate(m,p.getB());
-        Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+        LabelEvaluation evaluation = e.evaluate(m, p.getB());
+        Map<String, List<Pair<String, Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
         Assertions.assertTrue(features.isEmpty());
         features = m.getTopFeatures(-1);
@@ -203,14 +203,14 @@ public class TestLibSVM {
 
     @Test
     public void testReproducibility() {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         long seed = 42L;
-        SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC),KernelType.RBF);
+        SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.RBF);
         params.setProbability();
-        LibSVMTrainer<Label> first = new LibSVMClassificationTrainer(params,seed);
+        LibSVMTrainer<Label> first = new LibSVMClassificationTrainer(params, seed);
         LibSVMModel<Label> firstModel = first.train(p.getA());
 
-        LibSVMTrainer<Label> second = new LibSVMClassificationTrainer(params,seed);
+        LibSVMTrainer<Label> second = new LibSVMClassificationTrainer(params, seed);
         LibSVMModel<Label> secondModel = second.train(p.getA());
 
         LibSVMModel<Label> thirdModel = first.train(p.getA());
@@ -222,38 +222,38 @@ public class TestLibSVM {
         svm_model mFour = fourthModel.getInnerModels().get(0);
 
         // One and two use the same RNG seed and should be identical
-        assertArrayEquals(m.sv_coef,mTwo.sv_coef);
-        assertArrayEquals(m.probA,mTwo.probA);
-        assertArrayEquals(m.probB,mTwo.probB);
+        assertArrayEquals(m.sv_coef, mTwo.sv_coef);
+        assertArrayEquals(m.probA, mTwo.probA);
+        assertArrayEquals(m.probB, mTwo.probB);
 
         // The RNG state of three has diverged and should produce a different model.
-        assertFalse(Arrays.equals(mTwo.probA,mFour.probA));
-        assertFalse(Arrays.equals(mTwo.probB,mFour.probB));
+        assertFalse(Arrays.equals(mTwo.probA, mFour.probA));
+        assertFalse(Arrays.equals(mTwo.probB, mFour.probB));
 
         // The RNG state for three and four are the same so the two models should be the same.
-        assertArrayEquals(mFour.sv_coef,mThre.sv_coef);
-        assertArrayEquals(mFour.probA,mThre.probA);
-        assertArrayEquals(mFour.probB,mThre.probB);
+        assertArrayEquals(mFour.sv_coef, mThre.sv_coef);
+        assertArrayEquals(mFour.probA, mThre.probA);
+        assertArrayEquals(mFour.probB, mThre.probB);
 
     }
 
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         LibSVMClassificationModel model = (LibSVMClassificationModel) t.train(p.getA());
 
         // Write out model
-        Path onnxFile = Files.createTempFile("tribuo-libsvm-test",".onnx");
-        model.saveONNXModel("org.tribuo.classification.libsvm.test",1,onnxFile);
+        Path onnxFile = Files.createTempFile("tribuo-libsvm-test", ".onnx");
+        model.saveONNXModel("org.tribuo.classification.libsvm.test", 1, onnxFile);
 
         // Prep mappings
         Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : model.getFeatureIDMap()){
+        for (VariableInfo f : model.getFeatureIDMap()) {
             VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
+            featureMapping.put(id.getName(), id.getID());
         }
         Map<Label, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,Label> l : model.getOutputIDInfo()) {
+        for (Pair<Integer, Label> l : model.getOutputIDInfo()) {
             outputMapping.put(l.getB(), l.getA());
         }
 
@@ -297,20 +297,20 @@ public class TestLibSVM {
 
     @Test
     public void testDenseData() {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testLibSVM(p);
-        Helpers.testModelSerialization(model,Label.class);
+        Helpers.testModelSerialization(model, Label.class);
     }
 
     @Test
     public void testSparseData() {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.sparseTrainTest();
+        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.sparseTrainTest();
         testLibSVM(p);
     }
 
     @Test
     public void testSparseBinaryData() {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.binarySparseTrainTest();
+        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.binarySparseTrainTest();
         testLibSVM(p);
     }
 
@@ -318,23 +318,23 @@ public class TestLibSVM {
     public void duplicateFeatureIDs() {
         ImmutableFeatureMap fmap = new TestMap();
 
-        Example<Label> collision = generateExample(new String[]{"FOO","BAR","BAZ","QUUX"},new double[]{1.0,2.2,3.3,4.4});
-        int[] testCollisionIndices = new int[]{0,1,2};
-        double[] testCollisionValues = new double[]{4.3,2.2,4.4};
-        svm_node[] nodes = LibSVMTrainer.exampleToNodes(collision,fmap,null);
+        Example<Label> collision = generateExample(new String[]{"FOO", "BAR", "BAZ", "QUUX"}, new double[]{1.0, 2.2, 3.3, 4.4});
+        int[] testCollisionIndices = new int[]{0, 1, 2};
+        double[] testCollisionValues = new double[]{4.3, 2.2, 4.4};
+        svm_node[] nodes = LibSVMTrainer.exampleToNodes(collision, fmap, null);
         int[] nodesIndices = getIndices(nodes);
         double[] nodesValues = getValues(nodes);
-        assertArrayEquals(testCollisionIndices,nodesIndices);
-        assertArrayEquals(testCollisionValues,nodesValues,1e-10);
+        assertArrayEquals(testCollisionIndices, nodesIndices);
+        assertArrayEquals(testCollisionValues, nodesValues, 1e-10);
 
-        Example<Label> fakecollision = generateExample(new String[]{"BAR","BAZ","QUUX"},new double[]{2.2,3.3,4.4});
-        testCollisionIndices = new int[]{0,1,2};
-        testCollisionValues = new double[]{3.3,2.2,4.4};
-        nodes = LibSVMTrainer.exampleToNodes(fakecollision,fmap,null);
+        Example<Label> fakecollision = generateExample(new String[]{"BAR", "BAZ", "QUUX"}, new double[]{2.2, 3.3, 4.4});
+        testCollisionIndices = new int[]{0, 1, 2};
+        testCollisionValues = new double[]{3.3, 2.2, 4.4};
+        nodes = LibSVMTrainer.exampleToNodes(fakecollision, fmap, null);
         nodesIndices = getIndices(nodes);
         nodesValues = getValues(nodes);
-        assertArrayEquals(testCollisionIndices,nodesIndices);
-        assertArrayEquals(testCollisionValues,nodesValues,1e-10);
+        assertArrayEquals(testCollisionIndices, nodesIndices);
+        assertArrayEquals(testCollisionValues, nodesValues, 1e-10);
     }
 
     @Test
@@ -378,27 +378,28 @@ public class TestLibSVM {
     private static Example<Label> generateExample(String[] names, double[] values) {
         Example<Label> e = new ListExample<>(new Label("MONKEYS"));
         for (int i = 0; i < names.length; i++) {
-            e.add(new Feature(names[i],values[i]));
+            e.add(new Feature(names[i], values[i]));
         }
         return e;
     }
 
     private static class TestMap extends ImmutableFeatureMap {
         private static final long serialVersionUID = 1L;
+
         public TestMap() {
             super();
             CategoricalIDInfo foo = (new CategoricalInfo("FOO")).makeIDInfo(0);
-            m.put("FOO",foo);
-            idMap.put(0,foo);
+            m.put("FOO", foo);
+            idMap.put(0, foo);
             CategoricalIDInfo bar = (new CategoricalInfo("BAR")).makeIDInfo(1);
-            m.put("BAR",bar);
-            idMap.put(1,bar);
+            m.put("BAR", bar);
+            idMap.put(1, bar);
             CategoricalIDInfo baz = (new CategoricalInfo("BAZ")).makeIDInfo(0);
-            m.put("BAZ",baz);
-            idMap.put(0,baz);
+            m.put("BAZ", baz);
+            idMap.put(0, baz);
             CategoricalIDInfo quux = (new CategoricalInfo("QUUX")).makeIDInfo(2);
-            m.put("QUUX",quux);
-            idMap.put(2,quux);
+            m.put("QUUX", quux);
+            idMap.put(2, quux);
             size = idMap.size();
         }
     }
