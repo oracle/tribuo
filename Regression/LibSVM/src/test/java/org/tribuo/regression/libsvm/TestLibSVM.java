@@ -16,14 +16,24 @@
 
 package org.tribuo.regression.libsvm;
 
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
+import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import libsvm.svm_model;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.common.libsvm.SVMParameters;
+import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.RegressorTransformer;
+import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -36,7 +46,11 @@ import org.tribuo.test.Helpers;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestLibSVM {
+    private static final Logger logger = Logger.getLogger(TestLibSVM.class.getName());
 
     private static final SVMParameters<Regressor> linearParams = new SVMParameters<>(new SVMRegressionType(SVMMode.EPSILON_SVR), KernelType.LINEAR);
     private static final LibSVMRegressionTrainer linear = new LibSVMRegressionTrainer(linearParams);
@@ -210,5 +225,79 @@ public class TestLibSVM {
             assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
             assertEquals(expectedAve,llEval.averageR2(),1e-6);
         }
+    }
+
+
+    @Test
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> dense = RegressionDataGenerator.denseTrainTest();
+
+        testOnnxSerialization(dense,linear);
+        testOnnxSerialization(dense,linStandardize);
+        testOnnxSerialization(dense,rbf);
+
+        Pair<Dataset<Regressor>,Dataset<Regressor>> threeDim = RegressionDataGenerator.threeDimDenseTrainTest(1.0,false);
+
+        testOnnxSerialization(threeDim,linear);
+        testOnnxSerialization(threeDim,linStandardize);
+        testOnnxSerialization(threeDim,rbf);
+    }
+
+    private static void testOnnxSerialization(Pair<Dataset<Regressor>,Dataset<Regressor>> datasetPair, LibSVMRegressionTrainer trainer) throws IOException, OrtException {
+        LibSVMRegressionModel model = (LibSVMRegressionModel) trainer.train(datasetPair.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-libsvm-test",".onnx");
+        model.saveONNXModel("org.tribuo.regression.libsvm.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Regressor, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Regressor> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        String arch = System.getProperty("os.arch");
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+            // Initialise the OrtEnvironment to load the native library
+            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
+            OrtEnvironment env = OrtEnvironment.getEnvironment();
+            env.close();
+            // Load in via ORT
+            ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(),featureMapping,outputMapping,new DenseTransformer(),new RegressorTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
+
+            // Generate predictions
+            List<Prediction<Regressor>> nativePredictions = model.predict(datasetPair.getB());
+            List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(datasetPair.getB());
+
+            // Assert the predictions are identical
+            for (int i = 0; i < nativePredictions.size(); i++) {
+                Prediction<Regressor> tribuo = nativePredictions.get(i);
+                Prediction<Regressor> external = onnxPredictions.get(i);
+                assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
+                if (model.isStandardized()) {
+                    // Standardized models are less numerically stable when cast into floats
+                    double[] tribuoValues = tribuo.getOutput().getValues();
+                    double[] externalValues = external.getOutput().getValues();
+                    assertEquals(tribuoValues.length,externalValues.length);
+                    for (int j = 0; j < tribuoValues.length; j++) {
+                        // compute sf comparison
+                    }
+                    assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-1);
+                } else {
+                    assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-4);
+                }
+            }
+
+            onnxModel.close();
+        } else {
+            logger.warning("ORT based tests only supported on x86_64, found " + arch);
+        }
+
+        onnxFile.toFile().delete();
     }
 }

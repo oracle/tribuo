@@ -271,7 +271,6 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         return graphBuilder.build();
     }
 
-
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
 
