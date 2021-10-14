@@ -32,6 +32,16 @@ import java.util.Optional;
 
 /**
  * A response processor that returns the value(s) in a given (set of) fields.
+ * <p>
+ * We support specifying field names and default values both singly through {@link #fieldName} and {@link #defaultValue}
+ * and in a list through {@link #fieldNames} and {@link #defaultValues}. The constructors and configuration preprocessing
+ * have differing behaviors based on which fields are populated:
+ * <ul>
+ *     <li> {@link #fieldNames} and {@link #defaultValues} are both populated and the same length: fieldNames[i]'s defaultValue is defaultValues[i]
+ *     <li> {@link #fieldNames} and {@link #defaultValue} are both populated: defaultValue is broadcast across all fieldNames
+ *     <li> {@link #fieldName} and {@link #defaultValue} are both populated: fieldNames[0] == fieldName, defaultValues[0] == defaultValue
+ * </ul>
+ * All other settings are invalid.
  */
 public class FieldResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
@@ -60,14 +70,13 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     @ConfigurableName
     private String configName;
 
-    /**
-     * We support specifying field names and default values both singly through {@link #fieldName} and {@link #defaultValue}
-     * and in a list through {@link #fieldNames} and {@link #defaultValues}. Canonically all internal logic is driven by
-     * fieldNames and defaultValues, so this method takes values populated in fieldName and defaultValue and sets them
-     * appropriately.
-     */
     @Override
     public void postConfig() {
+        /*
+         * Canonically all internal logic is driven by
+         * fieldNames and defaultValues, so this method takes values populated in fieldName and defaultValue and sets them
+         * appropriately.
+         */
         boolean bothFieldNamesPopulated = fieldName != null && fieldNames != null;
         boolean neitherFieldNamesPopulated = fieldName == null && fieldNames == null;
         boolean multipleFieldNamesPopulated = fieldNames != null;

@@ -34,6 +34,16 @@ import java.util.Optional;
  *  A {@link ResponseProcessor} that takes a single value of the
  *  field as the positive class and all other values as the negative
  *  class.
+ * <p>
+ * We support specifying field names and default values both singly through {@link #fieldName} and {@link #positiveResponse}
+ * and in a list through {@link #fieldNames} and {@link #positiveResponses}. The constructors and configuration preprocessing
+ * have differing behaviors based on which fields are populated:
+ * <ul>
+ *     <li> {@link #fieldNames} and {@link #positiveResponses} are both populated and the same length: fieldNames[i]'s positiveResponse is positiveResponses[i]
+ *     <li> {@link #fieldNames} and {@link #positiveResponse} are both populated: positiveResponse is broadcast across all fieldNames
+ *     <li> {@link #fieldName} and {@link #positiveResponse} are both populated: fieldNames[0] == fieldName, positiveResponses[0] == positiveResponse
+ * </ul>
+ * All other settings are invalid.
  */
 public class BinaryResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
@@ -75,15 +85,12 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
     @ConfigurableName
     private String configName;
 
-    /**
-     * We support specifying field names and default values both singly through {@link #fieldName} and {@link #positiveResponse}
-     * and in a list through {@link #fieldNames} and {@link #positiveResponses}. Canonically all internal logic is driven by
-     * fieldNames and positiveResponses, so this method takes values populated in fieldName and positiveResponse and sets them
-     * appropriately.
-     */
     @Override
     public void postConfig() {
-
+        /*
+         * Canonically all internal logic is driven by fieldNames and positiveResponses, so this method takes values
+         * populated in fieldName and positiveResponse and sets them appropriately.
+         */
         boolean bothFieldNamesPopulated = fieldName != null && fieldNames != null;
         boolean neitherFieldNamesPopulated = fieldName == null && fieldNames == null;
         boolean multipleFieldNamesPopulated = fieldNames != null;
