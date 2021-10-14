@@ -286,8 +286,8 @@ public class TestLibSVM {
                     assertEquals(tribuoValues.length,externalValues.length);
                     for (int j = 0; j < tribuoValues.length; j++) {
                         // compute sf comparison
+                        assertEquals(tribuoValues[j], externalValues[j], Math.abs(tribuoValues[j])/1e3);
                     }
-                    assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-1);
                 } else {
                     assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-4);
                 }

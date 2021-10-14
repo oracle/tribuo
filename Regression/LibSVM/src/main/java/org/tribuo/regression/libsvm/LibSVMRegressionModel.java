@@ -217,6 +217,7 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
     @Override
     public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
         OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+        graphBuilder.setName("LibSVM-Regression");
 
         int numFeatures = featureIDMap.size();
 

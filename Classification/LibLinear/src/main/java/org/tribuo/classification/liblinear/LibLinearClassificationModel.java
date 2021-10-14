@@ -312,6 +312,7 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
     @Override
     public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
         OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+        graphBuilder.setName("LibLinear-Classification");
 
         de.bwaldvogel.liblinear.Model model = models.get(0);
         double[] weights = model.getFeatureWeights();
