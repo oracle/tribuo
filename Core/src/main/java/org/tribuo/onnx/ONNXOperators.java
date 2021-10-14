@@ -307,7 +307,7 @@ public enum ONNXOperators {
         for (String o : outputs) {
             nodeBuilder.addOutput(o);
         }
-        nodeBuilder.setName(context.generateUniqueName(opName));
+        nodeBuilder.setName(context.generateUniqueName(opName) + ":" + outputs[0]);
         nodeBuilder.setOpType(opName);
         for (Map.Entry<String,Object> e : attributeValues.entrySet()) {
             ONNXAttribute attr = attributes.get(e.getKey());

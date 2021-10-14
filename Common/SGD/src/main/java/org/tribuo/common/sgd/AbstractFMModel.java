@@ -17,7 +17,6 @@
 package org.tribuo.common.sgd;
 
 import ai.onnx.proto.OnnxMl;
-import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -27,16 +26,17 @@ import org.tribuo.Output;
 import org.tribuo.Tribuo;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
+import org.tribuo.math.onnx.ONNXMathUtils;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -217,68 +217,6 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
     }
 
     /**
-     * Builds a TensorProto containing the supplied DenseMatrix.
-     *
-     * @param context   The ONNX context for naming.
-     * @param name      The name for this tensor proto.
-     * @param matrix    The matrix to store.
-     * @param transpose Should the matrix be transposed into the tensor?
-     * @return The matrix TensorProto.
-     */
-    protected static OnnxMl.TensorProto matrixBuilder(ONNXContext context, String name, DenseMatrix matrix, boolean transpose) {
-        OnnxMl.TensorProto.Builder matrixBuilder = OnnxMl.TensorProto.newBuilder();
-        matrixBuilder.setName(context.generateUniqueName(name));
-        int dim1, dim2;
-        if (transpose) {
-            dim1 = matrix.getDimension2Size();
-            dim2 = matrix.getDimension1Size();
-        } else {
-            dim1 = matrix.getDimension1Size();
-            dim2 = matrix.getDimension2Size();
-        }
-        matrixBuilder.addDims(dim1);
-        matrixBuilder.addDims(dim2);
-        matrixBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer buffer = ByteBuffer.allocate(dim1 * dim2 * 4).order(ByteOrder.LITTLE_ENDIAN);
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        for (int i = 0; i < dim1; i++) {
-            for (int j = 0; j < dim2; j++) {
-                if (transpose) {
-                    floatBuffer.put((float) matrix.get(j, i));
-                } else {
-                    floatBuffer.put((float) matrix.get(i, j));
-                }
-            }
-        }
-        floatBuffer.rewind();
-        matrixBuilder.setRawData(ByteString.copyFrom(buffer));
-        return matrixBuilder.build();
-    }
-
-    /**
-     * Builds a TensorProto containing the supplied dense vector.
-     *
-     * @param context The ONNX context for naming.
-     * @param name    The name for this tensor proto.
-     * @param vector  The vector to store.
-     * @return The vector TensorProto.
-     */
-    protected static OnnxMl.TensorProto vectorBuilder(ONNXContext context, String name, DenseVector vector) {
-        OnnxMl.TensorProto.Builder vectorBuilder = OnnxMl.TensorProto.newBuilder();
-        vectorBuilder.setName(context.generateUniqueName(name));
-        vectorBuilder.addDims(vector.size());
-        vectorBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer buffer = ByteBuffer.allocate(vector.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        for (int i = 0; i < vector.size(); i++) {
-            floatBuffer.put((float) vector.get(i));
-        }
-        floatBuffer.rewind();
-        vectorBuilder.setRawData(ByteString.copyFrom(buffer));
-        return vectorBuilder.build();
-    }
-
-    /**
      * Constructs the shared stem of the Factorization Machine, used by all output types.
      * <p>
      * Writes into the supplied graph builder.
@@ -299,18 +237,19 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         graphBuilder.addInitializer(twoConst);
 
         // Add weights
-        OnnxMl.TensorProto weightInitializerProto = matrixBuilder(context, "fm_linear_weights", (DenseMatrix) modelParams[1], true);
+        OnnxMl.TensorProto weightInitializerProto = ONNXMathUtils.floatMatrixBuilder(context, "fm_linear_weights", (Matrix) modelParams[1], true);
         graphBuilder.addInitializer(weightInitializerProto);
 
         // Add biases
-        OnnxMl.TensorProto biasInitializerProto = vectorBuilder(context, "fm_biases", (DenseVector) modelParams[0]);
+        OnnxMl.TensorProto biasInitializerProto = ONNXMathUtils.floatVectorBuilder(context, "fm_biases", (SGDVector) modelParams[0]);
         graphBuilder.addInitializer(biasInitializerProto);
 
         // Add embedding vectors
         OnnxMl.TensorProto[] embeddingProtos = new OnnxMl.TensorProto[outputIDInfo.size()];
         for (int i = 0; i < outputIDInfo.size(); i++) {
-            embeddingProtos[i] = matrixBuilder(context, "fm_embedding_" + i, (DenseMatrix) modelParams[i + 2], true);
+            embeddingProtos[i] = ONNXMathUtils.floatMatrixBuilder(context, "fm_embedding_" + i, (Matrix) modelParams[i + 2], false);
             graphBuilder.addInitializer(embeddingProtos[i]);
+            System.out.println("base shape:" + Arrays.toString(modelParams[i + 2].getShape()) + "\nonnx shape: " + embeddingProtos[i].getDimsList().toString());
         }
 
         // Make gemm
