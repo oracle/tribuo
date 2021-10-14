@@ -59,8 +59,11 @@ public abstract class LibLinearModel<T extends Output<T>> extends Model<T> {
 
     /**
      * The list of LibLinear models. Multiple models are used by multi-label and multidimensional regression outputs.
+     * <p>
+     * Not final to support deserialization reordering of multidimensional regression models which have an incorrect id mapping.
+     * Will be final again in some future version which doesn't maintain serialization compatibility with 4.X.
      */
-    protected final List<de.bwaldvogel.liblinear.Model> models;
+    protected List<de.bwaldvogel.liblinear.Model> models;
 
     /**
      * Constructs a LibLinear model from the supplied arguments.

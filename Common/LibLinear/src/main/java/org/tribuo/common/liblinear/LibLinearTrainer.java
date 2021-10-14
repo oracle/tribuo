@@ -129,7 +129,7 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     }
 
     @Override
-    public LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+    public synchronized LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }

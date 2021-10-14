@@ -26,6 +26,7 @@ import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
+import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
@@ -36,6 +37,7 @@ import org.tribuo.test.Helpers;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 
 public class TestRegressionEnsembles {
@@ -150,4 +152,32 @@ public class TestRegressionEnsembles {
         testMultiExtraTrees(p);
     }
 
+    @Test
+    public void testThreeDenseData() {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+        BaggingTrainer<Regressor> bagT = new BaggingTrainer<>(t,new AveragingCombiner(),10);
+        Model<Regressor> llModel = bagT.train(p.getA());
+        RegressionEvaluation llEval = evaluator.evaluate(llModel,p.getB());
+        double expectedDim1 = 0.1632337913237244;
+        double expectedDim2 = 0.1632337913237244;
+        double expectedDim3 = -0.5727741047992028;
+        double expectedAve = -0.08210217405058466;
+
+        assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,llEval.averageR2(),1e-6);
+
+        p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
+
+        // reset RNG
+        bagT = new BaggingTrainer<>(t,new AveragingCombiner(),10);
+        llModel = bagT.train(p.getA());
+        llEval = evaluator.evaluate(llModel,p.getB());
+
+        assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
+        assertEquals(expectedAve,llEval.averageR2(),1e-6);
+    }
 }

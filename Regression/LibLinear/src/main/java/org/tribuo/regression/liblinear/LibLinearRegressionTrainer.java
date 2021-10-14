@@ -25,6 +25,7 @@ import org.tribuo.Trainer;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.liblinear.LinearRegressionType.LinearType;
 import de.bwaldvogel.liblinear.FeatureNode;
@@ -71,15 +72,17 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     }
 
     /**
-     * Creates a trainer using the default values (1, 1000, 0.1, 0.1) and specified algorithm.
-     * @param trainerType The linear regression algorithm.
+     * Creates a trainer for a LibLinear regression model.
+     * <p>
+     * Uses the default values of cost = 1.0, maxIterations = 1000, terminationCriterion = 0.1, epsilon = 0.1.
+     * @param trainerType Loss function and optimisation method.
      */
     public LibLinearRegressionTrainer(LinearRegressionType trainerType) {
         this(trainerType,1.0,1000,0.1,0.1);
     }
 
     /**
-     * Creates a trainer for a LibLinear model
+     * Creates a trainer for a LibLinear regression model.
      * @param trainerType Loss function and optimisation method combination.
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param maxIterations The maximum number of dataset iterations.
@@ -96,7 +99,7 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     @Override
     public void postConfig() {
         super.postConfig();
-        if (!trainerType.isClassification()) {
+        if (!trainerType.isRegression()) {
             throw new IllegalArgumentException("Supplied classification or anomaly detection parameters to a regression linear model.");
         }
     }
@@ -134,14 +137,15 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
     @Override
     protected Pair<FeatureNode[][], double[][]> extractData(Dataset<Regressor> data, ImmutableOutputInfo<Regressor> outputInfo, ImmutableFeatureMap featureMap) {
         int numOutputs = outputInfo.size();
-        ArrayList<FeatureNode> featureCache = new ArrayList<>();
+        int[] dimensionIds = ((ImmutableRegressionInfo) outputInfo).getNaturalOrderToIDMapping();
+        List<FeatureNode> featureCache = new ArrayList<>();
         FeatureNode[][] features = new FeatureNode[data.size()][];
         double[][] outputs = new double[numOutputs][data.size()];
         int i = 0;
         for (Example<Regressor> e : data) {
             double[] curOutputs = e.getOutput().getValues();
             for (int j = 0; j < curOutputs.length; j++) {
-                outputs[j][i] = curOutputs[j];
+                outputs[dimensionIds[j]][i] = curOutputs[j];
             }
             features[i] = exampleToNodes(e,featureMap,featureCache);
             i++;
