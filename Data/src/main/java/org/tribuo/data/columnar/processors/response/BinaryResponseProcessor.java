@@ -34,6 +34,16 @@ import java.util.Optional;
  *  A {@link ResponseProcessor} that takes a single value of the
  *  field as the positive class and all other values as the negative
  *  class.
+ * <p>
+ * We support specifying field names and default values both singly through {@link #fieldName} and {@link #positiveResponse}
+ * and in a list through {@link #fieldNames} and {@link #positiveResponses}. The constructors and configuration preprocessing
+ * have differing behaviors based on which fields are populated:
+ * <ul>
+ *     <li> {@link #fieldNames} and {@link #positiveResponses} are both populated and the same length: fieldNames[i]'s positiveResponse is positiveResponses[i]
+ *     <li> {@link #fieldNames} and {@link #positiveResponse} are both populated: positiveResponse is broadcast across all fieldNames
+ *     <li> {@link #fieldName} and {@link #positiveResponse} are both populated: fieldNames[0] == fieldName, positiveResponses[0] == positiveResponse
+ * </ul>
+ * All other settings are invalid.
  */
 public class BinaryResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
@@ -77,30 +87,37 @@ public class BinaryResponseProcessor<T extends Output<T>> implements ResponsePro
 
     @Override
     public void postConfig() {
-        if (fieldName != null && fieldNames != null) { // we can only have one path
-            throw new PropertyException(configName, "fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
-        } else if (fieldNames != null) {
-            if(positiveResponse != null) {
-                positiveResponses = positiveResponses == null ? Collections.nCopies(fieldNames.size(), positiveResponse) : positiveResponses;
-                if(positiveResponses.size() != fieldNames.size()) {
-                    throw new PropertyException(configName, "positiveResponses", "must either be empty or match the length of fieldNames");
-                }
-            } else {
-                throw new PropertyException(configName, "positiveResponse, positiveResponses", "one of positiveResponse or positiveResponses must be populated");
-            }
-        } else if (fieldName != null)  {
-            if(positiveResponses != null) {
-                throw new PropertyException(configName, "positiveResponses", "if fieldName is populated, positiveResponses must be blank");
-            }
+        /*
+         * Canonically all internal logic is driven by fieldNames and positiveResponses, so this method takes values
+         * populated in fieldName and positiveResponse and sets them appropriately.
+         */
+        boolean bothFieldNamesPopulated = fieldName != null && fieldNames != null;
+        boolean neitherFieldNamesPopulated = fieldName == null && fieldNames == null;
+        boolean multipleFieldNamesPopulated = fieldNames != null;
+        boolean singleFieldNamePopulated = fieldName != null;
+
+        boolean bothPositiveResponsesPopulated = positiveResponses != null && positiveResponse != null;
+        boolean neitherPositiveResponsesPopulated = positiveResponse == null && positiveResponses == null;
+        boolean multiplePositiveResponsesPopulated = positiveResponses != null;
+        boolean singlePositiveResponsePopulated = positiveResponse != null;
+
+        if (bothFieldNamesPopulated || neitherFieldNamesPopulated) {
+            throw new PropertyException(configName, "fieldName, FieldNames", "exactly one of fieldName or fieldNames must be populated");
+        } else if (bothPositiveResponsesPopulated || neitherPositiveResponsesPopulated) {
+            throw new PropertyException(configName, "positiveResponse, positiveResponses", "exactly one of positiveResponse or positiveResponses must be populated");
+        } else if(multipleFieldNamesPopulated && multiplePositiveResponsesPopulated && fieldNames.size() != positiveResponses.size()) { //sizes don't match
+            throw new PropertyException(configName, "positiveResponses", "must match the length of fieldNames");
+        } else if(multipleFieldNamesPopulated && singlePositiveResponsePopulated) {
+            positiveResponses = Collections.nCopies(fieldNames.size(), positiveResponse);
+            positiveResponse = null;
+        } else if(singleFieldNamePopulated && multiplePositiveResponsesPopulated) {
+            throw new PropertyException(configName, "positiveResponses", "if fieldName is populated, positiveResponses must be blank");
+        } else if(singleFieldNamePopulated && singlePositiveResponsePopulated) {
             fieldNames = Collections.singletonList(fieldName);
-            if(positiveResponse != null) {
-                positiveResponses = Collections.singletonList(positiveResponse);
-            } else {
-                throw new PropertyException(configName, "positiveResponse", "if fieldName is populated positiveResponse must be populated");
-            }
-        } else {
-            throw new PropertyException(configName, "fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
-        }
+            fieldName = null;
+            positiveResponses = Collections.singletonList(positiveResponse);
+            positiveResponse = null;
+        } // the case where both positiveResponses and fieldNames are populated and their sizes match requires no action
     }
 
     /**
