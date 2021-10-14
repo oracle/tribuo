@@ -19,6 +19,7 @@ package org.tribuo.test;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
@@ -81,13 +82,12 @@ public final class Helpers {
         return ex;
     }
 
-
     /**
      * Takes an object that is both {@link Provenancable} and {@link Configurable} and tests whether the configuration
      * and provenance representations are the same using {@link ConfigurationData#structuralEquals(List, List, String, String)}.
      * @param itm The object whose equality is to be tested
      */
-    public static <P extends ObjectProvenance, C extends Configurable & Provenancable<P>> void testConfigurableRoundtrip(C itm) {
+    public static <P extends ConfiguredObjectProvenance, C extends Configurable & Provenancable<P>> void testConfigurableRoundtrip(C itm) {
         ConfigurationManager cm = new ConfigurationManager();
         String name = cm.importConfigurable(itm, "item");
         List<ConfigurationData> configData = cm.getComponentNames().stream()

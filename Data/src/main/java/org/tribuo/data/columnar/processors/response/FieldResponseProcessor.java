@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A response processor that returns the value in a given field.
+ * A response processor that returns the value(s) in a given (set of) fields.
  */
 public class FieldResponseProcessor<T extends Output<T>> implements ResponseProcessor<T> {
 
@@ -60,35 +60,41 @@ public class FieldResponseProcessor<T extends Output<T>> implements ResponseProc
     @ConfigurableName
     private String configName;
 
+    /**
+     * We support specifying field names and default values both singly through {@link #fieldName} and {@link #defaultValue}
+     * and in a list through {@link #fieldNames} and {@link #defaultValues}. Canonically all internal logic is driven by
+     * fieldNames and defaultValues, so this method takes values populated in fieldName and defaultValue and sets them
+     * appropriately.
+     */
     @Override
     public void postConfig() {
-        if (fieldName != null && fieldNames != null) {
-            throw new PropertyException(configName, "fieldName, FieldNames", "only one of fieldName or fieldNames can be populated");
-        } else if (fieldNames != null) { // multiple fields
-            if (defaultValues != null && defaultValues.size() == fieldNames.size()) { // check first for multiple defaults
-                // this is the default case, nothing needs to be done
-            } else if (defaultValue != null) { // next fill in a single default
-                defaultValues = Collections.nCopies(fieldNames.size(), defaultValue);
-                defaultValue = null;
-            } else if (defaultValues != null) { // size mismatch between defaultValues and fieldNames
-                throw new PropertyException(configName, "defaultValues", "must either be empty or match the length of fieldNames");
-            } else {
-                throw new PropertyException(configName, "defaultValue, defaultValues", "one of defaultValue or defaultValues must be populated");
-            }
-        } else if (fieldName != null) {
-            if(defaultValues != null) {
-                throw new PropertyException(configName, "defaultValues", "if fieldName is populated, defaultValues must be blank");
-            }
+        boolean bothFieldNamesPopulated = fieldName != null && fieldNames != null;
+        boolean neitherFieldNamesPopulated = fieldName == null && fieldNames == null;
+        boolean multipleFieldNamesPopulated = fieldNames != null;
+        boolean singleFieldNamePopulated = fieldName != null;
+
+        boolean bothDefaultValuesPopulated = defaultValues != null && defaultValue != null;
+        boolean neitherDefaultValuesPopulated = defaultValue == null && defaultValues == null;
+        boolean multipleDefaultValuesPopulated = defaultValues != null;
+        boolean singleDefaultValuePopulated = defaultValue != null;
+
+        if (bothFieldNamesPopulated || neitherFieldNamesPopulated) {
+            throw new PropertyException(configName, "fieldName, FieldNames", "exactly one of fieldName or fieldNames must be populated");
+        } else if (bothDefaultValuesPopulated || neitherDefaultValuesPopulated) {
+            throw new PropertyException(configName, "defaultValue, defaultValues", "exactly one of defaultValue or defaultValues must be populated");
+        } else if(multipleFieldNamesPopulated && multipleDefaultValuesPopulated && fieldNames.size() != defaultValues.size()) { //sizes don't match
+            throw new PropertyException(configName, "defaultValues", "must match the length of fieldNames");
+        } else if(multipleFieldNamesPopulated && singleDefaultValuePopulated) {
+            defaultValues = Collections.nCopies(fieldNames.size(), defaultValue);
+            defaultValue = null;
+        } else if(singleFieldNamePopulated && multipleDefaultValuesPopulated) {
+            throw new PropertyException(configName, "defaultValues", "if fieldName is populated, defaultValues must be blank");
+        } else if(singleFieldNamePopulated && singleDefaultValuePopulated) {
             fieldNames = Collections.singletonList(fieldName);
             fieldName = null;
-            if (defaultValue != null) {
-                defaultValues = Collections.singletonList(defaultValue);
-            } else {
-                throw new PropertyException(configName, "defaultValue", "if fieldName is populated, defaultValue must be populated");
-            }
-        } else {
-            throw new PropertyException(configName, "fieldName, fieldNames", "One of fieldName or fieldNames must be populated");
-        }
+            defaultValues = Collections.singletonList(defaultValue);
+            defaultValue = null;
+        } // the case where both defaultValues and fieldNames are populated and their sizes match requires no action
     }
 
     /**
