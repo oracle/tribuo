@@ -84,7 +84,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestLibSVM {
     private static final Logger logger = Logger.getLogger(TestLibSVM.class.getName());
 
-    private static final LibSVMTrainer<Label> t = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.C_SVC), KernelType.RBF));
+    private static final LibSVMClassificationTrainer C_RBF = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.C_SVC), KernelType.RBF));
+    private static final LibSVMClassificationTrainer NU_RBF = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.RBF));
+    private static final LibSVMClassificationTrainer C_LINEAR = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.C_SVC), KernelType.LINEAR));
+    private static final LibSVMClassificationTrainer NU_LINEAR = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.LINEAR));
 
     //on Windows, this resolves to some nonsense like this: /C:/workspace/Classification/LibSVM/target/test-classes/test_input.tribuo
     //and the leading slash is a problem and causes this test to fail on windows.
@@ -98,7 +101,7 @@ public class TestLibSVM {
         Pair<Dataset<Label>, Dataset<Label>> data = LabelledDataGenerator.denseTrainTest();
 
         DatasetView<Label> trainingData = DatasetView.createView(data.getA(), (Example<Label> e) -> e.getOutput().getLabel().equals("Foo"), "Foo selector");
-        Model<Label> model = t.train(trainingData);
+        Model<Label> model = C_RBF.train(trainingData);
         LabelEvaluation evaluation = (LabelEvaluation) trainingData.getOutputFactory().getEvaluator().evaluate(model, data.getB());
         assertEquals(0.0, evaluation.accuracy(new Label("Bar")));
         assertEquals(0.0, evaluation.accuracy(new Label("Baz")));
@@ -189,7 +192,7 @@ public class TestLibSVM {
     }
 
     public Model<Label> testLibSVM(Pair<Dataset<Label>, Dataset<Label>> p) {
-        Model<Label> m = t.train(p.getA());
+        Model<Label> m = C_RBF.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m, p.getB());
         Map<String, List<Pair<String, Double>>> features = m.getTopFeatures(3);
@@ -234,13 +237,36 @@ public class TestLibSVM {
         assertArrayEquals(mFour.sv_coef, mThre.sv_coef);
         assertArrayEquals(mFour.probA, mThre.probA);
         assertArrayEquals(mFour.probB, mThre.probB);
-
     }
 
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {
-        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        LibSVMClassificationModel model = (LibSVMClassificationModel) t.train(p.getA());
+        Pair<Dataset<Label>, Dataset<Label>> binary = LabelledDataGenerator.binarySparseTrainTest();
+
+        testOnnxSerialization(binary, C_LINEAR);
+        testOnnxSerialization(binary, C_RBF);
+        testOnnxSerialization(binary, NU_LINEAR);
+        testOnnxSerialization(binary, NU_RBF);
+    }
+
+    @Test
+    public void testOnnxMulticlassSerialization() throws IOException, OrtException {
+        Pair<Dataset<Label>,Dataset<Label>> multiclass = LabelledDataGenerator.denseTrainTest();
+
+        testOnnxSerialization(multiclass,C_LINEAR);
+        testOnnxSerialization(multiclass,C_RBF);
+        testOnnxSerialization(multiclass,NU_LINEAR);
+        testOnnxSerialization(multiclass,NU_RBF);
+
+        SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.RBF);
+        params.setProbability();
+        LibSVMClassificationTrainer probTrainer = new LibSVMClassificationTrainer(params);
+
+        testOnnxSerialization(multiclass,probTrainer);
+    }
+
+    private static void testOnnxSerialization(Pair<Dataset<Label>,Dataset<Label>> datasetPair, LibSVMClassificationTrainer trainer) throws IOException, OrtException {
+        LibSVMClassificationModel model = (LibSVMClassificationModel) trainer.train(datasetPair.getA());
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-libsvm-test", ".onnx");
@@ -264,11 +290,11 @@ public class TestLibSVM {
             OrtEnvironment env = OrtEnvironment.getEnvironment();
             env.close();
             // Load in via ORT
-            ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), new LabelTransformer(), new OrtSession.SessionOptions(), onnxFile, "input");
+            ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), new LabelTransformer(model.generatesProbabilities()), new OrtSession.SessionOptions(), onnxFile, "input");
 
             // Generate predictions
-            List<Prediction<Label>> nativePredictions = model.predict(p.getB());
-            List<Prediction<Label>> onnxPredictions = onnxModel.predict(p.getB());
+            List<Prediction<Label>> nativePredictions = model.predict(datasetPair.getB());
+            List<Prediction<Label>> onnxPredictions = onnxModel.predict(datasetPair.getB());
 
             // Assert the predictions are identical
             for (int i = 0; i < nativePredictions.size(); i++) {
@@ -341,7 +367,7 @@ public class TestLibSVM {
     public void testInvalidExample() {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-            Model<Label> m = t.train(p.getA());
+            Model<Label> m = C_RBF.train(p.getA());
             m.predict(LabelledDataGenerator.invalidSparseExample());
         });
     }
@@ -350,7 +376,7 @@ public class TestLibSVM {
     public void testEmptyExample() {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-            Model<Label> m = t.train(p.getA());
+            Model<Label> m = C_RBF.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
     }

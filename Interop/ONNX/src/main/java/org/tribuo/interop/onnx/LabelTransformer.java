@@ -165,8 +165,47 @@ public class LabelTransformer implements OutputTransformer<Label> {
                     } else {
                         throw new IllegalArgumentException("Expected a List<Map<Long,Float>>, received a " + info.toString());
                     }
+                } else if (inputs.get(1) instanceof OnnxTensor) {
+                    OnnxTensor outputLabels = (OnnxTensor) inputs.get(0);
+                    OnnxTensor outputScores = (OnnxTensor) inputs.get(1);
+                    if (outputScores.getInfo().type == OnnxJavaType.FLOAT) {
+                        long[] shape = outputScores.getInfo().getShape();
+                        if ((shape.length == 2) && (shape[1] == outputIDInfo.size())) {
+                            return (float[][]) outputScores.getValue();
+                        } else if ((shape.length == 2) && (shape[1] == (outputIDInfo.size() * ((long)outputIDInfo.size()-1) / 2))) {
+                            // Assume the output is one v one and unpack it
+                            long[] labelsShape = outputLabels.getInfo().getShape();
+                            if ((labelsShape.length == 1) && (labelsShape[0] == shape[0])) {
+                                // We're going to validate that the voting outputs from the scores lead to the same predicted value as the labels
+                                // Yes it's annoying LibSVM does it this way.
+                                int numOutputs = outputIDInfo.size();
+                                float[][] onevone = (float[][]) outputScores.getValue();
+                                float[][] scores = new float[(int)shape[0]][numOutputs];
+                                for (int k = 0; k < shape[0]; k++) {
+                                    int counter = 0;
+                                    for (int i = 0; i < numOutputs; i++) {
+                                        for (int j = i+1; j < numOutputs; j++) {
+                                            if (onevone[k][counter] > 0) {
+                                                scores[k][i]++;
+                                            } else {
+                                                scores[k][j]++;
+                                            }
+                                            counter++;
+                                        }
+                                    }
+                                }
+                                return scores;
+                            } else {
+                                throw new IllegalArgumentException("Invalid shape for labels, did not match the size of the scores, found labels.shape " + Arrays.toString(labelsShape) + ", and scores.shape " +Arrays.toString(shape));
+                            }
+                        } else {
+                            throw new IllegalArgumentException("Invalid shape for the score tensor, expected shape [batchSize,numOutputs], found " + Arrays.toString(shape));
+                        }
+                    } else {
+                        throw new IllegalArgumentException("Expected the second element to be a float OnnxTensor, found " + inputs.get(0));
+                    }
                 } else {
-                    throw new IllegalArgumentException("Expected a List<Map<Long,Float>>, received a " + inputs.get(1).getInfo().toString());
+                    throw new IllegalArgumentException("Expected a List<Map<Long,Float>> or a OnnxTensor, received a " + inputs.get(1).getInfo().toString());
                 }
             } else {
                 throw new IllegalArgumentException("Unexpected number of OnnxValues returned, expected 1 or 2, received " + inputs.size());

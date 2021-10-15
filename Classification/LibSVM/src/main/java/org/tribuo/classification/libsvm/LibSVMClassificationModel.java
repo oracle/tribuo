@@ -36,6 +36,7 @@ import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
 import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.util.Util;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -185,34 +186,62 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
     @Override
     public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
         OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
+        graphBuilder.setName("LibSVM-Classification");
+
+        svm_model model = models.get(0);
+        int numOneVOne = model.label.length * (model.label.length - 1) / 2;
+        int numFeatures = featureIDMap.size();
+        int outputSize = generatesProbabilities ? outputIDInfo.size() : numOneVOne;
 
         // Make inputs and outputs
         OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
         OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
         graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1}, new String[]{"batch"}), OnnxMl.TensorProto.DataType.INT64);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("label_output").build();
         graphBuilder.addOutput(outputValueProto);
-
-        svm_model model = models.get(0);
-        int numOneVOne = model.label.length * (model.label.length - 1) / 2;
+        OnnxMl.TypeProto outputScoresType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputSize}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputScoresProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputScoresType).setName("score_output").build();
+        graphBuilder.addOutput(outputScoresProto);
 
         // Extract the attributes
         Map<String,Object> attributes = new HashMap<>();
+        //int[] labels = Arrays.copyOf(model.label,model.label.length);
+        //Arrays.sort(labels);
         attributes.put("classlabels_ints",model.label);
+        float[] coefficients = new float[model.l * (model.nr_class - 1)];
+        for (int i = 0; i < model.nr_class - 1; i++) {
+            for (int j = 0; j < model.l; j++) {
+                coefficients[i*model.l + j] = (float) model.sv_coef[i][j];
+            }
+        }
         attributes.put("coefficients",coefficients);
         attributes.put("kernel_params",new float[]{(float)model.param.gamma,(float)model.param.coef0,model.param.degree});
         attributes.put("kernel_type", KernelType.getKernelType(model.param.kernel_type).name());
+        float[] rho = new float[model.rho.length];
+        for (int i = 0; i < rho.length; i++) {
+            rho[i] = (float)-model.rho[i];
+        }
         attributes.put("rho",rho);
-        attributes.put("support_vectors",supportVectors);
+        // Extract the support vectors
+        float[] supportVectors = new float[model.l*numFeatures];
+
+        for (int j = 0; j < model.l; j++) {
+            svm_node[] sv = model.SV[j];
+            for (svm_node svm_node : sv) {
+                int idx = (j * numFeatures) + svm_node.index;
+                supportVectors[idx] = (float) svm_node.value;
+            }
+        }
+        attributes.put("support_vectors", supportVectors);
         attributes.put("vectors_per_class", Arrays.copyOf(model.nSV,model.label.length));
         if (generatesProbabilities) {
-            attributes.put("prob_a",Arrays.copyOf(model.probA,numOneVOne));
-            attributes.put("prob_b",Arrays.copyOf(model.probB,numOneVOne));
+            attributes.put("prob_a",Arrays.copyOf(Util.toFloatArray(model.probA),numOneVOne));
+            attributes.put("prob_b",Arrays.copyOf(Util.toFloatArray(model.probB),numOneVOne));
         }
 
         // Build SVM node
-        String[] outputs = new String[]{context.generateUniqueName("class_output"),outputValueProto.getName()};
+        String[] outputs = new String[]{outputValueProto.getName(), outputScoresProto.getName()};
         OnnxMl.NodeProto svm = ONNXOperators.SVM_CLASSIFIER.build(context,inputValueProto.getName(),outputs,attributes);
         graphBuilder.addNode(svm);
 
