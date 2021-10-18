@@ -167,4 +167,42 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
         return newModel;
     }
 
+    /**
+     * Checks for equality between two svm_models.
+     * <p>
+     * Equality is defined as bit-wise exact for SV, rho, sv_coeff, probA and probB.
+     * @param first The first model.
+     * @param second The second model.
+     * @return True if the models are identical.
+     */
+    public static boolean modelEquals(svm_model first, svm_model second) {
+        boolean svCoeffEquals = Arrays.deepEquals(first.sv_coef, second.sv_coef);
+        boolean probAEquals = Arrays.equals(first.probA, second.probA);
+        boolean probBEquals = Arrays.equals(first.probB, second.probB);
+        boolean nSVEquals = Arrays.equals(first.nSV, second.nSV);
+        boolean rhoEquals = Arrays.equals(first.rho, second.rho);
+        boolean labelEquals = Arrays.equals(first.label, second.label);
+        if (svCoeffEquals && probAEquals && probBEquals && nSVEquals && rhoEquals && labelEquals) {
+            // Check SVs.
+            try {
+                for (int i = 0; i < first.SV.length; i++) {
+                    for (int j = 0; j < first.SV[i].length; j++) {
+                        svm_node firstNode = first.SV[i][j];
+                        svm_node secondNode = second.SV[i][j];
+                        if (firstNode.index != secondNode.index) {
+                            return false;
+                        } else if (Double.compare(firstNode.value,secondNode.value) != 0) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            } catch (NullPointerException e) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
 }
