@@ -40,17 +40,24 @@ import java.util.logging.Logger;
 /**
  * Can convert an {@link OnnxValue} into a {@link Prediction} or a {@link Label}.
  * <p>
- * Accepts both a tuple (tensor,sequence(map(long,float))) and a single tensor.
- * The former is usually produced by scikit-learn or similar, the latter is produced by pytorch.
- * <p>
+ * Accepts:
+ * <ul>
+ *     <li>a tuple (tensor,sequence(map(long,float))) - as produced by sk2onnx.</li>
+ *     <li>a tuple (tensor, float tensor) - as produced by the bare ONNX ML operations (e.g., SVMClassifier).</li>
+ *     <li>a single float tensor - as produced by pytorch.</li>
+ * </ul>
  * By default it assumes the model scores are probabilities.
+ * <p>
+ * The scores must be the same length as the number of output dimensions. If the scores are the outputs
+ * of a one v one predictor between all classes then {@link LabelOneVOneTransformer} performs the
+ * appropriate scoring operation, and this class will throw an exception when used on such input.
  */
 public class LabelTransformer implements OutputTransformer<Label> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
 
-    @Config(description = "Does this transformer produce probabilistic outputs.")
-    private boolean generatesProbabilities = true;
+    @Config(description = "Does this transformer produce probabilistic outputs?")
+    protected boolean generatesProbabilities = true;
 
     /**
      * Constructs a LabelTransformer which assumes the model emits probabilities.
@@ -86,7 +93,7 @@ public class LabelTransformer implements OutputTransformer<Label> {
                 max = current;
             }
         }
-        return new Prediction<>(max,map,numUsed,example,true);
+        return new Prediction<>(max,map,numUsed,example,generatesProbabilities);
     }
 
     @Override
@@ -117,7 +124,7 @@ public class LabelTransformer implements OutputTransformer<Label> {
      * @param outputIDInfo The output id mapping.
      * @return A 2d array of outputs, the first dimension is batch size, the second dimension is the output space.
      */
-    private float[][] getBatchPredictions(List<OnnxValue> inputs, ImmutableOutputInfo<Label> outputIDInfo) {
+    protected float[][] getBatchPredictions(List<OnnxValue> inputs, ImmutableOutputInfo<Label> outputIDInfo) {
         try {
             if (inputs.size() == 1) {
                 // Single OnnxTensor [batchSize][numOutputDims]
@@ -166,43 +173,16 @@ public class LabelTransformer implements OutputTransformer<Label> {
                         throw new IllegalArgumentException("Expected a List<Map<Long,Float>>, received a " + info.toString());
                     }
                 } else if (inputs.get(1) instanceof OnnxTensor) {
-                    OnnxTensor outputLabels = (OnnxTensor) inputs.get(0);
                     OnnxTensor outputScores = (OnnxTensor) inputs.get(1);
                     if (outputScores.getInfo().type == OnnxJavaType.FLOAT) {
                         long[] shape = outputScores.getInfo().getShape();
                         if ((shape.length == 2) && (shape[1] == outputIDInfo.size())) {
                             return (float[][]) outputScores.getValue();
-                        } else if ((shape.length == 2) && (shape[1] == (outputIDInfo.size() * ((long)outputIDInfo.size()-1) / 2))) {
-                            // Assume the output is one v one and unpack it
-                            long[] labelsShape = outputLabels.getInfo().getShape();
-                            if ((labelsShape.length == 1) && (labelsShape[0] == shape[0])) {
-                                // We're going to validate that the voting outputs from the scores lead to the same predicted value as the labels
-                                // Yes it's annoying LibSVM does it this way.
-                                int numOutputs = outputIDInfo.size();
-                                float[][] onevone = (float[][]) outputScores.getValue();
-                                float[][] scores = new float[(int)shape[0]][numOutputs];
-                                for (int k = 0; k < shape[0]; k++) {
-                                    int counter = 0;
-                                    for (int i = 0; i < numOutputs; i++) {
-                                        for (int j = i+1; j < numOutputs; j++) {
-                                            if (onevone[k][counter] > 0) {
-                                                scores[k][i]++;
-                                            } else {
-                                                scores[k][j]++;
-                                            }
-                                            counter++;
-                                        }
-                                    }
-                                }
-                                return scores;
-                            } else {
-                                throw new IllegalArgumentException("Invalid shape for labels, did not match the size of the scores, found labels.shape " + Arrays.toString(labelsShape) + ", and scores.shape " +Arrays.toString(shape));
-                            }
                         } else {
                             throw new IllegalArgumentException("Invalid shape for the score tensor, expected shape [batchSize,numOutputs], found " + Arrays.toString(shape));
                         }
                     } else {
-                        throw new IllegalArgumentException("Expected the second element to be a float OnnxTensor, found " + inputs.get(0));
+                        throw new IllegalArgumentException("Expected the second element to be a float OnnxTensor, found " + inputs.get(1));
                     }
                 } else {
                     throw new IllegalArgumentException("Expected a List<Map<Long,Float>> or a OnnxTensor, received a " + inputs.get(1).getInfo().toString());

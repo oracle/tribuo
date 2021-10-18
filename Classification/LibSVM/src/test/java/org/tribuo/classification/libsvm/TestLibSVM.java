@@ -54,8 +54,10 @@ import org.tribuo.data.text.impl.TextFeatureExtractorImpl;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.impl.ListExample;
 import org.tribuo.interop.onnx.DenseTransformer;
+import org.tribuo.interop.onnx.LabelOneVOneTransformer;
 import org.tribuo.interop.onnx.LabelTransformer;
 import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.OutputTransformer;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
@@ -247,6 +249,12 @@ public class TestLibSVM {
         testOnnxSerialization(binary, C_RBF);
         testOnnxSerialization(binary, NU_LINEAR);
         testOnnxSerialization(binary, NU_RBF);
+
+        SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.RBF);
+        params.setProbability();
+        LibSVMClassificationTrainer probTrainer = new LibSVMClassificationTrainer(params);
+
+        testOnnxSerialization(binary,probTrainer);
     }
 
     @Test
@@ -278,9 +286,14 @@ public class TestLibSVM {
             VariableIDInfo id = (VariableIDInfo) f;
             featureMapping.put(id.getName(), id.getID());
         }
+        int[] libSVMMapping = model.getInnerModels().get(0).label;
+        int[] backwardsLibSVMMapping = new int[model.getOutputIDInfo().size()];
+        for (int i = 0; i < libSVMMapping.length; i++) {
+            backwardsLibSVMMapping[libSVMMapping[i]] = i;
+        }
         Map<Label, Integer> outputMapping = new HashMap<>();
         for (Pair<Integer, Label> l : model.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
+            outputMapping.put(l.getB(), backwardsLibSVMMapping[l.getA()]);
         }
 
         String arch = System.getProperty("os.arch");
@@ -290,7 +303,8 @@ public class TestLibSVM {
             OrtEnvironment env = OrtEnvironment.getEnvironment();
             env.close();
             // Load in via ORT
-            ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), new LabelTransformer(model.generatesProbabilities()), new OrtSession.SessionOptions(), onnxFile, "input");
+            OutputTransformer<Label> transformer = model.generatesProbabilities() ? new LabelTransformer(model.generatesProbabilities()) : new LabelOneVOneTransformer();
+            ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), transformer, new OrtSession.SessionOptions(), onnxFile, "input");
 
             // Generate predictions
             List<Prediction<Label>> nativePredictions = model.predict(datasetPair.getB());
@@ -301,7 +315,7 @@ public class TestLibSVM {
                 Prediction<Label> tribuo = nativePredictions.get(i);
                 Prediction<Label> external = onnxPredictions.get(i);
                 assertEquals(tribuo.getOutput().getLabel(), external.getOutput().getLabel());
-                assertEquals(tribuo.getOutput().getScore(), external.getOutput().getScore(), 1e-6);
+                assertEquals(tribuo.getOutput().getScore(), external.getOutput().getScore(), 1e-3);
                 for (Map.Entry<String, Label> l : tribuo.getOutputScores().entrySet()) {
                     Label other = external.getOutputScores().get(l.getKey());
                     if (other == null) {
