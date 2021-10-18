@@ -81,8 +81,19 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
         }
         ArrayList<Model<Label>> modelsList = new ArrayList<>();
         ArrayList<Label> labelList = new ArrayList<>();
+
+        // Build provenance
         DatasetProvenance datasetProvenance = examples.getProvenance();
-        //TODO supply more suitable provenance showing it's a single dimension out of many.
+        TrainerProvenance trainerProvenance;
+        // Construct the trainer provenance including the inner trainer invocation count field
+        synchronized (innerTrainer) {
+            trainerProvenance = getProvenance();
+            trainInvocationCounter++;
+        }
+        //TODO supply more suitable provenance showing there are multiple models, one per dimension.
+        ModelProvenance provenance = new ModelProvenance(IndependentMultiLabelModel.class.getName(), OffsetDateTime.now(), datasetProvenance, trainerProvenance, runProvenance);
+
+        // Construct binarised training data
         MutableDataset<Label> trainingData = new MutableDataset<>(datasetProvenance, new LabelFactory());
         for (Example<MultiLabel> e : examples) {
             trainingData.add(new BinaryExample(e, MultiLabel.NEGATIVE_LABEL));
@@ -100,8 +111,6 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
             trainingData.regenerateOutputInfo();
             modelsList.add(innerTrainer.train(trainingData));
         }
-        ModelProvenance provenance = new ModelProvenance(IndependentMultiLabelModel.class.getName(), OffsetDateTime.now(), datasetProvenance, getProvenance(), runProvenance);
-        trainInvocationCounter++;
         return new IndependentMultiLabelModel(labelList,modelsList,provenance,featureMap,labelInfo);
     }
 

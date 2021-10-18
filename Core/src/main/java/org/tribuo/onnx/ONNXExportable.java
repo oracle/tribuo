@@ -17,6 +17,9 @@
 package org.tribuo.onnx;
 
 import ai.onnx.proto.OnnxMl;
+import com.oracle.labs.mlrg.olcut.config.protobuf.ProtoProvenanceSerialization;
+import com.oracle.labs.mlrg.olcut.provenance.io.ProvenanceSerialization;
+import org.tribuo.provenance.ModelProvenance;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -28,6 +31,17 @@ import java.nio.file.Path;
  * exported as an ONNX model.
  */
 public interface ONNXExportable {
+
+    /**
+     * The provenance serializer.
+     */
+    public static final ProvenanceSerialization SERIALIZER = new ProtoProvenanceSerialization(true);
+
+    /**
+     * The name of the ONNX metadata field where the provenance information is stored
+     * in exported models.
+     */
+    public static final String PROVENANCE_METADATA_FIELD = "TRIBUO_PROVENANCE";
 
     /**
      * Exports this {@link org.tribuo.Model} as an ONNX protobuf.
@@ -72,6 +86,15 @@ public interface ONNXExportable {
         try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputPath.toFile()))) {
             proto.writeTo(bos);
         }
+    }
+
+    /**
+     * Serializes the model provenance to a String.
+     * @param provenance The provenance to serialize.
+     * @return The serialized form of the ModelProvenance.
+     */
+    default public String serializeProvenance(ModelProvenance provenance) {
+        return SERIALIZER.marshalAndSerialize(provenance);
     }
 
 }
