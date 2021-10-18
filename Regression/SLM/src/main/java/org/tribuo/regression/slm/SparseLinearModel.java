@@ -241,8 +241,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         // Extract provenance and store in metadata
         OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
         metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
-        String serializedProvenance = ONNXExportable.SERIALIZER.marshalAndSerialize(getProvenance());
-        metaBuilder.setValue(serializedProvenance);
+        metaBuilder.setValue(serializeProvenance(getProvenance()));
         builder.addMetadataProps(metaBuilder.build());
 
         return builder.build();
