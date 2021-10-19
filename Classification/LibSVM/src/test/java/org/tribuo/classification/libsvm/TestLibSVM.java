@@ -58,6 +58,7 @@ import org.tribuo.interop.onnx.LabelOneVOneTransformer;
 import org.tribuo.interop.onnx.LabelTransformer;
 import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.OutputTransformer;
+import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
@@ -73,12 +74,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -342,6 +345,14 @@ public class TestLibSVM {
                     }
                 }
             }
+
+            // Check that the provenance can be extracted and is the same
+            ModelProvenance modelProv = model.getProvenance();
+            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
+            assertTrue(optProv.isPresent());
+            ModelProvenance onnxProv = optProv.get();
+            assertNotSame(onnxProv, modelProv);
+            assertEquals(modelProv,onnxProv);
 
             onnxModel.close();
         } else {

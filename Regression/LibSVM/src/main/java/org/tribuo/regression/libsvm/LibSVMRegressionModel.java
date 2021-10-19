@@ -211,6 +211,13 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
         builder.setDocString(toString());
         builder.addOpsetImport(ONNXOperators.getOpsetProto());
         builder.setIrVersion(6);
+
+        // Extract provenance and store in metadata
+        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
+        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
+        metaBuilder.setValue(serializeProvenance(getProvenance()));
+        builder.addMetadataProps(metaBuilder.build());
+
         return builder.build();
     }
 
