@@ -245,6 +245,18 @@ public class TestLibSVM {
     public void testOnnxSerialization() throws IOException, OrtException {
         Pair<Dataset<Label>, Dataset<Label>> binary = LabelledDataGenerator.binarySparseTrainTest();
 
+        /*
+        Map<Label,Integer> mapping = new HashMap<>();
+        mapping.put(new Label("Foo"),0);
+        mapping.put(new Label("Bar"),1);
+        ImmutableOutputInfo<Label> newInfo = new LabelFactory().constructInfoForExternalModel(mapping);
+
+        ImmutableDataset<Label> newTrain = ImmutableDataset.copyDataset(binary.getA(), binary.getA().getFeatureIDMap(), newInfo);
+        ImmutableDataset<Label> newTest = ImmutableDataset.copyDataset(binary.getB(), binary.getA().getFeatureIDMap(), newInfo);
+
+        testOnnxSerialization(new Pair<>(newTrain,newTest), C_LINEAR);
+         */
+
         testOnnxSerialization(binary, C_LINEAR);
         testOnnxSerialization(binary, C_RBF);
         testOnnxSerialization(binary, NU_LINEAR);
@@ -303,7 +315,12 @@ public class TestLibSVM {
             OrtEnvironment env = OrtEnvironment.getEnvironment();
             env.close();
             // Load in via ORT
-            OutputTransformer<Label> transformer = model.generatesProbabilities() ? new LabelTransformer(model.generatesProbabilities()) : new LabelOneVOneTransformer();
+            OutputTransformer<Label> transformer;
+            if ((model.getOutputIDInfo().size() == 2) || model.generatesProbabilities()) {
+                transformer = new LabelTransformer(model.generatesProbabilities());
+            } else {
+                transformer = new LabelOneVOneTransformer();
+            }
             ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), transformer, new OrtSession.SessionOptions(), onnxFile, "input");
 
             // Generate predictions
