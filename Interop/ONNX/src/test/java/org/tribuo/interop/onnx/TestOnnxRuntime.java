@@ -116,6 +116,8 @@ public class TestOnnxRuntime {
             ONNXExternalModel<Label> transposedMNISTLR = ONNXExternalModel.createOnnxModel(
                     labelFactory, featureMapping, outputMapping, denseTransformer,
                     labelTransformer, sessionOptions, testResource, "float_input");
+            // This model doesn't have a free batch size parameter on the output
+            transposedMNISTLR.setBatchSize(1);
 
             LabelEvaluation evaluation = labelFactory.getEvaluator().evaluate(transposedMNISTLR, transposedMNIST);
             assertEquals(0.967741, evaluation.accuracy(), 1e-6);
@@ -157,6 +159,8 @@ public class TestOnnxRuntime {
             ONNXExternalModel<Label> transposedMNISTLR = ONNXExternalModel.createOnnxModel(
                     labelFactory, featureMapping, outputMapping, denseTransformer,
                     labelTransformer, sessionOptions, testResource, "float_input");
+            // This model doesn't have a free batch size parameter on the output
+            transposedMNISTLR.setBatchSize(1);
 
             LabelEvaluation evaluation = labelFactory.getEvaluator().evaluate(transposedMNISTLR, transposedMNIST);
             assertEquals(0.967741, evaluation.accuracy(), 1e-6);

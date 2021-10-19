@@ -162,6 +162,7 @@ public class DenseMatrix implements Matrix {
      * Copies the matrix.
      * @return A deep copy of the matrix.
      */
+    @Override
     public DenseMatrix copy() {
         return new DenseMatrix(this);
     }

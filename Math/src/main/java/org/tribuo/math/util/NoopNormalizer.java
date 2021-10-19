@@ -48,6 +48,6 @@ public class NoopNormalizer implements VectorNormalizer, Serializable {
      */
     @Override
     public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
-        return Collections.singletonList(ONNXOperators.IDENTITY.build(context,new String[]{input},new String[]{output}));
+        return Collections.singletonList(ONNXOperators.IDENTITY.build(context,input,output));
     }
 }

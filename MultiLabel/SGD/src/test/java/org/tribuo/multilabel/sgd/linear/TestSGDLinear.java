@@ -41,6 +41,7 @@ import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.tribuo.multilabel.sgd.objectives.Hinge;
 import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
+import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
@@ -49,10 +50,13 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {
@@ -64,7 +68,7 @@ public class TestSGDLinear {
     @BeforeAll
     public static void setup() {
         Class<?>[] classes = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class,LinearSGDTrainer.class};
-        for (Class c : classes) {
+        for (Class<?> c : classes) {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
         }
@@ -96,6 +100,7 @@ public class TestSGDLinear {
 
         Helpers.testModelSerialization(model, MultiLabel.class);
     }
+
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {
         Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
@@ -104,7 +109,7 @@ public class TestSGDLinear {
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");
-        model.saveONNXModel("org.tribuo.classification.sgd.linear.test",1,onnxFile);
+        model.saveONNXModel("org.tribuo.multilabel.sgd.linear.test",1,onnxFile);
 
         // Prep mappings
         Map<String, Integer> featureMapping = new HashMap<>();
@@ -144,6 +149,14 @@ public class TestSGDLinear {
                     }
                 }
             }
+
+            // Check that the provenance can be extracted and is the same
+            ModelProvenance modelProv = model.getProvenance();
+            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
+            assertTrue(optProv.isPresent());
+            ModelProvenance onnxProv = optProv.get();
+            assertNotSame(onnxProv, modelProv);
+            assertEquals(modelProv,onnxProv);
 
             onnxModel.close();
         } else {

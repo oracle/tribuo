@@ -31,6 +31,7 @@ import org.tribuo.Tribuo;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.provenance.ModelProvenance;
 
@@ -46,6 +47,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.PriorityQueue;
 
+/**
+ * A linear model trained using SGD.
+ * <p>
+ * It's an {@link AbstractSGDModel} containing a {@link LinearParameters}, with
+ * the bias folded into the features.
+ * <p>
+ * See:
+ * <pre>
+ * Bottou L.
+ * "Large-Scale Machine Learning with Stochastic Gradient Descent"
+ * Proceedings of COMPSTAT, 2010.
+ * </pre>
+ */
 public abstract class AbstractLinearSGDModel<T extends Output<T>> extends AbstractSGDModel<T> {
     private static final long serialVersionUID = 1L;
 
@@ -166,6 +180,14 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
         builder.setDocString(toString());
         builder.addOpsetImport(ONNXOperators.getOpsetProto());
         builder.setIrVersion(6);
+
+        // Extract provenance and store in metadata
+        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
+        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
+        String serializedProvenance = ONNXExportable.SERIALIZER.marshalAndSerialize(getProvenance());
+        metaBuilder.setValue(serializedProvenance);
+        builder.addMetadataProps(metaBuilder.build());
+
         return builder.build();
     }
 

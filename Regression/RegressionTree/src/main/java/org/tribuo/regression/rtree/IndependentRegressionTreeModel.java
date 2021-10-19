@@ -90,6 +90,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
      * Probes the trees to find the depth.
      * @return The maximum depth across the trees.
      */
+    @Override
     public int getDepth() {
         int maxDepth = 0;
         for (Node<Regressor> curRoot : roots.values()) {
@@ -288,4 +289,24 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
         return "IndependentTreeModel(description="+provenance.toString()+",\n"+sb.toString()+")";
     }
 
+    /**
+     * Returns an unmodifiable view on the root node collection.
+     * <p>
+     * The nodes themselves are immutable.
+     * @return The root node collection.
+     */
+    public Map<String,Node<Regressor>> getRoots() {
+        return Collections.unmodifiableMap(roots);
+    }
+
+    /**
+     * Returns null, as this model contains multiple roots, one per regression output dimension.
+     * <p>
+     * Use {@link #getRoots()} instead.
+     * @return null.
+     */
+    @Override
+    public Node<Regressor> getRoot() {
+        return null;
+    }
 }

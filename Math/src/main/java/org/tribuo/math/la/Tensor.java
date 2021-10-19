@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ public interface Tensor extends Serializable {
     /**
      * The number of elements in this shape, i.e., the product of the shape array.
      * @param shape The tensor shape.
-     * @return The number of elements in the shape.
+     * @return The total number of elements.
      */
     public static int shapeSum(int[] shape) {
         int sum = 1;
@@ -67,6 +67,12 @@ public interface Tensor extends Serializable {
      * @return A Tensor of the desired shape.
      */
     public Tensor reshape(int[] shape);
+
+    /**
+     * Returns a copy of this Tensor.
+     * @return A copy of the Tensor.
+     */
+    public Tensor copy();
 
     /**
      * Updates this {@link Tensor} by adding all the values from the intersection with {@code other}.

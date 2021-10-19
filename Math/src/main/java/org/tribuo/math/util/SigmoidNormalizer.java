@@ -64,7 +64,7 @@ public class SigmoidNormalizer implements VectorNormalizer, Serializable {
      */
     @Override
     public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
-        return Collections.singletonList(ONNXOperators.SIGMOID.build(context,new String[]{input},new String[]{output}));
+        return Collections.singletonList(ONNXOperators.SIGMOID.build(context,input,output));
     }
 
 }

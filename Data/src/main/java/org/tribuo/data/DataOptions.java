@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,9 @@ import org.tribuo.data.text.impl.TextFeatureExtractorImpl;
 import org.tribuo.data.text.impl.TokenPipeline;
 import org.tribuo.dataset.MinimumCardinalityDataset;
 import org.tribuo.datasource.LibSVMDataSource;
+import org.tribuo.transform.TransformationMap;
+import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.LinearScalingTransformation;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.BufferedInputStream;
@@ -45,6 +48,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.logging.Logger;
 
@@ -63,11 +67,11 @@ public final class DataOptions implements Options {
          */
         SERIALIZED,
         /**
-         * LibSVM format data.
+         * LibSVM/svm-light format data.
          */
         LIBSVM,
         /**
-         * Text data in Tribuo's default text format "output ## text".
+         * Text data in Tribuo's standard format (i.e., each line is "output ## text data").
          */
         TEXT,
         /**
@@ -75,7 +79,7 @@ public final class DataOptions implements Options {
          */
         CSV,
         /**
-         * A CSV file using a {@link RowProcessor}.
+         * A CSV file parsed using a configured {@link RowProcessor}.
          */
         COLUMNAR
     }
@@ -177,15 +181,27 @@ public final class DataOptions implements Options {
      */
     @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
     public Path testingPath;
+    /**
+     * Scales the features to the range 0-1 independently.
+     */
+    @Option(longName="scale-features",usage="Scales the features to the range 0-1 independently.")
+    public boolean scaleFeatures;
+    /**
+     * Includes implicit zeros in the scale range calculation.
+     */
+    @Option(longName="scale-including-zeros",usage="Includes implicit zeros in the scale range calculation.")
+    public boolean scaleIncZeros;
 
     /**
-     * Loads the datasets specified in this options.
-     * @param outputFactory The output factory to use.
-     * @param <T> The type of the dataset.
-     * @return A pair of training and test datasets.
-     * @throws IOException If the datasets failed to load.
+     * Loads the training and testing data from {@link #trainingPath} and {@link #testingPath}
+     * according to the other parameters specified in this class.
+     * @param outputFactory The output factory to use to process the inputs.
+     * @param <T> The dataset output type.
+     * @return A pair containing the training and testing datasets. The training dataset is element 'A' and the
+     * testing dataset is element 'B'.
+     * @throws IOException If the paths could not be loaded.
      */
-    public <T extends Output<T>> Pair<Dataset<T>, Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
+    public <T extends Output<T>> Pair<Dataset<T>,Dataset<T>> load(OutputFactory<T> outputFactory) throws IOException {
         logger.info(String.format("Loading data from %s", trainingPath));
         Dataset<T> train;
         Dataset<T> test;
@@ -285,19 +301,29 @@ public final class DataOptions implements Options {
                 throw new IllegalArgumentException("Unsupported input format " + inputFormat);
         }
         logger.info(String.format("Loaded %d testing examples", test.size()));
-        return new Pair<>(train, test);
+        if (scaleFeatures) {
+            logger.info("Fitting feature scaling");
+            TransformationMap map = new TransformationMap(Collections.singletonList(new LinearScalingTransformation()));
+            TransformerMap transformers = train.createTransformers(map,scaleIncZeros);
+            logger.info("Applying scaling to training dataset");
+            train = transformers.transformDataset(train);
+            logger.info("Applying scaling to testing dataset");
+            test = transformers.transformDataset(test);
+        }
+        return new Pair<>(train,test);
     }
 
     /**
-     * Saves the model out to the path specified in this options.
+     * Saves the model out to the path in {@link #outputPath}.
      * @param model The model to save.
-     * @param <T> The type of the model output.
+     * @param <T> The model's output type.
      * @throws IOException If the model could not be saved.
      */
     public <T extends Output<T>> void saveModel(Model<T> model) throws IOException {
-        try (ObjectOutputStream objOut = new ObjectOutputStream(new FileOutputStream(outputPath.toFile()))) {
-            objOut.writeObject(model);
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath.toFile()))) {
+            oos.writeObject(model);
             logger.info("Serialized model to file: " + outputPath);
         }
     }
 }
+

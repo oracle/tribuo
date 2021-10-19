@@ -279,4 +279,12 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         return "TreeModel(description="+provenance.toString()+",\n\t\ttree="+root.toString()+")";
     }
 
+    /**
+     * Returns the root node of this tree.
+     * @return The root node.
+     */
+    public Node<T> getRoot() {
+        return root;
+    }
+
 }

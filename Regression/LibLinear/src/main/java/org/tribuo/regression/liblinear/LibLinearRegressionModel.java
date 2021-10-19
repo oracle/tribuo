@@ -109,7 +109,8 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
         PriorityQueue<Pair<String, Double>> q = new PriorityQueue<>(maxFeatures, comparator);
 
         for (int i = 0; i < featureWeights.length; i++) {
-            int numFeatures = featureWeights[i].length;
+            // Exclude bias
+            int numFeatures = featureWeights[i].length - 1;
             for (int j = 0; j < numFeatures; j++) {
                 Pair<String, Double> cur = new Pair<>(featureIDMap.get(j).getName(), featureWeights[i][j]);
                 if (maxFeatures < 0 || q.size() < maxFeatures) {
@@ -156,7 +157,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> {
      * <p>
      * If it becomes a problem then we could cache the feature weights in the
      * model.
-     * <p>
+     *
      * @param e The example.
      * @param allFeatureWeights The feature weights.
      * @return An excuse for this example.

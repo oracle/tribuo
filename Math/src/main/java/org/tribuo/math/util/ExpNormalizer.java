@@ -67,7 +67,7 @@ public class ExpNormalizer implements VectorNormalizer, Serializable {
      */
     @Override
     public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
-       return Collections.singletonList(ONNXOperators.SOFTMAX.build(context,new String[]{input},new String[]{output}, Collections.singletonMap("axis",1)));
+       return Collections.singletonList(ONNXOperators.SOFTMAX.build(context, input, output, Collections.singletonMap("axis",1)));
     }
 
 }

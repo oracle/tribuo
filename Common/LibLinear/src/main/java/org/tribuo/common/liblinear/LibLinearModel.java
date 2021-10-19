@@ -157,7 +157,7 @@ public abstract class LibLinearModel<T extends Output<T>> extends Model<T> {
      * <p>
      * If it becomes a problem then we could cache the feature weights in the
      * model.
-     * <p>
+     *
      * @param e The example.
      * @param featureWeights The per dimension feature weights.
      * @return An excuse for this example.

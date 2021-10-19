@@ -22,7 +22,7 @@
 -->
 
 <config>
-    <component name="cart" type="org.tribuo.classification.mnb.MultinomialNaiveBayesTrainer">
+    <component name="mnb" type="org.tribuo.classification.mnb.MultinomialNaiveBayesTrainer">
         <property name="alpha" value="1.0"/>
     </component>
 </config>

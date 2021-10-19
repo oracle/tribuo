@@ -26,6 +26,11 @@ import java.nio.charset.StandardCharsets;
  */
 public final class ONNXAttribute {
 
+    /**
+     * Value used to denote a varaidic input in an ONNX operator
+     */
+    public static final int VARIADIC_INPUT = -1;
+
     private final String name;
     private final OnnxMl.AttributeProto.AttributeType type;
     private final boolean mandatory;
