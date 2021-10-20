@@ -30,8 +30,6 @@ import org.tribuo.common.tree.TreeModel;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.tribuo.math.la.Tensor;
-import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.test.Helpers;
 
 import java.util.List;

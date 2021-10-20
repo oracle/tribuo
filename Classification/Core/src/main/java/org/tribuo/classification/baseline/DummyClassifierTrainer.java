@@ -32,7 +32,6 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
-import java.util.SplittableRandom;
 
 /**
  * A trainer for simple baseline classifiers. Use this only for comparison purposes, if you can't beat these

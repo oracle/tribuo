@@ -90,6 +90,7 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
      * <p>
      * This is used when reproducing a Tribuo-trained model by setting the state of the RNG to
      * what it was at when Tribuo trained the original model by simulating invocations of the train method.
+     * This method should ALWAYS be overridden, and the default method is purely for compatibility.
      * @param  invocationCount the number of invocations of the train method to simulate
      */
     default public void setInvocationCount(int invocationCount){
