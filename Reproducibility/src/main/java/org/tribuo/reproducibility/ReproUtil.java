@@ -460,8 +460,7 @@ public class ReproUtil {
                     addProvWithoutDiff(subNode, subProvMap.keySet(), subProvMap, provIdentifier);
                     report.set(key, subNode);
                 } else {
-                    //TODO: Probably throw an exception here
-                    System.out.println("Missing type of provenance");
+                    throw new IllegalStateException("Missing type of provenance");
                 }
 
             }
