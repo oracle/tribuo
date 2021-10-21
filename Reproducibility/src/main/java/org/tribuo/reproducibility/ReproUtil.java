@@ -88,7 +88,7 @@ public class ReproUtil {
         this.originalModel = originalModel;
     }
 
-    public <T extends Output<T>> Trainer<T> recoverTrainer() throws Exception {
+    public <T extends Output<T>> Trainer<T> recoverTrainer() throws IllegalStateException {
 
         // We need to set the state of the RNG for each trainer used in the provenance.
         // ProvenanceUtil.orderProvenances allows us to iterate through the provObjects,
@@ -108,7 +108,7 @@ public class ReproUtil {
                     trainer.setInvocationCount((int) trainerProvenance.getInstanceValues().get("train-invocation-count").getValue());
                 } else {
                     // TODO: Make some kind of exception, but also this shouldn't happen if provenance is trainer?
-                    throw new Exception("Object that is supposed to be a Trainer recovered from Configuration Manager is not a trainer");
+                    throw new IllegalStateException("Object that is supposed to be a Trainer recovered from Configuration Manager is not a trainer");
                 }
             }
         }
@@ -345,16 +345,17 @@ public class ReproUtil {
         Trainer<T> newTrainer = null;
         try {
             newTrainer = recoverTrainer();
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
             //TODO Decide what to do when this exception is encountered
             e.printStackTrace();
         }
         Dataset<T> newDataset = null;
         try {
             newDataset = recoverDataset();
-        } catch (Exception e) {
-
-            //TODO Decide what to do when this exception is encountered
+        } catch (IllegalStateException e) {
+            //TODO Decide what to do when these exception are encountered
+            e.printStackTrace();
+        } catch (ClassNotFoundException e){
             e.printStackTrace();
         }
 
