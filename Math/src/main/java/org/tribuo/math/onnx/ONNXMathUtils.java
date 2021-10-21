@@ -61,6 +61,62 @@ public abstract class ONNXMathUtils {
     }
 
     /**
+     * Builds a TensorProto containing the scalar value.
+     * @param context The naming context.
+     * @param name The base name for the proto.
+     * @param value The value to store.
+     * @return A TensorProto containing the value as an int.
+     */
+    public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, int value) {
+        OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
+        scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.addInt32Data(value);
+        return scalarBuilder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the scalar value.
+     * @param context The naming context.
+     * @param name The base name for the proto.
+     * @param value The value to store.
+     * @return A TensorProto containing the value as a long.
+     */
+    public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, long value) {
+        OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
+        scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.addInt64Data(value);
+        return scalarBuilder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the scalar value.
+     * @param context The naming context.
+     * @param name The base name for the proto.
+     * @param value The value to store.
+     * @return A TensorProto containing the value as a float.
+     */
+    public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, float value) {
+        OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
+        scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.addFloatData(value);
+        return scalarBuilder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the scalar value.
+     * @param context The naming context.
+     * @param name The base name for the proto.
+     * @param value The value to store.
+     * @return A TensorProto containing the value as a double.
+     */
+    public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, double value) {
+        OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
+        scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.addDoubleData(value);
+        return scalarBuilder.build();
+    }
+
+    /**
      * Generic method to create float {@link ai.onnx.proto.OnnxMl.TensorProto} instances.
      *
      * @param context the naming context.
@@ -173,5 +229,47 @@ public abstract class ONNXMathUtils {
                             : mt.i * matrix.getDimension2Size() + mt.j;
                     fb.put(address, (float) mt.value);
                 }));
+    }
+
+    /**
+     * Builds a TensorProto containing the array.
+     * @param context The naming context.
+     * @param name The base name for the proto.
+     * @param parameters The array to store in the proto.
+     * @return A TensorProto containing the array as ints.
+     */
+    public static OnnxMl.TensorProto arrayBuilder(ONNXContext context, String name, int[] parameters) {
+        OnnxMl.TensorProto.Builder arrBuilder = OnnxMl.TensorProto.newBuilder();
+        arrBuilder.setName(context.generateUniqueName(name));
+        arrBuilder.addDims(parameters.length);
+        int capacity = parameters.length * 4;
+        ByteBuffer buffer = ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
+        arrBuilder.setDataType(OnnxMl.TensorProto.DataType.INT32.getNumber());
+        IntBuffer intBuffer = buffer.asIntBuffer();
+        intBuffer.put(parameters);
+        intBuffer.rewind();
+        arrBuilder.setRawData(ByteString.copyFrom(buffer));
+        return arrBuilder.build();
+    }
+
+    /**
+     * Builds a TensorProto containing the array.
+     * @param context The naming context.
+     * @param name The base name for the proto.
+     * @param parameters The array to store in the proto.
+     * @return A TensorProto containing the array as longs.
+     */
+    public static OnnxMl.TensorProto arrayBuilder(ONNXContext context, String name, long[] parameters) {
+        OnnxMl.TensorProto.Builder arrBuilder = OnnxMl.TensorProto.newBuilder();
+        arrBuilder.setName(context.generateUniqueName(name));
+        arrBuilder.addDims(parameters.length);
+        int capacity = parameters.length * 8;
+        ByteBuffer buffer = ByteBuffer.allocate(capacity).order(ByteOrder.LITTLE_ENDIAN);
+        arrBuilder.setDataType(OnnxMl.TensorProto.DataType.INT64.getNumber());
+        LongBuffer longBuffer = buffer.asLongBuffer();
+        longBuffer.put(parameters);
+        longBuffer.rewind();
+        arrBuilder.setRawData(ByteString.copyFrom(buffer));
+        return arrBuilder.build();
     }
 }

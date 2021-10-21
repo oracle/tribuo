@@ -42,6 +42,9 @@ public enum ONNXOperators {
     CONCAT("Concat",VARIADIC_INPUT,1, Collections.singletonList(
             new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, true)
     )),
+    CONSTANT_OF_SHAPE("ConstantOfShape",1,1, Collections.singletonList(
+            new ONNXAttribute("value", OnnxMl.AttributeProto.AttributeType.TENSOR, false)
+    )),
     /**
      * Sigmoid element-wise.
      */
@@ -139,7 +142,37 @@ public enum ONNXOperators {
             new ONNXAttribute("beta", OnnxMl.AttributeProto.AttributeType.FLOAT,false),
             new ONNXAttribute("transA", OnnxMl.AttributeProto.AttributeType.INT,false),
             new ONNXAttribute("transB", OnnxMl.AttributeProto.AttributeType.INT,false)
-    ));
+    )),
+    /**
+     * Greater than, returns the element-wise greater than operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    GREATER("Greater",2,1),
+    /**
+     * Greater than or equal to, returns the element-wise greater than or equal to operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    GREATER_OR_EQUAL("GreaterOrEqual",2,1),
+    /**
+     * Less than, returns the element-wise less than operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    LESS("Less",2,1),
+    /**
+     * Less than or equal to, returns the element-wise less than or equal to operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    LESS_OR_EQUAL("LessOrEqual",2,1),
+    /**
+     * Choice operator, based on the true value of the condition input, returns the element at that index from either
+     * the second or third input. When the test is true, return the second input, otherwise return the third input.
+     */
+    WHERE("Where",3,1)
+    ;
 
     /**
      * The operator name.

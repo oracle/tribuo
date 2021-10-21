@@ -141,13 +141,18 @@ public final class ONNXAttribute {
                     throw new IllegalArgumentException("Expected String[], found " + value.getClass() + " with value " + value);
                 }
                 break;
-            case UNDEFINED:
             case TENSOR:
+                if (value instanceof OnnxMl.TensorProto) {
+                    builder.setT((OnnxMl.TensorProto) value);
+                } else {
+                    throw new IllegalArgumentException("Expected TensorProto, found " + value.getClass() + " with value " + value);
+                }
             case GRAPH:
             case SPARSE_TENSOR:
             case TENSORS:
             case GRAPHS:
             case SPARSE_TENSORS:
+            case UNDEFINED:
                 throw new UnsupportedOperationException("Type: " + type + " is not supported.");
         }
 
