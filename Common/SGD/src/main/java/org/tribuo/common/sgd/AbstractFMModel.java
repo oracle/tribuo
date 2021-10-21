@@ -33,6 +33,7 @@ import org.tribuo.math.onnx.ONNXMathUtils;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -288,10 +289,11 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
                     context.generateUniqueName("squared_prod_subtract_prod_of_squares"));
             context.addNode(subtract);
             // sum over embedding dimensions
+            OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_over_embeddings_axes",new long[]{1});
+            context.addInitializer(sumAxes);
             OnnxMl.NodeProto sumOverEmbeddings = ONNXOperators.REDUCE_SUM.build(context,
-                    subtract.getOutput(0),
-                    context.generateUniqueName("sum_over_embeddings"),
-                    Collections.singletonMap("axes", new int[]{1}));
+                    new String[]{subtract.getOutput(0),sumAxes.getName()},
+                    context.generateUniqueName("sum_over_embeddings"));
             context.addNode(sumOverEmbeddings);
             // Divide by 2
             OnnxMl.NodeProto scaledInteraction = ONNXOperators.DIV.build(context,
