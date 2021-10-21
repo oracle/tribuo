@@ -16,9 +16,11 @@
 
 package org.tribuo.onnx;
 
+import ai.onnx.proto.OnnxMl;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,11 +30,14 @@ public final class ONNXContext {
 
     private final Map<String, MutableLong> nameMap;
 
+    private final OnnxMl.GraphProto.Builder protoBuilder;
+
     /**
      * Creates an empty ONNX context.
      */
     public ONNXContext() {
         this.nameMap = new HashMap<>();
+        this.protoBuilder = OnnxMl.GraphProto.newBuilder();
     }
 
     /**
@@ -47,4 +52,39 @@ public final class ONNXContext {
         return newName;
     }
 
+    public void addInitializer(OnnxMl.TensorProto tensor) {
+        protoBuilder.addInitializer(tensor);
+    }
+
+    public void addNode(OnnxMl.NodeProto node) {
+        protoBuilder.addNode(node);
+    }
+
+    public void addAllNodes(List<OnnxMl.NodeProto> nodes) {
+        protoBuilder.addAllNode(nodes);
+    }
+
+    public void setName(String name) {
+        protoBuilder.setName(name);
+    }
+
+    public void addInput(OnnxMl.ValueInfoProto input) {
+        protoBuilder.addInput(input);
+    }
+
+    public void addOutput(OnnxMl.ValueInfoProto output) {
+        protoBuilder.addOutput(output);
+    }
+
+    public String getOutputName(int index) {
+        return protoBuilder.getOutput(index).getName();
+    }
+
+    public OnnxMl.GraphProto buildGraph() {
+        return protoBuilder.build();
+    }
+
+    public String getInputName(int index) {
+        return protoBuilder.getInput(index).getName();
+    }
 }

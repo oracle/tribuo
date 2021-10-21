@@ -109,28 +109,27 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
-        // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
-
-        return innerExportONNXModel(graph,domain,modelVersion);
-    }
-
-    @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("FMMultiLabelModel");
+        context.setName("FMMultiLabelModel");
 
         // Make inputs and outputs
         OnnxMl.TypeProto inputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
         OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        String outputName = "output";
+        context.addInput(inputValueProto);
         OnnxMl.TypeProto outputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName(outputName).build();
-        graphBuilder.addOutput(outputValueProto);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+
+        // Build graph
+        writeONNXGraph(context);
+
+        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
+    }
+
+    @Override
+    public void writeONNXGraph(ONNXContext context) {
 
         // Build the output neutral bits of the onnx graph
-        String fmOutputName = generateONNXGraph(context, graphBuilder, inputValueProto.getName());
+        String fmOutputName = generateONNXGraph(context, context.getInputName(0));
 
         if (standardise) {
             // standardise the FM output
@@ -144,22 +143,20 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
 
             // Create mean and variance initializers
             OnnxMl.TensorProto outputMeanProto = ONNXMathUtils.arrayBuilder(context,context.generateUniqueName("y_mean"),means);
-            graphBuilder.addInitializer(outputMeanProto);
+            context.addInitializer(outputMeanProto);
             OnnxMl.TensorProto outputVarianceProto = ONNXMathUtils.arrayBuilder(context, context.generateUniqueName("y_var"),variances);
-            graphBuilder.addInitializer(outputVarianceProto);
+            context.addInitializer(outputVarianceProto);
 
             // Add standardisation operations
             String varianceOutput = context.generateUniqueName("y_var_scale_output");
             OnnxMl.NodeProto varianceScale = ONNXOperators.MUL.build(context, new String[]{fmOutputName,outputVarianceProto.getName()}, varianceOutput);
-            graphBuilder.addNode(varianceScale);
-            OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputName);
-            graphBuilder.addNode(meanScale);
+            context.addNode(varianceScale);
+            OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, context.getOutputName(0));
+            context.addNode(meanScale);
         } else {
             // Not standardised, so link up the FM output to the graph output
-            OnnxMl.NodeProto output = ONNXOperators.IDENTITY.build(context, fmOutputName, outputName);
-            graphBuilder.addNode(output);
+            OnnxMl.NodeProto output = ONNXOperators.IDENTITY.build(context, fmOutputName, context.getOutputName(0));
+            context.addNode(output);
         }
-
-        return graphBuilder.build();
     }
 }

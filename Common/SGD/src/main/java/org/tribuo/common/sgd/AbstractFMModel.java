@@ -218,13 +218,12 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
     /**
      * Constructs the shared stem of the Factorization Machine, used by all output types.
      * <p>
-     * Writes into the supplied graph builder.
+     * Writes into the supplied context.
      *
      * @param context      The ONNX context.
-     * @param graphBuilder The graph builder.
      * @return The name of the output.
      */
-    protected String generateONNXGraph(ONNXContext context, OnnxMl.GraphProto.Builder graphBuilder, String inputName) {
+    protected String generateONNXGraph(ONNXContext context, String inputName) {
         Tensor[] modelParams = modelParameters.get();
 
         // Add constants
@@ -233,32 +232,32 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
                 .setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber())
                 .addFloatData(2.0f)
                 .build();
-        graphBuilder.addInitializer(twoConst);
+        context.addInitializer(twoConst);
 
         // Add weights
         OnnxMl.TensorProto weightInitializerProto = ONNXMathUtils.floatMatrixBuilder(context, "fm_linear_weights", (Matrix) modelParams[1], true);
-        graphBuilder.addInitializer(weightInitializerProto);
+        context.addInitializer(weightInitializerProto);
 
         // Add biases
         OnnxMl.TensorProto biasInitializerProto = ONNXMathUtils.floatVectorBuilder(context, "fm_biases", (SGDVector) modelParams[0]);
-        graphBuilder.addInitializer(biasInitializerProto);
+        context.addInitializer(biasInitializerProto);
 
         // Add embedding vectors
         OnnxMl.TensorProto[] embeddingProtos = new OnnxMl.TensorProto[outputIDInfo.size()];
         for (int i = 0; i < outputIDInfo.size(); i++) {
             embeddingProtos[i] = ONNXMathUtils.floatMatrixBuilder(context, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
-            graphBuilder.addInitializer(embeddingProtos[i]);
+            context.addInitializer(embeddingProtos[i]);
         }
 
         // Make gemm
         String[] gemmInputs = new String[]{inputName, weightInitializerProto.getName(), biasInitializerProto.getName()};
         OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context, gemmInputs, context.generateUniqueName("gemm_output"));
-        graphBuilder.addNode(gemm);
+        context.addNode(gemm);
 
         // Make feature pow
         OnnxMl.NodeProto featurePow = ONNXOperators.POW.build(context, new String[]{inputName, twoConst.getName()},
                 context.generateUniqueName("feature_pow"));
-        graphBuilder.addNode(featurePow);
+        context.addNode(featurePow);
 
         // Make interaction terms
         String[] embeddingOutputs = new String[outputIDInfo.size()];
@@ -267,38 +266,38 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
             OnnxMl.NodeProto gemmFeatureEmb = ONNXOperators.GEMM.build(context,
                     new String[]{inputName, embeddingProtos[i].getName()},
                     context.generateUniqueName("gemm_input_emb"));
-            graphBuilder.addNode(gemmFeatureEmb);
+            context.addNode(gemmFeatureEmb);
             // Square the output
             OnnxMl.NodeProto powFeatureEmb = ONNXOperators.POW.build(context,
                     new String[]{gemmFeatureEmb.getOutput(0), twoConst.getName()},
                     context.generateUniqueName("pow_input_emb"));
-            graphBuilder.addNode(powFeatureEmb);
+            context.addNode(powFeatureEmb);
             // Square the embeddings
             OnnxMl.NodeProto powEmb = ONNXOperators.POW.build(context,
                     new String[]{embeddingProtos[i].getName(), twoConst.getName()},
                     context.generateUniqueName("pow_emb"));
-            graphBuilder.addNode(powEmb);
+            context.addNode(powEmb);
             // squared features * squared embeddings
             OnnxMl.NodeProto gemmSquaredFeatureSquaredEmb = ONNXOperators.GEMM.build(context,
                     new String[]{featurePow.getOutput(0), powEmb.getOutput(0)},
                     context.generateUniqueName("gemm_squared_input_squared_emb"));
-            graphBuilder.addNode(gemmSquaredFeatureSquaredEmb);
+            context.addNode(gemmSquaredFeatureSquaredEmb);
             // squared product subtract product of squares
             OnnxMl.NodeProto subtract = ONNXOperators.SUB.build(context,
                     new String[]{powFeatureEmb.getOutput(0), gemmSquaredFeatureSquaredEmb.getOutput(0)},
                     context.generateUniqueName("squared_prod_subtract_prod_of_squares"));
-            graphBuilder.addNode(subtract);
+            context.addNode(subtract);
             // sum over embedding dimensions
             OnnxMl.NodeProto sumOverEmbeddings = ONNXOperators.REDUCE_SUM.build(context,
                     subtract.getOutput(0),
                     context.generateUniqueName("sum_over_embeddings"),
                     Collections.singletonMap("axes", new int[]{1}));
-            graphBuilder.addNode(sumOverEmbeddings);
+            context.addNode(sumOverEmbeddings);
             // Divide by 2
             OnnxMl.NodeProto scaledInteraction = ONNXOperators.DIV.build(context,
                     new String[]{sumOverEmbeddings.getOutput(0), twoConst.getName()},
                     context.generateUniqueName("scaled_interaction"));
-            graphBuilder.addNode(scaledInteraction);
+            context.addNode(scaledInteraction);
             // Store the output name
             embeddingOutputs[i] = scaledInteraction.getOutput(0);
         }
@@ -307,11 +306,11 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context, embeddingOutputs, context.generateUniqueName("fm_concat"),
                 Collections.singletonMap("axis", 1)
         );
-        graphBuilder.addNode(concat);
+        context.addNode(concat);
 
         // Add to gemm
         OnnxMl.NodeProto addGemmConcat = ONNXOperators.ADD.build(context, new String[]{gemm.getOutput(0), concat.getOutput(0)}, context.generateUniqueName("fm_output"));
-        graphBuilder.addNode(addGemmConcat);
+        context.addNode(addGemmConcat);
 
         return addGemmConcat.getOutput(0);
     }

@@ -42,6 +42,7 @@ import org.tribuo.dataset.DatasetView;
 import org.tribuo.interop.onnx.DenseTransformer;
 import org.tribuo.interop.onnx.LabelTransformer;
 import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -128,47 +129,7 @@ public class TestSGDLinear {
             outputMapping.put(l.getB(), l.getA());
         }
 
-        String arch = System.getProperty("os.arch");
-        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
-            // Initialise the OrtEnvironment to load the native library
-            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
-            OrtEnvironment env = OrtEnvironment.getEnvironment();
-            env.close();
-            // Load in via ORT
-            ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), new LabelTransformer(), new OrtSession.SessionOptions(), onnxFile, "input");
-
-            // Generate predictions
-            List<Prediction<Label>> nativePredictions = model.predict(p.getB());
-            List<Prediction<Label>> onnxPredictions = onnxModel.predict(p.getB());
-
-            // Assert the predictions are identical
-            for (int i = 0; i < nativePredictions.size(); i++) {
-                Prediction<Label> tribuo = nativePredictions.get(i);
-                Prediction<Label> external = onnxPredictions.get(i);
-                assertEquals(tribuo.getOutput().getLabel(), external.getOutput().getLabel());
-                assertEquals(tribuo.getOutput().getScore(), external.getOutput().getScore(), 1e-6);
-                for (Map.Entry<String, Label> l : tribuo.getOutputScores().entrySet()) {
-                    Label other = external.getOutputScores().get(l.getKey());
-                    if (other == null) {
-                        fail("Failed to find label " + l.getKey() + " in ORT prediction.");
-                    } else {
-                        assertEquals(l.getValue().getScore(), other.getScore(), 1e-6);
-                    }
-                }
-            }
-
-            // Check that the provenance can be extracted and is the same
-            ModelProvenance modelProv = model.getProvenance();
-            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
-            assertTrue(optProv.isPresent());
-            ModelProvenance onnxProv = optProv.get();
-            assertNotSame(onnxProv, modelProv);
-            assertEquals(modelProv,onnxProv);
-
-            onnxModel.close();
-        } else {
-            logger.warning("ORT based tests only supported on x86_64, found " + arch);
-        }
+        OnnxTestUtils.onnxLabelComparison(model,onnxFile,p.getB(),featureMapping,outputMapping,1e-6);
 
         onnxFile.toFile().delete();
     }
