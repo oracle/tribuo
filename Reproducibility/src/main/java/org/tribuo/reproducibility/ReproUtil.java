@@ -494,10 +494,10 @@ public class ReproUtil {
             // If different, place each prov's value in the report
             if(provenanceA instanceof PrimitiveProvenance && provenanceB instanceof PrimitiveProvenance){
                 if(!provMapA.get(key).equals(provMapB.get(key))){
-                    ObjectNode val_diff = mapper.createObjectNode();
-                    val_diff.put(OLD, ((PrimitiveProvenance<?>) provMapA.get(key)).getValue().toString());
-                    val_diff.put(NEW, ((PrimitiveProvenance<?>) provMapB.get(key)).getValue().toString());
-                    report.set(key, val_diff);
+                    ObjectNode valDiff = mapper.createObjectNode();
+                    valDiff.put(OLD, ((PrimitiveProvenance<?>) provMapA.get(key)).getValue().toString());
+                    valDiff.put(NEW, ((PrimitiveProvenance<?>) provMapB.get(key)).getValue().toString());
+                    report.set(key, valDiff);
                 }
             }
 
@@ -519,9 +519,9 @@ public class ReproUtil {
                         Iterator<Pair<String, Provenance>> subIterA = (Iterator<Pair<String, Provenance>>) ((ListProvenance<?>) provMapA.get(key)).iterator();
                         Iterator<Pair<String, Provenance>> subIterB = (Iterator<Pair<String, Provenance>>) ((ListProvenance<?>) provMapB.get(key)).iterator();
 
-                        ObjectNode sub_report = diffProvenanceIterators(subIterA, subIterB);
-                        if(!sub_report.isEmpty()){
-                            report.set(key, sub_report);
+                        ObjectNode subReport = diffProvenanceIterators(subIterA, subIterB);
+                        if(!subReport.isEmpty()){
+                            report.set(key, subReport);
                         }
                     }
                     // If the list contains ConfiguredObjectProvenanceImpl, they are the same size, and not empty
