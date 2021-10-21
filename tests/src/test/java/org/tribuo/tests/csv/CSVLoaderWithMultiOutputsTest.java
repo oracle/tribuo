@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.tribuo.data.csv;
+package org.tribuo.tests.csv;
 
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
+import org.tribuo.data.csv.CSVLoader;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.regression.RegressionFactory;
@@ -40,7 +41,7 @@ public class CSVLoaderWithMultiOutputsTest {
 
     @Test
     public void loadsMultiLabel() throws IOException {
-        Path path = Resources.copyResourceToTmp("/org/tribuo/data/csv/multilabel.csv");
+        Path path = Resources.copyResourceToTmp("/org/tribuo/tests/csv/multilabel.csv");
         Set<String> responses = new HashSet<>(Arrays.asList("R1", "R2"));
         CSVLoader<MultiLabel> loader = new CSVLoader<>(new MultiLabelFactory());
         MutableDataset<MultiLabel> data = loader.load(path, responses);
@@ -67,7 +68,7 @@ public class CSVLoaderWithMultiOutputsTest {
 
     @Test
     public void loadsMultiRegressor() throws IOException {
-        Path path = Resources.copyResourceToTmp("/org/tribuo/data/csv/multioutput-regression.csv");
+        Path path = Resources.copyResourceToTmp("/org/tribuo/tests/csv/multioutput-regression.csv");
         CSVLoader<Regressor> loader = new CSVLoader<>(new RegressionFactory());
         String[] responseNames = new String[]{"R1", "R2"};
         MutableDataset<Regressor> data = loader.load(path, new HashSet<>(Arrays.asList(responseNames)));
@@ -84,7 +85,7 @@ public class CSVLoaderWithMultiOutputsTest {
 
     @Test
     public void loadsMultiRegressorWithoutHeader() throws IOException {
-        Path path = Resources.copyResourceToTmp("/org/tribuo/data/csv/multioutput-regression-noheader.csv");
+        Path path = Resources.copyResourceToTmp("/org/tribuo/tests/csv/multioutput-regression-noheader.csv");
         CSVLoader<Regressor> loader = new CSVLoader<>(new RegressionFactory());
         String[] header = {"A","B","C","D","R1","R2"};
         String[] responseNames = new String[]{"R1", "R2"};

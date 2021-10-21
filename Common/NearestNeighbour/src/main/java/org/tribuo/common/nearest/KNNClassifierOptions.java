@@ -73,7 +73,7 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
 
     @Override
     public String getOptionsDescription() {
-        return "Options for parameterising a LibLinear classification trainer.";
+        return "Options for parameterising a K-NN classification trainer.";
     }
 
     private EnsembleCombiner<Label> getEnsembleCombiner() {
