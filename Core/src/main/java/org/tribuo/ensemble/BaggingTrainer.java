@@ -32,6 +32,7 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.SplittableRandom;
 import java.util.logging.Logger;
@@ -134,12 +135,17 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
     }
     
     @Override
-    public Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
-        return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    public EnsembleModel<T> train(Dataset<T> examples) {
+        return train(examples, Collections.emptyMap());
     }
 
     @Override
-    public Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
+    public EnsembleModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public EnsembleModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         // Creates a new RNG, adds one to the invocation count.
         SplittableRandom localRNG;
         TrainerProvenance trainerProvenance;
