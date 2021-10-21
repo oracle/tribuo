@@ -57,6 +57,10 @@ public class ReproUtil {
     // These fields are used to denote which value came from which provenance in a diff
     private final static String OLD = "original";
     private final static String NEW = "reproduced";
+    private static ObjectMapper mapper;
+    static {
+        mapper = new ObjectMapper();
+    }
 
     private final ConfigurationManager cm;
 
@@ -443,7 +447,7 @@ public class ReproUtil {
     // This function is used to recurse through prov objects and
     // add them to a report when there is nothing to compare them to
     private static void addProvWithoutDiff(ObjectNode report, Set<String> keys, TreeMap<String, Provenance> provMap, String provIdentifier){
-        ObjectMapper mapper = new ObjectMapper();
+
         for(String key : keys){
             if(provMap.get(key) instanceof PrimitiveProvenance primitiveProvenance){
                 ObjectNode provVal = mapper.createObjectNode();
@@ -471,7 +475,6 @@ public class ReproUtil {
     private static <T extends Provenance> ObjectNode diffProvenanceIterators(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
         // The report ObjectNode is the ultimate return value of the method,
         // All diff values are put in it.
-        ObjectMapper mapper = new ObjectMapper();
         ObjectNode report = mapper.createObjectNode();
 
         // Convert the iterators to a sorted map, so it can iterate through the keys to find matching values
