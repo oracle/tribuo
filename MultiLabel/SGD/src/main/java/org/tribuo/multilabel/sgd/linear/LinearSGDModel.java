@@ -119,13 +119,13 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> implement
         context.addOutput(outputValueProto);
 
         // Build graph
-        writeONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context) {
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Add weights
         OnnxMl.TensorProto weightInitializerProto = weightBuilder(context);
         context.addInitializer(weightInitializerProto);
@@ -135,12 +135,12 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> implement
         context.addInitializer(biasInitializerProto);
 
         // Make gemm
-        String[] gemmInputs = new String[]{context.getInputName(0),weightInitializerProto.getName(),biasInitializerProto.getName()};
+        String[] gemmInputs = new String[]{inputName,weightInitializerProto.getName(),biasInitializerProto.getName()};
         OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,context.generateUniqueName("gemm_output"));
         context.addNode(gemm);
 
         // Make output normalizer
-        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,gemm.getOutput(0),"output");
+        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,gemm.getOutput(0),outputName);
         if (normalizerProtos.isEmpty()) {
             throw new IllegalArgumentException("Normalizer " + normalizer.getClass() + " cannot be exported in ONNX models.");
         } else {

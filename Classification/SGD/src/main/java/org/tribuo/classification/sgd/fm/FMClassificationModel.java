@@ -115,18 +115,18 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
         context.setName("FMClassificationModel");
 
         // Build graph
-        writeONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context) {
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Build the output neutral bits of the onnx graph
-        String outputName = generateONNXGraph(context, context.getInputName(0));
+        String fmOutputName = generateONNXGraph(context, inputName);
 
         // Make output normalizer
-        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,outputName,context.getOutputName(0));
+        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,fmOutputName,outputName);
         if (normalizerProtos.isEmpty()) {
             throw new IllegalArgumentException("Normalizer " + normalizer.getClass() + " cannot be exported in ONNX models.");
         } else {

@@ -104,13 +104,13 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> implements
         context.addOutput(outputValueProto);
 
         // Build graph
-        writeONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context) {
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Add weights
         OnnxMl.TensorProto weightInitializerProto = weightBuilder(context);
         context.addInitializer(weightInitializerProto);
@@ -120,8 +120,8 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> implements
         context.addInitializer(biasInitializerProto);
 
         // Make gemm
-        String[] gemmInputs = new String[]{context.getInputName(0),weightInitializerProto.getName(),biasInitializerProto.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,"output");
+        String[] gemmInputs = new String[]{inputName,weightInitializerProto.getName(),biasInitializerProto.getName()};
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,outputName);
         context.addNode(gemm);
     }
 

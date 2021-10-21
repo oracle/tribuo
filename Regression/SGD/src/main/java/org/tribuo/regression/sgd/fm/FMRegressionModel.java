@@ -120,16 +120,16 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
         context.addOutput(outputValueProto);
 
         // Build graph
-        writeONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context) {
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
 
         // Build the output neutral bits of the onnx graph
-        String fmOutputName = generateONNXGraph(context, context.getInputName(0));
+        String fmOutputName = generateONNXGraph(context, inputName);
 
         if (standardise) {
             // standardise the FM output
@@ -151,11 +151,11 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
             String varianceOutput = context.generateUniqueName("y_var_scale_output");
             OnnxMl.NodeProto varianceScale = ONNXOperators.MUL.build(context, new String[]{fmOutputName,outputVarianceProto.getName()}, varianceOutput);
             context.addNode(varianceScale);
-            OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, context.getOutputName(0));
+            OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputName);
             context.addNode(meanScale);
         } else {
             // Not standardised, so link up the FM output to the graph output
-            OnnxMl.NodeProto output = ONNXOperators.IDENTITY.build(context, fmOutputName, context.getOutputName(0));
+            OnnxMl.NodeProto output = ONNXOperators.IDENTITY.build(context, fmOutputName, outputName);
             context.addNode(output);
         }
     }

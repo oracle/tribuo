@@ -232,7 +232,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         context.addOutput(outputValueProto);
 
         // Build graph
-        writeONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         // Build model
         OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
@@ -255,7 +255,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context) {
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Add weights
         OnnxMl.TensorProto weightInitializerProto = ONNXMathUtils.floatTensorBuilder(context, "slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
                 fb -> {
@@ -288,7 +288,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
 
         // Scale features
         String featureMeanOutput = context.generateUniqueName("feature_mean_scale_output");
-        OnnxMl.NodeProto subFeatureMean = ONNXOperators.SUB.build(context,new String[]{context.getInputName(0),featureMeanProto.getName()},featureMeanOutput);
+        OnnxMl.NodeProto subFeatureMean = ONNXOperators.SUB.build(context,new String[]{inputName,featureMeanProto.getName()},featureMeanOutput);
         context.addNode(subFeatureMean);
         String featureVarianceOutput = context.generateUniqueName("feature_var_scale_output");
         OnnxMl.NodeProto divFeatureVariance = ONNXOperators.DIV.build(context,new String[]{subFeatureMean.getOutput(0),featureVarianceProto.getName()},featureVarianceOutput);
@@ -307,8 +307,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         OnnxMl.NodeProto varianceScale = ONNXOperators.MUL.build(context, new String[]{gemmOutput,outputVarianceProto.getName()}, varianceOutput);
         context.addNode(varianceScale);
 
-        String meanOutput = "output";
-        OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, meanOutput);
+        OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputName);
         context.addNode(meanScale);
     }
 
