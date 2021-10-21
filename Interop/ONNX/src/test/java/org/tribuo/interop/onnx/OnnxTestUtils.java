@@ -24,6 +24,8 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
+import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
@@ -84,6 +86,62 @@ public class OnnxTestUtils {
                         fail("Failed to find label " + l.getKey() + " in ORT prediction.");
                     } else {
                         assertEquals(l.getValue().getScore(), other.getScore(), delta);
+                    }
+                }
+            }
+
+            // Check that the provenance can be extracted and is the same
+            ModelProvenance modelProv = model.getProvenance();
+            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
+            assertTrue(optProv.isPresent());
+            ModelProvenance onnxProv = optProv.get();
+            assertNotSame(onnxProv, modelProv);
+            assertEquals(modelProv,onnxProv);
+
+            onnxModel.close();
+        } else {
+            logger.warning("ORT based tests only supported on x86_64, found " + arch);
+        }
+
+    }
+
+    /**
+     * Runs a comparison between an onnx model and a Tribuo model.
+     * <p>
+     * Only runs on x86 platforms.
+     * @param model The Tribuo model.
+     * @param onnxFile The path on disk to the ONNX model.
+     * @param testSet The test set.
+     * @param featureMapping The feature ID mapping.
+     * @param outputMapping The output ID mapping.
+     * @param delta The delta allowable between the Tribuo and ORT predictions.
+     * @throws OrtException If ORT failed to initialize.
+     */
+    public static void onnxMultiLabelComparison(Model<MultiLabel> model, Path onnxFile, Dataset<MultiLabel> testSet, Map<String,Integer> featureMapping, Map<MultiLabel,Integer> outputMapping, double delta) throws OrtException {
+        String arch = System.getProperty("os.arch");
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+            // Initialise the OrtEnvironment to load the native library
+            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
+            OrtEnvironment env = OrtEnvironment.getEnvironment();
+            env.close();
+            // Load in via ORT
+            ONNXExternalModel<MultiLabel> onnxModel = ONNXExternalModel.createOnnxModel(new MultiLabelFactory(),featureMapping,outputMapping,new DenseTransformer(),new MultiLabelTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
+
+            // Generate predictions
+            List<Prediction<MultiLabel>> nativePredictions = model.predict(testSet);
+            List<Prediction<MultiLabel>> onnxPredictions = onnxModel.predict(testSet);
+
+            // Assert the predictions are identical
+            for (int i = 0; i < nativePredictions.size(); i++) {
+                Prediction<MultiLabel> tribuo = nativePredictions.get(i);
+                Prediction<MultiLabel> external = onnxPredictions.get(i);
+                assertEquals(tribuo.getOutput().getLabelSet(), external.getOutput().getLabelSet());
+                for (Map.Entry<String,MultiLabel> l : tribuo.getOutputScores().entrySet()) {
+                    MultiLabel other = external.getOutputScores().get(l.getKey());
+                    if (other == null) {
+                        fail("Failed to find label " + l.getKey() + " in ORT prediction.");
+                    } else {
+                        assertEquals(l.getValue().getScore(),other.getScore(),delta);
                     }
                 }
             }

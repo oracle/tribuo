@@ -16,9 +16,7 @@
 
 package org.tribuo.multilabel.sgd.fm;
 
-import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,17 +29,13 @@ import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
-import org.tribuo.interop.onnx.DenseTransformer;
-import org.tribuo.interop.onnx.MultiLabelTransformer;
-import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.multilabel.MultiLabel;
-import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.multilabel.sgd.objectives.Hinge;
-import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
@@ -50,14 +44,10 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestFMMultiLabel {
     private static final Logger logger = Logger.getLogger(TestFMMultiLabel.class.getName());
@@ -122,46 +112,7 @@ public class TestFMMultiLabel {
             outputMapping.put(l.getB(), l.getA());
         }
 
-        String arch = System.getProperty("os.arch");
-        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
-            // Initialise the OrtEnvironment to load the native library
-            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
-            OrtEnvironment env = OrtEnvironment.getEnvironment();
-            env.close();
-            // Load in via ORT
-            ONNXExternalModel<MultiLabel> onnxModel = ONNXExternalModel.createOnnxModel(new MultiLabelFactory(),featureMapping,outputMapping,new DenseTransformer(),new MultiLabelTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
-
-            // Generate predictions
-            List<Prediction<MultiLabel>> nativePredictions = model.predict(test);
-            List<Prediction<MultiLabel>> onnxPredictions = onnxModel.predict(test);
-
-            // Assert the predictions are identical
-            for (int i = 0; i < nativePredictions.size(); i++) {
-                Prediction<MultiLabel> tribuo = nativePredictions.get(i);
-                Prediction<MultiLabel> external = onnxPredictions.get(i);
-                assertEquals(tribuo.getOutput().getLabelSet(), external.getOutput().getLabelSet());
-                for (Map.Entry<String,MultiLabel> l : tribuo.getOutputScores().entrySet()) {
-                    MultiLabel other = external.getOutputScores().get(l.getKey());
-                    if (other == null) {
-                        fail("Failed to find label " + l.getKey() + " in ORT prediction.");
-                    } else {
-                        assertEquals(l.getValue().getScore(),other.getScore(),1e-5);
-                    }
-                }
-            }
-
-            // Check that the provenance can be extracted and is the same
-            ModelProvenance modelProv = model.getProvenance();
-            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
-            assertTrue(optProv.isPresent());
-            ModelProvenance onnxProv = optProv.get();
-            assertNotSame(onnxProv, modelProv);
-            assertEquals(modelProv,onnxProv);
-
-            onnxModel.close();
-        } else {
-            logger.warning("ORT based tests only supported on x86_64, found " + arch);
-        }
+        OnnxTestUtils.onnxMultiLabelComparison(model,onnxFile,test,featureMapping,outputMapping,1e-5);
 
         onnxFile.toFile().delete();
     }
