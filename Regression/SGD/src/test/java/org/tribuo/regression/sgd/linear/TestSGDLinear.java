@@ -108,18 +108,7 @@ public class TestSGDLinear {
         Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");
         model.saveONNXModel("org.tribuo.regression.sgd.linear.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : model.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Regressor, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,Regressor> l : model.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxRegressorComparison(model,onnxFile,p.getB(),featureMapping,outputMapping,1e-5);
+        OnnxTestUtils.onnxRegressorComparison(model,onnxFile,p.getB(),1e-5);
 
         onnxFile.toFile().delete();
     }

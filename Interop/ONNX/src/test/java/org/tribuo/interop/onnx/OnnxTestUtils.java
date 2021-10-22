@@ -19,9 +19,12 @@ package org.tribuo.interop.onnx;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
+import org.tribuo.VariableIDInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
 import org.tribuo.multilabel.MultiLabel;
@@ -31,6 +34,7 @@ import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -55,12 +59,21 @@ public class OnnxTestUtils {
      * @param model The Tribuo model.
      * @param onnxFile The path on disk to the ONNX model.
      * @param testSet The test set.
-     * @param featureMapping The feature ID mapping.
-     * @param outputMapping The output ID mapping.
      * @param delta The delta allowable between the Tribuo and ORT predictions.
      * @throws OrtException If ORT failed to initialize.
      */
-    public static void onnxLabelComparison(Model<Label> model, Path onnxFile, Dataset<Label> testSet, Map<String,Integer> featureMapping, Map<Label,Integer> outputMapping, double delta) throws OrtException {
+    public static void onnxLabelComparison(Model<Label> model, Path onnxFile, Dataset<Label> testSet, double delta) throws OrtException {
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Label, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Label> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
         String arch = System.getProperty("os.arch");
         if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
             // Initialise the OrtEnvironment to load the native library
@@ -112,12 +125,21 @@ public class OnnxTestUtils {
      * @param model The Tribuo model.
      * @param onnxFile The path on disk to the ONNX model.
      * @param testSet The test set.
-     * @param featureMapping The feature ID mapping.
-     * @param outputMapping The output ID mapping.
      * @param delta The delta allowable between the Tribuo and ORT predictions.
      * @throws OrtException If ORT failed to initialize.
      */
-    public static void onnxMultiLabelComparison(Model<MultiLabel> model, Path onnxFile, Dataset<MultiLabel> testSet, Map<String,Integer> featureMapping, Map<MultiLabel,Integer> outputMapping, double delta) throws OrtException {
+    public static void onnxMultiLabelComparison(Model<MultiLabel> model, Path onnxFile, Dataset<MultiLabel> testSet, double delta) throws OrtException {
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<MultiLabel, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,MultiLabel> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
         String arch = System.getProperty("os.arch");
         if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
             // Initialise the OrtEnvironment to load the native library
@@ -168,12 +190,21 @@ public class OnnxTestUtils {
      * @param model The Tribuo model.
      * @param onnxFile The path on disk to the ONNX model.
      * @param testSet The test set.
-     * @param featureMapping The feature ID mapping.
-     * @param outputMapping The output ID mapping.
      * @param delta The delta allowable between the Tribuo and ORT predictions.
      * @throws OrtException If ORT failed to initialize.
      */
-    public static void onnxRegressorComparison(Model<Regressor> model, Path onnxFile, Dataset<Regressor> testSet, Map<String,Integer> featureMapping, Map<Regressor,Integer> outputMapping, double delta) throws OrtException {
+    public static void onnxRegressorComparison(Model<Regressor> model, Path onnxFile, Dataset<Regressor> testSet, double delta) throws OrtException {
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : model.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<Regressor, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Regressor> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
         String arch = System.getProperty("os.arch");
         if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
             // Initialise the OrtEnvironment to load the native library

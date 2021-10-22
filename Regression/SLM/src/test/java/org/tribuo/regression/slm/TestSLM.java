@@ -106,18 +106,7 @@ public class TestSLM {
                 Path onnxFile = Files.createTempFile("tribuo-slm-test", ".onnx");
                 slm.saveONNXModel("org.tribuo.classification.sgd.linear.test", 1, onnxFile);
 
-                // Prep mappings
-                Map<String, Integer> featureMapping = new HashMap<>();
-                for (VariableInfo f : slm.getFeatureIDMap()) {
-                    VariableIDInfo id = (VariableIDInfo) f;
-                    featureMapping.put(id.getName(), id.getID());
-                }
-                Map<Regressor, Integer> outputMapping = new HashMap<>();
-                for (Pair<Integer, Regressor> l : slm.getOutputIDInfo()) {
-                    outputMapping.put(l.getB(), l.getA());
-                }
-
-                OnnxTestUtils.onnxRegressorComparison(slm,onnxFile,p.getB(),featureMapping,outputMapping,1e-4);
+                OnnxTestUtils.onnxRegressorComparison(slm,onnxFile,p.getB(),1e-4);
 
                 onnxFile.toFile().delete();
             } catch (IOException | OrtException ex) {

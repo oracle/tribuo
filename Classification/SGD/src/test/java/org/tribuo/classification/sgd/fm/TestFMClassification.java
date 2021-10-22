@@ -141,18 +141,7 @@ public class TestFMClassification {
         Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");
         model.saveONNXModel("org.tribuo.classification.sgd.fm.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : model.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Label, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,Label> l : model.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxLabelComparison(model,onnxFile,p.getB(),featureMapping,outputMapping,1e-5);
+        OnnxTestUtils.onnxLabelComparison(model,onnxFile,p.getB(),1e-5);
 
         onnxFile.toFile().delete();
     }

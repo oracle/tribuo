@@ -101,18 +101,7 @@ public class TestFMMultiLabel {
         Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");
         model.saveONNXModel("org.tribuo.multilabel.sgd.fm.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : model.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<MultiLabel, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,MultiLabel> l : model.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxMultiLabelComparison(model,onnxFile,test,featureMapping,outputMapping,1e-5);
+        OnnxTestUtils.onnxMultiLabelComparison(model,onnxFile,test,1e-5);
 
         onnxFile.toFile().delete();
     }

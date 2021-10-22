@@ -147,18 +147,7 @@ public class TestFMRegression {
         Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");
         model.saveONNXModel("org.tribuo.regression.sgd.fm.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : model.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Regressor, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,Regressor> l : model.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxRegressorComparison(model,onnxFile,p.getB(),featureMapping,outputMapping,1e-4);
+        OnnxTestUtils.onnxRegressorComparison(model,onnxFile,p.getB(),1e-4);
 
         onnxFile.toFile().delete();
     }

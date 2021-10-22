@@ -104,18 +104,7 @@ public class EnsembleExportTest {
         Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
         ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : ensemble.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Label, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,Label> l : ensemble.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxLabelComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-6);
+        OnnxTestUtils.onnxLabelComparison(ensemble,onnxFile,test,1e-6);
 
         onnxFile.toFile().delete();
     }
@@ -141,18 +130,7 @@ public class EnsembleExportTest {
         Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
         ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : ensemble.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Label, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,Label> l : ensemble.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxLabelComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-6);
+        OnnxTestUtils.onnxLabelComparison(ensemble,onnxFile,test,1e-6);
 
         onnxFile.toFile().delete();
     }
@@ -174,18 +152,7 @@ public class EnsembleExportTest {
         Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
         ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : ensemble.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Regressor, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer, Regressor> l : ensemble.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxRegressorComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-5);
+        OnnxTestUtils.onnxRegressorComparison(ensemble,onnxFile,test,1e-5);
 
         onnxFile.toFile().delete();
     }
@@ -212,18 +179,7 @@ public class EnsembleExportTest {
         Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
         ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : ensemble.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Regressor, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer, Regressor> l : ensemble.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxRegressorComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-5);
+        OnnxTestUtils.onnxRegressorComparison(ensemble,onnxFile,test,1e-5);
 
         onnxFile.toFile().delete();
     }
@@ -247,18 +203,7 @@ public class EnsembleExportTest {
         Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
         ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : ensemble.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<MultiLabel, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,MultiLabel> l : ensemble.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxMultiLabelComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-6);
+        OnnxTestUtils.onnxMultiLabelComparison(ensemble,onnxFile,test,1e-6);
 
         onnxFile.toFile().delete();
 
@@ -286,18 +231,7 @@ public class EnsembleExportTest {
         Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
         ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : ensemble.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<MultiLabel, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,MultiLabel> l : ensemble.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        OnnxTestUtils.onnxMultiLabelComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-6);
+        OnnxTestUtils.onnxMultiLabelComparison(ensemble,onnxFile,test,1e-6);
 
         onnxFile.toFile().delete();
     }
