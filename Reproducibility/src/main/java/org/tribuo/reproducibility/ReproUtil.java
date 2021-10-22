@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,19 @@
 package org.tribuo.reproducibility;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
-import com.oracle.labs.mlrg.olcut.provenance.*;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.MapProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.PrimitiveProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
@@ -38,8 +45,11 @@ import org.tribuo.Output;
 import org.tribuo.Trainer;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.ExternalTrainerProvenance;
-import org.tribuo.provenance.*;
-import org.tribuo.provenance.impl.TrainerProvenanceImpl;
+import org.tribuo.provenance.DataProvenance;
+import org.tribuo.provenance.DataSourceProvenance;
+import org.tribuo.provenance.DatasetProvenance;
+import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.provenance.TrainerProvenance;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
@@ -57,9 +67,11 @@ public class ReproUtil {
     // These fields are used to denote which value came from which provenance in a diff
     private final static String OLD = "original";
     private final static String NEW = "reproduced";
-    private static ObjectMapper mapper;
+    private static final ObjectMapper mapper;
     static {
         mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
     }
 
     private final ConfigurationManager cm;
@@ -155,6 +167,9 @@ public class ReproUtil {
             //If configuration data only comes from a model prov there should only be one source
             //but since we expose the configuration manager, a user theoretically could add a new source
             sourceName = sources.get(0);
+            if(sources.size() > 1){
+                logger.log(Level.INFO, "More than one DataSource found");
+            }
         }
 
         // If the data source can be recovered from cm, override the properties before the dataSource is
@@ -185,13 +200,13 @@ public class ReproUtil {
         try {
             modelDataset = (Dataset<T>) datasetClass.getConstructor(DataSource.class).newInstance(modelSource);
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
         } catch (NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
         }
 
         return modelDataset;
@@ -297,8 +312,7 @@ public class ReproUtil {
                 try {
                     dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
                 } catch (ClassNotFoundException e) {
-                    //e.printStackTrace();
-                    throw new IllegalStateException("Identified DataSource class does not exist");
+                    throw new IllegalStateException("Identified DataSource " + dataSourceClass.getName() + " class does not exist", e);
                 }
             }
             // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
@@ -342,26 +356,18 @@ public class ReproUtil {
      * Recovers the trainer and dataset information before training an identical model.
      * @return A reproduced model identical to the one described in the provenance.
      */
-    public <T extends Output<T>> Model<T> reproduceFromProvenance(){
+    public <T extends Output<T>> Model<T> reproduceFromProvenance() throws ClassNotFoundException {
 
         // Until now the object only holds the configuration for these objects, the following
         // functions will actually re-instantiate them.
         Trainer<T> newTrainer = null;
-        try {
-            newTrainer = recoverTrainer();
-        } catch (IllegalStateException e) {
-            //TODO Decide what to do when this exception is encountered
-            e.printStackTrace();
-        }
+
+        newTrainer = recoverTrainer();
+
         Dataset<T> newDataset = null;
-        try {
-            newDataset = recoverDataset();
-        } catch (IllegalStateException e) {
-            //TODO Decide what to do when these exception are encountered
-            e.printStackTrace();
-        } catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
+
+        newDataset = recoverDataset();
+
 
         // Exposing the configuration manager means there could be an edge case were
         // the invocation count is changed before the model is trained.
@@ -385,7 +391,7 @@ public class ReproUtil {
      * Recovers the trainer and dataset information before training an identical model.
      * @return A reproduced model identical to the one described in the provenance.
      */
-    public <T extends Output<T>> Model<T> reproduceFromModel() throws IllegalStateException {
+    public <T extends Output<T>> Model<T> reproduceFromModel() throws IllegalStateException, ClassNotFoundException {
         if(this.originalModel == null){
             throw new IllegalStateException("No model to reproduce was provided");
         }
@@ -464,7 +470,7 @@ public class ReproUtil {
                     addProvWithoutDiff(subNode, subProvMap.keySet(), subProvMap, provIdentifier);
                     report.set(key, subNode);
                 } else {
-                    throw new IllegalStateException("Missing type of provenance");
+                    throw new IllegalStateException("Unknown type of provenance: " + provMap.get(key).toString());
                 }
 
             }
@@ -495,11 +501,11 @@ public class ReproUtil {
 
             // When provenance is primitive and they share a key simply compare their values
             // If different, place each prov's value in the report
-            if(provenanceA instanceof PrimitiveProvenance && provenanceB instanceof PrimitiveProvenance){
+            if(provenanceA instanceof PrimitiveProvenance primProvA && provenanceB instanceof PrimitiveProvenance primProvB){
                 if(!provMapA.get(key).equals(provMapB.get(key))){
                     ObjectNode valDiff = mapper.createObjectNode();
-                    valDiff.put(OLD, ((PrimitiveProvenance<?>) provMapA.get(key)).getValue().toString());
-                    valDiff.put(NEW, ((PrimitiveProvenance<?>) provMapB.get(key)).getValue().toString());
+                    valDiff.put(OLD, primProvA.getValue().toString());
+                    valDiff.put(NEW, primProvB.getValue().toString());
                     report.set(key, valDiff);
                 }
             }
@@ -529,7 +535,7 @@ public class ReproUtil {
                     }
                     // If the list contains ConfiguredObjectProvenanceImpl, they are the same size, and not empty
                     // do an element-wise comparison of the objects and add any diffs to an array that is reported
-                    // TODO: Diff different sized lists
+                    // TODO: Diff different sized lists and add explanation suffix
                     else if (listProvA.getList().size() > 0 &&
                             listProvB.getList().size() > 0 &&
                             listProvA.getList().get(0) instanceof ConfiguredObjectProvenanceImpl &&

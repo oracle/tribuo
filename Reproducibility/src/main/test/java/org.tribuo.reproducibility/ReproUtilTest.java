@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
-import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.rtree.CARTRegressionTrainer;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
@@ -189,7 +188,7 @@ class ReproUtilTest {
     }
 
     @Test
-    public void testReproduceFromProvenanceWithSplitter() throws IOException, URISyntaxException {
+    public void testReproduceFromProvenanceWithSplitter() throws IOException, URISyntaxException, ClassNotFoundException {
         CSVDataSource<Label> csvSource = getCSVDatasource();
 
         TrainTestSplitter trainTestSplitter = new TrainTestSplitter<>(csvSource,0.7,1L);
@@ -209,7 +208,7 @@ class ReproUtilTest {
     }
 
     @Test
-    public void testReproduceFromProvenanceNoSplitter() throws IOException, URISyntaxException {
+    public void testReproduceFromProvenanceNoSplitter() throws IOException, URISyntaxException, ClassNotFoundException {
         CSVDataSource<Label> csvSource = getCSVDatasource();
         MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
 
@@ -225,7 +224,7 @@ class ReproUtilTest {
     }
 
     @Test
-    public void testReproduceFromModel() throws IOException, URISyntaxException {
+    public void testReproduceFromModel() throws IOException, URISyntaxException, ClassNotFoundException {
         CSVDataSource csvSource = getCSVDatasource();
         MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
 
@@ -243,7 +242,7 @@ class ReproUtilTest {
     }
 
     @Test
-    public void testOverrideConfigurableProperty() throws IOException, URISyntaxException {
+    public void testOverrideConfigurableProperty() throws IOException, URISyntaxException, ClassNotFoundException {
         CSVDataSource csvSource = getCSVDatasource();
         MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
 
@@ -274,7 +273,7 @@ class ReproUtilTest {
 
 
     @Test
-    public void testProvDiff() throws IOException, URISyntaxException {
+    public void testProvDiff() throws IOException, URISyntaxException, ClassNotFoundException {
         //TODO: Expand this to actually assert something
         CSVDataSource csvSource = getCSVDatasource();
         MutableDataset datasetFromCSV = new MutableDataset<Label>(csvSource);
@@ -292,7 +291,7 @@ class ReproUtilTest {
     }
 
     @Test
-    public void reproduceTransformTrainer() throws IOException, URISyntaxException {
+    public void reproduceTransformTrainer() throws IOException, URISyntaxException, ClassNotFoundException {
         CSVDataSource csvSource = getCSVDatasource();
         TrainTestSplitter splitter = new TrainTestSplitter(csvSource);
         MutableDataset datasetFromCSV = new MutableDataset<Label>(splitter.getTrain());
@@ -333,7 +332,7 @@ class ReproUtilTest {
 
 
     @Test
-    public void testBaggingTrainer() throws IOException {
+    public void testBaggingTrainer() throws IOException, ClassNotFoundException {
         //TODO: Will need more extensive testing here
         CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE,
                 MIN_EXAMPLES, 0.0f, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);
@@ -351,7 +350,7 @@ class ReproUtilTest {
     }
 
     @Test
-    public void testBaggingTrainerAllInvocationsChange() throws IOException {
+    public void testBaggingTrainerAllInvocationsChange() throws IOException, ClassNotFoundException {
         // This example has multiple trainers in the form of an ensemble, and all need to be set to the correct value
         CARTRegressionTrainer subsamplingTree = new CARTRegressionTrainer(Integer.MAX_VALUE,
                 MIN_EXAMPLES, 0.0f, 0.5f, false, new MeanSquaredError(), Trainer.DEFAULT_SEED);

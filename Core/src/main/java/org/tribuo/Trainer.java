@@ -68,12 +68,10 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
      * @return a predictive model that can be used to generate predictions for new examples.
      */
     public default Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
-        Model<T> returnModel = null;
         synchronized (this){
             setInvocationCount(invocationCount);
-            returnModel = train(examples, runProvenance);
+            return train(examples, runProvenance);
         }
-        return returnModel;
     }
 
     /**
