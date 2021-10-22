@@ -40,7 +40,11 @@ import org.tribuo.ensemble.EnsembleModel;
 import org.tribuo.ensemble.WeightedEnsembleModel;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
+import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.ensemble.MultiLabelVotingCombiner;
+import org.tribuo.multilabel.example.MultiLabelGaussianDataSource;
+import org.tribuo.multilabel.sgd.fm.FMMultiLabelTrainer;
+import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
 import org.tribuo.regression.example.NonlinearGaussianDataSource;
@@ -225,13 +229,77 @@ public class EnsembleExportTest {
     }
 
     @Test
-    public void testHomogenousMultiLabelExport() {
+    public void testHomogenousMultiLabelExport() throws IOException, OrtException {
+        // Prep data
+        DataSource<MultiLabel> trainSource = MultiLabelGaussianDataSource.makeDefaultSource(100,1L);
+        MutableDataset<MultiLabel> train = new MutableDataset<>(trainSource);
+        DataSource<MultiLabel> testSource = MultiLabelGaussianDataSource.makeDefaultSource(100,2L);
+        MutableDataset<MultiLabel> test = new MutableDataset<>(testSource);
+
+        // Train model
+        BinaryCrossEntropy loss = new BinaryCrossEntropy();
+        AdaGrad adagrad = new AdaGrad(0.1,0.1);
+        org.tribuo.multilabel.sgd.linear.LinearSGDTrainer lr = new org.tribuo.multilabel.sgd.linear.LinearSGDTrainer(loss,adagrad,3,1000,1,1L);
+        BaggingTrainer<MultiLabel> t = new BaggingTrainer<>(lr, ML_VOTING,5);
+        WeightedEnsembleModel<MultiLabel> ensemble = (WeightedEnsembleModel<MultiLabel>) t.train(train);
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
+        ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : ensemble.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<MultiLabel, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,MultiLabel> l : ensemble.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        OnnxTestUtils.onnxMultiLabelComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-6);
+
+        onnxFile.toFile().delete();
 
     }
 
     @Test
-    public void testHeterogeneousMultiLabelExport() {
+    public void testHeterogeneousMultiLabelExport() throws IOException, OrtException {
+        // Prep data
+        DataSource<MultiLabel> trainSource = MultiLabelGaussianDataSource.makeDefaultSource(100,1L);
+        MutableDataset<MultiLabel> train = new MutableDataset<>(trainSource);
+        DataSource<MultiLabel> testSource = MultiLabelGaussianDataSource.makeDefaultSource(100,2L);
+        MutableDataset<MultiLabel> test = new MutableDataset<>(testSource);
 
+        // Train model
+        BinaryCrossEntropy loss = new BinaryCrossEntropy();
+        AdaGrad adagrad = new AdaGrad(0.1,0.1);
+        org.tribuo.multilabel.sgd.linear.LinearSGDTrainer lr = new org.tribuo.multilabel.sgd.linear.LinearSGDTrainer(loss,adagrad,3,1000,1,1L);
+        BaggingTrainer<MultiLabel> t = new BaggingTrainer<>(lr, ML_VOTING,5);
+        EnsembleModel<MultiLabel> bagModel = t.train(train);
+        FMMultiLabelTrainer fmT = new FMMultiLabelTrainer(loss,adagrad,2,100,1,1L,5,0.1);
+        AbstractFMModel<MultiLabel> fmModel = fmT.train(train);
+        WeightedEnsembleModel<MultiLabel> ensemble = WeightedEnsembleModel.createEnsembleFromExistingModels("Bag+FM", Arrays.asList(bagModel,fmModel), ML_VOTING, new float[]{0.3f,0.7f});
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
+        ensemble.saveONNXModel("org.tribuo.ensemble.test",1,onnxFile);
+
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : ensemble.getFeatureIDMap()){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
+        }
+        Map<MultiLabel, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,MultiLabel> l : ensemble.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+
+        OnnxTestUtils.onnxMultiLabelComparison(ensemble,onnxFile,test,featureMapping,outputMapping,1e-6);
+
+        onnxFile.toFile().delete();
     }
 
 }

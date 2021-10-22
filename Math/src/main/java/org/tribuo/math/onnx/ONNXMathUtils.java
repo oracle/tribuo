@@ -70,6 +70,7 @@ public abstract class ONNXMathUtils {
     public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, int value) {
         OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
         scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.setDataType(OnnxMl.TensorProto.DataType.INT32.getNumber());
         scalarBuilder.addInt32Data(value);
         return scalarBuilder.build();
     }
@@ -84,6 +85,7 @@ public abstract class ONNXMathUtils {
     public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, long value) {
         OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
         scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.setDataType(OnnxMl.TensorProto.DataType.INT64.getNumber());
         scalarBuilder.addInt64Data(value);
         return scalarBuilder.build();
     }
@@ -98,6 +100,7 @@ public abstract class ONNXMathUtils {
     public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, float value) {
         OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
         scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
         scalarBuilder.addFloatData(value);
         return scalarBuilder.build();
     }
@@ -112,6 +115,7 @@ public abstract class ONNXMathUtils {
     public static OnnxMl.TensorProto scalarBuilder(ONNXContext context, String name, double value) {
         OnnxMl.TensorProto.Builder scalarBuilder = OnnxMl.TensorProto.newBuilder();
         scalarBuilder.setName(context.generateUniqueName(name));
+        scalarBuilder.setDataType(OnnxMl.TensorProto.DataType.DOUBLE.getNumber());
         scalarBuilder.addDoubleData(value);
         return scalarBuilder.build();
     }
