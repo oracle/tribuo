@@ -16,9 +16,7 @@
 
 package org.tribuo.classification.sgd.fm;
 
-import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
@@ -28,44 +26,28 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
-import org.tribuo.Prediction;
 import org.tribuo.Trainer;
-import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
-import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
-import org.tribuo.classification.sgd.linear.LinearSGDModel;
-import org.tribuo.classification.sgd.linear.TestSGDLinear;
 import org.tribuo.classification.sgd.objectives.Hinge;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
-import org.tribuo.interop.onnx.DenseTransformer;
-import org.tribuo.interop.onnx.LabelTransformer;
-import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
-import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestFMClassification {
     private static final Logger logger = Logger.getLogger(TestFMClassification.class.getName());

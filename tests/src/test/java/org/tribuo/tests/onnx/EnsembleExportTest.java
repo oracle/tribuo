@@ -17,14 +17,10 @@
 package org.tribuo.tests.onnx;
 
 import ai.onnxruntime.OrtException;
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
-import org.tribuo.Dataset;
 import org.tribuo.MutableDataset;
-import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.ensemble.FullyWeightedVotingCombiner;
 import org.tribuo.classification.ensemble.VotingCombiner;
@@ -55,8 +51,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

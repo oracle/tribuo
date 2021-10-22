@@ -16,21 +16,15 @@
 
 package org.tribuo.classification.sgd.linear;
 
-import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
-import org.tribuo.Prediction;
 import org.tribuo.Trainer;
-import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
-import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
@@ -39,33 +33,25 @@ import org.tribuo.classification.sgd.objectives.LogMulticlass;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.dataset.DatasetView;
-import org.tribuo.interop.onnx.DenseTransformer;
-import org.tribuo.interop.onnx.LabelTransformer;
-import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {

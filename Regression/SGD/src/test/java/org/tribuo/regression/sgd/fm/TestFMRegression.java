@@ -16,28 +16,18 @@
 
 package org.tribuo.regression.sgd.fm;
 
-import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
-import org.tribuo.Prediction;
 import org.tribuo.Trainer;
-import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
-import org.tribuo.interop.onnx.DenseTransformer;
-import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.OnnxTestUtils;
-import org.tribuo.interop.onnx.RegressorTransformer;
 import org.tribuo.math.optimisers.AdaGrad;
-import org.tribuo.provenance.ModelProvenance;
-import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -48,18 +38,12 @@ import org.tribuo.test.Helpers;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestFMRegression {
     private static final Logger logger = Logger.getLogger(TestFMRegression.class.getName());
