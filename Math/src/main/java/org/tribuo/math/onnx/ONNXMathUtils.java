@@ -159,13 +159,16 @@ public abstract class ONNXMathUtils {
      * @return A TensorProto containing the matrix
      */
     public static OnnxMl.TensorProto floatMatrixBuilder(ONNXContext context, String name, Matrix matrix, boolean transpose) {
+        List<Integer> dims = Arrays.stream(matrix.getShape()).boxed().collect(Collectors.toList());
+        if(transpose) {
+            Collections.reverse(dims);
+        }
         return floatTensorBuilder(context, name,
-                Arrays.stream(matrix.getShape()).boxed().collect(Collectors.toList()),
+                dims,
                 fb -> matrix.forEach(mt -> {
                     int address = transpose
-                            ? mt.j * matrix.getDimension2Size() + mt.i
-                            : mt.i * matrix.getDimension1Size() + mt.j;
-                    System.out.println("tuple: " + mt.toString() + " address: " +address + " buffersize:" + fb.capacity());
+                            ? mt.j * matrix.getDimension1Size() + mt.i
+                            : mt.i * matrix.getDimension2Size() + mt.j;
                     fb.put(address, (float) mt.value);
                 }));
     }

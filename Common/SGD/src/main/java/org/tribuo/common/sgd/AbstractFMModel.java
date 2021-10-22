@@ -36,7 +36,6 @@ import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -247,9 +246,8 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         // Add embedding vectors
         OnnxMl.TensorProto[] embeddingProtos = new OnnxMl.TensorProto[outputIDInfo.size()];
         for (int i = 0; i < outputIDInfo.size(); i++) {
-            embeddingProtos[i] = ONNXMathUtils.floatMatrixBuilder(context, "fm_embedding_" + i, (Matrix) modelParams[i + 2], false);
+            embeddingProtos[i] = ONNXMathUtils.floatMatrixBuilder(context, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
             graphBuilder.addInitializer(embeddingProtos[i]);
-            System.out.println("base shape:" + Arrays.toString(modelParams[i + 2].getShape()) + "\nonnx shape: " + embeddingProtos[i].getDimsList().toString());
         }
 
         // Make gemm
