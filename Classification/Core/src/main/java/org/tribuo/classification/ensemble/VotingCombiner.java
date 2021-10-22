@@ -153,7 +153,7 @@ public final class VotingCombiner implements EnsembleCombiner<Label> {
     }
 
     /**
-     * Exports this ensemble combiner as a list of ONNX NodeProtos.
+     * Exports this voting combiner as a list of ONNX NodeProtos.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
      * @param context The ONNX context object for name generation.
@@ -188,9 +188,10 @@ public final class VotingCombiner implements EnsembleCombiner<Label> {
         // Take the weighted mean over the outputs
         OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_across_ensemble_axes",new long[]{2});
         context.addInitializer(sumAxes);
-        Map<String,Object> attributes = new HashMap<>();
-        attributes.put("keepdims",0);
-        OnnxMl.NodeProto sumAcrossMembers = ONNXOperators.REDUCE_SUM.build(context,new String[]{mulByWeights.getOutput(0),sumAxes.getName()},context.generateUniqueName("sum_across_ensemble"),attributes);
+        OnnxMl.NodeProto sumAcrossMembers = ONNXOperators.REDUCE_SUM.build(context,
+                new String[]{mulByWeights.getOutput(0),sumAxes.getName()},
+                context.generateUniqueName("sum_across_ensemble"),
+                Collections.singletonMap("keepdims",0));
         nodes.add(sumAcrossMembers);
         OnnxMl.NodeProto divideByWeightSum = ONNXOperators.DIV.build(context,new String[]{sumAcrossMembers.getOutput(0),weightSum.getOutput(0)},output);
         nodes.add(divideByWeightSum);

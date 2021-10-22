@@ -188,9 +188,10 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
         // Take the weighted mean over the outputs
         OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_across_ensemble_axes",new long[]{2});
         context.addInitializer(sumAxes);
-        Map<String,Object> attributes = new HashMap<>();
-        attributes.put("keepdims",0);
-        OnnxMl.NodeProto sumAcrossMembers = ONNXOperators.REDUCE_SUM.build(context,new String[]{mulByWeights.getOutput(0),sumAxes.getName()},context.generateUniqueName("sum_across_ensemble"),attributes);
+        OnnxMl.NodeProto sumAcrossMembers = ONNXOperators.REDUCE_SUM.build(context,
+                new String[]{mulByWeights.getOutput(0),sumAxes.getName()},
+                context.generateUniqueName("sum_across_ensemble"),
+                Collections.singletonMap("keepdims",0));
         nodes.add(sumAcrossMembers);
         OnnxMl.NodeProto divideByWeightSum = ONNXOperators.DIV.build(context,new String[]{sumAcrossMembers.getOutput(0),weightSum.getOutput(0)},output);
         nodes.add(divideByWeightSum);
