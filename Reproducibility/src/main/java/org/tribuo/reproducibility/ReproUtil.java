@@ -123,7 +123,6 @@ public class ReproUtil {
                     //TODO: More instanceof match?
                     trainer.setInvocationCount((int) trainerProvenance.getInstanceValues().get("train-invocation-count").getValue());
                 } else {
-                    // TODO: Make some kind of exception, but also this shouldn't happen if provenance is trainer?
                     throw new IllegalStateException("Object that is supposed to be a Trainer recovered from Configuration Manager is not a trainer");
                 }
             }
@@ -294,27 +293,16 @@ public class ReproUtil {
                 }
             }
 
-            if(innerProvenance instanceof DatasetProvenance datasetProvenance){
-                dataClasses = getSourcesClassNames(datasetProvenance);
-                dataSourceClass = dataClasses[0];
-                datasetClass = dataClasses[1];
-
-                if(!(ConfigurableDataSource.class.isAssignableFrom(dataSourceClass))){
-                    // TODO: expand this to be more informative
-                    throw new IllegalStateException("Datasource is not configurable and cannot be recovered.");
-                }
-            } else {
-                if(!(innerProvenance instanceof ConfiguredObjectProvenance)){
-                    // TODO: expand this to be more informative
-                    throw new IllegalStateException("Datasource is not configurable and cannot be recovered.");
-                }
-
-                try {
-                    dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
-                } catch (ClassNotFoundException e) {
-                    throw new IllegalStateException("Identified DataSource " + dataSourceClass.getName() + " class does not exist", e);
-                }
+            if(!(innerProvenance instanceof ConfiguredObjectProvenance)){
+                throw new IllegalStateException("Datasource is not configurable and cannot be recovered.");
             }
+
+            try {
+                dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("Identified DataSource " + dataSourceClass.getName() + " does not exist", e);
+            }
+
             // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
             // innerSource, should return the same Dataset used to train the model
             DataSource<?> innerSource = getDatasourceFromCM(dataSourceClass);
@@ -330,7 +318,6 @@ public class ReproUtil {
             // When it's not a splitter, recover the Datasource and then Dataset.
 
             if(!(ConfigurableDataSource.class.isAssignableFrom(dataSourceClass))){
-                // TODO: expand this to be more informative
                 throw new IllegalStateException("Datasource is not configurable and cannot be recovered.");
             }
 
@@ -409,7 +396,6 @@ public class ReproUtil {
             }
         }
 
-        // TODO: Expand upon this exception
         if(!originalModel.getOutputIDInfo().toString().equals(newModel.getOutputIDInfo().toString())){
             // TODO: return record type with diff, and output differences
         }
@@ -562,7 +548,7 @@ public class ReproUtil {
                 }
                 // If it's not a ListProvenance it should be an ObjectProvenance or MapProvenance, in which case the
                 // iterator will return a Pair<String,Provenance>
-                //TODO: Can we provide a better enforcement of this assumption?
+                //TODO: Can we provide a better enforcement of this assumption? Wait until Java 17?
                 else if (provenanceA instanceof Iterable provIterableA &&
                          provenanceB instanceof Iterable provIterableB){
 
@@ -589,7 +575,6 @@ public class ReproUtil {
                 // ListProvenance might contain Pair<String, Provenance> but it might also contain a list of
                 // ConfiguredObjectProvenanceImpl. This handles that situation directly.
                 else {
-                    //TODO: Error handling here
                     throw new IllegalStateException("Unrecognized Provenance: \n" + provMapA.get(key).getClass());
                 }
             }
