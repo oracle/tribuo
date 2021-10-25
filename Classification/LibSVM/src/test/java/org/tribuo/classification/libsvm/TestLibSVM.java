@@ -248,7 +248,6 @@ public class TestLibSVM {
     public void testOnnxSerialization() throws IOException, OrtException {
         Pair<Dataset<Label>, Dataset<Label>> binary = LabelledDataGenerator.binarySparseTrainTest();
 
-        /*
         Map<Label,Integer> mapping = new HashMap<>();
         mapping.put(new Label("Foo"),0);
         mapping.put(new Label("Bar"),1);
@@ -258,7 +257,6 @@ public class TestLibSVM {
         ImmutableDataset<Label> newTest = ImmutableDataset.copyDataset(binary.getB(), binary.getA().getFeatureIDMap(), newInfo);
 
         testOnnxSerialization(new Pair<>(newTrain,newTest), C_LINEAR);
-         */
 
         testOnnxSerialization(binary, C_LINEAR);
         testOnnxSerialization(binary, C_RBF);
