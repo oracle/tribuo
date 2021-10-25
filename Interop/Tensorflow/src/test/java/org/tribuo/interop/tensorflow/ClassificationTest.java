@@ -100,7 +100,6 @@ public class ClassificationTest {
         // Test native trainer
         TensorFlowTrainer<Label> nativeTrainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
-                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 denseConverter,
@@ -132,7 +131,6 @@ public class ClassificationTest {
         Path checkpointPath = Files.createTempDirectory("tf-classification-test-ckpt");
         TensorFlowTrainer<Label> checkpointTrainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
-                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 denseConverter,
@@ -334,7 +332,6 @@ public class ClassificationTest {
         OutputConverter<Label> outputConverter = new LabelConverter();
         TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
-                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 imageConverter,
@@ -421,7 +418,7 @@ public class ClassificationTest {
         System.out.println("Building graph");
         GraphDefTuple graphDefTuple = CNNExamples.buildLeNetGraph(INPUT_NAME,IMAGE_SIZE,PIXEL_DEPTH,NUM_LABELS);
 
-        System.out.println("Writing graph to " + args[0] + " with init name '" + graphDefTuple.initName + "' and output  name '" + graphDefTuple.outputName + "'");
+        System.out.println("Writing graph to " + args[0] + " with output  name '" + graphDefTuple.outputName + "'");
         GraphDef graphDef = graphDefTuple.graphDef;
         byte[] bytes = graphDef.toByteArray();
         try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(args[0]))) {
@@ -437,7 +434,6 @@ public class ClassificationTest {
 
         TensorFlowTrainer<Label> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
-                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 imageConverter,

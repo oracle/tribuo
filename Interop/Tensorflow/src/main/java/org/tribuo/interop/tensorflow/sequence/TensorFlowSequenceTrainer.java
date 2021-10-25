@@ -86,8 +86,6 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
     @Config(description="Seed for the RNG.")
     protected long seed = 1;
 
-    @Config(mandatory=true,description="Name of the initialisation operation.")
-    protected String initOp;
     @Config(mandatory=true,description="Name of the training operation.")
     protected String trainOp;
     @Config(mandatory=true,description="Name of the loss operation (to inspect the loss).")
@@ -108,7 +106,6 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
      * @param epochs The number of training epochs.
      * @param loggingInterval The logging interval.
      * @param seed The RNG seed.
-     * @param initOp The name of the init operation.
      * @param trainOp The name of the training operation.
      * @param getLossOp The name of the loss operation.
      * @param predictOp The name of the prediction operation.
@@ -121,7 +118,6 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
                                      int epochs,
                                      int loggingInterval,
                                      long seed,
-                                     String initOp,
                                      String trainOp,
                                      String getLossOp,
                                      String predictOp) throws IOException {
@@ -132,7 +128,6 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
         this.epochs = epochs;
         this.loggingInterval = loggingInterval;
         this.seed = seed;
-        this.initOp = initOp;
         this.trainOp = trainOp;
         this.getLossOp = getLossOp;
         this.predictOp = predictOp;
@@ -172,10 +167,6 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
             //
             // Load the graph def into the session.
             graph.importGraphDef(graphDef);
-            //
-            // Initialise the variables.
-            session.run(initOp);
-            log.info("Initialised the model parameters");
             //
             // Run additional initialization routines, if needed.
             preTrainingHook(session, examples);
@@ -245,7 +236,6 @@ public class TensorFlowSequenceTrainer<T extends Output<T>> implements SequenceT
                     trainedGraphDef,
                     featureConverter,
                     outputConverter,
-                    initOp,
                     predictOp,
                     tensorMap
             );
