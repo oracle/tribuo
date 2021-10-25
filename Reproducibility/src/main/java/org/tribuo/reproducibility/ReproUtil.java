@@ -441,13 +441,34 @@ public class ReproUtil {
     private static void addProvWithoutDiff(ObjectNode report, Set<String> keys, TreeMap<String, Provenance> provMap, String provIdentifier){
 
         for(String key : keys){
+
             if(provMap.get(key) instanceof PrimitiveProvenance primitiveProvenance){
                 ObjectNode provVal = mapper.createObjectNode();
                 provVal.put(provIdentifier, primitiveProvenance.getValue().toString());
                 report.set(key, provVal);
             } else {
+                // Not all provenance iterators return the same type of iterator,
+                // since we cannot pattern match on Iterator<Type>, we need to
+                // catch the different iterators based on the type of provenance.
+                // ListProvenance can return a list of ConfiguredObjectProvenances
                 if (provMap.get(key) instanceof ListProvenance listProvenance){
-                    //TODO: Fill out here, is it best to do it this way?
+                    if(listProvenance.getList().get(0) instanceof ConfiguredObjectProvenance){
+                        ArrayNode provArray =  mapper.createArrayNode();
+
+                        // Iterate through each ConfiguredObjectProvenance and recurse on each provenance object
+                        for (int provListIndex = 0; provListIndex < listProvenance.getList().size(); provListIndex++){
+                            TreeMap<String, Provenance> subProvMap = iterToMap(((ConfiguredObjectProvenance) listProvenance.getList().get(provListIndex)).iterator());
+                            ObjectNode subNode = mapper.createObjectNode();
+                            addProvWithoutDiff(subNode, subProvMap.keySet(), subProvMap, provIdentifier);
+                            if(!subNode.isEmpty()){
+                                provArray.add(subNode);
+                            }
+                        }
+
+                        if(!(provArray.isEmpty())){
+                            report.set(key, provArray);
+                        }
+                    }
                 } else if (provMap.get(key) instanceof Iterable provIterable){
                     ObjectNode subNode = mapper.createObjectNode();
                     Iterator<Pair<String, Provenance>> subIter = provIterable.iterator();
