@@ -42,6 +42,7 @@ import org.tribuo.regression.Regressor.DimensionTuple;
 import org.tribuo.regression.impl.SkeletalIndependentRegressionSparseModel;
 
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -259,13 +260,9 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         // Add weights
         OnnxMl.TensorProto weightInitializerProto = ONNXMathUtils.floatTensorBuilder(context, "slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
                 fb -> {
-                    DenseVector[] denseWeights = new DenseVector[weights.length];
-                    for (int i = 0; i < denseWeights.length; i++) {
-                        denseWeights[i] = weights[i].densify();
-                    }
                     for (int j = 0; j < featureIDMap.size(); j++) {
-                        for (int i = 0; i < denseWeights.length; i++) {
-                            fb.put((float) denseWeights[i].get(j));
+                        for (int i = 0; i < weights.length; i++) {
+                            fb.put((float) weights[i].get(j));
                         }
                     }
                 });
@@ -273,7 +270,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
 
         // Add biases
         OnnxMl.TensorProto biasInitializerProto = ONNXMathUtils.floatTensorBuilder(context, "slm_biases", Collections.singletonList(outputIDInfo.size()),
-                fb -> Arrays.stream(weights).forEachOrdered(sv -> fb.put((float) sv.get(featureIDMap.size()))));
+                (FloatBuffer fb) -> Arrays.stream(weights).forEachOrdered(sv -> fb.put((float) sv.get(featureIDMap.size()))));
         graphBuilder.addInitializer(biasInitializerProto);
 
         // Add feature and output means

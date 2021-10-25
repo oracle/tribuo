@@ -78,7 +78,7 @@ public abstract class ONNXMathUtils {
         return OnnxMl.TensorProto.newBuilder()
                 .setName(context.generateUniqueName(name))
                 .setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber())
-                .addAllDims(() -> dims.stream().map(Integer::longValue).iterator())
+                .addAllDims(dims.stream().map(Integer::longValue).collect(Collectors.toList()))
                 .setRawData(ByteString.copyFrom(buffer))
                 .build();
     }
@@ -131,11 +131,13 @@ public abstract class ONNXMathUtils {
      * @return A TensorProto containing the array as either floats or doubles.
      */
     public static OnnxMl.TensorProto arrayBuilder(ONNXContext context, String name, double[] parameters, boolean downcast) {
-        return downcast
-                ? floatTensorBuilder(context, name, Collections.singletonList(parameters.length),
-                fb -> Arrays.stream(parameters).forEachOrdered(d -> fb.put((float)d)))
-                : doubleTensorBuilder(context, name, Collections.singletonList(parameters.length),
-                db -> Arrays.stream(parameters).forEachOrdered(db::put));
+        if(downcast) {
+            return floatTensorBuilder(context, name, Collections.singletonList(parameters.length),
+                    (FloatBuffer fb) -> Arrays.stream(parameters).forEachOrdered(d -> fb.put((float)d)));
+        } else {
+            return doubleTensorBuilder(context, name, Collections.singletonList(parameters.length),
+                    (DoubleBuffer db) -> Arrays.stream(parameters).forEachOrdered(db::put));
+        }
     }
 
     /**
@@ -147,7 +149,7 @@ public abstract class ONNXMathUtils {
      */
     public static OnnxMl.TensorProto floatVectorBuilder(ONNXContext context, String name, SGDVector vector) {
         return floatTensorBuilder(context, name, Collections.singletonList(vector.size()),
-                fb -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
+                (FloatBuffer fb) -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
     }
 
     /**

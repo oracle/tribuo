@@ -36,6 +36,7 @@ import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -198,7 +199,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
     protected OnnxMl.TensorProto weightBuilder(ONNXContext context) {
         final Matrix weightMatrix = (Matrix) modelParameters.get()[0];
         return ONNXMathUtils.floatTensorBuilder(context, "linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
-                fb -> {
+                (FloatBuffer fb) -> {
                     for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
                         for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
                             fb.put((float) weightMatrix.get(i, j));
@@ -215,7 +216,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
     protected OnnxMl.TensorProto biasBuilder(ONNXContext context) {
         Matrix weightMatrix = (Matrix) modelParameters.get()[0];
         return ONNXMathUtils.floatTensorBuilder(context, "linear_sgd_biases", Collections.singletonList(outputIDInfo.size()),
-                fb -> {
+                (FloatBuffer fb) -> {
                     for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
                         fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
                     }
