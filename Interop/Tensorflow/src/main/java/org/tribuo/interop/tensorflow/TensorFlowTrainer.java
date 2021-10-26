@@ -490,13 +490,6 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
             // Initalise all the things
             session.initialize();
 
-            /*
-            // Initialises the parameters.
-            session.run(initName);
-
-            // Initialise the gradient & output parameters.
-            session.run(tribuoInit);
-             */
             logger.info("Initialised the model parameters");
 
             int interval = 0;
