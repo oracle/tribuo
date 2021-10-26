@@ -16,18 +16,15 @@
 
 package org.tribuo.json;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
 import com.oracle.labs.mlrg.olcut.config.UsageException;
-import com.oracle.labs.mlrg.olcut.config.json.JsonProvenanceModule;
+import com.oracle.labs.mlrg.olcut.config.json.JsonProvenanceSerialization;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
-import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
 import com.oracle.labs.mlrg.olcut.util.IOUtil;
 import com.oracle.labs.mlrg.olcut.util.LabsLogFormatter;
@@ -315,11 +312,8 @@ public final class StripProvenance {
             ModelProvenance oldProvenance = input.getProvenance();
 
             logger.info("Marshalling provenance and creating JSON.");
-            List<ObjectMarshalledProvenance> list = ProvenanceUtil.marshalProvenance(oldProvenance);
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.registerModule(new JsonProvenanceModule());
-            mapper.enable(SerializationFeature.INDENT_OUTPUT);
-            String jsonResult = mapper.writeValueAsString(list);
+            JsonProvenanceSerialization jsonProvenanceSerialization = new JsonProvenanceSerialization(true);
+            String jsonResult = jsonProvenanceSerialization.marshalAndSerialize(oldProvenance);
 
             logger.info("Hashing JSON file");
             MessageDigest digest = o.hashType.getDigest();
@@ -340,8 +334,7 @@ public final class StripProvenance {
 
             ModelProvenance newProvenance = tuple.provenance;
             logger.info("Marshalling provenance and creating JSON.");
-            List<ObjectMarshalledProvenance> newList = ProvenanceUtil.marshalProvenance(newProvenance);
-            String newJsonResult = mapper.writeValueAsString(newList);
+            String newJsonResult = jsonProvenanceSerialization.marshalAndSerialize(newProvenance);
 
             logger.info("Old provenance = \n" + jsonResult);
             logger.info("New provenance = \n" + newJsonResult);
