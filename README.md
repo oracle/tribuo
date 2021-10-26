@@ -36,7 +36,9 @@ architectures on Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these are
 supported platforms for the native libraries with which we interface. If you're
 interested in another platform and wish to use one of the native library
 interfaces (ONNX Runtime, TensorFlow, and XGBoost), we recommend reaching out
-to the developers of those libraries.
+to the developers of those libraries. Note the reproducibility package
+requires Java 17, and as such is not part of the `tribuo-all` Maven Central
+deployment.
 
 ## Documentation
 
@@ -85,6 +87,7 @@ Tribuo has implementations or interfaces for:
 |Algorithm|Implementation|Notes|
 |---|---|---|
 |Linear models|Tribuo|Uses SGD and allows any gradient optimizer|
+|Factorization Machines|Tribuo|Uses SGD and allows any gradient optimizer|
 |CART|Tribuo||
 |SVM-SGD|Tribuo|An implementation of the Pegasos algorithm|
 |Adaboost.SAMME|Tribuo|Can use any Tribuo classification trainer as the base learner|
@@ -109,6 +112,7 @@ output.
 |Algorithm|Implementation|Notes|
 |---|---|---|
 |Linear models|Tribuo|Uses SGD and allows any gradient optimizer|
+|Factorization Machines|Tribuo|Uses SGD and allows any gradient optimizer|
 |CART|Tribuo||
 |Lasso|Tribuo|Using the LARS algorithm|
 |Elastic Net|Tribuo|Using the co-ordinate descent algorithm|
@@ -146,7 +150,9 @@ more multi-label specific implementations over time.
 |Algorithm|Implementation|Notes|
 |---|---|---|
 |Independent wrapper|Tribuo|Converts a multi-class classification algorithm into a multi-label one by producing a separate classifier for each label|
+|Classifier Chains|Tribuo|Provides classifier chains and randomized classifier chain ensembles using any of Tribuo's multi-class classification algorithms|
 |Linear models|Tribuo|Uses SGD and allows any gradient optimizer|
+|Factorization Machines|Tribuo|Uses SGD and allows any gradient optimizer|
 
 ### Interfaces
 
@@ -158,8 +164,8 @@ discuss how it would fit into Tribuo.
 Currently we have interfaces to:
 
 * [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) (v2.43).
-* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.24).
-* [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.7.0).
+* [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.25).
+* [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.9.0).
 * [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.3.1 (based on TensorFlow v2.4.1). This allows the training and deployment of TensorFlow models entirely in Java.
 * [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.4.1).
 
@@ -187,7 +193,7 @@ implementation ("org.tribuo:tribuo-all:4.1.0@pom") {
 ```
 
 The `tribuo-all` dependency is a pom which depends on all the Tribuo
-subprojects.
+subprojects except for the reproducibility project which requires Java 17.
 
 Most of Tribuo is pure Java and thus cross-platform, however some of the
 interfaces link to libraries which use native code. Those interfaces
@@ -197,11 +203,13 @@ are supplied. If you need support for a specific platform, reach out to the
 maintainers of those projects. As of the 4.1 release these native packages
 all provide x86\_64 binaries for Windows, macOS and Linux. It is also possible
 to compile each package for macOS ARM64 (i.e., Apple Silicon), though there are
-no binaries available on Maven Central for that platform.
+no binaries available on Maven Central for that platform. When developing
+on an ARM platform you can select the `arm` profile in Tribuo's pom.xml to
+disable the native library tests.
 
 Individual jars are published for each Tribuo module. It is preferable to
 depend only on the modules necessary for the specific project. This prevents
-your code from unnecessarily pulling in large dependencies like TensorFlow
+your code from unnecessarily pulling in large dependencies like TensorFlow.
 
 ## Compiling from source
 
