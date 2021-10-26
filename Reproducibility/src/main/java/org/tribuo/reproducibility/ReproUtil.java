@@ -37,6 +37,7 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import com.sun.source.tree.Tree;
 import org.tribuo.ConfigurableDataSource;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
@@ -434,6 +435,10 @@ public class ReproUtil {
 
         return newModel;
     }
+    
+    public record FeatureDiff (Set originalFeatures, Set reproducedFeatures){}
+    public record OutputDiff (Set originalOutput, Set reproducedOutput){}
+    public record ModelReproduction <T extends Output<T>> (Model<T> model, FeatureDiff featureDiff, OutputDiff outputDiff, String provenanceDiff){}
 
     /**
      * Using a supplied {@link Model} object, recreates an identical model object that the provenance describes.
@@ -448,8 +453,7 @@ public class ReproUtil {
      * @throws InvocationTargetException
      * @throws NoSuchMethodException
      */
-    //public record <T extends Output<T>>  ModelReproduction(Model<T> model, List<FeatureDiff> featurediffs, List<OutputDiff> outputDiffs, String provenanceDiff){}
-    public <T extends Output<T>> Model<T> reproduceFromModel() throws IllegalStateException, ClassNotFoundException {
+    public <T extends Output<T>> ModelReproduction<T> reproduceFromModel() throws ClassNotFoundException, JsonProcessingException {
         if(this.originalModel == null){
             throw new IllegalStateException("No model to reproduce was provided");
         }
@@ -458,22 +462,28 @@ public class ReproUtil {
         ImmutableFeatureMap newFeatureMap = newModel.getFeatureIDMap();
         ImmutableFeatureMap oldFeatureMap = originalModel.getFeatureIDMap();
 
-        //TODO: Find a better way to compare the features than using a string comparison
-        if(newFeatureMap.size() == oldFeatureMap.size()){
-            for(int featureIndex = 0; featureIndex < newFeatureMap.size(); featureIndex++){
-                if(!newFeatureMap.get(featureIndex).toString().equals(oldFeatureMap.get(featureIndex).toString())){
-                    // TODO: return record type with diff, and output differences
-                }
-            }
-        } else {
-            //TODO:
-        }
+        TreeSet<String> newFeatureKeys = new TreeSet<String>(newModel.getFeatureIDMap().keySet());
+        TreeSet<String> oldFeatureKeys = new TreeSet<String>(originalModel.getFeatureIDMap().keySet());
 
-        if(!originalModel.getOutputIDInfo().toString().equals(newModel.getOutputIDInfo().toString())){
-            // TODO: return record type with diff, and output differences
-        }
+        TreeSet<String> intersectionOfKeys = new TreeSet<>(newModel.getFeatureIDMap().keySet());
+        intersectionOfKeys.retainAll(oldFeatureKeys);
+        newFeatureKeys.removeAll(intersectionOfKeys);
+        oldFeatureKeys.removeAll(intersectionOfKeys);
 
-        return newModel;
+        Set oldDomain = originalModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set newDomain = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set intersectionOfDomains = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        intersectionOfDomains.retainAll(oldDomain);
+        newDomain.removeAll(intersectionOfDomains);
+        oldDomain.removeAll(intersectionOfDomains);
+
+        ModelReproduction<T> modelReproduction = new ModelReproduction<>(
+                newModel,
+                new FeatureDiff(oldFeatureKeys, oldFeatureKeys),
+                new OutputDiff(oldDomain, newDomain),
+                ReproUtil.diffProvenance(newModel.getProvenance(), originalModel.getProvenance()));
+
+        return modelReproduction;
     }
 
     /**

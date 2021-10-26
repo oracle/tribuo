@@ -235,8 +235,14 @@ class ReproUtilTest {
 
         ReproUtil reproUtil = null;
         reproUtil = new ReproUtil(model);
+        ReproUtil.ModelReproduction modelReproduction = reproUtil.reproduceFromModel();
+        LinearSGDModel newModel = (LinearSGDModel) modelReproduction.model();
 
-        LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromModel();
+        assertEquals(0, modelReproduction.featureDiff().reproducedFeatures().size());
+        assertEquals(0, modelReproduction.featureDiff().originalFeatures().size());
+
+        assertEquals(0, modelReproduction.outputDiff().reproducedOutput().size());
+        assertEquals(0, modelReproduction.outputDiff().originalOutput().size());
 
         assertTrue(newModel.getWeightsCopy().equals(model.getWeightsCopy()));
     }
