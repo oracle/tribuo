@@ -16,6 +16,7 @@
 
 package org.tribuo.reproducibility;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -79,15 +80,31 @@ public class ReproUtil {
     private final ModelProvenance modelProvenance;
     private final Model<?> originalModel;
 
-    public ReproUtil(ModelProvenance provenance) throws IllegalArgumentException {
+    /**
+     * Creates a ReproUtil instance
+     * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}
+     * @throws IllegalArgumentException
+     */
+    public ReproUtil(ModelProvenance provenance) {
         this(provenance, null);
     }
 
-    public ReproUtil(Model<?> originalModel) throws IllegalArgumentException {
+    /**
+     * Creates a ReproUtil instance
+     * @param originalModel The ReproUtil will re-train a model based on the provenance contained in this {@link Model}
+     * @throws IllegalArgumentException
+     */
+    public ReproUtil(Model<?> originalModel) {
         this(originalModel.getProvenance(), originalModel);
     }
 
-    private ReproUtil(ModelProvenance provenance, Model<?> originalModel) throws IllegalArgumentException {
+    /**
+     *
+     * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}
+     * @param originalModel Optional argument, but if it's not null than the provenance used is from this {@link Model}
+     * @throws IllegalArgumentException
+     */
+    private ReproUtil(ModelProvenance provenance, Model<?> originalModel) {
         if (provenance.getTrainerProvenance() instanceof ExternalTrainerProvenance){
             throw new IllegalArgumentException("This version of the tool cannot reproduce external models.");
         }
@@ -104,7 +121,13 @@ public class ReproUtil {
         this.originalModel = originalModel;
     }
 
-    public <T extends Output<T>> Trainer<T> recoverTrainer() throws IllegalStateException {
+    /**
+     *
+     * @param <T> A trainer type
+     * @return A {@link Trainer} found in the cm, presumably used to train the originalModel
+     * @throws IllegalStateException
+     */
+    public <T extends Output<T>> Trainer<T> recoverTrainer() {
 
         // We need to set the state of the RNG for each trainer used in the provenance.
         // ProvenanceUtil.orderProvenances allows us to iterate through the provObjects,
@@ -148,12 +171,12 @@ public class ReproUtil {
     }
 
     /**
-     * This method takes a class object and will recover that datasource from the ConfigurationManager
+     * This method takes a class object and will recover that datasource from the {@link ConfigurationManager}
      *
      * @param dataSourceClass A configurable class that this method will search for in the configuration manager
-     * @return A DataSource object that was used to load data from te original model
+     * @return A {@link DataSource} object that was used to load data from te original model
+     * @throws IllegalArgumentException
      */
-
     private <T extends Output<T>> DataSource<T> getDatasourceFromCM(Class<? extends Configurable> dataSourceClass){
 
         // Since this utility created a cm from a model, contained within should only be the datasource used to
@@ -187,8 +210,18 @@ public class ReproUtil {
     }
 
 
-    // Attempts to use reflection to determine the correct type a dataset should be and then instantiates it
-    // returns null if cannot be done.
+    /**
+     * Attempts to use reflection to determine the correct type a dataset should be and then instantiates it
+     * returns null if cannot be done.
+     * @param modelSource A datasource class that is passed to the dataset upon construction
+     * @param datasetClass The Class of Dataset to be instantiated
+     * @param <T> The type of the dataset
+     * @return A new {@link Dataset} with modelSource as its {@link DataSource}.
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     */
     private <T extends Output<T>> Dataset<T> datasetReflection(DataSource<?> modelSource, Class<? extends Dataset> datasetClass){
         // The first step is to find the classname as a String so it can use reflection to instantiate the correct type
         // The class name is contained within the provenance accessible through the iterator.
@@ -211,6 +244,15 @@ public class ReproUtil {
         return modelDataset;
     }
 
+    /**
+     * Since {@link Dataset}s can nest inside of {@link Dataset}s, this method recurses through a
+     * {@link DatasetProvenance} until it finds the {@link Dataset} that contains a {@link DataSource}
+     * and then it returns the classes of the {@link Dataset} and {@link DataSource}.
+     * @param datasetProvenance The {@link DatasetProvenance} to search.
+     * @return An array of Classes of length two, where the first element is the {@link DataSource} Class and
+     * the second element is the {@link Dataset} Class.
+     * @throws ClassNotFoundException
+     */
     private Class<?>[] getSourcesClassNames(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
         Class<?>[] dataClasses = null;
         if(datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
@@ -232,7 +274,15 @@ public class ReproUtil {
         return dataClasses;
     }
 
-    private DataProvenance[] getSources(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
+    /**
+     * Since {@link Dataset}s can nest inside of {@link Dataset}s, this method recurses through a
+     * {@link DatasetProvenance} until it finds the {@link Dataset} that contains a {@link DataSource}
+     * and then it returns the {@link Dataset} and {@link DataSource}.
+     * @param datasetProvenance The {@link DatasetProvenance} to search.
+     * @return An array of {@link DataProvenance} where the first element is the {@link DataSource} and
+     * the second element is the {@link Dataset}.
+     */
+    private DataProvenance[] getSources(DatasetProvenance datasetProvenance) {
         DataProvenance[] sourceProvenance = null;
         if(datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
             sourceProvenance = getSources(innerDatasetProvenance);
@@ -248,8 +298,14 @@ public class ReproUtil {
         return sourceProvenance;
     }
 
-    // Return a dataset used when a model was trained.
-    private <T extends Output<T>> Dataset<T> recoverDataset() throws IllegalStateException, ClassNotFoundException {
+    /**
+     * Return a {@link Dataset} used when a model was trained
+     * @param <T> The {@link Dataset} type
+     * @return A new {@link Dataset}
+     * @throws IllegalStateException
+     * @throws ClassNotFoundException
+     */
+    private <T extends Output<T>> Dataset<T> recoverDataset() throws ClassNotFoundException {
 
         // Get the class names for the dataset and datasource
         Class[] dataClasses = getSourcesClassNames(this.modelProvenance.getDatasetProvenance());
@@ -342,6 +398,13 @@ public class ReproUtil {
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
      * @return A reproduced model identical to the one described in the provenance.
+     * @throws ClassNotFoundException
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
      */
     public <T extends Output<T>> Model<T> reproduceFromProvenance() throws ClassNotFoundException {
 
@@ -377,7 +440,15 @@ public class ReproUtil {
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
      * @return A reproduced model identical to the one described in the provenance.
+     * @throws ClassNotFoundException
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
      */
+    //public record <T extends Output<T>>  ModelReproduction(Model<T> model, List<FeatureDiff> featurediffs, List<OutputDiff> outputDiffs, String provenanceDiff){}
     public <T extends Output<T>> Model<T> reproduceFromModel() throws IllegalStateException, ClassNotFoundException {
         if(this.originalModel == null){
             throw new IllegalStateException("No model to reproduce was provided");
@@ -394,6 +465,8 @@ public class ReproUtil {
                     // TODO: return record type with diff, and output differences
                 }
             }
+        } else {
+            //TODO:
         }
 
         if(!originalModel.getOutputIDInfo().toString().equals(newModel.getOutputIDInfo().toString())){
@@ -411,14 +484,14 @@ public class ReproUtil {
      * @param originalProvenance The first of the two provenance objects to diff
      * @param newProvenance The second of the two provenance objects to diff
      * @return A String JSON report displaying the differences in the model.
+     * @throws IllegalStateException
      */
-    public static String diffProvenance(ModelProvenance originalProvenance, ModelProvenance newProvenance){
+    public static String diffProvenance(ModelProvenance originalProvenance, ModelProvenance newProvenance) throws JsonProcessingException {
 
         Iterator<Pair<String, Provenance>> originalIter = originalProvenance.iterator();
         Iterator<Pair<String, Provenance>> newIter = newProvenance.iterator();
 
-
-        String report = diffProvenanceIterators(originalIter, newIter).toPrettyString();
+        String report = mapper.writeValueAsString(diffProvenanceIterators(originalIter, newIter));
         return report;
     }
 
@@ -434,10 +507,17 @@ public class ReproUtil {
         return provMap;
     }
 
-
-
-    // This function is used to recurse through prov objects and
-    // add them to a report when there is nothing to compare them to
+    /**
+     * This function is used to recurse through prov objects and add them to a report when there is nothing to compare them to.
+     * It does not return anything, rather adds values to its first argument.
+     * @param report An ObjectNode that this method will add values to.
+     * @param keys A set of keys to use to look into provMap, this set is pulled into its own variable
+     *             as the keys might be a subset of provMap.keySet().
+     * @param provMap A Map of provenance objects
+     * @param provIdentifier An identifier indicating how the values should added to the diff,
+     *                       either under the ReproUtil.OLD or ReproUtil.NEW designation
+     * @throws IllegalStateException
+     */
     private static void addProvWithoutDiff(ObjectNode report, Set<String> keys, TreeMap<String, Provenance> provMap, String provIdentifier){
 
         for(String key : keys){
@@ -484,7 +564,16 @@ public class ReproUtil {
         }
     }
 
-    // This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
+    //
+
+    /**
+     * This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
+     * @param iterA An iterator from a provenance object
+     * @param iterB An iterator from a provenance object
+     * @param <T> Type of ListProvenance
+     * @return An ObjectNode that will be printed to string in diffProvenance.
+     * @throws IllegalStateException
+     */
     private static <T extends Provenance> ObjectNode diffProvenanceIterators(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
         // The report ObjectNode is the ultimate return value of the method,
         // All diff values are put in it.
