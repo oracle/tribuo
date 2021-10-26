@@ -67,6 +67,8 @@ provenance built into their models and evaluations.
 
 ## Tracing a training and evaluation run
 
+This section describes the internal process of a training and evaluation run.
+
 ### DataSource 
 `Example`s are created in a `DataSource`. Preferably they are created with a
 `Feature` list as this ensures the O(n log n) sort cost is paid once, rather than

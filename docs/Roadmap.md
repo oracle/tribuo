@@ -28,7 +28,8 @@ specific operations (though this can be achieved today using `DatasetView` and p
 - Make `Example`s immutable after they've been added to a `Dataset`. This is likely to be a breaking change.
 - Add support for global feature transformations, like normalizing to a unit vector, applying PCA and others.
 - Integrate with a plotting library.
-- ONNX format model export.
+- ONNX format model export. 
+    - In 4.2 we support exporting linear models, sparse linear models, factorization machines, liblinear, libsvm and ensembles containing the previously listed models.
 
 ## Internals
 
@@ -53,22 +54,27 @@ examples, or examples which didn't have suitable features for the model).
 
 ## New ML algorithms or parameters
 
-- ~~Add K-Means++ initialisation for K-Means.~~ Integrated in Tribuo 4.1.
+- ~~Add K-Means++ initialisation for K-Means.~~ 
+    - Integrated in Tribuo 4.1.
 - ~~Add extra parameters to the tree trainers to allow for an ExtraTrees style ensemble, and to 
-specify a minimum purity decrease requirement.~~ Integrated in Tribuo 4.1.
+specify a minimum purity decrease requirement.~~ 
+    - Integrated in Tribuo 4.1.
 - Gaussian Processes.
 - Vowpal Wabbit interface.
 - Feature selection. We already have several feature selection algorithms implemented 
 in a Tribuo compatible interface, but the codebase isn't quite ready for release.
 - Support word embedding features.
-- ~~Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).~~ ONNX support for BERT embeddings is integrated in Tribuo 4.1.
-- More complex Multi-Label prediction algorithms.
+- ~~Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).~~ 
+    - ONNX support for BERT embeddings is integrated in Tribuo 4.1.
+- ~~More complex Multi-Label prediction algorithms.~~
     - A Multi-Label linear SGD is integrated in Tribuo 4.1.
-    - Classifier chains and classifier chain ensembles are planned for Tribuo 4.2.
+    - Multi-label factorization machines are integrated in Tribuo 4.2.
+    - Classifier chains and classifier chain ensembles are integrated in Tribuo 4.2.
 - More anomaly detection algorithms.
     - LibLinear based anomaly detection is integrated in Tribuo 4.1.
 - More clustering algorithms.
-- Factorization machines for classification.
+- ~~Factorization machines for classification and regression.~~ 
+    - Integrated in Tribuo 4.2.
 
 ## Performance
 
@@ -84,5 +90,9 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 
 ## Documentation
 
-- Fill out the javadoc so it exists for all public and protected methods, including constructors.
-- Add more tutorials. Note: Tribuo 4.0.2 adds tutorials for external model loading and columnar data processing, and 4.1 adds tutorials for TensorFlow and document classification
+- Fill out the javadoc so it exists for all public and protected methods, including constructors. 
+    - Javadoc for all public methods and fields is present in Tribuo 4.2.
+- Add more tutorials. 
+    - Tribuo 4.0.2 adds tutorials for external model loading and columnar data processing.
+    - Tribuo 4.1 adds tutorials for TensorFlow and document classification.
+    - Tribuo 4.2 adds tutorials for multi-label classification, ONNX export, and model reproducibility.

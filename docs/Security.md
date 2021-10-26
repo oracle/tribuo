@@ -52,7 +52,7 @@ OLCUT jar appropriate permissions. We have tested this set of permissions,
 which allows the configuration and provenance systems to work:
 
     // OLCUT permissions
-    grant codeBase "file:/path/to/olcut/olcut-core-5.1.6.jar" {
+    grant codeBase "file:/path/to/olcut/olcut-core-5.2.0.jar" {
             permission java.lang.RuntimePermission "accessDeclaredMembers";
             permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
             permission java.util.logging.LoggingPermission "control";

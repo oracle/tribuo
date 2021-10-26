@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!--
+    Description:
+        Configuration for each regression trainer.
+-->
+
+<config>
+    <!-- liblinear -->
+    <component name="liblinear" type="org.tribuo.regression.liblinear.LibLinearRegressionTrainer">
+        <property name="trainerType" value="liblinear-algorithm"/>
+        <property name="cost" value="1.0"/>
+        <property name="terminationCriterion" value="0.1"/>
+        <property name="epsilon" value="0.5"/>
+        <property name="maxIterations" value="1000"/>
+    </component>
+
+    <component name="liblinear-algorithm" type="org.tribuo.regression.liblinear.LinearRegressionType">
+        <property name="type" value="L2R_L2LOSS_SVR_DUAL"/>
+    </component>
+
+    <!-- libsvm -->
+    <component name="libsvm" type="org.tribuo.regression.libsvm.LibSVMRegressionTrainer">
+        <property name="svmType" value="nu"/>
+        <property name="kernelType" value="RBF"/>
+        <property name="nu" value="0.5"/>
+        <property name="gamma" value="0.5"/>
+        <property name="p" value="0.5"/>
+        <property name="shrinking" value="true"/>
+        <property name="probability" value="true"/>
+    </component>
+
+    <component name="nu" type="org.tribuo.regression.libsvm.SVMRegressionType">
+        <property name="type" value="NU_SVR"/>
+    </component>
+
+    <!-- sgd based models -->
+    <component name="linear" type="org.tribuo.regression.sgd.linear.LinearSGDTrainer">
+        <property name="objective" value="squared"/>
+        <property name="optimiser" value="adagrad"/>
+        <property name="epochs" value="10"/>
+        <property name="loggingInterval" value="1000"/>
+        <property name="minibatchSize" value="1"/>
+        <property name="seed" value="1"/>
+    </component>
+
+    <component name="fm" type="org.tribuo.regression.sgd.fm.FMRegressionTrainer">
+        <property name="objective" value="squared"/>
+        <property name="optimiser" value="adagrad"/>
+        <property name="epochs" value="10"/>
+        <property name="loggingInterval" value="1000"/>
+        <property name="minibatchSize" value="1"/>
+        <property name="seed" value="1"/>
+        <property name="standardise" value="true"/>
+        <property name="factorizedDimSize" value="5"/>
+        <property name="variance" value="0.5"/>
+    </component>
+
+    <component name="squared" type="org.tribuo.regression.sgd.objectives.SquaredLoss"/>
+
+    <component name="adagrad" type="org.tribuo.math.optimisers.AdaGrad">
+        <property name="initialLearningRate" value="1.0"/>
+        <property name="epsilon" value="0.1"/>
+    </component>
+
+    <!-- sparse linear models -->
+    <component name="enet" type="org.tribuo.regression.slm.ElasticNetCDTrainer">
+        <property name="alpha" value="1.0"/>
+        <property name="l1Ratio" value="0.5"/>
+        <property name="tolerance" value="1e-4"/>
+        <property name="maxIterations" value="500"/>
+        <property name="randomise" value="false"/>
+        <property name="seed" value="0"/>
+    </component>
+
+    <component name="lars" type="org.tribuo.regression.slm.LARSTrainer">
+        <property name="maxNumFeatures" value="10"/>
+    </component>
+
+    <!-- xgboost -->
+    <component name="xgboost-reg" type="org.tribuo.regression.xgboost.XGBoostRegressionTrainer">
+        <property name="numTrees" value="20"/>
+        <property name="eta" value="0.5"/>
+        <property name="gamma" value="0.1"/>
+        <property name="maxDepth" value="5"/>
+        <property name="minChildWeight" value="1.0"/>
+        <property name="subsample" value="1.0"/>
+        <property name="nThread" value="6"/>
+        <property name="seed" value="1"/>
+    </component>
+
+    <!-- tree based models -->
+    <component name="cart-reg" type="org.tribuo.regression.rtree.CARTRegressionTrainer">
+        <property name="maxDepth" value="8"/>
+        <property name="fractionFeaturesInSplit" value="1.0"/>
+        <property name="seed" value="12345"/>
+        <property name="impurity" value="mse"/>
+    </component>
+    <component name="joint-cart-reg" type="org.tribuo.regression.rtree.CARTJointRegressionTrainer">
+        <property name="maxDepth" value="8"/>
+        <property name="fractionFeaturesInSplit" value="1.0"/>
+        <property name="seed" value="12345"/>
+        <property name="impurity" value="mse"/>
+    </component>
+    <component name="mse" type="org.tribuo.regression.rtree.impurity.MeanSquaredError"/>
+    <component name="mae" type="org.tribuo.regression.rtree.impurity.MeanAbsoluteError"/>
+
+    <!-- tree ensembles -->
+    <component name="rf-reg" type="org.tribuo.common.tree.RandomForestTrainer">
+        <property name="innerTrainer" value="cart-reg-rf"/>
+        <property name="numMembers" value="10"/>
+        <property name="seed" value="12345"/>
+        <property name="combiner" value="reg-combiner"/>
+    </component>
+
+    <component name="cart-reg-rf" type="org.tribuo.regression.rtree.CARTRegressionTrainer">
+        <property name="maxDepth" value="8"/>
+        <property name="fractionFeaturesInSplit" value="0.5"/>
+        <property name="seed" value="12345"/>
+        <property name="impurity" value="mse"/>
+    </component>
+
+    <component name="extra-reg" type="org.tribuo.common.tree.ExtraTreesTrainer">
+        <property name="innerTrainer" value="cart-reg-extra"/>
+        <property name="numMembers" value="10"/>
+        <property name="seed" value="12345"/>
+        <property name="combiner" value="reg-combiner"/>
+    </component>
+
+    <component name="cart-reg-extra" type="org.tribuo.regression.rtree.CARTRegressionTrainer">
+        <property name="maxDepth" value="8"/>
+        <property name="fractionFeaturesInSplit" value="1.0"/>
+        <property name="useRandomSplitPoints" value="true"/>
+        <property name="seed" value="12345"/>
+        <property name="impurity" value="mse"/>
+    </component>
+
+    <!-- k-nn -->
+    <component name="3-nn" type="org.tribuo.common.nearest.KNNTrainer">
+        <property name="k" value="3"/>
+        <property name="distance" value="L2"/>
+        <property name="combiner" value="reg-combiner"/>
+    </component>
+
+    <component name="reg-combiner" type="org.tribuo.regression.ensemble.AveragingCombiner"/>
+
+    <component name="regression-factory" type="org.tribuo.regression.RegressionFactory"/>
+</config>
