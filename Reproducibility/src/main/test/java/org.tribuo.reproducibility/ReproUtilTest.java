@@ -113,7 +113,7 @@ class ReproUtilTest {
 
 
     private CSVDataSource<Label> getCSVDatasource() throws IOException, URISyntaxException {
-        URL u = ReproUtilTest.class.getResource("/test.csv");
+        URL u = ReproUtilTest.class.getResource("/org/tribuo/reproducibility/test.csv");
         Path csvPath = Paths.get(u.toURI());
         //List<String> csvLines = Files.readAllLines(csvPath, StandardCharsets.UTF_8);
 
@@ -162,7 +162,7 @@ class ReproUtilTest {
 
         Path tempFile = null;
 
-        tempFile = Files.createFile(tempDir.resolve("test.csv"));
+        tempFile = Files.createFile(tempDir.resolve("testLoader.csv"));
 
         Files.write(tempFile, tempData.getBytes(StandardCharsets.UTF_8));
 
@@ -251,7 +251,7 @@ class ReproUtilTest {
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
 
-        URL u = ReproUtilTest.class.getResource("/new_dir/new_data.csv");
+        URL u = ReproUtilTest.class.getResource("/org/tribuo/reproducibility/test/new_data.csv");
         Path csvPath = Paths.get(u.toURI());
 
         ReproUtil reproUtil = new ReproUtil(model.getProvenance());
