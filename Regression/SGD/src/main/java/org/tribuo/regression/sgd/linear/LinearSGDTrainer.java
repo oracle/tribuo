@@ -42,7 +42,7 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor,DenseVector> {
+public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor,DenseVector,LinearSGDModel> {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(mandatory = true,description="The regression objective to use.")

@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVector> {
+public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVector, FMRegressionModel> {
     private static final Logger logger = Logger.getLogger(FMRegressionTrainer.class.getName());
 
     @Config(mandatory = true, description = "The regression objective to use.")

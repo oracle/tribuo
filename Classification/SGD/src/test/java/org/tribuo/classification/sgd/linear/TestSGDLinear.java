@@ -69,7 +69,7 @@ public class TestSGDLinear {
     }
 
     public static LinearSGDModel testSGDLinear(Pair<Dataset<Label>,Dataset<Label>> p) {
-        LinearSGDModel m = (LinearSGDModel) t.train(p.getA());
+        LinearSGDModel m = t.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
@@ -98,7 +98,7 @@ public class TestSGDLinear {
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        LinearSGDModel model = (LinearSGDModel) t.train(p.getA());
+        LinearSGDModel model = t.train(p.getA());
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");

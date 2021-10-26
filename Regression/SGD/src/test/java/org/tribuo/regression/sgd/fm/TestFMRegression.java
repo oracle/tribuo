@@ -125,7 +125,7 @@ public class TestFMRegression {
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        FMRegressionModel model = (FMRegressionModel) t.train(p.getA());
+        FMRegressionModel model = t.train(p.getA());
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");

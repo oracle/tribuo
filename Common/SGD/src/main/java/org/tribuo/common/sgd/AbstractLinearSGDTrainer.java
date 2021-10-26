@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U> extends AbstractSGDTrainer<T,U,AbstractLinearSGDModel<T>,LinearParameters> {
+public abstract class AbstractLinearSGDTrainer<T extends Output<T>,U,V extends AbstractLinearSGDModel<T>> extends AbstractSGDTrainer<T,U,V,LinearParameters> {
     private static final Logger logger = Logger.getLogger(AbstractLinearSGDTrainer.class.getName());
 
     /**

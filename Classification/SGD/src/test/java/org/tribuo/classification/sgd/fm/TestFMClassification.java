@@ -117,7 +117,7 @@ public class TestFMClassification {
 
     public void testOnnxSerialization() throws IOException, OrtException {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
-        FMClassificationModel model = (FMClassificationModel) t.train(p.getA());
+        FMClassificationModel model = t.train(p.getA());
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");

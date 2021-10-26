@@ -42,7 +42,7 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel, SGDVector> {
+public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel, SGDVector, FMMultiLabelModel> {
     private static final Logger logger = Logger.getLogger(FMMultiLabelTrainer.class.getName());
 
     @Config(description = "The classification objective function to use.")

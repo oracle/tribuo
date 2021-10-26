@@ -92,7 +92,7 @@ public class TestSGDLinear {
     public void testOnnxSerialization() throws IOException, OrtException {
         Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
         Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
-        LinearSGDModel model = (LinearSGDModel) sigmoid.train(train);
+        LinearSGDModel model = sigmoid.train(train);
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");

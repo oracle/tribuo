@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Label,Integer> {
+public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Label,Integer,LinearSGDModel> {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(description = "The classification objective function to use.")

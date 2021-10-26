@@ -87,7 +87,7 @@ public class TestSGDLinear {
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        LinearSGDModel model = (LinearSGDModel) t.train(p.getA());
+        LinearSGDModel model = t.train(p.getA());
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-sgd-test",".onnx");

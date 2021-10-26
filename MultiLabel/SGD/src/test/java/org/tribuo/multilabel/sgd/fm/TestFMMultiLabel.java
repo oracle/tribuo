@@ -92,7 +92,7 @@ public class TestFMMultiLabel {
     public void testOnnxSerialization() throws IOException, OrtException {
         Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
         Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
-        FMMultiLabelModel model = (FMMultiLabelModel) sigmoid.train(train);
+        FMMultiLabelModel model = sigmoid.train(train);
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-fm-test",".onnx");
