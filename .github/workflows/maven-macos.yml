@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Tribuo CI (macOS x86_64, OpenJDK 8, 11, latest)
+name: Tribuo CI (macOS x86_64, OpenJDK 8, 11, 17)
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # test against supported LTS versions and latest
-        java: [ 8, 11, 16 ]
+        java: [ 8, 11, 17 ]
     name: macOS OpenJDK ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2
