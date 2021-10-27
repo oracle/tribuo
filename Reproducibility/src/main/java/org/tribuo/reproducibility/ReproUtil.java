@@ -436,7 +436,7 @@ public class ReproUtil {
     }
 
     public record FeatureDiff (Set<String> originalFeatures, Set<String> reproducedFeatures){}
-    public record OutputDiff<T extends Output>(Set<T> originalOutput, Set<T> reproducedOutput){}
+    public record OutputDiff<T extends Output<T>>(Set<T> originalOutput, Set<T> reproducedOutput){}
     public record ModelReproduction <T extends Output<T>> (Model<T> model, FeatureDiff featureDiff, OutputDiff outputDiff, String provenanceDiff){}
 
     /**
