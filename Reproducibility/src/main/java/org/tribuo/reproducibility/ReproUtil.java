@@ -37,7 +37,6 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import com.sun.source.tree.Tree;
 import org.tribuo.ConfigurableDataSource;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
@@ -435,9 +434,9 @@ public class ReproUtil {
 
         return newModel;
     }
-    
-    public record FeatureDiff (Set originalFeatures, Set reproducedFeatures){}
-    public record OutputDiff (Set originalOutput, Set reproducedOutput){}
+
+    public record FeatureDiff (Set<String> originalFeatures, Set<String> reproducedFeatures){}
+    public record OutputDiff<T extends Output>(Set<T> originalOutput, Set<T> reproducedOutput){}
     public record ModelReproduction <T extends Output<T>> (Model<T> model, FeatureDiff featureDiff, OutputDiff outputDiff, String provenanceDiff){}
 
     /**
@@ -459,11 +458,9 @@ public class ReproUtil {
         }
 
         Model<T> newModel = reproduceFromProvenance();
-        ImmutableFeatureMap newFeatureMap = newModel.getFeatureIDMap();
-        ImmutableFeatureMap oldFeatureMap = originalModel.getFeatureIDMap();
 
-        TreeSet<String> newFeatureKeys = new TreeSet<String>(newModel.getFeatureIDMap().keySet());
-        TreeSet<String> oldFeatureKeys = new TreeSet<String>(originalModel.getFeatureIDMap().keySet());
+        TreeSet<String> newFeatureKeys = new TreeSet<>(newModel.getFeatureIDMap().keySet());
+        TreeSet<String> oldFeatureKeys = new TreeSet<>(originalModel.getFeatureIDMap().keySet());
 
         TreeSet<String> intersectionOfKeys = new TreeSet<>(newModel.getFeatureIDMap().keySet());
         intersectionOfKeys.retainAll(oldFeatureKeys);
