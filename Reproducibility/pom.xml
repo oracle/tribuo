@@ -27,70 +27,67 @@
     <name>Reproducibility</name>
     <artifactId>tribuo-reproducibility</artifactId>
     <packaging>jar</packaging>
-    <groupId>org.tribuo</groupId>
     <properties>
         <maven.compiler.source>16</maven.compiler.source>
         <maven.compiler.target>16</maven.compiler.target>
+        <maven.compiler.release>16</maven.compiler.release>
     </properties>
 
     <dependencies>
+        <!-- runtime dependencies -->
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-core</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-regression-sgd</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
-            <scope>test</scope>
+            <artifactId>tribuo-interop-core</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-classification-core</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-classification-sgd</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-regression-tree</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-
         <dependency>
             <groupId>com.oracle.labs.olcut</groupId>
             <artifactId>olcut-config-json</artifactId>
             <version>${olcut.version}</version>
         </dependency>
 
+        <!-- test time dependencies -->
         <dependency>
-        <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-classification-tree</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-regression-sgd</artifactId>
+            <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-interop-core</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
-            <scope>compile</scope>
+            <artifactId>tribuo-classification-core</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-sgd</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-regression-tree</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-classification-tree</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -98,6 +95,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
                 <configuration>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
@@ -129,11 +127,10 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>16</source>
-                    <target>16</target>
+                    <release>16</release>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    
+
 </project>
