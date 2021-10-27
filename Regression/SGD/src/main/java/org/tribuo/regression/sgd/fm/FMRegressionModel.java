@@ -27,7 +27,7 @@ import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
-import org.tribuo.math.onnx.ONNXMathUtils;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -112,10 +112,10 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
         context.setName("FMMultiLabelModel");
 
         // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
         OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
         context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
         OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
         context.addOutput(outputValueProto);
 
@@ -142,9 +142,9 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
             }
 
             // Create mean and variance initializers
-            OnnxMl.TensorProto outputMeanProto = ONNXMathUtils.arrayBuilder(context,context.generateUniqueName("y_mean"),means);
+            OnnxMl.TensorProto outputMeanProto = ONNXUtils.arrayBuilder(context,context.generateUniqueName("y_mean"),means);
             context.addInitializer(outputMeanProto);
-            OnnxMl.TensorProto outputVarianceProto = ONNXMathUtils.arrayBuilder(context, context.generateUniqueName("y_var"),variances);
+            OnnxMl.TensorProto outputVarianceProto = ONNXUtils.arrayBuilder(context, context.generateUniqueName("y_var"),variances);
             context.addInitializer(outputVarianceProto);
 
             // Add standardisation operations

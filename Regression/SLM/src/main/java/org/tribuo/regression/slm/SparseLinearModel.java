@@ -29,11 +29,11 @@ import org.tribuo.VariableInfo;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
-import org.tribuo.math.onnx.ONNXMathUtils;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
@@ -257,7 +257,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
     @Override
     public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Add weights
-        OnnxMl.TensorProto weightInitializerProto = ONNXMathUtils.floatTensorBuilder(context, "slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
+        OnnxMl.TensorProto weightInitializerProto = ONNXUtils.floatTensorBuilder(context, "slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
                 fb -> {
                     for (int j = 0; j < featureIDMap.size(); j++) {
                         for (int i = 0; i < weights.length; i++) {
@@ -268,22 +268,22 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         context.addInitializer(weightInitializerProto);
 
         // Add biases
-        OnnxMl.TensorProto biasInitializerProto = ONNXMathUtils.floatTensorBuilder(context, "slm_biases", Collections.singletonList(outputIDInfo.size()),
+        OnnxMl.TensorProto biasInitializerProto = ONNXUtils.floatTensorBuilder(context, "slm_biases", Collections.singletonList(outputIDInfo.size()),
                 (FloatBuffer fb) -> Arrays.stream(weights).forEachOrdered(sv -> fb.put((float) sv.get(featureIDMap.size()))));
         context.addInitializer(biasInitializerProto);
 
         // Add feature and output means
         double[] xMean = bias ? Arrays.copyOf(featureMeans.toArray(),featureIDMap.size()) : featureMeans.toArray();
-        OnnxMl.TensorProto featureMeanProto = ONNXMathUtils.arrayBuilder(context, "feature_mean",xMean);
+        OnnxMl.TensorProto featureMeanProto = ONNXUtils.arrayBuilder(context, "feature_mean",xMean);
         context.addInitializer(featureMeanProto);
-        OnnxMl.TensorProto outputMeanProto = ONNXMathUtils.arrayBuilder(context,"y_mean",yMean);
+        OnnxMl.TensorProto outputMeanProto = ONNXUtils.arrayBuilder(context,"y_mean",yMean);
         context.addInitializer(outputMeanProto);
 
         // Add feature and output variances
         double[] xVariance = bias ? Arrays.copyOf(featureVariance.toArray(),featureIDMap.size()) : featureVariance.toArray();
-        OnnxMl.TensorProto featureVarianceProto = ONNXMathUtils.arrayBuilder(context,"feature_var",xVariance);
+        OnnxMl.TensorProto featureVarianceProto = ONNXUtils.arrayBuilder(context,"feature_var",xVariance);
         context.addInitializer(featureVarianceProto);
-        OnnxMl.TensorProto outputVarianceProto = ONNXMathUtils.arrayBuilder(context, "y_var",yVariance);
+        OnnxMl.TensorProto outputVarianceProto = ONNXUtils.arrayBuilder(context, "y_var",yVariance);
         context.addInitializer(outputVarianceProto);
 
         // Scale features

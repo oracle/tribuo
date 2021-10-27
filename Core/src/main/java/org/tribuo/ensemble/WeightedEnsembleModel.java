@@ -304,6 +304,9 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
 
         // Write in ensemble combiner
         List<OnnxMl.NodeProto> combinerNodes = combiner.exportCombiner(context,concat.getOutput(0),outputName,weightTensor.getName());
+        if (combinerNodes.isEmpty()) {
+            throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + combiner.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
+        }
         context.addAllNodes(combinerNodes);
     }
 }
