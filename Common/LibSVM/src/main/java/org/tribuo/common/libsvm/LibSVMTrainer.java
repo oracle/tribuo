@@ -193,6 +193,11 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Override
     public LibSVMModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+        return (train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public LibSVMModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -203,6 +208,9 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
@@ -265,6 +273,15 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
     @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
+    }
+
+    @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.trainInvocationCounter = invocationCount;
     }
 
     /**

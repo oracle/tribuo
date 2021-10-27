@@ -129,12 +129,20 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     }
 
     @Override
-    public synchronized LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+    public LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+        return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public synchronized LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         TrainerProvenance trainerProvenance = getProvenance();
         ModelProvenance provenance = new ModelProvenance(LibLinearModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
         trainInvocationCount++;
@@ -154,6 +162,15 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     @Override
     public int getInvocationCount() {
         return trainInvocationCount;
+    }
+
+    @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.trainInvocationCount = invocationCount;
     }
 
     @Override

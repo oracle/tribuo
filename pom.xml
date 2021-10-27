@@ -368,6 +368,16 @@
 
     <profiles>
         <profile>
+            <!-- Only enable the reproducibility module on Java 16 or 17 -->
+            <id>reproducibility-java17</id>
+            <activation>
+                <jdk>[16,)</jdk>
+            </activation>
+            <modules>
+                <module>Reproducibility</module>
+            </modules>
+        </profile>
+        <profile>
             <!-- Turn off ONNX, XGBoost and TF tests on ARM platforms as the binaries are not available -->
             <id>arm</id>
             <properties>

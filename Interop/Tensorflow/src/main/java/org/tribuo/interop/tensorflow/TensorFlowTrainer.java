@@ -464,11 +464,19 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
 
     @Override
     public TensorFlowModel<T> train(Dataset<T> examples, Map<String,Provenance> runProvenance) {
+        return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public TensorFlowModel<T> train(Dataset<T> examples, Map<String,Provenance> runProvenance, int invocationCount) {
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputInfo = examples.getOutputIDInfo();
         ArrayList<Example<T>> batch = new ArrayList<>();
         Path curCheckpointPath;
         synchronized (this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             curCheckpointPath = checkpointPath != null ? Paths.get(checkpointPath.toString(),"invocation-"+trainInvocationCounter, "tribuo") : null;
             trainInvocationCounter++;
         }
@@ -590,6 +598,15 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
     @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
+    }
+
+    @Override
+    public void setInvocationCount(int invocationCount) {
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.trainInvocationCounter = invocationCount;
     }
 
     @Override

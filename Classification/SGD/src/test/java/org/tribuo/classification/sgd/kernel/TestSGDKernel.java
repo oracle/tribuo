@@ -24,10 +24,13 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
+import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.kernel.RBF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.la.Tensor;
+import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.test.Helpers;
 
 import java.util.List;
@@ -35,6 +38,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestSGDKernel {
@@ -94,6 +98,44 @@ public class TestSGDKernel {
             Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
             Model<Label> m = t.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
+        });
+    }
+
+    @Test
+    public void testSetInvocationCount() {
+        // Create new trainer and dataset so as not to mess with the other tests
+        KernelSVMTrainer originalTrainer = new KernelSVMTrainer(new RBF(1.0),1,5,1000, Trainer.DEFAULT_SEED);
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+
+        // The number of times to call train before final training.
+        // Original trainer will be trained numOfInvocations + 1 times
+        // New trainer will have it's invocation count set to numOfInvocations then trained once
+        int numOfInvocations = 2;
+
+        // Create the first model and train it numOfInvocations + 1 times
+        Model<Label> originalModel = null;
+        for(int invocationCounter = 0; invocationCounter < numOfInvocations + 1; invocationCounter++){
+            originalModel = originalTrainer.train(p.getA());
+        }
+
+        // Create a new model with same configuration, but set the invocation count to numOfInvocations
+        // Assert that this succeeded, this means RNG will be at state where originalTrainer was before
+        // it performed its last train.
+        KernelSVMTrainer newTrainer = new KernelSVMTrainer(new RBF(1.0),1,5,1000, Trainer.DEFAULT_SEED);
+        newTrainer.setInvocationCount(numOfInvocations);
+        assertEquals(numOfInvocations,newTrainer.getInvocationCount());
+
+        // Training newTrainer should now have the same result as if it
+        // had trained numOfInvocations times previously even though it hasn't
+        Model<Label> newModel = newTrainer.train(p.getA());
+        assertEquals(originalTrainer.getInvocationCount(),newTrainer.getInvocationCount());
+    }
+
+    @Test
+    public void testNegativeInvocationCount(){
+        assertThrows(IllegalArgumentException.class, () -> {
+            KernelSVMTrainer t = new KernelSVMTrainer(new RBF(1.0),1,5,1000, Trainer.DEFAULT_SEED);
+            t.setInvocationCount(-1);
         });
     }
 

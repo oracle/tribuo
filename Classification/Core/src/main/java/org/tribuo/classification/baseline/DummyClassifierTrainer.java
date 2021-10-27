@@ -86,9 +86,17 @@ public final class DummyClassifierTrainer implements Trainer<Label> {
 
     @Override
     public Model<Label> train(Dataset<Label> examples, Map<String, Provenance> instanceProvenance) {
+        return(train(examples, instanceProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public Model<Label> train(Dataset<Label> examples, Map<String, Provenance> instanceProvenance, int invocationCount) {
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            this.invocationCount = invocationCount;
+        }
         ModelProvenance provenance = new ModelProvenance(DummyClassifierModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), instanceProvenance);
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
-        invocationCount++;
+        this.invocationCount++;
         switch (dummyType) {
             case CONSTANT:
                 MutableOutputInfo<Label> labelInfo = examples.getOutputInfo().generateMutableOutputInfo();
@@ -112,6 +120,15 @@ public final class DummyClassifierTrainer implements Trainer<Label> {
     @Override
     public int getInvocationCount() {
         return invocationCount;
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        this.invocationCount = invocationCount;
     }
 
     @Override

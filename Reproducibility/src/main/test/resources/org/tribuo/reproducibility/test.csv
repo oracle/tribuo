@@ -1,0 +1,21 @@
+id,timestamp,example-weight,height,description,transport,disposition,extra-a,extra-b,extra-c
+1,14/10/2020 16:07,0.50,1.73,"aged, grey-white hair, blue eyes, stern disposition",police-box,Good,4.83881,-0.7685,0.87706
+2,15/10/2020 16:07,0.50,1.73,"impish, black hair, blue eyes, unkempt",police-box,Good,1.10026,0.51655,0.9632
+3,16/10/2020 16:07,1.00,1.9,"grey curly hair, frilly shirt, cape, blue eyes",police-box,Good,0.78601,0.49001,3.03926
+4,17/10/2020 16:07,1.00,1.91,"brown curly hair, long multicoloured scarf, jelly babies",police-box,Good,3.56195,2.11667,-0.55366
+5,18/10/2020 16:07,1.00,1.86,"sandy hair, cricketing attire, celery",police-box,Good,4.36924,0.95905,-0.16788
+6,19/10/2020 16:07,1.00,1.83,"multicoloured coat, erratic behaviour",police-box,Good,1.36555,-0.10767,2.51167
+7,20/10/2020 16:07,1.00,1.68,"brown hair, question mark pullover, umbrella",police-box,Good,0.20671,2.86232,-0.65055
+8,21/10/2020 16:07,2.00,1.75,"brown hair, green velvet coat",police-box,Good,2.61811,2.14574,-0.34658
+9,22/10/2020 16:07,3.00,1.83,"short cropped brown hair, leather jacket",police-box,Good,5.97242,-0.05868,-3.71717
+10,23/10/2020 16:07,3.00,1.85,"brown eyes, brown hair, striped suit with overcoat",police-box,Good,4.60461,2.0726,2.84761
+11,24/10/2020 16:07,1.00,1.71,"greying hair, brown eyes, black and grey goatee",white-cube,Bad,-0.46936,-0.93174,-2.72745
+12,25/10/2020 16:07,1.00,1.77,"dark brown hair, black goatee",white-cube,Bad,-1.73552,1.30103,-3.92933
+13,26/10/2020 16:07,4.00,1.61,"black hair, blue eyes, victorian dress",white-cube,Bad,-0.17391,1.24752,-1.83719
+14,27/10/2020 16:07,1.00,1.75,"bald, inexplicable british accent",spaceship,Good,2.75697,0.40616,-5.09777
+15,28/10/2020 16:07,1.00,1.89,"brown hair, brown goatee",spaceship,Good,5.82101,-2.52022,-3.26192
+16,29/10/2020 16:07,1.00,1.78,"golden eyes, brown hair, pale complexion",spaceship,Good,1.71953,-0.72907,-0.24401
+17,30/10/2020 16:07,1.00,1.6,"black eyes, long dark hair",spaceship,Good,0.58071,-0.43875,2.57832
+18,31/10/2020 16:07,2.00,1.65,"pale skin, cybernetic augmentation",spaceship,Bad,-2.80532,-1.52983,-0.53828
+19,01/11/2020 16:07,1.00,1.78,"golden eyes, brown hair, pale complexion",spaceship,Bad,-0.51847,-0.46098,0.51498
+20,02/11/2020 16:07,3.00,1.75,"bald, pointy ears",spaceship,Bad,1.32672,1.21234,-0.63983

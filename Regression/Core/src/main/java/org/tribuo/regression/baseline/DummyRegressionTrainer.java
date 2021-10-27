@@ -105,6 +105,14 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
 
     @Override
     public DummyRegressionModel train(Dataset<Regressor> examples, Map<String, Provenance> instanceProvenance) {
+        return train(examples, instanceProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public DummyRegressionModel train(Dataset<Regressor> examples, Map<String, Provenance> instanceProvenance, int invocationCount) {
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         ModelProvenance provenance = new ModelProvenance(DummyRegressionModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), instanceProvenance);
         invocationCount++;
         ImmutableOutputInfo<Regressor> outputInfo = examples.getOutputIDInfo();
@@ -197,6 +205,14 @@ public final class DummyRegressionTrainer implements Trainer<Regressor> {
     @Override
     public int getInvocationCount() {
         return invocationCount;
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+        this.invocationCount = invocationCount;
     }
 
     @Override

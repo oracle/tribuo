@@ -161,4 +161,46 @@ public class TestCART {
     public void testRandomEmptyExample() {
         runEmptyExample(randomt);
     }
+
+    @Test
+    public void testSetInvocationCount() {
+        // Create new trainer and dataset so as not to mess with the other tests
+        CARTClassificationTrainer originalTrainer = new CARTClassificationTrainer(5,2, 0.0f,1.0f, true,
+                new GiniIndex(), Trainer.DEFAULT_SEED);
+        Pair<Dataset<Label>,Dataset<Label>> data = LabelledDataGenerator.denseTrainTest();
+        DatasetView<Label> trainingData = DatasetView.createView(data.getA(),(Example<Label> e) -> e.getOutput().getLabel().equals("Foo"), "Foo selector");
+
+        // The number of times to call train before final training.
+        // Original trainer will be trained numOfInvocations + 1 times
+        // New trainer will have it's invocation count set to numOfInvocations then trained once
+        int numOfInvocations = 2;
+
+        // Create the first model and train it numOfInvocations + 1 times
+        TreeModel<Label> originalModel = null;
+        for(int invocationCounter = 0; invocationCounter < numOfInvocations + 1; invocationCounter++){
+            originalModel = originalTrainer.train(trainingData);
+        }
+
+        // Create a new model with same configuration, but set the invocation count to numOfInvocations
+        // Assert that this succeeded, this means RNG will be at state where originalTrainer was before
+        // it performed its last train.
+        CARTClassificationTrainer newTrainer = new CARTClassificationTrainer(5,2, 0.0f,1.0f, true,
+                new GiniIndex(), Trainer.DEFAULT_SEED);
+        newTrainer.setInvocationCount(numOfInvocations);
+        assertEquals(numOfInvocations,newTrainer.getInvocationCount());
+
+        // Training newTrainer should now have the same result as if it
+        // had trained numOfInvocations times previously even though it hasn't
+        TreeModel<Label> newModel = newTrainer.train(trainingData);
+        assertEquals(originalTrainer.getInvocationCount(),newTrainer.getInvocationCount());
+    }
+
+    @Test
+    public void testNegativeInvocationCount(){
+        assertThrows(IllegalArgumentException.class, () -> {
+            CARTClassificationTrainer t = new CARTClassificationTrainer(5,2, 0.0f,1.0f, true,
+                    new GiniIndex(), Trainer.DEFAULT_SEED);
+            t.setInvocationCount(-1);
+        });
+    }
 }

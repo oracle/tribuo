@@ -71,6 +71,11 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
 
     @Override
     public Model<MultiLabel> train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance) {
+        return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    @Override
+    public Model<MultiLabel> train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -87,6 +92,9 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
         TrainerProvenance trainerProvenance;
         // Construct the trainer provenance including the inner trainer invocation count field
         synchronized (innerTrainer) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
         }
@@ -111,12 +119,18 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
             trainingData.regenerateOutputInfo();
             modelsList.add(innerTrainer.train(trainingData));
         }
+
         return new IndependentMultiLabelModel(labelList,modelsList,provenance,featureMap,labelInfo);
     }
 
     @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        innerTrainer.setInvocationCount(invocationCount);
     }
 
     @Override

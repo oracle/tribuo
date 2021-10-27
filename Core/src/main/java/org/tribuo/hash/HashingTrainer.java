@@ -74,10 +74,14 @@ public final class HashingTrainer<T extends Output<T>> implements Trainer<T> {
      */
     @Override
     public Model<T> train(Dataset<T> dataset,Map<String, Provenance> instanceProvenance) {
+        return(train(dataset, instanceProvenance, INCREMENT_INVOCATION_COUNT));
+    }
+
+    public Model<T> train(Dataset<T> dataset,Map<String, Provenance> instanceProvenance, int invocationCount) {
         logger.log(Level.INFO,"Before hashing, had " + dataset.getFeatureMap().size() + " features.");
         ImmutableDataset<T> hashedData = ImmutableDataset.hashFeatureMap(dataset, hasher);
         logger.log(Level.INFO,"After hashing, had " + hashedData.getFeatureMap().size() + " features.");
-        Model<T> model = innerTrainer.train(hashedData,instanceProvenance);
+        Model<T> model = innerTrainer.train(hashedData,instanceProvenance, invocationCount);
         if (!(model.getFeatureIDMap() instanceof HashedFeatureMap)) {
             //
             // This exception is thrown when the innerTrainer did not copy the ImmutableFeatureMap from the
@@ -90,6 +94,11 @@ public final class HashingTrainer<T extends Output<T>> implements Trainer<T> {
     @Override
     public int getInvocationCount() {
         return innerTrainer.getInvocationCount();
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        innerTrainer.setInvocationCount(invocationCount);
     }
 
     @Override

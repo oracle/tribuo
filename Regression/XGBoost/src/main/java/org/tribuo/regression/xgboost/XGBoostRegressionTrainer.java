@@ -226,12 +226,20 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
 
     @Override
     public synchronized XGBoostModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public synchronized XGBoostModel<Regressor> train(Dataset<Regressor> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<Regressor> outputInfo = examples.getOutputIDInfo();
         int numOutputs = outputInfo.size();
+        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+            setInvocationCount(invocationCount);
+        }
         TrainerProvenance trainerProvenance = getProvenance();
         trainInvocationCounter++;
         List<Booster> models = new ArrayList<>();

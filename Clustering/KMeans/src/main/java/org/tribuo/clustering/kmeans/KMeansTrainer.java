@@ -184,10 +184,18 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     @Override
     public KMeansModel train(Dataset<ClusterID> examples, Map<String, Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public KMeansModel train(Dataset<ClusterID> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         // Creates a new local RNG and adds one to the invocation count.
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized (this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
@@ -301,6 +309,23 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        SplittableRandom localRNG;
+        trainInvocationCounter = 0;
+
+        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
+            localRNG = rng.split();
+            trainInvocationCounter++;
+        }
+
     }
 
     /**

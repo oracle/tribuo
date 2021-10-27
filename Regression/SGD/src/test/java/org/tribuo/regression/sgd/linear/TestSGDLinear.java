@@ -35,6 +35,7 @@ import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.RegressorTransformer;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Tensor;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.RegressionFactory;
@@ -235,6 +236,48 @@ public class TestSGDLinear {
             Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
             Model<Regressor> m = t.train(p.getA());
             m.predict(RegressionDataGenerator.emptyMultiDimExample());
+        });
+    }
+
+    @Test
+    public void testSetInvocationCount() {
+        // Create new trainer and dataset so as not to mess with the other tests
+        LinearSGDTrainer originalTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000);
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+
+        // The number of times to call train before final training.
+        // Original trainer will be trained numOfInvocations + 1 times
+        // New trainer will have it's invocation count set to numOfInvocations then trained once
+        int numOfInvocations = 2;
+
+        // Create the first model and train it numOfInvocations + 1 times
+        AbstractLinearSGDModel<Regressor> originalModel = null;
+        for(int invocationCounter = 0; invocationCounter < numOfInvocations + 1; invocationCounter++){
+            originalModel = originalTrainer.train(p.getA());
+        }
+
+        // Create a new model with same configuration, but set the invocation count to numOfInvocations
+        // Assert that this succeeded, this means RNG will be at state where originalTrainer was before
+        // it performed its last train.
+        LinearSGDTrainer newTrainer = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000);
+        newTrainer.setInvocationCount(numOfInvocations);
+        assertEquals(numOfInvocations,newTrainer.getInvocationCount());
+
+        // Training newTrainer should now have the same result as if it
+        // had trained numOfInvocations times previously even though it hasn't
+        AbstractLinearSGDModel<Regressor> newModel = newTrainer.train(p.getA());
+        assertEquals(originalTrainer.getInvocationCount(),newTrainer.getInvocationCount());
+
+        Tensor newWeights = newModel.getModelParameters().get()[0];
+        Tensor oldWeights = originalModel.getModelParameters().get()[0];
+        assertEquals(newWeights,oldWeights);
+    }
+
+    @Test
+    public void testNegativeInvocationCount(){
+        assertThrows(IllegalArgumentException.class, () -> {
+            LinearSGDTrainer t = new LinearSGDTrainer(new SquaredLoss(), new AdaGrad(0.1,0.1),5,1000);
+            t.setInvocationCount(-1);
         });
     }
 

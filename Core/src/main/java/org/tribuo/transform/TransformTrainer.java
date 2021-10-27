@@ -28,6 +28,7 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -111,13 +112,18 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Override
     public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance) {
-        
+        return train(examples, instanceProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public TransformedModel<T> train(Dataset<T> examples, Map<String, Provenance> instanceProvenance, int invocationCount) {
+
         logger.fine("Creating transformers");
 
         TransformerMap transformerMap = examples.createTransformers(transformations, includeImplicitZeroFeatures);
 
         logger.fine("Transforming data set");
-        
+
         Dataset<T> transformedDataset = transformerMap.transformDataset(examples,densify);
 
         logger.fine("Running inner trainer");
@@ -126,7 +132,7 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
         Model<T> innerModel;
         synchronized (innerTrainer) {
             provenance = getProvenance();
-            innerModel = innerTrainer.train(transformedDataset);
+            innerModel = innerTrainer.train(transformedDataset, Collections.emptyMap(), invocationCount);
         }
 
         ModelProvenance modelProvenance = new ModelProvenance(TransformedModel.class.getName(), OffsetDateTime.now(), transformedDataset.getProvenance(), provenance, instanceProvenance);
@@ -137,6 +143,11 @@ public final class TransformTrainer<T extends Output<T>> implements Trainer<T> {
     @Override
     public int getInvocationCount() {
         return innerTrainer.getInvocationCount();
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        innerTrainer.setInvocationCount(invocationCount);
     }
 
     @Override
