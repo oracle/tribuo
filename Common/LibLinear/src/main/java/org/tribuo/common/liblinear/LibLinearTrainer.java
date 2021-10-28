@@ -165,7 +165,7 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     }
 
     @Override
-    public void setInvocationCount(int invocationCount) {
+    public synchronized void setInvocationCount(int invocationCount) {
         if(invocationCount < 0){
             throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
         }

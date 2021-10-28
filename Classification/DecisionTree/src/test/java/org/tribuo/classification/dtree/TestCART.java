@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,7 +172,7 @@ public class TestCART {
 
         // The number of times to call train before final training.
         // Original trainer will be trained numOfInvocations + 1 times
-        // New trainer will have it's invocation count set to numOfInvocations then trained once
+        // New trainer will have its invocation count set to numOfInvocations then trained once
         int numOfInvocations = 2;
 
         // Create the first model and train it numOfInvocations + 1 times

@@ -244,7 +244,7 @@ public class TestSLM {
 
         // The number of times to call train before final training.
         // Original trainer will be trained numOfInvocations + 1 times
-        // New trainer will have it's invocation count set to numOfInvocations then trained once
+        // New trainer will have its invocation count set to numOfInvocations then trained once
         int numOfInvocations = 2;
 
         // Create the first model and train it numOfInvocations + 1 times
@@ -264,7 +264,6 @@ public class TestSLM {
         // had trained numOfInvocations times previously even though it hasn't
         SparseModel<Regressor> newModel = newTrainer.train(p.getA());
         assertEquals(originalTrainer.getInvocationCount(),newTrainer.getInvocationCount());
-
     }
 
     @Test

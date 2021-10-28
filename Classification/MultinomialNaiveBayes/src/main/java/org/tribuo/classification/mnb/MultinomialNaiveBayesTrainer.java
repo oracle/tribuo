@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
     @Config(description="Smoothing parameter.")
     private double alpha = 1.0;
 
-    private int invocationCount = 0;
+    private int trainInvocationCount = 0;
 
     /**
      * Constructs a multinomial naive bayes trainer using a smoothing value of 1.0.
@@ -111,7 +111,7 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
         }
         TrainerProvenance trainerProvenance = getProvenance();
         ModelProvenance provenance = new ModelProvenance(MultinomialNaiveBayesModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
-        invocationCount++;
+        trainInvocationCount++;
 
         SparseVector[] labelVectors = new SparseVector[labelInfos.size()];
 
@@ -129,7 +129,7 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
 
     @Override
     public int getInvocationCount() {
-        return invocationCount;
+        return trainInvocationCount;
     }
 
     @Override
@@ -138,7 +138,7 @@ public class MultinomialNaiveBayesTrainer implements Trainer<Label>, WeightedExa
             throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
         }
 
-        this.invocationCount = invocationCount;
+        this.trainInvocationCount = invocationCount;
     }
 
     @Override

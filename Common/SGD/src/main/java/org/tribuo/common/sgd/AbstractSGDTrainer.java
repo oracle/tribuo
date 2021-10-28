@@ -262,12 +262,10 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         }
 
         rng = new SplittableRandom(seed);
-        SplittableRandom localRNG;
-        for (int invocationCounter = 0; invocationCounter < invocationCount; invocationCounter++){
-            localRNG = rng.split();
-        }
-        trainInvocationCounter = invocationCount;
 
+        for (trainInvocationCounter = 0; trainInvocationCounter < invocationCount; trainInvocationCounter++){
+            SplittableRandom localRNG = rng.split();
+        }
     }
 
     /**

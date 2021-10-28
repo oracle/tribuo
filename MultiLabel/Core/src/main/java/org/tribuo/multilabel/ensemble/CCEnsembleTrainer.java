@@ -33,6 +33,7 @@ import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
+import javax.xml.crypto.Data;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -109,10 +110,18 @@ public final class CCEnsembleTrainer implements Trainer<MultiLabel> {
 
     @Override
     public WeightedEnsembleModel<MultiLabel> train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance) {
+        return train(examples,runProvenance,INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public WeightedEnsembleModel<MultiLabel> train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         // Creates a new RNG, adds one to the invocation count.
         SplittableRandom localRNG;
         TrainerProvenance trainerProvenance;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
@@ -140,6 +149,18 @@ public final class CCEnsembleTrainer implements Trainer<MultiLabel> {
     @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        for (trainInvocationCounter = 0; trainInvocationCounter < invocationCount; trainInvocationCounter++){
+            SplittableRandom localRNG = rng.split();
+        }
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,11 +89,13 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
      * This is used when reproducing a Tribuo-trained model by setting the state of the RNG to
      * what it was at when Tribuo trained the original model by simulating invocations of the train method.
      * This method should ALWAYS be overridden, and the default method is purely for compatibility.
+     * <p>
+     * In a future major release this default implementation will be removed.
      * @param  invocationCount the number of invocations of the train method to simulate
      */
     default public void setInvocationCount(int invocationCount){
         Logger.getLogger(this.getClass().getName()).warning("This class is using the default implementation of " +
-                "setInvocationCount and so might not behave as expected. We highly recommend overriding this method " +
-                "to function as per the documentation.");
+                "setInvocationCount and so might not behave as expected when reproduced. We highly recommend overriding " +
+                "this method as per the documentation.");
     }
 }
