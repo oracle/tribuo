@@ -66,7 +66,7 @@ import java.util.logging.Logger;
  * Reproducibility utility based on Tribuo's provenance objects.
  * @param <T> The output type of the model being reproduced.
  */
-public class ReproUtil<T extends Output<T>> {
+public final class ReproUtil<T extends Output<T>> {
     private static final Logger logger = Logger.getLogger(ReproUtil.class.getName());
 
     // These fields are used to denote which value came from which provenance in a diff
