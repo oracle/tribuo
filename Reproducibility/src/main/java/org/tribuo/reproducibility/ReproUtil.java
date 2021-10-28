@@ -31,7 +31,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.PrimitiveProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
-import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
@@ -40,12 +39,12 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ConfigurableDataSource;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
-import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Trainer;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.ExternalTrainerProvenance;
+import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.provenance.DatasetProvenance;
@@ -53,6 +52,7 @@ import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -61,16 +61,19 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
+/**
+ * Reproducibility utility based on Tribuo's provenance objects.
+ */
 public class ReproUtil {
     private static final Logger logger = Logger.getLogger(ReproUtil.class.getName());
 
     // These fields are used to denote which value came from which provenance in a diff
-    private final static String OLD = "original";
-    private final static String NEW = "reproduced";
-    private static final ObjectMapper mapper;
+    private static final String OLD = "original";
+    private static final String NEW = "reproduced";
+
+    // Configure the object mapper
+    private static final ObjectMapper mapper = new ObjectMapper();
     static {
-        mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
     }
@@ -82,34 +85,39 @@ public class ReproUtil {
 
     /**
      * Creates a ReproUtil instance
-     * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}
-     * @throws IllegalArgumentException
+     * <p>
+     * Throws {@link IllegalArgumentException} if the model is an external model trained outside of Tribuo.
+     * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}.
      */
     public ReproUtil(ModelProvenance provenance) {
         this(provenance, null);
     }
 
     /**
-     * Creates a ReproUtil instance
-     * @param originalModel The ReproUtil will re-train a model based on the provenance contained in this {@link Model}
-     * @throws IllegalArgumentException
+     * Creates a ReproUtil instance.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the model is an external model trained outside of Tribuo.
+     * @param originalModel The ReproUtil will re-train a model based on the provenance contained in this {@link Model}.
      */
     public ReproUtil(Model<?> originalModel) {
         this(originalModel.getProvenance(), originalModel);
     }
 
     /**
-     *
-     * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}
-     * @param originalModel Optional argument, but if it's not null than the provenance used is from this {@link Model}
-     * @throws IllegalArgumentException
+     * Creates a ReproUtil instance.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the model is an external model trained outside of Tribuo.
+     * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}.
+     * @param originalModel Optional argument, but if it's not null than the provenance used is from this {@link Model}.
      */
     private ReproUtil(ModelProvenance provenance, Model<?> originalModel) {
-        if (provenance.getTrainerProvenance() instanceof ExternalTrainerProvenance){
+        if (originalModel instanceof ONNXExternalModel<?> onnxModel && onnxModel.getTribuoProvenance().isPresent()) {
+            this.modelProvenance = onnxModel.getTribuoProvenance().get();
+        } else if (provenance.getTrainerProvenance() instanceof ExternalTrainerProvenance){
             throw new IllegalArgumentException("This version of the tool cannot reproduce external models.");
+        } else {
+            this.modelProvenance = provenance;
         }
-
-        this.modelProvenance = provenance;
 
         // Load configurations from provenance so it can re-instantiate objects using the ConfigManager
         // Additionally allows us to change the values of certain configurable fields before re-instantiation
@@ -122,13 +130,11 @@ public class ReproUtil {
     }
 
     /**
-     *
-     * @param <T> A trainer type
-     * @return A {@link Trainer} found in the cm, presumably used to train the originalModel
-     * @throws IllegalStateException
+     * Extract the trainer from this repro util.
+     * @param <T> The output type.
+     * @return A {@link Trainer} found in the configuration manager, presumably used to train the originalModel.
      */
     public <T extends Output<T>> Trainer<T> recoverTrainer() {
-
         // We need to set the state of the RNG for each trainer used in the provenance.
         // ProvenanceUtil.orderProvenances allows us to iterate through the provObjects,
         // construct the correct component name using ProvenanceUtil.computeName, and
@@ -142,7 +148,7 @@ public class ReproUtil {
                 // Once a Trainer is identified we need to set the invocationCount as identified
                 // in the provenance. Invocation count is not configurable since it is a provenance value,
                 // it is an immutable value mapping one-to-one to a single execution.
-                if(configurableObject instanceof Trainer trainer){
+                if(configurableObject instanceof Trainer<?> trainer){
                     //TODO: More instanceof match?
                     trainer.setInvocationCount((int) trainerProvenance.getInstanceValues().get("train-invocation-count").getValue());
                 } else {
@@ -151,31 +157,31 @@ public class ReproUtil {
             }
         }
 
-        Class<? extends Trainer<T>> trainerClass = null;
-
         // Recover the name of the trainer class from the model's provenance
         // Convert to a class object so it can be passed to the config manager to recover the trainer object
         try {
-            trainerClass = (Class<? extends Trainer<T>>) Class.forName(this.modelProvenance.getTrainerProvenance().getClassName());
+            // Suppressed as the output type is extracted from the class itself.
+            @SuppressWarnings("unchecked")
+            Class<? extends Trainer<T>> trainerClass = (Class<? extends Trainer<T>>) Class.forName(this.modelProvenance.getTrainerProvenance().getClassName());
+            // Use the class identified from the prov to create a new Trainer from the config manager that
+            // is the same as the original trainer used.
+            String trainerName = cm.listAll(trainerClass).get(0);
+            @SuppressWarnings("unchecked")
+            Trainer<T> newTrainer = (Trainer<T>) cm.lookup(trainerName);
+
+            return newTrainer;
         } catch (ClassNotFoundException e) {
             // This exception should not occur since an instance of this class is instantiated in the loop above
-            e.printStackTrace();
+            throw new IllegalStateException("Unexpected class cast exception",e);
         }
-
-        // Use the class identified from the prov to create a new Trainer from the config manager that
-        // is the same as the original trainer used.
-        String trainerName = cm.listAll(trainerClass).get(0);
-        Trainer<T> newTrainer = (Trainer<T>) cm.lookup(trainerName);
-
-        return newTrainer;
     }
 
     /**
-     * This method takes a class object and will recover that datasource from the {@link ConfigurationManager}
-     *
-     * @param dataSourceClass A configurable class that this method will search for in the configuration manager
-     * @return A {@link DataSource} object that was used to load data from te original model
-     * @throws IllegalArgumentException
+     * This method takes a class object and will recover that datasource from the {@link ConfigurationManager}.
+     * <p>
+     * Throws {@link IllegalStateException} if the data source cannot be instantiated.
+     * @param dataSourceClass A configurable class that this method will search for in the configuration manager.
+     * @return A {@link DataSource} object that was used to load data from te original model.
      */
     private <T extends Output<T>> DataSource<T> getDatasourceFromCM(Class<? extends Configurable> dataSourceClass){
 
@@ -196,52 +202,41 @@ public class ReproUtil {
 
         // If the data source can be recovered from cm, override the properties before the dataSource is
         // instantiated, and then instantiate the source.
-        DataSource<T> dataSource = null;
-        if (sourceName != null){
-            dataSource  = (DataSource<T>) cm.lookup(sourceName);
+        if (sourceName == null){
+            throw new IllegalStateException("Failed to find source with expected class " + dataSourceClass);
         }
 
-        // Throw error if the source cannot be instantiated.
-        if (dataSource == null) {
-            throw new IllegalArgumentException("The provided provenance has no data source");
-        }
+        // Type is restricted by source construction
+        @SuppressWarnings("unchecked")
+        DataSource<T> dataSource = (DataSource<T>) cm.lookup(sourceName);
 
         return dataSource;
     }
 
 
     /**
-     * Attempts to use reflection to determine the correct type a dataset should be and then instantiates it
-     * returns null if cannot be done.
+     * Attempts to use reflection to determine the correct type a dataset should be and then instantiates it.
+     * <p>
+     * Throws {@link IllegalStateException} if the dataset could not be instantiated.
      * @param modelSource A datasource class that is passed to the dataset upon construction
      * @param datasetClass The Class of Dataset to be instantiated
      * @param <T> The type of the dataset
      * @return A new {@link Dataset} with modelSource as its {@link DataSource}.
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
      */
-    private <T extends Output<T>> Dataset<T> datasetReflection(DataSource<?> modelSource, Class<? extends Dataset> datasetClass){
+    private static <T extends Output<T>> Dataset<T> datasetReflection(DataSource<?> modelSource, Class<? extends Dataset<?>> datasetClass){
         // The first step is to find the classname as a String so it can use reflection to instantiate the correct type
         // The class name is contained within the provenance accessible through the iterator.
-        Dataset<T> modelDataset = null;
 
         // TODO: Determine how to handle other dataset types, ImmutableDataset, DatasetView, and MinimumCardinalityDataset.
         // Once the class is identified, reflection will allow us to search for a constructor for that class and instantiate it
         try {
-            modelDataset = (Dataset<T>) datasetClass.getConstructor(DataSource.class).newInstance(modelSource);
-        } catch (InstantiationException e) {
-            throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
-        } catch (InvocationTargetException e) {
-            throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
-        } catch (NoSuchMethodException e) {
+            // Type comes from the data source
+            @SuppressWarnings("unchecked")
+            Dataset<T> modelDataset = (Dataset<T>) datasetClass.getConstructor(DataSource.class).newInstance(modelSource);
+            return modelDataset;
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
         }
-
-        return modelDataset;
     }
 
     /**
@@ -251,27 +246,31 @@ public class ReproUtil {
      * @param datasetProvenance The {@link DatasetProvenance} to search.
      * @return An array of Classes of length two, where the first element is the {@link DataSource} Class and
      * the second element is the {@link Dataset} Class.
-     * @throws ClassNotFoundException
+     * @throws ClassNotFoundException If the datasource class could not be loaded.
      */
-    private Class<?>[] getSourcesClassNames(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
-        Class<?>[] dataClasses = null;
-        if(datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
-            dataClasses = getSourcesClassNames(innerDatasetProvenance);
+    private static Pair<Class<? extends DataSource<?>>,Class<? extends Dataset<?>>> getSourcesClassNames(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
+        if (datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
+            return getSourcesClassNames(innerDatasetProvenance);
         } else {
-            Class<?> dataSourceClass = Class.forName(datasetProvenance.getSourceProvenance().getClassName());
+            Class<?> bareDataClass = Class.forName(datasetProvenance.getSourceProvenance().getClassName());
+            if (!DataSource.class.isAssignableFrom(bareDataClass) && !bareDataClass.equals(TrainTestSplitter.class)) {
+                throw new IllegalStateException("Unable to instantiate data source, it is not configurable. Found " + bareDataClass);
+            }
+            @SuppressWarnings("unchecked") // Type guaranteed by provenance and check
+            Class<? extends DataSource<?>> dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) bareDataClass;
             Iterator<Pair<String, Provenance>> sourceProv = datasetProvenance.iterator();
             String datasetClassname = null;
-            while (sourceProv.hasNext()){
+            while (sourceProv.hasNext()) {
                 Pair<String, Provenance> provPair = sourceProv.next();
-                if(provPair.getA().equals("class-name")){
+                if (provPair.getA().equals("class-name")) {
                     datasetClassname = ((StringProvenance) provPair.getB()).getValue();
                 }
             }
-            Class<?> datasetClass = Class.forName(datasetClassname);
-            dataClasses = new Class<?>[] {dataSourceClass, datasetClass};
+            @SuppressWarnings("unchecked") // Type guaranteed by provenance
+            Class<? extends Dataset<?>> datasetClass = (Class<? extends Dataset<?>>) Class.forName(datasetClassname);
+            return new Pair<>(dataSourceClass, datasetClass);
         }
 
-        return dataClasses;
     }
 
     /**
@@ -282,7 +281,7 @@ public class ReproUtil {
      * @return An array of {@link DataProvenance} where the first element is the {@link DataSource} and
      * the second element is the {@link Dataset}.
      */
-    private DataProvenance[] getSources(DatasetProvenance datasetProvenance) {
+    private static DataProvenance[] getSources(DatasetProvenance datasetProvenance) {
         DataProvenance[] sourceProvenance = null;
         if(datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
             sourceProvenance = getSources(innerDatasetProvenance);
@@ -300,27 +299,24 @@ public class ReproUtil {
 
     /**
      * Return a {@link Dataset} used when a model was trained
-     * @param <T> The {@link Dataset} type
-     * @return A new {@link Dataset}
-     * @throws IllegalStateException
-     * @throws ClassNotFoundException
+     * <p>
+     * Throws {@link IllegalStateException} if the dataset could not be recovered.
+     * @param <T> The {@link Dataset} output type.
+     * @return A new {@link Dataset}.
+     * @throws ClassNotFoundException If the dataset could not be instantiated.
      */
     private <T extends Output<T>> Dataset<T> recoverDataset() throws ClassNotFoundException {
-
-        // Get the class names for the dataset and datasource
-        Class[] dataClasses = getSourcesClassNames(this.modelProvenance.getDatasetProvenance());
-        Class<? extends ConfigurableDataSource<?>> dataSourceClass = dataClasses[0];
-        Class datasetClass = dataClasses[1];
 
         Provenance[] sourceProvenance = getSources(this.modelProvenance.getDatasetProvenance());
         DataSourceProvenance dataSourceProv = null;
         if(sourceProvenance[0] instanceof DataSourceProvenance dataSourceProvenance){
             dataSourceProv = dataSourceProvenance;
         }
-        DatasetProvenance datasetProv = null;
-        if(sourceProvenance[1] instanceof DatasetProvenance datasetProvenance){
-            datasetProv = datasetProvenance;
-        }
+
+        // Get the class names for the dataset and datasource
+        var classPair = getSourcesClassNames(this.modelProvenance.getDatasetProvenance());
+        Class<? extends DataSource<?>> dataSourceClass = classPair.getA();
+        Class<? extends Dataset<?>> datasetClass = classPair.getB();
 
         Dataset<T> modelDataset = null;
 
@@ -338,13 +334,13 @@ public class ReproUtil {
             DataSourceProvenance innerProvenance = null;
             while (sourceProv.hasNext()) {
                 Pair<String, Provenance> provPair = sourceProv.next();
-                if (provPair.getA() == "source") {
+                if (provPair.getA().equals("source")) {
                     innerProvenance = (DataSourceProvenance) provPair.getB();
-                } else if (provPair.getA() == "seed") {
+                } else if (provPair.getA().equals("seed")) {
                     seed = ((LongProvenance) provPair.getB()).getValue();
-                } else if (provPair.getA() == "train-proportion") {
+                } else if (provPair.getA().equals("train-proportion")) {
                     trainProportion = ((DoubleProvenance) provPair.getB()).getValue();
-                } else if (provPair.getA() == "is-train") {
+                } else if (provPair.getA().equals("is-train")) {
                     isTrain = ((BooleanProvenance) provPair.getB()).getValue();
                 }
             }
@@ -354,30 +350,35 @@ public class ReproUtil {
             }
 
             try {
-                dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) Class.forName(innerProvenance.getClassName());
+                Class<?> bareDataClass = Class.forName(innerProvenance.getClassName());
+                if (!ConfigurableDataSource.class.isAssignableFrom(bareDataClass)) {
+                    throw new IllegalStateException("Unable to instantiate data source, it is not configurable. Found " + bareDataClass);
+                }
+                @SuppressWarnings("unchecked") // Guarded by is assignable check
+                Class<? extends ConfigurableDataSource<?>> splitterSourceClass = (Class<? extends ConfigurableDataSource<?>>) bareDataClass;
+                // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
+                // innerSource, should return the same Dataset used to train the model
+                DataSource<?> innerSource = getDatasourceFromCM(splitterSourceClass);
+                TrainTestSplitter<?> trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
+
+                if(isTrain){
+                    modelDataset = datasetReflection(trainTestSplitter.getTrain(), datasetClass);
+                } else {
+                    modelDataset = datasetReflection(trainTestSplitter.getTest(), datasetClass);
+                }
+
             } catch (ClassNotFoundException e) {
-                throw new IllegalStateException("Identified DataSource " + dataSourceClass.getName() + " does not exist", e);
-            }
-
-            // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
-            // innerSource, should return the same Dataset used to train the model
-            DataSource<?> innerSource = getDatasourceFromCM(dataSourceClass);
-            TrainTestSplitter<?> trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
-
-            if(isTrain){
-                modelDataset = datasetReflection(trainTestSplitter.getTrain(), datasetClass);
-            } else {
-                modelDataset = datasetReflection(trainTestSplitter.getTest(), datasetClass);
+                throw new IllegalStateException("Identified DataSource " + innerProvenance.getClassName() + " does not exist", e);
             }
 
         } else {
             // When it's not a splitter, recover the Datasource and then Dataset.
-
             if(!(ConfigurableDataSource.class.isAssignableFrom(dataSourceClass))){
                 throw new IllegalStateException("Datasource is not configurable and cannot be recovered.");
             }
-
-            DataSource<?> modelSource = getDatasourceFromCM(dataSourceClass);
+            @SuppressWarnings("unchecked") // Guarded by is assignable check
+            Class<? extends ConfigurableDataSource<?>> configDataSourceClass = (Class<? extends ConfigurableDataSource<?>>) dataSourceClass;
+            DataSource<?> modelSource = getDatasourceFromCM(configDataSourceClass);
             modelDataset = datasetReflection(modelSource, datasetClass);
         }
 
@@ -397,27 +398,18 @@ public class ReproUtil {
      * Recreates a model object using the {@link ModelProvenance} supplied when the ReproUtil object was created.
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
+     * <p>
+     * Throws {@link IllegalStateException} if the source or trainer can not be loaded or are not configurable.
      * @return A reproduced model identical to the one described in the provenance.
-     * @throws ClassNotFoundException
-     * @throws IllegalStateException
-     * @throws IllegalArgumentException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException If the dataset or trainer could not be instantiated.
      */
     public <T extends Output<T>> Model<T> reproduceFromProvenance() throws ClassNotFoundException {
 
         // Until now the object only holds the configuration for these objects, the following
         // functions will actually re-instantiate them.
-        Trainer<T> newTrainer = null;
+        Trainer<T> newTrainer = recoverTrainer();
 
-        newTrainer = recoverTrainer();
-
-        Dataset<T> newDataset = null;
-
-        newDataset = recoverDataset();
-
+        Dataset<T> newDataset = recoverDataset();
 
         // Exposing the configuration manager means there could be an edge case were
         // the invocation count is changed before the model is trained.
@@ -430,27 +422,42 @@ public class ReproUtil {
                 .getValue();
 
         // This function actually re-trains a model rather than copy the original
-        Model<T> newModel = newTrainer.train(newDataset);
-
-        return newModel;
+        return newTrainer.train(newDataset);
     }
 
+    /**
+     * Record for any differences between feature sets.
+     * @param originalFeatures The unique features from the original model.
+     * @param reproducedFeatures The unique features from the reproduced model.
+     */
     public record FeatureDiff (Set<String> originalFeatures, Set<String> reproducedFeatures){}
+
+    /**
+     * Record for any differences between output domains.
+     * @param <T> The type of the output.
+     * @param originalOutput The unique output dimensions from the original model.
+     * @param reproducedOutput The unique output dimensions from the reproduced model.
+     */
     public record OutputDiff<T extends Output<T>>(Set<T> originalOutput, Set<T> reproducedOutput){}
-    public record ModelReproduction <T extends Output<T>> (Model<T> model, FeatureDiff featureDiff, OutputDiff outputDiff, String provenanceDiff){}
+
+    /**
+     * Record for a model reproduction.
+     * @param <T> The output type.
+     * @param model The reproduced model.
+     * @param featureDiff Any differences between the features.
+     * @param outputDiff Any differences between the output domain.
+     * @param provenanceDiff The provenance diff.
+     */
+    public record ModelReproduction <T extends Output<T>> (Model<T> model, FeatureDiff featureDiff, OutputDiff<T> outputDiff, String provenanceDiff){}
 
     /**
      * Using a supplied {@link Model} object, recreates an identical model object that the provenance describes.
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
+     * <p>
+     * Throws {@link IllegalStateException} if the model provenance is malformed or not defined.
      * @return A reproduced model identical to the one described in the provenance.
-     * @throws ClassNotFoundException
-     * @throws IllegalStateException
-     * @throws IllegalArgumentException
-     * @throws InstantiationException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
-     * @throws NoSuchMethodException
+     * @throws ClassNotFoundException If the trainer or datasource class cannot be instantiated.
      */
     public <T extends Output<T>> ModelReproduction<T> reproduceFromModel() throws ClassNotFoundException, JsonProcessingException {
         if(this.originalModel == null){
@@ -467,9 +474,9 @@ public class ReproUtil {
         newFeatureKeys.removeAll(intersectionOfKeys);
         oldFeatureKeys.removeAll(intersectionOfKeys);
 
-        Set oldDomain = originalModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
-        Set newDomain = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
-        Set intersectionOfDomains = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set<?> oldDomain = originalModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set<?> newDomain = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set<?> intersectionOfDomains = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
         intersectionOfDomains.retainAll(oldDomain);
         newDomain.removeAll(intersectionOfDomains);
         oldDomain.removeAll(intersectionOfDomains);
@@ -488,10 +495,11 @@ public class ReproUtil {
      * in the resulting diff.
      * <p>
      * Recovers the trainer and dataset information before training an identical model.
+     * <p>
+     * Throws {@link IllegalStateException} if the model provenances could not be parsed.
      * @param originalProvenance The first of the two provenance objects to diff
      * @param newProvenance The second of the two provenance objects to diff
      * @return A String JSON report displaying the differences in the model.
-     * @throws IllegalStateException
      */
     public static String diffProvenance(ModelProvenance originalProvenance, ModelProvenance newProvenance) throws JsonProcessingException {
 
@@ -523,12 +531,10 @@ public class ReproUtil {
      * @param provMap A Map of provenance objects
      * @param provIdentifier An identifier indicating how the values should added to the diff,
      *                       either under the ReproUtil.OLD or ReproUtil.NEW designation
-     * @throws IllegalStateException
      */
     private static void addProvWithoutDiff(ObjectNode report, Set<String> keys, TreeMap<String, Provenance> provMap, String provIdentifier){
 
-        for(String key : keys){
-
+        for (String key : keys){
             if(provMap.get(key) instanceof PrimitiveProvenance primitiveProvenance){
                 ObjectNode provVal = mapper.createObjectNode();
                 provVal.put(provIdentifier, primitiveProvenance.getValue().toString());
@@ -538,8 +544,8 @@ public class ReproUtil {
                 // since we cannot pattern match on Iterator<Type>, we need to
                 // catch the different iterators based on the type of provenance.
                 // ListProvenance can return a list of ConfiguredObjectProvenances
-                if (provMap.get(key) instanceof ListProvenance listProvenance){
-                    if(listProvenance.getList().get(0) instanceof ConfiguredObjectProvenance){
+                if (provMap.get(key) instanceof ListProvenance<?> listProvenance){
+                    if(listProvenance.getList().size() > 0 && listProvenance.getList().get(0) instanceof ConfiguredObjectProvenance){
                         ArrayNode provArray =  mapper.createArrayNode();
 
                         // Iterate through each ConfiguredObjectProvenance and recurse on each provenance object
@@ -556,9 +562,10 @@ public class ReproUtil {
                             report.set(key, provArray);
                         }
                     }
-                } else if (provMap.get(key) instanceof Iterable provIterable){
+                } else if (provMap.get(key) instanceof Iterable<?> provIterable){
                     ObjectNode subNode = mapper.createObjectNode();
-                    Iterator<Pair<String, Provenance>> subIter = provIterable.iterator();
+                    @SuppressWarnings("unchecked") // Provenance is sealed to map, object and list. map and object are both Iterable<Pair<String,Provenance>>
+                    Iterator<Pair<String, Provenance>> subIter = (Iterator<Pair<String,Provenance>>) provIterable.iterator();
 
                     TreeMap<String, Provenance> subProvMap = iterToMap(subIter);
                     addProvWithoutDiff(subNode, subProvMap.keySet(), subProvMap, provIdentifier);
@@ -577,11 +584,10 @@ public class ReproUtil {
      * This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
      * @param iterA An iterator from a provenance object
      * @param iterB An iterator from a provenance object
-     * @param <T> Type of ListProvenance
      * @return An ObjectNode that will be printed to string in diffProvenance.
      * @throws IllegalStateException
      */
-    private static <T extends Provenance> ObjectNode diffProvenanceIterators(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
+    private static ObjectNode diffProvenanceIterators(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
         // The report ObjectNode is the ultimate return value of the method,
         // All diff values are put in it.
         ObjectNode report = mapper.createObjectNode();
@@ -605,69 +611,122 @@ public class ReproUtil {
             // When provenance is primitive and they share a key simply compare their values
             // If different, place each prov's value in the report
             if(provenanceA instanceof PrimitiveProvenance primProvA && provenanceB instanceof PrimitiveProvenance primProvB){
-                if(!provMapA.get(key).equals(provMapB.get(key))){
+                if(!primProvA.equals(primProvB)){
                     ObjectNode valDiff = mapper.createObjectNode();
                     valDiff.put(OLD, primProvA.getValue().toString());
                     valDiff.put(NEW, primProvB.getValue().toString());
                     report.set(key, valDiff);
                 }
-            }
-
-            // In the event it's a different prov object, and they are the same class, recursively call
-            // this method on the iterators of the respective prov objects, and then merge the resulting
-            // ObjectNode into the report in this frame.
-            else if(provenanceA.getClass() == provenanceB.getClass()){
+            } else if(provenanceA.getClass() == provenanceB.getClass()){
+                // In the event it's a different prov object, and they are the same class, recursively call
+                // this method on the iterators of the respective prov objects, and then merge the resulting
+                // ObjectNode into the report in this frame.
 
                 // When prov is a ListProvenance, we have to make sure we get the right iterator,
-                // as some ListProvenances cannot recurse normally as they hold prov objects rather
+                // as ListProvenances cannot recurse normally as they hold prov objects rather
                 // than something with "keys"
-                if (provenanceA instanceof ListProvenance){
+                if (provenanceA instanceof ListProvenance<?> listProvA){
+                    ListProvenance<?> listProvB = ((ListProvenance<?>) provenanceB);
+                    List<? extends Provenance> listA = listProvA.getList();
+                    List<? extends Provenance> listB = listProvB.getList();
 
-                    ListProvenance<T> listProvA = ((ListProvenance<T>) provenanceA);
-                    ListProvenance<T> listProvB = ((ListProvenance<T>) provenanceB);
-
-                    // If it is a Pair, handle it with recursion as if it was an Object or Map Provenance.
-                    if(listProvA.getList().size() > 0 && listProvA.getList().get(0) instanceof Pair){
-                        Iterator<Pair<String, Provenance>> subIterA = (Iterator<Pair<String, Provenance>>) ((ListProvenance<?>) provMapA.get(key)).iterator();
-                        Iterator<Pair<String, Provenance>> subIterB = (Iterator<Pair<String, Provenance>>) ((ListProvenance<?>) provMapB.get(key)).iterator();
-
-                        ObjectNode subReport = diffProvenanceIterators(subIterA, subIterB);
-                        if(!subReport.isEmpty()){
-                            report.set(key, subReport);
-                        }
-                    }
-                    // If the list contains ConfiguredObjectProvenanceImpl, they are the same size, and not empty
+                    ArrayNode provArray =  mapper.createArrayNode();
+                    // If both lists are not empty
                     // do an element-wise comparison of the objects and add any diffs to an array that is reported
-                    // TODO: Diff different sized lists and add explanation suffix
-                    else if (listProvA.getList().size() > 0 &&
-                            listProvB.getList().size() > 0 &&
-                            listProvA.getList().get(0) instanceof ConfiguredObjectProvenanceImpl &&
-                            listProvB.getList().get(0) instanceof ConfiguredObjectProvenanceImpl &&
-                            listProvA.getList().size() == listProvB.getList().size()){
+                    // TODO: add explanation suffix
+                    if (listA.size() > 0 && listB.size() > 0) {
+                        if (listA.get(0) instanceof ObjectProvenance && listB.get(0) instanceof ObjectProvenance){
 
-                        ArrayNode provArray =  mapper.createArrayNode();
-
-                        // Since each ConfiguredObjectProvenanceImpl will have an iterator, recurse again
-                        // Then check if empty and add to array if a diff exists
-                        for (int provListIndex = 0; provListIndex < listProvA.getList().size(); provListIndex++){
-                            ObjectNode singleProv = diffProvenanceIterators(((ConfiguredObjectProvenanceImpl) listProvA.getList().get(provListIndex)).iterator(),
-                                    ((ConfiguredObjectProvenanceImpl) listProvB.getList().get(provListIndex)).iterator());
-                            if(!singleProv.isEmpty()){
-                                provArray.add(singleProv);
+                            int length = Math.min(listA.size(), listB.size());
+                            // Since each ConfiguredObjectProvenanceImpl will have an iterator, recurse again
+                            // Then check if empty and add to array if a diff exists
+                            for (int provListIndex = 0; provListIndex < length; provListIndex++){
+                                ObjectNode singleProv = diffProvenanceIterators(((ObjectProvenance) listA.get(provListIndex)).iterator(),
+                                        ((ObjectProvenance) listB.get(provListIndex)).iterator());
+                                if(!singleProv.isEmpty()){
+                                    provArray.add(singleProv);
+                                }
                             }
-                        }
 
-                        // After iteration, if diffs exists between the two provenance lists add it to the overall report
-                        if(!provArray.isEmpty()){
-                            report.set(key, provArray);
+                            // Add unmatched elements of A if A is longer
+                            for (int i = length; i < listA.size(); i++) {
+                                ObjectNode singleProv = diffProvenanceIterators(((ObjectProvenance) listA.get(i)).iterator(), Collections.emptyIterator());
+                                if(!singleProv.isEmpty()){
+                                    provArray.add(singleProv);
+                                }
+                            }
+
+                            // Add unmatched elements of B if B is longer
+                            for (int i = length; i < listB.size(); i++) {
+                                ObjectNode singleProv = diffProvenanceIterators(Collections.emptyIterator(), ((ObjectProvenance) listB.get(i)).iterator());
+                                if(!singleProv.isEmpty()){
+                                    provArray.add(singleProv);
+                                }
+                            }
+                        } else {
+                            // List of maps, list of lists, or list of primitives
+                        }
+                    } else if (listA.size() > 0) {
+                        if (listA.get(0) instanceof ObjectProvenance) {
+                            for (Provenance provenance : listA) {
+                                ObjectNode singleProv = diffProvenanceIterators(((ObjectProvenance) provenance).iterator(), Collections.emptyIterator());
+                                if (!singleProv.isEmpty()) {
+                                    provArray.add(singleProv);
+                                }
+                            }
+                        } else if (listA.get(0) instanceof MapProvenance) {
+                            for (Provenance provenance : listA) {
+                                @SuppressWarnings("unchecked") // wildcard casting issues if we use ? extends Provenance
+                                ObjectNode singleProv = diffProvenanceIterators(((MapProvenance<Provenance>) provenance).iterator(), Collections.emptyIterator());
+                                if (!singleProv.isEmpty()) {
+                                    provArray.add(singleProv);
+                                }
+                            }
+                        } else if (listA.get(0) instanceof PrimitiveProvenance) {
+                            for (Provenance provenance : listA) {
+                                ObjectNode valDiff = mapper.createObjectNode();
+                                valDiff.put(OLD, ((PrimitiveProvenance<?>)provenance).getValue().toString());
+                                provArray.add(valDiff);
+                            }
+                        } else if (listA.get(0) instanceof ListProvenance) {
+                            throw new IllegalStateException("Nested lists not supported at key " + key);
+                        }
+                    } else if (listB.size() > 0) {
+                        if (listB.get(0) instanceof ObjectProvenance) {
+                            for (Provenance provenance : listB) {
+                                ObjectNode singleProv = diffProvenanceIterators(Collections.emptyIterator(), ((ObjectProvenance) provenance).iterator());
+                                if (!singleProv.isEmpty()) {
+                                    provArray.add(singleProv);
+                                }
+                            }
+                        } else if (listB.get(0) instanceof MapProvenance) {
+                            for (Provenance provenance : listB) {
+                                @SuppressWarnings("unchecked") // wildcard casting issues if we use ? extends Provenance
+                                ObjectNode singleProv = diffProvenanceIterators(Collections.emptyIterator(), ((MapProvenance<Provenance>) provenance).iterator());
+                                if (!singleProv.isEmpty()) {
+                                    provArray.add(singleProv);
+                                }
+                            }
+                        } else if (listB.get(0) instanceof PrimitiveProvenance) {
+                            for (Provenance provenance : listB) {
+                                ObjectNode valDiff = mapper.createObjectNode();
+                                valDiff.put(NEW, ((PrimitiveProvenance<?>)provenance).getValue().toString());
+                                provArray.add(valDiff);
+                            }
+                        } else if (listB.get(0) instanceof ListProvenance) {
+                            throw new IllegalStateException("Nested lists not supported at key " + key);
                         }
                     }
-                }
-                // If it's not a ListProvenance it should be an ObjectProvenance or MapProvenance, in which case the
-                // iterator will return a Pair<String,Provenance>
-                //TODO: Can we provide a better enforcement of this assumption? Wait until Java 17?
-                else if (provenanceA instanceof Iterable provIterableA &&
+
+                    // After iteration, if diffs exists between the two provenance lists add it to the overall report
+                    if(!provArray.isEmpty()){
+                        report.set(key, provArray);
+                    }
+                } else if (provenanceA instanceof Iterable provIterableA &&
                          provenanceB instanceof Iterable provIterableB){
+                    // If it's not a ListProvenance it should be an ObjectProvenance or MapProvenance, in which case the
+                    // iterator will return a Pair<String,Provenance>
+                    //TODO: Can we provide a better enforcement of this assumption? Yes, once OLCUT is on Java 17
 
                     if(!(provenanceA instanceof ObjectProvenance || provenanceA instanceof MapProvenance)){
                         throw new IllegalStateException("Unrecognized provenance type");
@@ -677,7 +736,9 @@ public class ReproUtil {
                     }
 
                     // Use the method identified in the previous step to actually get the iterator for each prov object.
+                    @SuppressWarnings("unchecked") // only object and map provenances should reach here
                     Iterator<Pair<String, Provenance>> subIterA = provIterableA.iterator();
+                    @SuppressWarnings("unchecked") // only object and map provenances should reach here
                     Iterator<Pair<String, Provenance>> subIterB = provIterableB.iterator();
 
                     // Recursively identify any diffs down to primitive objects
@@ -688,12 +749,14 @@ public class ReproUtil {
                         report.set(key, subReport);
                     }
 
-                }
-                // ListProvenance might contain Pair<String, Provenance> but it might also contain a list of
-                // ConfiguredObjectProvenanceImpl. This handles that situation directly.
-                else {
+                } else {
+                    // ListProvenance might contain Pair<String, Provenance> but it might also contain a list of
+                    // ConfiguredObjectProvenanceImpl. This handles that situation directly.
                     throw new IllegalStateException("Unrecognized Provenance: \n" + provMapA.get(key).getClass());
                 }
+            } else {
+                // TODO: Recurse diff for provenances of different types
+                //throw new IllegalStateException("Provenances with the same name have different types, key = " + key + ", provA " + provenanceA.getClass() + ", provB " + provenanceB.getClass());
             }
         }
 
