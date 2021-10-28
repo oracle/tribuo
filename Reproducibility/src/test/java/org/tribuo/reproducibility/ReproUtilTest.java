@@ -93,7 +93,7 @@ public class ReproUtilTest {
 
     static Path tempFile;
 
-    private static final Class<?>[] silencedClasses = new Class<?>[]{AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class, LinearSGDTrainer.class, BaggingTrainer.class};
+    private static final Class<?>[] silencedClasses = new Class<?>[]{BaggingTrainer.class, AbstractSGDTrainer.class, AbstractLinearSGDTrainer.class, LinearSGDTrainer.class};
 
     @BeforeAll
     public static void setup() throws IOException {
@@ -189,7 +189,7 @@ public class ReproUtilTest {
         model = (LinearSGDModel) trainer.train(trainingDataset);
         model = (LinearSGDModel) trainer.train(trainingDataset);
 
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil<Label> reproUtil = new ReproUtil<>(model.getProvenance(),Label.class);
 
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance();
 
@@ -206,7 +206,7 @@ public class ReproUtilTest {
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
 
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil<Label> reproUtil = new ReproUtil<>(model.getProvenance(),Label.class);
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance();
 
         assertEquals(newModel.getWeightsCopy(), model.getWeightsCopy());
@@ -222,7 +222,7 @@ public class ReproUtilTest {
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
         model = (LinearSGDModel) trainer.train(datasetFromCSV);
 
-        ReproUtil reproUtil = new ReproUtil(model);
+        ReproUtil<Label> reproUtil = new ReproUtil<>(model);
         ReproUtil.ModelReproduction<Label> modelReproduction = reproUtil.reproduceFromModel();
         LinearSGDModel newModel = (LinearSGDModel) modelReproduction.model();
 
@@ -248,7 +248,7 @@ public class ReproUtilTest {
         URL u = ReproUtilTest.class.getResource("/org/tribuo/reproducibility/test/new_data.csv");
         Path csvPath = Paths.get(u.toURI());
 
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil<Label> reproUtil = new ReproUtil<>(model.getProvenance(),Label.class);
 
         reproUtil.getConfigurationManager().overrideConfigurableProperty("csvdatasource-1", "dataPath", new SimpleProperty(csvPath.toString()));
         LinearSGDModel newModel = (LinearSGDModel) reproUtil.reproduceFromProvenance();
@@ -293,7 +293,7 @@ public class ReproUtilTest {
         TransformTrainer<Label> transformed = new TransformTrainer<>(trainer, transformations);
         Model<Label> transformedModel = transformed.train(datasetFromCSV);
 
-        ReproUtil reproUtil = new ReproUtil(transformedModel.getProvenance());
+        ReproUtil<Label> reproUtil = new ReproUtil<>(transformedModel.getProvenance(),Label.class);
         Model<Label> newModel = reproUtil.reproduceFromProvenance();
 
         LabelEvaluator evaluator = new LabelEvaluator();
@@ -332,7 +332,7 @@ public class ReproUtilTest {
         Dataset<Regressor> trainData = new MutableDataset<>(getConfigurableRegressionDenseTrain());
         Model<Regressor> model = rfT.train(trainData);
 
-        ReproUtil reproUtil = new ReproUtil(model.getProvenance());
+        ReproUtil<Regressor> reproUtil = new ReproUtil<>(model.getProvenance(),Regressor.class);
 
         Model<Regressor> reproducedModel = reproUtil.reproduceFromProvenance();
 
@@ -352,7 +352,7 @@ public class ReproUtilTest {
         subsamplingTree.setInvocationCount(15);
         Model<Regressor> model2 = rfT.train(trainData);
 
-        ReproUtil reproUtil = new ReproUtil(model2.getProvenance());
+        ReproUtil<Regressor> reproUtil = new ReproUtil<>(model2.getProvenance(),Regressor.class);
 
         Model<Regressor> reproducedModel = reproUtil.reproduceFromProvenance();
 

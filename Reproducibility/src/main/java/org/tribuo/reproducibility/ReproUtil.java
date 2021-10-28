@@ -39,6 +39,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ConfigurableDataSource;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Trainer;
@@ -63,8 +64,9 @@ import java.util.logging.Logger;
 
 /**
  * Reproducibility utility based on Tribuo's provenance objects.
+ * @param <T> The output type of the model being reproduced.
  */
-public class ReproUtil {
+public class ReproUtil<T extends Output<T>> {
     private static final Logger logger = Logger.getLogger(ReproUtil.class.getName());
 
     // These fields are used to denote which value came from which provenance in a diff
@@ -81,16 +83,20 @@ public class ReproUtil {
     private final ConfigurationManager cm;
 
     private final ModelProvenance modelProvenance;
-    private final Model<?> originalModel;
+    private final Model<T> originalModel;
+    private final Class<T> outputClass;
 
     /**
      * Creates a ReproUtil instance
      * <p>
      * Throws {@link IllegalArgumentException} if the model is an external model trained outside of Tribuo.
+     * <p>
+     * The output class is validated when the model is reproduced.
      * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}.
+     * @param outputClass The output class for the model.
      */
-    public ReproUtil(ModelProvenance provenance) {
-        this(provenance, null);
+    public ReproUtil(ModelProvenance provenance, Class<T> outputClass) {
+        this(provenance, null, outputClass);
     }
 
     /**
@@ -99,8 +105,8 @@ public class ReproUtil {
      * Throws {@link IllegalArgumentException} if the model is an external model trained outside of Tribuo.
      * @param originalModel The ReproUtil will re-train a model based on the provenance contained in this {@link Model}.
      */
-    public ReproUtil(Model<?> originalModel) {
-        this(originalModel.getProvenance(), originalModel);
+    public ReproUtil(Model<T> originalModel) {
+        this(originalModel.getProvenance(), originalModel, extractOutputClass(originalModel));
     }
 
     /**
@@ -109,9 +115,10 @@ public class ReproUtil {
      * Throws {@link IllegalArgumentException} if the model is an external model trained outside of Tribuo.
      * @param provenance The ReproUtil will re-train a model based on the information contained in this {@link ModelProvenance}.
      * @param originalModel Optional argument, but if it's not null than the provenance used is from this {@link Model}.
+     * @param outputClass The output class for the model.
      */
-    private ReproUtil(ModelProvenance provenance, Model<?> originalModel) {
-        if (originalModel instanceof ONNXExternalModel<?> onnxModel && onnxModel.getTribuoProvenance().isPresent()) {
+    private ReproUtil(ModelProvenance provenance, Model<T> originalModel, Class<T> outputClass) {
+        if (originalModel instanceof ONNXExternalModel<T> onnxModel && onnxModel.getTribuoProvenance().isPresent()) {
             this.modelProvenance = onnxModel.getTribuoProvenance().get();
         } else if (provenance.getTrainerProvenance() instanceof ExternalTrainerProvenance){
             throw new IllegalArgumentException("This version of the tool cannot reproduce external models.");
@@ -127,14 +134,28 @@ public class ReproUtil {
         this.cm.addConfiguration(provConfig);
 
         this.originalModel = originalModel;
+
+        this.outputClass = outputClass;
+    }
+
+    /**
+     * Extracts the output class from the supplied model.
+     * @param model The model to extract the output from.
+     * @param <T> The output type.
+     * @return The output class.
+     */
+    private static <T extends Output<T>> Class<T> extractOutputClass(Model<T> model) {
+        ImmutableOutputInfo<T> outputInfo = model.getOutputIDInfo();
+        @SuppressWarnings("unchecked") // the model is typed by this domain so it must be of type <T extends Output<T>>
+        Class<T> outputClass = (Class<T>) outputInfo.getDomain().iterator().next().getClass();
+        return outputClass;
     }
 
     /**
      * Extract the trainer from this repro util.
-     * @param <T> The output type.
      * @return A {@link Trainer} found in the configuration manager, presumably used to train the originalModel.
      */
-    public <T extends Output<T>> Trainer<T> recoverTrainer() {
+    public Trainer<T> recoverTrainer() {
         // We need to set the state of the RNG for each trainer used in the provenance.
         // ProvenanceUtil.orderProvenances allows us to iterate through the provObjects,
         // construct the correct component name using ProvenanceUtil.computeName, and
@@ -160,7 +181,6 @@ public class ReproUtil {
         // Recover the name of the trainer class from the model's provenance
         // Convert to a class object so it can be passed to the config manager to recover the trainer object
         try {
-            // Suppressed as the output type is extracted from the class itself.
             @SuppressWarnings("unchecked")
             Class<? extends Trainer<T>> trainerClass = (Class<? extends Trainer<T>>) Class.forName(this.modelProvenance.getTrainerProvenance().getClassName());
             // Use the class identified from the prov to create a new Trainer from the config manager that
@@ -183,7 +203,7 @@ public class ReproUtil {
      * @param dataSourceClass A configurable class that this method will search for in the configuration manager.
      * @return A {@link DataSource} object that was used to load data from te original model.
      */
-    private <T extends Output<T>> DataSource<T> getDatasourceFromCM(Class<? extends Configurable> dataSourceClass){
+    private DataSource<T> getDatasourceFromCM(Class<? extends Configurable> dataSourceClass){
 
         // Since this utility created a cm from a model, contained within should only be the datasource used to
         // create the model. Unless a user has manually added another datasource.
@@ -210,6 +230,10 @@ public class ReproUtil {
         @SuppressWarnings("unchecked")
         DataSource<T> dataSource = (DataSource<T>) cm.lookup(sourceName);
 
+        if (!dataSource.getOutputFactory().getUnknownOutput().getClass().equals(outputClass)) {
+            throw new IllegalStateException("Supplied output class " + outputClass.getName() + " did not match the data source output class " + dataSource.getOutputFactory().getUnknownOutput().getClass().getName());
+        }
+
         return dataSource;
     }
 
@@ -220,20 +244,16 @@ public class ReproUtil {
      * Throws {@link IllegalStateException} if the dataset could not be instantiated.
      * @param modelSource A datasource class that is passed to the dataset upon construction
      * @param datasetClass The Class of Dataset to be instantiated
-     * @param <T> The type of the dataset
      * @return A new {@link Dataset} with modelSource as its {@link DataSource}.
      */
-    private static <T extends Output<T>> Dataset<T> datasetReflection(DataSource<?> modelSource, Class<? extends Dataset<?>> datasetClass){
+    private Dataset<T> datasetReflection(DataSource<T> modelSource, Class<? extends Dataset<T>> datasetClass){
         // The first step is to find the classname as a String so it can use reflection to instantiate the correct type
         // The class name is contained within the provenance accessible through the iterator.
 
         // TODO: Determine how to handle other dataset types, ImmutableDataset, DatasetView, and MinimumCardinalityDataset.
         // Once the class is identified, reflection will allow us to search for a constructor for that class and instantiate it
         try {
-            // Type comes from the data source
-            @SuppressWarnings("unchecked")
-            Dataset<T> modelDataset = (Dataset<T>) datasetClass.getConstructor(DataSource.class).newInstance(modelSource);
-            return modelDataset;
+            return datasetClass.getConstructor(DataSource.class).newInstance(modelSource);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw new IllegalStateException(datasetClass.getName() + " not supported for reproduction", e);
         }
@@ -248,7 +268,7 @@ public class ReproUtil {
      * the second element is the {@link Dataset} Class.
      * @throws ClassNotFoundException If the datasource class could not be loaded.
      */
-    private static Pair<Class<? extends DataSource<?>>,Class<? extends Dataset<?>>> getSourcesClassNames(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
+    private Pair<Class<? extends DataSource<T>>,Class<? extends Dataset<T>>> getSourcesClassNames(DatasetProvenance datasetProvenance) throws ClassNotFoundException {
         if (datasetProvenance.getSourceProvenance() instanceof DatasetProvenance innerDatasetProvenance){
             return getSourcesClassNames(innerDatasetProvenance);
         } else {
@@ -256,8 +276,9 @@ public class ReproUtil {
             if (!DataSource.class.isAssignableFrom(bareDataClass) && !bareDataClass.equals(TrainTestSplitter.class)) {
                 throw new IllegalStateException("Unable to instantiate data source, it is not configurable. Found " + bareDataClass);
             }
-            @SuppressWarnings("unchecked") // Type guaranteed by provenance and check
-            Class<? extends DataSource<?>> dataSourceClass = (Class<? extends ConfigurableDataSource<?>>) bareDataClass;
+            // Alternatively we could extract the output factory to guarantee the output class
+            @SuppressWarnings("unchecked") // Type guaranteed by provenance and there's a check against the witness in getDataSourceFromCM
+            Class<? extends DataSource<T>> dataSourceClass = (Class<? extends DataSource<T>>) bareDataClass;
             Iterator<Pair<String, Provenance>> sourceProv = datasetProvenance.iterator();
             String datasetClassname = null;
             while (sourceProv.hasNext()) {
@@ -266,8 +287,8 @@ public class ReproUtil {
                     datasetClassname = ((StringProvenance) provPair.getB()).getValue();
                 }
             }
-            @SuppressWarnings("unchecked") // Type guaranteed by provenance
-            Class<? extends Dataset<?>> datasetClass = (Class<? extends Dataset<?>>) Class.forName(datasetClassname);
+            @SuppressWarnings("unchecked") // Type guaranteed by provenance as it's dependent on the source
+            Class<? extends Dataset<T>> datasetClass = (Class<? extends Dataset<T>>) Class.forName(datasetClassname);
             return new Pair<>(dataSourceClass, datasetClass);
         }
 
@@ -301,11 +322,10 @@ public class ReproUtil {
      * Return a {@link Dataset} used when a model was trained
      * <p>
      * Throws {@link IllegalStateException} if the dataset could not be recovered.
-     * @param <T> The {@link Dataset} output type.
      * @return A new {@link Dataset}.
      * @throws ClassNotFoundException If the dataset could not be instantiated.
      */
-    private <T extends Output<T>> Dataset<T> recoverDataset() throws ClassNotFoundException {
+    private Dataset<T> recoverDataset() throws ClassNotFoundException {
 
         Provenance[] sourceProvenance = getSources(this.modelProvenance.getDatasetProvenance());
         DataSourceProvenance dataSourceProv = null;
@@ -315,8 +335,8 @@ public class ReproUtil {
 
         // Get the class names for the dataset and datasource
         var classPair = getSourcesClassNames(this.modelProvenance.getDatasetProvenance());
-        Class<? extends DataSource<?>> dataSourceClass = classPair.getA();
-        Class<? extends Dataset<?>> datasetClass = classPair.getB();
+        Class<? extends DataSource<T>> dataSourceClass = classPair.getA();
+        Class<? extends Dataset<T>> datasetClass = classPair.getB();
 
         Dataset<T> modelDataset = null;
 
@@ -355,11 +375,11 @@ public class ReproUtil {
                     throw new IllegalStateException("Unable to instantiate data source, it is not configurable. Found " + bareDataClass);
                 }
                 @SuppressWarnings("unchecked") // Guarded by is assignable check
-                Class<? extends ConfigurableDataSource<?>> splitterSourceClass = (Class<? extends ConfigurableDataSource<?>>) bareDataClass;
+                Class<? extends ConfigurableDataSource<T>> splitterSourceClass = (Class<? extends ConfigurableDataSource<T>>) bareDataClass;
                 // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
                 // innerSource, should return the same Dataset used to train the model
-                DataSource<?> innerSource = getDatasourceFromCM(splitterSourceClass);
-                TrainTestSplitter<?> trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
+                DataSource<T> innerSource = getDatasourceFromCM(splitterSourceClass);
+                TrainTestSplitter<T> trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
 
                 if(isTrain){
                     modelDataset = datasetReflection(trainTestSplitter.getTrain(), datasetClass);
@@ -377,8 +397,8 @@ public class ReproUtil {
                 throw new IllegalStateException("Datasource is not configurable and cannot be recovered.");
             }
             @SuppressWarnings("unchecked") // Guarded by is assignable check
-            Class<? extends ConfigurableDataSource<?>> configDataSourceClass = (Class<? extends ConfigurableDataSource<?>>) dataSourceClass;
-            DataSource<?> modelSource = getDatasourceFromCM(configDataSourceClass);
+            Class<? extends ConfigurableDataSource<T>> configDataSourceClass = (Class<? extends ConfigurableDataSource<T>>) dataSourceClass;
+            DataSource<T> modelSource = getDatasourceFromCM(configDataSourceClass);
             modelDataset = datasetReflection(modelSource, datasetClass);
         }
 
@@ -403,7 +423,7 @@ public class ReproUtil {
      * @return A reproduced model identical to the one described in the provenance.
      * @throws ClassNotFoundException If the dataset or trainer could not be instantiated.
      */
-    public <T extends Output<T>> Model<T> reproduceFromProvenance() throws ClassNotFoundException {
+    public Model<T> reproduceFromProvenance() throws ClassNotFoundException {
 
         // Until now the object only holds the configuration for these objects, the following
         // functions will actually re-instantiate them.
@@ -430,7 +450,7 @@ public class ReproUtil {
      * @param originalFeatures The unique features from the original model.
      * @param reproducedFeatures The unique features from the reproduced model.
      */
-    public record FeatureDiff (Set<String> originalFeatures, Set<String> reproducedFeatures){}
+    public record FeatureDiff(Set<String> originalFeatures, Set<String> reproducedFeatures){}
 
     /**
      * Record for any differences between output domains.
@@ -448,7 +468,7 @@ public class ReproUtil {
      * @param outputDiff Any differences between the output domain.
      * @param provenanceDiff The provenance diff.
      */
-    public record ModelReproduction <T extends Output<T>> (Model<T> model, FeatureDiff featureDiff, OutputDiff<T> outputDiff, String provenanceDiff){}
+    public record ModelReproduction<T extends Output<T>>(Model<T> model, FeatureDiff featureDiff, OutputDiff<T> outputDiff, String provenanceDiff){}
 
     /**
      * Using a supplied {@link Model} object, recreates an identical model object that the provenance describes.
@@ -459,7 +479,7 @@ public class ReproUtil {
      * @return A reproduced model identical to the one described in the provenance.
      * @throws ClassNotFoundException If the trainer or datasource class cannot be instantiated.
      */
-    public <T extends Output<T>> ModelReproduction<T> reproduceFromModel() throws ClassNotFoundException, JsonProcessingException {
+    public ModelReproduction<T> reproduceFromModel() throws ClassNotFoundException, JsonProcessingException {
         if(this.originalModel == null){
             throw new IllegalStateException("No model to reproduce was provided");
         }
@@ -474,17 +494,17 @@ public class ReproUtil {
         newFeatureKeys.removeAll(intersectionOfKeys);
         oldFeatureKeys.removeAll(intersectionOfKeys);
 
-        Set<?> oldDomain = originalModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
-        Set<?> newDomain = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
-        Set<?> intersectionOfDomains = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set<T> oldDomain = originalModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set<T> newDomain = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
+        Set<T> intersectionOfDomains = newModel.getOutputIDInfo().generateMutableOutputInfo().getDomain();
         intersectionOfDomains.retainAll(oldDomain);
         newDomain.removeAll(intersectionOfDomains);
         oldDomain.removeAll(intersectionOfDomains);
 
         ModelReproduction<T> modelReproduction = new ModelReproduction<>(
                 newModel,
-                new FeatureDiff(oldFeatureKeys, oldFeatureKeys),
-                new OutputDiff(oldDomain, newDomain),
+                new FeatureDiff(oldFeatureKeys, newFeatureKeys),
+                new OutputDiff<>(oldDomain, newDomain),
                 ReproUtil.diffProvenance(newModel.getProvenance(), originalModel.getProvenance()));
 
         return modelReproduction;
@@ -582,10 +602,11 @@ public class ReproUtil {
 
     /**
      * This method takes two provenance iterators and returns a diff in the form of a JSON ObjectNode
+     * <p>
+     * Throws {@link IllegalStateException} if the provenance could not be compared.
      * @param iterA An iterator from a provenance object
      * @param iterB An iterator from a provenance object
      * @return An ObjectNode that will be printed to string in diffProvenance.
-     * @throws IllegalStateException
      */
     private static ObjectNode diffProvenanceIterators(Iterator<Pair<String, Provenance>> iterA, Iterator<Pair<String, Provenance>> iterB){
         // The report ObjectNode is the ultimate return value of the method,
