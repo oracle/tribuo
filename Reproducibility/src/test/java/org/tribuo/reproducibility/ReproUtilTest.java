@@ -273,7 +273,7 @@ public class ReproUtilTest {
         LinearSGDModel model1 = (LinearSGDModel) trainer.train(datasetFromCSV);
         LinearSGDModel model2 = (LinearSGDModel) trainer.train(datasetFromCSV);
 
-        ReproUtil repro = new ReproUtil(model1);
+        ReproUtil<Label> repro = new ReproUtil<>(model1);
 
         LinearSGDModel model3 = (LinearSGDModel) repro.reproduceFromProvenance();
         String report = ReproUtil.diffProvenance(model1.getProvenance(), model3.getProvenance());
@@ -383,10 +383,9 @@ public class ReproUtilTest {
 
         Trainer<Label> trainer = new LogisticRegressionTrainer();
         Model<Label> tempModel = trainer.train(trainingDataset);
-        ReproUtil repro = new ReproUtil(tempModel);
+        ReproUtil<Label> repro = new ReproUtil<>(tempModel);
 
-        ReproUtil finalRepro = repro;
-        assertDoesNotThrow((Executable) finalRepro::reproduceFromProvenance);
+        assertDoesNotThrow((Executable) repro::reproduceFromProvenance);
     }
 
 }
