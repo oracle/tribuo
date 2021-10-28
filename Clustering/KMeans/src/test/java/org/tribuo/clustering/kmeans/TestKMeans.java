@@ -29,15 +29,14 @@ import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.math.la.DenseVector;
-import org.tribuo.math.la.Tensor;
-import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.test.Helpers;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Smoke tests for k-means.

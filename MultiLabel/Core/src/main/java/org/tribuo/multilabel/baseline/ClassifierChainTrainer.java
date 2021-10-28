@@ -167,7 +167,12 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
     }
 
     @Override
-    public ClassifierChainModel train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance) {
+    public ClassifierChainModel train(Dataset<MultiLabel> examples, Map<String,Provenance> runProvenance) {
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
+    }
+
+    @Override
+    public ClassifierChainModel train(Dataset<MultiLabel> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
@@ -175,6 +180,9 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
         TrainerProvenance trainerProvenance;
         SplittableRandom localRNG;
         synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             localRNG = rng.split();
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
@@ -255,6 +263,18 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
     @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
+    }
+
+    @Override
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+        for (trainInvocationCounter = 0; trainInvocationCounter < invocationCount; trainInvocationCounter++){
+            SplittableRandom localRNG = rng.split();
+        }
     }
 
     @Override

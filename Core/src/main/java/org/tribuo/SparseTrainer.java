@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,5 +52,11 @@ public interface SparseTrainer<T extends Output<T>> extends Trainer<T> {
      * @param invocationCount The state of the RNG the trainer should be set to before training
      * @return a predictive model that can be used to generate predictions for new examples.
      */
-    public SparseModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount);
+    @Override
+    public default SparseModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
+        synchronized (this){
+            setInvocationCount(invocationCount);
+            return train(examples, runProvenance);
+        }
+    }
 }
