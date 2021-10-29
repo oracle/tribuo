@@ -299,14 +299,15 @@ public class TestLibSVM {
             VariableIDInfo id = (VariableIDInfo) f;
             featureMapping.put(id.getName(), id.getID());
         }
+
         int[] libSVMMapping = model.getInnerModels().get(0).label;
         int[] backwardsLibSVMMapping = new int[model.getOutputIDInfo().size()];
         for (int i = 0; i < libSVMMapping.length; i++) {
             backwardsLibSVMMapping[libSVMMapping[i]] = i;
         }
         Map<Label, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer, Label> l : model.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), backwardsLibSVMMapping[l.getA()]);
+        for (Pair<Integer,Label> l : model.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
         }
 
         String arch = System.getProperty("os.arch");
@@ -316,12 +317,7 @@ public class TestLibSVM {
             OrtEnvironment env = OrtEnvironment.getEnvironment();
             env.close();
             // Load in via ORT
-            OutputTransformer<Label> transformer;
-            if ((model.getOutputIDInfo().size() == 2) || model.generatesProbabilities()) {
-                transformer = new LabelTransformer(model.generatesProbabilities());
-            } else {
-                transformer = new LabelOneVOneTransformer();
-            }
+            OutputTransformer<Label> transformer = new LabelTransformer(model.generatesProbabilities());
             ONNXExternalModel<Label> onnxModel = ONNXExternalModel.createOnnxModel(new LabelFactory(), featureMapping, outputMapping, new DenseTransformer(), transformer, new OrtSession.SessionOptions(), onnxFile, "input");
 
             // Generate predictions
@@ -339,7 +335,7 @@ public class TestLibSVM {
                     if (other == null) {
                         fail("Failed to find label " + l.getKey() + " in ORT prediction.");
                     } else {
-                        assertEquals(l.getValue().getScore(), other.getScore(), 1e-6);
+                        assertEquals(l.getValue().getScore(), other.getScore(), 1e-3);
                     }
                 }
             }

@@ -59,6 +59,19 @@ public enum ONNXOperators {
             new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, false)
     )),
     /**
+     * Cast input to specified type.
+     * <ul>
+     *     <li>{@code to} must be a data type int from {@link OnnxMl.TensorProto.DataType}</li>
+     * </ul>
+     */
+    CAST("Cast",1,1, Collections.singletonList(
+            new ONNXAttribute("to", OnnxMl.AttributeProto.AttributeType.INT, true)
+    )),
+    /**
+     * Element-wise negation.
+     */
+    NEG("Neg",1,1),
+    /**
      * Element-wise addition with broadcasting.
      */
     ADD("Add",2,1),
@@ -78,6 +91,20 @@ public enum ONNXOperators {
      * Element-wise exponentiation with broadcasting.
      */
     POW("Pow",2,1),
+    /**
+     * Element-wise summation across the supplied inputs with broadcasting.
+     */
+    SUM("Sum",VARIADIC_INPUT,1),
+    /**
+     * Gathers elements from the first argument (of rank r) indexed by the second argument (of rank q) producing
+     * a tensor of rank {@code q + r - 1}.
+     * <ul>
+     *     <li>{@code axis} the axis of the first argument to gather from.</li>
+     * </ul>
+     */
+    GATHER("Gather",2,1,Collections.singletonList(
+            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, true)
+    )),
     /**
      * Hardmax(element in input, axis) = 1 if the element is the first maximum value along the specified axis, 0 otherwise.
      * <ul>
@@ -144,6 +171,7 @@ public enum ONNXOperators {
             new ONNXAttribute("transB", OnnxMl.AttributeProto.AttributeType.INT,false)
     )),
     /**
+     * Greater than, returns the element-wise greater than operation on the two tensors.
      * <p>
      * Tensors must be broadcastable to the same shape.
      */
@@ -170,7 +198,11 @@ public enum ONNXOperators {
      * Choice operator, based on the true value of the condition input, returns the element at that index from either
      * the second or third input. When the test is true, return the second input, otherwise return the third input.
      */
-    WHERE("Where",3,1)
+    WHERE("Where",3,1),
+    /**
+     * Array feature extractor, selects the indices specified by the second tensor from the last dimension of the first tensor.
+     */
+    ARRAY_FEATURE_EXTRACTOR("ArrayFeatureExtractor",2,1,"ai.onnx.ml"),
     /**
      * SVM Classifier.
      * <ul>
@@ -279,13 +311,36 @@ public enum ONNXOperators {
      * @param numOutputs The number of outputs.
      */
     private ONNXOperators(String value, int numInputs, int numOptionalInputs, int numOutputs) {
+        this(value, numInputs, numOptionalInputs, numOutputs, (String) null);
+    }
+
+    /**
+     * Builds an operator without attributes and with optional inputs.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOutputs The number of outputs.
+     * @param domain The domain.
+     */
+    private ONNXOperators(String value, int numInputs, int numOutputs, String domain) {
+        this(value, numInputs, 0, numOutputs, domain);
+    }
+
+    /**
+     * Builds an operator without attributes and with optional inputs.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOptionalInputs The number of optional inputs.
+     * @param numOutputs The number of outputs.
+     * @param domain The domain.
+     */
+    private ONNXOperators(String value, int numInputs, int numOptionalInputs, int numOutputs, String domain) {
         this.opName = value;
         this.numInputs = numInputs;
         this.numOptionalInputs = numOptionalInputs;
         this.numOutputs = numOutputs;
         this.attributes = Collections.emptyMap();
         this.mandatoryAttributeNames = Collections.emptySet();
-        this.domain = null;
+        this.domain = domain;
     }
 
     /**
@@ -456,6 +511,8 @@ public enum ONNXOperators {
     public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String[] outputs, Map<String,Object> attributeValues) {
         if ((numInputs != VARIADIC_INPUT) && ((inputs.length < numInputs) || (inputs.length > numInputs + numOptionalInputs))) {
             throw new IllegalArgumentException("Expected " + numInputs + " inputs, with " + numOptionalInputs + " optional inputs, but received " + inputs.length);
+        } else if ((numInputs == VARIADIC_INPUT) && (inputs.length == 0)) {
+            throw new IllegalArgumentException("Expected at least one input for variadic input, received zero");
         }
         if (outputs.length != numOutputs) {
             throw new IllegalArgumentException("Expected " + numOutputs + " outputs, but received " + outputs.length);
