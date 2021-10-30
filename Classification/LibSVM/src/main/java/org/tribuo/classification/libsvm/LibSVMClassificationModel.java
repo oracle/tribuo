@@ -248,19 +248,25 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         graphBuilder.addNode(svm);
 
         String outputName = "svm_output";
-        if (model.nr_class == 2) {
-            OnnxMl.TensorProto negOne = ONNXUtils.scalarBuilder(context, "minus_one", -1.0f);
-            graphBuilder.addInitializer(negOne);
-            OnnxMl.NodeProto binaryOutput = ONNXOperators.MUL.build(context, new String[]{outputs[1], negOne.getName()}, "svm_output_b");
-            graphBuilder.addNode(binaryOutput);
-            outputName = "svm_output_b";
-        }
-
+        // if the model is not probabilistic we need to vote the one v one classifier output
         if (!generatesProbabilities) {
-            writeDecisionFunction(context, graphBuilder, outputs[1], "ungathered_output");
+            String decisionInput;
+            // If the model has two classes then the scores are inverted for some reason
+            // This is based on the ONNX Runtime behaviour, but the ONNX SVMClassifier spec is ill-defined
+            if (model.nr_class == 2) {
+                OnnxMl.TensorProto negOne = ONNXUtils.scalarBuilder(context, "minus_one", -1.0f);
+                graphBuilder.addInitializer(negOne);
+                OnnxMl.NodeProto binaryOutput = ONNXOperators.MUL.build(context, new String[]{outputs[1], negOne.getName()}, "svm_output_b");
+                graphBuilder.addNode(binaryOutput);
+                decisionInput = binaryOutput.getOutput(0);
+            } else {
+                decisionInput = outputs[1];
+            }
+            writeDecisionFunction(context, graphBuilder, decisionInput, "ungathered_output");
             outputName = "ungathered_output";
         }
 
+        // Undo the libsvm mapping so the indices line up with Tribuo indices
         int[] backwardsLibSVMMapping = new int[model.label.length];
         for (int i = 0; i < model.label.length; i++) {
             backwardsLibSVMMapping[model.label[i]] = i;
