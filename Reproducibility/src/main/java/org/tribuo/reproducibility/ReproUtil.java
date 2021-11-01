@@ -64,6 +64,13 @@ import java.util.logging.Logger;
 
 /**
  * Reproducibility utility based on Tribuo's provenance objects.
+ * <p>
+ * Note: this class is designed to be used to reproduce a single object.
+ * Repeated calls to {@link #reproduceFromModel()} or {@link #reproduceFromProvenance()}
+ * may produce different outputs due to internal state changes.
+ * <p>
+ * Note: this class's API is experimental and may change in Tribuo minor releases as we work
+ * to make it more robust and featureful.
  * @param <T> The output type of the model being reproduced.
  */
 public final class ReproUtil<T extends Output<T>> {
@@ -153,7 +160,10 @@ public final class ReproUtil<T extends Output<T>> {
 
     /**
      * Extract the trainer from this repro util.
-     * @return A {@link Trainer} found in the configuration manager, presumably used to train the originalModel.
+     * <p>
+     * Note calling {@link Trainer#train} on the returned trainer object may distort any future reproductions
+     * produced by this instance of {@code ReproUtil}.
+     * @return A {@link Trainer} found in the configuration manager, used to train the originalModel.
      */
     public Trainer<T> recoverTrainer() {
         // We need to set the state of the RNG for each trainer used in the provenance.
@@ -319,26 +329,33 @@ public final class ReproUtil<T extends Output<T>> {
     }
 
     /**
-     * Return a {@link Dataset} used when a model was trained
+     * Return a {@link Dataset} used when a model was trained.
      * <p>
-     * Throws {@link IllegalStateException} if the dataset could not be recovered.
+     * Throws {@link IllegalStateException} if the dataset could not be recovered or one of the classes could not be instantiated.
+     * <p>
+     * Note transforming or otherwise mutating the returned {@link Dataset} object may distort any future reproductions
+     * produced by this instance of {@code ReproUtil}.
      * @return A new {@link Dataset}.
-     * @throws ClassNotFoundException If the dataset could not be instantiated.
      */
-    private Dataset<T> recoverDataset() throws ClassNotFoundException {
-
+    public Dataset<T> recoverDataset() {
         Provenance[] sourceProvenance = getSources(this.modelProvenance.getDatasetProvenance());
         DataSourceProvenance dataSourceProv = null;
         if(sourceProvenance[0] instanceof DataSourceProvenance dataSourceProvenance){
             dataSourceProv = dataSourceProvenance;
         }
 
-        // Get the class names for the dataset and datasource
-        var classPair = getSourcesClassNames(this.modelProvenance.getDatasetProvenance());
-        Class<? extends DataSource<T>> dataSourceClass = classPair.getA();
-        Class<? extends Dataset<T>> datasetClass = classPair.getB();
+        Class<? extends DataSource<T>> dataSourceClass;
+        Class<? extends Dataset<T>> datasetClass;
+        try {
+            // Get the class names for the dataset and datasource
+            var classPair = getSourcesClassNames(this.modelProvenance.getDatasetProvenance());
+            dataSourceClass = classPair.getA();
+            datasetClass = classPair.getB();
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Failed to load datasource or dataset class",e);
+        }
 
-        Dataset<T> modelDataset = null;
+        Dataset<T> modelDataset;
 
         // If the source is a TrainTestSplitter, we need to extract the correct data from the Splitter first.
         // While it is likely they trained on the "train" dataset, in the future they also might have used cross-validation.
@@ -408,6 +425,8 @@ public final class ReproUtil<T extends Output<T>> {
     /**
      * Returns the ConfigurationManager the ReproUtil is using to manage the reproduced models.
      * <p>
+     * Note modifying the returned {@code ConfigurationManager} will distort the results of any future reproductions
+     * performed by this {@code ReproUtil}.
      * @return a ConfigurationManager the ReproUtil is managing.
      */
     public ConfigurationManager getConfigurationManager(){
