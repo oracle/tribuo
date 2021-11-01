@@ -53,7 +53,7 @@ public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Pro
     public Prediction<T> combine(ImmutableOutputInfo<T> outputInfo, List<Prediction<T>> predictions, float[] weights);
 
     /**
-     * Exports this ensemble combiner as a list of ONNX NodeProtos.
+     * Exports this ensemble combiner as a non-empty list of ONNX NodeProtos.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
      * <p>
@@ -73,7 +73,7 @@ public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Pro
     }
 
     /**
-     * Exports this ensemble combiner as a list of ONNX NodeProtos.
+     * Exports this ensemble combiner as a non-empty list of ONNX NodeProtos.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
      * <p>
