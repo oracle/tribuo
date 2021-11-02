@@ -109,7 +109,7 @@ public final class ONNXContext {
      */
     public String getOutputName(int index) {
         if (index < 0 || protoBuilder.getOutputCount() < index) {
-            throw new IndexOutOfBoundsException("Invalid index, expected 0 - " + protoBuilder.getOutputCount() + ", received " + index);
+            throw new IndexOutOfBoundsException("Invalid index, expected [0," + protoBuilder.getOutputCount() + "), received " + index);
         }
         return protoBuilder.getOutput(index).getName();
     }
@@ -123,7 +123,7 @@ public final class ONNXContext {
      */
     public String getInputName(int index) {
         if (index < 0 || protoBuilder.getOutputCount() < index) {
-            throw new IndexOutOfBoundsException("Invalid index, expected 0 - " + protoBuilder.getOutputCount() + ", received " + index);
+            throw new IndexOutOfBoundsException("Invalid index, expected [0," + protoBuilder.getOutputCount() + "), received " + index);
         }
         return protoBuilder.getInput(index).getName();
     }
