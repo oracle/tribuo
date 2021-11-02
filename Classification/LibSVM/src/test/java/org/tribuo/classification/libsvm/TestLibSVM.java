@@ -16,9 +16,7 @@
 
 package org.tribuo.classification.libsvm;
 
-import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import libsvm.svm_model;
 import libsvm.svm_node;
@@ -34,8 +32,6 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
-import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
@@ -53,13 +49,7 @@ import org.tribuo.data.text.impl.SimpleTextDataSource;
 import org.tribuo.data.text.impl.TextFeatureExtractorImpl;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.impl.ListExample;
-import org.tribuo.interop.onnx.DenseTransformer;
-import org.tribuo.interop.onnx.LabelOneVOneTransformer;
-import org.tribuo.interop.onnx.LabelTransformer;
-import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.OnnxTestUtils;
-import org.tribuo.interop.onnx.OutputTransformer;
-import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
@@ -75,14 +65,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
