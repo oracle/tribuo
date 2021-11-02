@@ -29,6 +29,7 @@ import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.interop.onnx.DenseTransformer;
 import org.tribuo.interop.onnx.ONNXExternalModel;
+import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.interop.onnx.RegressorTransformer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.RegressionFactory;
@@ -193,50 +194,7 @@ public class TestLibLinear {
         Path onnxFile = Files.createTempFile("tribuo-liblinear-test",".onnx");
         model.saveONNXModel("org.tribuo.regression.liblinear.test",1,onnxFile);
 
-        // Prep mappings
-        Map<String, Integer> featureMapping = new HashMap<>();
-        for (VariableInfo f : model.getFeatureIDMap()){
-            VariableIDInfo id = (VariableIDInfo) f;
-            featureMapping.put(id.getName(),id.getID());
-        }
-        Map<Regressor, Integer> outputMapping = new HashMap<>();
-        for (Pair<Integer,Regressor> l : model.getOutputIDInfo()) {
-            outputMapping.put(l.getB(), l.getA());
-        }
-
-        String arch = System.getProperty("os.arch");
-        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
-            // Initialise the OrtEnvironment to load the native library
-            // (as OrtSession.SessionOptions doesn't trigger the static initializer).
-            OrtEnvironment env = OrtEnvironment.getEnvironment();
-            env.close();
-            // Load in via ORT
-            ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(),featureMapping,outputMapping,new DenseTransformer(),new RegressorTransformer(),new OrtSession.SessionOptions(),onnxFile,"input");
-
-            // Generate predictions
-            List<Prediction<Regressor>> nativePredictions = model.predict(p.getB());
-            List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
-
-            // Assert the predictions are identical
-            for (int i = 0; i < nativePredictions.size(); i++) {
-                Prediction<Regressor> tribuo = nativePredictions.get(i);
-                Prediction<Regressor> external = onnxPredictions.get(i);
-                assertArrayEquals(tribuo.getOutput().getNames(),external.getOutput().getNames());
-                assertArrayEquals(tribuo.getOutput().getValues(),external.getOutput().getValues(),1e-5);
-            }
-
-            // Check that the provenance can be extracted and is the same
-            ModelProvenance modelProv = model.getProvenance();
-            Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
-            assertTrue(optProv.isPresent());
-            ModelProvenance onnxProv = optProv.get();
-            assertNotSame(onnxProv, modelProv);
-            assertEquals(modelProv,onnxProv);
-
-            onnxModel.close();
-        } else {
-            logger.warning("ORT based tests only supported on x86_64, found " + arch);
-        }
+        OnnxTestUtils.onnxRegressorComparison(model,onnxFile,p.getB(),1e-5);
 
         onnxFile.toFile().delete();
     }

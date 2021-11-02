@@ -147,6 +147,7 @@ public final class ONNXAttribute {
                 } else {
                     throw new IllegalArgumentException("Expected TensorProto, found " + value.getClass() + " with value " + value);
                 }
+                break;
             case GRAPH:
             case SPARSE_TENSOR:
             case TENSORS:

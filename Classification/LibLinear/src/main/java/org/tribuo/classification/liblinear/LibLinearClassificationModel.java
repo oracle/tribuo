@@ -293,12 +293,21 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+        context.setName("Classification-LibLinear");
+
         // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         // Build model
         OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
+        builder.setGraph(context.buildGraph());
         builder.setDomain(domain);
         builder.setProducerName("Tribuo");
         builder.setProducerVersion(Tribuo.VERSION);
@@ -317,10 +326,7 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("LibLinear-Classification");
-
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName)  {
         de.bwaldvogel.liblinear.Model model = models.get(0);
         double[] weights = model.getFeatureWeights();
         int[] labels = model.getLabels();
@@ -356,14 +362,6 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
             weights = newWeights;
         }
 
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,numFeatures}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,numLabels}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        graphBuilder.addOutput(outputValueProto);
-
         // Add weights
         OnnxMl.TensorProto.Builder weightBuilder = OnnxMl.TensorProto.newBuilder();
         weightBuilder.setName(context.generateUniqueName("liblinear-weights"));
@@ -378,7 +376,7 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
         }
         floatBuffer.rewind();
         weightBuilder.setRawData(ByteString.copyFrom(buffer));
-        graphBuilder.addInitializer(weightBuilder.build());
+        context.addInitializer(weightBuilder.build());
 
         // Add biases
         OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
@@ -393,22 +391,19 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
         }
         floatBiasBuffer.rewind();
         biasBuilder.setRawData(ByteString.copyFrom(biasBuffer));
-        graphBuilder.addInitializer(biasBuilder.build());
+        context.addInitializer(biasBuilder.build());
+
+        String gemmOutput = model.isProbabilityModel() ? context.generateUniqueName("gemm_output") : outputName;
 
         // Make gemm
-        String[] gemmInputs = new String[]{inputValueProto.getName(),weightBuilder.getName(),biasBuilder.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,context.generateUniqueName("gemm_output"));
-        graphBuilder.addNode(gemm);
+        String[] gemmInputs = new String[]{inputName,weightBuilder.getName(),biasBuilder.getName()};
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,gemmOutput);
+        context.addNode(gemm);
 
         if (model.isProbabilityModel()) {
             // Make output normalizer if producing probabilities
-            graphBuilder.addNode(ONNXOperators.SOFTMAX.build(context,gemm.getOutput(0),"output", Collections.singletonMap("axis",1)));
-        } else {
-            // Add identity path if not
-            graphBuilder.addNode(ONNXOperators.IDENTITY.build(context,gemm.getOutput(0),"output"));
+            context.addNode(ONNXOperators.SOFTMAX.build(context,gemm.getOutput(0),outputName, Collections.singletonMap("axis",1)));
         }
-
-        return graphBuilder.build();
     }
 
 }

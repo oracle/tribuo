@@ -197,12 +197,21 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+        context.setName("Regression-LibLinear");
+
         // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         // Build model
         OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
+        builder.setGraph(context.buildGraph());
         builder.setDomain(domain);
         builder.setProducerName("Tribuo");
         builder.setProducerVersion(Tribuo.VERSION);
@@ -221,18 +230,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("LibLinear-Regression");
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        graphBuilder.addOutput(outputValueProto);
-
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName)  {
         double[][] weights = new double[models.size()][];
         for (int i = 0; i < models.size(); i++) {
             weights[i] = models.get(i).getFeatureWeights();
@@ -254,7 +252,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         }
         floatBuffer.rewind();
         weightBuilder.setRawData(ByteString.copyFrom(buffer));
-        graphBuilder.addInitializer(weightBuilder.build());
+        context.addInitializer(weightBuilder.build());
 
         // Add biases
         OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
@@ -269,14 +267,12 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         }
         floatBiasBuffer.rewind();
         biasBuilder.setRawData(ByteString.copyFrom(biasBuffer));
-        graphBuilder.addInitializer(biasBuilder.build());
+        context.addInitializer(biasBuilder.build());
 
         // Make gemm
-        String[] gemmInputs = new String[]{inputValueProto.getName(),weightBuilder.getName(),biasBuilder.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,"output");
-        graphBuilder.addNode(gemm);
-
-        return graphBuilder.build();
+        String[] gemmInputs = new String[]{inputName,weightBuilder.getName(),biasBuilder.getName()};
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,outputName);
+        context.addNode(gemm);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

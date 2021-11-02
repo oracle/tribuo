@@ -168,12 +168,21 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+        context.setName("Classification-LibSVM");
+
         // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         // Build model
         OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
+        builder.setGraph(context.buildGraph());
         builder.setDomain(domain);
         builder.setProducerName("Tribuo");
         builder.setProducerVersion(Tribuo.VERSION);
@@ -192,21 +201,10 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("LibSVM-Classification");
-
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName)  {
         svm_model model = models.get(0);
         int numOneVOne = model.label.length * (model.label.length - 1) / 2;
         int numFeatures = featureIDMap.size();
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputScoresType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputScoresProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputScoresType).setName("output").build();
-        graphBuilder.addOutput(outputScoresProto);
 
         // Extract the attributes
         Map<String,Object> attributes = new HashMap<>();
@@ -244,10 +242,10 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
 
         // Build SVM node
         String[] outputs = new String[]{"pred_label", "svm_output"};
-        OnnxMl.NodeProto svm = ONNXOperators.SVM_CLASSIFIER.build(context,inputValueProto.getName(),outputs,attributes);
-        graphBuilder.addNode(svm);
+        OnnxMl.NodeProto svm = ONNXOperators.SVM_CLASSIFIER.build(context,inputName,outputs,attributes);
+        context.addNode(svm);
 
-        String outputName = "svm_output";
+        String svmOutputName = "svm_output";
         // if the model is not probabilistic we need to vote the one v one classifier output
         if (!generatesProbabilities) {
             String decisionInput;
@@ -255,15 +253,15 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
             // This is based on the ONNX Runtime behaviour, but the ONNX SVMClassifier spec is ill-defined
             if (model.nr_class == 2) {
                 OnnxMl.TensorProto negOne = ONNXUtils.scalarBuilder(context, "minus_one", -1.0f);
-                graphBuilder.addInitializer(negOne);
+                context.addInitializer(negOne);
                 OnnxMl.NodeProto binaryOutput = ONNXOperators.MUL.build(context, new String[]{outputs[1], negOne.getName()}, "svm_output_b");
-                graphBuilder.addNode(binaryOutput);
+                context.addNode(binaryOutput);
                 decisionInput = binaryOutput.getOutput(0);
             } else {
                 decisionInput = outputs[1];
             }
-            writeDecisionFunction(context, graphBuilder, decisionInput, "ungathered_output");
-            outputName = "ungathered_output";
+            writeDecisionFunction(context, decisionInput, "ungathered_output");
+            svmOutputName = "ungathered_output";
         }
 
         // Undo the libsvm mapping so the indices line up with Tribuo indices
@@ -273,29 +271,27 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         }
 
         OnnxMl.TensorProto indices = ONNXUtils.arrayBuilder(context, "label_indices", backwardsLibSVMMapping);
-        graphBuilder.addInitializer(indices);
+        context.addInitializer(indices);
 
-        OnnxMl.NodeProto gather = ONNXOperators.GATHER.build(context, new String[]{outputName, indices.getName()}, "output", Collections.singletonMap("axis", 1));
-        graphBuilder.addNode(gather);
-
-        return graphBuilder.build();
+        OnnxMl.NodeProto gather = ONNXOperators.GATHER.build(context, new String[]{svmOutputName, indices.getName()}, outputName, Collections.singletonMap("axis", 1));
+        context.addNode(gather);
     }
 
-    private void writeDecisionFunction(ONNXContext context, OnnxMl.GraphProto.Builder builder, String svmOutputName, String outputName) {
+    private void writeDecisionFunction(ONNXContext context, String svmOutputName, String outputName) {
         // cst1
         OnnxMl.TensorProto one = ONNXUtils.scalarBuilder(context,"one",1.0f);
-        builder.addInitializer(one);
+        context.addInitializer(one);
         // cst0
         OnnxMl.TensorProto zero = ONNXUtils.scalarBuilder(context,"zero",0.0f);
-        builder.addInitializer(zero);
+        context.addInitializer(zero);
 
         OnnxMl.NodeProto prediction = ONNXOperators.LESS.build(context,new String[]{svmOutputName,zero.getName()},context.generateUniqueName("prediction"));
-        builder.addNode(prediction);
+        context.addNode(prediction);
 
         OnnxMl.NodeProto floatPrediction = ONNXOperators.CAST.build(context,prediction.getOutput(0),
                 context.generateUniqueName("float_prediction"),
                 Collections.singletonMap("to",OnnxMl.TensorProto.DataType.FLOAT.getNumber()));
-        builder.addNode(floatPrediction);
+        context.addNode(floatPrediction);
 
         svm_model model = models.get(0);
         String[] oneVOneNames = new String[model.nr_class];
@@ -309,17 +305,17 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         for (int i = 0; i < model.nr_class; i++) {
             for (int j = i+1; j < model.nr_class; j++) {
                 OnnxMl.TensorProto index = ONNXUtils.scalarBuilder(context,"Vind_" + k, (long) k);
-                builder.addInitializer(index);
+                context.addInitializer(index);
                 OnnxMl.NodeProto featureExtractor = ONNXOperators.ARRAY_FEATURE_EXTRACTOR.build(context,
                         new String[]{floatPrediction.getOutput(0),index.getName()},
                         context.generateUniqueName("Vsvcv_"+k)
                 );
-                builder.addNode(featureExtractor);
+                context.addNode(featureExtractor);
                 voteAdds.get(oneVOneNames[j]).add(featureExtractor);
                 OnnxMl.NodeProto negate = ONNXOperators.NEG.build(context,featureExtractor.getOutput(0),context.generateUniqueName("Vnegv_"+k));
-                builder.addNode(negate);
+                context.addNode(negate);
                 OnnxMl.NodeProto addNeg = ONNXOperators.ADD.build(context,new String[]{negate.getOutput(0),one.getName()},context.generateUniqueName("Vnegv1_"+k));
-                builder.addNode(addNeg);
+                context.addNode(addNeg);
                 voteAdds.get(oneVOneNames[i]).add(addNeg);
 
                 k += 1;
@@ -329,11 +325,11 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         for (Map.Entry<String, List<OnnxMl.NodeProto>> e : voteAdds.entrySet()) {
             String[] nodeNames = e.getValue().stream().map((OnnxMl.NodeProto n) -> n.getOutput(0)).toArray(String[]::new);
             OnnxMl.NodeProto sum = ONNXOperators.SUM.build(context,nodeNames,e.getKey());
-            builder.addNode(sum);
+            context.addNode(sum);
         }
 
         OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context,oneVOneNames,outputName,Collections.singletonMap("axis",1));
-        builder.addNode(concat);
+        context.addNode(concat);
     }
 
 }

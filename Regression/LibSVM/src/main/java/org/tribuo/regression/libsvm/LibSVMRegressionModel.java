@@ -198,12 +198,21 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+        context.setName("Regression-LibSVM");
+
         // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         // Build model
         OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
+        builder.setGraph(context.buildGraph());
         builder.setDomain(domain);
         builder.setProducerName("Tribuo");
         builder.setProducerVersion(Tribuo.VERSION);
@@ -222,19 +231,8 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("LibSVM-Regression");
-
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName)  {
         int numFeatures = featureIDMap.size();
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        graphBuilder.addOutput(outputValueProto);
 
         // Make the individual SVM Regressors for each dimension
         String[] outputNames = new String[models.size()];
@@ -262,34 +260,32 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
 
             // Build SVM node
             outputNames[i] = context.generateUniqueName("dimension_output");
-            OnnxMl.NodeProto svm = ONNXOperators.SVM_REGRESSOR.build(context, inputValueProto.getName(), outputNames[i], attributes);
-            graphBuilder.addNode(svm);
+            OnnxMl.NodeProto svm = ONNXOperators.SVM_REGRESSOR.build(context, inputName, outputNames[i], attributes);
+            context.addNode(svm);
         }
 
-        String concatName = standardized ? context.generateUniqueName("concat_output") : outputValueProto.getName();
+        String concatName = standardized ? context.generateUniqueName("concat_output") : outputName;
         // Make concat to bring them all together
         OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context, outputNames, concatName, Collections.singletonMap("axis", 1));
-        graphBuilder.addNode(concat);
+        context.addNode(concat);
 
         if (standardized) {
             // Add output means
             OnnxMl.TensorProto outputMeanProto = ONNXUtils.arrayBuilder(context,"y_mean",means);
-            graphBuilder.addInitializer(outputMeanProto);
+            context.addInitializer(outputMeanProto);
 
             // Add output variances
             OnnxMl.TensorProto outputVarianceProto = ONNXUtils.arrayBuilder(context, "y_var",variances);
-            graphBuilder.addInitializer(outputVarianceProto);
+            context.addInitializer(outputVarianceProto);
 
             // Scale outputs
             String varianceOutput = context.generateUniqueName("y_var_scale_output");
             OnnxMl.NodeProto varianceScale = ONNXOperators.MUL.build(context, new String[]{concatName,outputVarianceProto.getName()}, varianceOutput);
-            graphBuilder.addNode(varianceScale);
+            context.addNode(varianceScale);
 
-            OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputValueProto.getName());
-            graphBuilder.addNode(meanScale);
+            OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputName);
+            context.addNode(meanScale);
         }
-
-        return graphBuilder.build();
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

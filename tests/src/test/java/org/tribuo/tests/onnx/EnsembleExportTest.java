@@ -25,9 +25,14 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.ensemble.FullyWeightedVotingCombiner;
 import org.tribuo.classification.ensemble.VotingCombiner;
 import org.tribuo.classification.example.NoisyInterlockingCrescentsDataSource;
+import org.tribuo.classification.libsvm.LibSVMClassificationModel;
+import org.tribuo.classification.libsvm.LibSVMClassificationTrainer;
+import org.tribuo.classification.libsvm.SVMClassificationType;
 import org.tribuo.classification.sgd.fm.FMClassificationTrainer;
 import org.tribuo.classification.sgd.linear.LogisticRegressionTrainer;
 import org.tribuo.classification.sgd.objectives.LogMulticlass;
+import org.tribuo.common.libsvm.KernelType;
+import org.tribuo.common.libsvm.SVMParameters;
 import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
@@ -118,7 +123,9 @@ public class EnsembleExportTest {
         EnsembleModel<Label> bagModel = t.train(train);
         FMClassificationTrainer fmT = new FMClassificationTrainer(new LogMulticlass(),adagrad,2,100,1,1L,5,0.1);
         AbstractFMModel<Label> fmModel = fmT.train(train);
-        WeightedEnsembleModel<Label> ensemble = WeightedEnsembleModel.createEnsembleFromExistingModels("Bag+FM", Arrays.asList(bagModel,fmModel), FULL_VOTING, new float[]{0.3f,0.7f});
+        LibSVMClassificationTrainer svmT = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMClassificationType.SVMMode.NU_SVC), KernelType.RBF));
+        LibSVMClassificationModel svmModel = (LibSVMClassificationModel) svmT.train(train);
+        WeightedEnsembleModel<Label> ensemble = WeightedEnsembleModel.createEnsembleFromExistingModels("Bag+FM", Arrays.asList(bagModel,fmModel,svmModel), FULL_VOTING, new float[]{0.3f,0.5f,0.2f});
 
         // Write out model
         Path onnxFile = Files.createTempFile("tribuo-bagging-test",".onnx");
