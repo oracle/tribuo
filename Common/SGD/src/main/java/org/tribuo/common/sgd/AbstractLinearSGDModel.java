@@ -30,10 +30,10 @@ import org.tribuo.Tribuo;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.Matrix;
-import org.tribuo.math.onnx.ONNXMathUtils;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.nio.FloatBuffer;
@@ -198,7 +198,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
      */
     protected OnnxMl.TensorProto weightBuilder(ONNXContext context) {
         final Matrix weightMatrix = (Matrix) modelParameters.get()[0];
-        return ONNXMathUtils.floatTensorBuilder(context, "linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
+        return ONNXUtils.floatTensorBuilder(context, "linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
                 (FloatBuffer fb) -> {
                     for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
                         for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
@@ -215,7 +215,7 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
      */
     protected OnnxMl.TensorProto biasBuilder(ONNXContext context) {
         Matrix weightMatrix = (Matrix) modelParameters.get()[0];
-        return ONNXMathUtils.floatTensorBuilder(context, "linear_sgd_biases", Collections.singletonList(outputIDInfo.size()),
+        return ONNXUtils.floatTensorBuilder(context, "linear_sgd_biases", Collections.singletonList(outputIDInfo.size()),
                 (FloatBuffer fb) -> {
                     for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
                         fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));

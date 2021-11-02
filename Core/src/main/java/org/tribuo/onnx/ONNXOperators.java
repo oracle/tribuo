@@ -42,6 +42,9 @@ public enum ONNXOperators {
     CONCAT("Concat",VARIADIC_INPUT,1, Collections.singletonList(
             new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, true)
     )),
+    CONSTANT_OF_SHAPE("ConstantOfShape",1,1, Collections.singletonList(
+            new ONNXAttribute("value", OnnxMl.AttributeProto.AttributeType.TENSOR, false)
+    )),
     /**
      * Sigmoid element-wise.
      */
@@ -76,6 +79,26 @@ public enum ONNXOperators {
      */
     POW("Pow",2,1),
     /**
+     * Hardmax(element in input, axis) = 1 if the element is the first maximum value along the specified axis, 0 otherwise.
+     * <ul>
+     *     <li>{@code axis} default is -1, i.e., take the hardmax over the last dimension.</li>
+     * </ul>
+     */
+    HARDMAX("Hardmax",1,1, Collections.singletonList(
+            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT,false)
+    )),
+    /**
+     * Computes the mean of the input tensor's element along the provided axes.
+     * <ul>
+     *     <li>{@code axes} default is to reduce over all dimensions.</li>
+     *     <li>{@code keepdims} defaults to 1 which means keep.</li>
+     * </ul>
+     */
+    REDUCE_MEAN("ReduceMean",1,1,Arrays.asList(
+            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS,false),
+            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT,false)
+    )),
+    /**
      * Compute the minimum along the specified axes of the tensor.
      * <ul>
      *     <li>{@code axes} defaults to all dimensions.</li>
@@ -87,16 +110,22 @@ public enum ONNXOperators {
             new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT,false)
     )),
     /**
-     * Compute the sum along the specified axes of the tensor.
+     * Compute the sum along the specified axes of the tensor, the axes are the second input.
      * <ul>
-     *     <li>{@code axes} defaults to all dimensions.</li>
      *     <li>{@code keepdims} defaults to 1 which means keep.</li>
+     *     <li>{@code noop_with_empty_axes} defaults to 0 which means empty axes reduces the tensor to a scalar.</li>
      * </ul>
      */
-    REDUCE_SUM("ReduceSum",1,1,Arrays.asList(
-            new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS, false), //Opset 11
-            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT, false)
+    REDUCE_SUM("ReduceSum",1,1,1,Arrays.asList(
+            // Opset 11 version: new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS, false),
+            new ONNXAttribute("keepdims", OnnxMl.AttributeProto.AttributeType.INT, false),
+            new ONNXAttribute("noop_with_empty_axes", OnnxMl.AttributeProto.AttributeType.INT, false) // Opset 13
     )),
+    /**
+     * Adds extra dimensions to a tensor in the specified places, the axes are the second input.
+     */
+    UNSQUEEZE("Unsqueeze",2,1),
+    // Unsqueeze Opset 11: Collections.singletonList(new ONNXAttribute("axes", OnnxMl.AttributeProto.AttributeType.INTS, true))
     /**
      * General Matrix Multiply: {@code alpha*AB + beta*C}.
      * <p>
@@ -113,7 +142,37 @@ public enum ONNXOperators {
             new ONNXAttribute("beta", OnnxMl.AttributeProto.AttributeType.FLOAT,false),
             new ONNXAttribute("transA", OnnxMl.AttributeProto.AttributeType.INT,false),
             new ONNXAttribute("transB", OnnxMl.AttributeProto.AttributeType.INT,false)
-    ));
+    )),
+    /**
+     * Greater than, returns the element-wise greater than operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    GREATER("Greater",2,1),
+    /**
+     * Greater than or equal to, returns the element-wise greater than or equal to operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    GREATER_OR_EQUAL("GreaterOrEqual",2,1),
+    /**
+     * Less than, returns the element-wise less than operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    LESS("Less",2,1),
+    /**
+     * Less than or equal to, returns the element-wise less than or equal to operation on the two tensors.
+     * <p>
+     * Tensors must be broadcastable to the same shape.
+     */
+    LESS_OR_EQUAL("LessOrEqual",2,1),
+    /**
+     * Choice operator, based on the true value of the condition input, returns the element at that index from either
+     * the second or third input. When the test is true, return the second input, otherwise return the third input.
+     */
+    WHERE("Where",3,1)
+    ;
 
     /**
      * The operator name.
@@ -143,7 +202,7 @@ public enum ONNXOperators {
     /**
      * Opset supported by these definitions.
      */
-    private static final int OPSET_VERSION = 11;
+    private static final int OPSET_VERSION = 13;
 
     /**
      * Builds an operator without attributes.

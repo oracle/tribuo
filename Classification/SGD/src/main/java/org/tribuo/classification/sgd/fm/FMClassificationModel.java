@@ -29,7 +29,7 @@ import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXShape;
-import org.tribuo.math.onnx.ONNXMathUtils;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.LinkedHashMap;
@@ -104,37 +104,34 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
-        // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
 
-        return innerExportONNXModel(graph,domain,modelVersion);
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+        context.setName("FMClassificationModel");
+
+        // Build graph
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
+
+        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("FMClassificationModel");
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        graphBuilder.addOutput(outputValueProto);
-
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Build the output neutral bits of the onnx graph
-        String outputName = generateONNXGraph(context, graphBuilder, inputValueProto.getName());
+        String fmOutputName = generateONNXGraph(context, inputName);
 
         // Make output normalizer
-        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,outputName,"output");
+        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,fmOutputName,outputName);
         if (normalizerProtos.isEmpty()) {
             throw new IllegalArgumentException("Normalizer " + normalizer.getClass() + " cannot be exported in ONNX models.");
         } else {
-            graphBuilder.addAllNode(normalizerProtos);
+            context.addAllNodes(normalizerProtos);
         }
-
-        return graphBuilder.build();
     }
 
 }

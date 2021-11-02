@@ -16,24 +16,15 @@
 
 package org.tribuo.regression.slm;
 
-import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
-import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
-import org.tribuo.Prediction;
 import org.tribuo.SparseModel;
 import org.tribuo.Trainer;
-import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
-import org.tribuo.interop.onnx.DenseTransformer;
-import org.tribuo.interop.onnx.ONNXExternalModel;
-import org.tribuo.interop.onnx.RegressorTransformer;
-import org.tribuo.provenance.ModelProvenance;
-import org.tribuo.regression.RegressionFactory;
+import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -49,19 +40,14 @@ import java.io.ObjectInputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSLM {
@@ -105,50 +91,7 @@ public class TestSLM {
                 Path onnxFile = Files.createTempFile("tribuo-slm-test", ".onnx");
                 slm.saveONNXModel("org.tribuo.classification.sgd.linear.test", 1, onnxFile);
 
-                // Prep mappings
-                Map<String, Integer> featureMapping = new HashMap<>();
-                for (VariableInfo f : slm.getFeatureIDMap()) {
-                    VariableIDInfo id = (VariableIDInfo) f;
-                    featureMapping.put(id.getName(), id.getID());
-                }
-                Map<Regressor, Integer> outputMapping = new HashMap<>();
-                for (Pair<Integer, Regressor> l : slm.getOutputIDInfo()) {
-                    outputMapping.put(l.getB(), l.getA());
-                }
-
-                String arch = System.getProperty("os.arch");
-                if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
-                    // Initialise the OrtEnvironment to load the native library
-                    // (as OrtSession.SessionOptions doesn't trigger the static initializer).
-                    OrtEnvironment env = OrtEnvironment.getEnvironment();
-                    env.close();
-                    // Load in via ORT
-                    ONNXExternalModel<Regressor> onnxModel = ONNXExternalModel.createOnnxModel(new RegressionFactory(), featureMapping, outputMapping, new DenseTransformer(), new RegressorTransformer(), new OrtSession.SessionOptions(), onnxFile, "input");
-
-                    // Generate predictions
-                    List<Prediction<Regressor>> nativePredictions = slm.predict(p.getB());
-                    List<Prediction<Regressor>> onnxPredictions = onnxModel.predict(p.getB());
-
-                    // Assert the predictions are identical
-                    for (int i = 0; i < nativePredictions.size(); i++) {
-                        Prediction<Regressor> tribuo = nativePredictions.get(i);
-                        Prediction<Regressor> external = onnxPredictions.get(i);
-                        assertArrayEquals(tribuo.getOutput().getNames(), external.getOutput().getNames());
-                        assertArrayEquals(tribuo.getOutput().getValues(), external.getOutput().getValues(), 1e-5);
-                    }
-
-                    // Check that the provenance can be extracted and is the same
-                    ModelProvenance modelProv = m.getProvenance();
-                    Optional<ModelProvenance> optProv = onnxModel.getTribuoProvenance();
-                    assertTrue(optProv.isPresent());
-                    ModelProvenance onnxProv = optProv.get();
-                    assertNotSame(onnxProv, modelProv);
-                    assertEquals(modelProv,onnxProv);
-
-                    onnxModel.close();
-                } else {
-                    logger.warning("ORT based tests only supported on x86_64, found " + arch);
-                }
+                OnnxTestUtils.onnxRegressorComparison(slm,onnxFile,p.getB(),1e-4);
 
                 onnxFile.toFile().delete();
             } catch (IOException | OrtException ex) {

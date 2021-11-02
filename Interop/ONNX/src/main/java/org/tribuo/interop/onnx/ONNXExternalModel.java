@@ -353,8 +353,10 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
                 runProvenance.put("model-graphname", new StringProvenance("model-graphname", metadata.getGraphName()));
                 runProvenance.put("model-version", new LongProvenance("model-version", metadata.getVersion()));
                 for (Map.Entry<String, String> e : metadata.getCustomMetadata().entrySet()) {
-                    String keyName = "model-metadata-" + e.getKey();
-                    runProvenance.put(keyName, new StringProvenance(keyName, e.getValue()));
+                    if (! e.getKey().equals(ONNXExportable.PROVENANCE_METADATA_FIELD)) {
+                        String keyName = "model-metadata-" + e.getKey();
+                        runProvenance.put(keyName, new StringProvenance(keyName, e.getValue()));
+                    }
                 }
             } catch (OrtException e) {
                 throw new IllegalArgumentException("Failed to load model and read metadata from path " + path, e);

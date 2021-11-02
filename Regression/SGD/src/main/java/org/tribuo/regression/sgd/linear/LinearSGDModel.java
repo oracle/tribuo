@@ -28,7 +28,7 @@ import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
-import org.tribuo.math.onnx.ONNXMathUtils;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 
@@ -93,39 +93,36 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> implements
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
-        // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
+        context.setName("Regression-LinearSGDModel");
 
-        return innerExportONNXModel(graph,domain,modelVersion);
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+
+        // Build graph
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
+
+        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("Regression-LinearSGDModel");
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        graphBuilder.addOutput(outputValueProto);
-
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Add weights
         OnnxMl.TensorProto weightInitializerProto = weightBuilder(context);
-        graphBuilder.addInitializer(weightInitializerProto);
+        context.addInitializer(weightInitializerProto);
 
         // Add biases
         OnnxMl.TensorProto biasInitializerProto = biasBuilder(context);
-        graphBuilder.addInitializer(biasInitializerProto);
+        context.addInitializer(biasInitializerProto);
 
         // Make gemm
-        String[] gemmInputs = new String[]{inputValueProto.getName(),weightInitializerProto.getName(),biasInitializerProto.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,"output");
-        graphBuilder.addNode(gemm);
-
-        return graphBuilder.build();
+        String[] gemmInputs = new String[]{inputName,weightInitializerProto.getName(),biasInitializerProto.getName()};
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,outputName);
+        context.addNode(gemm);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

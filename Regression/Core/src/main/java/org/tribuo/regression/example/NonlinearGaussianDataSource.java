@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import org.tribuo.ConfigurableDataSource;
-import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.OutputFactory;
@@ -91,8 +90,26 @@ public class NonlinearGaussianDataSource implements ConfigurableDataSource<Regre
      * Generates a single dimensional output drawn from
      * N(w_0*x_0 + w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
      * <p>
+     * The weights are {@code [1,1,1,1]}, the intercept is 0, and the variance is 1.0.
+     * The features are drawn from a uniform distribution over the range {@code [-2,2]}.
+     * @param numSamples The size of the created datasource.
+     * @param seed The rng seed to use.
+     */
+    public NonlinearGaussianDataSource(int numSamples, long seed) {
+        if (numSamples < 0) {
+            throw new IllegalArgumentException("Invalid number of sample specified, must be a positive integer, found " + numSamples);
+        }
+        this.numSamples = numSamples;
+        this.seed = seed;
+        postConfig();
+    }
+
+    /**
+     * Generates a single dimensional output drawn from
+     * N(w_0*x_0 + w_1*x_1 + w_2*x_1*x_0 + w_3*x_1*x_1*x_1 + intercept,variance).
+     * <p>
      * The features are drawn from a uniform distribution over the range.
-     * @param numSamples The size of the output dataset.
+     * @param numSamples The size of the created datasource.
      * @param weights The feature weights.
      * @param intercept The y intercept of the line.
      * @param variance The variance of the gaussian.

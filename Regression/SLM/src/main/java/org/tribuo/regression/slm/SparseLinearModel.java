@@ -29,11 +29,11 @@ import org.tribuo.VariableInfo;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
-import org.tribuo.math.onnx.ONNXMathUtils;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
@@ -221,12 +221,22 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
+        context.setName("Regression-SparseLinearModel");
+
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1, featureIDMap.size()}, new String[]{"batch", null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1, outputIDInfo.size()}, new String[]{"batch", null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+
         // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
 
         // Build model
         OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
+        builder.setGraph(context.buildGraph());
         builder.setDomain(domain);
         builder.setProducerName("Tribuo");
         builder.setProducerVersion(Tribuo.VERSION);
@@ -245,20 +255,9 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("Regression-SparseLinearModel");
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1, featureIDMap.size()}, new String[]{"batch", null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1, outputIDInfo.size()}, new String[]{"batch", null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        graphBuilder.addOutput(outputValueProto);
-
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
         // Add weights
-        OnnxMl.TensorProto weightInitializerProto = ONNXMathUtils.floatTensorBuilder(context, "slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
+        OnnxMl.TensorProto weightInitializerProto = ONNXUtils.floatTensorBuilder(context, "slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
                 fb -> {
                     for (int j = 0; j < featureIDMap.size(); j++) {
                         for (int i = 0; i < weights.length; i++) {
@@ -266,34 +265,34 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
                         }
                     }
                 });
-        graphBuilder.addInitializer(weightInitializerProto);
+        context.addInitializer(weightInitializerProto);
 
         // Add biases
-        OnnxMl.TensorProto biasInitializerProto = ONNXMathUtils.floatTensorBuilder(context, "slm_biases", Collections.singletonList(outputIDInfo.size()),
+        OnnxMl.TensorProto biasInitializerProto = ONNXUtils.floatTensorBuilder(context, "slm_biases", Collections.singletonList(outputIDInfo.size()),
                 (FloatBuffer fb) -> Arrays.stream(weights).forEachOrdered(sv -> fb.put((float) sv.get(featureIDMap.size()))));
-        graphBuilder.addInitializer(biasInitializerProto);
+        context.addInitializer(biasInitializerProto);
 
         // Add feature and output means
         double[] xMean = bias ? Arrays.copyOf(featureMeans.toArray(),featureIDMap.size()) : featureMeans.toArray();
-        OnnxMl.TensorProto featureMeanProto = ONNXMathUtils.arrayBuilder(context, "feature_mean",xMean);
-        graphBuilder.addInitializer(featureMeanProto);
-        OnnxMl.TensorProto outputMeanProto = ONNXMathUtils.arrayBuilder(context,"y_mean",yMean);
-        graphBuilder.addInitializer(outputMeanProto);
+        OnnxMl.TensorProto featureMeanProto = ONNXUtils.arrayBuilder(context, "feature_mean",xMean);
+        context.addInitializer(featureMeanProto);
+        OnnxMl.TensorProto outputMeanProto = ONNXUtils.arrayBuilder(context,"y_mean",yMean);
+        context.addInitializer(outputMeanProto);
 
         // Add feature and output variances
         double[] xVariance = bias ? Arrays.copyOf(featureVariance.toArray(),featureIDMap.size()) : featureVariance.toArray();
-        OnnxMl.TensorProto featureVarianceProto = ONNXMathUtils.arrayBuilder(context,"feature_var",xVariance);
-        graphBuilder.addInitializer(featureVarianceProto);
-        OnnxMl.TensorProto outputVarianceProto = ONNXMathUtils.arrayBuilder(context, "y_var",yVariance);
-        graphBuilder.addInitializer(outputVarianceProto);
+        OnnxMl.TensorProto featureVarianceProto = ONNXUtils.arrayBuilder(context,"feature_var",xVariance);
+        context.addInitializer(featureVarianceProto);
+        OnnxMl.TensorProto outputVarianceProto = ONNXUtils.arrayBuilder(context, "y_var",yVariance);
+        context.addInitializer(outputVarianceProto);
 
         // Scale features
         String featureMeanOutput = context.generateUniqueName("feature_mean_scale_output");
-        OnnxMl.NodeProto subFeatureMean = ONNXOperators.SUB.build(context,new String[]{inputValueProto.getName(),featureMeanProto.getName()},featureMeanOutput);
-        graphBuilder.addNode(subFeatureMean);
+        OnnxMl.NodeProto subFeatureMean = ONNXOperators.SUB.build(context,new String[]{inputName,featureMeanProto.getName()},featureMeanOutput);
+        context.addNode(subFeatureMean);
         String featureVarianceOutput = context.generateUniqueName("feature_var_scale_output");
         OnnxMl.NodeProto divFeatureVariance = ONNXOperators.DIV.build(context,new String[]{subFeatureMean.getOutput(0),featureVarianceProto.getName()},featureVarianceOutput);
-        graphBuilder.addNode(divFeatureVariance);
+        context.addNode(divFeatureVariance);
 
         // Make gemm
         String[] gemmInputs = new String[]{divFeatureVariance.getOutput(0),
@@ -301,18 +300,15 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
                 biasInitializerProto.getName()};
         String gemmOutput = context.generateUniqueName("gemm_output");
         OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context, gemmInputs, gemmOutput);
-        graphBuilder.addNode(gemm);
+        context.addNode(gemm);
 
         // Scale outputs
         String varianceOutput = context.generateUniqueName("y_var_scale_output");
         OnnxMl.NodeProto varianceScale = ONNXOperators.MUL.build(context, new String[]{gemmOutput,outputVarianceProto.getName()}, varianceOutput);
-        graphBuilder.addNode(varianceScale);
+        context.addNode(varianceScale);
 
-        String meanOutput = "output";
-        OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, meanOutput);
-        graphBuilder.addNode(meanScale);
-
-        return graphBuilder.build();
+        OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputName);
+        context.addNode(meanScale);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

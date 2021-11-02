@@ -27,7 +27,7 @@ import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXShape;
-import org.tribuo.math.onnx.ONNXMathUtils;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -109,28 +109,27 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext context = new ONNXContext();
 
-        // Build graph
-        OnnxMl.GraphProto graph = exportONNXGraph(context);
+        context.setName("FMMultiLabelModel");
 
-        return innerExportONNXModel(graph,domain,modelVersion);
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+
+        // Build graph
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
+
+        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
     }
 
     @Override
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context) {
-        OnnxMl.GraphProto.Builder graphBuilder = OnnxMl.GraphProto.newBuilder();
-        graphBuilder.setName("FMMultiLabelModel");
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        graphBuilder.addInput(inputValueProto);
-        String outputName = "output";
-        OnnxMl.TypeProto outputType = ONNXMathUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName(outputName).build();
-        graphBuilder.addOutput(outputValueProto);
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
 
         // Build the output neutral bits of the onnx graph
-        String fmOutputName = generateONNXGraph(context, graphBuilder, inputValueProto.getName());
+        String fmOutputName = generateONNXGraph(context, inputName);
 
         if (standardise) {
             // standardise the FM output
@@ -143,23 +142,21 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
             }
 
             // Create mean and variance initializers
-            OnnxMl.TensorProto outputMeanProto = ONNXMathUtils.arrayBuilder(context,context.generateUniqueName("y_mean"),means);
-            graphBuilder.addInitializer(outputMeanProto);
-            OnnxMl.TensorProto outputVarianceProto = ONNXMathUtils.arrayBuilder(context, context.generateUniqueName("y_var"),variances);
-            graphBuilder.addInitializer(outputVarianceProto);
+            OnnxMl.TensorProto outputMeanProto = ONNXUtils.arrayBuilder(context,context.generateUniqueName("y_mean"),means);
+            context.addInitializer(outputMeanProto);
+            OnnxMl.TensorProto outputVarianceProto = ONNXUtils.arrayBuilder(context, context.generateUniqueName("y_var"),variances);
+            context.addInitializer(outputVarianceProto);
 
             // Add standardisation operations
             String varianceOutput = context.generateUniqueName("y_var_scale_output");
             OnnxMl.NodeProto varianceScale = ONNXOperators.MUL.build(context, new String[]{fmOutputName,outputVarianceProto.getName()}, varianceOutput);
-            graphBuilder.addNode(varianceScale);
+            context.addNode(varianceScale);
             OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputName);
-            graphBuilder.addNode(meanScale);
+            context.addNode(meanScale);
         } else {
             // Not standardised, so link up the FM output to the graph output
             OnnxMl.NodeProto output = ONNXOperators.IDENTITY.build(context, fmOutputName, outputName);
-            graphBuilder.addNode(output);
+            context.addNode(output);
         }
-
-        return graphBuilder.build();
     }
 }

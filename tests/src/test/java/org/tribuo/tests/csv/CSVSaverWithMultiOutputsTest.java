@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.tribuo.data.csv;
+package org.tribuo.tests.csv;
 
 import org.tribuo.Dataset;
 import org.tribuo.Feature;
 import org.tribuo.MutableDataset;
+import org.tribuo.data.csv.CSVLoader;
+import org.tribuo.data.csv.CSVSaver;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
@@ -75,7 +77,7 @@ public class CSVSaverWithMultiOutputsTest {
 
     @Test
     public void loaderCanReconstructSavedMultiLabel() throws IOException {
-        Path path = Resources.copyResourceToTmp("/org/tribuo/data/csv/multilabel.csv");
+        Path path = Resources.copyResourceToTmp("/org/tribuo/tests/csv/multilabel.csv");
         Set<String> responses = new HashSet<>(Arrays.asList("R1", "R2"));
         //
         // Load the csv
@@ -139,7 +141,7 @@ public class CSVSaverWithMultiOutputsTest {
 
     @Test
     public void loaderCanReconstructSavedMultipleRegression() throws IOException {
-        Path path = Resources.copyResourceToTmp("/org/tribuo/data/csv/multioutput-regression.csv");
+        Path path = Resources.copyResourceToTmp("/org/tribuo/tests/csv/multioutput-regression.csv");
         Set<String> responses = new HashSet<>(Arrays.asList("R1", "R2"));
         CSVLoader<Regressor> loader = new CSVLoader<>(new RegressionFactory());
         Dataset<Regressor> before = loader.load(path, responses);

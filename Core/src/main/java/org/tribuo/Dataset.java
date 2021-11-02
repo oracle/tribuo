@@ -383,6 +383,44 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         return new TransformerMap(output,getProvenance(),transformations.getProvenance());
     }
 
+    /**
+     * Validates that this Dataset does in fact contain the supplied output type.
+     * <p>
+     * As the output type is erased at runtime, deserialising a Dataset is an unchecked
+     * operation. This method allows the user to check that the deserialised dataset is
+     * of the appropriate type, rather than seeing if the Dataset throws a {@link ClassCastException}
+     * when used.
+     * @param clazz The class object to verify the output type against.
+     * @return True if the output type is assignable to the class object type, false otherwise.
+     */
+    public boolean validate(Class<? extends Output<?>> clazz) {
+        Set<T> domain = getOutputInfo().getDomain();
+        boolean output = true;
+        for (T type : domain) {
+            output &= clazz.isInstance(type);
+        }
+        return output;
+    }
+
+    /**
+     * Casts the dataset to the specified output type, assuming it is valid.
+     * <p>
+     * If it's not valid, throws {@link ClassCastException}.
+     * @param inputDataset The model to cast.
+     * @param outputType The output type to cast to.
+     * @param <T> The output type.
+     * @return The model cast to the correct value.
+     */
+    public static <T extends Output<T>> Dataset<T> castDataset(Dataset<?> inputDataset, Class<T> outputType) {
+        if (inputDataset.validate(outputType)) {
+            @SuppressWarnings("unchecked") // guarded by validate
+            Dataset<T> castedModel = (Dataset<T>) inputDataset;
+            return castedModel;
+        } else {
+            throw new ClassCastException("Attempted to cast dataset to " + outputType.getName() + " which is not valid for dataset " + inputDataset.toString());
+        }
+    }
+
     private static class ShuffleIterator<T extends Output<T>> implements Iterator<Example<T>> {
         private final Dataset<T> data;
         private final int[] indices;

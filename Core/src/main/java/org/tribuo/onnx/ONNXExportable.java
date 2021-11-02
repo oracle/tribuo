@@ -29,6 +29,10 @@ import java.nio.file.Path;
 /**
  * An interface which denotes this {@link org.tribuo.Model} can be
  * exported as an ONNX model.
+ * <p>
+ * Tribuo models export with a single input of size [-1, numFeatures] and a
+ * single output of size [-1, numOutputDimensions]. The first dimension in both
+ * is defined to be an unbound dimension called "batch", which denotes the batch size.
  */
 public interface ONNXExportable {
 
@@ -52,27 +56,12 @@ public interface ONNXExportable {
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion);
 
     /**
-     * Exports this {@link org.tribuo.Model} as an ONNX graph proto.
-     * <p>
-     * This graph can be combined with other graphs to form an ensemble or other
-     * aggregate ONNX model.
-     * @param context The ONNX context to use for namespacing.
-     * @return The ONNX GraphProto representing this Tribuo Model.
+     * Writes this {@link org.tribuo.Model} into the {@link OnnxMl.GraphProto.Builder} inside the {@link ONNXContext}.
+     * @param context The ONNX context which stores the builder and namespace.
+     * @param inputName The name the model should take its input from.
+     * @param outputName The name the model should output to.
      */
-    public OnnxMl.GraphProto exportONNXGraph(ONNXContext context);
-
-    /**
-     * Exports this {@link org.tribuo.Model} as an ONNX graph proto.
-     * <p>
-     * This graph can be combined with other graphs to form an ensemble or other
-     * aggregate ONNX model.
-     * <p>
-     * Creates a fresh ONNX context.
-     * @return The ONNX GraphProto representing this Tribuo Model.
-     */
-    default public OnnxMl.GraphProto exportONNXGraph() {
-        return exportONNXGraph(new ONNXContext());
-    }
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName);
 
     /**
      * Exports this {@link org.tribuo.Model} as an ONNX file.

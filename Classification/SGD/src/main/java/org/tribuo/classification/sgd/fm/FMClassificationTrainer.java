@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMClassificationTrainer extends AbstractFMTrainer<Label, Integer> {
+public class FMClassificationTrainer extends AbstractFMTrainer<Label, Integer, FMClassificationModel> {
     private static final Logger logger = Logger.getLogger(FMClassificationTrainer.class.getName());
 
     @Config(description = "The classification objective function to use.")

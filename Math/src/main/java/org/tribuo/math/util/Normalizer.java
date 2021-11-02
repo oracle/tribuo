@@ -19,6 +19,7 @@ package org.tribuo.math.util;
 import ai.onnx.proto.OnnxMl;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -77,8 +78,10 @@ public class Normalizer implements VectorNormalizer, Serializable {
         OnnxMl.NodeProto sub = ONNXOperators.SUB.build(context,new String[]{input,minOutput},subOutput);
         protos.add(sub);
 
+        OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_axes",new long[]{1});
+        context.addInitializer(sumAxes);
         String sumOutput = context.generateUniqueName("sum_output");
-        OnnxMl.NodeProto sum = ONNXOperators.REDUCE_SUM.build(context,subOutput,sumOutput,Collections.singletonMap("axes",new int[]{1}));
+        OnnxMl.NodeProto sum = ONNXOperators.REDUCE_SUM.build(context,new String[]{subOutput,sumAxes.getName()},sumOutput);
         protos.add(sum);
 
         OnnxMl.NodeProto div = ONNXOperators.DIV.build(context,new String[]{subOutput,sumOutput},output);

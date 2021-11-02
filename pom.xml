@@ -235,7 +235,7 @@
                         <group>
                             <title>Core Packages</title>
                             <packages>
-                                org.tribuo:org.tribuo.dataset:org.tribuo.datasource:org.tribuo.ensemble:org.tribuo.evaluation*:org.tribuo.hash:org.tribuo.impl:org.tribuo.provenance*:org.tribuo.sequence:org.tribuo.transform*:org.tribuo.util:org.tribuo.data*:org.tribuo.json:org.tribuo.math*
+                                org.tribuo:org.tribuo.dataset:org.tribuo.datasource:org.tribuo.ensemble:org.tribuo.evaluation*:org.tribuo.hash:org.tribuo.impl:org.tribuo.onnx:org.tribuo.provenance*:org.tribuo.sequence:org.tribuo.transform*:org.tribuo.util:org.tribuo.data*:org.tribuo.json:org.tribuo.math*
                             </packages>
                         </group>
                         <group>
@@ -286,7 +286,7 @@
                                 <group>
                                     <title>Core Packages</title>
                                     <packages>
-                                        org.tribuo:org.tribuo.dataset:org.tribuo.datasource:org.tribuo.ensemble:org.tribuo.evaluation*:org.tribuo.hash:org.tribuo.impl:org.tribuo.provenance*:org.tribuo.sequence:org.tribuo.transform*:org.tribuo.util:org.tribuo.data*:org.tribuo.json:org.tribuo.math*
+                                        org.tribuo:org.tribuo.dataset:org.tribuo.datasource:org.tribuo.ensemble:org.tribuo.evaluation*:org.tribuo.hash:org.tribuo.impl:org.tribuo.onnx:org.tribuo.provenance*:org.tribuo.sequence:org.tribuo.transform*:org.tribuo.util:org.tribuo.data*:org.tribuo.json:org.tribuo.math*
                                     </packages>
                                 </group>
                                 <group>
