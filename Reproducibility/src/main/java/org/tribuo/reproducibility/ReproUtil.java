@@ -211,9 +211,10 @@ public final class ReproUtil<T extends Output<T>> {
      * <p>
      * Throws {@link IllegalStateException} if the data source cannot be instantiated.
      * @param dataSourceClass A configurable class that this method will search for in the configuration manager.
+     * @param <D> The type of the data source.
      * @return A {@link DataSource} object that was used to load data from te original model.
      */
-    private DataSource<T> getDatasourceFromCM(Class<? extends Configurable> dataSourceClass){
+    private <D extends ConfigurableDataSource<T>> D getDataSourceFromCM(Class<D> dataSourceClass){
 
         // Since this utility created a cm from a model, contained within should only be the datasource used to
         // create the model. Unless a user has manually added another datasource.
@@ -237,8 +238,7 @@ public final class ReproUtil<T extends Output<T>> {
         }
 
         // Type is restricted by source construction
-        @SuppressWarnings("unchecked")
-        DataSource<T> dataSource = (DataSource<T>) cm.lookup(sourceName);
+        D dataSource = dataSourceClass.cast(cm.lookup(sourceName));
 
         if (!dataSource.getOutputFactory().getUnknownOutput().getClass().equals(outputClass)) {
             throw new IllegalStateException("Supplied output class " + outputClass.getName() + " did not match the data source output class " + dataSource.getOutputFactory().getUnknownOutput().getClass().getName());
@@ -395,7 +395,7 @@ public final class ReproUtil<T extends Output<T>> {
                 Class<? extends ConfigurableDataSource<T>> splitterSourceClass = (Class<? extends ConfigurableDataSource<T>>) bareDataClass;
                 // Recreating the trainTestSplitter with the parameters gathered from the provenance, including the
                 // innerSource, should return the same Dataset used to train the model
-                DataSource<T> innerSource = getDatasourceFromCM(splitterSourceClass);
+                ConfigurableDataSource<T> innerSource = getDataSourceFromCM(splitterSourceClass);
                 TrainTestSplitter<T> trainTestSplitter = new TrainTestSplitter<>(innerSource,trainProportion,seed);
 
                 if(isTrain){
@@ -415,7 +415,7 @@ public final class ReproUtil<T extends Output<T>> {
             }
             @SuppressWarnings("unchecked") // Guarded by is assignable check
             Class<? extends ConfigurableDataSource<T>> configDataSourceClass = (Class<? extends ConfigurableDataSource<T>>) dataSourceClass;
-            DataSource<T> modelSource = getDatasourceFromCM(configDataSourceClass);
+            ConfigurableDataSource<T> modelSource = getDataSourceFromCM(configDataSourceClass);
             modelDataset = datasetReflection(modelSource, datasetClass);
         }
 
