@@ -49,7 +49,7 @@
         <libsvm.version>3.25</libsvm.version>
         <onnxruntime.version>1.9.0</onnxruntime.version>
         <tensorflow.version>0.3.1</tensorflow.version>
-        <xgboost.version>1.4.1</xgboost.version>
+        <xgboost.version>1.5.0</xgboost.version>
 
         <!-- 3rd party other dependencies -->
         <junit.version>5.7.1</junit.version>
