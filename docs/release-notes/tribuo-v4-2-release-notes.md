@@ -1,6 +1,6 @@
 # Tribuo v4.2 Release Notes
 
-Tribuo 4.2 adds new models, onnx export for several types of models, a
+Tribuo 4.2 adds new models, ONNX export for several types of models, a
 reproducibility framework for recreating Tribuo models, along with several
 smaller improvements and bug fixes. We've added more tutorials covering the new
 features along with multi-label classification, and further expanded the
@@ -24,12 +24,12 @@ See [#177](https://github.com/oracle/tribuo/pull/177) for more details.
 ## New models
 
 In this release we've added [Factorization
-Machines](ihttps://www.computer.org/csdl/proceedings-article/icdm/2010/4256a995/12OmNwMFMfl)
+Machines](https://www.computer.org/csdl/proceedings-article/icdm/2010/4256a995/12OmNwMFMfl)
 and [Classifier
 Chains](https://link.springer.com/content/pdf/10.1007/s10994-011-5256-5.pdf).
 Factorization machines are a powerful non-linear predictor which uses a
-factorized approximation to learn a feature-feature interaction term in
-addition to a logistic regression. We've added Factorization Machines for
+factorized approximation to learn a per output feature-feature interaction term
+in addition to a linear model. We've added Factorization Machines for
 multi-class classification, multi-label classification and regression.
 Classifier chains are an ensemble approach to multi-label classification which
 given a specific ordering of the labels learns a chain of classifiers where
@@ -46,7 +46,7 @@ multi-label voting combiner for use in multi-label ensembles.
 ## ONNX Export
 
 The [ONNX](https://onnx.ai) format is a cross-platform and cross-library model
-exchange format. Tribuo can already serve ONNX models via it's [ONNX
+exchange format. Tribuo can already serve ONNX models via its [ONNX
 Runtime](https://onnxruntime.ai) interface, and now has the ability to export
 models in ONNX format for serving on edge devices, in cloud services, or in
 other languages like Python or C#.
@@ -69,10 +69,11 @@ libraries or platforms if necessary.
 - ONNX export for LinearSGDModels
   ([#154](https://github.com/oracle/tribuo/pull/154)), which also adds a
 multi-label output transformer for scoring multi-label ONNX models.
-- ONNX export for SparseLinearModel ([#163](https://github.com/oracle/tribuo/pull/163))
-- Add provenance to ONNX exported models ([#182](https://github.com/oracle/tribuo/pull/182))
-- Refactor ONNX tensor creation ([#187](https://github.com/oracle/tribuo/pull/187))
-- ONNX ensemble export support ([#186](https://github.com/oracle/tribuo/pull/186))
+- ONNX export for SparseLinearModel ([#163](https://github.com/oracle/tribuo/pull/163)).
+- Add provenance to ONNX exported models ([#182](https://github.com/oracle/tribuo/pull/182)).
+- Refactor ONNX tensor creation ([#187](https://github.com/oracle/tribuo/pull/187)).
+- ONNX ensemble export support ([#186](https://github.com/oracle/tribuo/pull/186)).
+- ONNX export for LibSVM and LibLinear ([#191](https://github.com/oracle/tribuo/pull/191)).
 
 ## Reproducibility Framework
 
@@ -111,6 +112,7 @@ thus not included in the `tribuo-all` meta-module.
 - Multi-Label tutorial and configurable multi-label demo data source ([#166](https://github.com/oracle/tribuo/pull/166)) (also adds a multi-label tutorial) plus fix in [#168](https://github.com/oracle/tribuo/pull/168) after #167
 - Add javadoc for all public methods and fields ([#175](https://github.com/oracle/tribuo/pull/175)) (also fixes a bug in Util.vectorNorm)
 - Add hooks for model equality checks to trees and LibSVM models ([#183](https://github.com/oracle/tribuo/pull/183)) (also fixes a bug in liblinear get top features)
+- XGBoost 1.5.0 ([#192](https://github.com/oracle/tribuo/pull/192))
 - TensorFlow Java 0.4.0 ([#TBD](https://github.com/oracle/tribuo/pull/TBD))
 - ONNX and reproducibility tutorials ([#TBD](https://github.com/oracle/tribuo/pull/TBD))
 
@@ -122,8 +124,8 @@ thus not included in the `tribuo-all` meta-module.
 - Fixing LibSVM and LibLinear so they have reproducible behaviour ([#172](https://github.com/oracle/tribuo/pull/172))
 - Provenance fix for TransformTrainer and an extra factory for XGBoostExternalModel so you can make them from an in memory booster ([#176](https://github.com/oracle/tribuo/pull/176))
 - Fix multidimensional regression ([#177](https://github.com/oracle/tribuo/pull/177)) (fixes regression ids, fixes libsvm so it emits correct standardized models, adds support for per dimension feature weights in XGBoostRegressionModel)
-- Normalize LibSVMDataSource paths consistently in the provenance ([#181](https://github.com/oracle/tribuo/pull/181))
 - Fix provenance generation for FieldResponseProcessor and BinaryResponseProcessor ([#178](https://github.com/oracle/tribuo/pull/178)) 
+- Normalize LibSVMDataSource paths consistently in the provenance ([#181](https://github.com/oracle/tribuo/pull/181))
 
 ## Contributors
 
