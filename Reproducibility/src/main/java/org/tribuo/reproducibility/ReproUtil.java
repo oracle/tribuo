@@ -70,7 +70,12 @@ import java.util.logging.Logger;
  * may produce different outputs due to internal state changes.
  * <p>
  * Note: this class's API is experimental and may change in Tribuo minor releases as we work
- * to make it more robust and featureful.
+ * to make it more robust and increase coverage.
+ * <p>
+ * At the moment the reproducibility system supports {@link ConfigurableDataSource}s and a single level of splitting
+ * using a {@link TrainTestSplitter}. It does not support {@link org.tribuo.dataset.DatasetView} which forms the basis
+ * of the cross-validation support in Tribuo, nor other datasets which take a subset of their input (e.g.,
+ * {@link org.tribuo.dataset.MinimumCardinalityDataset}), we will add this support in future releases.
  * @param <T> The output type of the model being reproduced.
  */
 public final class ReproUtil<T extends Output<T>> {
@@ -331,10 +336,16 @@ public final class ReproUtil<T extends Output<T>> {
     /**
      * Return a {@link Dataset} used when a model was trained.
      * <p>
-     * Throws {@link IllegalStateException} if the dataset could not be recovered or one of the classes could not be instantiated.
+     * Throws {@link IllegalStateException} if the dataset could not be recovered or one of the classes could not be
+     * instantiated.
      * <p>
      * Note transforming or otherwise mutating the returned {@link Dataset} object may distort any future reproductions
      * produced by this instance of {@code ReproUtil}.
+     * <p>
+     * At the moment this function supports {@link ConfigurableDataSource}s and a single level of splitting using
+     * a {@link TrainTestSplitter}. It does not support {@link org.tribuo.dataset.DatasetView} which forms the basis
+     * of the cross-validation support in Tribuo, nor other datasets which take a subset of their input (e.g.,
+     * {@link org.tribuo.dataset.MinimumCardinalityDataset}), we will add this support in future releases.
      * @return A new {@link Dataset}.
      */
     public Dataset<T> recoverDataset() {
