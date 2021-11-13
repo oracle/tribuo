@@ -33,7 +33,6 @@ import org.tribuo.common.xgboost.XGBoostTrainer.DMatrixTuple;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
