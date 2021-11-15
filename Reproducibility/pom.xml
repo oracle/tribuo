@@ -46,6 +46,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-onnx</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.oracle.labs.olcut</groupId>
             <artifactId>olcut-config-json</artifactId>
             <version>${olcut.version}</version>
@@ -128,6 +133,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <release>16</release>
+                    <compilerArgument>
+                        -Xlint:all
+                    </compilerArgument>
                 </configuration>
             </plugin>
         </plugins>
