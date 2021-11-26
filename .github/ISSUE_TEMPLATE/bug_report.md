@@ -25,6 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **System information:**
 
+ - Tribuo Version: [e.g., 4.1.0]
  - OS: [e.g., Windows/macOS/Linux]
  - Java Version: [e.g., 8, 11, 14 etc]
  - JDK Vendor: [e.g., Oracle, OpenJDK etc]
