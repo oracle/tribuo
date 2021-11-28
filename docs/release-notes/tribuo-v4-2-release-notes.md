@@ -113,7 +113,7 @@ thus not included in the `tribuo-all` meta-module.
 - Add javadoc for all public methods and fields ([#175](https://github.com/oracle/tribuo/pull/175)) (also fixes a bug in Util.vectorNorm)
 - Add hooks for model equality checks to trees and LibSVM models ([#183](https://github.com/oracle/tribuo/pull/183)) (also fixes a bug in liblinear get top features)
 - XGBoost 1.5.0 ([#192](https://github.com/oracle/tribuo/pull/192))
-- TensorFlow Java 0.4.0 ([#TBD](https://github.com/oracle/tribuo/pull/TBD))
+- TensorFlow Java 0.4.0 ([#195](https://github.com/oracle/tribuo/pull/195)) (note this changes Tribuo's TF API slightly as TF-Java 0.4.0 has a different method of initializing the session)
 - ONNX and reproducibility tutorials ([#TBD](https://github.com/oracle/tribuo/pull/TBD))
 
 ## Bug fixes
