@@ -94,7 +94,7 @@ public final class LabelOneVOneTransformer extends LabelTransformer {
                     throw new IllegalArgumentException("Expected the first element to be a float OnnxTensor, found " + inputs.get(0));
                 }
             } else if (inputs.size() == 2) {
-                if (inputs.get(1) instanceof OnnxTensor) {
+                if (inputs.get(0) instanceof OnnxTensor && inputs.get(1) instanceof OnnxTensor) {
                     OnnxTensor outputLabels = (OnnxTensor) inputs.get(0);
                     OnnxTensor outputScores = (OnnxTensor) inputs.get(1);
                     if (outputScores.getInfo().type == OnnxJavaType.FLOAT) {
