@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.classification.liblinear;
 
+import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -24,13 +26,22 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
+import org.tribuo.Tribuo;
 import org.tribuo.classification.Label;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
+import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXShape;
+import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Linear;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,7 +72,7 @@ import java.util.logging.Logger;
  * Machine Learning, 1995.
  * </pre>
  */
-public class LibLinearClassificationModel extends LibLinearModel<Label> {
+public class LibLinearClassificationModel extends LibLinearModel<Label> implements ONNXExportable {
     private static final long serialVersionUID = 3L;
 
     private static final Logger logger = Logger.getLogger(LibLinearClassificationModel.class.getName());
@@ -277,4 +288,122 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> {
 
         return new Excuse<>(e, prediction, weightMap);
     }
+
+    @Override
+    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
+        ONNXContext context = new ONNXContext();
+
+        // Make inputs and outputs
+        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
+        context.addInput(inputValueProto);
+        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
+        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
+        context.addOutput(outputValueProto);
+        context.setName("Classification-LibLinear");
+
+        // Build graph
+        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
+
+        // Build model
+        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
+        builder.setGraph(context.buildGraph());
+        builder.setDomain(domain);
+        builder.setProducerName("Tribuo");
+        builder.setProducerVersion(Tribuo.VERSION);
+        builder.setModelVersion(modelVersion);
+        builder.setDocString(toString());
+        builder.addOpsetImport(ONNXOperators.getOpsetProto());
+        builder.setIrVersion(6);
+
+        // Extract provenance and store in metadata
+        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
+        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
+        metaBuilder.setValue(serializeProvenance(getProvenance()));
+        builder.addMetadataProps(metaBuilder.build());
+
+        return builder.build();
+    }
+
+    @Override
+    public void writeONNXGraph(ONNXContext context, String inputName, String outputName)  {
+        de.bwaldvogel.liblinear.Model model = models.get(0);
+        double[] weights = model.getFeatureWeights();
+        int[] labels = model.getLabels();
+        int numFeatures = featureIDMap.size();
+        int numLabels = labels.length;
+        if (numLabels != outputIDInfo.size()) {
+            throw new IllegalStateException("Unexpected number of labels, output domain = " + outputIDInfo.size() + ", LibLinear's internal count = " + numLabels);
+        }
+
+        // setup weight arrays for easy processing
+        if (model.getNrClass() == 2) {
+            // Replicate weights in binary problems
+            double[] newWeights = new double[weights.length*2];
+            for (int i = 0; i < weights.length; i++) {
+                if (labels[0] == 0) {
+                    newWeights[i * 2] = weights[i];
+                    newWeights[(i * 2) + 1] = -weights[i];
+                } else {
+                    newWeights[i * 2] = -weights[i];
+                    newWeights[(i * 2) + 1] = weights[i];
+                }
+            }
+            weights = newWeights;
+        } else {
+            double[] newWeights = new double[weights.length];
+            for (int j = 0; j < numFeatures + 1; j++) {
+                for (int i = 0; i < numLabels; i++) {
+                    int newIdx = (j * numLabels) + labels[i];
+                    int oldIdx = (j * numLabels) + i;
+                    newWeights[newIdx] = weights[oldIdx];
+                }
+            }
+            weights = newWeights;
+        }
+
+        // Add weights
+        OnnxMl.TensorProto.Builder weightBuilder = OnnxMl.TensorProto.newBuilder();
+        weightBuilder.setName(context.generateUniqueName("liblinear-weights"));
+        weightBuilder.addDims(numFeatures);
+        weightBuilder.addDims(numLabels);
+        weightBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer buffer = ByteBuffer.allocate(numFeatures * numLabels * 4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBuffer = buffer.asFloatBuffer();
+        // Biases are stored last in the weight matrix, and it's in column major order
+        for (int i = 0; i < weights.length - numLabels; i++) {
+            floatBuffer.put((float) weights[i]);
+        }
+        floatBuffer.rewind();
+        weightBuilder.setRawData(ByteString.copyFrom(buffer));
+        context.addInitializer(weightBuilder.build());
+
+        // Add biases
+        OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
+        biasBuilder.setName(context.generateUniqueName("liblinear-biases"));
+        biasBuilder.addDims(numLabels);
+        biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
+        ByteBuffer biasBuffer = ByteBuffer.allocate(numLabels * 4).order(ByteOrder.LITTLE_ENDIAN);
+        FloatBuffer floatBiasBuffer = biasBuffer.asFloatBuffer();
+        // Biases are stored last in the weight matrix, and it's in column major order
+        for (int i = numFeatures * numLabels; i < weights.length; i++) {
+            floatBiasBuffer.put((float) weights[i]);
+        }
+        floatBiasBuffer.rewind();
+        biasBuilder.setRawData(ByteString.copyFrom(biasBuffer));
+        context.addInitializer(biasBuilder.build());
+
+        String gemmOutput = model.isProbabilityModel() ? context.generateUniqueName("gemm_output") : outputName;
+
+        // Make gemm
+        String[] gemmInputs = new String[]{inputName,weightBuilder.getName(),biasBuilder.getName()};
+        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,gemmOutput);
+        context.addNode(gemm);
+
+        if (model.isProbabilityModel()) {
+            // Make output normalizer if producing probabilities
+            context.addNode(ONNXOperators.SOFTMAX.build(context,gemm.getOutput(0),outputName, Collections.singletonMap("axis",1)));
+        }
+    }
+
 }

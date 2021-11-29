@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 
 package org.tribuo.regression.liblinear;
 
+import ai.onnxruntime.OrtException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
+import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -33,6 +35,8 @@ import org.tribuo.test.Helpers;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestLibLinear {
+    private static final Logger logger = Logger.getLogger(TestLibLinear.class.getName());
 
     private static final LibLinearRegressionTrainer t = new LibLinearRegressionTrainer(new LinearRegressionType(LinearType.L2R_L2LOSS_SVR_DUAL),1.0,1000,0.1,0.5);
     private static final RegressionEvaluator e = new RegressionEvaluator();
@@ -161,5 +166,19 @@ public class TestLibLinear {
             assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
             assertEquals(expectedAve,llEval.averageR2(),1e-6);
         }
+    }
+
+    @Test
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        LibLinearRegressionModel model = (LibLinearRegressionModel) t.train(p.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-liblinear-test",".onnx");
+        model.saveONNXModel("org.tribuo.regression.liblinear.test",1,onnxFile);
+
+        OnnxTestUtils.onnxRegressorComparison(model,onnxFile,p.getB(),1e-5);
+
+        onnxFile.toFile().delete();
     }
 }

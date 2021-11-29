@@ -59,6 +59,19 @@ public enum ONNXOperators {
             new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, false)
     )),
     /**
+     * Cast input to specified type.
+     * <ul>
+     *     <li>{@code to} must be a data type int from {@link OnnxMl.TensorProto.DataType}</li>
+     * </ul>
+     */
+    CAST("Cast",1,1, Collections.singletonList(
+            new ONNXAttribute("to", OnnxMl.AttributeProto.AttributeType.INT, true)
+    )),
+    /**
+     * Element-wise negation.
+     */
+    NEG("Neg",1,1),
+    /**
      * Element-wise addition with broadcasting.
      */
     ADD("Add",2,1),
@@ -78,6 +91,20 @@ public enum ONNXOperators {
      * Element-wise exponentiation with broadcasting.
      */
     POW("Pow",2,1),
+    /**
+     * Element-wise summation across the supplied inputs with broadcasting.
+     */
+    SUM("Sum",VARIADIC_INPUT,1),
+    /**
+     * Gathers elements from the first argument (of rank r) indexed by the second argument (of rank q) producing
+     * a tensor of rank {@code q + r - 1}.
+     * <ul>
+     *     <li>{@code axis} the axis of the first argument to gather from.</li>
+     * </ul>
+     */
+    GATHER("Gather",2,1,Collections.singletonList(
+            new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, true)
+    )),
     /**
      * Hardmax(element in input, axis) = 1 if the element is the first maximum value along the specified axis, 0 otherwise.
      * <ul>
@@ -171,7 +198,63 @@ public enum ONNXOperators {
      * Choice operator, based on the true value of the condition input, returns the element at that index from either
      * the second or third input. When the test is true, return the second input, otherwise return the third input.
      */
-    WHERE("Where",3,1)
+    WHERE("Where",3,1),
+    /**
+     * Array feature extractor, selects the indices specified by the second tensor from the last dimension of the first tensor.
+     */
+    ARRAY_FEATURE_EXTRACTOR("ArrayFeatureExtractor",2,1,"ai.onnx.ml"),
+    /**
+     * SVM Classifier.
+     * <ul>
+     *     <li>{@code classlabels_ints} - Class labels if using integer labels. One and only one of the 'classlabels_*' attributes must be defined.</li>
+     *     <li>{@code classlabels_strings} - Class labels if using string labels. One and only one of the 'classlabels_*' attributes must be defined.</li>
+     *     <li>{@code coefficients} - SVM coefficients</li>
+     *     <li>{@code kernel_params} - Tuple of gamma, coef0 and degree. Set to zero if unused by the kernel.</li>
+     *     <li>{@code kernel_type} - One of 'LINEAR,' 'POLY,' 'RBF,' 'SIGMOID'.</li>
+     *     <li>{@code post_transforms} - Transform to apply to the score (usually unused by SVMs), one of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'.</li>
+     *     <li>{@code prob_a} - Probability coefficients, if set must be the same size as prob_b.</li>
+     *     <li>{@code prob_b} - Probability coefficients, if set must be the same size as prob_a.</li>
+     *     <li>{@code rho} - Rho vector.</li>
+     *     <li>{@code support_vectors} - linearised support vectors.</li>
+     *     <li>{@code vectors_per_class} - the number of support vectors in each class.</li>
+     * </ul>
+     */
+    SVM_CLASSIFIER("SVMClassifier",1,2, "ai.onnx.ml", Arrays.asList(
+            new ONNXAttribute("classlabels_ints",OnnxMl.AttributeProto.AttributeType.INTS,false),
+            new ONNXAttribute("classlabels_strings",OnnxMl.AttributeProto.AttributeType.STRINGS,false),
+            new ONNXAttribute("coefficients",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("kernel_params",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("kernel_type",OnnxMl.AttributeProto.AttributeType.STRING,false),
+            new ONNXAttribute("post_transform",OnnxMl.AttributeProto.AttributeType.STRING,false),
+            new ONNXAttribute("prob_a",OnnxMl.AttributeProto.AttributeType.FLOATS,false),
+            new ONNXAttribute("prob_b",OnnxMl.AttributeProto.AttributeType.FLOATS,false),
+            new ONNXAttribute("rho",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("support_vectors",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("vectors_per_class",OnnxMl.AttributeProto.AttributeType.INTS,true)
+    )),
+    /**
+     * SVM Regressor.
+     * <ul>
+     *     <li>{@code coefficients} - SVM coefficients</li>
+     *     <li>{@code kernel_params} - Tuple of gamma, coef0 and degree. Set to zero if unused by the kernel.</li>
+     *     <li>{@code kernel_type} - One of 'LINEAR,' 'POLY,' 'RBF,' 'SIGMOID'.</li>
+     *     <li>{@code n_supports} - The number of support vectors.</li>
+     *     <li>{@code one_class} - Flag noting if this regression is a one-class SVM for anomaly detection or not.</li>
+     *     <li>{@code post_transforms} - Transform to apply to the score (usually unused by SVMs), one of 'NONE,' 'SOFTMAX,' 'LOGISTIC,' 'SOFTMAX_ZERO,' or 'PROBIT'.</li>
+     *     <li>{@code rho} - Rho vector.</li>
+     *     <li>{@code support_vectors} - linearised support vectors.</li>
+     * </ul>
+     */
+    SVM_REGRESSOR("SVMRegressor",1,1, "ai.onnx.ml", Arrays.asList(
+            new ONNXAttribute("coefficients",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("kernel_params",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("kernel_type",OnnxMl.AttributeProto.AttributeType.STRING,false),
+            new ONNXAttribute("n_supports",OnnxMl.AttributeProto.AttributeType.INT,true),
+            new ONNXAttribute("one_class",OnnxMl.AttributeProto.AttributeType.INT,false),
+            new ONNXAttribute("post_transform",OnnxMl.AttributeProto.AttributeType.STRING,false),
+            new ONNXAttribute("rho",OnnxMl.AttributeProto.AttributeType.FLOATS,true),
+            new ONNXAttribute("support_vectors",OnnxMl.AttributeProto.AttributeType.FLOATS,true)
+    ))
     ;
 
     /**
@@ -198,6 +281,12 @@ public enum ONNXOperators {
      * The mandatory attribute names.
      */
     public final Set<String> mandatoryAttributeNames;
+    /**
+     * The operator domain (used for the ML operators).
+     * <p>
+     * Null if the domain is the default one.
+     */
+    public final String domain;
 
     /**
      * Opset supported by these definitions.
@@ -222,12 +311,36 @@ public enum ONNXOperators {
      * @param numOutputs The number of outputs.
      */
     private ONNXOperators(String value, int numInputs, int numOptionalInputs, int numOutputs) {
+        this(value, numInputs, numOptionalInputs, numOutputs, (String) null);
+    }
+
+    /**
+     * Builds an operator without attributes and with optional inputs.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOutputs The number of outputs.
+     * @param domain The domain.
+     */
+    private ONNXOperators(String value, int numInputs, int numOutputs, String domain) {
+        this(value, numInputs, 0, numOutputs, domain);
+    }
+
+    /**
+     * Builds an operator without attributes and with optional inputs.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOptionalInputs The number of optional inputs.
+     * @param numOutputs The number of outputs.
+     * @param domain The domain.
+     */
+    private ONNXOperators(String value, int numInputs, int numOptionalInputs, int numOutputs, String domain) {
         this.opName = value;
         this.numInputs = numInputs;
         this.numOptionalInputs = numOptionalInputs;
         this.numOutputs = numOutputs;
         this.attributes = Collections.emptyMap();
         this.mandatoryAttributeNames = Collections.emptySet();
+        this.domain = domain;
     }
 
     /**
@@ -242,6 +355,18 @@ public enum ONNXOperators {
     }
 
     /**
+     * Builds an operator with attributes.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOutputs The number of outputs.
+     * @param domain The domain.
+     * @param attributes The attributes.
+     */
+    private ONNXOperators(String value, int numInputs, int numOutputs, String domain, List<ONNXAttribute> attributes) {
+        this(value,numInputs,0,numOutputs, domain, attributes);
+    }
+
+    /**
      * Builds an operator with attributes and optional inputs.
      * @param value The operator name.
      * @param numInputs The number of inputs.
@@ -250,6 +375,19 @@ public enum ONNXOperators {
      * @param attributes The attributes.
      */
     private ONNXOperators(String value, int numInputs, int numOptionalInputs, int numOutputs, List<ONNXAttribute> attributes) {
+        this(value,numInputs,numOptionalInputs,numOutputs, null, attributes);
+    }
+
+    /**
+     * Builds an operator with attributes and optional inputs.
+     * @param value The operator name.
+     * @param numInputs The number of inputs.
+     * @param numOptionalInputs The number of optional inputs.
+     * @param numOutputs The number of outputs.
+     * @param domain The operator domain.
+     * @param attributes The attributes.
+     */
+    private ONNXOperators(String value, int numInputs, int numOptionalInputs, int numOutputs, String domain, List<ONNXAttribute> attributes) {
         this.opName = value;
         this.numInputs = numInputs;
         this.numOptionalInputs = numOptionalInputs;
@@ -267,6 +405,7 @@ public enum ONNXOperators {
         }
         this.attributes = Collections.unmodifiableMap(attributeMap);
         this.mandatoryAttributeNames = attributeSet.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(attributeSet);
+        this.domain = domain;
     }
 
     /**
@@ -322,6 +461,32 @@ public enum ONNXOperators {
     }
 
     /**
+     * Builds this node based on the supplied input and outputs.
+     * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param input The name of the input.
+     * @param outputs The names of the outputs.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String input, String[] outputs) {
+        return build(context,new String[]{input},outputs,Collections.emptyMap());
+    }
+
+    /**
+     * Builds this node based on the supplied input and outputs.
+     * Throws {@link IllegalArgumentException} if the number of inputs, outputs or attributes is wrong.
+     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
+     * @param context The onnx context used to ensure this node has a unique name.
+     * @param input The name of the input.
+     * @param outputs The names of the outputs.
+     * @param attributeValues The attribute names and values.
+     * @return The NodeProto.
+     */
+    public OnnxMl.NodeProto build(ONNXContext context, String input, String[] outputs, Map<String,Object> attributeValues) {
+        return build(context,new String[]{input},outputs,attributeValues);
+    }
+
+    /**
      * Builds this node based on the supplied inputs and outputs.
      * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
      * @param context The onnx context used to ensure this node has a unique name.
@@ -346,6 +511,8 @@ public enum ONNXOperators {
     public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String[] outputs, Map<String,Object> attributeValues) {
         if ((numInputs != VARIADIC_INPUT) && ((inputs.length < numInputs) || (inputs.length > numInputs + numOptionalInputs))) {
             throw new IllegalArgumentException("Expected " + numInputs + " inputs, with " + numOptionalInputs + " optional inputs, but received " + inputs.length);
+        } else if ((numInputs == VARIADIC_INPUT) && (inputs.length == 0)) {
+            throw new IllegalArgumentException("Expected at least one input for variadic input, received zero");
         }
         if (outputs.length != numOutputs) {
             throw new IllegalArgumentException("Expected " + numOutputs + " outputs, but received " + outputs.length);
@@ -368,6 +535,9 @@ public enum ONNXOperators {
         }
         nodeBuilder.setName(context.generateUniqueName(opName));
         nodeBuilder.setOpType(opName);
+        if (domain != null) {
+            nodeBuilder.setDomain(domain);
+        }
         for (Map.Entry<String,Object> e : attributeValues.entrySet()) {
             ONNXAttribute attr = attributes.get(e.getKey());
             nodeBuilder.addAttribute(attr.build(e.getValue()));

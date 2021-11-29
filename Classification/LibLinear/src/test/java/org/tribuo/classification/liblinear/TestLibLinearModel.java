@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.tribuo.classification.liblinear;
 
+import ai.onnxruntime.OrtException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.CategoricalIDInfo;
 import org.tribuo.CategoricalInfo;
@@ -43,6 +44,7 @@ import org.tribuo.impl.ListExample;
 import de.bwaldvogel.liblinear.FeatureNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
@@ -50,6 +52,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -257,6 +260,20 @@ public class TestLibLinearModel {
             Model<Label> m = t.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
+    }
+
+    @Test
+    public void testOnnxSerialization() throws IOException, OrtException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        LibLinearClassificationModel model = (LibLinearClassificationModel) t.train(p.getA());
+
+        // Write out model
+        Path onnxFile = Files.createTempFile("tribuo-liblinear-test",".onnx");
+        model.saveONNXModel("org.tribuo.classification.liblinear.test",1,onnxFile);
+
+        OnnxTestUtils.onnxLabelComparison(model,onnxFile,p.getB(),1e-6);
+
+        onnxFile.toFile().delete();
     }
 
     private static int[] getIndices(FeatureNode[] nodes) {
