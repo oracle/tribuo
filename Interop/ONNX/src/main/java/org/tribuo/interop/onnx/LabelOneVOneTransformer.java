@@ -28,6 +28,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Can convert an {@link OnnxValue} into a {@link org.tribuo.Prediction} or a {@link Label}.
+ * <p>
+ * Accepts:
+ * <ul>
+ *     <li>a tuple (tensor, float tensor) - as produced by the bare ONNX ML operations (e.g., SVMClassifier).</li>
+ *     <li>a single float tensor.</li>
+ * </ul>
+ * It attempts to parse the output as if it's a vector of predictions from one-v-one classifiers for each class pair.
+ * This is the kind of output produced by the ONNX SVMClassifier node, but the ONNX spec is not clear about
+ * how this output should be parsed, and ONNX Runtime produces a two element output for binary problems when
+ * a strict one-v-one classifier only produces a single output. As a result, this class may need to be updated
+ * as ONNX Runtime or the ONNX spec itself evolve.
+ * <p>
+ * Operates on either a list containing a single tensor [batch_size,(numOutputs*(numOutputs-1))/2], or
+ * a list containing two tensors where the second one contains the one-v-one predictions as before.
+ */
 public final class LabelOneVOneTransformer extends LabelTransformer {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
@@ -49,6 +66,12 @@ public final class LabelOneVOneTransformer extends LabelTransformer {
     /**
      * Rationalises the output of an onnx model into a standard format suitable for
      * downstream work in Tribuo.
+     * <p>
+     * It unfolds one-v-one predictions into a score vector using voting. This is used if the
+     * model directly outputs the ONNX {@code SVMClassifier} node, as skl2onnx unpacks it for you.
+     * <p>
+     * Operates on either a list containing a single tensor [batch_size,(numOutputs*(numOutputs-1))/2], or
+     * a list containing two tensors where the second one contains the one-v-one predictions as before.
      *
      * @param inputs       The onnx model output.
      * @param outputIDInfo The output id mapping.
