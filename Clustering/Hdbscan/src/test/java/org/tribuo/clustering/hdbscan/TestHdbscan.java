@@ -195,6 +195,7 @@ public class TestHdbscan {
         ClusteringEvaluator eval = new ClusteringEvaluator();
 
         HdbscanModel model = trainer.train(trainData);
+        // Test serialization
         Helpers.testModelSerialization(model,ClusterID.class);
 
         ClusteringEvaluation trainEvaluation = eval.evaluate(model,trainData);

@@ -24,7 +24,7 @@ import java.util.TreeSet;
  * An HDBSCAN* cluster, which encapsulates the attributes and functions of a cluster of points, throughout
  * the construction of the HDBSCAN* hierarchy.
  */
-final class HdbscanCluster {
+final class HdbscanCluster implements Comparable<HdbscanCluster> {
     private final int label;
 
     private final double birthLevel;
@@ -43,9 +43,11 @@ final class HdbscanCluster {
 
     private boolean hasChildren;
 
-    public List<HdbscanCluster> propagatedDescendants;
+    final private List<HdbscanCluster> propagatedDescendants;
 
-    int hierarchyLevel = 0;
+    private int hierarchyLevel = 0;
+
+    static final HdbscanCluster NOT_A_CLUSTER = new HdbscanCluster(-1, null, Double.NaN, 0);
 
     /**
      * Creates a new Cluster.
@@ -78,7 +80,7 @@ final class HdbscanCluster {
      * @param clusterLabels An array of cluster labels, which will be modified
      * @param clusterLabel The label of the new Cluster
      * @param edgeWeight The edge weight at which to remove the points from their previous Cluster
-     * @return The new Cluster, or null if the clusterId was 0 (Noise)
+     * @return The new Cluster, or the {@link #NOT_A_CLUSTER} if the clusterId was 0 (Noise)
      */
     HdbscanCluster createNewCluster(TreeSet<Integer> points, int[] clusterLabels, int clusterLabel, double edgeWeight) {
         for (int point : points) {
@@ -89,7 +91,7 @@ final class HdbscanCluster {
         if (clusterLabel != HdbscanTrainer.OUTLIER_NOISE_CLUSTER_LABEL) {
             return new HdbscanCluster(clusterLabel, this, edgeWeight, points.size());
         } else {
-            return null;
+            return NOT_A_CLUSTER;
         }
     }
 
@@ -168,5 +170,16 @@ final class HdbscanCluster {
 
     void setHierarchyLevel(int hierarchyLevel) {
         this.hierarchyLevel = hierarchyLevel;
+    }
+
+    @Override
+    public int compareTo(HdbscanCluster that) {
+        // This class is used in a PriorityQueue. When polling, we need the reverse of the natural ordering.
+        int val = Integer.compare(this.label, that.label);
+        if (val == 0) {
+            return val;
+        } else {
+            return -val;
+        }
     }
 }

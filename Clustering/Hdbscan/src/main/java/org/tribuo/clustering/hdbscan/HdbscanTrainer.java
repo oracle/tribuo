@@ -44,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
@@ -219,9 +220,7 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
             for (int point = 0; point < data.length; point++) {
                 // Sorted nearest distances found so far
                 double[] kNNDistances = new double[numNeighbors];
-                for (int i = 0; i < numNeighbors; i++) {
-                    kNNDistances[i] = Double.MAX_VALUE;
-                }
+                Arrays.fill(kNNDistances, Double.MAX_VALUE);
 
                 for (int neighbor = 0; neighbor < data.length; neighbor++) {
                     if (point == neighbor) {
@@ -236,6 +235,7 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                     }
 
                     // Shift elements in the array to make room for the current distance
+                    // The for loop could be written as an arraycopy, but the result is not particularly readable
                     if (neighborIndex < numNeighbors) {
                         for (int shiftIndex = numNeighbors - 1; shiftIndex > neighborIndex; shiftIndex--) {
                             kNNDistances[shiftIndex] = kNNDistances[shiftIndex - 1];
@@ -373,8 +373,8 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
 
         // A list of clusters in the cluster tree, with the 0th cluster (noise) null:
         ArrayList<HdbscanCluster> clusters = new ArrayList<>();
-        clusters.add(null);
-        clusters.add(new HdbscanCluster(1, null, Double.NaN, emst.getNumVertices()));
+        clusters.add(HdbscanCluster.NOT_A_CLUSTER);
+        clusters.add(new HdbscanCluster(1, HdbscanCluster.NOT_A_CLUSTER, Double.NaN, emst.getNumVertices()));
 
         // Sets for the clusters and vertices that are affected by the edge(s) being removed. The labels depend
         // on being ordered.
@@ -394,14 +394,12 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                 emst.getEdgeListForVertex(firstVertex).remove((Integer)secondVertex);
                 emst.getEdgeListForVertex(secondVertex).remove((Integer)firstVertex);
 
-                if (currentClusterLabels[firstVertex] == 0) {
-                    currentEdgeIndex--;
-                    continue;
+                if (currentClusterLabels[firstVertex] != 0) {
+                    affectedVertices.add(firstVertex);
+                    affectedVertices.add(secondVertex);
+                    affectedClusterLabels.add(currentClusterLabels[firstVertex]);
                 }
 
-                affectedVertices.add(firstVertex);
-                affectedVertices.add(secondVertex);
-                affectedClusterLabels.add(currentClusterLabels[firstVertex]);
                 currentEdgeIndex--;
             }
 
@@ -482,9 +480,7 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                         int firstChildClusterMember = firstChildCluster.last();
                         if (constructingSubCluster.contains(firstChildClusterMember)) {
                             numChildClusters--;
-
-                            // Otherwise, create a new cluster:
-                        } else {
+                        } else {   // Otherwise, create a new cluster:
                             HdbscanCluster parentCluster = clusters.get(examinedClusterLabel);
                             HdbscanCluster newCluster = parentCluster.createNewCluster(constructingSubCluster, currentClusterLabels,
                                 nextClusterLabel, currentEdgeWeight);
@@ -511,8 +507,9 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                         int vertexToExplore = unexploredFirstChildClusterPoints.poll();
 
                         for (int neighbor : emst.getEdgeListForVertex(vertexToExplore)) {
-                            if (firstChildCluster.add(neighbor))
+                            if (firstChildCluster.add(neighbor)) {
                                 unexploredFirstChildClusterPoints.add(neighbor);
+                            }
                         }
                     }
 
@@ -538,10 +535,11 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                 hierarchy.put(lineCount, hierarchyLevelLabels);
             }
 
-            if (newClusters.isEmpty())
+            if (newClusters.isEmpty()) {
                 nextLevelSignificant = false;
-            else
+            } else {
                 nextLevelSignificant = true;
+            }
         }
         return clusters;
     }
@@ -552,27 +550,27 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
      * @param clusters A list of clusters representing the cluster tree.
      */
     private static void propagateTree(List<HdbscanCluster> clusters) {
-        TreeMap<Integer, HdbscanCluster> clustersToExamine = new TreeMap<>();
+        PriorityQueue<HdbscanCluster> clustersToExamine = new PriorityQueue<>();
         BitSet addedToExaminationList = new BitSet(clusters.size());
 
         // Find all leaf clusters in the cluster tree:
         for (HdbscanCluster cluster : clusters) {
-            if (cluster != null && !cluster.hasChildren()) {
-                clustersToExamine.put(cluster.getLabel(), cluster);
+            if (cluster != HdbscanCluster.NOT_A_CLUSTER && !cluster.hasChildren()) {
+                clustersToExamine.add(cluster);
                 addedToExaminationList.set(cluster.getLabel());
             }
         }
 
         // Iterate through every cluster, propagating stability from children to parents:
         while (!clustersToExamine.isEmpty()) {
-            HdbscanCluster currentCluster = clustersToExamine.pollLastEntry().getValue();
+            HdbscanCluster currentCluster = clustersToExamine.poll();
             currentCluster.propagate();
 
-            if (currentCluster.getParent() != null) {
+            if (currentCluster.getParent() != HdbscanCluster.NOT_A_CLUSTER) {
                 HdbscanCluster parent = currentCluster.getParent();
 
                 if (!addedToExaminationList.get(parent.getLabel())) {
-                    clustersToExamine.put(parent.getLabel(), parent);
+                    clustersToExamine.add(parent);
                     addedToExaminationList.set(parent.getLabel());
                 }
             }
@@ -641,8 +639,9 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
             double epsilon = pointNoiseLevels[i];
 
             double score = 0;
-            if (epsilon != 0)
-                score = 1-(epsilonMax/epsilon);
+            if (epsilon != 0) {
+                score = 1 - (epsilonMax / epsilon);
+            }
 
             outlierScores.set(i, score);
         }
@@ -665,14 +664,8 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
         for (int i = 0; i < clusterLabels.size(); i++) {
             Integer clusterLabel = clusterLabels.get(i);
             Double outlierScore = outlierScoresVector.get(i);
-            if (clusterAssignments.containsKey(clusterLabel)) {
-                clusterAssignments.get(clusterLabel).put(outlierScore, i);
-            }
-            else {
-                TreeMap<Double, Integer> outlierScoreIndexTree = new TreeMap<>();
-                outlierScoreIndexTree.put(outlierScore, i);
-                clusterAssignments.put(clusterLabel, outlierScoreIndexTree);
-            }
+            Map<Double, Integer> outlierScoreIndexTree = clusterAssignments.computeIfAbsent(clusterLabel, j -> new TreeMap<>());
+            outlierScoreIndexTree.put(outlierScore, i);
         }
         return clusterAssignments;
     }
@@ -805,9 +798,7 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
         public void run() {
             // This logic is duplicated in the calculateCoreDistances method in the outer class above
             double[] kNNDistances = new double[numNeighbors];
-            for (int i = 0; i < numNeighbors; i++) {
-                kNNDistances[i] = Double.MAX_VALUE;
-            }
+            Arrays.fill(kNNDistances, Double.MAX_VALUE);
 
             for (int neighbor = 0; neighbor < data.length; neighbor++) {
                 if (point == neighbor) {
@@ -822,6 +813,7 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                 }
 
                 // Shift elements in the array to make room for the current distance
+                // The for loop could be written as an arraycopy, but the result is not particularly readable
                 if (neighborIndex < numNeighbors) {
                     for (int shiftIndex = numNeighbors-1; shiftIndex > neighborIndex; shiftIndex--) {
                         kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];

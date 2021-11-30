@@ -71,7 +71,7 @@ final public class HdbscanModel extends Model<ClusterID> {
      * @return The cluster labels for every data point from the training data.
      */
     public List<Integer> getClusterLabels() {
-        return new ArrayList<>(clusterLabels);
+        return clusterLabels;
     }
 
     /**
