@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,11 @@ package org.tribuo.clustering.hdbscan;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.tribuo.*;
+import org.tribuo.DataSource;
+import org.tribuo.Dataset;
+import org.tribuo.Model;
+import org.tribuo.MutableDataset;
+import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.clustering.evaluation.ClusteringEvaluation;
@@ -34,14 +38,21 @@ import org.tribuo.data.columnar.processors.field.DoubleFieldProcessor;
 import org.tribuo.data.columnar.processors.response.EmptyResponseProcessor;
 import org.tribuo.data.csv.CSVDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
+import org.tribuo.test.Helpers;
 
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests with small datasets for Hdbscan
@@ -184,6 +195,7 @@ public class TestHdbscan {
         ClusteringEvaluator eval = new ClusteringEvaluator();
 
         HdbscanModel model = trainer.train(trainData);
+        Helpers.testModelSerialization(model,ClusterID.class);
 
         ClusteringEvaluation trainEvaluation = eval.evaluate(model,trainData);
         assertFalse(Double.isNaN(trainEvaluation.adjustedMI()));

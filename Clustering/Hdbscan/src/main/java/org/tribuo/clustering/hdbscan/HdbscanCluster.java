@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tribuo.clustering.hdbscan;
 
 import java.util.ArrayList;
@@ -8,12 +24,12 @@ import java.util.TreeSet;
  * An HDBSCAN* cluster, which encapsulates the attributes and functions of a cluster of points, throughout
  * the construction of the HDBSCAN* hierarchy.
  */
-class HdbscanCluster {
+final class HdbscanCluster {
     private final int label;
 
     private final double birthLevel;
 
-    private double deathLevel;
+    private double splitLevel;
 
     private int numPoints;
 
@@ -21,7 +37,7 @@ class HdbscanCluster {
 
     private double propagatedStability;
 
-    private double propagatedLowestChildDeathLevel;
+    private double propagatedLowestChildSplitLevel;
 
     private final HdbscanCluster parent;
 
@@ -41,15 +57,16 @@ class HdbscanCluster {
     HdbscanCluster(int label, HdbscanCluster parent, double birthLevel, int numPoints) {
         this.label = label;
         this.birthLevel = birthLevel;
-        this.deathLevel = 0;
+        this.splitLevel = 0;
         this.numPoints = numPoints;
         this.stability = 0;
         this.propagatedStability = 0;
-        this.propagatedLowestChildDeathLevel = Double.MAX_VALUE;
+        this.propagatedLowestChildSplitLevel = Double.MAX_VALUE;
 
         this.parent = parent;
-        if (this.parent != null)
+        if (this.parent != null) {
             this.parent.hasChildren = true;
+        }
         this.hasChildren = false;
         this.propagatedDescendants = new ArrayList<>(1);
     }
@@ -69,9 +86,9 @@ class HdbscanCluster {
         }
         detachPoints(points.size(), edgeWeight);
 
-        if (clusterLabel != HdbscanTrainer.OUTLIER_NOISE_CLUSTER_LABEL)
+        if (clusterLabel != HdbscanTrainer.OUTLIER_NOISE_CLUSTER_LABEL) {
             return new HdbscanCluster(clusterLabel, this, edgeWeight, points.size());
-        else {
+        } else {
             return null;
         }
     }
@@ -86,10 +103,11 @@ class HdbscanCluster {
         this.numPoints-=numPoints;
         this.stability+=(numPoints * (1/level - 1/this.birthLevel));
 
-        if (this.numPoints == 0)
-            this.deathLevel = level;
-        else if (this.numPoints < 0)
+        if (this.numPoints == 0) {
+            this.splitLevel = level;
+        } else if (this.numPoints < 0) {
             throw new IllegalStateException("Cluster cannot have less than 0 points.");
+        }
     }
 
     /**
@@ -100,23 +118,23 @@ class HdbscanCluster {
     void propagate() {
         if (this.parent != null) {
             // Propagate the lowest death level of any descendants:
-            if (this.propagatedLowestChildDeathLevel == Double.MAX_VALUE)
-                this.propagatedLowestChildDeathLevel = this.deathLevel;
-            if (this.propagatedLowestChildDeathLevel < this.parent.propagatedLowestChildDeathLevel)
-                this.parent.propagatedLowestChildDeathLevel = this.propagatedLowestChildDeathLevel;
+            if (this.propagatedLowestChildSplitLevel == Double.MAX_VALUE) {
+                this.propagatedLowestChildSplitLevel = this.splitLevel;
+            }
+            if (this.propagatedLowestChildSplitLevel < this.parent.propagatedLowestChildSplitLevel) {
+                this.parent.propagatedLowestChildSplitLevel = this.propagatedLowestChildSplitLevel;
+            }
 
             // If this cluster has no children, it must propagate itself:
             if (!this.hasChildren) {
                 this.parent.propagatedStability+= this.stability;
                 this.parent.propagatedDescendants.add(this);
-            }
-            else {
+            } else {
                 // Chose the parent over descendants if there is a tie in stability:
                 if (this.stability >= this.propagatedStability) {
                     this.parent.propagatedStability+= this.stability;
                     this.parent.propagatedDescendants.add(this);
-                }
-                else {
+                } else {
                     this.parent.propagatedStability+= this.propagatedStability;
                     this.parent.propagatedDescendants.addAll(this.propagatedDescendants);
                 }
@@ -132,8 +150,8 @@ class HdbscanCluster {
         return this.parent;
     }
 
-    double getPropagatedLowestChildDeathLevel() {
-        return this.propagatedLowestChildDeathLevel;
+    double getPropagatedLowestChildSplitLevel() {
+        return this.propagatedLowestChildSplitLevel;
     }
 
     List<HdbscanCluster> getPropagatedDescendants() {

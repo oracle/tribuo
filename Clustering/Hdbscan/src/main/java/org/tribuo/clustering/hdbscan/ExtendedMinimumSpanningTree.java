@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tribuo.clustering.hdbscan;
 
 import java.util.ArrayList;
@@ -5,7 +21,7 @@ import java.util.ArrayList;
 /**
  * An Extended Minimum Spanning Tree graph. Includes the functionality to sort the edge weights in ascending order.
  */
-class ExtendedMinimumSpanningTree {
+final class ExtendedMinimumSpanningTree {
     private final int numVertices;
 
     private final int[] firstVertices;
@@ -40,9 +56,12 @@ class ExtendedMinimumSpanningTree {
             int vertexOne = this.firstVertices[i];
             int vertexTwo = this.secondVertices[i];
             this.edges[vertexOne].add(vertexTwo);
-            if (vertexOne != vertexTwo)
+            if (vertexOne != vertexTwo) {
                 this.edges[vertexTwo].add(vertexOne);
+            }
         }
+
+        this.quicksortByEdgeWeight();
     }
 
     /**
@@ -50,8 +69,9 @@ class ExtendedMinimumSpanningTree {
      * iterative and in-place.
      */
     void quicksortByEdgeWeight() {
-        if (this.edgeWeights.length <= 1)
+        if (this.edgeWeights.length <= 1) {
             return;
+        }
 
         int[] startIndexStack = new int[this.edgeWeights.length/2];
         int[] endIndexStack = new int[this.edgeWeights.length/2];
@@ -90,28 +110,31 @@ class ExtendedMinimumSpanningTree {
      * @return A pivot index
      */
     private int selectPivotIndex(int startIndex, int endIndex) {
-        if (startIndex - endIndex <= 1)
+        if (startIndex - endIndex <= 1) {
             return startIndex;
+        }
 
         double first = this.edgeWeights[startIndex];
         double middle = this.edgeWeights[startIndex + (endIndex-startIndex)/2];
         double last = this.edgeWeights[endIndex];
 
         if (first <= middle) {
-            if (middle <= last)
-                return startIndex + (endIndex-startIndex)/2;
-            else if (last >= first)
+            if (middle <= last) {
+                return startIndex + (endIndex - startIndex) / 2;
+            }  else if (last >= first) {
                 return endIndex;
-            else
+            } else {
                 return startIndex;
+            }
         }
         else {
-            if (first <= last)
+            if (first <= last) {
                 return startIndex;
-            else if (last >= middle)
+            } else if (last >= middle) {
                 return endIndex;
-            else
-                return startIndex + (endIndex-startIndex)/2;
+            } else {
+                return startIndex + (endIndex - startIndex) / 2;
+            }
         }
     }
 
@@ -145,8 +168,9 @@ class ExtendedMinimumSpanningTree {
      * @param indexTwo The second index location
      */
     private void swapEdges(int indexOne, int indexTwo) {
-        if (indexOne == indexTwo)
+        if (indexOne == indexTwo) {
             return;
+        }
 
         int tempVertexA = this.firstVertices[indexOne];
         int tempVertexB = this.secondVertices[indexOne];

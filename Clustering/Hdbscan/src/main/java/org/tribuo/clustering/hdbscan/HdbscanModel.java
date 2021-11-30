@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,23 @@
 package org.tribuo.clustering.hdbscan;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.*;
+import org.tribuo.Example;
+import org.tribuo.Excuse;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.hdbscan.HdbscanTrainer.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * A trained HDBSCAN* model which provides the cluster assignment labels and outlier scores for every data point.
@@ -33,7 +42,7 @@ import java.util.*;
  * current clustering. The model is not updated with the new data. This is a novel prediction technique which
  * leverages the computed cluster exemplars from the HDBSCAN* algorithm.
  */
-public class HdbscanModel extends Model<ClusterID> {
+final public class HdbscanModel extends Model<ClusterID> {
     private static final long serialVersionUID = 1L;
 
     private final List<Integer> clusterLabels;
@@ -47,7 +56,7 @@ public class HdbscanModel extends Model<ClusterID> {
     HdbscanModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                  ImmutableOutputInfo<ClusterID> outputIDInfo, List<Integer> clusterLabels, DenseVector outlierScoresVector,
                  List<HdbscanTrainer.ClusterExemplar> clusterExemplars, Distance distanceType) {
-        super(name,description,featureIDMap,outputIDInfo,true);
+        super(name,description,featureIDMap,outputIDInfo,false);
         this.clusterLabels = clusterLabels;
         this.outlierScoresVector = outlierScoresVector;
         this.clusterExemplars = clusterExemplars;
@@ -55,22 +64,22 @@ public class HdbscanModel extends Model<ClusterID> {
     }
 
     /**
-     * Returns the cluster labels.
+     * Returns the cluster labels for the training data.
      * <p>
      * The cluster labels are in the same order as the original data points. A label of
      * {@link HdbscanTrainer#OUTLIER_NOISE_CLUSTER_LABEL} indicates an outlier or noise point.
-     * @return The cluster labels for every data point.
+     * @return The cluster labels for every data point from the training data.
      */
     public List<Integer> getClusterLabels() {
         return new ArrayList<>(clusterLabels);
     }
 
     /**
-     * Returns the GLOSH outlier scores. These are values between 0 and 1. A higher score indicates that a point
-     * is more likely to be an outlier.
+     * Returns the GLOSH (Global-Local Outlier Scores from Hierarchies) outlier scores for the training data.
+     * These are values between 0 and 1. A higher score indicates that a point is more likely to be an outlier.
      * <p>
      * The outlier scores are in the same order as the original data points.
-     * @return The outlier scores for every data point.
+     * @return The outlier scores for every data point from the training data.
      */
     public List<Double> getOutlierScores() {
         List<Double> outlierScores = new ArrayList<>(outlierScoresVector.size());
@@ -126,7 +135,7 @@ public class HdbscanModel extends Model<ClusterID> {
     @Override
     protected HdbscanModel copy(String newName, ModelProvenance newProvenance) {
         DenseVector copyOutlierScoresVector = outlierScoresVector.copy();
-        List<Integer> copyClusterLabels = new ArrayList<>(clusterLabels);
+        List<Integer> copyClusterLabels = Collections.unmodifiableList(clusterLabels);
         List<HdbscanTrainer.ClusterExemplar> copyExemplars = new ArrayList<>(clusterExemplars);
         return new HdbscanModel(newName, newProvenance, featureIDMap, outputIDInfo, copyClusterLabels,
             copyOutlierScoresVector, copyExemplars, distanceType);

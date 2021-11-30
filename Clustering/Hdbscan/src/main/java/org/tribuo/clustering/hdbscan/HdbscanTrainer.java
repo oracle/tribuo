@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,11 @@ package org.tribuo.clustering.hdbscan;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import org.tribuo.*;
+import org.tribuo.Dataset;
+import org.tribuo.Example;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
 import org.tribuo.math.la.DenseVector;
@@ -27,9 +31,21 @@ import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
+import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -50,7 +66,7 @@ import java.util.logging.Logger;
  * <a href="http://lapad-web.icmc.usp.br/?portfolio_1=a-handful-of-experiments">HDBSCAN*</a>
  * </pre>
  */
-public class HdbscanTrainer implements Trainer<ClusterID> {
+final public class HdbscanTrainer implements Trainer<ClusterID> {
     private static final Logger logger = Logger.getLogger(HdbscanTrainer.class.getName());
 
     static final int OUTLIER_NOISE_CLUSTER_LABEL = 0;
@@ -76,10 +92,10 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
     @Config(mandatory = true, description = "The minimum number of points required to form a cluster.")
     private int minClusterSize;
 
-    @Config(description = "The distance function to use.")
+    @Config(mandatory = true, description = "The distance function to use.")
     private Distance distanceType;
 
-    @Config(description = "The number of nearest-neighbors to use in the initial density approximation. " +
+    @Config(mandatory = true, description = "The number of nearest-neighbors to use in the initial density approximation. " +
         "This includes the point itself.")
     private int k;
 
@@ -98,6 +114,8 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
      * Constructs an HDBSCAN* trainer with only the minClusterSize parameter.
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
+     * {@link #distanceType} defaults to {@link Distance#EUCLIDEAN}, {@link #k} defaults to {@link #minClusterSize},
+     * and {@link #numThreads} defaults to 1.
      */
     public HdbscanTrainer(int minClusterSize) {
         this(minClusterSize, Distance.EUCLIDEAN, minClusterSize, 1);
@@ -116,15 +134,6 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
         this.distanceType = distanceType;
         this.k = k;
         this.numThreads = numThreads;
-        postConfig();
-    }
-
-    /**
-     * Used by the OLCUT configuration system, and should not be called by external code.
-     */
-    @Override
-    public synchronized void postConfig() {
-        // no post config steps required at this time
     }
 
     @Override
@@ -136,8 +145,6 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
             trainInvocationCounter++;
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
-
-        //ForkJoinPool fjp = new ForkJoinPool(numThreads);
 
         SGDVector[] data = new DenseVector[examples.size()];
         int n = 0;
@@ -217,8 +224,9 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
                 }
 
                 for (int neighbor = 0; neighbor < data.length; neighbor++) {
-                    if (point == neighbor)
+                    if (point == neighbor) {
                         continue;
+                    }
                     double distance = getDistance(data[point], data[neighbor], distanceType);
 
                     // Check at which position in the nearest distances the current distance would fit
@@ -238,9 +246,7 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
                 // The core distance for the point is the distance to the furthest away neighbor
                 coreDistances.set(point, kNNDistances[numNeighbors - 1]);
             }
-        }
-        // This makes the core distance calculations with multiple threads
-        else {
+        } else { // This makes the core distance calculations with multiple threads
             ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
             for (int point = 0; point < data.length; point++) {
                 executorService.execute(new CoreDistanceRunnable(data, numNeighbors, distanceType, point, coreDistances));
@@ -292,17 +298,17 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
 
             // Iterate through all unattached points, updating distances using the current point:
             for (int neighbor = 0; neighbor < data.length; neighbor++) {
-                if (currentPoint == neighbor)
+                if (currentPoint == neighbor || attachedPoints.get(neighbor)) {
                     continue;
-                if (attachedPoints.get(neighbor))
-                    continue;
+                }
 
                 double mutualReachabilityDistance = getDistance(data[currentPoint], data[neighbor], distanceType);
-                if (coreDistances.get(currentPoint) > mutualReachabilityDistance)
+                if (coreDistances.get(currentPoint) > mutualReachabilityDistance) {
                     mutualReachabilityDistance = coreDistances.get(currentPoint);
-                if (coreDistances.get(neighbor) > mutualReachabilityDistance)
+                }
+                if (coreDistances.get(neighbor) > mutualReachabilityDistance) {
                     mutualReachabilityDistance = coreDistances.get(neighbor);
-
+                }
                 if (mutualReachabilityDistance < nearestMRDDistances[neighbor]) {
                     nearestMRDDistances[neighbor] = mutualReachabilityDistance;
                     nearestMRDNeighbors[neighbor] = currentPoint;
@@ -336,7 +342,6 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
         }
         ExtendedMinimumSpanningTree emst = new ExtendedMinimumSpanningTree(data.length, nearestMRDNeighbors,
                                                                            otherVertexIndices, nearestMRDDistances);
-        emst.quicksortByEdgeWeight();
         return emst;
     }
 
@@ -374,7 +379,7 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
         // Sets for the clusters and vertices that are affected by the edge(s) being removed. The labels depend
         // on being ordered.
         TreeSet<Integer> affectedClusterLabels = new TreeSet<>();
-        // there is no ordering requirement on the vertices
+        // There is no ordering requirement on the vertices
         HashSet<Integer> affectedVertices = new HashSet<>();
 
         while(currentEdgeIndex >= 0) {
@@ -385,6 +390,7 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
             while (currentEdgeIndex >= 0 && emst.getEdgeWeightAtIndex(currentEdgeIndex) == currentEdgeWeight){
                 int firstVertex = emst.getFirstVertexAtIndex(currentEdgeIndex);
                 int secondVertex = emst.getSecondVertexAtIndex(currentEdgeIndex);
+                // The cast of these variables to Integer is required to get the correct overload of the remove method.
                 emst.getEdgeListForVertex(firstVertex).remove((Integer)secondVertex);
                 emst.getEdgeListForVertex(secondVertex).remove((Integer)firstVertex);
 
@@ -399,8 +405,9 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
                 currentEdgeIndex--;
             }
 
-            if (affectedClusterLabels.isEmpty())
+            if (affectedClusterLabels.isEmpty()) {
                 continue;
+            }
 
             // Check each cluster affected for a possible split:
             while (!affectedClusterLabels.isEmpty()) {
@@ -420,7 +427,7 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
                 }
 
                 TreeSet<Integer> firstChildCluster = null;
-                LinkedList<Integer> unexploredFirstChildClusterPoints = null;
+                ArrayDeque<Integer> unexploredFirstChildClusterPoints = null;
                 int numChildClusters = 0;
 
                 /*
@@ -433,7 +440,7 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
                  */
                 while (!examinedVertices.isEmpty()) {
                     TreeSet<Integer> constructingSubCluster = new TreeSet<>();
-                    LinkedList<Integer> unexploredSubClusterPoints = new LinkedList<>();
+                    ArrayDeque<Integer> unexploredSubClusterPoints = new ArrayDeque<>();
                     boolean anyEdges = false;
                     boolean incrementedChildCount = false;
 
@@ -473,22 +480,20 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
 
                         // Check this child cluster is not equal to the unexplored first child cluster:
                         int firstChildClusterMember = firstChildCluster.last();
-                        if (constructingSubCluster.contains(firstChildClusterMember))
+                        if (constructingSubCluster.contains(firstChildClusterMember)) {
                             numChildClusters--;
 
                             // Otherwise, create a new cluster:
-                        else {
+                        } else {
                             HdbscanCluster parentCluster = clusters.get(examinedClusterLabel);
                             HdbscanCluster newCluster = parentCluster.createNewCluster(constructingSubCluster, currentClusterLabels,
-                                                                                       nextClusterLabel, currentEdgeWeight);
+                                nextClusterLabel, currentEdgeWeight);
                             newClusters.add(newCluster);
                             clusters.add(newCluster);
                             nextClusterLabel++;
                         }
-                    }
-
-                    // If this child cluster is not valid cluster, assign it to noise:
-                    else if (constructingSubCluster.size() < minClusterSize || !anyEdges){
+                    } else if (constructingSubCluster.size() < minClusterSize || !anyEdges){
+                        // If this child cluster is not valid cluster, assign it to noise:
                         HdbscanCluster parentCluster = clusters.get(examinedClusterLabel);
                         parentCluster.createNewCluster(constructingSubCluster, currentClusterLabels, OUTLIER_NOISE_CLUSTER_LABEL, currentEdgeWeight);
 
@@ -608,11 +613,12 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
 
             for (int i = 0; i < hierarchyLevelLabels.length; i++) {
                 int label = hierarchyLevelLabels[i];
-                if (clusterList.contains(label))
+                if (clusterList.contains(label)) {
                     clusterLabels.set(i, label);
+                }
             }
         }
-        return clusterLabels;
+        return Collections.unmodifiableList(clusterLabels);
     }
 
     /**
@@ -631,12 +637,12 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
 
         // Iterate through each point, calculating its outlier score:
         for (int i = 0; i < numPoints; i++) {
-            double epsilon_max = clusters.get(pointLastClusters[i]).getPropagatedLowestChildDeathLevel();
+            double epsilonMax = clusters.get(pointLastClusters[i]).getPropagatedLowestChildSplitLevel();
             double epsilon = pointNoiseLevels[i];
 
             double score = 0;
             if (epsilon != 0)
-                score = 1-(epsilon_max/epsilon);
+                score = 1-(epsilonMax/epsilon);
 
             outlierScores.set(i, score);
         }
@@ -702,7 +708,7 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
                 for (int i = 0; i < numExemplarsThisCluster; i++) {
                     // Note that for outliers the last node is polled from the tree, which has the highest outlier score
                     // out of the remaining points assigned this cluster.
-                    Entry<Double, Integer> entry = outlierScoreIndexTree.pollFirstEntry();
+                    Entry<Double, Integer> entry = outlierScoreIndexTree.pollLastEntry();
                     clusterExemplars.add(new ClusterExemplar(clusterLabel, entry.getKey(), data[entry.getValue()]));
                 }
             }
@@ -749,7 +755,9 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
     /**
      * A cluster exemplar, with attributes for the point's label, outlier score and its features.
      */
-    static class ClusterExemplar {
+    final static class ClusterExemplar implements Serializable {
+        private static final long serialVersionUID = 1L;
+
         private final Integer label;
         private final Double outlierScore;
         private final SGDVector features;
@@ -777,13 +785,13 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
      * A Runnable implementation of the core distance calculation for parallelization.
      * To be used with an {@link ExecutorService}
      */
-    private static class CoreDistanceRunnable implements Runnable {
+    private final static class CoreDistanceRunnable implements Runnable {
 
         final private SGDVector[] data;
         final private int numNeighbors;
         final private Distance distanceType;
         final private int point;
-        DenseVector coreDistances;
+        final DenseVector coreDistances;
 
         CoreDistanceRunnable(SGDVector[] data, int numNeighbors, Distance distanceType, int point, DenseVector coreDistances) {
             this.data = data;
@@ -802,8 +810,9 @@ public class HdbscanTrainer implements Trainer<ClusterID> {
             }
 
             for (int neighbor = 0; neighbor < data.length; neighbor++) {
-                if (point == neighbor)
+                if (point == neighbor) {
                     continue;
+                }
                 double distance = getDistance(data[point], data[neighbor], distanceType);
 
                 // Check at which position in the nearest distances the current distance would fit

@@ -38,7 +38,7 @@
             <artifactId>tribuo-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.tribuo</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-data</artifactId>
         </dependency>
         <dependency>
