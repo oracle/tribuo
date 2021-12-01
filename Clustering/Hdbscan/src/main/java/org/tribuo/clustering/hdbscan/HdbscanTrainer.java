@@ -228,14 +228,17 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                     }
                     double distance = getDistance(data[point], data[neighbor], distanceType);
 
-                    // Check at which position in the nearest distances the current distance would fit
+                    // Check at which position in the nearest distances the current distance would fit.
+                    // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
+                    // with a binary search
                     int neighborIndex = numNeighbors;
                     while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex - 1]) {
                         neighborIndex--;
                     }
 
                     // Shift elements in the array to make room for the current distance
-                    // The for loop could be written as an arraycopy, but the result is not particularly readable
+                    // The for loop could be written as an arraycopy, but the result is not particularly readable, and
+                    // numNeighbors is typically quite small
                     if (neighborIndex < numNeighbors) {
                         for (int shiftIndex = numNeighbors - 1; shiftIndex > neighborIndex; shiftIndex--) {
                             kNNDistances[shiftIndex] = kNNDistances[shiftIndex - 1];
@@ -807,13 +810,16 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
                 double distance = getDistance(data[point], data[neighbor], distanceType);
 
                 // Check at which position in the nearest distances the current distance would fit
+                // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
+                // with a binary search
                 int neighborIndex = numNeighbors;
                 while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex-1]) {
                     neighborIndex--;
                 }
 
                 // Shift elements in the array to make room for the current distance
-                // The for loop could be written as an arraycopy, but the result is not particularly readable
+                // The for loop could be written as an arraycopy, but the result is not particularly readable, and
+                // numNeighbors is typically quite small
                 if (neighborIndex < numNeighbors) {
                     for (int shiftIndex = numNeighbors-1; shiftIndex > neighborIndex; shiftIndex--) {
                         kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
