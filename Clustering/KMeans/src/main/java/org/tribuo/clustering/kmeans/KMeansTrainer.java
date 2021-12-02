@@ -461,13 +461,13 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             DenseVector newCentroid = centroidVectors[e.getKey()];
             newCentroid.fill(0.0);
 
-            int counter = 0;
+            double weightSum = 0.0;
             for (Integer idx : e.getValue()) {
                 newCentroid.intersectAndAddInPlace(data[idx], (double f) -> f * weights[idx]);
-                counter++;
+                weightSum += weights[idx];
             }
-            if (counter > 0) {
-                newCentroid.scaleInPlace(1.0 / counter);
+            if (weightSum != 0.0) {
+                newCentroid.scaleInPlace(1.0 / weightSum);
             }
         };
 
