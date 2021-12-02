@@ -197,6 +197,11 @@
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-clustering-hdbscan</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-anomaly-core</artifactId>
             <version>${project.version}</version>
         </dependency>
