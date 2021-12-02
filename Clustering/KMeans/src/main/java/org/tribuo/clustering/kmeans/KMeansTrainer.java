@@ -64,6 +64,10 @@ import java.util.stream.Stream;
  * of threads used in the training step. The thread pool is local to an invocation of train,
  * so there can be multiple concurrent trainings.
  * <p>
+ * Note parallel training uses a {@link ForkJoinPool} which requires that the Tribuo codebase
+ * is given the "modifyThread" and "modifyThreadGroup" privileges when running under a
+ * {@link java.lang.SecurityManager}.
+ * <p>
  * See:
  * <pre>
  * J. Friedman, T. Hastie, &amp; R. Tibshirani.
