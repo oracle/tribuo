@@ -24,9 +24,11 @@ See [#177](https://github.com/oracle/tribuo/pull/177) for more details.
 ## New models
 
 In this release we've added [Factorization
-Machines](https://www.computer.org/csdl/proceedings-article/icdm/2010/4256a995/12OmNwMFMfl)
-and [Classifier
-Chains](https://link.springer.com/content/pdf/10.1007/s10994-011-5256-5.pdf).
+Machines](https://www.computer.org/csdl/proceedings-article/icdm/2010/4256a995/12OmNwMFMfl),
+[Classifier
+Chains](https://link.springer.com/content/pdf/10.1007/s10994-011-5256-5.pdf)
+and
+[HDBSCAN\*](https://link.springer.com/chapter/10.1007/978-3-642-37456-2_14).
 Factorization machines are a powerful non-linear predictor which uses a
 factorized approximation to learn a per output feature-feature interaction term
 in addition to a linear model. We've added Factorization Machines for
@@ -36,12 +38,17 @@ given a specific ordering of the labels learns a chain of classifiers where
 each classifier gets the features along with the predicted labels from earlier
 in the chain. We also added ensembles of randomly ordered classifier chains
 which work well in situations when the ground truth label ordering is unknown
-(i.e., most of the time).
+(i.e., most of the time).  HDBSCAN is a hierarchical density based clustering
+algorithm which chooses the number of clusters based on properties of the data
+rather than as a hyperparameter. The Tribuo implementation can cluster a
+dataset, and then at prediction time it provides the cluster the given
+datapoint would be in without modifying the cluster structure.
 
 - Classifier Chains ([#149](https://github.com/oracle/tribuo/pull/149)), which
   also adds the jaccard score as a multi-label evaluation metric, and a
 multi-label voting combiner for use in multi-label ensembles.
 - Factorization machines ([#179](https://github.com/oracle/tribuo/pull/179)).
+- HDBSCAN ([#196](https://github.com/oracle/tribuo/pull/196)).
 
 ## ONNX Export
 
@@ -134,3 +141,5 @@ thus not included in the `tribuo-all` meta-module.
 - Joseph Wonsil ([@jwons](https://github.com/jwons))
 - Philip Ogren ([@pogren](https://github.com/pogren))
 - Jeffrey Alexander ([@jhalexand](https://github.com/jhalexand))
+- Geoff Stewart ([@geoffreydstewart](https://github.com/geoffreydstewart))
+

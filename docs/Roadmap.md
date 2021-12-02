@@ -73,6 +73,7 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 - More anomaly detection algorithms.
     - LibLinear based anomaly detection is integrated in Tribuo 4.1.
 - More clustering algorithms.
+    - Added HDBSCAN in Tribuo 4.2.
 - ~~Factorization machines for classification and regression.~~ 
     - Integrated in Tribuo 4.2.
 

@@ -44,7 +44,9 @@ a math library, and common modules shared across prediction types.
   - `hash` - An implementation of feature hashing which obfuscates any feature
     names that are stored in a `Model`. Hashing prevents feature names from
     leaking out of the training data.
-  - onnx - Classes for exporting models in ONNX format.
+  - onnx - Classes for exporting models in ONNX format. These classes are
+    independent of the rest of Tribuo and could be used by other projects on
+    the JVM.
   - provenance - Provenance classes for Tribuo. Provenance tracks the location
     and transformations of datasets, the parameters of trainers, and other
     useful information.
@@ -138,6 +140,7 @@ one cluster. This package provides two modules:
 | Folder | ArtifactID | Package root | Description |
 | --- | --- | --- | --- |
 | Core | `tribuo-clustering-core` | `org.tribuo.clustering` | Contains the Output subclass for use with clustering data, as well as the evaluation code for measuring clustering performance. |
+| HDBSCAN | `tribuo-clustering-hdbscan` | `org.tribuo.clustering.hdbscan` | An implementation of HDBSCAN, a non-parametric density based clustering algorithm. |
 | KMeans | `tribuo-clustering-kmeans` | `org.tribuo.clustering.kmeans` | An implementation of K-Means using the Java 8 Stream API for parallelisation, along with the K-Means++ initialization algorithm. |
 
 ## Anomaly Detection
@@ -184,8 +187,8 @@ objects from those models.
 
 ## TensorFlow
 
-Tribuo includes experimental support for TensorFlow-Java 0.3.1 (using
-TensorFlow 2.4.1) in the `tribuo-tensorflow` artifact in the
+Tribuo includes experimental support for TensorFlow-Java 0.4.0 (using
+TensorFlow 2.7.0) in the `tribuo-tensorflow` artifact in the
 `org.tribuo.interop.tensorflow` package. Models can be defined using
 TensorFlow-Java's graph construction mechanisms, and Tribuo will manage the
 gradient optimizer output function and loss function. It includes a Java
