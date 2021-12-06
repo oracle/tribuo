@@ -213,7 +213,16 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
         boolean parallel = numThreads > 1;
-        ForkJoinPool fjp = parallel ? new ForkJoinPool(numThreads, THREAD_FACTORY, null, false) : null;
+        ForkJoinPool fjp;
+        if (parallel) {
+            if (System.getSecurityManager() == null) {
+                fjp = new ForkJoinPool(numThreads);
+            } else {
+                fjp = new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
+            }
+        } else {
+            fjp = null;
+        }
 
         int[] oldCentre = new int[examples.size()];
         SparseVector[] data = new SparseVector[examples.size()];

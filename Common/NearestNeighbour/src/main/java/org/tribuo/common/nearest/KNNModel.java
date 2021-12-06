@@ -131,7 +131,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         List<Prediction<T>> predictions;
         Stream<Pair<SparseVector,T>> stream = Stream.of(vectors);
         if (numThreads > 1) {
-            ForkJoinPool fjp = new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
+            ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
             try {
                 predictions = fjp.submit(()->StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map((a) -> new Prediction<>(a.output, input.numActiveElements(), example)).collect(Collectors.toList())).get();
             } catch (InterruptedException | ExecutionException e) {
@@ -232,7 +232,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private List<Prediction<T>> innerPredictStreams(Iterable<Example<T>> examples) {
         List<Prediction<T>> predictions = new ArrayList<>();
         List<Prediction<T>> innerPredictions = null;
-        ForkJoinPool fjp = new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
+        ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
         for (Example<T> example : examples) {
             SparseVector input = SparseVector.createSparseVector(example, featureIDMap, false);
 
