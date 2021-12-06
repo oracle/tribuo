@@ -28,6 +28,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
+        <module>OCI</module>
         <module>ONNX</module>
         <module>Tensorflow</module>
     </modules>

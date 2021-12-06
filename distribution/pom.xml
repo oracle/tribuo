@@ -79,10 +79,32 @@
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-common-xgboost</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <!-- commons-io 2.4 pulled in by xgboost4j -> hadoop-hdfs -->
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- httpclient 4.2.5 pulled in by xgboost4j -> hadoop-hdfs -> hadoop-auth -->
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- asm 5.0.4 pulled in by xgboost4j -> kryo -> reflectasm -->
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-interop-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-oci</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

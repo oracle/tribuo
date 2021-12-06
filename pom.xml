@@ -44,6 +44,9 @@
         <!-- MLRG dependencies -->
         <olcut.version>5.2.0</olcut.version>
 
+        <!-- Oracle dependencies -->
+        <oci.sdk.version>2.11.0</oci.sdk.version>
+
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.43</liblinear.version>
         <libsvm.version>3.25</libsvm.version>
