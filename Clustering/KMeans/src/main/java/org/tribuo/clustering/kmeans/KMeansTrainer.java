@@ -34,6 +34,8 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.util.Util;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +47,7 @@ import java.util.Map.Entry;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -84,6 +87,9 @@ import java.util.stream.Stream;
  */
 public class KMeansTrainer implements Trainer<ClusterID> {
     private static final Logger logger = Logger.getLogger(KMeansTrainer.class.getName());
+
+    // Thread factory for the FJP, to allow use with OpenSearch's SecureSM
+    private static final CustomForkJoinWorkerThreadFactory THREAD_FACTORY = new CustomForkJoinWorkerThreadFactory();
 
     /**
      * Possible distance functions.
@@ -207,7 +213,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
         boolean parallel = numThreads > 1;
-        ForkJoinPool fjp = parallel ? new ForkJoinPool(numThreads) : null;
+        ForkJoinPool fjp = parallel ? new ForkJoinPool(numThreads, THREAD_FACTORY, null, false) : null;
 
         int[] oldCentre = new int[examples.size()];
         SparseVector[] data = new SparseVector[examples.size()];
@@ -513,6 +519,15 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         public IntAndVector(int idx, SGDVector vector) {
             this.idx = idx;
             this.vector = vector;
+        }
+    }
+
+    /**
+     * Used to allow FJPs to work with OpenSearch's SecureSM.
+     */
+    private static final class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+        public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+            return AccessController.doPrivileged((PrivilegedAction<ForkJoinWorkerThread>) () -> new ForkJoinWorkerThread(pool) {});
         }
     }
 }
