@@ -17,8 +17,9 @@
 package org.tribuo.regression.liblinear;
 
 import ai.onnx.proto.OnnxMl;
-import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import de.bwaldvogel.liblinear.FeatureNode;
+import de.bwaldvogel.liblinear.Linear;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.Feature;
@@ -26,25 +27,18 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
-import org.tribuo.Tribuo;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
-import de.bwaldvogel.liblinear.FeatureNode;
-import de.bwaldvogel.liblinear.Linear;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -195,84 +189,43 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
 
     @Override
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        ONNXContext context = new ONNXContext();
+        ONNXContext onnx = new ONNXContext();
 
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        context.addOutput(outputValueProto);
-        context.setName("Regression-LibLinear");
+        ONNXContext.ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
+        ONNXContext.ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
+        onnx.setName("Regression-LibLinear");
 
-        // Build graph
-        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
-
-        // Build model
-        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(context.buildGraph());
-        builder.setDomain(domain);
-        builder.setProducerName("Tribuo");
-        builder.setProducerVersion(Tribuo.VERSION);
-        builder.setModelVersion(modelVersion);
-        builder.setDocString(toString());
-        builder.addOpsetImport(ONNXOperators.getOpsetProto());
-        builder.setIrVersion(6);
-
-        // Extract provenance and store in metadata
-        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
-        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
-        metaBuilder.setValue(serializeProvenance(getProvenance()));
-        builder.addMetadataProps(metaBuilder.build());
-
-        return builder.build();
+        return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName)  {
+    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+        ONNXContext onnx = input.onnx();
         double[][] weights = new double[models.size()][];
         for (int i = 0; i < models.size(); i++) {
             weights[i] = models.get(i).getFeatureWeights();
         }
         int numFeatures = featureIDMap.size();
+        int numOutputs = outputIDInfo.size();
 
         // Add weights
-        OnnxMl.TensorProto.Builder weightBuilder = OnnxMl.TensorProto.newBuilder();
-        weightBuilder.setName(context.generateUniqueName("liblinear-weights"));
-        weightBuilder.addDims(featureIDMap.size());
-        weightBuilder.addDims(outputIDInfo.size());
-        weightBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer buffer = ByteBuffer.allocate(featureIDMap.size() * outputIDInfo.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
-        FloatBuffer floatBuffer = buffer.asFloatBuffer();
-        for (int j = 0; j < numFeatures; j++) {
-            for (int i = 0; i < weights.length; i++) {
-                floatBuffer.put((float) weights[i][j]);
+        ONNXContext.ONNXTensor onnxWeights = onnx.floatTensor("liblinear-weights", Arrays.asList(numFeatures, numOutputs), fb -> {
+            for (int j = 0; j < numFeatures; j++) {
+                for (int i = 0; i < weights.length; i++) {
+                    fb.put((float) weights[i][j]);
+                }
             }
-        }
-        floatBuffer.rewind();
-        weightBuilder.setRawData(ByteString.copyFrom(buffer));
-        context.addInitializer(weightBuilder.build());
+        });
 
-        // Add biases
-        OnnxMl.TensorProto.Builder biasBuilder = OnnxMl.TensorProto.newBuilder();
-        biasBuilder.setName(context.generateUniqueName("liblinear-biases"));
-        biasBuilder.addDims(outputIDInfo.size());
-        biasBuilder.setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber());
-        ByteBuffer biasBuffer = ByteBuffer.allocate(outputIDInfo.size() * 4).order(ByteOrder.LITTLE_ENDIAN);
-        FloatBuffer floatBiasBuffer = biasBuffer.asFloatBuffer();
-        // Biases are stored last in the weight vector
-        for (int i = 0; i < weights.length; i++) {
-            floatBiasBuffer.put((float) weights[i][numFeatures]);
-        }
-        floatBiasBuffer.rewind();
-        biasBuilder.setRawData(ByteString.copyFrom(biasBuffer));
-        context.addInitializer(biasBuilder.build());
+        //Add biases
+        ONNXContext.ONNXTensor onnxBiases = onnx.floatTensor("liblinear-bias", Collections.singletonList(numOutputs), fb -> {
+            // Biases are stored last in the weight vector
+            for (int i = 0; i < weights.length; i++) {
+                fb.put((float) weights[i][numFeatures]);
+            }
+        });
 
-        // Make gemm
-        String[] gemmInputs = new String[]{inputName,weightBuilder.getName(),biasBuilder.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,outputName);
-        context.addNode(gemm);
+        return input.apply(ONNXOperators.GEMM, Arrays.asList(onnxWeights, onnxBiases));
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

@@ -16,16 +16,12 @@
 
 package org.tribuo.math.util;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Normalizes, but first subtracts the minimum value (to ensure positivity).
@@ -60,33 +56,21 @@ public class Normalizer implements VectorNormalizer, Serializable {
     }
 
     /**
-     * Returns a list of node protos containing a ReduceMin, then a Sub, then a ReduceSum, then a Div.
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input to normalize.
-     * @param output The name of the normalized output.
-     * @return The node protos representing this normalizer.
+     * Applies ONNX ReduceMin, Sub, ReduceSum, and Div operations to input.
+     * @param input The node to be normalized according to this implementation.
+     * @return the node representing Div, the final applie operation.
      */
     @Override
-    public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
-        List<OnnxMl.NodeProto> protos = new ArrayList<>();
+    public ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
+        ONNXContext onnx = input.onnx();
+        ONNXContext.ONNXTensor sumAxes = onnx.array("sum_axes", new long[]{1});
 
-        String minOutput = context.generateUniqueName("min_output");
-        OnnxMl.NodeProto min = ONNXOperators.REDUCE_MIN.build(context,input,minOutput,Collections.singletonMap("axes",new int[]{1}));
-        protos.add(min);
+        ONNXContext.ONNXNode min = input.apply(ONNXOperators.REDUCE_MIN, Collections.singletonMap("axes", new int[]{1}));
 
-        String subOutput = context.generateUniqueName("sub_output");
-        OnnxMl.NodeProto sub = ONNXOperators.SUB.build(context,new String[]{input,minOutput},subOutput);
-        protos.add(sub);
+        ONNXContext.ONNXNode sub = input.apply(ONNXOperators.SUB, min);
 
-        OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_axes",new long[]{1});
-        context.addInitializer(sumAxes);
-        String sumOutput = context.generateUniqueName("sum_output");
-        OnnxMl.NodeProto sum = ONNXOperators.REDUCE_SUM.build(context,new String[]{subOutput,sumAxes.getName()},sumOutput);
-        protos.add(sum);
+        ONNXContext.ONNXNode sum = sub.apply(ONNXOperators.REDUCE_SUM, sumAxes);
 
-        OnnxMl.NodeProto div = ONNXOperators.DIV.build(context,new String[]{subOutput,sumOutput},output);
-        protos.add(div);
-
-        return protos;
+        return sub.apply(ONNXOperators.DIV, sum);
     }
 }

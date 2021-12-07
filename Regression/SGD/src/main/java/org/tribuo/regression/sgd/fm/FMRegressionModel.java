@@ -16,7 +16,6 @@
 
 package org.tribuo.regression.sgd.fm;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -26,8 +25,6 @@ import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -106,33 +103,13 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
     }
 
     @Override
-    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        ONNXContext context = new ONNXContext();
-
-        context.setName("FMMultiLabelModel");
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        context.addOutput(outputValueProto);
-
-        // Build graph
-        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
-
-        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
+    protected String onnxModelName() {
+        return "FMRegressionModel";
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
-
-        // Build the output neutral bits of the onnx graph
-        String fmOutputName = generateONNXGraph(context, inputName);
-
-        if (standardise) {
-            // standardise the FM output
+    protected ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode fmOutput) {
+        if(standardise) {
             ImmutableRegressionInfo info = (ImmutableRegressionInfo) outputIDInfo;
             double[] means = new double[outputIDInfo.size()];
             double[] variances = new double[outputIDInfo.size()];
@@ -140,23 +117,12 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
                 means[i] = info.getMean(i);
                 variances[i] = info.getVariance(i);
             }
+            ONNXContext.ONNXTensor outputMean = fmOutput.onnx().array("y_mean", means);
+            ONNXContext.ONNXTensor outputVariance = fmOutput.onnx().array("y_var", variances);
 
-            // Create mean and variance initializers
-            OnnxMl.TensorProto outputMeanProto = ONNXUtils.arrayBuilder(context,context.generateUniqueName("y_mean"),means);
-            context.addInitializer(outputMeanProto);
-            OnnxMl.TensorProto outputVarianceProto = ONNXUtils.arrayBuilder(context, context.generateUniqueName("y_var"),variances);
-            context.addInitializer(outputVarianceProto);
-
-            // Add standardisation operations
-            String varianceOutput = context.generateUniqueName("y_var_scale_output");
-            OnnxMl.NodeProto varianceScale = ONNXOperators.MUL.build(context, new String[]{fmOutputName,outputVarianceProto.getName()}, varianceOutput);
-            context.addNode(varianceScale);
-            OnnxMl.NodeProto meanScale = ONNXOperators.ADD.build(context, new String[]{varianceOutput,outputMeanProto.getName()}, outputName);
-            context.addNode(meanScale);
+            return fmOutput.apply(ONNXOperators.MUL, outputVariance).apply(ONNXOperators.ADD, outputMean);
         } else {
-            // Not standardised, so link up the FM output to the graph output
-            OnnxMl.NodeProto output = ONNXOperators.IDENTITY.build(context, fmOutputName, outputName);
-            context.addNode(output);
+            return fmOutput;
         }
     }
 }

@@ -56,12 +56,12 @@ public interface ONNXExportable {
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion);
 
     /**
-     * Writes this {@link org.tribuo.Model} into the {@link OnnxMl.GraphProto.Builder} inside the {@link ONNXContext}.
-     * @param context The ONNX context which stores the builder and namespace.
-     * @param inputName The name the model should take its input from.
-     * @param outputName The name the model should output to.
+     * Writes this {@link org.tribuo.Model} into {@link OnnxMl.GraphProto.Builder} inside the input's
+     * {@link ONNXContext}.
+     * @param input The input to the model graph.
+     * @return the output node of the model graph.
      */
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName);
+    ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input);
 
     /**
      * Exports this {@link org.tribuo.Model} as an ONNX file.

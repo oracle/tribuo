@@ -25,7 +25,6 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
-import org.tribuo.Tribuo;
 import org.tribuo.classification.Label;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
@@ -33,8 +32,6 @@ import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
 
@@ -47,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A classification model that uses an underlying LibSVM model to make the
@@ -166,42 +164,18 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
 
     @Override
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        ONNXContext context = new ONNXContext();
+        ONNXContext onnx = new ONNXContext();
 
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        context.addOutput(outputValueProto);
-        context.setName("Classification-LibSVM");
+        ONNXContext.ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
+        ONNXContext.ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
+        onnx.setName("Classification-LibSVM");
 
-        // Build graph
-        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
-
-        // Build model
-        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(context.buildGraph());
-        builder.setDomain(domain);
-        builder.setProducerName("Tribuo");
-        builder.setProducerVersion(Tribuo.VERSION);
-        builder.setModelVersion(modelVersion);
-        builder.setDocString(toString());
-        builder.addOpsetImport(ONNXOperators.getOpsetProto());
-        builder.setIrVersion(6);
-
-        // Extract provenance and store in metadata
-        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
-        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
-        metaBuilder.setValue(serializeProvenance(getProvenance()));
-        builder.addMetadataProps(metaBuilder.build());
-
-        return builder.build();
+        return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName)  {
+    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+        ONNXContext onnx = input.onnx();
         svm_model model = models.get(0);
         int numOneVOne = model.label.length * (model.label.length - 1) / 2;
         int numFeatures = featureIDMap.size();
@@ -241,27 +215,21 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         }
 
         // Build SVM node
-        String[] outputs = new String[]{"pred_label", "svm_output"};
-        OnnxMl.NodeProto svm = ONNXOperators.SVM_CLASSIFIER.build(context,inputName,outputs,attributes);
-        context.addNode(svm);
+        List<ONNXContext.ONNXNode> outputs = input.apply(ONNXOperators.SVM_CLASSIFIER, Arrays.asList("pred_label", "svm_output"), attributes);
+        ONNXContext.ONNXNode predLabel = outputs.get(0);
+        ONNXContext.ONNXNode svmOutput = outputs.get(1);
 
-        String svmOutputName = "svm_output";
+        ONNXContext.ONNXNode ungatheredOutput = svmOutput;
         // if the model is not probabilistic we need to vote the one v one classifier output
-        if (!generatesProbabilities) {
-            String decisionInput;
+        if(!generatesProbabilities) {
             // If the model has two classes then the scores are inverted for some reason
             // This is based on the ONNX Runtime behaviour, but the ONNX SVMClassifier spec is ill-defined
-            if (model.nr_class == 2) {
-                OnnxMl.TensorProto negOne = ONNXUtils.scalarBuilder(context, "minus_one", -1.0f);
-                context.addInitializer(negOne);
-                OnnxMl.NodeProto binaryOutput = ONNXOperators.MUL.build(context, new String[]{outputs[1], negOne.getName()}, "svm_output_b");
-                context.addNode(binaryOutput);
-                decisionInput = binaryOutput.getOutput(0);
+            if(model.nr_class == 2) {
+                ONNXContext.ONNXTensor negOne = input.onnx().constant("minus_one", -1.0f);
+                ungatheredOutput = writeDecisionFunction(svmOutput.apply(ONNXOperators.MUL, negOne));
             } else {
-                decisionInput = outputs[1];
+                ungatheredOutput = writeDecisionFunction(svmOutput);
             }
-            writeDecisionFunction(context, decisionInput, "ungathered_output");
-            svmOutputName = "ungathered_output";
         }
 
         // Undo the libsvm mapping so the indices line up with Tribuo indices
@@ -270,66 +238,42 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
             backwardsLibSVMMapping[model.label[i]] = i;
         }
 
-        OnnxMl.TensorProto indices = ONNXUtils.arrayBuilder(context, "label_indices", backwardsLibSVMMapping);
-        context.addInitializer(indices);
+        ONNXContext.ONNXTensor indices = onnx.array("label_indices", backwardsLibSVMMapping);
 
-        OnnxMl.NodeProto gather = ONNXOperators.GATHER.build(context, new String[]{svmOutputName, indices.getName()}, outputName, Collections.singletonMap("axis", 1));
-        context.addNode(gather);
+        return ungatheredOutput.apply(ONNXOperators.GATHER, indices, Collections.singletonMap("axis", 1));
     }
 
-    private void writeDecisionFunction(ONNXContext context, String svmOutputName, String outputName) {
-        // cst1
-        OnnxMl.TensorProto one = ONNXUtils.scalarBuilder(context,"one",1.0f);
-        context.addInitializer(one);
-        // cst0
-        OnnxMl.TensorProto zero = ONNXUtils.scalarBuilder(context,"zero",0.0f);
-        context.addInitializer(zero);
+    private ONNXContext.ONNXNode writeDecisionFunction(ONNXContext.ONNXNode svmOutputName) {
+        final ONNXContext onnx = svmOutputName.onnx();
+        ONNXContext.ONNXTensor one = onnx.constant("one", 1.0f);
+        ONNXContext.ONNXTensor zero = onnx.constant("zero", 0.0f);
 
-        OnnxMl.NodeProto prediction = ONNXOperators.LESS.build(context,new String[]{svmOutputName,zero.getName()},context.generateUniqueName("prediction"));
-        context.addNode(prediction);
-
-        OnnxMl.NodeProto floatPrediction = ONNXOperators.CAST.build(context,prediction.getOutput(0),
-                context.generateUniqueName("float_prediction"),
-                Collections.singletonMap("to",OnnxMl.TensorProto.DataType.FLOAT.getNumber()));
-        context.addNode(floatPrediction);
+        ONNXContext.ONNXNode prediction = svmOutputName.apply(ONNXOperators.LESS, zero).cast(float.class);
 
         svm_model model = models.get(0);
-        String[] oneVOneNames = new String[model.nr_class];
-        LinkedHashMap<String,List<OnnxMl.NodeProto>> voteAdds = new LinkedHashMap<>();
-        for (int i = 0; i < model.nr_class; i++) {
-            oneVOneNames[i] = context.generateUniqueName("svcvote_" + i);
-            voteAdds.put(oneVOneNames[i],new ArrayList<>());
-        }
+
+        LinkedHashMap<Integer, List<ONNXContext.ONNXNode>> votes = new LinkedHashMap<>();
 
         int k = 0;
         for (int i = 0; i < model.nr_class; i++) {
-            for (int j = i+1; j < model.nr_class; j++) {
-                OnnxMl.TensorProto index = ONNXUtils.scalarBuilder(context,"Vind_" + k, (long) k);
-                context.addInitializer(index);
-                OnnxMl.NodeProto featureExtractor = ONNXOperators.ARRAY_FEATURE_EXTRACTOR.build(context,
-                        new String[]{floatPrediction.getOutput(0),index.getName()},
-                        context.generateUniqueName("Vsvcv_"+k)
-                );
-                context.addNode(featureExtractor);
-                voteAdds.get(oneVOneNames[j]).add(featureExtractor);
-                OnnxMl.NodeProto negate = ONNXOperators.NEG.build(context,featureExtractor.getOutput(0),context.generateUniqueName("Vnegv_"+k));
-                context.addNode(negate);
-                OnnxMl.NodeProto addNeg = ONNXOperators.ADD.build(context,new String[]{negate.getOutput(0),one.getName()},context.generateUniqueName("Vnegv1_"+k));
-                context.addNode(addNeg);
-                voteAdds.get(oneVOneNames[i]).add(addNeg);
+            for (int j = i + 1; j < model.nr_class; j++) {
+                ONNXContext.ONNXTensor index = onnx.constant("Vind_" + k, (long) k);
+
+                ONNXContext.ONNXNode extractedFeature = prediction.apply(ONNXOperators.ARRAY_FEATURE_EXTRACTOR, index);
+                votes.computeIfAbsent(j, x -> new ArrayList<>()).add(extractedFeature);
+
+                ONNXContext.ONNXNode addNeg = extractedFeature.apply(ONNXOperators.NEG).apply(ONNXOperators.ADD, one);
+                votes.computeIfAbsent(i, x -> new ArrayList<>()).add(addNeg);
 
                 k += 1;
             }
         }
 
-        for (Map.Entry<String, List<OnnxMl.NodeProto>> e : voteAdds.entrySet()) {
-            String[] nodeNames = e.getValue().stream().map((OnnxMl.NodeProto n) -> n.getOutput(0)).toArray(String[]::new);
-            OnnxMl.NodeProto sum = ONNXOperators.SUM.build(context,nodeNames,e.getKey());
-            context.addNode(sum);
-        }
+        List<ONNXContext.ONNXNode> oneVOneVotes = votes.values().stream()
+                .map(nodes -> onnx.operation(ONNXOperators.SUM, nodes, "svm_votes"))
+                .collect(Collectors.toList());
 
-        OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context,oneVOneNames,outputName,Collections.singletonMap("axis",1));
-        context.addNode(concat);
+        return onnx.operation(ONNXOperators.CONCAT, oneVOneVotes, "svm_output", Collections.singletonMap("axis", 1));
     }
 
 }

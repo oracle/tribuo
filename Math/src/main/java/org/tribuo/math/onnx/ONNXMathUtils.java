@@ -50,6 +50,11 @@ public abstract class ONNXMathUtils {
                 (FloatBuffer fb) -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
     }
 
+    public static ONNXContext.ONNXTensor floatVector(ONNXContext context, String name, SGDVector vector) {
+        return context.floatTensor(name, Collections.singletonList(vector.size()),
+        (FloatBuffer fb) -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
+    }
+
     /**
      * Builds a TensorProto containing the {@link Matrix}.
      * @param context The naming context.
@@ -73,4 +78,17 @@ public abstract class ONNXMathUtils {
                 }));
     }
 
+    public static ONNXContext.ONNXTensor floatMatrix(ONNXContext context, String name, Matrix matrix, boolean transpose) {
+        List<Integer> dims = Arrays.stream(matrix.getShape()).boxed().collect(Collectors.toList());
+        if(transpose) {
+            Collections.reverse(dims);
+        }
+        return context.floatTensor(name, dims,
+                fb -> matrix.forEach(mt -> {
+                    int address = transpose
+                            ? mt.j * matrix.getDimension1Size() + mt.i
+                            : mt.i * matrix.getDimension2Size() + mt.j;
+                    fb.put(address, (float) mt.value);
+                }));
+    }
 }

@@ -282,6 +282,7 @@ public class TestLibSVM {
         Path onnxFile = Files.createTempFile("tribuo-libsvm-test", ".onnx");
         model.saveONNXModel("org.tribuo.classification.libsvm.test", 1, onnxFile);
 
+        System.out.println("Wrote model to: " +onnxFile.toString());
         OnnxTestUtils.onnxLabelComparison(model,onnxFile,datasetPair.getB(),1e-3);
 
         onnxFile.toFile().delete();

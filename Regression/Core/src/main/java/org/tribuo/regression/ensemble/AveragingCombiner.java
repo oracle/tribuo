@@ -16,7 +16,6 @@
 
 package org.tribuo.regression.ensemble;
 
-import ai.onnx.proto.OnnxMl;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Example;
@@ -25,16 +24,13 @@ import org.tribuo.Prediction;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.regression.Regressor;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * A combiner which performs a weighted or unweighted average of the predicted
@@ -134,64 +130,43 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
      * Exports this averaging combiner as a list of ONNX NodeProtos.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input tensor to combine.
-     * @param output The name of the averaged output.
-     * @return A list of node protos representing the averaging operation.
+     * @param input The node to combine
+     * @return A node representing the final average operation.
      */
     @Override
-    public List<OnnxMl.NodeProto> exportCombiner(ONNXContext context, String input, String output) {
-        List<OnnxMl.NodeProto> nodes = new ArrayList<>();
-
-        Map<String,Object> attributes = new HashMap<>();
-        attributes.put("axes",new int[]{2});
-        attributes.put("keepdims",0);
-        OnnxMl.NodeProto mean = ONNXOperators.REDUCE_MEAN.build(context,input,output,attributes);
-        nodes.add(mean);
-
-        return nodes;
+    public ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input) {
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("axes", new int[]{2});
+        attributes.put("keepdims", 0);
+        return input.apply(ONNXOperators.REDUCE_MEAN, attributes);
     }
 
     /**
-     * Exports this ensemble combiner as a list of ONNX NodeProtos.
+     * Exports this averaging combiner as a list of ONNX NodeProtos.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input tensor to combine.
-     * @param output The name of the averaged output.
-     * @param weight The name of the combination weight initializer.
-     * @return A list of node protos representing the averaging operation.
+     * @param input The node to combine
+     * @param weight The node of weights to use in combining.
+     * @return A node representing the final average operation.
      */
     @Override
-    public List<OnnxMl.NodeProto> exportCombiner(ONNXContext context, String input, String output, String weight) {
-        List<OnnxMl.NodeProto> nodes = new ArrayList<>();
-
+    public <T extends ONNXContext.ONNXRef<?>> ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input, T weight) {
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        OnnxMl.TensorProto unsqueezeAxes = ONNXUtils.arrayBuilder(context,"unsqueeze_ensemble_output",new long[]{0,1});
-        context.addInitializer(unsqueezeAxes);
-        OnnxMl.NodeProto unsqueeze = ONNXOperators.UNSQUEEZE.build(context,new String[]{weight,unsqueezeAxes.getName()},context.generateUniqueName("unsqueezed_weights"));
-        nodes.add(unsqueeze);
+        ONNXContext.ONNXTensor unsqueezeAxes = input.onnx().array("unsqueeze_ensemble_output", new long[]{0, 1});
+        ONNXContext.ONNXTensor sumAxes = input.onnx().array("sum_across_ensemble_axes", new long[]{2});
+
+        ONNXContext.ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 
         // Multiply the input by the weights.
-        OnnxMl.NodeProto mulByWeights = ONNXOperators.MUL.build(context,new String[]{input,unsqueeze.getOutput(0)},context.generateUniqueName("mul_predictions_by_weights"));
-        nodes.add(mulByWeights);
+        ONNXContext.ONNXNode mulByWeights = input.apply(ONNXOperators.MUL, unsqueezed);
 
         // Sum the weights
-        OnnxMl.NodeProto weightSum = ONNXOperators.REDUCE_SUM.build(context,weight,context.generateUniqueName("ensemble_weight_sum"));
-        nodes.add(weightSum);
+        ONNXContext.ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
+
 
         // Take the mean
-        OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_across_ensemble_axes",new long[]{2});
-        context.addInitializer(sumAxes);
-        OnnxMl.NodeProto sumAcrossMembers = ONNXOperators.REDUCE_SUM.build(context,
-                new String[]{mulByWeights.getOutput(0),sumAxes.getName()},
-                context.generateUniqueName("sum_across_ensemble"),
-                Collections.singletonMap("keepdims",0));
-        nodes.add(sumAcrossMembers);
-        OnnxMl.NodeProto divideByWeightSum = ONNXOperators.DIV.build(context,new String[]{sumAcrossMembers.getOutput(0),weightSum.getOutput(0)},output);
-        nodes.add(divideByWeightSum);
-
-        return nodes;
+        return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))
+                .apply(ONNXOperators.DIV, weightSum);
     }
 }

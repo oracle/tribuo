@@ -16,14 +16,11 @@
 
 package org.tribuo.math.util;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXOperators;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Normalizes the input by applying a logistic sigmoid to each element.
@@ -57,14 +54,11 @@ public class SigmoidNormalizer implements VectorNormalizer, Serializable {
 
     /**
      * Returns the ONNX sigmoid node, operating independently over each element.
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input to normalize.
-     * @param output The name of the normalized output.
-     * @return The node protos representing this normalizer.
+     * @param input The node to be normalized according to this implementation.
+     * @return the sigmoid node applied to input.
      */
     @Override
-    public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
-        return Collections.singletonList(ONNXOperators.SIGMOID.build(context,input,output));
+    public ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
+        return input.apply(ONNXOperators.SIGMOID);
     }
-
 }

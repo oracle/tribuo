@@ -16,7 +16,6 @@
 
 package org.tribuo.multilabel.sgd.fm;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -29,13 +28,10 @@ import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -104,36 +100,12 @@ public class FMMultiLabelModel extends AbstractFMModel<MultiLabel> implements ON
     }
 
     @Override
-    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        ONNXContext context = new ONNXContext();
-
-        context.setName("FMMultiLabelModel");
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        context.addOutput(outputValueProto);
-
-        // Build graph
-        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
-
-        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
+    protected String onnxModelName() {
+        return "FMMultiLabelModel";
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
-        // Build the output neutral bits of the onnx graph
-        String fmOutputName = generateONNXGraph(context, inputName);
-
-        // Make output normalizer
-        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,fmOutputName,outputName);
-        if (normalizerProtos.isEmpty()) {
-            throw new IllegalArgumentException("Normalizer " + normalizer.getClass() + " cannot be exported in ONNX models.");
-        } else {
-            context.addAllNodes(normalizerProtos);
-        }
+    protected ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input) {
+        return normalizer.exportNormalizer(input);
     }
 }

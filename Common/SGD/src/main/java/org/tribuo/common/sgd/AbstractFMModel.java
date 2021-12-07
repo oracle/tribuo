@@ -23,7 +23,6 @@ import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
-import org.tribuo.Tribuo;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
@@ -31,12 +30,11 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.onnx.ONNXMathUtils;
 import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -186,135 +184,67 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
      */
     protected abstract String getDimensionName(int index);
 
-    /**
-     * Builds the ModelProto according to the standards for this model.
-     *
-     * @param graph        The model graph.
-     * @param domain       The model domain string.
-     * @param modelVersion The model version number.
-     * @return The ModelProto.
-     */
-    protected OnnxMl.ModelProto innerExportONNXModel(OnnxMl.GraphProto graph, String domain, long modelVersion) {
-        // Build model
-        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
-        builder.setDomain(domain);
-        builder.setProducerName("Tribuo");
-        builder.setProducerVersion(Tribuo.VERSION);
-        builder.setModelVersion(modelVersion);
-        builder.setDocString(toString());
-        builder.addOpsetImport(ONNXOperators.getOpsetProto());
-        builder.setIrVersion(6);
+    protected abstract ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input);
 
-        // Extract provenance and store in metadata
-        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
-        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
-        String serializedProvenance = ONNXExportable.SERIALIZER.marshalAndSerialize(getProvenance());
-        metaBuilder.setValue(serializedProvenance);
-        builder.addMetadataProps(metaBuilder.build());
+    protected abstract String onnxModelName();
 
-        return builder.build();
-    }
-
-    /**
-     * Constructs the shared stem of the Factorization Machine, used by all output types.
-     * <p>
-     * Writes into the supplied context.
-     *
-     * @param context      The ONNX context.
-     * @return The name of the output.
-     */
-    protected String generateONNXGraph(ONNXContext context, String inputName) {
+    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+        ONNXContext onnx = input.onnx();
         Tensor[] modelParams = modelParameters.get();
 
-        // Add constants
-        OnnxMl.TensorProto twoConst = OnnxMl.TensorProto.newBuilder()
-                .setName(context.generateUniqueName("two_const"))
-                .setDataType(OnnxMl.TensorProto.DataType.FLOAT.getNumber())
-                .addFloatData(2.0f)
-                .build();
-        context.addInitializer(twoConst);
+        ONNXContext.ONNXTensor twoConst = onnx.constant("two_const", 2.0f);
+        ONNXContext.ONNXTensor sumAxes = onnx.array("sum_over_embedding_axes", new long[]{1});
 
-        // Add weights
-        OnnxMl.TensorProto weightInitializerProto = ONNXMathUtils.floatMatrixBuilder(context, "fm_linear_weights", (Matrix) modelParams[1], true);
-        context.addInitializer(weightInitializerProto);
-
-        // Add biases
-        OnnxMl.TensorProto biasInitializerProto = ONNXMathUtils.floatVectorBuilder(context, "fm_biases", (SGDVector) modelParams[0]);
-        context.addInitializer(biasInitializerProto);
-
-        // Add embedding vectors
-        OnnxMl.TensorProto[] embeddingProtos = new OnnxMl.TensorProto[outputIDInfo.size()];
-        for (int i = 0; i < outputIDInfo.size(); i++) {
-            embeddingProtos[i] = ONNXMathUtils.floatMatrixBuilder(context, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
-            context.addInitializer(embeddingProtos[i]);
-        }
+        ONNXContext.ONNXTensor weights = ONNXMathUtils.floatMatrix(onnx, "fm_linear_weights", (Matrix) modelParams[1], true);
+        ONNXContext.ONNXTensor bias = ONNXMathUtils.floatVector(onnx, "fm_biases", (SGDVector) modelParams[0]);
 
         // Make gemm
-        String[] gemmInputs = new String[]{inputName, weightInitializerProto.getName(), biasInitializerProto.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context, gemmInputs, context.generateUniqueName("gemm_output"));
-        context.addNode(gemm);
+        ONNXContext.ONNXNode gemm = input.apply(ONNXOperators.GEMM, Arrays.asList(weights, bias));
 
         // Make feature pow
-        OnnxMl.NodeProto featurePow = ONNXOperators.POW.build(context, new String[]{inputName, twoConst.getName()},
-                context.generateUniqueName("feature_pow"));
-        context.addNode(featurePow);
+        ONNXContext.ONNXNode inputSquared = input.apply(ONNXOperators.POW, twoConst);
 
-        // Make interaction terms
-        String[] embeddingOutputs = new String[outputIDInfo.size()];
-        for (int i = 0; i < outputIDInfo.size(); i++) {
+
+        List<ONNXContext.ONNXNode> embeddingOutputs = new ArrayList<>();
+        for(int i = 0; i < outputIDInfo.size(); i++) {
+            //embeddingWeights.add(ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true));
+
+            // Embedding Weights
+            ONNXContext.ONNXTensor embWeight = ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
+
             // Feature matrix * embedding matrix = batch_size, embedding dim
-            OnnxMl.NodeProto gemmFeatureEmb = ONNXOperators.GEMM.build(context,
-                    new String[]{inputName, embeddingProtos[i].getName()},
-                    context.generateUniqueName("gemm_input_emb"));
-            context.addNode(gemmFeatureEmb);
+            ONNXContext.ONNXNode featureEmbedding = input.apply(ONNXOperators.GEMM, embWeight);
+
             // Square the output
-            OnnxMl.NodeProto powFeatureEmb = ONNXOperators.POW.build(context,
-                    new String[]{gemmFeatureEmb.getOutput(0), twoConst.getName()},
-                    context.generateUniqueName("pow_input_emb"));
-            context.addNode(powFeatureEmb);
+            ONNXContext.ONNXNode embeddingSquared = featureEmbedding.apply(ONNXOperators.POW, twoConst);
+
             // Square the embeddings
-            OnnxMl.NodeProto powEmb = ONNXOperators.POW.build(context,
-                    new String[]{embeddingProtos[i].getName(), twoConst.getName()},
-                    context.generateUniqueName("pow_emb"));
-            context.addNode(powEmb);
+            ONNXContext.ONNXNode embWeightSquared = embWeight.apply(ONNXOperators.POW, twoConst);
+
             // squared features * squared embeddings
-            OnnxMl.NodeProto gemmSquaredFeatureSquaredEmb = ONNXOperators.GEMM.build(context,
-                    new String[]{featurePow.getOutput(0), powEmb.getOutput(0)},
-                    context.generateUniqueName("gemm_squared_input_squared_emb"));
-            context.addNode(gemmSquaredFeatureSquaredEmb);
+            ONNXContext.ONNXNode inputByEmbeddingSquared = inputSquared.apply(ONNXOperators.GEMM, embWeightSquared);
+
             // squared product subtract product of squares
-            OnnxMl.NodeProto subtract = ONNXOperators.SUB.build(context,
-                    new String[]{powFeatureEmb.getOutput(0), gemmSquaredFeatureSquaredEmb.getOutput(0)},
-                    context.generateUniqueName("squared_prod_subtract_prod_of_squares"));
-            context.addNode(subtract);
+            ONNXContext.ONNXNode subtract = embeddingSquared.apply(ONNXOperators.SUB, inputByEmbeddingSquared);
+
             // sum over embedding dimensions
-            OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_over_embeddings_axes",new long[]{1});
-            context.addInitializer(sumAxes);
-            OnnxMl.NodeProto sumOverEmbeddings = ONNXOperators.REDUCE_SUM.build(context,
-                    new String[]{subtract.getOutput(0),sumAxes.getName()},
-                    context.generateUniqueName("sum_over_embeddings"));
-            context.addNode(sumOverEmbeddings);
             // Divide by 2
-            OnnxMl.NodeProto scaledInteraction = ONNXOperators.DIV.build(context,
-                    new String[]{sumOverEmbeddings.getOutput(0), twoConst.getName()},
-                    context.generateUniqueName("scaled_interaction"));
-            context.addNode(scaledInteraction);
-            // Store the output name
-            embeddingOutputs[i] = scaledInteraction.getOutput(0);
+            embeddingOutputs.add(subtract.apply(ONNXOperators.REDUCE_SUM, sumAxes)
+                    .apply(ONNXOperators.DIV, twoConst));
         }
 
-        // Make concat
-        OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context, embeddingOutputs, context.generateUniqueName("fm_concat"),
-                Collections.singletonMap("axis", 1)
-        );
-        context.addNode(concat);
+        ONNXContext.ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, embeddingOutputs, "fm_concat", Collections.singletonMap("axis", 1));
 
-        // Add to gemm
-        OnnxMl.NodeProto addGemmConcat = ONNXOperators.ADD.build(context, new String[]{gemm.getOutput(0), concat.getOutput(0)}, context.generateUniqueName("fm_output"));
-        context.addNode(addGemmConcat);
+        return onnxOutput(gemm.apply(ONNXOperators.ADD, concat));
+    }
 
-        return addGemmConcat.getOutput(0);
+    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
+        ONNXContext onnx = new ONNXContext();
+        onnx.setName(onnxModelName());
+        ONNXContext.ONNXPlaceholder input = onnx.floatInput("input", featureIDMap.size());
+        ONNXContext.ONNXPlaceholder output = onnx.floatOutput("output", outputIDInfo.size());
+        writeONNXGraph(input).assignTo(output);
+        return onnx.model(domain, modelVersion, this);
     }
 
 }

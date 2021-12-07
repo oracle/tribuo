@@ -16,12 +16,9 @@
 
 package org.tribuo.math.util;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.onnx.ONNXContext;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -50,21 +47,17 @@ public interface VectorNormalizer extends Serializable {
     }
 
     /**
-     * Exports this normalizer as a list of ONNX NodeProtos.
+     * Exports this normalizer to ONNX, returning the leaf of the appended graph.
      * <p>
-     * For compatibility reasons the default implementation returns an empty list, and
-     * normalizers which use the default implementation will not be able to export
-     * their models to ONNX. It is recommended that this method is overridden to
-     * support ONNX export, and in a future version of Tribuo this default implementation
-     * will be removed.
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input to normalize.
-     * @param output The name of the normalized output.
-     * @return A list of node protos representing the normalization operation.
+     * For compatibility reasons this method has a default implementation, though
+     * when called it will throw an {@code IllegalStateException}. In a future
+     * version this method will not have a default implementation and normalizers
+     * will be required to provide ONNX support.
+     * @param input The node to be normalized according to this implementation.
+     * @return The leaf node of the graph of operations added to normalize input.
      */
-    default public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
+    default ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export a normalizer to ONNX format, but this is not implemented.");
-        return Collections.emptyList();
+        throw new IllegalStateException("Normalizer " + this.getClass() + " cannot be exported in ONNX models.");
     }
-
 }

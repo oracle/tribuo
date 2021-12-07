@@ -26,17 +26,13 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.Tribuo;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXUtils;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -162,65 +158,38 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
         return ((DenseMatrix)modelParameters.get()[0]).copy();
     }
 
-    /**
-     * Builds the ModelProto according to the standards for this model.
-     * @param graph The model graph.
-     * @param domain The model domain string.
-     * @param modelVersion The model version number.
-     * @return The ModelProto.
-     */
-    protected OnnxMl.ModelProto innerExportONNXModel(OnnxMl.GraphProto graph, String domain, long modelVersion) {
-        // Build model
-        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
-        builder.setDomain(domain);
-        builder.setProducerName("Tribuo");
-        builder.setProducerVersion(Tribuo.VERSION);
-        builder.setModelVersion(modelVersion);
-        builder.setDocString(toString());
-        builder.addOpsetImport(ONNXOperators.getOpsetProto());
-        builder.setIrVersion(6);
+    protected abstract ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input);
 
-        // Extract provenance and store in metadata
-        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
-        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
-        String serializedProvenance = ONNXExportable.SERIALIZER.marshalAndSerialize(getProvenance());
-        metaBuilder.setValue(serializedProvenance);
-        builder.addMetadataProps(metaBuilder.build());
+    protected abstract String onnxModelName();
 
-        return builder.build();
-    }
+    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+        ONNXContext onnx = input.onnx();
 
-    /**
-     * Builds a TensorProto containing the model weights.
-     * @param context The naming context.
-     * @return The weight TensorProto.
-     */
-    protected OnnxMl.TensorProto weightBuilder(ONNXContext context) {
-        final Matrix weightMatrix = (Matrix) modelParameters.get()[0];
-        return ONNXUtils.floatTensorBuilder(context, "linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
-                (FloatBuffer fb) -> {
-                    for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
-                        for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
-                            fb.put((float) weightMatrix.get(i, j));
-                        }
-                    }
-                });
-    }
-
-    /**
-     * Builds a TensorProto containing the model biases.
-     * @param context The naming context.
-     * @return The bias TensorProto.
-     */
-    protected OnnxMl.TensorProto biasBuilder(ONNXContext context) {
         Matrix weightMatrix = (Matrix) modelParameters.get()[0];
-        return ONNXUtils.floatTensorBuilder(context, "linear_sgd_biases", Collections.singletonList(outputIDInfo.size()),
-                (FloatBuffer fb) -> {
-                    for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
-                        fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
-                    }
-                });
+
+        ONNXContext.ONNXTensor weights = onnx.floatTensor("linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()), fb -> {
+            for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
+                for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+                    fb.put((float) weightMatrix.get(i, j));
+                }
+            }
+        });
+        ONNXContext.ONNXTensor bias = onnx.floatTensor("linear_sgd_bias", Collections.singletonList(outputIDInfo.size()), fb -> {
+            for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+                fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
+            }
+        });
+
+        return onnxOutput(input.apply(ONNXOperators.GEMM, Arrays.asList(weights, bias)));
+    }
+
+    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
+        ONNXContext onnx = new ONNXContext();
+        onnx.setName(onnxModelName());
+        ONNXContext.ONNXPlaceholder input = onnx.floatInput("input", featureIDMap.size());
+        ONNXContext.ONNXPlaceholder output = onnx.floatOutput("output", outputIDInfo.size());
+        writeONNXGraph(input).assignTo(output);
+        return onnx.model(domain, modelVersion, this);
     }
 
 }
