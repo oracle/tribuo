@@ -38,6 +38,7 @@ import org.tribuo.util.Util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -269,7 +270,9 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
             }
         }
 
-        List<ONNXContext.ONNXNode> oneVOneVotes = votes.values().stream()
+        List<ONNXContext.ONNXNode> oneVOneVotes = votes.entrySet().stream().sequential()
+                .sorted(Comparator.comparingInt(Map.Entry::getKey))
+                .map(Map.Entry::getValue)
                 .map(nodes -> onnx.operation(ONNXOperators.SUM, nodes, "svm_votes"))
                 .collect(Collectors.toList());
 
