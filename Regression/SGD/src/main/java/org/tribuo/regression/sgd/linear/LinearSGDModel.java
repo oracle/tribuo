@@ -23,8 +23,8 @@ import org.tribuo.Prediction;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
-import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 
@@ -86,7 +86,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> implements
     }
 
     @Override
-    protected ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input) {
+    protected ONNXNode onnxOutput(ONNXNode input) {
         return input;
     }
 

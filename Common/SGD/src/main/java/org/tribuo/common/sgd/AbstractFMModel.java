@@ -30,7 +30,11 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.onnx.ONNXMathUtils;
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -184,48 +188,48 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
      */
     protected abstract String getDimensionName(int index);
 
-    protected abstract ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input);
+    protected abstract ONNXNode onnxOutput(ONNXNode input);
 
     protected abstract String onnxModelName();
 
-    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
         ONNXContext onnx = input.onnx();
         Tensor[] modelParams = modelParameters.get();
 
-        ONNXContext.ONNXTensor twoConst = onnx.constant("two_const", 2.0f);
-        ONNXContext.ONNXTensor sumAxes = onnx.array("sum_over_embedding_axes", new long[]{1});
+        ONNXTensor twoConst = onnx.constant("two_const", 2.0f);
+        ONNXTensor sumAxes = onnx.array("sum_over_embedding_axes", new long[]{1});
 
-        ONNXContext.ONNXTensor weights = ONNXMathUtils.floatMatrix(onnx, "fm_linear_weights", (Matrix) modelParams[1], true);
-        ONNXContext.ONNXTensor bias = ONNXMathUtils.floatVector(onnx, "fm_biases", (SGDVector) modelParams[0]);
+        ONNXTensor weights = ONNXMathUtils.floatMatrix(onnx, "fm_linear_weights", (Matrix) modelParams[1], true);
+        ONNXTensor bias = ONNXMathUtils.floatVector(onnx, "fm_biases", (SGDVector) modelParams[0]);
 
         // Make gemm
-        ONNXContext.ONNXNode gemm = input.apply(ONNXOperators.GEMM, Arrays.asList(weights, bias));
+        ONNXNode gemm = input.apply(ONNXOperators.GEMM, Arrays.asList(weights, bias));
 
         // Make feature pow
-        ONNXContext.ONNXNode inputSquared = input.apply(ONNXOperators.POW, twoConst);
+        ONNXNode inputSquared = input.apply(ONNXOperators.POW, twoConst);
 
 
-        List<ONNXContext.ONNXNode> embeddingOutputs = new ArrayList<>();
+        List<ONNXNode> embeddingOutputs = new ArrayList<>();
         for(int i = 0; i < outputIDInfo.size(); i++) {
             //embeddingWeights.add(ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true));
 
             // Embedding Weights
-            ONNXContext.ONNXTensor embWeight = ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
+            ONNXTensor embWeight = ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
 
             // Feature matrix * embedding matrix = batch_size, embedding dim
-            ONNXContext.ONNXNode featureEmbedding = input.apply(ONNXOperators.GEMM, embWeight);
+            ONNXNode featureEmbedding = input.apply(ONNXOperators.GEMM, embWeight);
 
             // Square the output
-            ONNXContext.ONNXNode embeddingSquared = featureEmbedding.apply(ONNXOperators.POW, twoConst);
+            ONNXNode embeddingSquared = featureEmbedding.apply(ONNXOperators.POW, twoConst);
 
             // Square the embeddings
-            ONNXContext.ONNXNode embWeightSquared = embWeight.apply(ONNXOperators.POW, twoConst);
+            ONNXNode embWeightSquared = embWeight.apply(ONNXOperators.POW, twoConst);
 
             // squared features * squared embeddings
-            ONNXContext.ONNXNode inputByEmbeddingSquared = inputSquared.apply(ONNXOperators.GEMM, embWeightSquared);
+            ONNXNode inputByEmbeddingSquared = inputSquared.apply(ONNXOperators.GEMM, embWeightSquared);
 
             // squared product subtract product of squares
-            ONNXContext.ONNXNode subtract = embeddingSquared.apply(ONNXOperators.SUB, inputByEmbeddingSquared);
+            ONNXNode subtract = embeddingSquared.apply(ONNXOperators.SUB, inputByEmbeddingSquared);
 
             // sum over embedding dimensions
             // Divide by 2
@@ -233,7 +237,7 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
                     .apply(ONNXOperators.DIV, twoConst));
         }
 
-        ONNXContext.ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, embeddingOutputs, "fm_concat", Collections.singletonMap("axis", 1));
+        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, embeddingOutputs, "fm_concat", Collections.singletonMap("axis", 1));
 
         return onnxOutput(gemm.apply(ONNXOperators.ADD, concat));
     }
@@ -241,8 +245,8 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext onnx = new ONNXContext();
         onnx.setName(onnxModelName());
-        ONNXContext.ONNXPlaceholder input = onnx.floatInput("input", featureIDMap.size());
-        ONNXContext.ONNXPlaceholder output = onnx.floatOutput("output", outputIDInfo.size());
+        ONNXPlaceholder input = onnx.floatInput("input", featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput("output", outputIDInfo.size());
         writeONNXGraph(input).assignTo(output);
         return onnx.model(domain, modelVersion, this);
     }

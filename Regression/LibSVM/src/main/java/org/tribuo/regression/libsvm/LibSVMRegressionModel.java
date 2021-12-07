@@ -29,7 +29,11 @@ import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -196,21 +200,21 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext onnx = new ONNXContext();
 
-        ONNXContext.ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
-        ONNXContext.ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
+        ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Regression-LibSVM");
 
         return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
     }
 
     @Override
-    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
         ONNXContext onnx = input.onnx();
 
         int numFeatures = featureIDMap.size();
 
         // Make the individual SVM Regressors for each dimension
-        List<ONNXContext.ONNXNode> outputs = models.stream().map(model -> {
+        List<ONNXNode> outputs = models.stream().map(model -> {
             // Extract the attributes
             Map<String, Object> attributes = new HashMap<>();
             attributes.put("coefficients", Util.toFloatArray(model.sv_coef[0]));
@@ -234,11 +238,11 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
         }).collect(Collectors.toList());
 
         // Make concat to bring them all together
-        ONNXContext.ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, outputs, "concat_output", Collections.singletonMap("axis", 1));
+        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, outputs, "concat_output", Collections.singletonMap("axis", 1));
 
         if(standardized) {
-            ONNXContext.ONNXTensor outputMean = onnx.array("y_mean", means);
-            ONNXContext.ONNXTensor outputVariance = onnx.array("y_variances", variances);
+            ONNXTensor outputMean = onnx.array("y_mean", means);
+            ONNXTensor outputVariance = onnx.array("y_variances", variances);
 
             return concat.apply(ONNXOperators.MUL, outputVariance)
                     .apply(ONNXOperators.ADD, outputMean);

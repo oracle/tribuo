@@ -32,7 +32,11 @@ import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -288,8 +292,8 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
         ONNXContext onnx = new ONNXContext();
 
         onnx.setName("Classification-LibLinear");
-        ONNXContext.ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
-        ONNXContext.ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
+        ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
 
         // Build graph
         writeONNXGraph(input).assignTo(output);
@@ -298,7 +302,7 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
     }
 
     @Override
-    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
 
         ONNXContext onnx = input.onnx();
 
@@ -339,19 +343,19 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
 
         final double[] weights = rawWeights;
 
-        ONNXContext.ONNXTensor weightTensor = onnx.floatTensor("liblinear_weights", Arrays.asList(numFeatures, numLabels), fb -> {
+        ONNXTensor weightTensor = onnx.floatTensor("liblinear_weights", Arrays.asList(numFeatures, numLabels), fb -> {
             for (int i = 0; i < weights.length - numLabels; i++) {
                 fb.put((float) weights[i]);
             }
         });
 
-        ONNXContext.ONNXTensor biasTensor = onnx.floatTensor("liblinear_biases", Collections.singletonList(numLabels), fb -> {
+        ONNXTensor biasTensor = onnx.floatTensor("liblinear_biases", Collections.singletonList(numLabels), fb -> {
             for (int i = numFeatures * numLabels; i < weights.length; i++) {
                 fb.put((float) weights[i]);
             }
         });
 
-        ONNXContext.ONNXNode gemm = input.apply(ONNXOperators.GEMM, Arrays.asList(weightTensor, biasTensor));
+        ONNXNode gemm = input.apply(ONNXOperators.GEMM, Arrays.asList(weightTensor, biasTensor));
 
         if(model.isProbabilityModel()) {
             return gemm.apply(ONNXOperators.SOFTMAX, Collections.singletonMap("axis", 1));

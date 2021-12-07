@@ -22,9 +22,10 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
-import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -108,7 +109,7 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
     }
 
     @Override
-    protected ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode fmOutput) {
+    protected ONNXNode onnxOutput(ONNXNode fmOutput) {
         if(standardise) {
             ImmutableRegressionInfo info = (ImmutableRegressionInfo) outputIDInfo;
             double[] means = new double[outputIDInfo.size()];
@@ -117,8 +118,8 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
                 means[i] = info.getMean(i);
                 variances[i] = info.getVariance(i);
             }
-            ONNXContext.ONNXTensor outputMean = fmOutput.onnx().array("y_mean", means);
-            ONNXContext.ONNXTensor outputVariance = fmOutput.onnx().array("y_var", variances);
+            ONNXTensor outputMean = fmOutput.onnx().array("y_mean", means);
+            ONNXTensor outputVariance = fmOutput.onnx().array("y_var", variances);
 
             return fmOutput.apply(ONNXOperators.MUL, outputVariance).apply(ONNXOperators.ADD, outputMean);
         } else {

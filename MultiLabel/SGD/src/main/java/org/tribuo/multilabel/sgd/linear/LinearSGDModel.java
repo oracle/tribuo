@@ -26,8 +26,8 @@ import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.multilabel.MultiLabel;
-import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.HashMap;
@@ -100,7 +100,7 @@ public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> implement
     }
 
     @Override
-    protected ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input) {
+    protected ONNXNode onnxOutput(ONNXNode input) {
         return normalizer.exportNormalizer(input);
     }
 

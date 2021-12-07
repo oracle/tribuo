@@ -26,7 +26,10 @@ import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -150,12 +153,12 @@ public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLab
      * @return the final node proto representing the voting operation.
      */
     @Override
-    public ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input) {
-        ONNXContext.ONNXTensor half = input.onnx().constant("half", 0.5f);
-        ONNXContext.ONNXTensor one = input.onnx().constant("one", 1.0f);
-        ONNXContext.ONNXTensor zero = input.onnx().constant("zero", 0.0f);
+    public ONNXNode exportCombiner(ONNXNode input) {
+        ONNXTensor half = input.onnx().constant("half", 0.5f);
+        ONNXTensor one = input.onnx().constant("one", 1.0f);
+        ONNXTensor zero = input.onnx().constant("zero", 0.0f);
 
-        ONNXContext.ONNXNode greater = input.apply(ONNXOperators.GREATER, half);
+        ONNXNode greater = input.apply(ONNXOperators.GREATER, half);
 
         // Take the mean over the where'd predictions
         Map<String,Object> attributes = new HashMap<>();
@@ -175,29 +178,29 @@ public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLab
      * @return the final node proto representing the voting operation.
      */
     @Override
-    public <T extends ONNXContext.ONNXRef<?>> ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input, T weight) {
+    public <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
         ONNXContext onnx = input.onnx();
 
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        ONNXContext.ONNXTensor unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{0, 1});
-        ONNXContext.ONNXTensor sumAxes = onnx.array("sum_across_ensemble_axes", new long[]{2});
+        ONNXTensor unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{0, 1});
+        ONNXTensor sumAxes = onnx.array("sum_across_ensemble_axes", new long[]{2});
 
-        ONNXContext.ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
+        ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 
-        ONNXContext.ONNXTensor half = onnx.constant("half", 0.5f);
-        ONNXContext.ONNXTensor one = onnx.constant("one", 1.0f);
-        ONNXContext.ONNXTensor zero = onnx.constant("zero", 0.0f);
+        ONNXTensor half = onnx.constant("half", 0.5f);
+        ONNXTensor one = onnx.constant("one", 1.0f);
+        ONNXTensor zero = onnx.constant("zero", 0.0f);
 
         // greater than 0.5
         // where 1 v 0
         // Multiply the where'd input by the weights.
-        ONNXContext.ONNXNode mulByWeights = input.apply(ONNXOperators.GREATER, half)
+        ONNXNode mulByWeights = input.apply(ONNXOperators.GREATER, half)
                 .apply(ONNXOperators.WHERE, Arrays.asList(one, zero))
                 .apply(ONNXOperators.MUL, unsqueezed);
 
         // Sum the weights
-        ONNXContext.ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
+        ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
 
         // Take the weighted mean over the outputs
         return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))

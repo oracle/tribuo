@@ -16,7 +16,7 @@
 
 package org.tribuo.math.util;
 
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -41,7 +41,7 @@ public class NoopNormalizer implements VectorNormalizer, Serializable {
      * @return the input node
      */
     @Override
-    public ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
+    public ONNXNode exportNormalizer(ONNXNode input) {
         return input;
     }
 }

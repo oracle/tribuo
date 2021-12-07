@@ -28,7 +28,11 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.provenance.impl.TimestampedTrainerProvenance;
 import org.tribuo.util.Util;
@@ -237,8 +241,8 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
 
         onnx.setName("WeightedEnsembleModel");
 
-        ONNXContext.ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
-        ONNXContext.ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
+        ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
 
         // Build graph
         writeONNXGraph(input).assignTo(output);
@@ -247,10 +251,10 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     }
 
     @Override
-    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
         ONNXContext onnx = input.onnx();
-        ONNXContext.ONNXTensor unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{2});
-        List<ONNXContext.ONNXNode> members = new ArrayList<>();
+        ONNXTensor unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{2});
+        List<ONNXNode> members = new ArrayList<>();
         for(Model<T> model : models) {
             if(model instanceof ONNXExportable) {
                 members.add(((ONNXExportable) model).writeONNXGraph(input).apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes));
@@ -259,8 +263,8 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
             }
         }
 
-        ONNXContext.ONNXTensor ensembleWeights = onnx.array("ensemble_weights", weights);
-        ONNXContext.ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, members, "ensemble_concat", Collections.singletonMap("axis", 2));
+        ONNXTensor ensembleWeights = onnx.array("ensemble_weights", weights);
+        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, members, "ensemble_concat", Collections.singletonMap("axis", 2));
 
         return combiner.exportCombiner(concat, ensembleWeights);
     }

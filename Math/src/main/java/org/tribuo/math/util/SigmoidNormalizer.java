@@ -16,7 +16,7 @@
 
 package org.tribuo.math.util;
 
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 
 import java.io.Serializable;
@@ -58,7 +58,7 @@ public class SigmoidNormalizer implements VectorNormalizer, Serializable {
      * @return the sigmoid node applied to input.
      */
     @Override
-    public ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
+    public ONNXNode exportNormalizer(ONNXNode input) {
         return input.apply(ONNXOperators.SIGMOID);
     }
 }

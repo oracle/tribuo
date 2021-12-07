@@ -61,7 +61,7 @@ public interface ONNXExportable {
      * @param input The input to the model graph.
      * @return the output node of the model graph.
      */
-    ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input);
+    ONNXNode writeONNXGraph(ONNXRef<?> input);
 
     /**
      * Exports this {@link org.tribuo.Model} as an ONNX file.

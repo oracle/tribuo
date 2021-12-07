@@ -23,8 +23,10 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.ensemble.EnsembleCombiner;
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -138,7 +140,7 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
      * @return The leaf node of the voting operation.
      */
     @Override
-    public ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input) {
+    public ONNXNode exportCombiner(ONNXNode input) {
         // Take the mean over the maxed predictions
         Map<String,Object> attributes = new HashMap<>();
         attributes.put("axes",new int[]{2});
@@ -155,19 +157,19 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
      * @return The leaf node of the voting operation.
      */
     @Override
-    public <T extends ONNXContext.ONNXRef<?>> ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input, T weight) {
+    public <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        ONNXContext.ONNXTensor unsqueezeAxes = input.onnx().array("unsqueeze_ensemble_output", new long[]{0, 1});
-        ONNXContext.ONNXTensor sumAxes = input.onnx().array("sum_across_ensemble_axes", new long[]{2});
+        ONNXTensor unsqueezeAxes = input.onnx().array("unsqueeze_ensemble_output", new long[]{0, 1});
+        ONNXTensor sumAxes = input.onnx().array("sum_across_ensemble_axes", new long[]{2});
 
-        ONNXContext.ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
+        ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 
         // Multiply the input by the weights.
-        ONNXContext.ONNXNode mulByWeights = input.apply(ONNXOperators.MUL, unsqueezed);
+        ONNXNode mulByWeights = input.apply(ONNXOperators.MUL, unsqueezed);
 
         // Sum the weights
-        ONNXContext.ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
+        ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
 
         // Take the weighted mean over the outputs
         return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))

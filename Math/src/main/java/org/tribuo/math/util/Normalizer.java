@@ -17,7 +17,9 @@
 package org.tribuo.math.util;
 
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXTensor;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -61,15 +63,15 @@ public class Normalizer implements VectorNormalizer, Serializable {
      * @return the node representing Div, the final applie operation.
      */
     @Override
-    public ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
+    public ONNXNode exportNormalizer(ONNXNode input) {
         ONNXContext onnx = input.onnx();
-        ONNXContext.ONNXTensor sumAxes = onnx.array("sum_axes", new long[]{1});
+        ONNXTensor sumAxes = onnx.array("sum_axes", new long[]{1});
 
-        ONNXContext.ONNXNode min = input.apply(ONNXOperators.REDUCE_MIN, Collections.singletonMap("axes", new int[]{1}));
+        ONNXNode min = input.apply(ONNXOperators.REDUCE_MIN, Collections.singletonMap("axes", new int[]{1}));
 
-        ONNXContext.ONNXNode sub = input.apply(ONNXOperators.SUB, min);
+        ONNXNode sub = input.apply(ONNXOperators.SUB, min);
 
-        ONNXContext.ONNXNode sum = sub.apply(ONNXOperators.REDUCE_SUM, sumAxes);
+        ONNXNode sum = sub.apply(ONNXOperators.REDUCE_SUM, sumAxes);
 
         return sub.apply(ONNXOperators.DIV, sum);
     }

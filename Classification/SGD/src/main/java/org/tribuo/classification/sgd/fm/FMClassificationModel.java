@@ -16,7 +16,6 @@
 
 package org.tribuo.classification.sgd.fm;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -26,14 +25,11 @@ import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
-import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -106,7 +102,7 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
     }
 
     @Override
-    protected ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input) {
+    protected ONNXNode onnxOutput(ONNXNode input) {
         return normalizer.exportNormalizer(input);
     }
 

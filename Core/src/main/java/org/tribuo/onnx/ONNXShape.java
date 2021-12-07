@@ -21,7 +21,7 @@ import ai.onnx.proto.OnnxMl;
 /**
  * Carrier class for an ONNX Tensor shape.
  */
-public final class ONNXShape {
+final class ONNXShape {
 
     /**
      * The sentinel value for an unknown dimension.

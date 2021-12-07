@@ -30,7 +30,11 @@ import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -158,23 +162,23 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
         return ((DenseMatrix)modelParameters.get()[0]).copy();
     }
 
-    protected abstract ONNXContext.ONNXNode onnxOutput(ONNXContext.ONNXNode input);
+    protected abstract ONNXNode onnxOutput(ONNXNode input);
 
     protected abstract String onnxModelName();
 
-    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
         ONNXContext onnx = input.onnx();
 
         Matrix weightMatrix = (Matrix) modelParameters.get()[0];
 
-        ONNXContext.ONNXTensor weights = onnx.floatTensor("linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()), fb -> {
+        ONNXTensor weights = onnx.floatTensor("linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()), fb -> {
             for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
                 for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
                     fb.put((float) weightMatrix.get(i, j));
                 }
             }
         });
-        ONNXContext.ONNXTensor bias = onnx.floatTensor("linear_sgd_bias", Collections.singletonList(outputIDInfo.size()), fb -> {
+        ONNXTensor bias = onnx.floatTensor("linear_sgd_bias", Collections.singletonList(outputIDInfo.size()), fb -> {
             for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
                 fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
             }
@@ -186,8 +190,8 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext onnx = new ONNXContext();
         onnx.setName(onnxModelName());
-        ONNXContext.ONNXPlaceholder input = onnx.floatInput("input", featureIDMap.size());
-        ONNXContext.ONNXPlaceholder output = onnx.floatOutput("output", outputIDInfo.size());
+        ONNXPlaceholder input = onnx.floatInput("input", featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput("output", outputIDInfo.size());
         writeONNXGraph(input).assignTo(output);
         return onnx.model(domain, modelVersion, this);
     }

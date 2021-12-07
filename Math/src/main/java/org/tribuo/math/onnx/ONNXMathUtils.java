@@ -20,6 +20,7 @@ import ai.onnx.proto.OnnxMl;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.onnx.ONNXUtils;
 
 import java.nio.FloatBuffer;
@@ -50,7 +51,7 @@ public abstract class ONNXMathUtils {
                 (FloatBuffer fb) -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
     }
 
-    public static ONNXContext.ONNXTensor floatVector(ONNXContext context, String name, SGDVector vector) {
+    public static ONNXTensor floatVector(ONNXContext context, String name, SGDVector vector) {
         return context.floatTensor(name, Collections.singletonList(vector.size()),
         (FloatBuffer fb) -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
     }
@@ -78,7 +79,7 @@ public abstract class ONNXMathUtils {
                 }));
     }
 
-    public static ONNXContext.ONNXTensor floatMatrix(ONNXContext context, String name, Matrix matrix, boolean transpose) {
+    public static ONNXTensor floatMatrix(ONNXContext context, String name, Matrix matrix, boolean transpose) {
         List<Integer> dims = Arrays.stream(matrix.getShape()).boxed().collect(Collectors.toList());
         if(transpose) {
             Collections.reverse(dims);

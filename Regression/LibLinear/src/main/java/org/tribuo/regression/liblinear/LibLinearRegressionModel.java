@@ -31,7 +31,11 @@ import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -191,15 +195,15 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext onnx = new ONNXContext();
 
-        ONNXContext.ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
-        ONNXContext.ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
+        ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Regression-LibLinear");
 
         return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
     }
 
     @Override
-    public ONNXContext.ONNXNode writeONNXGraph(ONNXContext.ONNXRef<?> input) {
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
         ONNXContext onnx = input.onnx();
         double[][] weights = new double[models.size()][];
         for (int i = 0; i < models.size(); i++) {
@@ -209,7 +213,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         int numOutputs = outputIDInfo.size();
 
         // Add weights
-        ONNXContext.ONNXTensor onnxWeights = onnx.floatTensor("liblinear-weights", Arrays.asList(numFeatures, numOutputs), fb -> {
+        ONNXTensor onnxWeights = onnx.floatTensor("liblinear-weights", Arrays.asList(numFeatures, numOutputs), fb -> {
             for (int j = 0; j < numFeatures; j++) {
                 for (int i = 0; i < weights.length; i++) {
                     fb.put((float) weights[i][j]);
@@ -218,7 +222,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         });
 
         //Add biases
-        ONNXContext.ONNXTensor onnxBiases = onnx.floatTensor("liblinear-bias", Collections.singletonList(numOutputs), fb -> {
+        ONNXTensor onnxBiases = onnx.floatTensor("liblinear-bias", Collections.singletonList(numOutputs), fb -> {
             // Biases are stored last in the weight vector
             for (int i = 0; i < weights.length; i++) {
                 fb.put((float) weights[i][numFeatures]);

@@ -22,7 +22,8 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
+import org.tribuo.onnx.ONNXRef;
 
 import java.io.Serializable;
 import java.util.List;
@@ -62,7 +63,7 @@ public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Pro
      * @param input the node to be ensembled according to this implementation.
      * @return The leaf node of the graph of operations added to ensemble input.
      */
-    default ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input) {
+    default ONNXNode exportCombiner(ONNXNode input) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export an ensemble combiner to ONNX format, but this is not implemented.");
         throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + this.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
     }
@@ -80,7 +81,7 @@ public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Pro
      * @param weight The node of weights for ensembling.
      * @return The leaf node of the graph of operations added to ensemble input.
      */
-    default <T extends ONNXContext.ONNXRef<?>> ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input, T weight) {
+    default <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export an ensemble combiner to ONNX format, but this is not implemented.");
         throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + this.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
     }

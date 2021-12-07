@@ -16,7 +16,7 @@
 
 package org.tribuo.math.util;
 
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
@@ -56,7 +56,7 @@ public interface VectorNormalizer extends Serializable {
      * @param input The node to be normalized according to this implementation.
      * @return The leaf node of the graph of operations added to normalize input.
      */
-    default ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
+    default ONNXNode exportNormalizer(ONNXNode input) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export a normalizer to ONNX format, but this is not implemented.");
         throw new IllegalStateException("Normalizer " + this.getClass() + " cannot be exported in ONNX models.");
     }

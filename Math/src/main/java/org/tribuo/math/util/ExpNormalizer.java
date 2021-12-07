@@ -16,7 +16,7 @@
 
 package org.tribuo.math.util;
 
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 
 import java.io.Serializable;
@@ -62,7 +62,7 @@ public class ExpNormalizer implements VectorNormalizer, Serializable {
      * @return ONNX softmax node of input.
      */
     @Override
-    public ONNXContext.ONNXNode exportNormalizer(ONNXContext.ONNXNode input) {
+    public ONNXNode exportNormalizer(ONNXNode input) {
         return input.apply(ONNXOperators.SOFTMAX, Collections.singletonMap("axis", 1));
     }
 }
