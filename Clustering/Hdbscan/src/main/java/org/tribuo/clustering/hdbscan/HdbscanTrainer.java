@@ -27,6 +27,7 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
+import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -147,10 +148,14 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
-        SGDVector[] data = new DenseVector[examples.size()];
+        SGDVector[] data = new SGDVector[examples.size()];
         int n = 0;
         for (Example<ClusterID> example : examples) {
-            data[n] = DenseVector.createDenseVector(example, featureMap, false);
+            if (example.size() == featureMap.size()) {
+                data[n] = DenseVector.createDenseVector(example, featureMap, false);
+            } else {
+                data[n] = SparseVector.createSparseVector(example, featureMap, false);
+            }
             n++;
         }
 
