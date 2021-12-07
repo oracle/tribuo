@@ -176,16 +176,18 @@ public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLab
      */
     @Override
     public <T extends ONNXContext.ONNXRef<?>> ONNXContext.ONNXNode exportCombiner(ONNXContext.ONNXNode input, T weight) {
+        ONNXContext onnx = input.onnx();
+
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        ONNXContext.ONNXTensor unsqueezeAxes = input.onnx().array("unsqueeze_ensemble_output", new long[]{0, 1});
-        ONNXContext.ONNXTensor sumAxes = input.onnx().array("sum_across_ensemble_axes", new long[]{2});
+        ONNXContext.ONNXTensor unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{0, 1});
+        ONNXContext.ONNXTensor sumAxes = onnx.array("sum_across_ensemble_axes", new long[]{2});
 
-        ONNXContext.ONNXNode unsqueezed = input.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
+        ONNXContext.ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 
-        ONNXContext.ONNXTensor half = input.onnx().constant("half", 0.5f);
-        ONNXContext.ONNXTensor one = input.onnx().constant("one", 1.0f);
-        ONNXContext.ONNXTensor zero = input.onnx().constant("zero", 0.0f);
+        ONNXContext.ONNXTensor half = onnx.constant("half", 0.5f);
+        ONNXContext.ONNXTensor one = onnx.constant("one", 1.0f);
+        ONNXContext.ONNXTensor zero = onnx.constant("zero", 0.0f);
 
         // greater than 0.5
         // where 1 v 0
