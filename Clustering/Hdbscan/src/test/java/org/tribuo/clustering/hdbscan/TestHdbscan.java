@@ -241,7 +241,7 @@ public class TestHdbscan {
         runEvaluation(t);
     }
 
-    public void runInvalidExample(HdbscanTrainer trainer) {
+    public static void runInvalidExample(HdbscanTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<ClusterID>, Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
             Model<ClusterID> m = trainer.train(p.getA());
@@ -254,7 +254,7 @@ public class TestHdbscan {
         runInvalidExample(t);
     }
 
-    public void runEmptyExample(HdbscanTrainer trainer) {
+    public static void runEmptyExample(HdbscanTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<ClusterID>, Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
             Model<ClusterID> m = trainer.train(p.getA());
@@ -265,6 +265,18 @@ public class TestHdbscan {
     @Test
     public void testEmptyExample() {
         runEmptyExample(t);
+    }
+
+    public static void runSparseData(HdbscanTrainer trainer) {
+        Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.sparseTrainTest();
+        Model<ClusterID> m = trainer.train(p.getA());
+        ClusteringEvaluator e = new ClusteringEvaluator();
+        e.evaluate(m,p.getB());
+    }
+
+    @Test
+    public void testSparseData() {
+        runSparseData(t);
     }
 
 }
