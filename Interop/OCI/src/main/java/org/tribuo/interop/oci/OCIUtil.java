@@ -125,6 +125,9 @@ public abstract class OCIUtil {
          */
         OTHER("other");
 
+        /**
+         * OCI DS model type string.
+         */
         public final String modelType;
 
         private OCIModelType(String modelType) {

@@ -85,11 +85,23 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     private transient WebTarget modelEndpoint;
     private transient ObjectMapper mapper;
 
+    /**
+     * Construct an OCIModel wrapping an OCI DS Model Deployment endpoint.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature map.
+     * @param outputIDInfo The output map.
+     * @param featureMapping The mapping between Tribuo's feature names and the external model's feature indices.
+     * @param configFile The OCI client configuration file.
+     * @param endpointURL The OCI Model Deployment endpoint URL.
+     * @param modelDeploymentId The model deployment ID.
+     * @param outputConverter The output conversion function.
+     * @throws IOException If the OCI configuration file could not be read.
+     */
     OCIModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-             boolean generatesProbabilities,
              Map<String, Integer> featureMapping,
              Path configFile, String endpointURL, String modelDeploymentId, OCIOutputConverter<T> outputConverter) throws IOException {
-        super(name, provenance, featureIDMap, outputIDInfo, generatesProbabilities, featureMapping);
+        super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.configFile = configFile;
         this.endpointURL = endpointURL;
         this.modelDeploymentId = modelDeploymentId;
@@ -111,12 +123,25 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
         this.modelEndpoint = jerseyClient.target(endpointURL + modelDeploymentId).path("predict");
     }
 
+    /**
+     * Construct an OCIModel wrapping an OCI DS Model Deployment endpoint.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature map.
+     * @param outputIDInfo The output map.
+     * @param featureForwardMapping The forward mapping between Tribuo's feature indices and the external ones.
+     * @param featureBackwardMapping The backward mapping between Tribuo's feature indices and the external ones.
+     * @param configFile The OCI client configuration file.
+     * @param authProvider The OCI authentication provider.
+     * @param endpointURL The OCI Model Deployment endpoint URL.
+     * @param modelDeploymentId The model deployment ID.
+     * @param outputConverter The output conversion function.
+     */
     OCIModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-             boolean generatesProbabilities,
              int[] featureForwardMapping, int[] featureBackwardMapping,
              Path configFile,
              AuthenticationDetailsProvider authProvider, String endpointURL, String modelDeploymentId, OCIOutputConverter<T> outputConverter) {
-        super(name, provenance, featureIDMap, outputIDInfo, featureForwardMapping, featureBackwardMapping, generatesProbabilities);
+        super(name, provenance, featureIDMap, outputIDInfo, featureForwardMapping, featureBackwardMapping, outputConverter.generatesProbabilities());
         this.configFile = configFile;
         this.authProvider = authProvider;
         this.endpointURL = endpointURL;
@@ -145,7 +170,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
 
     @Override
     protected Model<T> copy(String s, ModelProvenance modelProvenance) {
-        return new OCIModel<>(s, modelProvenance, featureIDMap, outputIDInfo, generatesProbabilities, featureForwardMapping, featureBackwardMapping, configFile, authProvider, endpointURL, modelDeploymentId, outputConverter);
+        return new OCIModel<>(s, modelProvenance, featureIDMap, outputIDInfo, featureForwardMapping, featureBackwardMapping, configFile, authProvider, endpointURL, modelDeploymentId, outputConverter);
     }
 
     @Override
@@ -282,8 +307,8 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
             runProvenance.put("endpointURL", new StringProvenance("endpointURL", endpointURL));
             runProvenance.put("modelDeploymentId", new StringProvenance("modelDeploymentId", modelDeploymentId));
             ModelProvenance provenance = new ModelProvenance(OCIModel.class.getName(), now, datasetProvenance, trainerProvenance, runProvenance);
-            return new OCIModel<T>("oci-ds-model", provenance, featureMap, outputInfo, outputConverter.generatesProbabilities(),
-                    featureMapping, configFile, endpointURL, modelDeploymentId, outputConverter);
+            return new OCIModel<T>("oci-ds-model", provenance, featureMap, outputInfo, featureMapping, configFile,
+                    endpointURL, modelDeploymentId, outputConverter);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load configuration from path " + configFile, e);
         }
