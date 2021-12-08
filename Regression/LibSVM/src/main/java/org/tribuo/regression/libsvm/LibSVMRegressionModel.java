@@ -29,11 +29,11 @@ import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -204,45 +204,50 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
         ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Regression-LibSVM");
 
-        return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
+        return writeONNXGraph(input).assignTo(output).onnxContext().model(domain, modelVersion, this);
+    }
+
+    private static ONNXNode buildONNXSVMRegressor(int numFeatures, ONNXRef<?> input, svm_model model) {
+        // Extract the attributes
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("coefficients", Util.toFloatArray(model.sv_coef[0]));
+        attributes.put("kernel_params", new float[]{(float) model.param.gamma, (float) model.param.coef0, model.param.degree});
+        attributes.put("kernel_type", KernelType.getKernelType(model.param.kernel_type).name());
+        attributes.put("n_supports", model.l);
+        attributes.put("one_class", 0);
+        attributes.put("rho", new float[]{(float) -model.rho[0]});
+        // Extract the support vectors
+        float[] supportVectors = new float[model.l * numFeatures];
+
+        for (int j = 0; j < model.l; j++) {
+            svm_node[] sv = model.SV[j];
+            for (svm_node svm_node : sv) {
+                int idx = (j * numFeatures) + svm_node.index;
+                supportVectors[idx] = (float) svm_node.value;
+            }
+        }
+        attributes.put("support_vectors", supportVectors);
+        return input.apply(ONNXOperators.SVM_REGRESSOR, attributes);
     }
 
     @Override
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
 
-        int numFeatures = featureIDMap.size();
+        final int numFeatures = featureIDMap.size();
+
 
         // Make the individual SVM Regressors for each dimension
-        List<ONNXNode> outputs = models.stream().map(model -> {
-            // Extract the attributes
-            Map<String, Object> attributes = new HashMap<>();
-            attributes.put("coefficients", Util.toFloatArray(model.sv_coef[0]));
-            attributes.put("kernel_params", new float[]{(float) model.param.gamma, (float) model.param.coef0, model.param.degree});
-            attributes.put("kernel_type", KernelType.getKernelType(model.param.kernel_type).name());
-            attributes.put("n_supports", model.l);
-            attributes.put("one_class", 0);
-            attributes.put("rho", new float[]{(float) -model.rho[0]});
-            // Extract the support vectors
-            float[] supportVectors = new float[model.l * numFeatures];
-
-            for (int j = 0; j < model.l; j++) {
-                svm_node[] sv = model.SV[j];
-                for (svm_node svm_node : sv) {
-                    int idx = (j * numFeatures) + svm_node.index;
-                    supportVectors[idx] = (float) svm_node.value;
-                }
-            }
-            attributes.put("support_vectors", supportVectors);
-            return input.apply(ONNXOperators.SVM_REGRESSOR, attributes);
-        }).collect(Collectors.toList());
+        List<ONNXNode> outputs = models.stream()
+                .map(model -> buildONNXSVMRegressor(numFeatures, input, model))
+                .collect(Collectors.toList());
 
         // Make concat to bring them all together
         ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, outputs, "concat_output", Collections.singletonMap("axis", 1));
 
         if(standardized) {
-            ONNXTensor outputMean = onnx.array("y_mean", means);
-            ONNXTensor outputVariance = onnx.array("y_variances", variances);
+            ONNXInitializer outputMean = onnx.array("y_mean", means);
+            ONNXInitializer outputVariance = onnx.array("y_variances", variances);
 
             return concat.apply(ONNXOperators.MUL, outputVariance)
                     .apply(ONNXOperators.ADD, outputMean);

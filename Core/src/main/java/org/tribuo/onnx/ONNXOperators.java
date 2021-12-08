@@ -510,7 +510,7 @@ public enum ONNXOperators {
      */
     public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String[] outputs, Map<String,Object> attributeValues) {
         if ((numInputs != VARIADIC_INPUT) && ((inputs.length < numInputs) || (inputs.length > numInputs + numOptionalInputs))) {
-           throw new IllegalArgumentException("Expected " + numInputs + " inputs, with " + numOptionalInputs + " optional inputs, but received " + inputs.length);
+            throw new IllegalArgumentException("Expected " + numInputs + " inputs, with " + numOptionalInputs + " optional inputs, but received " + inputs.length);
         } else if ((numInputs == VARIADIC_INPUT) && (inputs.length == 0)) {
             throw new IllegalArgumentException("Expected at least one input for variadic input, received zero");
         }

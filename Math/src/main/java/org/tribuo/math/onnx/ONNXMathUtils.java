@@ -16,12 +16,10 @@
 
 package org.tribuo.math.onnx;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXTensor;
-import org.tribuo.onnx.ONNXUtils;
+import org.tribuo.onnx.ONNXInitializer;
 
 import java.nio.FloatBuffer;
 import java.util.Arrays;
@@ -40,46 +38,26 @@ public abstract class ONNXMathUtils {
     private ONNXMathUtils() {}
 
     /**
-     * Builds a TensorProto containing the {@link SGDVector}.
+     * Builds a {@link ONNXInitializer} containing the {@link SGDVector}.
      * @param context The naming context.
      * @param name The base name for the proto.
      * @param vector the SGDVector to store in the proto.
      * @return A TensorProto containing the vector.
      */
-    public static OnnxMl.TensorProto floatVectorBuilder(ONNXContext context, String name, SGDVector vector) {
-        return ONNXUtils.floatTensorBuilder(context, name, Collections.singletonList(vector.size()),
-                (FloatBuffer fb) -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
-    }
-
-    public static ONNXTensor floatVector(ONNXContext context, String name, SGDVector vector) {
+    public static ONNXInitializer floatVector(ONNXContext context, String name, SGDVector vector) {
         return context.floatTensor(name, Collections.singletonList(vector.size()),
         (FloatBuffer fb) -> vector.forEach(vt -> fb.put(vt.index,(float) vt.value)));
     }
 
     /**
-     * Builds a TensorProto containing the {@link Matrix}.
+     * Builds a {@link ONNXInitializer} containing the {@link Matrix}.
      * @param context The naming context.
      * @param name The base name for the proto.
      * @param matrix the matrix to store in the proto.
      * @param transpose Whether to transpose the vector before writing it.
      * @return A TensorProto containing the matrix
      */
-    public static OnnxMl.TensorProto floatMatrixBuilder(ONNXContext context, String name, Matrix matrix, boolean transpose) {
-        List<Integer> dims = Arrays.stream(matrix.getShape()).boxed().collect(Collectors.toList());
-        if(transpose) {
-            Collections.reverse(dims);
-        }
-        return ONNXUtils.floatTensorBuilder(context, name,
-                dims,
-                fb -> matrix.forEach(mt -> {
-                    int address = transpose
-                            ? mt.j * matrix.getDimension1Size() + mt.i
-                            : mt.i * matrix.getDimension2Size() + mt.j;
-                    fb.put(address, (float) mt.value);
-                }));
-    }
-
-    public static ONNXTensor floatMatrix(ONNXContext context, String name, Matrix matrix, boolean transpose) {
+    public static ONNXInitializer floatMatrix(ONNXContext context, String name, Matrix matrix, boolean transpose) {
         List<Integer> dims = Arrays.stream(matrix.getShape()).boxed().collect(Collectors.toList());
         if(transpose) {
             Collections.reverse(dims);

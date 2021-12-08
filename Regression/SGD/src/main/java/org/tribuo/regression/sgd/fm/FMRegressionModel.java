@@ -25,7 +25,7 @@ import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.onnx.ONNXExportable;
 import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -118,8 +118,8 @@ public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONN
                 means[i] = info.getMean(i);
                 variances[i] = info.getVariance(i);
             }
-            ONNXTensor outputMean = fmOutput.onnx().array("y_mean", means);
-            ONNXTensor outputVariance = fmOutput.onnx().array("y_var", variances);
+            ONNXInitializer outputMean = fmOutput.onnxContext().array("y_mean", means);
+            ONNXInitializer outputVariance = fmOutput.onnxContext().array("y_var", variances);
 
             return fmOutput.apply(ONNXOperators.MUL, outputVariance).apply(ONNXOperators.ADD, outputMean);
         } else {

@@ -29,7 +29,7 @@ import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -154,9 +154,9 @@ public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLab
      */
     @Override
     public ONNXNode exportCombiner(ONNXNode input) {
-        ONNXTensor half = input.onnx().constant("half", 0.5f);
-        ONNXTensor one = input.onnx().constant("one", 1.0f);
-        ONNXTensor zero = input.onnx().constant("zero", 0.0f);
+        ONNXInitializer half = input.onnxContext().constant("half", 0.5f);
+        ONNXInitializer one = input.onnxContext().constant("one", 1.0f);
+        ONNXInitializer zero = input.onnxContext().constant("zero", 0.0f);
 
         ONNXNode greater = input.apply(ONNXOperators.GREATER, half);
 
@@ -179,18 +179,18 @@ public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLab
      */
     @Override
     public <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
 
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        ONNXTensor unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{0, 1});
-        ONNXTensor sumAxes = onnx.array("sum_across_ensemble_axes", new long[]{2});
+        ONNXInitializer unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{0, 1});
+        ONNXInitializer sumAxes = onnx.array("sum_across_ensemble_axes", new long[]{2});
 
         ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 
-        ONNXTensor half = onnx.constant("half", 0.5f);
-        ONNXTensor one = onnx.constant("one", 1.0f);
-        ONNXTensor zero = onnx.constant("zero", 0.0f);
+        ONNXInitializer half = onnx.constant("half", 0.5f);
+        ONNXInitializer one = onnx.constant("one", 1.0f);
+        ONNXInitializer zero = onnx.constant("zero", 0.0f);
 
         // greater than 0.5
         // where 1 v 0

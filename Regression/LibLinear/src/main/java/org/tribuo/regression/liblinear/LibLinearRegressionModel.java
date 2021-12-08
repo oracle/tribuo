@@ -35,7 +35,7 @@ import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -199,12 +199,12 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Regression-LibLinear");
 
-        return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
+        return writeONNXGraph(input).assignTo(output).onnxContext().model(domain, modelVersion, this);
     }
 
     @Override
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
         double[][] weights = new double[models.size()][];
         for (int i = 0; i < models.size(); i++) {
             weights[i] = models.get(i).getFeatureWeights();
@@ -213,7 +213,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         int numOutputs = outputIDInfo.size();
 
         // Add weights
-        ONNXTensor onnxWeights = onnx.floatTensor("liblinear-weights", Arrays.asList(numFeatures, numOutputs), fb -> {
+        ONNXInitializer onnxWeights = onnx.floatTensor("liblinear-weights", Arrays.asList(numFeatures, numOutputs), fb -> {
             for (int j = 0; j < numFeatures; j++) {
                 for (int i = 0; i < weights.length; i++) {
                     fb.put((float) weights[i][j]);
@@ -222,7 +222,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         });
 
         //Add biases
-        ONNXTensor onnxBiases = onnx.floatTensor("liblinear-bias", Collections.singletonList(numOutputs), fb -> {
+        ONNXInitializer onnxBiases = onnx.floatTensor("liblinear-bias", Collections.singletonList(numOutputs), fb -> {
             // Biases are stored last in the weight vector
             for (int i = 0; i < weights.length; i++) {
                 fb.put((float) weights[i][numFeatures]);

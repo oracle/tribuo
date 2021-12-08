@@ -19,7 +19,7 @@ package org.tribuo.math.util;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -64,8 +64,8 @@ public class Normalizer implements VectorNormalizer, Serializable {
      */
     @Override
     public ONNXNode exportNormalizer(ONNXNode input) {
-        ONNXContext onnx = input.onnx();
-        ONNXTensor sumAxes = onnx.array("sum_axes", new long[]{1});
+        ONNXContext onnx = input.onnxContext();
+        ONNXInitializer sumAxes = onnx.array("sum_axes", new long[]{1});
 
         ONNXNode min = input.apply(ONNXOperators.REDUCE_MIN, Collections.singletonMap("axes", new int[]{1}));
 

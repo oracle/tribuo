@@ -32,7 +32,7 @@ import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.provenance.impl.TimestampedTrainerProvenance;
 import org.tribuo.util.Util;
@@ -252,19 +252,20 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
 
     @Override
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
-        ONNXContext onnx = input.onnx();
-        ONNXTensor unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{2});
-        List<ONNXNode> members = new ArrayList<>();
+        ONNXContext onnx = input.onnxContext();
+        ONNXInitializer unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{2});
+        List<ONNXNode> unsquuezedMembers = new ArrayList<>();
         for(Model<T> model : models) {
             if(model instanceof ONNXExportable) {
-                members.add(((ONNXExportable) model).writeONNXGraph(input).apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes));
+                ONNXNode memberOutput = ((ONNXExportable) model).writeONNXGraph(input);
+                unsquuezedMembers.add(memberOutput.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes));
             } else {
                 throw new IllegalStateException("Ensemble member '" + model.toString() + "' is not ONNXExportable.");
             }
         }
 
-        ONNXTensor ensembleWeights = onnx.array("ensemble_weights", weights);
-        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, members, "ensemble_concat", Collections.singletonMap("axis", 2));
+        ONNXInitializer ensembleWeights = onnx.array("ensemble_weights", weights);
+        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, unsquuezedMembers, "ensemble_concat", Collections.singletonMap("axis", 2));
 
         return combiner.exportCombiner(concat, ensembleWeights);
     }

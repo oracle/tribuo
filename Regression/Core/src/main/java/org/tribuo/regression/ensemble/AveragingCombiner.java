@@ -25,7 +25,7 @@ import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.regression.Regressor;
 
 import java.util.Arrays;
@@ -144,7 +144,8 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     }
 
     /**
-     * Exports this averaging combiner as a list of ONNX NodeProtos.
+     * Exports this averaging combiner, writing constructed nodes into the {@link org.tribuo.onnx.ONNXContext}
+     * governing {@code input} and returning the leaf node of the combiner.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
      * @param input The node to combine
@@ -155,8 +156,8 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     public <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        ONNXTensor unsqueezeAxes = input.onnx().array("unsqueeze_ensemble_output", new long[]{0, 1});
-        ONNXTensor sumAxes = input.onnx().array("sum_across_ensemble_axes", new long[]{2});
+        ONNXInitializer unsqueezeAxes = input.onnxContext().array("unsqueeze_ensemble_output", new long[]{0, 1});
+        ONNXInitializer sumAxes = input.onnxContext().array("sum_across_ensemble_axes", new long[]{2});
 
         ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 

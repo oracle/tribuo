@@ -26,7 +26,7 @@ import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -160,8 +160,7 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
     public <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        ONNXTensor unsqueezeAxes = input.onnx().array("unsqueeze_ensemble_output", new long[]{0, 1});
-        ONNXTensor sumAxes = input.onnx().array("sum_across_ensemble_axes", new long[]{2});
+        ONNXInitializer unsqueezeAxes = input.onnxContext().array("unsqueeze_ensemble_output", new long[]{0, 1});
 
         ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 
@@ -172,6 +171,7 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
         ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
 
         // Take the weighted mean over the outputs
+        ONNXInitializer sumAxes = input.onnxContext().array("sum_across_ensemble_axes", new long[]{2});
         return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))
                 .apply(ONNXOperators.DIV, weightSum);
     }

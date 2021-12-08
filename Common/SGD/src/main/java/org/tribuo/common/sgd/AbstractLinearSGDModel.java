@@ -34,7 +34,7 @@ import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -162,23 +162,31 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
         return ((DenseMatrix)modelParameters.get()[0]).copy();
     }
 
+    /**
+     * Takes the unnormalized ONNX output of this model and applies an appropriate normalizer from the concrete class.
+     * @param input Unnormalized ONNX leaf node.
+     * @return Normalized ONNX leaf node.
+     */
     protected abstract ONNXNode onnxOutput(ONNXNode input);
 
+    /**
+     * @return Name to write into the ONNX Model.
+     */
     protected abstract String onnxModelName();
 
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
 
         Matrix weightMatrix = (Matrix) modelParameters.get()[0];
 
-        ONNXTensor weights = onnx.floatTensor("linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()), fb -> {
+        ONNXInitializer weights = onnx.floatTensor("linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()), fb -> {
             for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
                 for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
                     fb.put((float) weightMatrix.get(i, j));
                 }
             }
         });
-        ONNXTensor bias = onnx.floatTensor("linear_sgd_bias", Collections.singletonList(outputIDInfo.size()), fb -> {
+        ONNXInitializer bias = onnx.floatTensor("linear_sgd_bias", Collections.singletonList(outputIDInfo.size()), fb -> {
             for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
                 fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
             }

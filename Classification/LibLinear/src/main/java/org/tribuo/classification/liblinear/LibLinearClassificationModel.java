@@ -36,7 +36,7 @@ import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -304,7 +304,7 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
     @Override
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
 
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
 
         de.bwaldvogel.liblinear.Model model = models.get(0);
         double[] rawWeights = model.getFeatureWeights();
@@ -343,13 +343,13 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
 
         final double[] weights = rawWeights;
 
-        ONNXTensor weightTensor = onnx.floatTensor("liblinear_weights", Arrays.asList(numFeatures, numLabels), fb -> {
+        ONNXInitializer weightTensor = onnx.floatTensor("liblinear_weights", Arrays.asList(numFeatures, numLabels), fb -> {
             for (int i = 0; i < weights.length - numLabels; i++) {
                 fb.put((float) weights[i]);
             }
         });
 
-        ONNXTensor biasTensor = onnx.floatTensor("liblinear_biases", Collections.singletonList(numLabels), fb -> {
+        ONNXInitializer biasTensor = onnx.floatTensor("liblinear_biases", Collections.singletonList(numLabels), fb -> {
             for (int i = numFeatures * numLabels; i < weights.length; i++) {
                 fb.put((float) weights[i]);
             }

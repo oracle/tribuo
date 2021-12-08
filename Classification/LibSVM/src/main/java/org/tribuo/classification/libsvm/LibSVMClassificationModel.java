@@ -31,24 +31,24 @@ import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -175,12 +175,13 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Classification-LibSVM");
 
-        return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
+        writeONNXGraph(input).assignTo(output);
+        return onnx.model(domain, modelVersion, this);
     }
 
     @Override
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
         svm_model model = models.get(0);
         int numOneVOne = model.label.length * (model.label.length - 1) / 2;
         int numFeatures = featureIDMap.size();
@@ -230,7 +231,7 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
             // If the model has two classes then the scores are inverted for some reason
             // This is based on the ONNX Runtime behaviour, but the ONNX SVMClassifier spec is ill-defined
             if(model.nr_class == 2) {
-                ONNXTensor negOne = input.onnx().constant("minus_one", -1.0f);
+                ONNXInitializer negOne = onnx.constant("minus_one", -1.0f);
                 ungatheredOutput = writeDecisionFunction(svmOutput.apply(ONNXOperators.MUL, negOne));
             } else {
                 ungatheredOutput = writeDecisionFunction(svmOutput);
@@ -243,42 +244,48 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
             backwardsLibSVMMapping[model.label[i]] = i;
         }
 
-        ONNXTensor indices = onnx.array("label_indices", backwardsLibSVMMapping);
+        ONNXInitializer indices = onnx.array("label_indices", backwardsLibSVMMapping);
 
         return ungatheredOutput.apply(ONNXOperators.GATHER, indices, Collections.singletonMap("axis", 1));
     }
 
     private ONNXNode writeDecisionFunction(ONNXNode svmOutputName) {
-        final ONNXContext onnx = svmOutputName.onnx();
-        ONNXTensor one = onnx.constant("one", 1.0f);
-        ONNXTensor zero = onnx.constant("zero", 0.0f);
+        final ONNXContext onnx = svmOutputName.onnxContext();
+        ONNXInitializer one = onnx.constant("one", 1.0f);
+        ONNXInitializer zero = onnx.constant("zero", 0.0f);
 
         ONNXNode prediction = svmOutputName.apply(ONNXOperators.LESS, zero).cast(float.class);
 
         svm_model model = models.get(0);
 
-        LinkedHashMap<Integer, List<ONNXNode>> votes = new LinkedHashMap<>();
+        TreeMap<Integer, List<ONNXNode>> votes = new TreeMap<>();
 
         int k = 0;
         for (int i = 0; i < model.nr_class; i++) {
             for (int j = i + 1; j < model.nr_class; j++) {
-                ONNXTensor index = onnx.constant("Vind_" + k, (long) k);
+                ONNXInitializer index = onnx.constant("Vind_" + k, (long) k);
 
-                ONNXNode extractedFeature = prediction.apply(ONNXOperators.ARRAY_FEATURE_EXTRACTOR, index);
+                ONNXNode extractedFeature = prediction.apply(ONNXOperators.ARRAY_FEATURE_EXTRACTOR, index, "Vsvcv_" + k);
                 votes.computeIfAbsent(j, x -> new ArrayList<>()).add(extractedFeature);
 
-                ONNXNode addNeg = extractedFeature.apply(ONNXOperators.NEG).apply(ONNXOperators.ADD, one);
+                ONNXNode addNeg = extractedFeature.apply(ONNXOperators.NEG, "Vnegv_" + k).apply(ONNXOperators.ADD, one, "Vnegv1_" + k);
                 votes.computeIfAbsent(i, x -> new ArrayList<>()).add(addNeg);
 
                 k += 1;
             }
         }
 
-        List<ONNXNode> oneVOneVotes = votes.entrySet().stream().sequential()
+        List<ONNXNode> oneVOneVotes = votes.values().stream()
+                .map(nodes -> onnx.operation(ONNXOperators.SUM, nodes, "svm_votes"))
+                .collect(Collectors.toList());
+                /*
+                votes.entrySet().stream().sequential()
                 .sorted(Comparator.comparingInt(Map.Entry::getKey))
                 .map(Map.Entry::getValue)
                 .map(nodes -> onnx.operation(ONNXOperators.SUM, nodes, "svm_votes"))
                 .collect(Collectors.toList());
+
+                 */
 
         return onnx.operation(ONNXOperators.CONCAT, oneVOneVotes, "svm_output", Collections.singletonMap("axis", 1));
     }

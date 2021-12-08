@@ -19,15 +19,14 @@ package org.tribuo.onnx;
 import ai.onnx.proto.OnnxMl;
 
 /**
- * A subclass of {@link ONNXRef} specialized for {@link ai.onnx.proto.OnnxMl.ValueInfoProto}. It has no
+ * A subclass of {@link ONNXRef} specialized for {@link ai.onnx.proto.OnnxMl.TensorProto}. It has no
  * specific behavior, for usage see {@link ONNXRef}.
  * <p>
  * N.B. this class should only be instantiated via {@link ONNXContext}.
  */
-public final class ONNXPlaceholder extends ONNXRef<OnnxMl.ValueInfoProto> {
-
-    ONNXPlaceholder(ONNXContext onnx, OnnxMl.ValueInfoProto backRef, String basename) {
-        super(onnx, backRef, basename);
+public final class ONNXInitializer extends ONNXRef<OnnxMl.TensorProto> {
+    ONNXInitializer(ONNXContext onnx, OnnxMl.TensorProto backRef, String baseName) {
+        super(onnx, backRef, baseName);
     }
 
     @Override

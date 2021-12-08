@@ -34,7 +34,7 @@ import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -188,19 +188,27 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
      */
     protected abstract String getDimensionName(int index);
 
+    /**
+     * Takes the unnormalized ONNX output of this model and applies an appropriate normalizer from the concrete class.
+     * @param input Unnormalized ONNX leaf node.
+     * @return Normalized ONNX leaf node.
+     */
     protected abstract ONNXNode onnxOutput(ONNXNode input);
 
+    /**
+     * @return Name to write into the ONNX Model.
+     */
     protected abstract String onnxModelName();
 
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
         Tensor[] modelParams = modelParameters.get();
 
-        ONNXTensor twoConst = onnx.constant("two_const", 2.0f);
-        ONNXTensor sumAxes = onnx.array("sum_over_embedding_axes", new long[]{1});
+        ONNXInitializer twoConst = onnx.constant("two_const", 2.0f);
+        ONNXInitializer sumAxes = onnx.array("sum_over_embedding_axes", new long[]{1});
 
-        ONNXTensor weights = ONNXMathUtils.floatMatrix(onnx, "fm_linear_weights", (Matrix) modelParams[1], true);
-        ONNXTensor bias = ONNXMathUtils.floatVector(onnx, "fm_biases", (SGDVector) modelParams[0]);
+        ONNXInitializer weights = ONNXMathUtils.floatMatrix(onnx, "fm_linear_weights", (Matrix) modelParams[1], true);
+        ONNXInitializer bias = ONNXMathUtils.floatVector(onnx, "fm_biases", (SGDVector) modelParams[0]);
 
         // Make gemm
         ONNXNode gemm = input.apply(ONNXOperators.GEMM, Arrays.asList(weights, bias));
@@ -211,10 +219,9 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
 
         List<ONNXNode> embeddingOutputs = new ArrayList<>();
         for(int i = 0; i < outputIDInfo.size(); i++) {
-            //embeddingWeights.add(ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true));
 
             // Embedding Weights
-            ONNXTensor embWeight = ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
+            ONNXInitializer embWeight = ONNXMathUtils.floatMatrix(onnx, "fm_embedding_" + i, (Matrix) modelParams[i + 2], true);
 
             // Feature matrix * embedding matrix = batch_size, embedding dim
             ONNXNode featureEmbedding = input.apply(ONNXOperators.GEMM, embWeight);

@@ -34,7 +34,7 @@ import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 import org.tribuo.onnx.ONNXPlaceholder;
 import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXTensor;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
@@ -226,15 +226,15 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Regression-SparseLinearModel");
 
-        return writeONNXGraph(input).assignTo(output).onnx().model(domain, modelVersion, this);
+        return writeONNXGraph(input).assignTo(output).onnxContext().model(domain, modelVersion, this);
     }
 
     @Override
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
-        ONNXContext onnx = input.onnx();
+        ONNXContext onnx = input.onnxContext();
 
         // Add weights
-        ONNXTensor onnxWeights = onnx.floatTensor("slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
+        ONNXInitializer onnxWeights = onnx.floatTensor("slm_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
                 fb -> {
                     for (int j = 0; j < featureIDMap.size(); j++) {
                         for (int i = 0; i < weights.length; i++) {
@@ -244,19 +244,19 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
                 });
 
         // Add biases
-        ONNXTensor onnxBiases = onnx.floatTensor("slm_biases", Collections.singletonList(outputIDInfo.size()),
+        ONNXInitializer onnxBiases = onnx.floatTensor("slm_biases", Collections.singletonList(outputIDInfo.size()),
                 (FloatBuffer fb) -> Arrays.stream(weights).forEachOrdered(sv -> fb.put((float) sv.get(featureIDMap.size()))));
 
         // Add feature and output means
         double[] xMean = bias ? Arrays.copyOf(featureMeans.toArray(), featureIDMap.size()) : featureMeans.toArray();
 
-        ONNXTensor featureMean = onnx.array("feature_mean", xMean);
-        ONNXTensor outputMean = onnx.array("y_mean", yMean);
+        ONNXInitializer featureMean = onnx.array("feature_mean", xMean);
+        ONNXInitializer outputMean = onnx.array("y_mean", yMean);
 
         // Add feature and output variances
         double[] xVariance = bias ? Arrays.copyOf(featureVariance.toArray(),featureIDMap.size()) : featureVariance.toArray();
-        ONNXTensor featureVariance = onnx.array("feature_variance", xVariance);
-        ONNXTensor outputVariance = onnx.array("y_variance", yVariance);
+        ONNXInitializer featureVariance = onnx.array("feature_variance", xVariance);
+        ONNXInitializer outputVariance = onnx.array("y_variance", yVariance);
 
         // Scale features
         ONNXNode scaledFeatures = input.apply(ONNXOperators.SUB, featureMean)
