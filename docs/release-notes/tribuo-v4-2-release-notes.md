@@ -1,10 +1,11 @@
 # Tribuo v4.2 Release Notes
 
 Tribuo 4.2 adds new models, ONNX export for several types of models, a
-reproducibility framework for recreating Tribuo models, along with several
-smaller improvements and bug fixes. We've added more tutorials covering the new
-features along with multi-label classification, and further expanded the
-javadoc to cover all public methods.
+reproducibility framework for recreating Tribuo models, easy deployment of
+Tribuo models on Oracle Cloud, along with several smaller improvements and bug
+fixes. We've added more tutorials covering the new features along with
+multi-label classification, and further expanded the javadoc to cover all
+public methods.
 
 In Tribuo 4.1.0 and earlier there is a severe bug in multi-dimensional
 regression models (i.e., regression tasks with multiple output dimensions).
@@ -73,6 +74,10 @@ a metadata field which is accessible when the ONNX model is loaded back into
 Tribuo. The provenance is stored as a protobuf so could be read from other
 libraries or platforms if necessary.
 
+The ONNX export support is in a separate module with no dependencies, and could
+be used elsewhere on the JVM to support generating ONNX graphs. We welcome
+contributions to build out the ONNX support in that module.
+
 - ONNX export for LinearSGDModels
   ([#154](https://github.com/oracle/tribuo/pull/154)), which also adds a
 multi-label output transformer for scoring multi-label ONNX models.
@@ -81,6 +86,8 @@ multi-label output transformer for scoring multi-label ONNX models.
 - Refactor ONNX tensor creation ([#187](https://github.com/oracle/tribuo/pull/187)).
 - ONNX ensemble export support ([#186](https://github.com/oracle/tribuo/pull/186)).
 - ONNX export for LibSVM and LibLinear ([#191](https://github.com/oracle/tribuo/pull/191)).
+- Refactor ONNX support to improve type safety ([#199](https://github.com/oracle/tribuo/pull/199)).
+- Extract ONNX support into separate module ([#TBD](https://github.com/oracle/tribuo/pull/)).
 
 ## Reproducibility Framework
 
@@ -105,7 +112,21 @@ of the lab at UBC, as this is excellent work.
 Note the reproducibility framework module requires Java 16 or greater, and is
 thus not included in the `tribuo-all` meta-module.
 
-- Reproducibility framework ([#185](https://github.com/oracle/tribuo/pull/185), with minor changes in [#189](https://github.com/oracle/tribuo/pull/189) and [#190](https://github.com/oracle/tribuo/pull/190))
+- Reproducibility framework ([#185](https://github.com/oracle/tribuo/pull/185), with minor changes in [#189](https://github.com/oracle/tribuo/pull/189) and [#190](https://github.com/oracle/tribuo/pull/190)).
+
+## OCI Data Science Integration
+
+[Oracle Cloud Data
+Science](https://www.oracle.com/data-science/cloud-infrastructure-data-science.html)
+is a platform for building and deploying models in Oracle Cloud.  The model
+deployment functionality wraps a Python runtime and deploys them with an
+auto-scaler at a REST endpoint. In this release we've added support for
+deploying Tribuo models which are ONNX exportable directly to OCI DS, allowing
+scale-out deployments of models from the JVM. We also added a `OCIModel`
+wrapper which scores Tribuo `Example` objects using a deployed model's REST
+endpoint, allowing easy use of cloud resources for ML on the JVM.
+
+- Oracle Cloud Data Science integration ([#200](https://github.com/oracle/tribuo/pull/200)).
 
 ## Small improvements
 
@@ -133,6 +154,7 @@ thus not included in the `tribuo-all` meta-module.
 - Fix multidimensional regression ([#177](https://github.com/oracle/tribuo/pull/177)) (fixes regression ids, fixes libsvm so it emits correct standardized models, adds support for per dimension feature weights in XGBoostRegressionModel)
 - Fix provenance generation for FieldResponseProcessor and BinaryResponseProcessor ([#178](https://github.com/oracle/tribuo/pull/178)) 
 - Normalize LibSVMDataSource paths consistently in the provenance ([#181](https://github.com/oracle/tribuo/pull/181))
+- KMeans and KNN now run correctly when using OpenSearch's SecurityManager ([#197](https://github.com/oracle/tribuo/pull/197))
 
 ## Contributors
 
