@@ -169,7 +169,7 @@ public abstract class OCIModelCLI {
             for (Pair<Integer,Label> l : dataset.getOutputIDInfo()) {
                 outputMapping.put(l.getB(), l.getA());
             }
-            OCIModel<Label> model = OCIModel.createOCIModel(dataset.getOutputFactory(),featureMapping,outputMapping,options.ociConfigFile,options.endpointURL,options.modelDeploymentId, new OCILabelConverter(true));
+            OCIModel<Label> model = OCIModel.createOCIModel(dataset.getOutputFactory(),featureMapping,outputMapping,options.ociConfigFile,options.endpointDomain + options.modelDeploymentId, new OCILabelConverter(true));
 
             System.out.println("Scoring using OCIModel - " + model.toString());
             LabelEvaluator eval = new LabelEvaluator();
@@ -215,7 +215,7 @@ public abstract class OCIModelCLI {
         // 3) Target an endpoint. You must ensure that path arguments and query
         // params are escaped correctly yourself
         WebTarget target = client
-                .target(options.endpointURL + options.modelDeploymentId)
+                .target(options.endpointDomain + options.modelDeploymentId)
                 .path("predict");
 
         System.out.println("Scoring using manual conversion from endpoint " + options.modelDeploymentId);
@@ -392,8 +392,8 @@ public abstract class OCIModelCLI {
         /**
          * The OCI endpoint domain.
          */
-        @Option(longName="oci-url",usage="The OCI endpoint domain.")
-        public String endpointURL;
+        @Option(longName="oci-domain",usage="The OCI endpoint domain.")
+        public String endpointDomain;
         /**
          * Use the OCIModel class.
          */

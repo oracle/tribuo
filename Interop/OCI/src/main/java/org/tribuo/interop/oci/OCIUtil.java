@@ -48,6 +48,7 @@ import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -372,7 +373,14 @@ public abstract class OCIUtil {
     public static String createModel(Path onnxFile, ModelProvenance provenance, OCIModelType modelType, DataScienceClient client, ObjectMapper mapper, OCIModelArtifactConfig config) throws IOException {
         // Create model artifact
         Path zipFile = Files.createTempFile("oci-ds-model-deployment",".zip");
-        try (FileSystem zipFS = FileSystems.newFileSystem(zipFile.toUri(), Collections.emptyMap())) {
+
+        // This works around the lack of FileSystems.newFileSystem(Path, Map) before Java 13
+        // It creates a jar URI to hit the ZipFileSystem, then deletes the temp file to force
+        // the ZipFileSystem to create an empty zip file with the right header
+        URI uri = URI.create("jar:"+zipFile.toUri());
+        java.nio.file.Files.delete(zipFile);
+
+        try (FileSystem zipFS = FileSystems.newFileSystem(uri, Collections.singletonMap("create","true"))) {
             OCIUtil.storeResource(zipFS,"score.py");
             OCIUtil.storeResource(zipFS,"runtime.yaml");
             OCIUtil.storeStream(zipFS,"model.onnx",Files.newInputStream(onnxFile));

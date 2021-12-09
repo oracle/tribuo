@@ -278,14 +278,13 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     /**
      * Creates an {@code OCIModel} by wrapping an OCI DS Model Deployment endpoint.
      * <p>
-     * Uses the endpointURL and the modelDeploymentId as the value to hash for the trainer provenance.
+     * Uses the endpointURL as the value to hash for the trainer provenance.
      *
      * @param factory                The output factory to use.
      * @param featureMapping         The feature mapping between Tribuo names and model integer ids.
      * @param outputMapping          The output mapping between Tribuo outputs and model integer ids.
      * @param configFile             The OCI configuration file.
      * @param endpointURL            The endpoint URL.
-     * @param modelDeploymentId      The model deployment ID.
      * @param outputConverter        The converter for the specified output type.
      * @return An OCIModel ready to score new inputs.
      */
@@ -294,21 +293,23 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
                                                                    Map<T, Integer> outputMapping,
                                                                    Path configFile,
                                                                    String endpointURL,
-                                                                   String modelDeploymentId,
                                                                    OCIOutputConverter<T> outputConverter) {
         try {
             ImmutableFeatureMap featureMap = ExternalModel.createFeatureMap(featureMapping.keySet());
             ImmutableOutputInfo<T> outputInfo = ExternalModel.createOutputInfo(factory, outputMapping);
             OffsetDateTime now = OffsetDateTime.now();
-            ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance((endpointURL + modelDeploymentId).getBytes(StandardCharsets.UTF_8));
+            ExternalTrainerProvenance trainerProvenance = new ExternalTrainerProvenance((endpointURL).getBytes(StandardCharsets.UTF_8));
             DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data", factory, false, featureMapping.size(), outputMapping.size());
+            String[] endpoint = endpointURL.split("/");
+            String domain = "https://" + endpoint[2] + "/";
+            String modelDeploymentId = endpoint[3];
             HashMap<String, Provenance> runProvenance = new HashMap<>();
             runProvenance.put("configFile", new FileProvenance("configFile", configFile));
             runProvenance.put("endpointURL", new StringProvenance("endpointURL", endpointURL));
             runProvenance.put("modelDeploymentId", new StringProvenance("modelDeploymentId", modelDeploymentId));
             ModelProvenance provenance = new ModelProvenance(OCIModel.class.getName(), now, datasetProvenance, trainerProvenance, runProvenance);
             return new OCIModel<T>("oci-ds-model", provenance, featureMap, outputInfo, featureMapping, configFile,
-                    endpointURL, modelDeploymentId, outputConverter);
+                    domain, modelDeploymentId, outputConverter);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load configuration from path " + configFile, e);
         }
