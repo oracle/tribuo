@@ -27,6 +27,7 @@ import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.provenance.ModelProvenance;
@@ -114,7 +115,12 @@ public class KMeansModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
-        SparseVector vector = SparseVector.createSparseVector(example,featureIDMap,false);
+        SGDVector vector;
+        if (example.size() == featureIDMap.size()) {
+            vector = DenseVector.createDenseVector(example, featureIDMap, false);
+        } else {
+            vector = SparseVector.createSparseVector(example, featureIDMap, false);
+        }
         if (vector.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
