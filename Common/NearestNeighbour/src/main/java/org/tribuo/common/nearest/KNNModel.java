@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +44,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Future;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -52,12 +55,19 @@ import java.util.stream.Stream;
 
 /**
  * A k-nearest neighbours model.
+ * <p>
+ * Note multi-threaded prediction uses a {@link ForkJoinPool} which requires that the Tribuo codebase
+ * is given the "modifyThread" and "modifyThreadGroup" privileges when running under a
+ * {@link java.lang.SecurityManager}.
  */
 public class KNNModel<T extends Output<T>> extends Model<T> {
 
     private static final Logger logger = Logger.getLogger(KNNModel.class.getName());
 
     private static final long serialVersionUID = 1L;
+
+    // Thread factory for the FJP, to allow use with OpenSearch's SecureSM
+    private static final CustomForkJoinWorkerThreadFactory THREAD_FACTORY = new CustomForkJoinWorkerThreadFactory();
 
     /**
      * The parallel backend for batch predictions.
@@ -121,7 +131,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         List<Prediction<T>> predictions;
         Stream<Pair<SparseVector,T>> stream = Stream.of(vectors);
         if (numThreads > 1) {
-            ForkJoinPool fjp = new ForkJoinPool(numThreads);
+            ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
             try {
                 predictions = fjp.submit(()->StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map((a) -> new Prediction<>(a.output, input.numActiveElements(), example)).collect(Collectors.toList())).get();
             } catch (InterruptedException | ExecutionException e) {
@@ -222,7 +232,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private List<Prediction<T>> innerPredictStreams(Iterable<Example<T>> examples) {
         List<Prediction<T>> predictions = new ArrayList<>();
         List<Prediction<T>> innerPredictions = null;
-        ForkJoinPool fjp = new ForkJoinPool(numThreads);
+        ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
         for (Example<T> example : examples) {
             SparseVector input = SparseVector.createSparseVector(example, featureIDMap, false);
 
@@ -495,4 +505,12 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         }
     }
 
+    /**
+     * Used to allow FJPs to work with OpenSearch's SecureSM.
+     */
+    private static final class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
+        public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
+            return AccessController.doPrivileged((PrivilegedAction<ForkJoinWorkerThread>) () -> new ForkJoinWorkerThread(pool) {});
+        }
+    }
 }
