@@ -21,7 +21,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
-import org.tribuo.Output;
 import org.tribuo.math.la.SGDVector;
 
 import java.io.Serializable;

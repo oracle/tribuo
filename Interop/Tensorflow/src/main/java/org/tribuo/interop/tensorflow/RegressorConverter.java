@@ -60,7 +60,7 @@ public class RegressorConverter implements OutputConverter<Regressor> {
      */
     @Override
     public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
-        return (ops, pair) -> new MeanSquaredError(ops, "tribuo-mse", Reduction.SUM_OVER_BATCH_SIZE).call(pair.getA(),pair.getB());
+        return (ops, pair) -> new MeanSquaredError("tribuo-mse", Reduction.SUM_OVER_BATCH_SIZE).call(ops,pair.getA(),pair.getB());
     }
 
     /**

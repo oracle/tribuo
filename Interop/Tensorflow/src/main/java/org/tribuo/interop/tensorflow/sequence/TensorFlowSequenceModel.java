@@ -51,7 +51,6 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
     protected final SequenceFeatureConverter featureConverter;
     protected final SequenceOutputConverter<T> outputConverter;
 
-    protected final String initOp;
     protected final String predictOp;
 
     TensorFlowSequenceModel(String name,
@@ -61,21 +60,17 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
                             GraphDef graphDef,
                             SequenceFeatureConverter featureConverter,
                             SequenceOutputConverter<T> outputConverter,
-                            String initOp,
                             String predictOp,
                             Map<String, TensorFlowUtil.TensorTuple> tensorMap
     ) {
         super(name, description, featureIDMap, outputIDMap);
         this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
-        this.initOp = initOp;
         this.predictOp = predictOp;
         this.modelGraph = new Graph();
         this.modelGraph.importGraphDef(graphDef);
         this.session = new Session(modelGraph);
 
-        // Initialises the parameters.
-        session.run(initOp);
         TensorFlowUtil.restoreMarshalledVariables(session, tensorMap);
     }
 
@@ -130,8 +125,6 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
         modelGraph = new Graph();
         modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
         session = new Session(modelGraph);
-        // Initialises the parameters.
-        session.run(initOp);
         TensorFlowUtil.restoreMarshalledVariables(session,tensorMap);
     }
 }

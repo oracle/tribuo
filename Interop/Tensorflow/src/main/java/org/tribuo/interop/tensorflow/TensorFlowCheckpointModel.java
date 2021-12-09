@@ -54,7 +54,7 @@ import java.util.logging.Logger;
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowModel<T> implements Closeable {
+public final class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowModel<T> implements Closeable {
     private static final Logger logger = Logger.getLogger(TensorFlowCheckpointModel.class.getName());
 
     private static final long serialVersionUID = 200L;
@@ -65,8 +65,8 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
 
     private boolean initialized;
 
-    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, String checkpointName, int batchSize, String initName, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
-        super(name, description, featureIDMap, outputIDMap, graphDef, batchSize, initName, outputName, featureConverter, outputConverter);
+    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, String checkpointName, int batchSize, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
+        super(name, description, featureIDMap, outputIDMap, graphDef, batchSize, outputName, featureConverter, outputConverter);
         this.checkpointDirectory = checkpointDirectory;
         this.checkpointName = checkpointName;
         try {
@@ -155,12 +155,12 @@ public class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowMo
     public TensorFlowNativeModel<T> convertToNativeModel() {
         Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(modelGraph,session);
         return new TensorFlowNativeModel<>(name, provenance, featureIDMap,
-                outputIDInfo, modelGraph.toGraphDef(), tensorMap, batchSize, initName, outputName, featureConverter, outputConverter);
+                outputIDInfo, modelGraph.toGraphDef(), tensorMap, batchSize, outputName, featureConverter, outputConverter);
     }
 
     @Override
     protected TensorFlowCheckpointModel<T> copy(String newName, ModelProvenance newProvenance) {
-        return new TensorFlowCheckpointModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),checkpointDirectory,checkpointName,batchSize,initName,outputName, featureConverter, outputConverter);
+        return new TensorFlowCheckpointModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),checkpointDirectory,checkpointName,batchSize,outputName, featureConverter, outputConverter);
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

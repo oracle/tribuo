@@ -1,11 +1,27 @@
+/*
+ * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tribuo.interop.tensorflow;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tensorflow.ConcreteFunction;
 import org.tensorflow.Graph;
 import org.tensorflow.Operation;
 import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Session;
+import org.tensorflow.SessionFunction;
 import org.tensorflow.Signature;
 import org.tensorflow.Tensor;
 import org.tensorflow.proto.framework.GraphDef;
@@ -42,7 +58,6 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
     private static final long serialVersionUID = 200L;
 
     protected int batchSize;
-    protected final String initName;
     protected final String outputName;
     protected final FeatureConverter featureConverter;
     protected final OutputConverter<T> outputConverter;
@@ -58,18 +73,16 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
      * @param outputIDInfo The output domain.
      * @param trainedGraphDef The graph definition.
      * @param batchSize The test time batch size.
-     * @param initName The name of the initialization operation.
      * @param outputName The name of the output operation.
      * @param featureConverter The feature converter.
      * @param outputConverter The output converter.
      */
-    protected TensorFlowModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String initName, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
+    protected TensorFlowModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, GraphDef trainedGraphDef, int batchSize, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities());
         this.modelGraph = new Graph();
         this.modelGraph.importGraphDef(trainedGraphDef);
         this.session = new Session(modelGraph);
         this.batchSize = batchSize;
-        this.initName = initName;
         this.outputName = outputName;
         this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
@@ -209,7 +222,7 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
         }
         Operation outputOp = modelGraph.operation(outputName);
         Signature modelSig = sigBuilder.output(outputName, outputOp.output(0)).build();
-        ConcreteFunction concFunc = ConcreteFunction.create(modelSig, session);
+        SessionFunction concFunc = SessionFunction.create(modelSig, session);
         SavedModelBundle.exporter(path).withFunction(concFunc).export();
     }
 

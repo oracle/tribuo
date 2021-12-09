@@ -22,7 +22,6 @@ import com.oracle.labs.mlrg.olcut.config.Options;
 import com.oracle.labs.mlrg.olcut.config.UsageException;
 import com.oracle.labs.mlrg.olcut.util.LabsLogFormatter;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tensorflow.op.core.Init;
 import org.tribuo.Dataset;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.Model;
@@ -108,9 +107,7 @@ public class TrainTest {
         @Option(charName='v',longName="testing-file",usage="Path to the libsvm format testing file.")
         public Path testingPath;
 
-        @Option(charName='i',longName="init-name",usage="Name of the initialisation operation.")
-        public String initName = Init.DEFAULT_NAME;
-        @Option(charName='l',longName="output-name",usage="Name of the output operation.")
+        @Option(charName = 'l', longName = "output-name", usage = "Name of the output operation.")
         public String outputName;
         @Option(longName="optimizer-param-names",usage="Gradient optimizer param names, see org.tribuo.interop.tensorflow.GradientOptimiser.")
         public List<String> gradientParamNames = DEFAULT_PARAM_NAMES;
@@ -213,10 +210,10 @@ public class TrainTest {
         Trainer<Label> trainer;
         if (o.checkpointPath == null) {
             logger.info("Using TensorflowTrainer");
-            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimiser, o.getGradientParams(), inputConverter, labelConverter, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.optimiser, o.getGradientParams(), inputConverter, labelConverter, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval);
         } else {
             logger.info("Using TensorflowCheckpointTrainer, writing to path " + o.checkpointPath);
-            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.initName, o.optimiser, o.getGradientParams(), inputConverter, labelConverter, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval, o.checkpointPath);
+            trainer = new TensorFlowTrainer<>(o.protobufPath, o.outputName, o.optimiser, o.getGradientParams(), inputConverter, labelConverter, o.batchSize, o.epochs, o.testBatchSize, o.loggingInterval, o.checkpointPath);
         }
         logger.info("Training using " + trainer.toString());
         final long trainStart = System.currentTimeMillis();
