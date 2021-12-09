@@ -36,21 +36,15 @@ public final class GraphDefTuple {
      * Name of the output operation.
      */
     public final String outputName;
-    /**
-     * Name of the initialization operation.
-     */
-    public final String initName;
 
     /**
      * Creates a graphDef record.
      * @param graphDef The TF Graph.
      * @param inputName The name of the input placeholder.
      * @param outputName The name of the output operation.
-     * @param initName The name of the init operation.
      */
-    public GraphDefTuple(GraphDef graphDef, String inputName, String outputName, String initName) {
+    public GraphDefTuple(GraphDef graphDef, String inputName, String outputName) {
         this.graphDef = graphDef;
-        this.initName = initName;
         this.outputName = outputName;
         this.inputName = inputName;
     }

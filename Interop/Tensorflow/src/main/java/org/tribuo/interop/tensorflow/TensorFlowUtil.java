@@ -17,13 +17,14 @@
 package org.tribuo.interop.tensorflow;
 
 import org.tensorflow.Graph;
-import org.tensorflow.Operation;
-import org.tensorflow.OperationBuilder;
+import org.tensorflow.GraphOperation;
+import org.tensorflow.GraphOperationBuilder;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.ndarray.buffer.ByteDataBuffer;
 import org.tensorflow.ndarray.buffer.DataBuffers;
+import org.tensorflow.op.Scope;
 import org.tensorflow.types.family.TType;
 
 import java.io.Serializable;
@@ -90,10 +91,10 @@ public abstract class TensorFlowUtil {
      */
     public static void annotateGraph(Graph graph, Session session) {
         List<String> variableNames = new ArrayList<>();
-        Map<String, Operation> opMap = new HashMap<>();
-        Iterator<Operation> opItr = graph.operations();
+        Map<String, GraphOperation> opMap = new HashMap<>();
+        Iterator<GraphOperation> opItr = graph.operations();
         while (opItr.hasNext()) {
-            Operation op = opItr.next();
+            GraphOperation op = opItr.next();
             if (op.type().equals(VARIABLE_V2)) {
                 variableNames.add(op.name());
                 opMap.put(op.name(), op);
@@ -112,11 +113,13 @@ public abstract class TensorFlowUtil {
             throw new IllegalStateException("Failed to annotate all requested variables. Requested " + variableNames.size() + ", found " + output.size());
         }
 
+        Scope scope = graph.baseScope();
+
         for (int i = 0; i < output.size(); i++) {
-            OperationBuilder builder = graph.opBuilder(PLACEHOLDER, generatePlaceholderName(variableNames.get(i)));
+            GraphOperationBuilder builder = graph.opBuilder(PLACEHOLDER, generatePlaceholderName(variableNames.get(i)),scope);
             builder.setAttr(DTYPE, output.get(i).dataType());
-            Operation o = builder.build();
-            builder = graph.opBuilder(ASSIGN_OP, variableNames.get(i) + "/" + ASSIGN_PLACEHOLDER);
+            GraphOperation o = builder.build();
+            builder = graph.opBuilder(ASSIGN_OP, variableNames.get(i) + "/" + ASSIGN_PLACEHOLDER,scope);
             builder.addInput(opMap.get(variableNames.get(i)).output(0));
             builder.addInput(o.output(0));
             builder.build();
@@ -145,9 +148,9 @@ public abstract class TensorFlowUtil {
      */
     public static Map<String, TensorTuple> extractMarshalledVariables(Graph graph, Session session) {
         List<String> variableNames = new ArrayList<>();
-        Iterator<Operation> opItr = graph.operations();
+        Iterator<GraphOperation> opItr = graph.operations();
         while (opItr.hasNext()) {
-            Operation op = opItr.next();
+            GraphOperation op = opItr.next();
             if (op.type().equals(VARIABLE_V2)) {
                 variableNames.add(op.name());
             }

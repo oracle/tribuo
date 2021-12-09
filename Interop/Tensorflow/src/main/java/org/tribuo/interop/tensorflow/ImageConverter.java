@@ -27,7 +27,6 @@ import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
-import org.tribuo.Output;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
 
