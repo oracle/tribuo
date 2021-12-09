@@ -473,6 +473,9 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     /**
      * Runs the mStep, writing to the {@code centroidVectors} array.
+     * <p>
+     * Note in 4.2 this method changed signature slightly, and overrides of the old
+     * version will not match.
      * @param fjp The ForkJoinPool to run the computation in if it should be executed in parallel.
      *            If the fjp is null then the computation is executed sequentially on the main thread.
      * @param centroidVectors The centroid vectors to write out.
