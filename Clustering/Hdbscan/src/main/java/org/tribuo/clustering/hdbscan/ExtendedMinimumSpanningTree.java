@@ -18,6 +18,7 @@ package org.tribuo.clustering.hdbscan;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * An Extended Minimum Spanning Tree graph. Includes the functionality to sort the edge weights in ascending order.
@@ -27,7 +28,7 @@ final class ExtendedMinimumSpanningTree {
 
     private final EMSTTriple[] emstTriples;
 
-    private final ArrayList<Integer>[] edges;
+    private final List<Integer>[] edges;
 
     /**
      * Constructs an ExtendedMinimumSpanningTree, including creating an edge list for each vertex from the
@@ -40,8 +41,10 @@ final class ExtendedMinimumSpanningTree {
      */
     ExtendedMinimumSpanningTree(int numVertices, int[] firstVertices, int[] secondVertices, double[] edgeWeights) {
         this.numVertices = numVertices;
-
-        this.edges = new ArrayList[numVertices];
+        // Only integer arraylists are inserted into this array, and it's not accessible outside.
+        @SuppressWarnings("unchecked")
+        List<Integer>[] edgeTmp = (List<Integer>[]) new ArrayList[numVertices];
+        this.edges = edgeTmp;
         for (int i = 0; i < this.edges.length; i++) {
             this.edges[i] = new ArrayList<>(1 + edgeWeights.length / numVertices);
         }
@@ -82,7 +85,7 @@ final class ExtendedMinimumSpanningTree {
         return this.emstTriples[index].edgeWeight;
     }
 
-    public ArrayList<Integer> getEdgeListForVertex(int vertex) {
+    public List<Integer> getEdgeListForVertex(int vertex) {
         return this.edges[vertex];
     }
 

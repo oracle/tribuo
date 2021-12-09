@@ -64,12 +64,16 @@ public interface Trainer<T extends Output<T>> extends Configurable, Provenancabl
      *
      * @param examples        the data set containing the examples.
      * @param runProvenance   Training run specific provenance (e.g., fold number).
-     * @param invocationCount The state of the RNG the trainer should be set to before training
+     * @param invocationCount The invocation counter that the trainer should be set to before training, which in most
+     *                        cases alters the state of the RNG inside this trainer. If the value is set to
+     *                        {@link #INCREMENT_INVOCATION_COUNT} then the invocation count is not changed.
      * @return a predictive model that can be used to generate predictions for new examples.
      */
     public default Model<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
-        synchronized (this){
-            setInvocationCount(invocationCount);
+        synchronized (this) {
+            if (invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
             return train(examples, runProvenance);
         }
     }

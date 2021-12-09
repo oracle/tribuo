@@ -27,6 +27,7 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
+import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -67,7 +68,7 @@ import java.util.logging.Logger;
  * <a href="http://lapad-web.icmc.usp.br/?portfolio_1=a-handful-of-experiments">HDBSCAN*</a>
  * </pre>
  */
-final public class HdbscanTrainer implements Trainer<ClusterID> {
+public final class HdbscanTrainer implements Trainer<ClusterID> {
     private static final Logger logger = Logger.getLogger(HdbscanTrainer.class.getName());
 
     static final int OUTLIER_NOISE_CLUSTER_LABEL = 0;
@@ -147,10 +148,14 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
-        SGDVector[] data = new DenseVector[examples.size()];
+        SGDVector[] data = new SGDVector[examples.size()];
         int n = 0;
         for (Example<ClusterID> example : examples) {
-            data[n] = DenseVector.createDenseVector(example, featureMap, false);
+            if (example.size() == featureMap.size()) {
+                data[n] = DenseVector.createDenseVector(example, featureMap, false);
+            } else {
+                data[n] = SparseVector.createSparseVector(example, featureMap, false);
+            }
             n++;
         }
 
@@ -182,7 +187,7 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
         ModelProvenance provenance = new ModelProvenance(HdbscanModel.class.getName(), OffsetDateTime.now(),
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
-        return new HdbscanModel("", provenance, featureMap, outputMap, clusterLabels, outlierScoresVector,
+        return new HdbscanModel("hdbscan-model", provenance, featureMap, outputMap, clusterLabels, outlierScoresVector,
                                 clusterExemplars, distanceType);
     }
 
@@ -194,6 +199,15 @@ final public class HdbscanTrainer implements Trainer<ClusterID> {
     @Override
     public int getInvocationCount() {
         return trainInvocationCounter;
+    }
+
+    @Override
+    public void setInvocationCount(int newInvocationCount) {
+        if(newInvocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        } else {
+            trainInvocationCounter = newInvocationCount;
+        }
     }
 
     /**

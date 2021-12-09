@@ -40,7 +40,7 @@ positive warnings.
 	    <Class name="org.tribuo.classification.xgboost.TrainTest"/>
 	    <Class name="org.tribuo.classification.xgboost.TrainTest$TrainTestOptions"/>
 		<Class name="org.tribuo.clustering.hdbscan.TrainTest"/>
-		<Class name="org.tribuo.clustering.hdbscan.TrainTest$HdbscanOptions"/>
+		<Class name="org.tribuo.clustering.hdbscan.TrainTest$HdbscanCLIOptions"/>
 	    <Class name="org.tribuo.clustering.kmeans.TrainTest"/>
 	    <Class name="org.tribuo.clustering.kmeans.TrainTest$KMeansOptions"/>
 	    <Class name="org.tribuo.data.ConfigurableTrainTest"/>
