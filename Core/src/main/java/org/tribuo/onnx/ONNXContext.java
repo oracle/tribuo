@@ -126,7 +126,7 @@ public final class ONNXContext {
      */
     public <LHS extends ONNXRef<?>, RHS extends ONNXRef<?>> LHS assignTo(RHS input, LHS output) {
         if(!(input.context == output.context && input.context == this)) {
-            throw new IllegalArgumentException("both input and output must belong to the same ONNXContext");
+            throw new IllegalArgumentException("both input and output must both belong to this ONNXContext");
         }
         OnnxMl.NodeProto idNode = ONNXOperators.IDENTITY.build(this, input.getReference(), output.getReference());
         protoBuilder.addNode(idNode);

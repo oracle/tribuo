@@ -129,7 +129,8 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     }
 
     /**
-     * Exports this averaging combiner as a list of ONNX NodeProtos.
+     * Exports this averaging combiner, writing constructed nodes into the {@link org.tribuo.onnx.ONNXContext}
+     * governing {@code input} and returning the leaf node of the combiner.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
      * @param input The node to combine
