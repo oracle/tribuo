@@ -174,6 +174,12 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
      */
     protected abstract String onnxModelName();
 
+    /**
+     * Writes this {@link org.tribuo.Model} into {@link OnnxMl.GraphProto.Builder} inside the input's
+     * {@link ONNXContext}.
+     * @param input The input to the model graph.
+     * @return the output node of the model graph.
+     */
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
         ONNXContext onnx = input.onnxContext();
 
@@ -195,6 +201,12 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
         return onnxOutput(input.apply(ONNXOperators.GEMM, Arrays.asList(weights, bias)));
     }
 
+    /**
+     * Exports this {@link org.tribuo.Model} as an ONNX protobuf.
+     * @param domain A reverse-DNS name to namespace the model (e.g., org.tribuo.classification.sgd.linear).
+     * @param modelVersion A version number for this model.
+     * @return The ONNX ModelProto representing this Tribuo Model.
+     */
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
         ONNXContext onnx = new ONNXContext();
         onnx.setName(onnxModelName());
