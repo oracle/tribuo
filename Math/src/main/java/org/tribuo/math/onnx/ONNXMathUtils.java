@@ -18,8 +18,8 @@ package org.tribuo.math.onnx;
 
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXInitializer;
 
 import java.nio.FloatBuffer;
 import java.util.Arrays;

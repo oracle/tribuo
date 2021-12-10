@@ -24,20 +24,20 @@ import libsvm.svm_node;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXInitializer;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXPlaceholder;
-import org.tribuo.onnx.ONNXRef;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
+import org.tribuo.util.onnx.ONNXPlaceholder;
+import org.tribuo.util.onnx.ONNXRef;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -176,7 +176,7 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         onnx.setName("Classification-LibSVM");
 
         writeONNXGraph(input).assignTo(output);
-        return onnx.model(domain, modelVersion, this);
+        return ONNXExportable.buildModel(onnx, domain, modelVersion, this);
     }
 
     @Override

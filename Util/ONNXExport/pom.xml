@@ -20,12 +20,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.tribuo</groupId>
-        <artifactId>tribuo</artifactId>
+        <artifactId>tribuo-util</artifactId>
         <version>4.2.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <name>Core</name>
-    <artifactId>tribuo-core</artifactId>
+    <name>ONNXExport</name>
+    <artifactId>tribuo-util-onnx</artifactId>
     <packaging>jar</packaging>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -34,61 +34,29 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.oracle.labs.olcut</groupId>
-            <artifactId>olcut-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-util-onnx</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.oracle.labs.olcut</groupId>
-            <artifactId>olcut-config-protobuf</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>templating-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        <id>filtering-java-templates</id>
-                        <goals>
-                            <goal>filter-sources</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>org.tribuo.core</Automatic-Module-Name>
+                            <Automatic-Module-Name>org.tribuo.util.onnx</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

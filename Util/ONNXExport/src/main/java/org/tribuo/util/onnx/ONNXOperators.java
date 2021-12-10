@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.onnx;
+package org.tribuo.util.onnx;
 
 import ai.onnx.proto.OnnxMl;
 
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.tribuo.onnx.ONNXAttribute.VARIADIC_INPUT;
+import static org.tribuo.util.onnx.ONNXAttribute.VARIADIC_INPUT;
 
 /**
  * The supported ONNX operators.

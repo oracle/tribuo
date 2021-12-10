@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-package org.tribuo.onnx;
+package org.tribuo.util.onnx;
 
 import ai.onnx.proto.OnnxMl;
-import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import org.tribuo.Tribuo;
-import org.tribuo.provenance.ModelProvenance;
 
 import java.nio.FloatBuffer;
 import java.util.Collections;
@@ -42,7 +38,7 @@ import java.util.stream.IntStream;
  */
 public final class ONNXContext {
 
-    private final Map<String, MutableLong> nameMap;
+    private final Map<String, Long> nameMap;
 
     private final OnnxMl.GraphProto.Builder protoBuilder;
 
@@ -293,41 +289,14 @@ public final class ONNXContext {
     }
 
     /**
-     * Creates an ONNX model protobuf for this context.
-     * @param domain Domain for the produced model.
-     * @param modelVersion Model version for the produced model.
-     * @param model Provenanced Tribuo model from which this model is derived - the DocString and Tribuo Provenance data
-     *              from this model will be written into the ONNX Model proto.
-     * @param <M> The type of the provenanced model.
-     * @return An ONNX model proto of the graph represented by this ONNXContext.
-     */
-    public <M extends Provenancable<ModelProvenance>> OnnxMl.ModelProto model(String domain, long modelVersion, M model) {
-        return OnnxMl.ModelProto.newBuilder()
-                .setGraph(protoBuilder.build())
-                .setDomain(domain)
-                .setProducerName("Tribuo")
-                .setProducerVersion(Tribuo.VERSION)
-                .setModelVersion(modelVersion)
-                .addOpsetImport(ONNXOperators.getOpsetProto())
-                .setIrVersion(6)
-                .setDocString(model.toString())
-                .addMetadataProps(OnnxMl.StringStringEntryProto
-                        .newBuilder()
-                        .setKey(ONNXExportable.PROVENANCE_METADATA_FIELD)
-                        .setValue(ONNXExportable.SERIALIZER.marshalAndSerialize(model.getProvenance()))
-                        .build())
-                .build();
-    }
-
-    /**
      * Generates a unique name by appending the counter for that name.
      * @param name The name.
      * @return A unique version of that name.
      */
     String generateUniqueName(String name) {
-        MutableLong counter = nameMap.computeIfAbsent(name,k -> new MutableLong());
-        String newName = name + "_" + counter.longValue();
-        counter.increment();
+        long counter = nameMap.computeIfAbsent(name,k -> 0L);
+        String newName = name + "_" + counter;
+        nameMap.put(name,counter + 1);
         return newName;
     }
 
@@ -337,5 +306,13 @@ public final class ONNXContext {
      */
     public void setName(String name) {
         protoBuilder.setName(name);
+    }
+
+    /**
+     * Builds the ONNX graph represented by this context.
+     * @return The ONNX graph proto.
+     */
+    public OnnxMl.GraphProto buildGraph() {
+        return protoBuilder.build();
     }
 }

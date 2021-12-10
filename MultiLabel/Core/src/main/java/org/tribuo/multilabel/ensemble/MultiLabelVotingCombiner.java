@@ -25,11 +25,11 @@ import org.tribuo.classification.Label;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.multilabel.MultiLabel;
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
+import org.tribuo.util.onnx.ONNXRef;
 
 import java.util.Arrays;
 import java.util.Collections;

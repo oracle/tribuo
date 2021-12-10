@@ -19,14 +19,14 @@ package org.tribuo.regression.sgd.linear;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
-import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXNode;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
+import org.tribuo.util.onnx.ONNXNode;
 
 import java.io.IOException;
 import java.util.Arrays;

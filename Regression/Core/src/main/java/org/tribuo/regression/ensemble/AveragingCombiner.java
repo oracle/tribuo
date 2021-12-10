@@ -22,11 +22,12 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.ensemble.EnsembleCombiner;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.regression.Regressor;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
+import org.tribuo.util.onnx.ONNXRef;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -129,7 +130,7 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     }
 
     /**
-     * Exports this averaging combiner, writing constructed nodes into the {@link org.tribuo.onnx.ONNXContext}
+     * Exports this averaging combiner, writing constructed nodes into the {@link ONNXContext}
      * governing {@code input} and returning the leaf node of the combiner.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
@@ -145,7 +146,7 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     }
 
     /**
-     * Exports this averaging combiner, writing constructed nodes into the {@link org.tribuo.onnx.ONNXContext}
+     * Exports this averaging combiner, writing constructed nodes into the {@link ONNXContext}
      * governing {@code input} and returning the leaf node of the combiner.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].

@@ -16,10 +16,10 @@
 
 package org.tribuo.math.util;
 
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
 
 import java.io.Serializable;
 import java.util.Arrays;

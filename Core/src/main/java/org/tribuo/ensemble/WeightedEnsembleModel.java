@@ -24,18 +24,18 @@ import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
+import org.tribuo.ONNXExportable;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXPlaceholder;
-import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.provenance.impl.TimestampedTrainerProvenance;
 import org.tribuo.util.Util;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
+import org.tribuo.util.onnx.ONNXPlaceholder;
+import org.tribuo.util.onnx.ONNXRef;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -247,7 +247,7 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
         // Build graph
         writeONNXGraph(input).assignTo(output);
 
-        return onnx.model(domain, modelVersion, this);
+        return ONNXExportable.buildModel(onnx, domain, modelVersion, this);
     }
 
     @Override

@@ -19,16 +19,16 @@ package org.tribuo.regression.sgd.fm;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
-import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
 
 import java.util.Arrays;
 

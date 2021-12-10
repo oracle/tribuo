@@ -16,7 +16,7 @@
 
 package org.tribuo.math.util;
 
-import org.tribuo.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXNode;
 
 import java.io.Serializable;
 import java.util.Arrays;

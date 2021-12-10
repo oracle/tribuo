@@ -23,21 +23,21 @@ import libsvm.svm_node;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXInitializer;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXPlaceholder;
-import org.tribuo.onnx.ONNXRef;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.util.Util;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
+import org.tribuo.util.onnx.ONNXPlaceholder;
+import org.tribuo.util.onnx.ONNXRef;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -204,7 +204,7 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
         ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Regression-LibSVM");
 
-        return writeONNXGraph(input).assignTo(output).onnxContext().model(domain, modelVersion, this);
+        return ONNXExportable.buildModel(writeONNXGraph(input).assignTo(output).onnxContext(), domain, modelVersion, this);
     }
 
     private static ONNXNode buildONNXSVMRegressor(int numFeatures, ONNXRef<?> input, svm_model model) {

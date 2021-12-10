@@ -222,6 +222,11 @@
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-util-onnx</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-util-tokenization</artifactId>
             <version>${project.version}</version>
         </dependency>

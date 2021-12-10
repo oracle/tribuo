@@ -23,24 +23,24 @@ import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
+import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.VariableInfo;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXPlaceholder;
-import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.Regressor.DimensionTuple;
 import org.tribuo.regression.impl.SkeletalIndependentRegressionSparseModel;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
+import org.tribuo.util.onnx.ONNXPlaceholder;
+import org.tribuo.util.onnx.ONNXRef;
+import org.tribuo.util.onnx.ONNXInitializer;
 
 import java.io.IOException;
 import java.nio.FloatBuffer;
@@ -226,7 +226,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
         onnx.setName("Regression-SparseLinearModel");
 
-        return writeONNXGraph(input).assignTo(output).onnxContext().model(domain, modelVersion, this);
+        return ONNXExportable.buildModel(writeONNXGraph(input).assignTo(output).onnxContext(), domain, modelVersion, this);
     }
 
     @Override

@@ -23,10 +23,10 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.ensemble.EnsembleCombiner;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXRef;
-import org.tribuo.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXInitializer;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXOperators;
+import org.tribuo.util.onnx.ONNXRef;
 
 import java.util.Collections;
 import java.util.HashMap;
