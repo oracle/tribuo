@@ -63,7 +63,7 @@ Tribuo has separate modules for each prediction task:
 name, and a double precision score value. For each of `OutputFactory`,
 `OutputInfo`, `Evaluator` and `Evaluation`, the Classification package includes
 a classification-specific implementation, namely `LabelFactory`, `LabelInfo`,
-`LabelEvaluator` and`LabelEvaluation`, respectively.
+`LabelEvaluator` and `LabelEvaluation`, respectively.
 - Regression contains an `Output` implementation called `Regressor`, which
   represents multidimensional regression.  Each `Regressor` is a tuple of
 dimension names, double precision dimension values, and double precision
@@ -178,7 +178,7 @@ are usually specified. The `@Config` annotation has optional parameters for
 supplying the description, declaring whether the field is mandatory, and
 determining whether the field value should be redacted from any configuration
 or provenance based on this object. More details about OLCUT can be found in
-it's [documentation](https://github.com/oracle/OLCUT).
+its [documentation](https://github.com/oracle/OLCUT).
 
 The `LinearSGDTrainer` class above is configured by the xml snippet below:
 
@@ -343,7 +343,7 @@ configure the `RowProcessor` to extract `Example`s from your data.
 
 `DataSource`s are not designed for splitting data into chunks; however, Tribuo
 provides several other mechanisms for splitting data into training and test
-sets, subsampling data based on it's properties, and creating cross-validation
+sets, subsampling data based on its properties, and creating cross-validation
 folds. The train/test and cross-validation splits are self-explanatory, though
 it's worth noting that the cross-validation splits use the feature domain of
 the entire, underlying dataset. The `DatasetView` underlies the
@@ -390,7 +390,7 @@ methods could change from integer to floating point values.
 
 ## Obfuscation
 
-One of Tribuo's benefits is it's extensive tracking of model metadata and
+One of Tribuo's benefits is its extensive tracking of model metadata and
 provenance; however, we realise this metadata isn't necessarily something that
 should live in third-party accessible, deployed models. As a result, Tribuo
 provides a few transformation mechanisms to remove metadata from a trained
