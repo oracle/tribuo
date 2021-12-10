@@ -16,17 +16,16 @@
 
 package org.tribuo.ensemble;
 
-import ai.onnx.proto.OnnxMl;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
+import org.tribuo.onnx.ONNXRef;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -53,44 +52,37 @@ public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Pro
     public Prediction<T> combine(ImmutableOutputInfo<T> outputInfo, List<Prediction<T>> predictions, float[] weights);
 
     /**
-     * Exports this ensemble combiner as a non-empty list of ONNX NodeProtos.
+     * Exports this ensemble combiner into the ONNX context of its input.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
      * <p>
-     * For compatibility reasons the default implementation returns an empty list, and
-     * combiners which use the default implementation will not be able to export
-     * their models to ONNX. It is recommended that this method is overridden to
-     * support ONNX export, and in a future version of Tribuo this default implementation
-     * will be removed.
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input tensor to combine.
-     * @param output The name of the combined output.
-     * @return A list of node protos representing the combiner operation.
+     * For compatibility reasons this method has a default implementation, though
+     * when called it will throw an {@code IllegalStateException}. In a future
+     * version this method will not have a default implementation and ensemble combiners
+     * will be required to provide ONNX support.
+     * @param input the node to be ensembled according to this implementation.
+     * @return The leaf node of the graph of operations added to ensemble input.
      */
-    default public List<OnnxMl.NodeProto> exportCombiner(ONNXContext context, String input, String output) {
+    default ONNXNode exportCombiner(ONNXNode input) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export an ensemble combiner to ONNX format, but this is not implemented.");
-        return Collections.emptyList();
+        throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + this.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
     }
 
     /**
-     * Exports this ensemble combiner as a non-empty list of ONNX NodeProtos.
+     * Exports this ensemble combiner into the ONNX context of its input.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
      * <p>
-     * For compatibility reasons the default implementation returns an empty list, and
-     * combiners which use the default implementation will not be able to export
-     * their models to ONNX. It is recommended that this method is overridden to
-     * support ONNX export, and in a future version of Tribuo this default implementation
-     * will be removed.
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input tensor to combine.
-     * @param output The name of the combined output.
-     * @param weight The name of the combination weight initializer.
-     * @return A list of node protos representing the combiner operation.
+     * For compatibility reasons this method has a default implementation, though
+     * when called it will throw an {@code IllegalStateException}. In a future
+     * version this method will not have a default implementation and ensemble combiners
+     * will be required to provide ONNX support.
+     * @param input the node to be ensembled according to this implementation.
+     * @param weight The node of weights for ensembling.
+     * @return The leaf node of the graph of operations added to ensemble input.
      */
-    default public List<OnnxMl.NodeProto> exportCombiner(ONNXContext context, String input, String output, String weight) {
+    default <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export an ensemble combiner to ONNX format, but this is not implemented.");
-        return Collections.emptyList();
+        throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + this.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
     }
-
 }

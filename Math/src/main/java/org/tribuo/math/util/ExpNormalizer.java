@@ -16,14 +16,12 @@
 
 package org.tribuo.math.util;
 
-import ai.onnx.proto.OnnxMl;
-import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Normalizes the exponential values of the input array. Used when the input is in log space.
@@ -59,15 +57,12 @@ public class ExpNormalizer implements VectorNormalizer, Serializable {
     }
 
     /**
-     * Returns the ONNX softmax node, operating over the 2nd dimension.
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input to normalize.
-     * @param output The name of the normalized output.
-     * @return The node protos representing this normalizer.
+     * Returns the ONNX softmax node over the 2nd dimension.
+     * @param input The node to be normalized according to this implementation.
+     * @return ONNX softmax node of input.
      */
     @Override
-    public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
-       return Collections.singletonList(ONNXOperators.SOFTMAX.build(context, input, output, Collections.singletonMap("axis",1)));
+    public ONNXNode exportNormalizer(ONNXNode input) {
+        return input.apply(ONNXOperators.SOFTMAX, Collections.singletonMap("axis", 1));
     }
-
 }

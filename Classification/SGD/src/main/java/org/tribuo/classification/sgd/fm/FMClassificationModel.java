@@ -16,7 +16,6 @@
 
 package org.tribuo.classification.sgd.fm;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -26,14 +25,11 @@ import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
-import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -101,37 +97,13 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
     }
 
     @Override
-    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        ONNXContext context = new ONNXContext();
-
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        context.addOutput(outputValueProto);
-        context.setName("FMClassificationModel");
-
-        // Build graph
-        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
-
-        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
+    protected String onnxModelName() {
+        return "FMClassificationModel";
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
-        // Build the output neutral bits of the onnx graph
-        String fmOutputName = generateONNXGraph(context, inputName);
-
-        // Make output normalizer
-        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,fmOutputName,outputName);
-        if (normalizerProtos.isEmpty()) {
-            throw new IllegalArgumentException("Normalizer " + normalizer.getClass() + " cannot be exported in ONNX models.");
-        } else {
-            context.addAllNodes(normalizerProtos);
-        }
+    protected ONNXNode onnxOutput(ONNXNode input) {
+        return normalizer.exportNormalizer(input);
     }
 
 }

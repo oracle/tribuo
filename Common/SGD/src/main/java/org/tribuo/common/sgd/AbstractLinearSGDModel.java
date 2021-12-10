@@ -26,17 +26,17 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.Tribuo;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXUtils;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -163,64 +163,57 @@ public abstract class AbstractLinearSGDModel<T extends Output<T>> extends Abstra
     }
 
     /**
-     * Builds the ModelProto according to the standards for this model.
-     * @param graph The model graph.
-     * @param domain The model domain string.
-     * @param modelVersion The model version number.
-     * @return The ModelProto.
+     * Takes the unnormalized ONNX output of this model and applies an appropriate normalizer from the concrete class.
+     * @param input Unnormalized ONNX leaf node.
+     * @return Normalized ONNX leaf node.
      */
-    protected OnnxMl.ModelProto innerExportONNXModel(OnnxMl.GraphProto graph, String domain, long modelVersion) {
-        // Build model
-        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(graph);
-        builder.setDomain(domain);
-        builder.setProducerName("Tribuo");
-        builder.setProducerVersion(Tribuo.VERSION);
-        builder.setModelVersion(modelVersion);
-        builder.setDocString(toString());
-        builder.addOpsetImport(ONNXOperators.getOpsetProto());
-        builder.setIrVersion(6);
-
-        // Extract provenance and store in metadata
-        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
-        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
-        String serializedProvenance = ONNXExportable.SERIALIZER.marshalAndSerialize(getProvenance());
-        metaBuilder.setValue(serializedProvenance);
-        builder.addMetadataProps(metaBuilder.build());
-
-        return builder.build();
-    }
+    protected abstract ONNXNode onnxOutput(ONNXNode input);
 
     /**
-     * Builds a TensorProto containing the model weights.
-     * @param context The naming context.
-     * @return The weight TensorProto.
+     * @return Name to write into the ONNX Model.
      */
-    protected OnnxMl.TensorProto weightBuilder(ONNXContext context) {
-        final Matrix weightMatrix = (Matrix) modelParameters.get()[0];
-        return ONNXUtils.floatTensorBuilder(context, "linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()),
-                (FloatBuffer fb) -> {
-                    for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
-                        for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
-                            fb.put((float) weightMatrix.get(i, j));
-                        }
-                    }
-                });
-    }
+    protected abstract String onnxModelName();
 
     /**
-     * Builds a TensorProto containing the model biases.
-     * @param context The naming context.
-     * @return The bias TensorProto.
+     * Writes this {@link org.tribuo.Model} into {@link OnnxMl.GraphProto.Builder} inside the input's
+     * {@link ONNXContext}.
+     * @param input The input to the model graph.
+     * @return the output node of the model graph.
      */
-    protected OnnxMl.TensorProto biasBuilder(ONNXContext context) {
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
+        ONNXContext onnx = input.onnxContext();
+
         Matrix weightMatrix = (Matrix) modelParameters.get()[0];
-        return ONNXUtils.floatTensorBuilder(context, "linear_sgd_biases", Collections.singletonList(outputIDInfo.size()),
-                (FloatBuffer fb) -> {
-                    for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
-                        fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
-                    }
-                });
+
+        ONNXInitializer weights = onnx.floatTensor("linear_sgd_weights", Arrays.asList(featureIDMap.size(), outputIDInfo.size()), fb -> {
+            for (int j = 0; j < weightMatrix.getDimension2Size() - 1; j++) {
+                for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+                    fb.put((float) weightMatrix.get(i, j));
+                }
+            }
+        });
+        ONNXInitializer bias = onnx.floatTensor("linear_sgd_bias", Collections.singletonList(outputIDInfo.size()), fb -> {
+            for (int i = 0; i < weightMatrix.getDimension1Size(); i++) {
+                fb.put((float)weightMatrix.get(i,weightMatrix.getDimension2Size()-1));
+            }
+        });
+
+        return onnxOutput(input.apply(ONNXOperators.GEMM, Arrays.asList(weights, bias)));
+    }
+
+    /**
+     * Exports this {@link org.tribuo.Model} as an ONNX protobuf.
+     * @param domain A reverse-DNS name to namespace the model (e.g., org.tribuo.classification.sgd.linear).
+     * @param modelVersion A version number for this model.
+     * @return The ONNX ModelProto representing this Tribuo Model.
+     */
+    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
+        ONNXContext onnx = new ONNXContext();
+        onnx.setName(onnxModelName());
+        ONNXPlaceholder input = onnx.floatInput("input", featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput("output", outputIDInfo.size());
+        writeONNXGraph(input).assignTo(output);
+        return onnx.model(domain, modelVersion, this);
     }
 
 }

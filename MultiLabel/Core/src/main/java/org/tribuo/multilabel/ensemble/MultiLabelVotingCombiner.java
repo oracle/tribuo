@@ -16,7 +16,6 @@
 
 package org.tribuo.multilabel.ensemble;
 
-import ai.onnx.proto.OnnxMl;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Example;
@@ -27,10 +26,12 @@ import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.onnx.ONNXContext;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXUtils;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXInitializer;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -145,100 +146,64 @@ public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLab
     }
 
     /**
-     * Exports this voting combiner as a list of ONNX NodeProtos.
+     * Exports this voting combiner to ONNX.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input tensor to combine.
-     * @param output The name of the voting output.
-     * @return A list of node protos representing the voting operation.
+     * @param input The input tensor to combine.
+     * @return the final node proto representing the voting operation.
      */
     @Override
-    public List<OnnxMl.NodeProto> exportCombiner(ONNXContext context, String input, String output) {
-        List<OnnxMl.NodeProto> nodes = new ArrayList<>();
+    public ONNXNode exportCombiner(ONNXNode input) {
+        ONNXInitializer half = input.onnxContext().constant("half", 0.5f);
+        ONNXInitializer one = input.onnxContext().constant("one", 1.0f);
+        ONNXInitializer zero = input.onnxContext().constant("zero", 0.0f);
 
-        // greater than 0.5
-        OnnxMl.TensorProto half = ONNXUtils.scalarBuilder(context,"half",0.5f);
-        context.addInitializer(half);
-        OnnxMl.NodeProto greater = ONNXOperators.GREATER.build(context, new String[]{input,half.getName()},context.generateUniqueName("combiner_greater"));
-        nodes.add(greater);
-
-        // where 1 v 0
-        OnnxMl.TensorProto one = ONNXUtils.scalarBuilder(context,"one",1.0f);
-        context.addInitializer(one);
-        OnnxMl.TensorProto zero = ONNXUtils.scalarBuilder(context,"zero",0.0f);
-        context.addInitializer(zero);
-        OnnxMl.NodeProto where = ONNXOperators.WHERE.build(context,
-                new String[]{greater.getOutput(0),one.getName(),zero.getName()},
-                context.generateUniqueName("combiner_where"));
-        nodes.add(where);
+        ONNXNode greater = input.apply(ONNXOperators.GREATER, half);
 
         // Take the mean over the where'd predictions
         Map<String,Object> attributes = new HashMap<>();
         attributes.put("axes",new int[]{2});
         attributes.put("keepdims",0);
-        OnnxMl.NodeProto mean = ONNXOperators.REDUCE_MEAN.build(context,where.getOutput(0),output,attributes);
-        nodes.add(mean);
 
-        return nodes;
+        return greater.apply(ONNXOperators.WHERE, Arrays.asList(one, zero))
+                .apply(ONNXOperators.REDUCE_MEAN, attributes);
     }
 
     /**
-     * Exports this voting combiner as a list of ONNX NodeProtos.
+     * Exports this voting combiner to ONNX
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input tensor to combine.
-     * @param output The name of the voting output.
-     * @param weight The name of the combination weight initializer.
-     * @return A list of node protos representing the voting operation.
+     * @param input The input tensor to combine.
+     * @param weight The combination weight node.
+     * @return the final node proto representing the voting operation.
      */
     @Override
-    public List<OnnxMl.NodeProto> exportCombiner(ONNXContext context, String input, String output, String weight) {
-        List<OnnxMl.NodeProto> nodes = new ArrayList<>();
+    public <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
+        ONNXContext onnx = input.onnxContext();
 
         // Unsqueeze the weights to make sure they broadcast how I want them too.
         // Now the size is [1, 1, num_members].
-        OnnxMl.TensorProto unsqueezeAxes = ONNXUtils.arrayBuilder(context,"unsqueeze_ensemble_output",new long[]{0,1});
-        context.addInitializer(unsqueezeAxes);
-        OnnxMl.NodeProto unsqueeze = ONNXOperators.UNSQUEEZE.build(context,new String[]{weight,unsqueezeAxes.getName()},context.generateUniqueName("unsqueezed_weights"));
-        nodes.add(unsqueeze);
+        ONNXInitializer unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{0, 1});
+        ONNXInitializer sumAxes = onnx.array("sum_across_ensemble_axes", new long[]{2});
+
+        ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
+
+        ONNXInitializer half = onnx.constant("half", 0.5f);
+        ONNXInitializer one = onnx.constant("one", 1.0f);
+        ONNXInitializer zero = onnx.constant("zero", 0.0f);
 
         // greater than 0.5
-        OnnxMl.TensorProto half = ONNXUtils.scalarBuilder(context,"half",0.5f);
-        context.addInitializer(half);
-        OnnxMl.NodeProto greater = ONNXOperators.GREATER.build(context, new String[]{input,half.getName()},context.generateUniqueName("combiner_greater"));
-        nodes.add(greater);
-
         // where 1 v 0
-        OnnxMl.TensorProto one = ONNXUtils.scalarBuilder(context,"one",1.0f);
-        context.addInitializer(one);
-        OnnxMl.TensorProto zero = ONNXUtils.scalarBuilder(context,"zero",0.0f);
-        context.addInitializer(zero);
-        OnnxMl.NodeProto where = ONNXOperators.WHERE.build(context,
-                new String[]{greater.getOutput(0),one.getName(),zero.getName()},
-                context.generateUniqueName("combiner_where"));
-        nodes.add(where);
-
         // Multiply the where'd input by the weights.
-        OnnxMl.NodeProto mulByWeights = ONNXOperators.MUL.build(context,new String[]{where.getOutput(0),unsqueeze.getOutput(0)},context.generateUniqueName("mul_predictions_by_weights"));
-        nodes.add(mulByWeights);
+        ONNXNode mulByWeights = input.apply(ONNXOperators.GREATER, half)
+                .apply(ONNXOperators.WHERE, Arrays.asList(one, zero))
+                .apply(ONNXOperators.MUL, unsqueezed);
 
         // Sum the weights
-        OnnxMl.NodeProto weightSum = ONNXOperators.REDUCE_SUM.build(context,weight,context.generateUniqueName("ensemble_weight_sum"));
-        nodes.add(weightSum);
+        ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
 
         // Take the weighted mean over the outputs
-        OnnxMl.TensorProto sumAxes = ONNXUtils.arrayBuilder(context,"sum_across_ensemble_axes",new long[]{2});
-        context.addInitializer(sumAxes);
-        OnnxMl.NodeProto sumAcrossMembers = ONNXOperators.REDUCE_SUM.build(context,
-                new String[]{mulByWeights.getOutput(0),sumAxes.getName()},
-                context.generateUniqueName("sum_across_ensemble"),
-                Collections.singletonMap("keepdims",0));
-        nodes.add(sumAcrossMembers);
-        OnnxMl.NodeProto divideByWeightSum = ONNXOperators.DIV.build(context,new String[]{sumAcrossMembers.getOutput(0),weightSum.getOutput(0)},output);
-        nodes.add(divideByWeightSum);
-
-        return nodes;
+        return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))
+                .apply(ONNXOperators.DIV, weightSum);
     }
 }

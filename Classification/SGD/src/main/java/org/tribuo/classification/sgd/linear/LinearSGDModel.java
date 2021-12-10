@@ -16,7 +16,6 @@
 
 package org.tribuo.classification.sgd.linear;
 
-import ai.onnx.proto.OnnxMl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -27,16 +26,12 @@ import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
-import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -109,46 +104,13 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONN
     }
 
     @Override
-    public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        ONNXContext context = new ONNXContext();
-
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        context.addOutput(outputValueProto);
-        context.setName("Classification-LinearSGDModel");
-
-        // Build graph
-        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
-
-        return innerExportONNXModel(context.buildGraph(),domain,modelVersion);
+    protected ONNXNode onnxOutput(ONNXNode input) {
+        return normalizer.exportNormalizer(input);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
-        // Add weights
-        OnnxMl.TensorProto weightInitializerProto = weightBuilder(context);
-        context.addInitializer(weightInitializerProto);
-
-        // Add biases
-        OnnxMl.TensorProto biasInitializerProto = biasBuilder(context);
-        context.addInitializer(biasInitializerProto);
-
-        // Make gemm
-        String[] gemmInputs = new String[]{inputName,weightInitializerProto.getName(),biasInitializerProto.getName()};
-        OnnxMl.NodeProto gemm = ONNXOperators.GEMM.build(context,gemmInputs,context.generateUniqueName("gemm_output"));
-        context.addNode(gemm);
-
-        // Make output normalizer
-        List<OnnxMl.NodeProto> normalizerProtos = normalizer.exportNormalizer(context,gemm.getOutput(0),outputName);
-        if (normalizerProtos.isEmpty()) {
-            throw new IllegalArgumentException("Normalizer " + normalizer.getClass() + " cannot be exported in ONNX models.");
-        } else {
-            context.addAllNodes(normalizerProtos);
-        }
+    protected String onnxModelName() {
+        return "Classification-LinearSGDModel";
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

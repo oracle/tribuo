@@ -16,14 +16,10 @@
 
 package org.tribuo.math.util;
 
-import ai.onnx.proto.OnnxMl;
-import org.tribuo.onnx.ONNXContext;
-import org.tribuo.onnx.ONNXOperators;
+import org.tribuo.onnx.ONNXNode;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * NoopNormalizer returns a copy in {@link NoopNormalizer#normalize} and is a no-op in place.
@@ -40,14 +36,12 @@ public class NoopNormalizer implements VectorNormalizer, Serializable {
     public void normalizeInPlace(double[] input) {}
 
     /**
-     * Returns the ONNX identity node.
-     * @param context The ONNX context object for name generation.
-     * @param input The name of the input to normalize.
-     * @param output The name of the normalized output.
-     * @return The node protos representing this normalizer.
+     * Returns its input.
+     * @param input The node to be normalized according to this implementation.
+     * @return the input node
      */
     @Override
-    public List<OnnxMl.NodeProto> exportNormalizer(ONNXContext context, String input, String output) {
-        return Collections.singletonList(ONNXOperators.IDENTITY.build(context,input,output));
+    public ONNXNode exportNormalizer(ONNXNode input) {
+        return input;
     }
 }

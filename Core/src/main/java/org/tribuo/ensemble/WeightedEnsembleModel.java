@@ -26,12 +26,13 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.Tribuo;
 import org.tribuo.onnx.ONNXContext;
 import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.onnx.ONNXNode;
 import org.tribuo.onnx.ONNXOperators;
-import org.tribuo.onnx.ONNXShape;
-import org.tribuo.onnx.ONNXUtils;
+import org.tribuo.onnx.ONNXPlaceholder;
+import org.tribuo.onnx.ONNXRef;
+import org.tribuo.onnx.ONNXInitializer;
 import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.provenance.impl.TimestampedTrainerProvenance;
 import org.tribuo.util.Util;
@@ -236,77 +237,36 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
      */
     @Override
     public OnnxMl.ModelProto exportONNXModel(String domain, long modelVersion) {
-        ONNXContext context = new ONNXContext();
+        ONNXContext onnx = new ONNXContext();
 
-        // Make inputs and outputs
-        OnnxMl.TypeProto inputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,featureIDMap.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto inputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(inputType).setName("input").build();
-        context.addInput(inputValueProto);
-        OnnxMl.TypeProto outputType = ONNXUtils.buildTensorTypeNode(new ONNXShape(new long[]{-1,outputIDInfo.size()}, new String[]{"batch",null}), OnnxMl.TensorProto.DataType.FLOAT);
-        OnnxMl.ValueInfoProto outputValueProto = OnnxMl.ValueInfoProto.newBuilder().setType(outputType).setName("output").build();
-        context.addOutput(outputValueProto);
-        context.setName("WeightedEnsembleModel");
+        onnx.setName("WeightedEnsembleModel");
+
+        ONNXPlaceholder input = onnx.floatInput(featureIDMap.size());
+        ONNXPlaceholder output = onnx.floatOutput(outputIDInfo.size());
 
         // Build graph
-        writeONNXGraph(context, inputValueProto.getName(), outputValueProto.getName());
+        writeONNXGraph(input).assignTo(output);
 
-        // Build model
-        OnnxMl.ModelProto.Builder builder = OnnxMl.ModelProto.newBuilder();
-        builder.setGraph(context.buildGraph());
-        builder.setDomain(domain);
-        builder.setProducerName("Tribuo");
-        builder.setProducerVersion(Tribuo.VERSION);
-        builder.setModelVersion(modelVersion);
-        builder.setDocString(toString());
-        builder.addOpsetImport(ONNXOperators.getOpsetProto());
-        builder.setIrVersion(6);
-
-        // Extract provenance and store in metadata
-        OnnxMl.StringStringEntryProto.Builder metaBuilder = OnnxMl.StringStringEntryProto.newBuilder();
-        metaBuilder.setKey(ONNXExportable.PROVENANCE_METADATA_FIELD);
-        metaBuilder.setValue(serializeProvenance(getProvenance()));
-        builder.addMetadataProps(metaBuilder.build());
-
-        return builder.build();
+        return onnx.model(domain, modelVersion, this);
     }
 
     @Override
-    public void writeONNXGraph(ONNXContext context, String inputName, String outputName) {
-        String[] memberOutputs = new String[models.size()];
-        // Write in each ensemble member
-        for (int i = 0; i < models.size(); i++) {
-            Model<T> model = models.get(i);
-            if (model instanceof ONNXExportable) {
-                memberOutputs[i] = context.generateUniqueName("ensemble_member_output");
-                ((ONNXExportable)model).writeONNXGraph(context,inputName,memberOutputs[i]);
+    public ONNXNode writeONNXGraph(ONNXRef<?> input) {
+        ONNXContext onnx = input.onnxContext();
+        ONNXInitializer unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{2});
+        List<ONNXNode> unsquuezedMembers = new ArrayList<>();
+        for(Model<T> model : models) {
+            if(model instanceof ONNXExportable) {
+                ONNXNode memberOutput = ((ONNXExportable) model).writeONNXGraph(input);
+                unsquuezedMembers.add(memberOutput.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes));
             } else {
                 throw new IllegalStateException("Ensemble member '" + model.toString() + "' is not ONNXExportable.");
             }
         }
 
-        // Unsqueeze the members so they have an extra dimension to concatenate along
-        OnnxMl.TensorProto unsqueezeAxes = ONNXUtils.arrayBuilder(context,"unsqueeze_ensemble_output",new long[]{2});
-        context.addInitializer(unsqueezeAxes);
-        String[] unsqueezeOutputs = new String[memberOutputs.length];
-        for (int i = 0; i < unsqueezeOutputs.length; i++) {
-            unsqueezeOutputs[i] = context.generateUniqueName("unsqueeze_output");
-            OnnxMl.NodeProto unsqueeze = ONNXOperators.UNSQUEEZE.build(context,new String[]{memberOutputs[i],unsqueezeAxes.getName()},unsqueezeOutputs[i]);
-            context.addNode(unsqueeze);
-        }
+        ONNXInitializer ensembleWeights = onnx.array("ensemble_weights", weights);
+        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, unsquuezedMembers, "ensemble_concat", Collections.singletonMap("axis", 2));
 
-        // Concatenate all the outputs into a single three tensor [batch_size, num_outputs, num_members]
-        OnnxMl.NodeProto concat = ONNXOperators.CONCAT.build(context,unsqueezeOutputs,context.generateUniqueName("ensemble_concat"), Collections.singletonMap("axis",2));
-        context.addNode(concat);
-
-        // Write in weights initializer
-        OnnxMl.TensorProto weightTensor = ONNXUtils.arrayBuilder(context,"ensemble_weights",weights);
-        context.addInitializer(weightTensor);
-
-        // Write in ensemble combiner
-        List<OnnxMl.NodeProto> combinerNodes = combiner.exportCombiner(context,concat.getOutput(0),outputName,weightTensor.getName());
-        if (combinerNodes.isEmpty()) {
-            throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + combiner.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
-        }
-        context.addAllNodes(combinerNodes);
+        return combiner.exportCombiner(concat, ensembleWeights);
     }
 }
