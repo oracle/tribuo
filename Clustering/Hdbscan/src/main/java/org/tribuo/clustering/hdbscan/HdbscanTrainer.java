@@ -18,6 +18,7 @@ package org.tribuo.clustering.hdbscan;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -170,16 +171,16 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         propagateTree(clusters);
         List<Integer> clusterLabels = findProminentClusters(hierarchy, clusters, data.length);
         DenseVector outlierScoresVector = calculateOutlierScores(pointNoiseLevels, pointLastClusters, clusters);
-        Map<Integer, TreeMap<Double, Integer>> clusterAssignments =  generateClusterAssignments(clusterLabels, outlierScoresVector);
+        Map<Integer, List<Pair<Double, Integer>>> clusterAssignments =  generateClusterAssignments(clusterLabels, outlierScoresVector);
 
-        // Use the cluster assignments, while they're available, to establish the clustering info
+        // Use the cluster assignments to establish the clustering info
         Map<Integer, MutableLong> counts = new HashMap<>();
-        for (Entry<Integer, TreeMap<Double, Integer>> e : clusterAssignments.entrySet()) {
+        for (Entry<Integer, List<Pair<Double, Integer>>> e : clusterAssignments.entrySet()) {
             counts.put(e.getKey(), new MutableLong(e.getValue().size()));
         }
         ImmutableOutputInfo<ClusterID> outputMap = new ImmutableClusteringInfo(counts);
 
-        // Compute the cluster exemplars. The TreeMaps in clusterAssignments are modified here, having nodes removed.
+        // Compute the cluster exemplars.
         List<ClusterExemplar> clusterExemplars = computeExemplars(data, clusterAssignments);
 
         logger.log(Level.INFO, "Hdbscan is done.");
@@ -674,15 +675,15 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @param outlierScoresVector A {@link DenseVector} containing the outlier scores.
      * @return A map of the cluster labels, and the points assigned to them.
      */
-    private static Map<Integer, TreeMap<Double, Integer>> generateClusterAssignments(List<Integer> clusterLabels,
+    private static Map<Integer, List<Pair<Double, Integer>>> generateClusterAssignments(List<Integer> clusterLabels,
                                                                            DenseVector outlierScoresVector) {
         // A map value of TreeMap<Double, Integer>> provides a sorting of the entries by outlier score.
-        Map<Integer, TreeMap<Double, Integer>> clusterAssignments = new HashMap<>();
+        Map<Integer, List<Pair<Double, Integer>>> clusterAssignments = new HashMap<>();
         for (int i = 0; i < clusterLabels.size(); i++) {
             Integer clusterLabel = clusterLabels.get(i);
             Double outlierScore = outlierScoresVector.get(i);
-            Map<Double, Integer> outlierScoreIndexTree = clusterAssignments.computeIfAbsent(clusterLabel, j -> new TreeMap<>());
-            outlierScoreIndexTree.put(outlierScore, i);
+            List<Pair<Double, Integer>> outlierScoreIndexList = clusterAssignments.computeIfAbsent(clusterLabel, j -> new ArrayList<>());
+            outlierScoreIndexList.add(new Pair<>(outlierScore, i));
         }
         return clusterAssignments;
     }
@@ -695,17 +696,26 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @param clusterAssignments A map of the cluster labels, and the points assigned to them.
      * @return A list of {@link ClusterExemplar}s which are used for predictions.
      */
-    private static List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, TreeMap<Double, Integer>> clusterAssignments) {
+    private static List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments) {
         List<ClusterExemplar> clusterExemplars = new ArrayList<>();
         // The formula to calculate the exemplar number. This calculates the number of exemplars to be used for this
         // configuration. The appropriate number of exemplars is important for prediction. At the time, this
         // provides a good value for most scenarios.
-        int mumExemplars = (int) Math.sqrt(data.length / 2.0) + clusterAssignments.size();
+        int numExemplars = (int) Math.sqrt(data.length / 2.0) + clusterAssignments.size();
 
-        for (Entry<Integer, TreeMap<Double, Integer>> e : clusterAssignments.entrySet()) {
+        for (Entry<Integer, List<Pair<Double, Integer>>> e : clusterAssignments.entrySet()) {
             int clusterLabel = e.getKey();
-            TreeMap<Double, Integer> outlierScoreIndexTree = clusterAssignments.get(clusterLabel);
-            int numExemplarsThisCluster = e.getValue().size() * mumExemplars / data.length;
+            List<Pair<Double, Integer>> outlierScoreIndexList = clusterAssignments.get(clusterLabel);
+
+            // Put the items into a TreeMap. This achieves the required sorting and removes duplicate outlier scores to
+            // provide the best samples
+            TreeMap<Double, Integer> outlierScoreIndexTree = new TreeMap<>();
+            outlierScoreIndexList.forEach(p -> outlierScoreIndexTree.put(p.getA(), p.getB()));
+            int numExemplarsThisCluster = e.getValue().size() * numExemplars / data.length;
+            if (numExemplarsThisCluster > outlierScoreIndexTree.size()) {
+                numExemplarsThisCluster = outlierScoreIndexTree.size();
+            }
+
             if (clusterLabel != OUTLIER_NOISE_CLUSTER_LABEL) {
                 for (int i = 0; i < numExemplarsThisCluster; i++) {
                     // Note that for non-outliers, the first node is polled from the tree, which has the lowest outlier
