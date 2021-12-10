@@ -160,7 +160,7 @@ Currently we have interfaces to:
 * [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) (v2.43).
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.24).
 * [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.7.0).
-* [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.3.1 (based on TensorFlow v2.4.1). This allows the training and deployment of TensorFlow models entirely in Java.
+* [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.4.0 (based on TensorFlow v2.7.0). This allows the training and deployment of TensorFlow models entirely in Java.
 * [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.4.1).
 
 ## Binaries
@@ -174,13 +174,13 @@ Maven:
 <dependency>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
-    <version>4.1.0</version>
+    <version>4.1.1</version>
     <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-implementation ("org.tribuo:tribuo-all:4.1.0@pom") {
+implementation ("org.tribuo:tribuo-all:4.1.1@pom") {
     transitive = true // for build.gradle (i.e., Groovy)
     // isTransitive = true // for build.gradle.kts (i.e., Kotlin)
 }
@@ -242,6 +242,7 @@ Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
+- v4.1.1 - Bug fixes for multidimensional regression, reproducibility fixes for liblinear and libsvm, fixes for KMeans and KNN running with SecurityManager, and updated TF-Java to fix bugs in upstream TF.
 - v4.1.0 - Added TensorFlow training support, a BERT feature extractor, ExtraTrees, K-Means++, many linear model & CRF performance improvements, new tutorials on TF and document classification. Many bug fixes & documentation improvements.
 - v4.0.2 - Many bug fixes (CSVDataSource, JsonDataSource, RowProcessor, LibSVMTrainer, Evaluations, Regressor serialization). Improved javadoc and documentation. Added two new tutorials (columnar data and external models).
 - v4.0.1 - Bugfix for CSVReader to cope with blank lines, added IDXDataSource to allow loading of native MNIST format data.
