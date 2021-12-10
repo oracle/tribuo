@@ -42,7 +42,7 @@ import java.util.Optional;
  * current clustering. The model is not updated with the new data. This is a novel prediction technique which
  * leverages the computed cluster exemplars from the HDBSCAN* algorithm.
  */
-final public class HdbscanModel extends Model<ClusterID> {
+public final class HdbscanModel extends Model<ClusterID> {
     private static final long serialVersionUID = 1L;
 
     private final List<Integer> clusterLabels;

@@ -25,32 +25,36 @@ import java.util.logging.Logger;
 /**
  * OLCUT {@link Options} for the HDBSCAN* implementation.
  */
-final public class HdbscanOptions implements Options {
+public final class HdbscanOptions implements Options {
     private static final Logger logger = Logger.getLogger(HdbscanOptions.class.getName());
+    @Override
+    public String getOptionsDescription() {
+        return "Options for configuring a HdbscanTrainer.";
+    }
 
     /**
-     * The minimum number of points required to form a cluster.
+     * The minimum number of points required to form a cluster. Defaults to 5.
      */
-    @Option(longName = "minimum-cluster-size", usage = "The minimum number of points required to form a cluster. Defaults to 5.")
+    @Option(longName = "minimum-cluster-size", usage = "The minimum number of points required to form a cluster.")
     public int minClusterSize = 5;
 
     /**
      * Distance function in HDBSCAN*. Defaults to EUCLIDEAN.
      */
-    @Option(longName = "distance-function", usage = "Distance function to use for various distance calculations. Defaults to EUCLIDEAN.")
+    @Option(longName = "distance-function", usage = "Distance function to use for various distance calculations.")
     public Distance distanceType = Distance.EUCLIDEAN;
 
     /**
-     * The number of nearest-neighbors to use in the initial density approximation.
+     * The number of nearest-neighbors to use in the initial density approximation. Defaults to 5.
      */
     @Option(longName = "k-nearest-neighbors", usage = "The number of nearest-neighbors to use in the initial density approximation. " +
-        "The value includes the point itself. Defaults to 5.")
+        "The value includes the point itself.")
     public int k = 5;
 
     /**
      * Number of threads to use for training the hdbscan model. Defaults to 2.
      */
-    @Option(longName = "hdbscan-num-threads", usage = "Number of threads to use for training the hdbscan model. Defaults to 2.")
+    @Option(longName = "hdbscan-num-threads", usage = "Number of threads to use for training the hdbscan model.")
     public int numThreads = 2;
 
     /**

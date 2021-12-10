@@ -21,6 +21,7 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.Operand;
 import org.tensorflow.Tensor;
+import org.tensorflow.framework.op.FrameworkOps;
 import org.tensorflow.ndarray.FloatNdArray;
 import org.tensorflow.ndarray.Shape;
 import org.tensorflow.ndarray.index.Indices;
@@ -76,9 +77,10 @@ public class MultiLabelConverter implements OutputConverter<MultiLabel> {
     @Override
     public BiFunction<Ops, Pair<Placeholder<? extends TNumber>,Operand<TNumber>>,Operand<TNumber>> loss() {
         return (ops,pair) -> {
+            FrameworkOps frameworkOps = FrameworkOps.create(ops);
             @SuppressWarnings("unchecked") // cast off the wildcard to the superclass
             Placeholder<TNumber> placeholder = (Placeholder<TNumber>) pair.getA();
-            return ops.math.mean(ops.nn.sigmoidCrossEntropyWithLogits(placeholder,pair.getB()),ops.constant(0));
+            return ops.math.mean(frameworkOps.nn.sigmoidCrossEntropyWithLogits(placeholder,pair.getB()),ops.constant(0));
         };
     }
 

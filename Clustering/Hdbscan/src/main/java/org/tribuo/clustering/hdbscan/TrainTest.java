@@ -17,7 +17,6 @@
 package org.tribuo.clustering.hdbscan;
 
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
-import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
 import com.oracle.labs.mlrg.olcut.config.UsageException;
 import com.oracle.labs.mlrg.olcut.util.LabsLogFormatter;
@@ -35,14 +34,14 @@ import java.util.logging.Logger;
 /**
  * Build and run a HDBSCAN* clustering model for a standard dataset.
  */
-final public class TrainTest {
+public final class TrainTest {
 
     private static final Logger logger = Logger.getLogger(TrainTest.class.getName());
 
     /**
      * Options for the HDBSCAN* CLI.
      */
-    public static class HdbscanOptions implements Options {
+    public static class HdbscanCLIOptions implements Options {
         @Override
         public String getOptionsDescription() {
             return "Trains and evaluates a HDBSCAN* model on the specified dataset.";
@@ -54,29 +53,9 @@ final public class TrainTest {
         public DataOptions general;
 
         /**
-         * The minimum number of points required to form a cluster.
+         * The HDBSCAN options
          */
-        @Option(longName = "minimum-cluster-size", usage = "The minimum number of points required to form a cluster. Defaults to 5.")
-        public int minClusterSize = 5;
-
-        /**
-         * Distance function in HDBSCAN*. Defaults to EUCLIDEAN.
-         */
-        @Option(longName = "distance-function", usage = "Distance function to use for various distance calculations. Defaults to EUCLIDEAN.")
-        public HdbscanTrainer.Distance distanceType = HdbscanTrainer.Distance.EUCLIDEAN;
-
-        /**
-         * The number of nearest-neighbors to use in the initial density approximation.
-         */
-        @Option(longName = "k-nearest-neighbors", usage = "The number of nearest-neighbors to use in the initial density approximation. " +
-            "The value includes the point itself. Defaults to 5.")
-        public int k = 5;
-
-        /**
-         * Number of threads to use for training the hdbscan model. Defaults to 2.
-         */
-        @Option(longName = "hdbscan-num-threads", usage = "Number of threads to use for training the hdbscan model. Defaults to 2.")
-        public int numThreads = 2;
+        public HdbscanOptions hdbscanOptions;
     }
 
     /**
@@ -89,7 +68,7 @@ final public class TrainTest {
         // Use the labs format logging.
         LabsLogFormatter.setAllLogFormatters();
 
-        HdbscanOptions o = new HdbscanOptions();
+        HdbscanCLIOptions o = new HdbscanCLIOptions();
         ConfigurationManager cm;
         try {
             cm = new ConfigurationManager(args,o);
@@ -108,7 +87,7 @@ final public class TrainTest {
         Pair<Dataset<ClusterID>,Dataset<ClusterID>> data = o.general.load(factory);
         Dataset<ClusterID> train = data.getA();
 
-        HdbscanTrainer trainer = new HdbscanTrainer(o.minClusterSize, o.distanceType, o.k, o.numThreads);
+        HdbscanTrainer trainer = o.hdbscanOptions.getTrainer();
         Model<ClusterID> model = trainer.train(train);
         logger.info("Finished training model");
         ClusteringEvaluation evaluation = factory.getEvaluator().evaluate(model,train);

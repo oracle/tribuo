@@ -70,7 +70,6 @@ public class RegressionTest {
         OutputConverter<Regressor> outputConverter = new RegressorConverter();
         TensorFlowTrainer<Regressor> trainer = new TensorFlowTrainer<>(graphDefTuple.graphDef,
                 graphDefTuple.outputName,
-                graphDefTuple.initName,
                 GradientOptimiser.ADAGRAD,
                 gradientParams,
                 denseConverter,

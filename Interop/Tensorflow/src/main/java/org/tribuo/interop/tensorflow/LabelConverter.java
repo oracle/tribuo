@@ -65,7 +65,7 @@ public class LabelConverter implements OutputConverter<Label> {
         return (ops,pair) -> {
             @SuppressWarnings("unchecked") // cast off the wildcard to the superclass
             Placeholder<TNumber> placeholder = (Placeholder<TNumber>) pair.getA();
-            return ops.math.mean(ops.nn.raw.softmaxCrossEntropyWithLogits(pair.getB(),placeholder).loss(),ops.constant(0));
+            return ops.math.mean(ops.nn.softmaxCrossEntropyWithLogits(pair.getB(),placeholder).loss(),ops.constant(0));
         };
         // TODO - migrate over to TF-Java's CategoricalCrossEntropy when we've fixed the issue we had applying this.
         // It should be roughly the block below.

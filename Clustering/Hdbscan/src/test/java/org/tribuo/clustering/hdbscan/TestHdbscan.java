@@ -42,6 +42,7 @@ import org.tribuo.test.Helpers;
 
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,34 @@ public class TestHdbscan {
         logger.setLevel(Level.WARNING);
         logger = Logger.getLogger(org.tribuo.util.infotheory.InformationTheory.class.getName());
         logger.setLevel(Level.WARNING);
+    }
+
+    @Test
+    public void testInvocationCounter() {
+        ClusteringFactory clusteringFactory = new ClusteringFactory();
+        ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
+        Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
+        regexMappingProcessors.put("Feature1", new DoubleFieldProcessor("Feature1"));
+        regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
+        regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
+        RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
+        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
+        Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
+
+        HdbscanTrainer trainer = new HdbscanTrainer(7, Distance.EUCLIDEAN, 7,4);
+        for (int i = 0; i < 5; i++) {
+            HdbscanModel model = trainer.train(dataset);
+        }
+
+        assertEquals(5,trainer.getInvocationCount());
+
+        trainer.setInvocationCount(0);
+
+        assertEquals(0,trainer.getInvocationCount());
+
+        Model<ClusterID> model = trainer.train(dataset, Collections.emptyMap(), 3);
+
+        assertEquals(4, trainer.getInvocationCount());
     }
 
     @Test
@@ -212,7 +241,7 @@ public class TestHdbscan {
         runEvaluation(t);
     }
 
-    public void runInvalidExample(HdbscanTrainer trainer) {
+    public static void runInvalidExample(HdbscanTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<ClusterID>, Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
             Model<ClusterID> m = trainer.train(p.getA());
@@ -225,7 +254,7 @@ public class TestHdbscan {
         runInvalidExample(t);
     }
 
-    public void runEmptyExample(HdbscanTrainer trainer) {
+    public static void runEmptyExample(HdbscanTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<ClusterID>, Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
             Model<ClusterID> m = trainer.train(p.getA());
@@ -236,6 +265,18 @@ public class TestHdbscan {
     @Test
     public void testEmptyExample() {
         runEmptyExample(t);
+    }
+
+    public static void runSparseData(HdbscanTrainer trainer) {
+        Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.sparseTrainTest();
+        Model<ClusterID> m = trainer.train(p.getA());
+        ClusteringEvaluator e = new ClusteringEvaluator();
+        e.evaluate(m,p.getB());
+    }
+
+    @Test
+    public void testSparseData() {
+        runSparseData(t);
     }
 
 }
