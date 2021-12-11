@@ -83,12 +83,12 @@ out the `DataSource`'s `OutputFactory`, it stores the `DataProvenance` of the
 source, and it iterates the `DataSource` once loading the `Example`s into the
 `Dataset`. First a new `MutableFeatureMap` is created, then the `OutputFactory`
 is used to generate a `MutableOutputInfo` of the appropriate type (e.g.
-`MutableLabelInfo` for multi-class classification).  Each `Example` has it's
+`MutableLabelInfo` for multi-class classification).  Each `Example` has its
 `Output` recorded in the `OutputInfo` including checking to see if this
 `Example` is unlabelled, denoted by the appropriate "unknown `Output`" sentinel
 that each `OutputFactory` implementation can create. Then the `Example`'s
 `Feature`s are iterated. Each `Feature` is passed into the `MutableFeatureMap`
-where it's value and name are recorded. If the `Feature` hasn't been observed
+where its value and name are recorded. If the `Feature` hasn't been observed
 before, then a new `VariableInfo` is created, typically a `CategoricalInfo`,
 and the value is recorded. With the default feature map implementation, if a
 categorical variable has more than 50 unique values the `CategoricalInfo` is
@@ -115,7 +115,7 @@ future release.
 ### Training
 On entry into a train method, several things happen: the train invocation count
 is incremented, an RNG specific to this method call is split from the
-`Trainer`'s RNG if required, the `Dataset` is queried for it's
+`Trainer`'s RNG if required, the `Dataset` is queried for its
 `DataProvenance`, the `Dataset`'s `FeatureMap` is converted into an
 `ImmutableFeatureMap`, and the `Dataset`s' `OutputInfo` is converted into an
 `ImmutableOutputInfo`. These last two steps involve freezing the feature and
@@ -126,13 +126,13 @@ thrown.
 
 The majority of `Trainer`s then create a `SparseVector` from each `Example`'s
 features, and copies out the `Output` into either an id or double value
-(depending on it's class). The `SparseVector` guarantees that there are no id
+(depending on its class). The `SparseVector` guarantees that there are no id
 collisions by adding together colliding feature values (collisions can be
 induced by feature hashing), and otherwise validates the `Example`. Ensemble
 `Trainer`s and others which wrap an inner `Trainer` leave the `SparseVector`
 conversion to the inner `Trainer`.
 
-The `Trainer` then executes it's training algorithm to produce the model
+The `Trainer` then executes its training algorithm to produce the model
 parameters.
 
 Finally, the `Trainer` constructs the `ModelProvenance` incorporating the
@@ -150,12 +150,12 @@ backend etc.
 Once an `Evaluator` of the appropriate type has been constructed (either
 directly or via an `OutputFactory`), a `Model` can be evaluated by an
 `Evaluator` on either a `Dataset` or a `DataSource`, the process is similar
-either way. The `Model` has it's `predict(Iterable<Example>)` method called.
+either way. The `Model` has its `predict(Iterable<Example>)` method called.
 This method first converts each `Example` into a `SparseVector` using the
 `Model`'s `ImmutableFeatureMap`. This implicitly checks to see if the `Model`
 and the `Example` have any feature overlap, if the `SparseVector` has no active
 elements then there is no feature overlap and an exception is thrown.  The
-`Model` then produces the prediction using it's parameters, and then a
+`Model` then produces the prediction using its parameters, and then a
 `Prediction` object is created which maps the predicted values to their
 dimensions or labels. The `Evaluator` aggregates all the `Prediction`s, checks
 if the `Example`s have ground truth labels (if not it throws an exception), and

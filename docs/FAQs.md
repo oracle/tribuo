@@ -20,7 +20,7 @@ single node ML framework on the JVM.
 ### What's it being used for?
 
 Several internal groups at Oracle are using Tribuo to build ML features, many
-focused around it's text classification and sequence prediction features.
+focused around its text classification and sequence prediction features.
 We're releasing it to the wider Java community to help build the ML ecosystem
 on the Java platform.
 
@@ -74,7 +74,7 @@ We designed Tribuo to be as modular as possible. Users are able to depend
 exclusively on the pieces they need without additional unnecessary components
 or third party dependencies. If you want to deploy a Tribuo
 `RandomForestClassifier`, you only need the tribuo-classification-decision-tree
-jar and it's dependencies; it doesn't pull in TensorFlow, or anything else.
+jar and its dependencies; it doesn't pull in TensorFlow, or anything else.
 This makes it simpler to package up a production deployment; there is a smaller
 code surface to test, fewer jars, and less space used up with unnecessary
 things.
@@ -128,7 +128,7 @@ the user has to manually maintain the mapping between the array index and the
 name of the output (e.g., "hire" = 0, "re-interview" = 1, "reject" = 2) in a
 separate location from the model file itself. This leads to bugs and mismatches
 when the user loads the wrong model or uses the wrong mapping. With Tribuo's
-approach *this can never happen*; the model knows what it's output domain is,
+approach *this can never happen*; the model knows what its output domain is,
 and can describe it to the user in the form the user expects (i.e., Strings).
 
 ### Why don't features or outputs have id numbers?

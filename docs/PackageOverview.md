@@ -9,75 +9,75 @@ The top level project has core modules which define the API, data interactions,
 a math library, and common modules shared across prediction types.
 
 - Core - (artifactID: `tribuo-core`, package root: `org.tribuo`) Provides the main classes and interfaces:
-  - Dataset - A list of Examples plus associated feature information, such
+  - `Dataset` - A list of `Example`s plus associated feature information, such
     as the number of categories for categorical features, or the mean
     and variance in the case of real-valued features.
-  - DataSource - A list of Examples processed from some other format
+  - `DataSource` - A list of `Example`s processed from some other format
     and accompanied by the provenance describing the source and processing of
-    these Examples. 
-  - Example - An array or list of String and value pairs. The Example is typed
+    these `Example`s. 
+  - `Example` - An array or list of String and value pairs. The `Example` is typed
     with a subclass of Output that represents the appropriate type of response.
-  - Feature - An immutable tuple of String and value. The String is the feature
+  - `Feature` - An immutable tuple of String and value. The String is the feature
     name, which is used as the feature's unique identifier.
-  - FeatureMap - A map from String to VariableInfo objects. When immutable, it
+  - `FeatureMap` - A map from String to `VariableInfo` objects. When immutable, it
     also contains feature id numbers, although these should be treated as an
     implementation detail and not relied upon.
-  - Model - A class that can make predictions of a specific Output type.
-  - Output - An interface denoting the type of output: regression, 
+  - `Model` - A class that can make predictions of a specific `Output` type.
+  - `Output` - An interface denoting the type of output: regression, 
     multi-label, multi-class, clustering, or anomaly detection.
-  - OutputInfo - An interface representing information about the output.
-  - Trainer - A class that generates Models based on a Dataset of a specific output type.
-  - Prediction - A class that stores the output of a Model when presented
-    with an Example for labeling. It contains scores for each of the predicted
+  - `OutputInfo` - An interface representing information about the output.
+  - `Trainer` - A class that generates `Model`s based on a `Dataset` of a specific output type.
+  - `Prediction` - A class that stores the output of a `Model` when presented
+    with an `Example` for labeling. It contains scores for each of the predicted
     labels. These scores may optionally be a probability distribution.
-  - VariableInfo - A class representing information about the feature, e.g., the 
+  - `VariableInfo` - A class representing information about the feature, e.g., the 
     number of times it occurred in the dataset.
 - Core contains several other packages.
-  - dataset - Datasets which provide a view on another dataset, either
+  - `dataset` - `Dataset`s which provide a view on another dataset, either
     subsampling it or excluding features below a threshold.
-  - datasource - Implementations of DataSource which operate on in-memory or
+  - `datasource` - Implementations of `DataSource` which operate on in-memory or
     simple on-disk formats.
-  - ensemble - Base classes and interfaces for ensemble models.
-  - evaluation - Base evaluation classes for all output types. This package
+  - `ensemble` - Base classes and interfaces for ensemble models.
+  - `evaluation` - Base evaluation classes for all output types. This package
     also includes evaluation-related classes for cross-validation and train-test 
     splitting.
-  - hash - An implementation of feature hashing which obfuscates any feature
-    names that are stored in a Model. Hashing prevents feature names from
+  - `hash` - An implementation of feature hashing which obfuscates any feature
+    names that are stored in a `Model`. Hashing prevents feature names from
     leaking out of the training data.
-  - provenance - Provenance classes for Tribuo. Provenance tracks the location
+  - `provenance` - Provenance classes for Tribuo. Provenance tracks the location
     and transformations of datasets, the parameters of trainers, and other
     useful information.
-  - sequence - A sequence prediction API.
-  - transform - A feature transformation package that can be applied to a full
+  - `sequence` - A sequence prediction API.
+  - `transform` - A feature transformation package that can be applied to a full
     dataset or to individual features matched via regexes. It also contains
     wrapping trainers (trainers that wrap another trainer to provide additional
     functionality) and wrapping models to ensure that the same transformations
     are always applied at prediction time.
-  - util - Utilities for basic operations such as for working with arrays and
+  - `util` - Utilities for basic operations such as for working with arrays and
     random samples.
 - Data - (artifactID `tribuo-data`, package root: `org.tribuo.data`) provides classes which deal with sampled data, columnar data, csv
   files and text inputs. The user is encouraged to provide their own text
 processing infrastructure implementation, as the one here is fairly basic.
-  - columnar - The columnar package provides many useful base classes for
+  - `columnar` - The columnar package provides many useful base classes for
     extracting features from columnar data.
-  - csv - Builds on the columnar package and supplies infrastructure for
+  - `csv` - Builds on the columnar package and supplies infrastructure for
     working with CSV and other delimiter separated data.
-  - sql - Builds on the columnar package and supplies infrastructure for
+  - `sql` - Builds on the columnar package and supplies infrastructure for
     working with JDBC sources.
-  - text - Text processsing infrastructure interfaces and an example
+  - `text` - Text processing infrastructure interfaces and an example
     implementation.
 - Json - (artifactID `tribuo-json`, package root: `org.tribuo.json`) provides functionality
 for loading from json data sources, and for stripping provenance out of a model.
 - Math - (artifactID `tribuo-math`, package root: `org.tribuo.math`) provides a linear algebra library for working with both sparse
  and dense vectors and matrices.
-  - kernel - a set of kernel functions for use in the SGD package (and elsewhere).
-  - la - a linear algebra library containing functions used in the
+  - `kernel` - a set of kernel functions for use in the SGD package (and elsewhere).
+  - `la` - a linear algebra library containing functions used in the
     SGD implementation. It is not a full BLAS.
-  - optimisers - a set of stochastic gradient descent algorithms, including SGD
-    with Momentum, AdaGrad, AdaDelta, RMSProp and several others. AdaGrad
+  - `optimisers` - a set of stochastic gradient descent algorithms, including `SGD`
+    with Momentum, `AdaGrad`, `AdaDelta`, `RMSProp` and several others. `AdaGrad`
 should be considered the default algorithm since it works best across the
 widest range of linear SGD problems.
-  - util - various util classes for working with arrays, vectors and matrices.
+  - `util` - various util classes for working with arrays, vectors and matrices.
 
 ## Multi-class Classification
 

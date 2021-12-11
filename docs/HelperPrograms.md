@@ -11,7 +11,7 @@ on Tribuo's use of Java serialization see the [security docs](./Security.md).
 
 All of these programs are built using OLCUT's command line arguments
 processing, and so print out the available arguments when ran with `--usage` or
-`--help`. See the specific help text for each program to discover it's
+`--help`. See the specific help text for each program to discover its
 arguments.
 
 ## Shells
@@ -23,8 +23,8 @@ shell to provide an interactive CLI for exploring a serialised object.
 
 Found in tribuo-core, `org.tribuo.ModelExplorer` provides a shell for
 inspecting trained Tribuo Models. It allows you to inspect the feature and
-output domains of the loaded model, display it's provenance, to view what the
-model considers to be it's top features, and to calculate simple statistics
+output domains of the loaded model, display its provenance, to view what the
+model considers to be its top features, and to calculate simple statistics
 like the number of features which occurred more than a specified number of
 times in the training dataset.
 

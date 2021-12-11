@@ -22,7 +22,7 @@ new data drawn i.i.d. from the same training distribution). We'd also like to su
 online learning in environments with concept drift and dataset shift, but those problems are
 harder and so further down the roadmap.
 - Add hypothesis testing support to the evaluations.
-- Add alternate indexes to `Dataset`. Currently `Dataset` is indexed by an integer id, it's position
+- Add alternate indexes to `Dataset`. Currently `Dataset` is indexed by an integer id, its position
 in the underlying list. It would be useful to have a Map view of a dataset to subsample it for
 specific operations (though this can be achieved today using `DatasetView` and predicates).
 - Make `Example`s immutable after they've been added to a `Dataset`. This is likely to be a breaking change.
@@ -44,7 +44,7 @@ that locally, while maintaining the link to the original data. We don't have a f
 this feature yet, but we're in need of it for some internal work.
 - KMeans & Nearest Neighbour share very little code, but are conceptually very similar. We'd like
 to refactor out the shared code (while maintaining serialization compatibility).
-- Allow `DatasetView` to regenerate it's feature and output domains. Currently all views of a dataset
+- Allow `DatasetView` to regenerate its feature and output domains. Currently all views of a dataset
 share the same immutable feature domain, but in some cases this can leak information from test time
 to train (e.g., when using the unselected data as an out of bag sample).
 - Fix batch prediction methods so they don't throw `IllegalArgumentException` in the middle of a batch,
