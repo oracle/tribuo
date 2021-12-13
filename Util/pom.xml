@@ -28,6 +28,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>InformationTheory</module>
+        <module>ONNXExport</module>
         <module>Tokenization</module>
     </modules>
     <properties>
@@ -39,6 +40,11 @@
                 <groupId>com.oracle.labs.olcut</groupId>
                 <artifactId>olcut-core</artifactId>
                 <version>${olcut.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.junit.jupiter</groupId>

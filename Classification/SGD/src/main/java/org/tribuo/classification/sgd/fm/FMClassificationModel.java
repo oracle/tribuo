@@ -19,15 +19,15 @@ package org.tribuo.classification.sgd.fm;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
-import org.tribuo.onnx.ONNXExportable;
-import org.tribuo.onnx.ONNXNode;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.util.onnx.ONNXNode;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

@@ -22,8 +22,8 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.onnx.ONNXNode;
-import org.tribuo.onnx.ONNXRef;
+import org.tribuo.util.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXRef;
 
 import java.io.Serializable;
 import java.util.List;

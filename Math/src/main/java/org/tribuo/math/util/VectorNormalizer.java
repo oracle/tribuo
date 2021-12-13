@@ -16,7 +16,8 @@
 
 package org.tribuo.math.util;
 
-import org.tribuo.onnx.ONNXNode;
+import org.tribuo.util.onnx.ONNXContext;
+import org.tribuo.util.onnx.ONNXNode;
 
 import java.io.Serializable;
 import java.util.logging.Logger;
@@ -48,7 +49,7 @@ public interface VectorNormalizer extends Serializable {
 
     /**
      * Exports this normalizer to ONNX, returning the leaf of the appended graph
-     * and writing the nodes needed for normalization into the {@link org.tribuo.onnx.ONNXContext}
+     * and writing the nodes needed for normalization into the {@link ONNXContext}
      * that {@code input} belongs to.
      * <p>
      * For compatibility reasons this method has a default implementation, though

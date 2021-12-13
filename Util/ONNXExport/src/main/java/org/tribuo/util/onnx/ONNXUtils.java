@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.onnx;
+package org.tribuo.util.onnx;
 
 import ai.onnx.proto.OnnxMl;
 import com.google.protobuf.ByteString;
