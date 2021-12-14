@@ -356,6 +356,31 @@ public abstract class OCIUtil {
     }
 
     /**
+     * Creates the OCI DS model artifact zip file.
+     * @param onnxFile The ONNX file to create.
+     * @return The path referring to the zip file.
+     * @throws IOException If the file could not be created or the ONNX file could not be read.
+     */
+    protected static Path createModelArtifact(Path onnxFile) throws IOException {
+        // Create model artifact
+        Path zipFile = Files.createTempFile("oci-ds-model-deployment",".zip");
+
+        // This works around the lack of FileSystems.newFileSystem(Path, Map) before Java 13
+        // It creates a jar URI to hit the ZipFileSystem, then deletes the temp file to force
+        // the ZipFileSystem to create an empty zip file with the right header
+        URI uri = URI.create("jar:"+zipFile.toUri());
+        java.nio.file.Files.delete(zipFile);
+
+        try (FileSystem zipFS = FileSystems.newFileSystem(uri, Collections.singletonMap("create","true"))) {
+            OCIUtil.storeResource(zipFS,"score.py");
+            OCIUtil.storeResource(zipFS,"runtime.yaml");
+            OCIUtil.storeStream(zipFS,"model.onnx",Files.newInputStream(onnxFile));
+        }
+
+        return zipFile;
+    }
+
+    /**
      * Creates an OCI DS model and uploads the model artifact.
      * <p>
      * Uses ORT as the deployment environment, and inserts a suitable {@code score.py} and {@code runtime.yaml} which
@@ -371,20 +396,8 @@ public abstract class OCIUtil {
      * @throws IOException If the zip file could not be created, or it would not upload to OCI DS.
      */
     public static String createModel(Path onnxFile, ModelProvenance provenance, OCIModelType modelType, DataScienceClient client, ObjectMapper mapper, OCIModelArtifactConfig config) throws IOException {
-        // Create model artifact
-        Path zipFile = Files.createTempFile("oci-ds-model-deployment",".zip");
+        Path zipFile = createModelArtifact(onnxFile);
 
-        // This works around the lack of FileSystems.newFileSystem(Path, Map) before Java 13
-        // It creates a jar URI to hit the ZipFileSystem, then deletes the temp file to force
-        // the ZipFileSystem to create an empty zip file with the right header
-        URI uri = URI.create("jar:"+zipFile.toUri());
-        java.nio.file.Files.delete(zipFile);
-
-        try (FileSystem zipFS = FileSystems.newFileSystem(uri, Collections.singletonMap("create","true"))) {
-            OCIUtil.storeResource(zipFS,"score.py");
-            OCIUtil.storeResource(zipFS,"runtime.yaml");
-            OCIUtil.storeStream(zipFS,"model.onnx",Files.newInputStream(onnxFile));
-        }
         zipFile.toFile().deleteOnExit();
 
         // Create the model metadata
