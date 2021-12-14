@@ -42,7 +42,7 @@ import org.tribuo.anomaly.Event;
 import org.tribuo.classification.Label;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.multilabel.MultiLabel;
-import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.ONNXExportable;
 import org.tribuo.regression.Regressor;
 import org.tribuo.provenance.ModelProvenance;
 

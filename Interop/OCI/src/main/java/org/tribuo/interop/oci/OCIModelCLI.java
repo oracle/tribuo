@@ -48,7 +48,7 @@ import org.tribuo.classification.baseline.DummyClassifierTrainer;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.math.la.DenseVector;
-import org.tribuo.onnx.ONNXExportable;
+import org.tribuo.ONNXExportable;
 import org.tribuo.util.Util;
 
 import javax.ws.rs.client.Client;
