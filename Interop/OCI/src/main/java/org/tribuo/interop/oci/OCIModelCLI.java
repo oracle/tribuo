@@ -106,7 +106,7 @@ public abstract class OCIModelCLI {
         DataScienceClient client = new DataScienceClient(provider);
 
         OCIUtil.OCIDSConfig dsConfig = new OCIUtil.OCIDSConfig(options.compartmentID,options.projectID);
-        OCIUtil.OCIModelArtifactConfig config = new OCIUtil.OCIModelArtifactConfig(dsConfig,options.modelDisplayName,"Deployed Tribuo Model","org.tribuo.oci",1);
+        OCIUtil.OCIModelArtifactConfig config = new OCIUtil.OCIModelArtifactConfig(dsConfig,options.modelDisplayName,"Deployed Tribuo Model","org.tribuo.oci",1,options.condaName,options.condaPath);
 
         String modelId = OCIUtil.createModel((Model<Label> & ONNXExportable) model,client,mapper,config);
 
@@ -404,5 +404,15 @@ public abstract class OCIModelCLI {
          */
         @Option(longName="oci-config-file",usage="OCI config file path for the OCIModel class.")
         public Path ociConfigFile;
+        /**
+         * OCI DS conda environment name.
+         */
+        @Option(longName="conda-name",usage="OCI DS conda environment name.")
+        public String condaName;
+        /**
+         * OCI DS conda environment path in object storage.
+         */
+        @Option(longName="conda-name",usage="OCI DS conda environment path in object storage.")
+        public String condaPath;
     }
 }

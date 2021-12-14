@@ -46,9 +46,11 @@ import org.tribuo.ONNXExportable;
 import org.tribuo.regression.Regressor;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -57,6 +59,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Utils for uploading and deploying models to OCI Data Science.
@@ -188,6 +191,14 @@ public abstract class OCIUtil {
          * The ONNX model version.
          */
         public final int onnxModelVersion;
+        /**
+         * The Conda environment name.
+         */
+        public final String condaName;
+        /**
+         * The Conda environment path in object storage.
+         */
+        public final String condaPath;
 
         /**
          * Constructs an OCIModelArtifactConfig, used to create an OCI DS model.
@@ -196,13 +207,17 @@ public abstract class OCIUtil {
          * @param modelDescription The model description.
          * @param onnxDomain The domain to encode in the ONNX file. Should be a reverse-DNS style name, like a Java package.
          * @param onnxModelVersion The ONNX model version number.
+         * @param condaName The conda environment name.
+         * @param condaPath The conda environment path.
          */
-        public OCIModelArtifactConfig(OCIDSConfig dsConfig, String modelName, String modelDescription, String onnxDomain, int onnxModelVersion) {
+        public OCIModelArtifactConfig(OCIDSConfig dsConfig, String modelName, String modelDescription, String onnxDomain, int onnxModelVersion, String condaName, String condaPath) {
             this.dsConfig = dsConfig;
             this.modelDescription = modelDescription;
             this.modelName = modelName;
             this.onnxDomain = onnxDomain;
             this.onnxModelVersion = onnxModelVersion;
+            this.condaName = condaName;
+            this.condaPath = condaPath;
         }
     }
 
@@ -361,7 +376,7 @@ public abstract class OCIUtil {
      * @return The path referring to the zip file.
      * @throws IOException If the file could not be created or the ONNX file could not be read.
      */
-    protected static Path createModelArtifact(Path onnxFile) throws IOException {
+    protected static Path createModelArtifact(Path onnxFile, OCIModelArtifactConfig config) throws IOException {
         // Create model artifact
         Path zipFile = Files.createTempFile("oci-ds-model-deployment",".zip");
 
@@ -369,12 +384,14 @@ public abstract class OCIUtil {
         // It creates a jar URI to hit the ZipFileSystem, then deletes the temp file to force
         // the ZipFileSystem to create an empty zip file with the right header
         URI uri = URI.create("jar:"+zipFile.toUri());
-        java.nio.file.Files.delete(zipFile);
+        Files.delete(zipFile);
 
         try (FileSystem zipFS = FileSystems.newFileSystem(uri, Collections.singletonMap("create","true"))) {
-            OCIUtil.storeResource(zipFS,"score.py");
-            OCIUtil.storeResource(zipFS,"runtime.yaml");
-            OCIUtil.storeStream(zipFS,"model.onnx",Files.newInputStream(onnxFile));
+            OCIUtil.storeResource(zipFS, "score.py");
+            String runtimeYaml = buildRuntimeYaml(config.condaName, config.condaPath);
+            ByteArrayInputStream baos = new ByteArrayInputStream(runtimeYaml.getBytes(StandardCharsets.UTF_8));
+            OCIUtil.storeStream(zipFS, "runtime.yaml", baos);
+            OCIUtil.storeStream(zipFS, "model.onnx", Files.newInputStream(onnxFile));
         }
 
         return zipFile;
@@ -396,7 +413,7 @@ public abstract class OCIUtil {
      * @throws IOException If the zip file could not be created, or it would not upload to OCI DS.
      */
     public static String createModel(Path onnxFile, ModelProvenance provenance, OCIModelType modelType, DataScienceClient client, ObjectMapper mapper, OCIModelArtifactConfig config) throws IOException {
-        Path zipFile = createModelArtifact(onnxFile);
+        Path zipFile = createModelArtifact(onnxFile,config);
 
         zipFile.toFile().deleteOnExit();
 
@@ -466,4 +483,66 @@ public abstract class OCIUtil {
         logger.info("Create deployment response: \n"+deploymentResponseStr);
         return deploymentResponse.getModelDeploymentUrl();
     }
+
+    // OCI validation constants
+    private static final Pattern CONDA_NAME_PATTERN = Pattern.compile("\\w*");
+    private static final Pattern CONDA_ENV_PATH_PATTERN = Pattern.compile("[\\w -@.:/]*");
+    private static final int MAX_OBJECT_STORAGE_LENGTH = 1024;
+    private static final String OCI_PROTOCOL = "oci://";
+
+    // runtime.yaml
+    private static final String RUNTIME_YAML_HEADER = "" +
+            "# Copyright (c) 2021, Oracle and/or its affiliates.  All rights reserved.\n" +
+            "# This software is available under the Apache License 2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0.\n" +
+            "MODEL_ARTIFACT_VERSION: '3.0'\n" +
+            "MODEL_DEPLOYMENT:\n" +
+            "  INFERENCE_CONDA_ENV:\n";
+    private static final String RUNTIME_YAML_ENV_SLUG = "    INFERENCE_ENV_SLUG: ";
+    private static final String RUNTIME_YAML_ENV_TYPE = "    INFERENCE_ENV_TYPE: data_science\n";
+    private static final String RUNTIME_YAML_ENV_PATH = "    INFERENCE_ENV_PATH: ";
+    private static final String RUNTIME_YAML_PYTHON_VERSION = "    INFERENCE_PYTHON_VERSION: '3.7'";
+
+    /**
+     * Builds the runtime.yaml String from the supplied arguments, throwing {@link IllegalArgumentException} if
+     * they are invalid.
+     * @param condaName The conda environment name.
+     * @param condaPath The conda environment path.
+     * @return The runtime.yaml String.
+     */
+    protected static String buildRuntimeYaml(String condaName, String condaPath) {
+        if (validateCondaName(condaName)) {
+            if (validateCondaPath(condaPath)) {
+                return RUNTIME_YAML_HEADER + RUNTIME_YAML_ENV_SLUG + condaName + "\n" + RUNTIME_YAML_ENV_TYPE + RUNTIME_YAML_ENV_PATH + condaPath + "\n" + RUNTIME_YAML_PYTHON_VERSION;
+            } else {
+                throw new IllegalArgumentException("Invalid conda path '" + condaPath + "'");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid conda name '" + condaName + "'");
+        }
+    }
+
+    /**
+     * Validates that the name is a valid conda environment.
+     * @param input The input to check.
+     * @return True if it's a valid environment name.
+     */
+    protected static boolean validateCondaName(String input) {
+        return input != null && CONDA_NAME_PATTERN.matcher(input).matches();
+    }
+
+    /**
+     * Validates that the path is a valid OCI object storage path.
+     * <p>
+     * This check is intentionally more restrictive than necessary.
+     * @param input The input to check.
+     * @return True if it's a valid environment name.
+     */
+    protected static boolean validateCondaPath(String input) {
+        if (input != null && CONDA_ENV_PATH_PATTERN.matcher(input).matches() && input.length() < MAX_OBJECT_STORAGE_LENGTH && input.startsWith(OCI_PROTOCOL)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }
