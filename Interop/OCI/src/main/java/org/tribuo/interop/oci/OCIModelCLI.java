@@ -64,7 +64,7 @@ public abstract class OCIModelCLI {
         // Load the Tribuo model
         Model<Label> model;
         try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(options.modelPath))) {
-            model = Model.castModel((Model<?>) ois.readObject(),Label.class);
+            model = ((Model<?>)ois.readObject()).castModel(Label.class);
         }
         if (!(model instanceof ONNXExportable)) {
             throw new IllegalArgumentException("Model not ONNXExportable, received " + model.toString());
