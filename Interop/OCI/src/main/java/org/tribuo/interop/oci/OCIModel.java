@@ -74,6 +74,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     private static final Logger logger = Logger.getLogger(OCIModel.class.getName());
 
     private final Path configFile;
+    private final String profileName;
     private final String endpointURL;
     private final String modelDeploymentId;
     private final OCIOutputConverter<T> outputConverter;
@@ -87,26 +88,29 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
 
     /**
      * Construct an OCIModel wrapping an OCI DS Model Deployment endpoint.
-     * @param name The model name.
-     * @param provenance The model provenance.
-     * @param featureIDMap The feature map.
-     * @param outputIDInfo The output map.
-     * @param featureMapping The mapping between Tribuo's feature names and the external model's feature indices.
-     * @param configFile The OCI client configuration file.
-     * @param endpointURL The OCI Model Deployment endpoint URL.
+     *
+     * @param name              The model name.
+     * @param provenance        The model provenance.
+     * @param featureIDMap      The feature map.
+     * @param outputIDInfo      The output map.
+     * @param featureMapping    The mapping between Tribuo's feature names and the external model's feature indices.
+     * @param configFile        The OCI configuration file, if null use the default file.
+     * @param profileName       The OCI client profile, or null for the default.
+     * @param endpointURL       The OCI Model Deployment endpoint URL.
      * @param modelDeploymentId The model deployment ID.
-     * @param outputConverter The output conversion function.
+     * @param outputConverter   The output conversion function.
      * @throws IOException If the OCI configuration file could not be read.
      */
     OCIModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
              Map<String, Integer> featureMapping,
-             Path configFile, String endpointURL, String modelDeploymentId, OCIOutputConverter<T> outputConverter) throws IOException {
+             Path configFile, String profileName, String endpointURL, String modelDeploymentId, OCIOutputConverter<T> outputConverter) throws IOException {
         super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.configFile = configFile;
+        this.profileName = profileName;
         this.endpointURL = endpointURL;
         this.modelDeploymentId = modelDeploymentId;
         this.outputConverter = outputConverter;
-        this.authProvider = new ConfigFileAuthenticationDetailsProvider(ConfigFileReader.parse(configFile.toString()));
+        this.authProvider = makeAuthProvider(configFile,profileName);
         this.mapper = new ObjectMapper();
 
         // Pre-Requirement: Allow setting of restricted headers. This is required to allow the SigningFilter
@@ -125,24 +129,26 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
 
     /**
      * Construct an OCIModel wrapping an OCI DS Model Deployment endpoint.
-     * @param name The model name.
-     * @param provenance The model provenance.
-     * @param featureIDMap The feature map.
-     * @param outputIDInfo The output map.
-     * @param featureForwardMapping The forward mapping between Tribuo's feature indices and the external ones.
+     *
+     * @param name                   The model name.
+     * @param provenance             The model provenance.
+     * @param featureIDMap           The feature map.
+     * @param outputIDInfo           The output map.
+     * @param featureForwardMapping  The forward mapping between Tribuo's feature indices and the external ones.
      * @param featureBackwardMapping The backward mapping between Tribuo's feature indices and the external ones.
-     * @param configFile The OCI client configuration file.
-     * @param authProvider The OCI authentication provider.
-     * @param endpointURL The OCI Model Deployment endpoint URL.
-     * @param modelDeploymentId The model deployment ID.
-     * @param outputConverter The output conversion function.
+     * @param configFile             The OCI configuration file, if null use the default file.
+     * @param authProvider           The OCI authentication provider.
+     * @param endpointURL            The OCI Model Deployment endpoint URL.
+     * @param modelDeploymentId      The model deployment ID.
+     * @param outputConverter        The output conversion function.
      */
     OCIModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
              int[] featureForwardMapping, int[] featureBackwardMapping,
-             Path configFile,
+             Path configFile, String profileName,
              AuthenticationDetailsProvider authProvider, String endpointURL, String modelDeploymentId, OCIOutputConverter<T> outputConverter) {
         super(name, provenance, featureIDMap, outputIDInfo, featureForwardMapping, featureBackwardMapping, outputConverter.generatesProbabilities());
         this.configFile = configFile;
+        this.profileName = profileName;
         this.authProvider = authProvider;
         this.endpointURL = endpointURL;
         this.modelDeploymentId = modelDeploymentId;
@@ -170,7 +176,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
 
     @Override
     protected Model<T> copy(String s, ModelProvenance modelProvenance) {
-        return new OCIModel<>(s, modelProvenance, featureIDMap, outputIDInfo, featureForwardMapping, featureBackwardMapping, configFile, authProvider, endpointURL, modelDeploymentId, outputConverter);
+        return new OCIModel<>(s, modelProvenance, featureIDMap, outputIDInfo, featureForwardMapping, featureBackwardMapping, configFile, profileName, authProvider, endpointURL, modelDeploymentId, outputConverter);
     }
 
     @Override
@@ -235,12 +241,12 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
         if (scores.getDimension1Size() != 1) {
             throw new IllegalStateException("Expected a single score vector, received " + scores.getDimension1Size());
         }
-        return outputConverter.convertOutput(scores.getRow(0),numValidFeature,example,outputIDInfo);
+        return outputConverter.convertOutput(scores.getRow(0), numValidFeature, example, outputIDInfo);
     }
 
     @Override
     protected List<Prediction<T>> convertOutput(DenseMatrix scores, int[] numValidFeatures, List<Example<T>> list) {
-        return outputConverter.convertOutput(scores,numValidFeatures,list,outputIDInfo);
+        return outputConverter.convertOutput(scores, numValidFeatures, list, outputIDInfo);
     }
 
     @Override
@@ -255,7 +261,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
         System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 
         // Rebuild transient state
-        this.authProvider = new ConfigFileAuthenticationDetailsProvider(ConfigFileReader.parse(configFile.toString()));
+        this.authProvider = makeAuthProvider(configFile,profileName);
         this.mapper = new ObjectMapper();
         this.requestSigningFilter = RequestSigningFilter.fromAuthProvider(authProvider);
         this.jerseyClient = ClientBuilder.newBuilder().build().register(requestSigningFilter);
@@ -276,22 +282,63 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     }
 
     /**
+     * Makes an authentication provider from the config file and profile.
+     * <p>
+     * If the config file is null then it loads the default config file, if the profile is null it loads the
+     * default profile in the chosen config file.
+     * @param configFile The config file to load.
+     * @param profile The profile to load.
+     * @return An authentication provider.
+     * @throws IOException If the config file could not be read.
+     */
+    public static ConfigFileAuthenticationDetailsProvider makeAuthProvider(Path configFile, String profile) throws IOException {
+        ConfigFileReader.ConfigFile file = configFile == null ? ConfigFileReader.parseDefault(profile) : ConfigFileReader.parse(configFile.toString());
+        return new ConfigFileAuthenticationDetailsProvider(file);
+    }
+
+    /**
      * Creates an {@code OCIModel} by wrapping an OCI DS Model Deployment endpoint.
      * <p>
      * Uses the endpointURL as the value to hash for the trainer provenance.
+     * <p>
+     * Loads the default profile in the configuration file.
      *
-     * @param factory                The output factory to use.
-     * @param featureMapping         The feature mapping between Tribuo names and model integer ids.
-     * @param outputMapping          The output mapping between Tribuo outputs and model integer ids.
-     * @param configFile             The OCI configuration file.
-     * @param endpointURL            The endpoint URL.
-     * @param outputConverter        The converter for the specified output type.
+     * @param factory         The output factory to use.
+     * @param featureMapping  The feature mapping between Tribuo names and model integer ids.
+     * @param outputMapping   The output mapping between Tribuo outputs and model integer ids.
+     * @param configFile      The OCI configuration file, if null use the default file.
+     * @param endpointURL     The endpoint URL.
+     * @param outputConverter The converter for the specified output type.
      * @return An OCIModel ready to score new inputs.
      */
     public static <T extends Output<T>> OCIModel<T> createOCIModel(OutputFactory<T> factory,
                                                                    Map<String, Integer> featureMapping,
                                                                    Map<T, Integer> outputMapping,
                                                                    Path configFile,
+                                                                   String endpointURL,
+                                                                   OCIOutputConverter<T> outputConverter) {
+        return createOCIModel(factory, featureMapping, outputMapping, configFile, null, endpointURL, outputConverter);
+    }
+
+    /**
+     * Creates an {@code OCIModel} by wrapping an OCI DS Model Deployment endpoint.
+     * <p>
+     * Uses the endpointURL as the value to hash for the trainer provenance.
+     *
+     * @param factory         The output factory to use.
+     * @param featureMapping  The feature mapping between Tribuo names and model integer ids.
+     * @param outputMapping   The output mapping between Tribuo outputs and model integer ids.
+     * @param configFile      The OCI configuration file, if null use the default file.
+     * @param profileName     The profile name in the OCI configuration file, if null uses the default profile.
+     * @param endpointURL     The endpoint URL.
+     * @param outputConverter The converter for the specified output type.
+     * @return An OCIModel ready to score new inputs.
+     */
+    public static <T extends Output<T>> OCIModel<T> createOCIModel(OutputFactory<T> factory,
+                                                                   Map<String, Integer> featureMapping,
+                                                                   Map<T, Integer> outputMapping,
+                                                                   Path configFile,
+                                                                   String profileName,
                                                                    String endpointURL,
                                                                    OCIOutputConverter<T> outputConverter) {
         try {
@@ -309,7 +356,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
             runProvenance.put("modelDeploymentId", new StringProvenance("modelDeploymentId", modelDeploymentId));
             ModelProvenance provenance = new ModelProvenance(OCIModel.class.getName(), now, datasetProvenance, trainerProvenance, runProvenance);
             return new OCIModel<T>("oci-ds-model", provenance, featureMap, outputInfo, featureMapping, configFile,
-                    domain, modelDeploymentId, outputConverter);
+                    profileName, domain, modelDeploymentId, outputConverter);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load configuration from path " + configFile, e);
         }

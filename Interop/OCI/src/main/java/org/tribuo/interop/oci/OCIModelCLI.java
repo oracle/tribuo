@@ -16,62 +16,34 @@
 
 package org.tribuo.interop.oci;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.oracle.bmc.ConfigFileReader;
-import com.oracle.bmc.auth.AuthenticationDetailsProvider;
-import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
 import com.oracle.bmc.datascience.DataScienceClient;
 import com.oracle.bmc.http.internal.ExplicitlySetFilter;
-import com.oracle.bmc.http.signing.RequestSigningFilter;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
 import com.oracle.labs.mlrg.olcut.config.UsageException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
-import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
-import org.tribuo.Prediction;
-import org.tribuo.Trainer;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
 import org.tribuo.classification.Label;
-import org.tribuo.classification.baseline.DummyClassifierTrainer;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
-import org.tribuo.math.la.DenseVector;
 import org.tribuo.ONNXExportable;
 import org.tribuo.util.Util;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -100,11 +72,8 @@ public abstract class OCIModelCLI {
 
         ObjectMapper mapper = OCIUtil.createObjectMapper();
 
-        // Instantiate the client
-        final ConfigFileReader.ConfigFile configFile = ConfigFileReader.parseDefault();
-        final AuthenticationDetailsProvider provider = new ConfigFileAuthenticationDetailsProvider(configFile);
-        DataScienceClient client = new DataScienceClient(provider);
-
+        // Instantiate the client & configurations
+        DataScienceClient client = options.makeClient();
         OCIUtil.OCIDSConfig dsConfig = new OCIUtil.OCIDSConfig(options.compartmentID,options.projectID);
         OCIUtil.OCIModelArtifactConfig config = new OCIUtil.OCIModelArtifactConfig(dsConfig,options.modelDisplayName,"Deployed Tribuo Model","org.tribuo.oci",1,options.condaName,options.condaPath);
 
@@ -124,9 +93,7 @@ public abstract class OCIModelCLI {
      */
     private static void deploy(OCIModelOptions options) throws IOException {
         // Instantiate the client
-        final ConfigFileReader.ConfigFile configFile = ConfigFileReader.parseDefault();
-        final AuthenticationDetailsProvider provider = new ConfigFileAuthenticationDetailsProvider(configFile);
-        DataScienceClient client = new DataScienceClient(provider);
+        DataScienceClient client = options.makeClient();
 
         // Setup object mapper for writing to the terminal
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -158,121 +125,31 @@ public abstract class OCIModelCLI {
         }
         ImmutableFeatureMap featureIDMap = dataset.getFeatureIDMap();
 
-        if (options.useOCIModel) {
-            // Prep mappings
-            Map<String, Integer> featureMapping = new HashMap<>();
-            for (VariableInfo f : featureIDMap){
-                VariableIDInfo id = (VariableIDInfo) f;
-                featureMapping.put(id.getName(),id.getID());
-            }
-            Map<Label, Integer> outputMapping = new HashMap<>();
-            for (Pair<Integer,Label> l : dataset.getOutputIDInfo()) {
-                outputMapping.put(l.getB(), l.getA());
-            }
-            OCIModel<Label> model = OCIModel.createOCIModel(dataset.getOutputFactory(),featureMapping,outputMapping,options.ociConfigFile,options.endpointDomain + options.modelDeploymentId, new OCILabelConverter(true));
-
-            System.out.println("Scoring using OCIModel - " + model.toString());
-            LabelEvaluator eval = new LabelEvaluator();
-            long startTime = System.currentTimeMillis();
-            LabelEvaluation evaluation = eval.evaluate(model,dataset);
-            long endTime = System.currentTimeMillis();
-            System.out.println("Scoring took - " + Util.formatDuration(startTime,endTime));
-            System.out.println((((double) endTime - startTime) / dataset.size()) + "ms per example");
-
-            System.out.println(evaluation.toString());
-            System.out.println(evaluation.getConfusionMatrix().toString());
-        } else {
-            manualModelScoring(options,dataset,featureIDMap);
+        // Prep mappings
+        Map<String, Integer> featureMapping = new HashMap<>();
+        for (VariableInfo f : featureIDMap){
+            VariableIDInfo id = (VariableIDInfo) f;
+            featureMapping.put(id.getName(),id.getID());
         }
-    }
+        Map<Label, Integer> outputMapping = new HashMap<>();
+        for (Pair<Integer,Label> l : dataset.getOutputIDInfo()) {
+            outputMapping.put(l.getB(), l.getA());
+        }
+        OCIModel<Label> model = OCIModel.createOCIModel(dataset.getOutputFactory(),featureMapping,outputMapping,
+                options.ociConfigFile,options.ociConfigProfile,
+                options.endpointDomain + options.modelDeploymentId,
+                new OCILabelConverter(true));
 
-    private static void manualModelScoring(OCIModelOptions options, Dataset<Label> dataset, ImmutableFeatureMap featureIDMap) throws IOException {
-        OCILabelConverter labelConverter = new OCILabelConverter(true);
-
-        // Setup object mapper for parsing the output
-        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        FilterProvider filters =
-                new SimpleFilterProvider()
-                        .addFilter(ExplicitlySetFilter.NAME, ExplicitlySetFilter.INSTANCE);
-        mapper.setFilterProvider(filters);
-
-        // Pre-Requirement: Allow setting of restricted headers. This is required to allow the SigningFilter
-        // to set the host header that gets computed during signing of the request.
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        // 1) Create a request signing filter instance
-        RequestSigningFilter requestSigningFilter = RequestSigningFilter.fromConfigFile(
-                "~/.oci/config",
-                "DEFAULT"
-        );
-
-        // 2) Create a Jersey client and register the request signing filter
-        Client client = ClientBuilder
-                .newBuilder()
-                .build()
-                .register(requestSigningFilter);
-
-        // 3) Target an endpoint. You must ensure that path arguments and query
-        // params are escaped correctly yourself
-        WebTarget target = client
-                .target(options.endpointDomain + options.modelDeploymentId)
-                .path("predict");
-
-        System.out.println("Scoring using manual conversion from endpoint " + options.modelDeploymentId);
+        System.out.println("Scoring using OCIModel - " + model.toString());
+        LabelEvaluator eval = new LabelEvaluator();
         long startTime = System.currentTimeMillis();
-        List<Prediction<Label>> predictions = new ArrayList<>();
-        for (Example<Label> e : dataset) {
-            double[] features = DenseVector.createDenseVector(e, featureIDMap, false).toArray();
-            // 4) Set the expected type and invoke the call
-            Invocation.Builder ib = target.request();
-            ib.accept(MediaType.APPLICATION_JSON);
-            Response response = ib.buildPost(Entity.entity("[" + Arrays.toString(features) + "]", MediaType.APPLICATION_JSON)).invoke();
-
-            String json;
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader((InputStream) response.getEntity(), StandardCharsets.UTF_8))) {
-                StringBuilder jsonBody = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    jsonBody.append(line);
-                }
-                json = jsonBody.toString();
-            } catch (IOException ex) {
-                throw new IllegalStateException("Failed to read response from input stream", ex);
-            }
-            try {
-                PredictionJson predJson = mapper.readValue(json, PredictionJson.class);
-                predictions.add(labelConverter.convertOutput(DenseVector.createDenseVector(predJson.prediction[0]), features.length, e, dataset.getOutputIDInfo()));
-            } catch (JsonParseException | JsonMappingException ex) {
-                // Must be an error condition
-                logger.log(Level.WARNING, "Failed to parse Json, '" + json + "' - " + ex.getMessage());
-            }
-        }
+        LabelEvaluation evaluation = eval.evaluate(model,dataset);
         long endTime = System.currentTimeMillis();
         System.out.println("Scoring took - " + Util.formatDuration(startTime,endTime));
         System.out.println((((double) endTime - startTime) / dataset.size()) + "ms per example");
 
-        // Make a fake model to make the evaluator happy
-        Trainer<Label> trainer = DummyClassifierTrainer.createUniformTrainer(1L);
-        Model<Label> fakeModel = trainer.train(dataset);
-
-        LabelEvaluator eval = new LabelEvaluator();
-        LabelEvaluation evaluation = eval.evaluate(fakeModel,predictions,dataset.getProvenance());
-
         System.out.println(evaluation.toString());
         System.out.println(evaluation.getConfusionMatrix().toString());
-    }
-
-    /**
-     * Carrier type for easy deserialization from JSON.
-     */
-    public static final class PredictionJson {
-        @JsonProperty("prediction")
-        public double[][] prediction;
-
-        @JsonCreator
-        public PredictionJson(@JsonProperty("prediction") double[][] prediction) {
-            this.prediction = prediction;
-        }
     }
 
     /**
@@ -395,15 +272,15 @@ public abstract class OCIModelCLI {
         @Option(longName="oci-domain",usage="The OCI endpoint domain.")
         public String endpointDomain;
         /**
-         * Use the OCIModel class.
+         * OCI config file path.
          */
-        @Option(longName="oci-model",usage="Use the OCIModel class.")
-        public boolean useOCIModel;
+        @Option(longName="oci-config-file",usage="OCI config file path. If null use the default.")
+        public Path ociConfigFile = null;
         /**
-         * OCI config file path for the OCIModel class.
+         * OCI profile in the config file.
          */
-        @Option(longName="oci-config-file",usage="OCI config file path for the OCIModel class.")
-        public Path ociConfigFile;
+        @Option(longName="oci-config-file-profile",usage="OCI profile in the config file. If null use the default.")
+        public String ociConfigProfile = null;
         /**
          * OCI DS conda environment name.
          */
@@ -414,5 +291,15 @@ public abstract class OCIModelCLI {
          */
         @Option(longName="conda-name",usage="OCI DS conda environment path in object storage.")
         public String condaPath;
+
+        /**
+         * Makes the DataScienceClient specified by these options.
+         * @return The DataScienceClient.
+         * @throws IOException If the config file could not be read.
+         */
+        DataScienceClient makeClient() throws IOException {
+            return new DataScienceClient(OCIModel.makeAuthProvider(ociConfigFile, ociConfigProfile));
+        }
+
     }
 }
