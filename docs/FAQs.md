@@ -90,7 +90,7 @@ libraries, and given Python's lax approach to typing, those methods are only
 part of the API by convention rather that being enforced by the type system. In
 Tribuo, we've separated training from prediction. Tribuo's fit method is called
 "train" and lives on the `Trainer` interface, whereas Tribuo's "predict" method
-lives on the Model class. Tribuo uses the same predict call to produce both the
+lives on the `Model` class. Tribuo uses the same predict call to produce both the
 outputs and the scores for those outputs. Its predict method is the equivalent
 of both "predict" and "predict\_proba" in scikit-learn. We made this separation
 between training and prediction so as to enable the type system to act as a

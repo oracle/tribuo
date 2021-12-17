@@ -22,6 +22,12 @@ multi-output regression LibSVM models dimensions past the first dimension have
 the model improperly stored and will also need to be retrained with Tribuo 4.2.
 See [#177](https://github.com/oracle/tribuo/pull/177) for more details.
 
+Note the KMeans implementation had several internal changes to support running
+with a `java.lang.SecurityManager` which will break any subclasses of `KMeansTrainer`.
+In most cases changing the signature of any overridden `mStep` method to match
+the new signature, and allowing the `fjp` argument to be null in single threaded 
+execution will fix the subclass.
+
 ## New models
 
 In this release we've added [Factorization
@@ -142,7 +148,8 @@ endpoint, allowing easy use of cloud resources for ML on the JVM.
 - Add hooks for model equality checks to trees and LibSVM models ([#183](https://github.com/oracle/tribuo/pull/183)) (also fixes a bug in liblinear get top features)
 - XGBoost 1.5.0 ([#192](https://github.com/oracle/tribuo/pull/192))
 - TensorFlow Java 0.4.0 ([#195](https://github.com/oracle/tribuo/pull/195)) (note this changes Tribuo's TF API slightly as TF-Java 0.4.0 has a different method of initializing the session)
-- ONNX and reproducibility tutorials ([#TBD](https://github.com/oracle/tribuo/pull/TBD))
+- KMeans now uses dense vectors when appropriate, speeding up training ([#201](https://github.com/oracle/tribuo/pull/201))
+- Documentation updates, ONNX and reproducibility tutorials ([#202](https://github.com/oracle/tribuo/pull/202))
 
 ## Bug fixes
 

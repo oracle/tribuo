@@ -44,7 +44,7 @@ native code inside an application container like a JavaEE or JakartaEE server.
 Multiple instances of Tribuo running inside separate containers may cause
 issues with JNI library loading due to ClassLoader security considerations.
 
-## Configuration
+## SecurityManager configuration
 Tribuo uses [OLCUT](https://github.com/oracle/olcut)'s configuration and
 provenance systems, which use reflection to construct and inspect classes.
 Therefore, when running with a Java security manager, you need to give the
@@ -68,7 +68,12 @@ This scope should be narrowed based on your requirements. If you need to save
 an OLCUT configuration, you will also need to add write permissions for the
 save location.
 
-Similar file read and write permissions are necessary for Tribuo to be able to
+Tribuo uses `ForkJoinPool` for parallelism, which requires the `modifyThread`
+and `modifyThreadGroup` privileges when running under a `java.lang.SecurityManager`.
+Therefore classes which have parallel execution inside will require those
+permissions in addition to the ones listed for OLCUT above.
+
+File read and write permissions are necessary for Tribuo to be able to
 load and save models; therefore, you'll need to grant Tribuo those permissions
 using a similar snippet when running with a security manager.
 

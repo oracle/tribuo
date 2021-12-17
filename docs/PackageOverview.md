@@ -44,10 +44,7 @@ a math library, and common modules shared across prediction types.
   - `hash` - An implementation of feature hashing which obfuscates any feature
     names that are stored in a `Model`. Hashing prevents feature names from
     leaking out of the training data.
-  - onnx - Classes for exporting models in ONNX format. These classes are
-    independent of the rest of Tribuo and could be used by other projects on
-    the JVM.
-  - provenance - Provenance classes for Tribuo. Provenance tracks the location
+  - `provenance` - Provenance classes for Tribuo. Provenance tracks the location
     and transformations of datasets, the parameters of trainers, and other
     useful information.
   - `sequence` - A sequence prediction API.
@@ -58,7 +55,7 @@ a math library, and common modules shared across prediction types.
     are always applied at prediction time.
   - `util` - Utilities for basic operations such as for working with arrays and
     random samples.
-- Data - (artifactID `tribuo-data`, package root: `org.tribuo.data`) provides classes which deal with sampled data, columnar data, csv
+- Data - (artifactID: `tribuo-data`, package root: `org.tribuo.data`) provides classes which deal with sampled data, columnar data, csv
   files and text inputs. The user is encouraged to provide their own text
 processing infrastructure implementation, as the one here is fairly basic.
   - `columnar` - The columnar package provides many useful base classes for
@@ -69,9 +66,9 @@ processing infrastructure implementation, as the one here is fairly basic.
     working with JDBC sources.
   - `text` - Text processing infrastructure interfaces and an example
     implementation.
-- Json - (artifactID `tribuo-json`, package root: `org.tribuo.json`) provides functionality
+- Json - (artifactID: `tribuo-json`, package root: `org.tribuo.json`) provides functionality
 for loading from json data sources, and for stripping provenance out of a model.
-- Math - (artifactID `tribuo-math`, package root: `org.tribuo.math`) provides a linear algebra library for working with both sparse
+- Math - (artifactID: `tribuo-math`, package root: `org.tribuo.math`) provides a linear algebra library for working with both sparse
  and dense vectors and matrices.
   - `kernel` - a set of kernel functions for use in the SGD package (and elsewhere).
   - `la` - a linear algebra library containing functions used in the
@@ -81,6 +78,20 @@ for loading from json data sources, and for stripping provenance out of a model.
 should be considered the default algorithm since it works best across the
 widest range of linear SGD problems.
   - `util` - various util classes for working with arrays, vectors and matrices.
+
+## Util libraries
+
+There are 3 utility libraries which are used by Tribuo but do not depend
+on other parts of it.
+
+- InformationTheory - (artifactID: `tribuo-util-infotheory`, package root: `org.tribuo.util.infotheory`) provides discrete information theoretic functions suitable
+for computing clustering metrics, feature selection and structure learning.
+- ONNXExport - (artifactID: `tribuo-util-onnx`, package root: `org.tribuo.util.onnx`) provides infrastructure for building ONNX graphs from Java.
+This package is suitable for use in other JVM libraries which want to write ONNX models, and provides additional type safety and usability over
+directly writing the protobufs.
+- Tokenization - (artifactID: `tribuo-util-tokenization`, package root: `org.tribuo.util.tokens`) provides a tokenization API suitable 
+for feature extraction or information retrieval, along with several tokenizer implementations, including a wordpiece implementation
+suitable for use with models like BERT.
 
 ## Multi-class Classification
 
@@ -169,8 +180,13 @@ Randomized Trees (ExtraTrees).
 Tribuo supports loading a number of third party models which were trained
 outside the system (even in other programming languages) and scoring them from
 Java using Tribuo's infrastructure. Currently, we support loading ONNX,
-TensorFlow and XGBoost models.
+TensorFlow and XGBoost models. Additionally we support wrapping an 
+[OCI Data Science](https://www.oracle.com/data-science/cloud-infrastructure-data-science.html) 
+model deployment in a Tribuo model.
 
+- OCI - Supports deploying Tribuo models to OCI Data Science, and wrapping OCI
+  Data Science models in Tribuo external models to allow them to be served with 
+other Tribuo models.
 - ONNX - [ONNX](https://onnx.ai) (Open Neural Network eXchange) format is used
   by several deep learning systems as an export format, and there are
 converters from systems like scikit-learn to the ONNX format.  Tribuo provides
