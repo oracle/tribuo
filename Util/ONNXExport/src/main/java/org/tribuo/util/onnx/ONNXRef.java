@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * can thus be passed around without needing to pass their governing context as well.
  * <p>
  * N.B. This class will be sealed once the library is updated past Java 8. Users should not subclass this class.
- * @param <T>
+ * @param <T> The protobuf type this reference generates.
  */
 public abstract class ONNXRef<T extends GeneratedMessageV3> {
     // Unfortunately there is no other shared supertype for OnnxML protobufs
@@ -44,19 +44,36 @@ public abstract class ONNXRef<T extends GeneratedMessageV3> {
     private final String baseName;
     protected final ONNXContext context;
 
-
+    /**
+     * Creates an ONNXRef for the specified context, protobuf and name.
+     * @param context The ONNXContext we're operating in.
+     * @param backRef The protobuf reference.
+     * @param baseName The name of this reference.
+     */
     ONNXRef(ONNXContext context, T backRef, String baseName) {
         this.context = context;
         this.backRef = backRef;
         this.baseName = baseName;
     }
 
+    /**
+     * Gets the output name of this object.
+     * @return The output name.
+     */
     public abstract String getReference();
 
+    /**
+     * The name of this object.
+     * @return The name.
+     */
     public String getBaseName() {
         return baseName;
     }
 
+    /**
+     * The context this reference operates in.
+     * @return The context.
+     */
     public ONNXContext onnxContext() {
         return context;
     }
@@ -66,7 +83,7 @@ public abstract class ONNXRef<T extends GeneratedMessageV3> {
      * as the first argument to {@code inputs}, with {@code otherInputs} append as subsequent arguments. The other
      * arguments behave as in the analogous method on ONNXContext.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
-     * @param otherInputs A list of {@ONNXRef}s created by this instance of ONNXContext.
+     * @param otherInputs A list of {@link ONNXRef}s created by this instance of ONNXContext.
      * @param outputs A list of names that the output nodes of {@code op} should take.
      * @param attributes A map of attributes of the operation, passed to {@link ONNXOperators#build(ONNXContext, String, String, Map)}.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
@@ -199,7 +216,7 @@ public abstract class ONNXRef<T extends GeneratedMessageV3> {
     /**
      * Casts this ONNXRef to a different type using the {@link ONNXOperators#CAST} operation, and returning the output
      * node of that op. Currently supports only float, double, int, and long, which are specified by their respective
-     * {@link Class} objects (eg. {@link float.class}). Throws {@link IllegalArgumentException} when an unsupported cast
+     * {@link Class} objects (e.g., {@code float.class}). Throws {@link IllegalArgumentException} when an unsupported cast
      * is requested.
      * @param clazz The class object specifying the type to cast to.
      * @return An ONNXRef representing this object cast into the requested type.

@@ -373,6 +373,7 @@ public abstract class OCIUtil {
     /**
      * Creates the OCI DS model artifact zip file.
      * @param onnxFile The ONNX file to create.
+     * @param config The model artifact configuration.
      * @return The path referring to the zip file.
      * @throws IOException If the file could not be created or the ONNX file could not be read.
      */

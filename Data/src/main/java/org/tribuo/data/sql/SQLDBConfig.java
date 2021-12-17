@@ -72,7 +72,7 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
     /**
      * Constructs a SQL database configuration.
      * <p>
-     * Note it is recommended that wallet based connections are used rather than this constructor using {@link SQLDBConfig(String,Map)}.
+     * Note it is recommended that wallet based connections are used rather than this constructor using {@link #SQLDBConfig(String,Map)}.
      * @param connectionString The connection string.
      * @param username The username.
      * @param password The password.
@@ -87,7 +87,7 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
     /**
      * Constructs a SQL database configuration.
      * <p>
-     * Note it is recommended that wallet based connections are used rather than this constructor using {@link SQLDBConfig(String,Map)}.
+     * Note it is recommended that wallet based connections are used rather than this constructor using {@link #SQLDBConfig(String,Map)}.
      * @param host The host to connect to.
      * @param port The port to connect on.
      * @param db The db name.

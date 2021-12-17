@@ -79,9 +79,10 @@ public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Pro
      * will be required to provide ONNX support.
      * @param input the node to be ensembled according to this implementation.
      * @param weight The node of weights for ensembling.
+     * @param <U> The type of the weights input reference.
      * @return The leaf node of the graph of operations added to ensemble input.
      */
-    default <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
+    default <U extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, U weight) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export an ensemble combiner to ONNX format, but this is not implemented.");
         throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + this.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
     }

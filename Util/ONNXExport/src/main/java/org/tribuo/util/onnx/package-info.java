@@ -15,7 +15,7 @@
  */
 
 /**
- * Interfaces and utilities for writing <a href="https://onnx.ai>ONNX</a> models from Java.
+ * Interfaces and utilities for writing <a href="https://onnx.ai">ONNX</a> models from Java.
  * <p>
  * Developed to support <a href="https://tribuo.org">Tribuo</a>, but can be used to export
  * other machine learning models from JVM languages.

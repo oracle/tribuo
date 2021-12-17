@@ -131,6 +131,7 @@ public abstract class LibSVMTrainer<T extends Output<T>> implements Trainer<T> {
     /**
      * Constructs a LibSVMTrainer from the parameters.
      * @param parameters The SVM parameters.
+     * @param seed The RNG seed.
      */
     protected LibSVMTrainer(SVMParameters<T> parameters, long seed) {
         this.parameters = parameters.getParameters();

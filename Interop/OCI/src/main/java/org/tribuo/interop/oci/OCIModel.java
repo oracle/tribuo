@@ -309,6 +309,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
      * @param configFile      The OCI configuration file, if null use the default file.
      * @param endpointURL     The endpoint URL.
      * @param outputConverter The converter for the specified output type.
+     * @param <T> The output type.
      * @return An OCIModel ready to score new inputs.
      */
     public static <T extends Output<T>> OCIModel<T> createOCIModel(OutputFactory<T> factory,
@@ -332,6 +333,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
      * @param profileName     The profile name in the OCI configuration file, if null uses the default profile.
      * @param endpointURL     The endpoint URL.
      * @param outputConverter The converter for the specified output type.
+     * @param <T> The output type.
      * @return An OCIModel ready to score new inputs.
      */
     public static <T extends Output<T>> OCIModel<T> createOCIModel(OutputFactory<T> factory,

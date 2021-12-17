@@ -56,7 +56,7 @@ public final class ONNXContext {
      * ONNXContext instance. All inputs must belong to the calling instance of ONNXContext. This is the root method for
      * constructing ONNXNodes which all other methods on ONNXContext and {@code ONNXRef} call.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
-     * @param inputs A list of {@ONNXRef}s created by this instance of ONNXContext.
+     * @param inputs A list of {@link ONNXRef}s created by this instance of ONNXContext.
      * @param outputs A list of names that the output nodes of {@code op} should take.
      * @param attributes A map of attributes of the operation, passed to {@link ONNXOperators#build(ONNXContext, String, String, Map)}.
      * @param <T> The ONNXRef type of inputs
@@ -82,7 +82,7 @@ public final class ONNXContext {
      * IllegalStateException if the operator has multiple outputs. The graph elements created by the operation are added
      * to the calling ONNXContext instance. All inputs must belong to the calling instance of ONNXContext.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
-     * @param inputs A list of {@ONNXRef}s created by this instance of ONNXContext.
+     * @param inputs A list of {@link ONNXRef}s created by this instance of ONNXContext.
      * @param outputName Name that the output node of {@code op} should take.
      * @param attributes A map of attributes of the operation, passed to {@link ONNXOperators#build(ONNXContext, String, String, Map)}.
      * @param <T> The ONNXRef type of inputs
@@ -102,7 +102,7 @@ public final class ONNXContext {
      * IllegalStateException if the operator has multiple outputs. The graph elements created by the operation are added
      * to the calling ONNXContext instance. All inputs must belong to the calling instance of ONNXContext.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
-     * @param inputs A list of {@ONNXRef}s created by this instance of ONNXContext.
+     * @param inputs A list of {@link ONNXRef}s created by this instance of ONNXContext.
      * @param outputName Name that the output node of {@code op} should take.
      * @param <T> The ONNXRef type of inputs
      * @return An {@link ONNXNode} that is the output nodes of {@code op}.
