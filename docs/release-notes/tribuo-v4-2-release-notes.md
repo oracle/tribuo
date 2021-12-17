@@ -149,7 +149,7 @@ endpoint, allowing easy use of cloud resources for ML on the JVM.
 - XGBoost 1.5.0 ([#192](https://github.com/oracle/tribuo/pull/192))
 - TensorFlow Java 0.4.0 ([#195](https://github.com/oracle/tribuo/pull/195)) (note this changes Tribuo's TF API slightly as TF-Java 0.4.0 has a different method of initializing the session)
 - KMeans now uses dense vectors when appropriate, speeding up training ([#201](https://github.com/oracle/tribuo/pull/201))
-- Documentation updates, ONNX and reproducibility tutorials ([#202](https://github.com/oracle/tribuo/pull/202))
+- Documentation updates, ONNX and reproducibility tutorials ([#205](https://github.com/oracle/tribuo/pull/205))
 
 ## Bug fixes
 
