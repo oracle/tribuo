@@ -67,6 +67,8 @@ import java.util.stream.Stream;
  * of threads used in the training step. The thread pool is local to an invocation of train,
  * so there can be multiple concurrent trainings.
  * <p>
+ * The train method will instantiate dense examples as dense vectors, speeding up the computation.
+ * <p>
  * Note parallel training uses a {@link ForkJoinPool} which requires that the Tribuo codebase
  * is given the "modifyThread" and "modifyThreadGroup" privileges when running under a
  * {@link java.lang.SecurityManager}.
@@ -225,12 +227,16 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         }
 
         int[] oldCentre = new int[examples.size()];
-        SparseVector[] data = new SparseVector[examples.size()];
+        SGDVector[] data = new SGDVector[examples.size()];
         double[] weights = new double[examples.size()];
         int n = 0;
         for (Example<ClusterID> example : examples) {
             weights[n] = example.getWeight();
-            data[n] = SparseVector.createSparseVector(example, featureMap, false);
+            if (example.size() == featureMap.size()) {
+                data[n] = DenseVector.createDenseVector(example, featureMap, false);
+            } else {
+                data[n] = SparseVector.createSparseVector(example, featureMap, false);
+            }
             oldCentre[n] = -1;
             n++;
         }
@@ -321,7 +327,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         ModelProvenance provenance = new ModelProvenance(KMeansModel.class.getName(), OffsetDateTime.now(),
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
-        return new KMeansModel("", provenance, featureMap, outputMap, centroidVectors, distanceType);
+        return new KMeansModel("k-means-model", provenance, featureMap, outputMap, centroidVectors, distanceType);
     }
 
     @Override
@@ -377,11 +383,11 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * Initialisation method called at the start of each train call when using kmeans++ centroid initialisation.
      *
      * @param centroids The number of centroids to create.
-     * @param data The dataset of {@link SparseVector} to use.
+     * @param data The dataset of {@link SGDVector} to use.
      * @param rng The RNG to use.
      * @return A {@link DenseVector} array of centroids.
      */
-    private static DenseVector[] initialisePlusPlusCentroids(int centroids, SparseVector[] data, SplittableRandom rng,
+    private static DenseVector[] initialisePlusPlusCentroids(int centroids, SGDVector[] data, SplittableRandom rng,
                                                              Distance distanceType) {
         if (centroids > data.length) {
             throw new IllegalArgumentException("The number of centroids may not exceed the number of samples.");
@@ -423,7 +429,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             // sample from probabilities to get the new centroid from data
             double[] cdf = Util.generateCDF(probabilities);
             int idx = Util.sampleFromCDF(cdf, rng);
-            centroidVectors[i] = data[idx].densify();
+            centroidVectors[i] = DenseVector.createDenseVector(data[idx].toArray());
         }
         return centroidVectors;
     }
@@ -435,9 +441,9 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param rng The RNG to use.
      * @return A {@link DenseVector} representing a centroid.
      */
-    private static DenseVector getRandomCentroidFromData(SparseVector[] data, SplittableRandom rng) {
+    private static DenseVector getRandomCentroidFromData(SGDVector[] data, SplittableRandom rng) {
         int randIdx = rng.nextInt(data.length);
-        return data[randIdx].densify();
+        return DenseVector.createDenseVector(data[randIdx].toArray());
     }
 
     /**
@@ -467,6 +473,9 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     /**
      * Runs the mStep, writing to the {@code centroidVectors} array.
+     * <p>
+     * Note in 4.2 this method changed signature slightly, and overrides of the old
+     * version will not match.
      * @param fjp The ForkJoinPool to run the computation in if it should be executed in parallel.
      *            If the fjp is null then the computation is executed sequentially on the main thread.
      * @param centroidVectors The centroid vectors to write out.
@@ -474,7 +483,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param data The data points.
      * @param weights The example weights.
      */
-    protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, Map<Integer, List<Integer>> clusterAssignments, SparseVector[] data, double[] weights) {
+    protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, Map<Integer, List<Integer>> clusterAssignments, SGDVector[] data, double[] weights) {
         // M step
         Consumer<Entry<Integer, List<Integer>>> mStepFunc = (e) -> {
             DenseVector newCentroid = centroidVectors[e.getKey()];
