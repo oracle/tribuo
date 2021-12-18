@@ -5,8 +5,9 @@ These tutorials require the [IJava](https://github.com/SpencerPark/IJava) Jupyte
 The tutorials expect the data and required jars to be in the same directory as the notebooks. The dataset download
 links are given in the tutorial, and Tribuo's jars are on Maven Central, attached to the GitHub release, or you
 can build it yourself with `mvn clean package` using Apache Maven.
-The code in them should work on Java 8 with the addition of types to replace the use of the `var` keyword
-added in Java 10, and replacing the collections factories introduced in Java 9.
+In most cases code in them should work on Java 8 with the addition of types to replace the use of the `var` keyword
+added in Java 10, and replacing the collections factories introduced in Java 9, with the exception of the reproducibility
+tutorial which requires Java 16+ as the reproducibility package uses newer Java features.
 
 The tutorials cover:
 - [Intro classification with Irises](irises-tribuo-v4.ipynb)
@@ -20,3 +21,5 @@ The tutorials cover:
 - [Document classification and extracting features from text](document-classification-tribuo-v4.ipynb)
 - [Importing third-party models](external-models-tribuo-v4.ipynb)
 - [Training and deploying TensorFlow models](tensorflow-tribuo-v4.ipynb)
+- [ONNX export and deployment](onnx-export-tribuo-v4.ipynb)
+- [Model reproducibility](reproducibility-tribuo-v4.ipynb)

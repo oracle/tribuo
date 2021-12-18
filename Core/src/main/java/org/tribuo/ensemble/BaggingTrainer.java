@@ -49,6 +49,7 @@ import java.util.logging.Logger;
  * "The Elements of Statistical Learning"
  * Springer 2001. <a href="http://web.stanford.edu/~hastie/ElemStatLearn/">PDF</a>
  * </pre>
+ * @param <T> The prediction type.
  */
 public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
     
@@ -177,6 +178,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
      * @param labelIDs The output domain.
      * @param randInt A random int from an rng instance
      * @param runProvenance Provenance for this instance.
+     * @param invocationCount The invocation count for the inner trainer.
      * @return The trained ensemble member.
      */
     protected Model<T> trainSingleModel(Dataset<T> examples, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, int randInt, Map<String,Provenance> runProvenance, int invocationCount) {

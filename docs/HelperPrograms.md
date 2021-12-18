@@ -59,6 +59,14 @@ operations best done in user code if they are required, however we consider
 `StripProvenance` part of the supported API as it performs a complex function
 and is best expressed as a standalone program.
 
+### OCIModelCLI
+
+Found in tribuo-oci, `org.tribuo.oci.OCIModelCLI` can deploy a Tribuo 
+multi-class classification model in OCI Data Science using the model deployment
+API. It provides a CLI wrapper around the functions in `org.tribuo.oci.OCIUtil`
+which can deploy classification, regression and multi-label classification 
+models to OCI.
+
 ### PreprocessAndSerialize
 
 Found in tribuo-data, `org.tribuo.data.PreprocessAndSerialize` loads in a

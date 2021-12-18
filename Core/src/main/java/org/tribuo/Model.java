@@ -300,20 +300,21 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
 
     /**
      * Casts the model to the specified output type, assuming it is valid.
-     * <p>
      * If it's not valid, throws {@link ClassCastException}.
-     * @param inputModel The model to cast.
+     * <p>
+     * This method is intended for use on a deserialized model to restore it's
+     * generic type in a safe way.
      * @param outputType The output type to cast to.
-     * @param <T> The output type.
+     * @param <U> The output type.
      * @return The model cast to the correct value.
      */
-    public static <T extends Output<T>> Model<T> castModel(Model<?> inputModel, Class<T> outputType) {
-        if (inputModel.validate(outputType)) {
+    public <U extends Output<U>> Model<U> castModel(Class<U> outputType) {
+        if (validate(outputType)) {
             @SuppressWarnings("unchecked") // guarded by validate
-            Model<T> castedModel = (Model<T>) inputModel;
+            Model<U> castedModel = (Model<U>) this;
             return castedModel;
         } else {
-            throw new ClassCastException("Attempted to cast model to " + outputType.getName() + " which is not valid for model " + inputModel.toString());
+            throw new ClassCastException("Attempted to cast model to " + outputType.getName() + " which is not valid for model " + this.toString());
         }
     }
     

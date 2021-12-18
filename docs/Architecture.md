@@ -421,3 +421,67 @@ that Tribuo has no knowledge of the true feature names, and the system
 transparently hashes the inputs. The feature names tend to be particularly
 sensitive when working with NLP problems. For example, without such hashing,
 bigrams would appear in the feature domains.
+
+## ONNX Export
+
+From v4.2 Tribuo supports exporting some models in the [ONNX](https://onnx.ai)
+model format. The ONNX format is a cross-platform model exchange format which
+can be loaded in by many different machine learning libraries. Tribuo supports
+inference on ONNX models via ONNX Runtime. Models which can be exported
+implement the `ONNXExportable` interface, which provides methods for
+constructing the ONNX protobuf and serializing it to disk. As of the release of
+4.2, a subset of Tribuo's models are supported: linear models, sparse linear
+models, LibSVM models, factorization machines, and ensembles thereof. We plan
+to expand the set of exportable models in future releases. It is unlikely that
+Tribuo will support direct ONNX export of TensorFlow models, however this can
+be achieved by saving the Tribuo trained model in TensorFlow Saved Model
+format, and then using the Python
+[tf2onnx](https://github.com/onnx/tensorflow-onnx) project to convert that into
+an onnx file.
+
+### ONNX and provenance
+
+Tribuo-exported ONNX files contain the Tribuo model provenance, stored as a 
+protobuf in the metadata field "TRIBUO\_PROVENANCE". If the model is loaded
+back into Tribuo via ONNX Runtime, then the model provenance can be recovered
+from the file, allowing the reproducibility system and the model tracking
+features to work.
+
+### ONNX and deployment
+
+The ONNX format is widely supported in industry and across cloud providers.
+Many hardware accelerators and edge computing vendors provide ONNX support for
+their inference platforms, and this allows Tribuo-trained models to be widely
+deployed after they have been exported. Tribuo provides an interface to [OCI
+Data Science Model
+Deployment](https://docs.oracle.com/en-us/iaas/data-science/using/model-dep-about.htm)
+which deploys an ONNX model on [Oracle Cloud](https://www.oracle.com/cloud/),
+and also can wrap a model deployment REST endpoint so it appears as a Tribuo
+Model, allowing cloud deployment and inference from Tribuo. ONNX models are
+also supported by [Oracle Machine Learning
+Services](https://docs.oracle.com/en/database/oracle/machine-learning/omlss/index.html),
+and many other cloud providers also provide ONNX model inference services which
+can be used with exported Tribuo ONNX models.
+
+## Reproducibility
+
+From v4.2 Tribuo has a built-in reproducibility system for non-sequence Models.
+This accepts a `Model` or `ModelProvenance` instance, automatically extracts
+the configuration from the instance and then retrains the model, using the
+data loading pipeline and training hyperparameters specified in the model provenance.
+The system produces a diff of the reproduced model's provenance against the
+original provenance, highlighting areas where the new model may behave differently
+to the old one (e.g., showing if the number of features differs, or if the data
+files have changed).
+
+This is useful to check the validity of deployed production models, and to allow
+easy comparison between a production model and one trained on current data. Over
+time we plan to expand this system to support experimenting with different model
+hyperparameters and training data configurations, tracking all this information
+using the provenance built into Tribuo.
+
+The reproducibility system requires Java 17, and as such is not included in the
+`tribuo-all` Maven Central target. It is designed to be used in a development
+environment rather than deployed in a production system like the rest of
+Tribuo.  As Tribuo migrates to newer versions of Java, we will consider
+providing a jlink'd version of this utility.

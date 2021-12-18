@@ -16,12 +16,19 @@ bin/
 .*.swp
 
 # Other files
-*.jar
-*.class
 *.er
 *.log
 *.bck
 *.so
+*.patch
+
+# Binaries
+*.jar
+*.class
+
+# Archives
+*.gz
+*.zip
 
 # Serialised models
 *.ser
@@ -29,3 +36,12 @@ bin/
 # Temporary stuff
 junk/*
 .DS_Store
+.ipynb_checkpoints
+
+# Profiling files
+*.jfr
+*.iprof
+*.jfc
+
+# Tutorial files
+tutorials/*.svm
