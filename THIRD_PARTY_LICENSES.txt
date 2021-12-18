@@ -1943,7 +1943,7 @@ of the input file used when generating it.  This code is not
 standalone and requires a support library to be linked with it.  This
 support library is itself covered by the above license.
 
-oci-java-sdk 2.11.1 - Dual licensed UPL/Apache 2.0
+oci-java-sdk 2.12.0 - Dual licensed UPL/Apache 2.0
 
 Copyright (c) 2016, 2020, Oracle and/or its affiliates.  All rights reserved.
 

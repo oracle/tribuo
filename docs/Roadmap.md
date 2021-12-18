@@ -96,4 +96,4 @@ in a Tribuo compatible interface, but the codebase isn't quite ready for release
 - Add more tutorials. 
     - Tribuo 4.0.2 adds tutorials for external model loading and columnar data processing.
     - Tribuo 4.1 adds tutorials for TensorFlow and document classification.
-    - Tribuo 4.2 adds tutorials for multi-label classification, ONNX export, and model reproducibility.
+    - Tribuo 4.2 adds tutorials for multi-label classification, HDBSCAN clustering, ONNX export, and model reproducibility.
