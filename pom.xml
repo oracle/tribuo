@@ -282,7 +282,7 @@
                         </group>
                         <group>
                             <title>Utility Packages</title>
-                            <packages>org.tribuo.util.*:org.tribuo.tests</packages>
+                            <packages>org.tribuo.util.*:org.tribuo.reproducibility:org.tribuo.tests</packages>
                         </group>
                     </groups>
                 </configuration>
@@ -339,7 +339,7 @@
                                 </group>
                                 <group>
                                     <title>Utility Packages</title>
-                                    <packages>org.tribuo.util.*</packages>
+                                    <packages>org.tribuo.util.*:org.tribuo.reproducibility:org.tribuo.tests</packages>
                                 </group>
                             </groups>
                         </configuration>
