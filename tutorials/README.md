@@ -14,7 +14,7 @@ The tutorials cover:
 - [Intro regression with wine-quality](regression-tribuo-v4.ipynb)
 - [Configuration files, provenance and feature transformations on MNIST](configuration-tribuo-v4.ipynb)
 - [Clustering with K-Means](clustering-tribuo-v4.ipynb)
-- [Clustering with HDBSCAN*](clustering-hdbscan-tribuo-v4.ipynb)
+- [Clustering with HDBSCAN\*](clustering-hdbscan-tribuo-v4.ipynb)
 - [Anomaly Detection with LibSVM](anomaly-tribuo-v4.ipynb)
 - [Multi-label classification with Classifier Chains](multi-label-tribuo-v4.ipynb)
 - [Loading columnar data](columnar-tribuo-v4.ipynb)

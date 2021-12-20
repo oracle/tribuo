@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo</artifactId>
-    <version>4.2.0-SNAPSHOT</version>
+    <version>4.2.0</version>
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
@@ -282,7 +282,7 @@
                         </group>
                         <group>
                             <title>Utility Packages</title>
-                            <packages>org.tribuo.util.*:org.tribuo.tests</packages>
+                            <packages>org.tribuo.util.*:org.tribuo.reproducibility:org.tribuo.tests</packages>
                         </group>
                     </groups>
                 </configuration>
@@ -339,7 +339,7 @@
                                 </group>
                                 <group>
                                     <title>Utility Packages</title>
-                                    <packages>org.tribuo.util.*</packages>
+                                    <packages>org.tribuo.util.*:org.tribuo.reproducibility:org.tribuo.tests</packages>
                                 </group>
                             </groups>
                         </configuration>
