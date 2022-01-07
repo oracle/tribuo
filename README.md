@@ -125,13 +125,13 @@ output.
 
 ### Clustering
 
-Tribuo includes infrastructure for clustering and also supplies a single
-clustering algorithm implementation. We expect to implement additional
+Tribuo includes infrastructure for clustering and also supplies two 
+clustering algorithm implementations. We expect to implement additional
 algorithms over time.
 
 |Algorithm|Implementation|Notes|
 |---|---|---|
-|HDBSCAN\*|Tribuo||
+|HDBSCAN\*|Tribuo|A density-based algorithm which discovers clusters and outliers|
 |K-Means|Tribuo|Includes both sequential and parallel backends, and the K-Means++ initialisation algorithm|
 
 ### Anomaly Detection
