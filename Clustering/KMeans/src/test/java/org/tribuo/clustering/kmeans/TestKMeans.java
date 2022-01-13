@@ -213,4 +213,10 @@ public class TestKMeans {
             t.setInvocationCount(-1);
         });
     }
+
+    @Test
+    public void testToString(){
+        assertEquals(t.toString(), "KMeansTrainer(centroids=4,distanceType=EUCLIDEAN,seed=1,numThreads=1, initialisationType=RANDOM)");
+        assertEquals(plusPlus.toString(), "KMeansTrainer(centroids=4,distanceType=EUCLIDEAN,seed=1,numThreads=1, initialisationType=PLUSPLUS)");
+    }
 }

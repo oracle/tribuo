@@ -514,7 +514,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     @Override
     public String toString() {
-        return "KMeansTrainer(centroids=" + centroids + ",distanceType=" + distanceType + ",seed=" + seed + ",numThreads=" + numThreads + ")";
+        return "KMeansTrainer(centroids=" + centroids + ",distanceType=" + distanceType + ",seed=" + seed + ",numThreads=" + numThreads + ", initialisationType=" + initialisationType + ")";
     }
 
     @Override
