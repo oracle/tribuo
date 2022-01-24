@@ -108,8 +108,6 @@ public class TestKNN {
         List<Prediction<Label>> predictions = model.predict(testingDataset);
         List<String> predictionList = new ArrayList<>();
         for (Prediction<Label> prediction : predictions) {
-            // TODO: remove this
-            //System.out.print("\"" + prediction.getOutput().getLabel() + "\", ");
             predictionList.add(prediction.getOutput().getLabel());
         }
 
@@ -126,7 +124,7 @@ public class TestKNN {
         Model<Label> model = classificationTrainer.train(trainingDataset);
 
         LabelEvaluation evaluation = (LabelEvaluation) trainingDataset.getOutputFactory().getEvaluator().evaluate(model,testingDataset);
-        
+
         assertEquals(evaluation.accuracy(DemoLabelDataSource.FIRST_CLASS), 1.0);
         assertEquals(evaluation.accuracy(DemoLabelDataSource.SECOND_CLASS), 1.0);
         assertEquals(evaluation.recall(DemoLabelDataSource.FIRST_CLASS), 1.0);
