@@ -112,6 +112,9 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     @Override
     public Prediction<T> predict(Example<T> example) {
         SparseVector input = SparseVector.createSparseVector(example,featureIDMap,false);
+        if (input.numActiveElements() == 0) {
+            throw new IllegalArgumentException("No features found in Example " + example);
+        }
 
         Function<Pair<SparseVector,T>, OutputDoublePair<T>> distanceFunc;
         switch (distance) {
