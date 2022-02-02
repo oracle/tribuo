@@ -18,31 +18,42 @@ package org.tribuo.math.distance;
 
 import org.tribuo.math.la.SGDVector;
 
+/**
+ * The available distance functions.
+ */
 public enum DistanceType {
-    /**
-     * Euclidean (or l2) distance.
-     */
-    EUCLIDEAN,
-    /**
-     * Cosine similarity as a distance measure.
-     */
-    COSINE,
     /**
      * L1 (or Manhattan) distance.
      */
-    L1;
+    L1,
+    /**
+     * L2 (or Euclidean) distance.
+     */
+    L2,
+    /**
+     * Cosine similarity used as a distance measure.
+     */
+    COSINE;
 
+    /**
+     * Calculates the distance between two vectors.
+     *
+     * @param vector1 A {@link SGDVector} representing a data point.
+     * @param vector2 A {@link SGDVector} representing a second data point.
+     * @param distanceType The {@link DistanceType} function to employ.
+     * @return A double representing the distance between the two points.
+     */
     public static double getDistance(SGDVector vector1, SGDVector vector2, DistanceType distanceType) {
         double distance;
         switch (distanceType) {
-            case EUCLIDEAN:
-                distance = vector1.euclideanDistance(vector2);
+            case L1:
+                distance = vector1.l1Distance(vector2);
+                break;
+            case L2:
+                distance = vector1.l2Distance(vector2);
                 break;
             case COSINE:
                 distance = vector1.cosineDistance(vector2);
-                break;
-            case L1:
-                distance = vector1.l1Distance(vector2);
                 break;
             default:
                 throw new IllegalStateException("Unknown distance " + distanceType);

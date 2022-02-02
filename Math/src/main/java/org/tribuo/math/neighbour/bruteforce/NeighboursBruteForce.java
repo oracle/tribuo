@@ -14,96 +14,72 @@
  * limitations under the License.
  */
 
-package org.tribuo.math.neighbor;
+package org.tribuo.math.neighbour.bruteforce;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
+import org.tribuo.math.neighbour.NeighboursQuery;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A brute-force nearest neighbor query implementation.
+ * A brute-force nearest neighbour query implementation.
  */
-public class NeighborsBruteForce implements NeighborsQuery{
+public final class NeighboursBruteForce implements NeighboursQuery {
 
     private final SGDVector[] data;
-    private DistanceType distanceType = DistanceType.EUCLIDEAN;
-    private int numThreads = 1;
-
-
-    /**
-     * Constructs a brute-force nearest neighbor query object using the provided data.
-     * @param data the data that will be used for meighbor queries.
-     */
-    public NeighborsBruteForce(SGDVector[] data) {
-        this.data = data;
-    }
+    private final DistanceType distanceType;
+    private final int numThreads;
 
     /**
-     * Constructs a brute-force nearest neighbor query object using the supplied parameters.
-     * @param data the data that will be used for neighbor queries.
-     * @param distanceType The distance function.
-     */
-    public NeighborsBruteForce(SGDVector[] data, DistanceType distanceType) {
-        this(data);
-        this.distanceType = distanceType;
-    }
-
-    /**
-     * Constructs a brute-force nearest neighbor query object using the supplied parameters.
-     * @param data the data that will be used for neighbor queries.
+     * Constructs a brute-force nearest neighbour query object using the supplied parameters.
+     * @param data the data that will be used for neighbour queries.
      * @param distanceType The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    public NeighborsBruteForce(SGDVector[] data, DistanceType distanceType, int numThreads) {
-        this(data, distanceType);
+    public NeighboursBruteForce(SGDVector[] data, DistanceType distanceType, int numThreads) {
+        this.data = data;
+        this.distanceType = distanceType;
         this.numThreads = numThreads;
     }
 
     @Override
     public List<Pair<Integer, Double>> query(SGDVector point, int k) {
-        @SuppressWarnings("unchecked")
-        Pair<Integer, Double>[] indexDistanceArr = (Pair<Integer, Double>[]) new Pair[k];
-
-        for (int i=0; i< k; i++) {
-            indexDistanceArr[i] = new Pair<>(0, Double.MAX_VALUE);
-        }
+        PriorityQueue<MutablePair> queue = new PriorityQueue<>(k);
 
         for (int neighbor = 0; neighbor < data.length; neighbor++) {
-            if (point.equals(data[neighbor])) {
-                continue;
-            }
             double distance = DistanceType.getDistance(point, data[neighbor], distanceType);
-
-            // Check at which position in the nearest distances the current distance would fit.
-            // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
-            // with a binary search
-            int neighborIndex = k;
-            while (neighborIndex >= 1 && distance < indexDistanceArr[neighborIndex - 1].getB()) {
-                neighborIndex--;
+            if (queue.size() < k) {
+                MutablePair newPair = new MutablePair(neighbor, distance);
+                queue.offer(newPair);
+            } else if (Double.compare(distance, queue.peek().value) < 0) {
+                MutablePair pair = queue.poll();
+                pair.index = neighbor;
+                pair.value = distance;
+                queue.offer(pair);
             }
+        }
 
-            // Shift elements in the array to make room for the current distance
-            // The for loop could be written as an arraycopy, but the result is not particularly readable, and
-            // numNeighbors is typically quite small
-            if (neighborIndex < k) {
-                for (int shiftIndex = k - 1; shiftIndex > neighborIndex; shiftIndex--) {
-                    indexDistanceArr[shiftIndex] = indexDistanceArr[shiftIndex - 1];
-                }
-                indexDistanceArr[neighborIndex] = new Pair<>(neighbor, distance);
-            }
+        @SuppressWarnings("unchecked")
+        Pair<Integer, Double>[] indexDistanceArr = (Pair<Integer, Double>[]) new Pair[k];
+        int i = 1;
+        // Use an array to put the polled items from the queue into a sorted ascending order, by distance.
+        while (!queue.isEmpty()) {
+            MutablePair mutablePair = queue.poll();
+            indexDistanceArr[k - i++] = new Pair<>(mutablePair.index, mutablePair.value);
         }
         return new ArrayList<>(Arrays.asList(indexDistanceArr));
     }
 
     @Override
-    public List<Pair<Integer, Double>>[] query(SGDVector[] points, int k) {
+    public List<List<Pair<Integer, Double>>> query(SGDVector[] points, int k) {
         int numQueries = points.length;
 
         @SuppressWarnings("unchecked")
@@ -129,18 +105,36 @@ public class NeighborsBruteForce implements NeighborsQuery{
                 throw new RuntimeException("Parallel execution failed", e);
             }
         }
-
-        return indexDistancePairListArray;
+        return new ArrayList<>(Arrays.asList(indexDistancePairListArray));
     }
 
     @Override
-    public List<Pair<Integer, Double>>[] queryAll(int k) {
+    public List<List<Pair<Integer, Double>>> queryAll(int k) {
         return this.query(this.data, k);
     }
 
     /**
-     * A Runnable implementation to make a brute-force nearest neighbor query for parallelization of large numbers of queries.
-     * To be used with an {@link ExecutorService}
+     * This is a specific mutable pair used for an internal queue to reduce object creation.
+     */
+    private static final class MutablePair implements Comparable<MutablePair> {
+        int index;
+        double value;
+
+        public MutablePair(int index, double value) {
+            this.index = index;
+            this.value = value;
+        }
+
+        @Override
+        public int compareTo(MutablePair o) {
+            // pass the provided value as the first param to give a reversed natural ordering
+            return Double.compare(o.value, this.value);
+        }
+    }
+
+    /**
+     * A Runnable implementation to make a brute-force nearest neighbour query for parallelization of large numbers
+     * of queries. To be used with an {@link ExecutorService}
      */
     private final class SingleQueryRunnable implements Runnable {
 
