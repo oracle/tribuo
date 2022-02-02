@@ -21,9 +21,12 @@ import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 
+/**
+ * A factory which creates brute-force nearest neighbour query objects.
+ */
 public final class NeighboursBruteForceFactory implements NeighboursQueryFactory {
 
-    @Config(mandatory = true, description = "The distance function to use.")
+    @Config(description = "The distance function to use.")
     private DistanceType distanceType = DistanceType.L2;
 
     @Config(description = "The number of threads to use for training.")

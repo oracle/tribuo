@@ -22,7 +22,7 @@ import org.tribuo.math.la.SGDVector;
 import java.util.List;
 
 /**
- * An interface for nearest neighbour queries.
+ * An interface for nearest neighbour query objects.
  */
 public interface NeighboursQuery {
 

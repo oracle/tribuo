@@ -71,7 +71,7 @@ public class TestNeighborsBruteForce {
         assertEquals(expectedDistance2, indexDistancePair.getB().doubleValue());
     }
 
-    private static void neighboursBrutForceQueryAll(NeighboursBruteForce nbf, SGDVector[] data) {
+    private static void neighboursBruteForceQueryAll(NeighboursBruteForce nbf, SGDVector[] data) {
         List<List<Pair<Integer, Double>>> indexDistancePairListOfLists = nbf.queryAll(NUM_NEIGHBOURS_K);
 
         //////////////////////////////////////////////
@@ -156,7 +156,7 @@ public class TestNeighborsBruteForce {
         SGDVector[] data = getTestDataVectorArray();
         NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
         NeighboursBruteForce nbf = factory.createNeighboursQuery(data);
-        neighboursBrutForceQueryAll(nbf, data);
+        neighboursBruteForceQueryAll(nbf, data);
     }
 
     @Test
@@ -164,10 +164,10 @@ public class TestNeighborsBruteForce {
         SGDVector[] data = getTestDataVectorArray();
         NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
         NeighboursBruteForce nbf = factory.createNeighboursQuery(data);
-        neighboursBrutForceQueryAll(nbf, data);
+        neighboursBruteForceQueryAll(nbf, data);
     }
 
-    private static void neighboursBrutForceQueryMany(NeighboursBruteForce nbf, SGDVector[] data, SGDVector[] queryData) {
+    private static void neighboursBruteForceQueryMany(NeighboursBruteForce nbf, SGDVector[] data, SGDVector[] queryData) {
         List<List<Pair<Integer, Double>>> indexDistancePairListofLists = nbf.query(queryData, NUM_NEIGHBOURS_K);
 
         //////////////////////////////////////////////
@@ -234,7 +234,7 @@ public class TestNeighborsBruteForce {
         SGDVector[] queryData = getTestQueryVectorArray();
         NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
         NeighboursBruteForce nbf = factory.createNeighboursQuery(data);
-        neighboursBrutForceQueryMany(nbf, data, queryData);
+        neighboursBruteForceQueryMany(nbf, data, queryData);
     }
 
     @Test
@@ -243,11 +243,11 @@ public class TestNeighborsBruteForce {
         SGDVector[] queryData = getTestQueryVectorArray();
         NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 2);
         NeighboursBruteForce nbf = factory.createNeighboursQuery(data);
-        neighboursBrutForceQueryMany(nbf, data, queryData);
+        neighboursBruteForceQueryMany(nbf, data, queryData);
     }
 
     @Test
-    public void testNeighboursBrutForceQueryOne() {
+    public void testNeighboursBruteForceQueryOne() {
         SGDVector[] data = getTestDataVectorArray();
         SGDVector vector = get2DPoint(5.21,5.28);
         NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);

@@ -44,7 +44,7 @@ public final class NeighboursBruteForce implements NeighboursQuery {
      * @param distanceType The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    public NeighboursBruteForce(SGDVector[] data, DistanceType distanceType, int numThreads) {
+    NeighboursBruteForce(SGDVector[] data, DistanceType distanceType, int numThreads) {
         this.data = data;
         this.distanceType = distanceType;
         this.numThreads = numThreads;
@@ -73,7 +73,8 @@ public final class NeighboursBruteForce implements NeighboursQuery {
         // Use an array to put the polled items from the queue into a sorted ascending order, by distance.
         while (!queue.isEmpty()) {
             MutablePair mutablePair = queue.poll();
-            indexDistanceArr[k - i++] = new Pair<>(mutablePair.index, mutablePair.value);
+            indexDistanceArr[k - i] = new Pair<>(mutablePair.index, mutablePair.value);
+            i++;
         }
         return new ArrayList<>(Arrays.asList(indexDistanceArr));
     }
@@ -114,7 +115,9 @@ public final class NeighboursBruteForce implements NeighboursQuery {
     }
 
     /**
-     * This is a specific mutable pair used for an internal queue to reduce object creation.
+     * This is a specific mutable pair used for an internal queue to reduce object creation. Note that this class's
+     * ordering is not consistent with its equals method. Furthermore, the ordering of this class is the inverse of the
+     * natural ordering on doubles.
      */
     private static final class MutablePair implements Comparable<MutablePair> {
         int index;
@@ -127,7 +130,7 @@ public final class NeighboursBruteForce implements NeighboursQuery {
 
         @Override
         public int compareTo(MutablePair o) {
-            // pass the provided value as the first param to give a reversed natural ordering
+            // Pass the provided value as the first param to give an inverse natural ordering.
             return Double.compare(o.value, this.value);
         }
     }

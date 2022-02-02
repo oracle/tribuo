@@ -22,6 +22,9 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.math.la.SGDVector;
 
+/**
+ * An interface for factories which create nearest neighbour query objects.
+ */
 public interface NeighboursQueryFactory extends Configurable, Provenancable<ConfiguredObjectProvenance> {
 
     /**
@@ -30,6 +33,7 @@ public interface NeighboursQueryFactory extends Configurable, Provenancable<Conf
      */
     NeighboursQuery createNeighboursQuery(SGDVector[] data);
 
+    @Override
     default ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"NeighboursQueryFactory");
     }
