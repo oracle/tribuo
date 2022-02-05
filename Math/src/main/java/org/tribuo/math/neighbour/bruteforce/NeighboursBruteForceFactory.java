@@ -1,0 +1,60 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.tribuo.math.neighbour.bruteforce;
+
+import com.oracle.labs.mlrg.olcut.config.Config;
+import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.la.SGDVector;
+import org.tribuo.math.neighbour.NeighboursQueryFactory;
+
+/**
+ * A factory which creates brute-force nearest neighbour query objects.
+ */
+public final class NeighboursBruteForceFactory implements NeighboursQueryFactory {
+
+    @Config(description = "The distance function to use.")
+    private DistanceType distanceType = DistanceType.L2;
+
+    @Config(description = "The number of threads to use for training.")
+    private int numThreads = 1;
+
+    /**
+     * for olcut.
+     */
+    private NeighboursBruteForceFactory() {
+    }
+
+    /**
+     * Constructs a brute-force nearest neighbor query factory object using the supplied parameters.
+     * @param distanceType The distance function.
+     * @param numThreads The number of threads to be used to parallelize the computation.
+     */
+    public NeighboursBruteForceFactory(DistanceType distanceType, int numThreads) {
+        this.distanceType = distanceType;
+        this.numThreads = numThreads;
+    }
+
+    /**
+     * Constructs a brute-force nearest neighbor query object using the supplied array of {@link SGDVector}.
+     * @param data An array of {@link SGDVector}.
+     */
+    @Override
+    public NeighboursBruteForce createNeighboursQuery(SGDVector[] data) {
+        return new NeighboursBruteForce(data, this.distanceType, this.numThreads);
+    }
+
+}
