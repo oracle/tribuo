@@ -26,9 +26,12 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.neighbour.NeighboursQuery;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -49,9 +52,6 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,7 +76,10 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
     /**
      * Available distance functions.
+     * @deprecated
+     * This Enum is deprecated in version 4.3, replaced by {@link DistanceType}
      */
+    @Deprecated
     public enum Distance {
         /**
          * Euclidean (or l2) distance.
@@ -221,64 +224,20 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @return A {@link DenseVector} containing the core distances for every point.
      */
     private static DenseVector calculateCoreDistances(SGDVector[] data, int k, Distance distanceType, int numThreads) {
-        // The value of nearest-neighbors includes the point itself. The number of actual neighbors is one less.
-        int numNeighbors = k - 1;
         DenseVector coreDistances = new DenseVector(data.length);
 
-        if (numNeighbors == 0) {
+        // A value of k=1 will not return any neighbouring points
+        if (k == 1) {
             return coreDistances;
         }
 
-        // When the number of threads is 1, the overhead of thread pools must be avoided
-        if (numThreads == 1) {
-            // This logic is duplicated in the CoreDistanceRunnable nested class below
-            for (int point = 0; point < data.length; point++) {
-                // Sorted nearest distances found so far
-                double[] kNNDistances = new double[numNeighbors];
-                Arrays.fill(kNNDistances, Double.MAX_VALUE);
-
-                for (int neighbor = 0; neighbor < data.length; neighbor++) {
-                    if (point == neighbor) {
-                        continue;
-                    }
-                    double distance = getDistance(data[point], data[neighbor], distanceType);
-
-                    // Check at which position in the nearest distances the current distance would fit.
-                    // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
-                    // with a binary search
-                    int neighborIndex = numNeighbors;
-                    while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex - 1]) {
-                        neighborIndex--;
-                    }
-
-                    // Shift elements in the array to make room for the current distance
-                    // The for loop could be written as an arraycopy, but the result is not particularly readable, and
-                    // numNeighbors is typically quite small
-                    if (neighborIndex < numNeighbors) {
-                        for (int shiftIndex = numNeighbors - 1; shiftIndex > neighborIndex; shiftIndex--) {
-                            kNNDistances[shiftIndex] = kNNDistances[shiftIndex - 1];
-                        }
-                        kNNDistances[neighborIndex] = distance;
-                    }
-                }
-                // The core distance for the point is the distance to the furthest away neighbor
-                coreDistances.set(point, kNNDistances[numNeighbors - 1]);
-            }
-        } else { // This makes the core distance calculations with multiple threads
-            ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-            for (int point = 0; point < data.length; point++) {
-                executorService.execute(new CoreDistanceRunnable(data, numNeighbors, distanceType, point, coreDistances));
-            }
-            executorService.shutdown();
-            try {
-                boolean finished = executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
-                if (!finished) {
-                    throw new RuntimeException("Parallel execution failed");
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Parallel execution failed", e);
-            }
+        NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(getDistanceType(distanceType), numThreads);
+        NeighboursQuery nq = nbff.createNeighboursQuery(data);
+        List<List<Pair<Integer, Double>>> indexDistancePairListOfLists = nq.queryAll(k);
+        for (int point = 0; point < data.length; point++) {
+            coreDistances.set(point, indexDistancePairListOfLists.get(point).get(k-1).getB());
         }
+
         return coreDistances;
     }
 
@@ -738,12 +697,15 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
     /**
      * Calculates the distance between two vectors.
+     * @deprecated This method is deprecated in version 4.3, replaced by
+     * {@link DistanceType#getDistance(SGDVector, SGDVector, DistanceType)}
      *
      * @param vector1 A {@link SGDVector} representing a data point.
      * @param vector2 A {@link SGDVector} representing a second data point.
      * @param distanceType The distance metric to employ.
      * @return A double representing the distance between the two points.
      */
+    @Deprecated
     private static double getDistance(SGDVector vector1, SGDVector vector2, Distance distanceType) {
         double distance;
         switch (distanceType) {
@@ -760,6 +722,32 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 throw new IllegalStateException("Unknown distance " + distanceType);
         }
         return distance;
+    }
+
+    /**
+     * This method performs a mapping from a {@link Distance} to the corresponding {@link DistanceType}.
+     * @deprecated This method is deprecated in version 4.3.
+     *
+     * @param distance The distance metric to employ.
+     * @return A {@link DistanceType} value mapped from the provided parameter.
+     */
+    @Deprecated
+    private static DistanceType getDistanceType(Distance distance) {
+        DistanceType distanceType;
+        switch (distance) {
+            case EUCLIDEAN:
+                distanceType = DistanceType.L2;
+                break;
+            case COSINE:
+                distanceType = DistanceType.COSINE;
+                break;
+            case L1:
+                distanceType = DistanceType.L1;
+                break;
+            default:
+                throw new IllegalStateException("Unknown distance " + distance);
+        }
+        return distanceType;
     }
 
     @Override
@@ -798,61 +786,6 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
         SGDVector getFeatures() {
             return features;
-        }
-    }
-
-    /**
-     * A Runnable implementation of the core distance calculation for parallelization.
-     * To be used with an {@link ExecutorService}
-     */
-    private final static class CoreDistanceRunnable implements Runnable {
-
-        final private SGDVector[] data;
-        final private int numNeighbors;
-        final private Distance distanceType;
-        final private int point;
-        final DenseVector coreDistances;
-
-        CoreDistanceRunnable(SGDVector[] data, int numNeighbors, Distance distanceType, int point, DenseVector coreDistances) {
-            this.data = data;
-            this.numNeighbors = numNeighbors;
-            this.distanceType = distanceType;
-            this.point = point;
-            this.coreDistances = coreDistances;
-        }
-
-        @Override
-        public void run() {
-            // This logic is duplicated in the calculateCoreDistances method in the outer class above
-            double[] kNNDistances = new double[numNeighbors];
-            Arrays.fill(kNNDistances, Double.MAX_VALUE);
-
-            for (int neighbor = 0; neighbor < data.length; neighbor++) {
-                if (point == neighbor) {
-                    continue;
-                }
-                double distance = getDistance(data[point], data[neighbor], distanceType);
-
-                // Check at which position in the nearest distances the current distance would fit
-                // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
-                // with a binary search
-                int neighborIndex = numNeighbors;
-                while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex-1]) {
-                    neighborIndex--;
-                }
-
-                // Shift elements in the array to make room for the current distance
-                // The for loop could be written as an arraycopy, but the result is not particularly readable, and
-                // numNeighbors is typically quite small
-                if (neighborIndex < numNeighbors) {
-                    for (int shiftIndex = numNeighbors-1; shiftIndex > neighborIndex; shiftIndex--) {
-                        kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
-                    }
-                    kNNDistances[neighborIndex] = distance;
-                }
-            }
-            // The core distance for the point is the distance to the furthest away neighbor
-            coreDistances.set(point, kNNDistances[numNeighbors-1]);
         }
     }
     
