@@ -16,6 +16,7 @@
 package org.tribuo.clustering.hdbscan;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.PriorityQueue;
+import java.util.SplittableRandom;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -84,22 +86,36 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         /**
          * Euclidean (or l2) distance.
          */
-        EUCLIDEAN,
+        EUCLIDEAN(DistanceType.L2),
         /**
          * Cosine similarity as a distance measure.
          */
-        COSINE,
+        COSINE(DistanceType.COSINE),
         /**
          * L1 (or Manhattan) distance.
          */
-        L1
+        L1(DistanceType.L1);
+
+        private final DistanceType distanceType;
+
+        Distance(DistanceType distanceType) {
+            this.distanceType = distanceType;
+        }
+
+        public DistanceType getDistanceType() {
+            return distanceType;
+        }
     }
 
     @Config(mandatory = true, description = "The minimum number of points required to form a cluster.")
     private int minClusterSize;
 
-    @Config(mandatory = true, description = "The distance function to use.")
+    @Deprecated
+    @Config(description = "The distance function to use. This is now deprecated.")
     private Distance distanceType;
+
+    @Config(description = "The distance function to use.")
+    private DistanceType distType;
 
     @Config(mandatory = true, description = "The number of nearest-neighbors to use in the initial density approximation. " +
         "This includes the point itself.")
@@ -120,26 +136,59 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * Constructs an HDBSCAN* trainer with only the minClusterSize parameter.
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
-     * {@link #distanceType} defaults to {@link Distance#EUCLIDEAN}, {@link #k} defaults to {@link #minClusterSize},
+     * {@link #distType} defaults to {@link DistanceType#L2}, {@link #k} defaults to {@link #minClusterSize},
      * and {@link #numThreads} defaults to 1.
      */
     public HdbscanTrainer(int minClusterSize) {
-        this(minClusterSize, Distance.EUCLIDEAN, minClusterSize, 1);
+        this(minClusterSize, DistanceType.L2, minClusterSize, 1);
     }
 
     /**
      * Constructs an HDBSCAN* trainer using the supplied parameters.
+     * @deprecated
+     * This Constructor is deprecated in version 4.3.
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
      * @param distanceType The distance function.
      * @param k The number of nearest-neighbors to use in the initial density approximation.
      * @param numThreads The number of threads.
      */
+    @Deprecated
     public HdbscanTrainer(int minClusterSize, Distance distanceType, int k, int numThreads) {
         this.minClusterSize = minClusterSize;
-        this.distanceType = distanceType;
+        this.distType = distanceType.getDistanceType();
         this.k = k;
         this.numThreads = numThreads;
+    }
+
+    /**
+     * Constructs an HDBSCAN* trainer using the supplied parameters.
+     *
+     * @param minClusterSize The minimum number of points required to form a cluster.
+     * @param distType The distance function.
+     * @param k The number of nearest-neighbors to use in the initial density approximation.
+     * @param numThreads The number of threads.
+     */
+    public HdbscanTrainer(int minClusterSize, DistanceType distType, int k, int numThreads) {
+        this.minClusterSize = minClusterSize;
+        this.distType = distType;
+        this.k = k;
+        this.numThreads = numThreads;
+    }
+
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
+    @Override
+    public synchronized void postConfig() {
+        if (this.distanceType != null) {
+            if (this.distType != null) {
+                throw new PropertyException("distType", "Both distType and distanceType must not both be set.");
+            } else {
+                this.distType = this.distanceType.getDistanceType();
+                this.distanceType = null;
+            }
+        }
     }
 
     @Override
@@ -163,8 +212,8 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             n++;
         }
 
-        DenseVector coreDistances = calculateCoreDistances(data, k, distanceType, numThreads);
-        ExtendedMinimumSpanningTree emst = constructEMST(data, coreDistances, distanceType);
+        DenseVector coreDistances = calculateCoreDistances(data, k, distType, numThreads);
+        ExtendedMinimumSpanningTree emst = constructEMST(data, coreDistances, distType);
 
         double[] pointNoiseLevels = new double[data.length];    // The levels at which each point becomes noise
         int[] pointLastClusters = new int[data.length];         // The last label of each point before becoming noise
@@ -192,7 +241,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
         return new HdbscanModel("hdbscan-model", provenance, featureMap, outputMap, clusterLabels, outlierScoresVector,
-                                clusterExemplars, distanceType);
+                                clusterExemplars, distType);
     }
 
     @Override
@@ -219,11 +268,11 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      *
      * @param data An array of {@link DenseVector} containing the data.
      * @param k The number of nearest-neighbors to use in these calculations.
-     * @param distanceType The distance metric to employ.
+     * @param distType The distance metric to employ.
      * @param numThreads  The number of threads to use for training.
      * @return A {@link DenseVector} containing the core distances for every point.
      */
-    private static DenseVector calculateCoreDistances(SGDVector[] data, int k, Distance distanceType, int numThreads) {
+    private static DenseVector calculateCoreDistances(SGDVector[] data, int k, DistanceType distType, int numThreads) {
         DenseVector coreDistances = new DenseVector(data.length);
 
         // A value of k=1 will not return any neighbouring points
@@ -231,7 +280,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             return coreDistances;
         }
 
-        NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(getDistanceType(distanceType), numThreads);
+        NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(distType, numThreads);
         NeighboursQuery nq = nbff.createNeighboursQuery(data);
         List<List<Pair<Integer, Double>>> indexDistancePairListOfLists = nq.queryAll(k);
         for (int point = 0; point < data.length; point++) {
@@ -246,12 +295,12 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * core distances for each point.
      * @param data An array of {@link DenseVector} containing the data.
      * @param coreDistances A {@link DenseVector} containing the core distances for every point.
-     * @param distanceType The distance metric to employ.
+     * @param distType The distance metric to employ.
      * @return An {@link ExtendedMinimumSpanningTree} representation of the data using the mutual reachability distances,
      * and the graph is sorted by edge weight in ascending order.
      */
     private static ExtendedMinimumSpanningTree constructEMST(SGDVector[] data, DenseVector coreDistances,
-                                                            Distance distanceType) {
+                                                            DistanceType distType) {
         // One bit is set (true) for each attached point, and unset (false) for unattached points:
         BitSet attachedPoints = new BitSet(data.length);
 
@@ -279,7 +328,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                     continue;
                 }
 
-                double mutualReachabilityDistance = getDistance(data[currentPoint], data[neighbor], distanceType);
+                double mutualReachabilityDistance = DistanceType.getDistance(data[currentPoint], data[neighbor], distType);
                 if (coreDistances.get(currentPoint) > mutualReachabilityDistance) {
                     mutualReachabilityDistance = coreDistances.get(currentPoint);
                 }
@@ -695,64 +744,9 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         return clusterExemplars;
     }
 
-    /**
-     * Calculates the distance between two vectors.
-     * @deprecated This method is deprecated in version 4.3, replaced by
-     * {@link DistanceType#getDistance(SGDVector, SGDVector, DistanceType)}
-     *
-     * @param vector1 A {@link SGDVector} representing a data point.
-     * @param vector2 A {@link SGDVector} representing a second data point.
-     * @param distanceType The distance metric to employ.
-     * @return A double representing the distance between the two points.
-     */
-    @Deprecated
-    private static double getDistance(SGDVector vector1, SGDVector vector2, Distance distanceType) {
-        double distance;
-        switch (distanceType) {
-            case EUCLIDEAN:
-                distance = vector1.euclideanDistance(vector2);
-                break;
-            case COSINE:
-                distance = vector1.cosineDistance(vector2);
-                break;
-            case L1:
-                distance = vector1.l1Distance(vector2);
-                break;
-            default:
-                throw new IllegalStateException("Unknown distance " + distanceType);
-        }
-        return distance;
-    }
-
-    /**
-     * This method performs a mapping from a {@link Distance} to the corresponding {@link DistanceType}.
-     * @deprecated This method is deprecated in version 4.3.
-     *
-     * @param distance The distance metric to employ.
-     * @return A {@link DistanceType} value mapped from the provided parameter.
-     */
-    @Deprecated
-    private static DistanceType getDistanceType(Distance distance) {
-        DistanceType distanceType;
-        switch (distance) {
-            case EUCLIDEAN:
-                distanceType = DistanceType.L2;
-                break;
-            case COSINE:
-                distanceType = DistanceType.COSINE;
-                break;
-            case L1:
-                distanceType = DistanceType.L1;
-                break;
-            default:
-                throw new IllegalStateException("Unknown distance " + distance);
-        }
-        return distanceType;
-    }
-
     @Override
     public String toString() {
-        return "HdbscanTrainer(minClusterSize=" + minClusterSize + ",distanceType=" + distanceType + ",k=" + k + ",numThreads=" + numThreads + ")";
+        return "HdbscanTrainer(minClusterSize=" + minClusterSize + ",distanceType=" + distType + ",k=" + k + ",numThreads=" + numThreads + ")";
     }
 
     @Override

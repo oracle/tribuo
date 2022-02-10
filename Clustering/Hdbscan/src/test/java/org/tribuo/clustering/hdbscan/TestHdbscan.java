@@ -30,7 +30,6 @@ import org.tribuo.clustering.evaluation.ClusteringEvaluation;
 import org.tribuo.clustering.evaluation.ClusteringEvaluator;
 import org.tribuo.clustering.example.ClusteringDataGenerator;
 import org.tribuo.clustering.example.GaussianClusterDataSource;
-import org.tribuo.clustering.hdbscan.HdbscanTrainer.Distance;
 import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.ResponseProcessor;
 import org.tribuo.data.columnar.RowProcessor;
@@ -38,6 +37,7 @@ import org.tribuo.data.columnar.processors.field.DoubleFieldProcessor;
 import org.tribuo.data.columnar.processors.response.EmptyResponseProcessor;
 import org.tribuo.data.csv.CSVDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.test.Helpers;
 
 import java.nio.file.Paths;
@@ -60,7 +60,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestHdbscan {
 
-    private static final HdbscanTrainer t = new HdbscanTrainer(5, Distance.EUCLIDEAN, 5,2);
+    private static final HdbscanTrainer t = new HdbscanTrainer(5, DistanceType.L2, 5,2);
 
     @BeforeAll
     public static void setup() {
@@ -82,7 +82,7 @@ public class TestHdbscan {
         CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
-        HdbscanTrainer trainer = new HdbscanTrainer(7, Distance.EUCLIDEAN, 7,4);
+        HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2, 7,4);
         for (int i = 0; i < 5; i++) {
             HdbscanModel model = trainer.train(dataset);
         }
@@ -110,7 +110,7 @@ public class TestHdbscan {
         CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
-        HdbscanTrainer trainer = new HdbscanTrainer(7, Distance.EUCLIDEAN, 7,4);
+        HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2, 7,4);
         HdbscanModel model = trainer.train(dataset);
 
         List<Integer> clusterLabels = model.getClusterLabels();
@@ -141,7 +141,7 @@ public class TestHdbscan {
         CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict.csv"),rowProcessor,false);
         Dataset<ClusterID> testSet = new MutableDataset<>(csvTestSource);
 
-        HdbscanTrainer trainer = new HdbscanTrainer(7, Distance.EUCLIDEAN, 7,1);
+        HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2, 7,1);
         HdbscanModel model = trainer.train(dataset);
 
         List<Integer> clusterLabels = model.getClusterLabels();

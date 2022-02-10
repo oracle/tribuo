@@ -25,6 +25,7 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.hdbscan.HdbscanTrainer.Distance;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
@@ -49,18 +50,21 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     private final DenseVector outlierScoresVector;
 
-    private final Distance distanceType;
+    @Deprecated
+    private Distance distanceType;
+
+    private final DistanceType distType;
 
     private final List<HdbscanTrainer.ClusterExemplar> clusterExemplars;
 
     HdbscanModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                  ImmutableOutputInfo<ClusterID> outputIDInfo, List<Integer> clusterLabels, DenseVector outlierScoresVector,
-                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, Distance distanceType) {
+                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, DistanceType distType) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.clusterLabels = clusterLabels;
         this.outlierScoresVector = outlierScoresVector;
         this.clusterExemplars = clusterExemplars;
-        this.distanceType = distanceType;
+        this.distType = distType;
     }
 
     /**
@@ -91,6 +95,12 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
+        // A deserialized model which doesn't have distType set needs to handle this case. This check can be removed
+        // in a major version release when the deprecated field no longer needs to be supported.
+        DistanceType distanceType = distType;
+        if (distanceType == null) {
+            distanceType = this.distanceType.getDistanceType();
+        }
         SparseVector vector = SparseVector.createSparseVector(example,featureIDMap,false);
         if (vector.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example);
@@ -99,20 +109,7 @@ public final class HdbscanModel extends Model<ClusterID> {
         int clusterLabel = -1;
         double clusterOutlierScore = 0.0;
         for (HdbscanTrainer.ClusterExemplar clusterExemplar : clusterExemplars) {
-            double distance;
-            switch (distanceType) {
-                case EUCLIDEAN:
-                    distance = clusterExemplar.getFeatures().euclideanDistance(vector);
-                    break;
-                case COSINE:
-                    distance = clusterExemplar.getFeatures().cosineDistance(vector);
-                    break;
-                case L1:
-                    distance = clusterExemplar.getFeatures().l1Distance(vector);
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown distance " + distanceType);
-            }
+            double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), vector, distanceType);
             if (distance < minDistance) {
                 minDistance = distance;
                 clusterLabel = clusterExemplar.getLabel();
@@ -138,6 +135,6 @@ public final class HdbscanModel extends Model<ClusterID> {
         List<Integer> copyClusterLabels = Collections.unmodifiableList(clusterLabels);
         List<HdbscanTrainer.ClusterExemplar> copyExemplars = new ArrayList<>(clusterExemplars);
         return new HdbscanModel(newName, newProvenance, featureIDMap, outputIDInfo, copyClusterLabels,
-            copyOutlierScoresVector, copyExemplars, distanceType);
+            copyOutlierScoresVector, copyExemplars, distType);
     }
 }
