@@ -25,10 +25,13 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.hdbscan.HdbscanTrainer.Distance;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,18 +52,23 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     private final DenseVector outlierScoresVector;
 
-    private final Distance distanceType;
+    @Deprecated
+    private Distance distanceType;
+
+    // This is not final to support deserialization of older models. It will be final in a future version which doesn't
+    // maintain serialization compatibility with 4.X.
+    private DistanceType distType;
 
     private final List<HdbscanTrainer.ClusterExemplar> clusterExemplars;
 
     HdbscanModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                  ImmutableOutputInfo<ClusterID> outputIDInfo, List<Integer> clusterLabels, DenseVector outlierScoresVector,
-                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, Distance distanceType) {
+                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, DistanceType distType) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.clusterLabels = clusterLabels;
         this.outlierScoresVector = outlierScoresVector;
         this.clusterExemplars = clusterExemplars;
-        this.distanceType = distanceType;
+        this.distType = distType;
     }
 
     /**
@@ -91,7 +99,12 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
-        SparseVector vector = SparseVector.createSparseVector(example,featureIDMap,false);
+        SGDVector vector;
+        if (example.size() == featureIDMap.size()) {
+            vector = DenseVector.createDenseVector(example, featureIDMap, false);
+        } else {
+            vector = SparseVector.createSparseVector(example, featureIDMap, false);
+        }
         if (vector.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example);
         }
@@ -99,20 +112,7 @@ public final class HdbscanModel extends Model<ClusterID> {
         int clusterLabel = -1;
         double clusterOutlierScore = 0.0;
         for (HdbscanTrainer.ClusterExemplar clusterExemplar : clusterExemplars) {
-            double distance;
-            switch (distanceType) {
-                case EUCLIDEAN:
-                    distance = clusterExemplar.getFeatures().euclideanDistance(vector);
-                    break;
-                case COSINE:
-                    distance = clusterExemplar.getFeatures().cosineDistance(vector);
-                    break;
-                case L1:
-                    distance = clusterExemplar.getFeatures().l1Distance(vector);
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown distance " + distanceType);
-            }
+            double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), vector, distType);
             if (distance < minDistance) {
                 minDistance = distance;
                 clusterLabel = clusterExemplar.getLabel();
@@ -138,6 +138,13 @@ public final class HdbscanModel extends Model<ClusterID> {
         List<Integer> copyClusterLabels = Collections.unmodifiableList(clusterLabels);
         List<HdbscanTrainer.ClusterExemplar> copyExemplars = new ArrayList<>(clusterExemplars);
         return new HdbscanModel(newName, newProvenance, featureIDMap, outputIDInfo, copyClusterLabels,
-            copyOutlierScoresVector, copyExemplars, distanceType);
+            copyOutlierScoresVector, copyExemplars, distType);
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (distType == null) {
+            distType = distanceType.getDistanceType();
+        }
     }
 }

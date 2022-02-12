@@ -29,6 +29,7 @@ import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.example.DemoLabelDataSource;
 import org.tribuo.classification.example.NoisyInterlockingCrescentsDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -50,8 +51,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestKNN {
 
-    static final private KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, KNNTrainer.Distance.L2, 2, new AveragingCombiner(), KNNModel.Backend.STREAMS);
-    static final private KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, KNNTrainer.Distance.L2, 2, new VotingCombiner(), KNNModel.Backend.STREAMS);
+    static final private KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 2, new AveragingCombiner(), KNNModel.Backend.STREAMS);
+    static final private KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 2, new VotingCombiner(), KNNModel.Backend.THREADPOOL);
 
     @BeforeAll
     public static void setup() {
@@ -62,7 +63,7 @@ public class TestKNN {
     @Test
     public void invocationCounterTest() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> pair = RegressionDataGenerator.sparseTrainTest();
-        KNNTrainer<Regressor> trainer = new KNNTrainer<>(2, KNNTrainer.Distance.L1, 2, new AveragingCombiner(), KNNModel.Backend.THREADPOOL);
+        KNNTrainer<Regressor> trainer = new KNNTrainer<>(2, DistanceType.L1, 2, new AveragingCombiner(), KNNModel.Backend.THREADPOOL);
 
         for (int i = 0; i < 5; i++) {
             Model<Regressor> model = trainer.train(pair.getA());
@@ -79,11 +80,10 @@ public class TestKNN {
         assertEquals(4, trainer.getInvocationCount());
     }
 
-    @Test
-    public void knnRegressionTest() {
+    private static void testKNNRegression(KNNTrainer<Regressor> trainer) {
         Pair<Dataset<Regressor>,Dataset<Regressor>> pair = RegressionDataGenerator.denseTrainTest();
 
-        Model<Regressor> model = regressionTrainer.train(pair.getA());
+        Model<Regressor> model = trainer.train(pair.getA());
 
         List<Prediction<Regressor>> predictions = model.predict(pair.getB());
 
@@ -94,13 +94,23 @@ public class TestKNN {
     }
 
     @Test
-    public void knnClassificationTest() {
+    public void knnRegressionMultithreadedTest() {
+        testKNNRegression(regressionTrainer);
+    }
+
+    @Test
+    public void knnRegressionSingleThreadedTest() {
+        KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 1, new AveragingCombiner(), KNNModel.Backend.THREADPOOL);
+        testKNNRegression(regressionTrainer);
+    }
+
+    private static void testKNNClassification(KNNTrainer<Label> trainer) {
         NoisyInterlockingCrescentsDataSource source = new NoisyInterlockingCrescentsDataSource(200, 1, 0.1);
         TrainTestSplitter<Label> splitter = new TrainTestSplitter<>(source, 0.8, 1L);
         MutableDataset<Label> trainingDataset = new MutableDataset<>(splitter.getTrain());
         MutableDataset<Label> testingDataset = new MutableDataset<>(splitter.getTest());
 
-        Model<Label> model = classificationTrainer.train(trainingDataset);
+        Model<Label> model = trainer.train(trainingDataset);
 
         // The expected list of predictions
         List<String> expectedList = Arrays.asList("O", "X", "O", "X", "O", "X", "O", "X", "O", "X", "O", "X", "X", "O", "X", "O", "X", "O", "X", "O", "O", "X", "O", "X", "X", "X", "O", "X", "O", "O", "O", "O", "X", "O", "O", "X", "O", "X", "X", "O");
@@ -112,6 +122,17 @@ public class TestKNN {
         }
 
         assertEquals(predictionList, expectedList);
+    }
+
+    @Test
+    public void knnClassificationMultithreadedTest() {
+        testKNNClassification(classificationTrainer);
+    }
+
+    @Test
+    public void knnClassificationSingleThreadedTest() {
+        KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 1, new VotingCombiner(), KNNModel.Backend.INNERTHREADPOOL);
+        testKNNClassification(classificationTrainer);
     }
 
     @Test

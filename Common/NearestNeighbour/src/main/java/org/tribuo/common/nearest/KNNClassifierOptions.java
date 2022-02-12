@@ -25,6 +25,7 @@ import org.tribuo.classification.ensemble.VotingCombiner;
 import org.tribuo.common.nearest.KNNModel.Backend;
 import org.tribuo.common.nearest.KNNTrainer.Distance;
 import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.math.distance.DistanceType;
 
 /**
  * CLI Options for training a k-nearest neighbour predictor.
@@ -56,10 +57,11 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
     @Option(longName = "knn-num-threads", usage = "Number of threads to use.")
     public int knnNumThreads = 1;
     /**
-     * Distance metric to use. Defaults to L2.
+     * Distance metric to use. Defaults to L2 (EUCLIDEAN).
      */
-    @Option(longName = "knn-distance", usage = "Distance metric to use.")
-    public Distance knnDistance = Distance.L2;
+    @Option(longName = "distance-type-function", usage = "Distance metric to use.")
+    public DistanceType distType = DistanceType.L2;
+
     /**
      * Parallel backend to use.
      */
@@ -89,6 +91,6 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
 
     @Override
     public KNNTrainer<Label> getTrainer() {
-        return new KNNTrainer<>(knnK, knnDistance, knnNumThreads, getEnsembleCombiner(), knnBackend);
+        return new KNNTrainer<>(knnK, distType, knnNumThreads, getEnsembleCombiner(), knnBackend);
     }
 }

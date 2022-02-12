@@ -25,9 +25,9 @@ import org.tribuo.clustering.evaluation.ClusteringEvaluation;
 import org.tribuo.clustering.evaluation.ClusteringEvaluator;
 import org.tribuo.clustering.example.ClusteringDataGenerator;
 import org.tribuo.clustering.example.GaussianClusterDataSource;
-import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.test.Helpers;
 
@@ -43,10 +43,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestKMeans {
 
-    private static final KMeansTrainer t = new KMeansTrainer(4,10, Distance.EUCLIDEAN,
+    private static final KMeansTrainer t = new KMeansTrainer(4,10, DistanceType.L2,
             KMeansTrainer.Initialisation.RANDOM, 1,1);
 
-    private static final KMeansTrainer plusPlus = new KMeansTrainer(4,10,  Distance.EUCLIDEAN,
+    private static final KMeansTrainer plusPlus = new KMeansTrainer(4,10,  DistanceType.L2,
             KMeansTrainer.Initialisation.PLUSPLUS, 1,1);
 
     @BeforeAll
@@ -169,7 +169,7 @@ public class TestKMeans {
     @Test
     public void testSetInvocationCount() {
         // Create new trainer and dataset so as not to mess with the other tests
-        KMeansTrainer originalTrainer = new KMeansTrainer(4,10, Distance.EUCLIDEAN,
+        KMeansTrainer originalTrainer = new KMeansTrainer(4,10, DistanceType.L2,
                 KMeansTrainer.Initialisation.RANDOM, 1,1);
         Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
 
@@ -187,7 +187,7 @@ public class TestKMeans {
         // Create a new model with same configuration, but set the invocation count to numOfInvocations
         // Assert that this succeeded, this means RNG will be at state where originalTrainer was before
         // it performed its last train.
-        KMeansTrainer newTrainer = new KMeansTrainer(4,10, Distance.EUCLIDEAN,
+        KMeansTrainer newTrainer = new KMeansTrainer(4,10, DistanceType.L2,
                 KMeansTrainer.Initialisation.RANDOM, 1,1);
         newTrainer.setInvocationCount(numOfInvocations);
         assertEquals(numOfInvocations,newTrainer.getInvocationCount());
@@ -208,7 +208,7 @@ public class TestKMeans {
     @Test
     public void testNegativeInvocationCount(){
         assertThrows(IllegalArgumentException.class, () -> {
-            KMeansTrainer t = new KMeansTrainer(4,10, Distance.EUCLIDEAN,
+            KMeansTrainer t = new KMeansTrainer(4,10, DistanceType.L2,
                     KMeansTrainer.Initialisation.RANDOM, 1,1);
             t.setInvocationCount(-1);
         });
@@ -216,7 +216,7 @@ public class TestKMeans {
 
     @Test
     public void testToString(){
-        assertEquals(t.toString(), "KMeansTrainer(centroids=4,distanceType=EUCLIDEAN,seed=1,numThreads=1, initialisationType=RANDOM)");
-        assertEquals(plusPlus.toString(), "KMeansTrainer(centroids=4,distanceType=EUCLIDEAN,seed=1,numThreads=1, initialisationType=PLUSPLUS)");
+        assertEquals("KMeansTrainer(centroids=4,distanceType=L2,seed=1,numThreads=1, initialisationType=RANDOM)", t.toString());
+        assertEquals("KMeansTrainer(centroids=4,distanceType=L2,seed=1,numThreads=1, initialisationType=PLUSPLUS)", plusPlus.toString());
     }
 }

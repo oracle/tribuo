@@ -27,7 +27,12 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.common.nearest.KNNTrainer.Distance;
 import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.neighbour.NeighboursQuery;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -87,10 +92,16 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         INNERTHREADPOOL
     }
 
-    private final Pair<SparseVector,T>[] vectors;
+    private final Pair<SGDVector,T>[] vectors;
 
     private final int k;
-    private final Distance distance;
+    @Deprecated
+    private Distance distance;
+
+    // This is not final to support deserialization of older models. It will be final in a future version which doesn't
+    // maintain serialization compatibility with 4.X.
+    private DistanceType distType;
+
     private final int numThreads;
 
     private final Backend parallelBackend;
@@ -98,11 +109,11 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private final EnsembleCombiner<T> combiner;
 
     KNNModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-                    boolean generatesProbabilities, int k, Distance distance, int numThreads, EnsembleCombiner<T> combiner,
-                    Pair<SparseVector,T>[] vectors, Backend backend) {
+             boolean generatesProbabilities, int k, DistanceType distType, int numThreads, EnsembleCombiner<T> combiner,
+             Pair<SGDVector,T>[] vectors, Backend backend) {
         super(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities);
         this.k = k;
-        this.distance = distance;
+        this.distType = distType;
         this.numThreads = numThreads;
         this.combiner = combiner;
         this.parallelBackend = backend;
@@ -111,28 +122,22 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     @Override
     public Prediction<T> predict(Example<T> example) {
-        SparseVector input = SparseVector.createSparseVector(example,featureIDMap,false);
+        SGDVector input;
+        if (example.size() == featureIDMap.size()) {
+            input = DenseVector.createDenseVector(example, featureIDMap, false);
+        } else {
+            input = SparseVector.createSparseVector(example, featureIDMap, false);
+        }
+
         if (input.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example);
         }
 
-        Function<Pair<SparseVector,T>, OutputDoublePair<T>> distanceFunc;
-        switch (distance) {
-            case L1:
-                distanceFunc = (a) -> new OutputDoublePair<>(a.getB(),a.getA().l1Distance(input));
-                break;
-            case L2:
-                distanceFunc = (a) -> new OutputDoublePair<>(a.getB(),a.getA().l2Distance(input));
-                break;
-            case COSINE:
-                distanceFunc = (a) -> new OutputDoublePair<>(a.getB(),a.getA().cosineDistance(input));
-                break;
-            default:
-                throw new IllegalStateException("Unknown distance function " + distance);
-        }
+        Function<Pair<SGDVector,T>, OutputDoublePair<T>> distanceFunc =
+            (a) -> new OutputDoublePair<>(a.getB(),DistanceType.getDistance(a.getA(), input, distType));
 
         List<Prediction<T>> predictions;
-        Stream<Pair<SparseVector,T>> stream = Stream.of(vectors);
+        Stream<Pair<SGDVector,T>> stream = Stream.of(vectors);
         if (numThreads > 1) {
             ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
             try {
@@ -161,43 +166,24 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         } else {
             List<Prediction<T>> predictions = new ArrayList<>();
             List<Prediction<T>> innerPredictions = new ArrayList<>();
-            PriorityQueue<OutputDoublePair<T>> queue = new PriorityQueue<>(k, (a,b) -> Double.compare(b.value, a.value));
-            BiFunction<SparseVector,SparseVector,Double> distanceFunc;
-            switch (distance) {
-                case L1:
-                    distanceFunc = (a,b) -> b.l1Distance(a);
-                    break;
-                case L2:
-                    distanceFunc = (a,b) -> b.l2Distance(a);
-                    break;
-                case COSINE:
-                    distanceFunc = (a,b) -> b.cosineDistance(a);
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown distance function " + distance);
-            }
+
+            NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(distType, numThreads);
+            NeighboursQuery nq = nbff.createNeighboursQuery(getSGDVectorArr());
 
             for (Example<T> example : examples) {
-                queue.clear();
                 innerPredictions.clear();
-                SparseVector input = SparseVector.createSparseVector(example, featureIDMap, false);
-
-                for (int i = 0; i < vectors.length; i++) {
-                    double curDistance = distanceFunc.apply(input,vectors[i].getA());
-
-                    if (queue.size() < k) {
-                        OutputDoublePair<T> newPair = new OutputDoublePair<>(vectors[i].getB(),curDistance);
-                        queue.offer(newPair);
-                    } else if (Double.compare(curDistance, queue.peek().value) < 0) {
-                        OutputDoublePair<T> pair = queue.poll();
-                        pair.output = vectors[i].getB();
-                        pair.value = curDistance;
-                        queue.offer(pair);
-                    }
+                SGDVector input;
+                if (example.size() == featureIDMap.size()) {
+                    input = DenseVector.createDenseVector(example, featureIDMap, false);
+                } else {
+                    input = SparseVector.createSparseVector(example, featureIDMap, false);
                 }
 
-                for (OutputDoublePair<T> pair : queue) {
-                    innerPredictions.add(new Prediction<>(pair.output, input.numActiveElements(), example));
+                List<Pair<Integer, Double>> indexDistancePairList = nq.query(input, k);
+
+                for (Pair<Integer, Double> simplePair : indexDistancePairList) {
+                    Pair<SGDVector,T> pair = vectors[simplePair.getA()];
+                    innerPredictions.add(new Prediction<>(pair.getB(), input.numActiveElements(), example));
                 }
 
                 predictions.add(combiner.combine(outputIDInfo, innerPredictions));
@@ -237,24 +223,17 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         List<Prediction<T>> innerPredictions = null;
         ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
         for (Example<T> example : examples) {
-            SparseVector input = SparseVector.createSparseVector(example, featureIDMap, false);
-
-            Function<Pair<SparseVector, T>, OutputDoublePair<T>> distanceFunc;
-            switch (distance) {
-                case L1:
-                    distanceFunc = (a) -> new OutputDoublePair<>(a.getB(), a.getA().l1Distance(input));
-                    break;
-                case L2:
-                    distanceFunc = (a) -> new OutputDoublePair<>(a.getB(), a.getA().l2Distance(input));
-                    break;
-                case COSINE:
-                    distanceFunc = (a) -> new OutputDoublePair<>(a.getB(), a.getA().cosineDistance(input));
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown distance function " + distance);
+            SGDVector input;
+            if (example.size() == featureIDMap.size()) {
+                input = DenseVector.createDenseVector(example, featureIDMap, false);
+            } else {
+                input = SparseVector.createSparseVector(example, featureIDMap, false);
             }
 
-            Stream<Pair<SparseVector, T>> stream = Stream.of(vectors);
+            Function<Pair<SGDVector, T>, OutputDoublePair<T>> distanceFunc =
+                (a) -> new OutputDoublePair<>(a.getB(), DistanceType.getDistance(a.getA(), input, distType));
+
+            Stream<Pair<SGDVector, T>> stream = Stream.of(vectors);
             try {
                 innerPredictions = fjp.submit(() -> StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map((a) -> new Prediction<>(a.output, input.numActiveElements(), example)).collect(Collectors.toList())).get();
             } catch (InterruptedException | ExecutionException e) {
@@ -273,31 +252,17 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * @return The predictions.
      */
     private List<Prediction<T>> innerPredictThreadPool(Iterable<Example<T>> examples) {
-        BiFunction<SparseVector,SparseVector,Double> distanceFunc;
-        switch (distance) {
-            case L1:
-                distanceFunc = (a,b) -> b.l1Distance(a);
-                break;
-            case L2:
-                distanceFunc = (a,b) -> b.l2Distance(a);
-                break;
-            case COSINE:
-                distanceFunc = (a,b) -> b.cosineDistance(a);
-                break;
-            default:
-                throw new IllegalStateException("Unknown distance function " + distance);
-        }
-
         List<Prediction<T>> predictions = new ArrayList<>();
 
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
 
         List<Future<Prediction<T>>> futures = new ArrayList<>();
 
-        ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool = ThreadLocal.withInitial(() -> new PriorityQueue<>(k, (a,b) -> Double.compare(b.value, a.value)));
+        NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(distType, numThreads);
+        NeighboursQuery nq = nbff.createNeighboursQuery(getSGDVectorArr());
 
         for (Example<T> example : examples) {
-            futures.add(pool.submit(() -> innerPredictOne(queuePool,vectors,combiner,distanceFunc,featureIDMap,outputIDInfo,k,example)));
+            futures.add(pool.submit(() -> innerPredictOne(nq,vectors,combiner,featureIDMap,outputIDInfo,k,example)));
         }
 
         try {
@@ -319,20 +284,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * @return The predictions.
      */
     private List<Prediction<T>> innerPredictWithinExampleThreadPool(Iterable<Example<T>> examples) {
-        BiFunction<SparseVector,SparseVector,Double> distanceFunc;
-        switch (distance) {
-            case L1:
-                distanceFunc = (a,b) -> b.l1Distance(a);
-                break;
-            case L2:
-                distanceFunc = (a,b) -> b.l2Distance(a);
-                break;
-            case COSINE:
-                distanceFunc = (a,b) -> b.cosineDistance(a);
-                break;
-            default:
-                throw new IllegalStateException("Unknown distance function " + distance);
-        }
+        BiFunction<SGDVector,SGDVector,Double> distanceFunc = (a,b) -> DistanceType.getDistance(b, a, distType);
 
         List<Prediction<T>> predictions = new ArrayList<>();
 
@@ -351,10 +303,11 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     private Prediction<T> innerPredictThreadPool(ExecutorService pool,
                                                  ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool,
-                                                 BiFunction<SparseVector,SparseVector,Double> distanceFunc,
+                                                 BiFunction<SGDVector,SGDVector,Double> distanceFunc,
                                                  Example<T> example) {
         SparseVector vector = SparseVector.createSparseVector(example, featureIDMap, false);
         List<Future<List<OutputDoublePair<T>>>> futures = new ArrayList<>();
+
         for (int i = 0; i < numThreads; i++) {
             int start = i * (vectors.length / numThreads);
             int end = (i + 1) * (vectors.length / numThreads);
@@ -388,12 +341,12 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     }
 
     private static <T extends Output<T>> List<OutputDoublePair<T>> innerPredictChunk(ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool,
-                                                                            Pair<SparseVector,T>[] vectors,
+                                                                            Pair<SGDVector,T>[] vectors,
                                                                             int start,
                                                                             int end,
-                                                                            BiFunction<SparseVector,SparseVector,Double> distanceFunc,
+                                                                            BiFunction<SGDVector,SGDVector,Double> distanceFunc,
                                                                             int k,
-                                                                            SparseVector input) {
+                                                                            SGDVector input) {
         PriorityQueue<OutputDoublePair<T>> queue = queuePool.get();
         queue.clear();
 
@@ -416,36 +369,27 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         return new ArrayList<>(queue);
     }
 
-    private static <T extends Output<T>> Prediction<T> innerPredictOne(ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool,
-                                                                    Pair<SparseVector,T>[] vectors,
+    private static <T extends Output<T>> Prediction<T> innerPredictOne(NeighboursQuery nq,
+                                                                    Pair<SGDVector,T>[] vectors,
                                                                     EnsembleCombiner<T> combiner,
-                                                                    BiFunction<SparseVector,SparseVector,Double> distanceFunc,
                                                                     ImmutableFeatureMap featureIDMap,
                                                                     ImmutableOutputInfo<T> outputIDInfo,
                                                                     int k,
                                                                     Example<T> example) {
-        SparseVector vector = SparseVector.createSparseVector(example, featureIDMap, false);
-        PriorityQueue<OutputDoublePair<T>> queue = queuePool.get();
-        queue.clear();
-
-        for (int i = 0; i < vectors.length; i++) {
-            double curDistance = distanceFunc.apply(vector,vectors[i].getA());
-
-            if (queue.size() < k) {
-                OutputDoublePair<T> newPair = new OutputDoublePair<>(vectors[i].getB(),curDistance);
-                queue.offer(newPair);
-            } else if (Double.compare(curDistance, queue.peek().value) < 0) {
-                OutputDoublePair<T> pair = queue.poll();
-                pair.output = vectors[i].getB();
-                pair.value = curDistance;
-                queue.offer(pair);
-            }
+        SGDVector vector;
+        if (example.size() == featureIDMap.size()) {
+            vector = DenseVector.createDenseVector(example, featureIDMap, false);
+        } else {
+            vector = SparseVector.createSparseVector(example, featureIDMap, false);
         }
+
+        List<Pair<Integer, Double>> indexDistancePairList = nq.query(vector, k);
 
         List<Prediction<T>> localPredictions = new ArrayList<>();
 
-        for (OutputDoublePair<T> pair : queue) {
-            localPredictions.add(new Prediction<>(pair.output, vector.numActiveElements(), example));
+        for (Pair<Integer, Double> simplePair : indexDistancePairList) {
+            Pair<SGDVector,T> pair = vectors[simplePair.getA()];
+            localPredictions.add(new Prediction<>(pair.getB(), vector.numActiveElements(), example));
         }
 
         return combiner.combine(outputIDInfo,localPredictions);
@@ -464,15 +408,28 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     @SuppressWarnings("unchecked") // Generic array creation.
     @Override
     protected KNNModel<T> copy(String newName, ModelProvenance newProvenance) {
-        Pair<SparseVector,T>[] vectorCopy = new Pair[vectors.length];
+        Pair<SGDVector,T>[] vectorCopy = new Pair[vectors.length];
         for (int i = 0; i < vectors.length; i++) {
             vectorCopy[i] = new Pair<>(vectors[i].getA().copy(),vectors[i].getB().copy());
         }
-        return new KNNModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,k,distance,numThreads,combiner,vectorCopy,parallelBackend);
+        return new KNNModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,k,distType,numThreads,combiner,vectorCopy,parallelBackend);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+        if (distType == null) {
+            distType = distance.getDistanceType();
+        }
+    }
+
+    private SGDVector[] getSGDVectorArr() {
+        SGDVector[] sgdVectors = new SGDVector[vectors.length];
+        int n = 0;
+        for (Pair<SGDVector,T> vector : vectors) {
+            sgdVectors[n] = vector.getA();
+            n++;
+        }
+        return sgdVectors;
     }
 
     /**

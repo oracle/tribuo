@@ -16,6 +16,7 @@
 package org.tribuo.clustering.hdbscan;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -26,9 +27,12 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.neighbour.NeighboursQuery;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -49,9 +53,6 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,27 +77,44 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
     /**
      * Available distance functions.
+     * @deprecated
+     * This Enum is deprecated in version 4.3, replaced by {@link DistanceType}
      */
+    @Deprecated
     public enum Distance {
         /**
          * Euclidean (or l2) distance.
          */
-        EUCLIDEAN,
+        EUCLIDEAN(DistanceType.L2),
         /**
          * Cosine similarity as a distance measure.
          */
-        COSINE,
+        COSINE(DistanceType.COSINE),
         /**
          * L1 (or Manhattan) distance.
          */
-        L1
+        L1(DistanceType.L1);
+
+        private final DistanceType distanceType;
+
+        Distance(DistanceType distanceType) {
+            this.distanceType = distanceType;
+        }
+
+        public DistanceType getDistanceType() {
+            return distanceType;
+        }
     }
 
     @Config(mandatory = true, description = "The minimum number of points required to form a cluster.")
     private int minClusterSize;
 
-    @Config(mandatory = true, description = "The distance function to use.")
+    @Deprecated
+    @Config(description = "The distance function to use. This is now deprecated.")
     private Distance distanceType;
+
+    @Config(description = "The distance function to use.")
+    private DistanceType distType;
 
     @Config(mandatory = true, description = "The number of nearest-neighbors to use in the initial density approximation. " +
         "This includes the point itself.")
@@ -117,26 +135,59 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * Constructs an HDBSCAN* trainer with only the minClusterSize parameter.
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
-     * {@link #distanceType} defaults to {@link Distance#EUCLIDEAN}, {@link #k} defaults to {@link #minClusterSize},
+     * {@link #distType} defaults to {@link DistanceType#L2}, {@link #k} defaults to {@link #minClusterSize},
      * and {@link #numThreads} defaults to 1.
      */
     public HdbscanTrainer(int minClusterSize) {
-        this(minClusterSize, Distance.EUCLIDEAN, minClusterSize, 1);
+        this(minClusterSize, DistanceType.L2, minClusterSize, 1);
     }
 
     /**
      * Constructs an HDBSCAN* trainer using the supplied parameters.
+     * @deprecated
+     * This Constructor is deprecated in version 4.3.
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
      * @param distanceType The distance function.
      * @param k The number of nearest-neighbors to use in the initial density approximation.
      * @param numThreads The number of threads.
      */
+    @Deprecated
     public HdbscanTrainer(int minClusterSize, Distance distanceType, int k, int numThreads) {
         this.minClusterSize = minClusterSize;
-        this.distanceType = distanceType;
+        this.distType = distanceType.getDistanceType();
         this.k = k;
         this.numThreads = numThreads;
+    }
+
+    /**
+     * Constructs an HDBSCAN* trainer using the supplied parameters.
+     *
+     * @param minClusterSize The minimum number of points required to form a cluster.
+     * @param distType The distance function.
+     * @param k The number of nearest-neighbors to use in the initial density approximation.
+     * @param numThreads The number of threads.
+     */
+    public HdbscanTrainer(int minClusterSize, DistanceType distType, int k, int numThreads) {
+        this.minClusterSize = minClusterSize;
+        this.distType = distType;
+        this.k = k;
+        this.numThreads = numThreads;
+    }
+
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
+    @Override
+    public synchronized void postConfig() {
+        if (this.distanceType != null) {
+            if (this.distType != null) {
+                throw new PropertyException("distType", "Both distType and distanceType must not both be set.");
+            } else {
+                this.distType = this.distanceType.getDistanceType();
+                this.distanceType = null;
+            }
+        }
     }
 
     @Override
@@ -160,8 +211,8 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             n++;
         }
 
-        DenseVector coreDistances = calculateCoreDistances(data, k, distanceType, numThreads);
-        ExtendedMinimumSpanningTree emst = constructEMST(data, coreDistances, distanceType);
+        DenseVector coreDistances = calculateCoreDistances(data, k, distType, numThreads);
+        ExtendedMinimumSpanningTree emst = constructEMST(data, coreDistances, distType);
 
         double[] pointNoiseLevels = new double[data.length];    // The levels at which each point becomes noise
         int[] pointLastClusters = new int[data.length];         // The last label of each point before becoming noise
@@ -189,7 +240,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
         return new HdbscanModel("hdbscan-model", provenance, featureMap, outputMap, clusterLabels, outlierScoresVector,
-                                clusterExemplars, distanceType);
+                                clusterExemplars, distType);
     }
 
     @Override
@@ -216,69 +267,25 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      *
      * @param data An array of {@link DenseVector} containing the data.
      * @param k The number of nearest-neighbors to use in these calculations.
-     * @param distanceType The distance metric to employ.
+     * @param distType The distance metric to employ.
      * @param numThreads  The number of threads to use for training.
      * @return A {@link DenseVector} containing the core distances for every point.
      */
-    private static DenseVector calculateCoreDistances(SGDVector[] data, int k, Distance distanceType, int numThreads) {
-        // The value of nearest-neighbors includes the point itself. The number of actual neighbors is one less.
-        int numNeighbors = k - 1;
+    private static DenseVector calculateCoreDistances(SGDVector[] data, int k, DistanceType distType, int numThreads) {
         DenseVector coreDistances = new DenseVector(data.length);
 
-        if (numNeighbors == 0) {
+        // A value of k=1 will not return any neighbouring points
+        if (k == 1) {
             return coreDistances;
         }
 
-        // When the number of threads is 1, the overhead of thread pools must be avoided
-        if (numThreads == 1) {
-            // This logic is duplicated in the CoreDistanceRunnable nested class below
-            for (int point = 0; point < data.length; point++) {
-                // Sorted nearest distances found so far
-                double[] kNNDistances = new double[numNeighbors];
-                Arrays.fill(kNNDistances, Double.MAX_VALUE);
-
-                for (int neighbor = 0; neighbor < data.length; neighbor++) {
-                    if (point == neighbor) {
-                        continue;
-                    }
-                    double distance = getDistance(data[point], data[neighbor], distanceType);
-
-                    // Check at which position in the nearest distances the current distance would fit.
-                    // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
-                    // with a binary search
-                    int neighborIndex = numNeighbors;
-                    while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex - 1]) {
-                        neighborIndex--;
-                    }
-
-                    // Shift elements in the array to make room for the current distance
-                    // The for loop could be written as an arraycopy, but the result is not particularly readable, and
-                    // numNeighbors is typically quite small
-                    if (neighborIndex < numNeighbors) {
-                        for (int shiftIndex = numNeighbors - 1; shiftIndex > neighborIndex; shiftIndex--) {
-                            kNNDistances[shiftIndex] = kNNDistances[shiftIndex - 1];
-                        }
-                        kNNDistances[neighborIndex] = distance;
-                    }
-                }
-                // The core distance for the point is the distance to the furthest away neighbor
-                coreDistances.set(point, kNNDistances[numNeighbors - 1]);
-            }
-        } else { // This makes the core distance calculations with multiple threads
-            ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
-            for (int point = 0; point < data.length; point++) {
-                executorService.execute(new CoreDistanceRunnable(data, numNeighbors, distanceType, point, coreDistances));
-            }
-            executorService.shutdown();
-            try {
-                boolean finished = executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MINUTES);
-                if (!finished) {
-                    throw new RuntimeException("Parallel execution failed");
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException("Parallel execution failed", e);
-            }
+        NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(distType, numThreads);
+        NeighboursQuery nq = nbff.createNeighboursQuery(data);
+        List<List<Pair<Integer, Double>>> indexDistancePairListOfLists = nq.queryAll(k);
+        for (int point = 0; point < data.length; point++) {
+            coreDistances.set(point, indexDistancePairListOfLists.get(point).get(k-1).getB());
         }
+
         return coreDistances;
     }
 
@@ -287,12 +294,12 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * core distances for each point.
      * @param data An array of {@link DenseVector} containing the data.
      * @param coreDistances A {@link DenseVector} containing the core distances for every point.
-     * @param distanceType The distance metric to employ.
+     * @param distType The distance metric to employ.
      * @return An {@link ExtendedMinimumSpanningTree} representation of the data using the mutual reachability distances,
      * and the graph is sorted by edge weight in ascending order.
      */
     private static ExtendedMinimumSpanningTree constructEMST(SGDVector[] data, DenseVector coreDistances,
-                                                            Distance distanceType) {
+                                                            DistanceType distType) {
         // One bit is set (true) for each attached point, and unset (false) for unattached points:
         BitSet attachedPoints = new BitSet(data.length);
 
@@ -320,7 +327,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                     continue;
                 }
 
-                double mutualReachabilityDistance = getDistance(data[currentPoint], data[neighbor], distanceType);
+                double mutualReachabilityDistance = DistanceType.getDistance(data[currentPoint], data[neighbor], distType);
                 if (coreDistances.get(currentPoint) > mutualReachabilityDistance) {
                     mutualReachabilityDistance = coreDistances.get(currentPoint);
                 }
@@ -736,35 +743,9 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         return clusterExemplars;
     }
 
-    /**
-     * Calculates the distance between two vectors.
-     *
-     * @param vector1 A {@link SGDVector} representing a data point.
-     * @param vector2 A {@link SGDVector} representing a second data point.
-     * @param distanceType The distance metric to employ.
-     * @return A double representing the distance between the two points.
-     */
-    private static double getDistance(SGDVector vector1, SGDVector vector2, Distance distanceType) {
-        double distance;
-        switch (distanceType) {
-            case EUCLIDEAN:
-                distance = vector1.euclideanDistance(vector2);
-                break;
-            case COSINE:
-                distance = vector1.cosineDistance(vector2);
-                break;
-            case L1:
-                distance = vector1.l1Distance(vector2);
-                break;
-            default:
-                throw new IllegalStateException("Unknown distance " + distanceType);
-        }
-        return distance;
-    }
-
     @Override
     public String toString() {
-        return "HdbscanTrainer(minClusterSize=" + minClusterSize + ",distanceType=" + distanceType + ",k=" + k + ",numThreads=" + numThreads + ")";
+        return "HdbscanTrainer(minClusterSize=" + minClusterSize + ",distanceType=" + distType + ",k=" + k + ",numThreads=" + numThreads + ")";
     }
 
     @Override
@@ -798,61 +779,6 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
         SGDVector getFeatures() {
             return features;
-        }
-    }
-
-    /**
-     * A Runnable implementation of the core distance calculation for parallelization.
-     * To be used with an {@link ExecutorService}
-     */
-    private final static class CoreDistanceRunnable implements Runnable {
-
-        final private SGDVector[] data;
-        final private int numNeighbors;
-        final private Distance distanceType;
-        final private int point;
-        final DenseVector coreDistances;
-
-        CoreDistanceRunnable(SGDVector[] data, int numNeighbors, Distance distanceType, int point, DenseVector coreDistances) {
-            this.data = data;
-            this.numNeighbors = numNeighbors;
-            this.distanceType = distanceType;
-            this.point = point;
-            this.coreDistances = coreDistances;
-        }
-
-        @Override
-        public void run() {
-            // This logic is duplicated in the calculateCoreDistances method in the outer class above
-            double[] kNNDistances = new double[numNeighbors];
-            Arrays.fill(kNNDistances, Double.MAX_VALUE);
-
-            for (int neighbor = 0; neighbor < data.length; neighbor++) {
-                if (point == neighbor) {
-                    continue;
-                }
-                double distance = getDistance(data[point], data[neighbor], distanceType);
-
-                // Check at which position in the nearest distances the current distance would fit
-                // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
-                // with a binary search
-                int neighborIndex = numNeighbors;
-                while (neighborIndex >= 1 && distance < kNNDistances[neighborIndex-1]) {
-                    neighborIndex--;
-                }
-
-                // Shift elements in the array to make room for the current distance
-                // The for loop could be written as an arraycopy, but the result is not particularly readable, and
-                // numNeighbors is typically quite small
-                if (neighborIndex < numNeighbors) {
-                    for (int shiftIndex = numNeighbors-1; shiftIndex > neighborIndex; shiftIndex--) {
-                        kNNDistances[shiftIndex] = kNNDistances[shiftIndex-1];
-                    }
-                    kNNDistances[neighborIndex] = distance;
-                }
-            }
-            // The core distance for the point is the distance to the furthest away neighbor
-            coreDistances.set(point, kNNDistances[numNeighbors-1]);
         }
     }
     

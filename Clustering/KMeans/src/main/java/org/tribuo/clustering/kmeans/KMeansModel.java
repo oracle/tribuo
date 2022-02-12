@@ -26,12 +26,14 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,12 +60,18 @@ public class KMeansModel extends Model<ClusterID> {
 
     private final DenseVector[] centroidVectors;
 
-    private final Distance distanceType;
+    @Deprecated
+    private Distance distanceType;
 
-    KMeansModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] centroidVectors, Distance distanceType) {
+    // This is not final to support deserialization of older models. It will be final in a future version which doesn't
+    // maintain serialization compatibility with 4.X.
+    private DistanceType distType;
+
+    KMeansModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
+                ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] centroidVectors, DistanceType distType) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.centroidVectors = centroidVectors;
-        this.distanceType = distanceType;
+        this.distType = distType;
     }
 
     /**
@@ -127,20 +135,8 @@ public class KMeansModel extends Model<ClusterID> {
         double minDistance = Double.POSITIVE_INFINITY;
         int id = -1;
         for (int i = 0; i < centroidVectors.length; i++) {
-            double distance;
-            switch (distanceType) {
-                case EUCLIDEAN:
-                    distance = centroidVectors[i].euclideanDistance(vector);
-                    break;
-                case COSINE:
-                    distance = centroidVectors[i].cosineDistance(vector);
-                    break;
-                case L1:
-                    distance = centroidVectors[i].l1Distance(vector);
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown distance " + distanceType);
-            }
+            double distance = DistanceType.getDistance(centroidVectors[i], vector, distType);
+
             if (distance < minDistance) {
                 minDistance = distance;
                 id = i;
@@ -165,6 +161,13 @@ public class KMeansModel extends Model<ClusterID> {
         for (int i = 0; i < centroidVectors.length; i++) {
             newCentroids[i] = centroidVectors[i].copy();
         }
-        return new KMeansModel(newName,newProvenance,featureIDMap,outputIDInfo,newCentroids,distanceType);
+        return new KMeansModel(newName,newProvenance,featureIDMap,outputIDInfo,newCentroids,distType);
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        if (distType == null) {
+            distType = distanceType.getDistanceType();
+        }
     }
 }

@@ -16,6 +16,7 @@
 package org.tribuo.clustering.kmeans;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.StreamUtil;
@@ -26,6 +27,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
@@ -95,20 +97,33 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     /**
      * Possible distance functions.
+     * @deprecated
+     * This Enum is deprecated in version 4.3, replaced by {@link DistanceType}
      */
+    @Deprecated
     public enum Distance {
         /**
          * Euclidean (or l2) distance.
          */
-        EUCLIDEAN,
+        EUCLIDEAN(DistanceType.L2),
         /**
          * Cosine similarity as a distance measure.
          */
-        COSINE,
+        COSINE(DistanceType.COSINE),
         /**
          * L1 (or Manhattan) distance.
          */
-        L1
+        L1(DistanceType.L1);
+
+        private final DistanceType distanceType;
+
+        Distance(DistanceType distanceType) {
+            this.distanceType = distanceType;
+        }
+
+        public DistanceType getDistanceType() {
+            return distanceType;
+        }
     }
 
     /**
@@ -132,8 +147,12 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     @Config(mandatory = true, description = "The number of iterations to run.")
     private int iterations;
 
-    @Config(mandatory = true, description = "The distance function to use.")
+    @Deprecated
+    @Config(description = "The distance function to use. This is now deprecated.")
     private Distance distanceType;
+
+    @Config(description = "The distance function to use.")
+    private DistanceType distType;
 
     @Config(description = "The centroid initialisation method to use.")
     private Initialisation initialisationType = Initialisation.RANDOM;
@@ -155,6 +174,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     /**
      * Constructs a K-Means trainer using the supplied parameters and the default random initialisation.
+     * @deprecated
+     * This Constructor is deprecated in version 4.3.
      *
      * @param centroids The number of centroids to use.
      * @param iterations The maximum number of iterations.
@@ -162,12 +183,28 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
+    @Deprecated
     public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, long seed) {
         this(centroids,iterations,distanceType,Initialisation.RANDOM,numThreads,seed);
     }
 
     /**
+     * Constructs a K-Means trainer using the supplied parameters and the default random initialisation.
+     *
+     * @param centroids The number of centroids to use.
+     * @param iterations The maximum number of iterations.
+     * @param distType The distance function.
+     * @param numThreads The number of threads.
+     * @param seed The random seed.
+     */
+    public KMeansTrainer(int centroids, int iterations, DistanceType distType, int numThreads, long seed) {
+        this(centroids,iterations,distType,Initialisation.RANDOM,numThreads,seed);
+    }
+
+    /**
      * Constructs a K-Means trainer using the supplied parameters.
+     * @deprecated
+     * This Constructor is deprecated in version 4.3.
      *
      * @param centroids The number of centroids to use.
      * @param iterations The maximum number of iterations.
@@ -176,10 +213,31 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
+    @Deprecated
     public KMeansTrainer(int centroids, int iterations, Distance distanceType, Initialisation initialisationType, int numThreads, long seed) {
         this.centroids = centroids;
         this.iterations = iterations;
-        this.distanceType = distanceType;
+        this.distType = distanceType.getDistanceType();
+        this.initialisationType = initialisationType;
+        this.numThreads = numThreads;
+        this.seed = seed;
+        postConfig();
+    }
+
+    /**
+     * Constructs a K-Means trainer using the supplied parameters.
+     *
+     * @param centroids The number of centroids to use.
+     * @param iterations The maximum number of iterations.
+     * @param distType The distance function.
+     * @param initialisationType The centroid initialization method.
+     * @param numThreads The number of threads.
+     * @param seed The random seed.
+     */
+    public KMeansTrainer(int centroids, int iterations, DistanceType distType, Initialisation initialisationType, int numThreads, long seed) {
+        this.centroids = centroids;
+        this.iterations = iterations;
+        this.distType = distType;
         this.initialisationType = initialisationType;
         this.numThreads = numThreads;
         this.seed = seed;
@@ -192,6 +250,15 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     @Override
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
+
+        if (this.distanceType != null) {
+            if (this.distType != null) {
+                throw new PropertyException("distType", "Both distType and distanceType must not both be set.");
+            } else {
+                this.distType = this.distanceType.getDistanceType();
+                this.distanceType = null;
+            }
+        }
     }
 
     @Override
@@ -247,7 +314,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                 centroidVectors = initialiseRandomCentroids(centroids, featureMap, localRNG);
                 break;
             case PLUSPLUS:
-                centroidVectors = initialisePlusPlusCentroids(centroids, data, localRNG, distanceType);
+                centroidVectors = initialisePlusPlusCentroids(centroids, data, localRNG, distType);
                 break;
             default:
                 throw new IllegalStateException("Unknown initialisation" + initialisationType);
@@ -266,7 +333,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             SGDVector vector = e.vector;
             for (int j = 0; j < centroids; j++) {
                 DenseVector cluster = centroidVectors[j];
-                double distance = getDistance(cluster, vector, distanceType);
+                double distance = DistanceType.getDistance(cluster, vector, distType);
                 if (distance < minDist) {
                     minDist = distance;
                     clusterID = j;
@@ -327,7 +394,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         ModelProvenance provenance = new ModelProvenance(KMeansModel.class.getName(), OffsetDateTime.now(),
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
-        return new KMeansModel("k-means-model", provenance, featureMap, outputMap, centroidVectors, distanceType);
+        return new KMeansModel("k-means-model", provenance, featureMap, outputMap, centroidVectors, distType);
     }
 
     @Override
@@ -385,10 +452,11 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param centroids The number of centroids to create.
      * @param data The dataset of {@link SGDVector} to use.
      * @param rng The RNG to use.
+     * @param distType The distance function.
      * @return A {@link DenseVector} array of centroids.
      */
     private static DenseVector[] initialisePlusPlusCentroids(int centroids, SGDVector[] data, SplittableRandom rng,
-                                                             Distance distanceType) {
+                                                             DistanceType distType) {
         if (centroids > data.length) {
             throw new IllegalArgumentException("The number of centroids may not exceed the number of samples.");
         }
@@ -410,7 +478,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             // go through every vector and see if the min distance to the
             // newest centroid is smaller than previous min distance for vec
             for (int j = 0; j < data.length; j++) {
-                double tempDistance = getDistance(prevCentroid, data[j], distanceType);
+                double tempDistance = DistanceType.getDistance(prevCentroid, data[j], distType);
                 minDistancePerVector[j] = Math.min(minDistancePerVector[j], tempDistance);
             }
 
@@ -444,31 +512,6 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     private static DenseVector getRandomCentroidFromData(SGDVector[] data, SplittableRandom rng) {
         int randIdx = rng.nextInt(data.length);
         return DenseVector.createDenseVector(data[randIdx].toArray());
-    }
-
-    /**
-     * Compute the distance between the two vectors.
-     * @param cluster A {@link DenseVector} representing a centroid.
-     * @param vector A {@link SGDVector} representing an example.
-     * @param distanceType The distance metric to employ.
-     * @return A double representing the distance from vector to centroid.
-     */
-    private static double getDistance(DenseVector cluster, SGDVector vector, Distance distanceType) {
-        double distance;
-        switch (distanceType) {
-            case EUCLIDEAN:
-                distance = cluster.euclideanDistance(vector);
-                break;
-            case COSINE:
-                distance = cluster.cosineDistance(vector);
-                break;
-            case L1:
-                distance = cluster.l1Distance(vector);
-                break;
-            default:
-                throw new IllegalStateException("Unknown distance " + distanceType);
-        }
-        return distance;
     }
 
     /**
@@ -514,7 +557,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     @Override
     public String toString() {
-        return "KMeansTrainer(centroids=" + centroids + ",distanceType=" + distanceType + ",seed=" + seed + ",numThreads=" + numThreads + ", initialisationType=" + initialisationType + ")";
+        return "KMeansTrainer(centroids=" + centroids + ",distanceType=" + distType + ",seed=" + seed + ",numThreads=" + numThreads + ", initialisationType=" + initialisationType + ")";
     }
 
     @Override
