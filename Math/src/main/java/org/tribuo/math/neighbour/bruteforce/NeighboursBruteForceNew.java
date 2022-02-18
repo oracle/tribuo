@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * A naive brute-force nearest neighbour query implementation.
  */
-public final class NeighboursBruteForceNaive implements NeighboursQuery {
+public final class NeighboursBruteForceNew implements NeighboursQuery {
 
     private final SGDVector[] data;
     private final DistanceType distanceType;
@@ -44,7 +44,7 @@ public final class NeighboursBruteForceNaive implements NeighboursQuery {
      * @param distanceType The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    NeighboursBruteForceNaive(SGDVector[] data, DistanceType distanceType, int numThreads) {
+    NeighboursBruteForceNew(SGDVector[] data, DistanceType distanceType, int numThreads) {
         this.data = data;
         this.distanceType = distanceType;
         this.numThreads = numThreads;
@@ -52,40 +52,34 @@ public final class NeighboursBruteForceNaive implements NeighboursQuery {
 
     @Override
     public List<Pair<Integer, Double>> query(SGDVector point, int k) {
-        MutablePair[] indexDistanceArr = new MutablePair[k];
+        PriorityQueue<MutablePair> queue = new PriorityQueue<>(k);
 
-        for (int i = 0; i < k; i++) {
-            indexDistanceArr[i] = new MutablePair(0, Double.MAX_VALUE);
-        }
-
-        for (int neighbor = 0; neighbor < data.length; neighbor++) {
+        for (int neighbor = 0; neighbor < data.length && neighbor < k; neighbor++) {
             double distance = DistanceType.getDistance(point, data[neighbor], distanceType);
+            MutablePair newPair = new MutablePair(neighbor, distance);
+            queue.offer(newPair);
+        }
 
-            // Check at which position in the nearest distances the current distance would fit.
-            // k is typically small, but if cases with larger values of k become prevalent, this should be replaced
-            // with a binary search
-            int neighborIndex = k;
-            while (neighborIndex >= 1 && distance < indexDistanceArr[neighborIndex - 1].value) {
-                neighborIndex--;
-            }
-
-            // Shift elements in the array to make room for the current distance
-            // The for loop could be written as an arraycopy, but the result is not particularly readable, and
-            // numNeighbors is typically quite small
-            if (neighborIndex < k) {
-                for (int shiftIndex = k - 1; shiftIndex > neighborIndex; shiftIndex--) {
-                    indexDistanceArr[shiftIndex] = indexDistanceArr[shiftIndex - 1];
-                }
-                indexDistanceArr[neighborIndex] = new MutablePair(neighbor, distance);
+        for (int neighbor = k; neighbor < data.length; neighbor++) {
+            double distance = DistanceType.getDistance(point, data[neighbor], distanceType);
+            if (Double.compare(distance, queue.peek().value) < 0) {
+                MutablePair pair = queue.poll();
+                pair.index = neighbor;
+                pair.value = distance;
+                queue.offer(pair);
             }
         }
 
-        List<Pair<Integer, Double>> indexDistancePairList = new ArrayList<>();
-        for (MutablePair mutablePair : indexDistanceArr) {
-            indexDistancePairList.add(new Pair<>(mutablePair.index, mutablePair.value));
+        @SuppressWarnings("unchecked")
+        Pair<Integer, Double>[] indexDistanceArr = (Pair<Integer, Double>[]) new Pair[k];
+        int i = 1;
+        // Use an array to put the polled items from the queue into a sorted ascending order, by distance.
+        while (!queue.isEmpty()) {
+            MutablePair mutablePair = queue.poll();
+            indexDistanceArr[k - i] = new Pair<>(mutablePair.index, mutablePair.value);
+            i++;
         }
-
-        return indexDistancePairList;
+        return new ArrayList<>(Arrays.asList(indexDistanceArr));
     }
 
     @Override

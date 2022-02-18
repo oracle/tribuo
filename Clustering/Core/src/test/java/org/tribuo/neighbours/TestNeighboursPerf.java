@@ -1,6 +1,7 @@
 package org.tribuo.neighbours;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
@@ -15,8 +16,8 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForce;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNaive;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNaiveFactory;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNew;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNewFactory;
 import org.tribuo.util.Util;
 
 import java.util.logging.Level;
@@ -32,7 +33,7 @@ public class TestNeighboursPerf {
         logger.setLevel(Level.INFO);
     }
 
-    private SGDVector[] getVectors(int numSamples, long seed) {
+    private static SGDVector[] getVectors(int numSamples, long seed) {
         DataSource<ClusterID> dataSource = new GaussianClusterDataSource(numSamples, seed);
         Dataset<ClusterID> dataset = new MutableDataset<>(dataSource);
 
@@ -46,7 +47,7 @@ public class TestNeighboursPerf {
         return vectors;
     }
 
-    private void executeQuery(NeighboursQuery nq, int k) {
+    private static void executeQuery(NeighboursQuery nq, int k) {
         long startTime = System.currentTimeMillis();
         nq.queryAll(k);
         long endTime = System.currentTimeMillis();
@@ -54,29 +55,29 @@ public class TestNeighboursPerf {
         logger.info("");
     }
 
-    private void doTestIteration(NeighboursBruteForceFactory nbfFactory, NeighboursBruteForceNaiveFactory nbfnFactory) {
+    private static void doTestIteration(NeighboursBruteForceFactory nbfFactory, NeighboursBruteForceNewFactory nbfnFactory) {
         SGDVector[] data = getVectors(20000, 1L);
 
         logger.info("Target implementation: small dataset, small k");
         NeighboursBruteForce nbf = nbfFactory.createNeighboursQuery(data);
         executeQuery(nbf, 5);
 
-        logger.info("Naive implementation: small dataset, small k");
-        NeighboursBruteForceNaive nbfn = nbfnFactory.createNeighboursQuery(data);
+        logger.info("New implementation: small dataset, small k");
+        NeighboursBruteForceNew nbfn = nbfnFactory.createNeighboursQuery(data);
         executeQuery(nbfn, 5);
         logger.info("");
 
         logger.info("Target implementation: small dataset, medium k");
         executeQuery(nbf, 50);
 
-        logger.info("Naive implementation: small dataset, medium k");
+        logger.info("New implementation: small dataset, medium k");
         executeQuery(nbfn, 50);
         logger.info("");
 
         logger.info("Target implementation: small dataset, large k");
         executeQuery(nbf, 200);
 
-        logger.info("Naive implementation: small dataset, large k");
+        logger.info("New implementation: small dataset, large k");
         executeQuery(nbfn, 200);
         logger.info("");
 
@@ -89,7 +90,7 @@ public class TestNeighboursPerf {
         nbf = nbfFactory.createNeighboursQuery(data);
         executeQuery(nbf, 5);
 
-        logger.info("Naive implementation:: medium dataset, small k");
+        logger.info("New implementation:: medium dataset, small k");
         nbfn = nbfnFactory.createNeighboursQuery(data);
         executeQuery(nbfn, 5);
         logger.info("");
@@ -97,14 +98,14 @@ public class TestNeighboursPerf {
         logger.info("Target implementation: medium dataset, medium k");
         executeQuery(nbf, 50);
 
-        logger.info("Naive implementation: medium dataset, medium k");
+        logger.info("New implementation: medium dataset, medium k");
         executeQuery(nbfn, 50);
         logger.info("");
 
         logger.info("Target implementation: medium dataset, large k");
         executeQuery(nbf, 200);
 
-        logger.info("Naive implementation: medium dataset, large k");
+        logger.info("New implementation: medium dataset, large k");
         executeQuery(nbfn, 200);
 
         logger.info("");
@@ -116,40 +117,42 @@ public class TestNeighboursPerf {
         nbf = nbfFactory.createNeighboursQuery(data);
         executeQuery(nbf, 5);
 
-        logger.info("Naive implementation: big dataset, small k");
+        logger.info("New implementation: big dataset, small k");
         nbfn = nbfnFactory.createNeighboursQuery(data);
         executeQuery(nbfn, 5);
 
         logger.info("Target implementation: big dataset, medium k");
         executeQuery(nbf, 50);
 
-        logger.info("Naive implementation: big dataset, medium k");
+        logger.info("New implementation: big dataset, medium k");
         executeQuery(nbfn, 50);
 
         logger.info("Target implementation: big dataset, large k");
         executeQuery(nbf, 200);
 
-        logger.info("Naive implementation: big dataset, large k");
+        logger.info("New implementation: big dataset, large k");
         executeQuery(nbfn, 200);
 
         logger.info("");
         ////
     }
 
-    //@Test
+    @Disabled
+    @Test
     public void testSingleThreadedQueries() {
         NeighboursBruteForceFactory nbfFactory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
-        NeighboursBruteForceNaiveFactory nbfnFactory = new NeighboursBruteForceNaiveFactory(DistanceType.L2, 1);
+        NeighboursBruteForceNewFactory nbfnFactory = new NeighboursBruteForceNewFactory(DistanceType.L2, 1);
 
         logger.info("PERFORMING SINGLE THREADED TESTS...");
         logger.info("");
         doTestIteration(nbfFactory, nbfnFactory);
     }
 
-    //@Test
+    @Disabled
+    @Test
     public void testMultiThreadQueries() {
         NeighboursBruteForceFactory nbfFactory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
-        NeighboursBruteForceNaiveFactory nbfnFactory = new NeighboursBruteForceNaiveFactory(DistanceType.L2, 4);
+        NeighboursBruteForceNewFactory nbfnFactory = new NeighboursBruteForceNewFactory(DistanceType.L2, 4);
 
         logger.info("PERFORMING MULTI-THREADED TESTS...");
         logger.info("");

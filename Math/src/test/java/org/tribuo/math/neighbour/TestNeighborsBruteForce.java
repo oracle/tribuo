@@ -330,4 +330,30 @@ public class TestNeighborsBruteForce {
         return DenseVector.createDenseVector(new double[]{x, y});
     }
 
+    @Test
+    public void testSingleDimension() {
+        SGDVector[] data = new SGDVector[10];
+        data[0] = DenseVector.createDenseVector(new double[]{0});
+        data[1] = DenseVector.createDenseVector(new double[]{1});
+        data[2] = DenseVector.createDenseVector(new double[]{2});
+        data[3] = DenseVector.createDenseVector(new double[]{3});
+        data[4] = DenseVector.createDenseVector(new double[]{4});
+        data[5] = DenseVector.createDenseVector(new double[]{5});
+        data[6] = DenseVector.createDenseVector(new double[]{6});
+        data[7] = DenseVector.createDenseVector(new double[]{7});
+        data[8] = DenseVector.createDenseVector(new double[]{8});
+        data[9] = DenseVector.createDenseVector(new double[]{9});
+
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        NeighboursBruteForce nbf = factory.createNeighboursQuery(data);
+
+        SGDVector candidate = DenseVector.createDenseVector(new double[]{1.75});
+
+        List<Pair<Integer,Double>> query = nbf.query(candidate,3);
+
+        assertEquals(2,query.get(0).getA());
+        assertEquals(1,query.get(1).getA());
+        assertEquals(3,query.get(2).getA());
+    }
+
 }

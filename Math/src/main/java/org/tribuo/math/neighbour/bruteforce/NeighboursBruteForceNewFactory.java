@@ -24,7 +24,7 @@ import org.tribuo.math.neighbour.NeighboursQueryFactory;
 /**
  * A factory which creates naive brute-force nearest neighbour query objects.
  */
-public final class NeighboursBruteForceNaiveFactory implements NeighboursQueryFactory {
+public final class NeighboursBruteForceNewFactory implements NeighboursQueryFactory {
 
     @Config(description = "The distance function to use.")
     private DistanceType distanceType = DistanceType.L2;
@@ -35,7 +35,7 @@ public final class NeighboursBruteForceNaiveFactory implements NeighboursQueryFa
     /**
      * for olcut.
      */
-    private NeighboursBruteForceNaiveFactory() {
+    private NeighboursBruteForceNewFactory() {
     }
 
     /**
@@ -43,7 +43,7 @@ public final class NeighboursBruteForceNaiveFactory implements NeighboursQueryFa
      * @param distanceType The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    public NeighboursBruteForceNaiveFactory(DistanceType distanceType, int numThreads) {
+    public NeighboursBruteForceNewFactory(DistanceType distanceType, int numThreads) {
         this.distanceType = distanceType;
         this.numThreads = numThreads;
     }
@@ -53,8 +53,8 @@ public final class NeighboursBruteForceNaiveFactory implements NeighboursQueryFa
      * @param data An array of {@link SGDVector}.
      */
     @Override
-    public NeighboursBruteForceNaive createNeighboursQuery(SGDVector[] data) {
-        return new NeighboursBruteForceNaive(data, this.distanceType, this.numThreads);
+    public NeighboursBruteForceNew createNeighboursQuery(SGDVector[] data) {
+        return new NeighboursBruteForceNew(data, this.distanceType, this.numThreads);
     }
 
 }

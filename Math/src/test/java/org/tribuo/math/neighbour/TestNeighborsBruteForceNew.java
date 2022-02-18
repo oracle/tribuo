@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNaive;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNaiveFactory;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNew;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceNewFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,13 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Unit tests for the brute-force nearest neighbour query implementation.
  */
-public class TestNeighborsBruteForceNaive {
+public class TestNeighborsBruteForceNew {
 
     private static final int NUM_NEIGHBOURS_K = 4;
 
     @BeforeAll
     public static void setup() {
-        Logger logger = Logger.getLogger(NeighboursBruteForceNaive.class.getName());
+        Logger logger = Logger.getLogger(NeighboursBruteForceNew.class.getName());
         logger.setLevel(Level.WARNING);
     }
 
@@ -71,7 +71,7 @@ public class TestNeighborsBruteForceNaive {
         assertEquals(expectedDistance2, indexDistancePair.getB().doubleValue());
     }
 
-    private static void neighboursBruteForceQueryAll(NeighboursBruteForceNaive nbfn, SGDVector[] data) {
+    private static void neighboursBruteForceQueryAll(NeighboursBruteForceNew nbfn, SGDVector[] data) {
         List<List<Pair<Integer, Double>>> indexDistancePairListOfLists = nbfn.queryAll(NUM_NEIGHBOURS_K);
 
         //////////////////////////////////////////////
@@ -154,20 +154,20 @@ public class TestNeighborsBruteForceNaive {
     @Test
     public void testSingleThreadQueryAll() {
         SGDVector[] data = getTestDataVectorArray();
-        NeighboursBruteForceNaiveFactory factory = new NeighboursBruteForceNaiveFactory(DistanceType.L2, 1);
-        NeighboursBruteForceNaive nbfn = factory.createNeighboursQuery(data);
+        NeighboursBruteForceNewFactory factory = new NeighboursBruteForceNewFactory(DistanceType.L2, 1);
+        NeighboursBruteForceNew nbfn = factory.createNeighboursQuery(data);
         neighboursBruteForceQueryAll(nbfn, data);
     }
 
     @Test
     public void testMultiThreadQueryAll() {
         SGDVector[] data = getTestDataVectorArray();
-        NeighboursBruteForceNaiveFactory factory = new NeighboursBruteForceNaiveFactory(DistanceType.L2, 4);
-        NeighboursBruteForceNaive nbfn = factory.createNeighboursQuery(data);
+        NeighboursBruteForceNewFactory factory = new NeighboursBruteForceNewFactory(DistanceType.L2, 4);
+        NeighboursBruteForceNew nbfn = factory.createNeighboursQuery(data);
         neighboursBruteForceQueryAll(nbfn, data);
     }
 
-    private static void neighboursBruteForceQueryMany(NeighboursBruteForceNaive nbfn, SGDVector[] data, SGDVector[] queryData) {
+    private static void neighboursBruteForceQueryMany(NeighboursBruteForceNew nbfn, SGDVector[] data, SGDVector[] queryData) {
         List<List<Pair<Integer, Double>>> indexDistancePairListofLists = nbfn.query(queryData, NUM_NEIGHBOURS_K);
 
         //////////////////////////////////////////////
@@ -232,8 +232,8 @@ public class TestNeighborsBruteForceNaive {
     public void testSingleThreadQueryMany() {
         SGDVector[] data = getTestDataVectorArray();
         SGDVector[] queryData = getTestQueryVectorArray();
-        NeighboursBruteForceNaiveFactory factory = new NeighboursBruteForceNaiveFactory(DistanceType.L2, 1);
-        NeighboursBruteForceNaive nbfn = factory.createNeighboursQuery(data);
+        NeighboursBruteForceNewFactory factory = new NeighboursBruteForceNewFactory(DistanceType.L2, 1);
+        NeighboursBruteForceNew nbfn = factory.createNeighboursQuery(data);
         neighboursBruteForceQueryMany(nbfn, data, queryData);
     }
 
@@ -241,8 +241,8 @@ public class TestNeighborsBruteForceNaive {
     public void testMultiThreadQueryMany() {
         SGDVector[] data = getTestDataVectorArray();
         SGDVector[] queryData = getTestQueryVectorArray();
-        NeighboursBruteForceNaiveFactory factory = new NeighboursBruteForceNaiveFactory(DistanceType.L2, 2);
-        NeighboursBruteForceNaive nbfn = factory.createNeighboursQuery(data);
+        NeighboursBruteForceNewFactory factory = new NeighboursBruteForceNewFactory(DistanceType.L2, 2);
+        NeighboursBruteForceNew nbfn = factory.createNeighboursQuery(data);
         neighboursBruteForceQueryMany(nbfn, data, queryData);
     }
 
@@ -250,8 +250,8 @@ public class TestNeighborsBruteForceNaive {
     public void testNeighboursBruteForceQueryOne() {
         SGDVector[] data = getTestDataVectorArray();
         SGDVector vector = get2DPoint(5.21,5.28);
-        NeighboursBruteForceNaiveFactory factory = new NeighboursBruteForceNaiveFactory(DistanceType.L2, 1);
-        NeighboursBruteForceNaive nbfn = factory.createNeighboursQuery(data);
+        NeighboursBruteForceNewFactory factory = new NeighboursBruteForceNewFactory(DistanceType.L2, 1);
+        NeighboursBruteForceNew nbfn = factory.createNeighboursQuery(data);
         List<Pair<Integer, Double>> indexDistancePairList = nbfn.query(vector, NUM_NEIGHBOURS_K);
 
         // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring points.
@@ -268,6 +268,32 @@ public class TestNeighborsBruteForceNaive {
         double expectedDistance2 = 0.32015621187164256;
 
         assertNeighbourDistances(indexDistancePairList, expectedDistance0, expectedDistance1, expectedDistance2);
+    }
+
+    @Test
+    public void testSingleDimension() {
+        SGDVector[] data = new SGDVector[10];
+        data[0] = DenseVector.createDenseVector(new double[]{0});
+        data[1] = DenseVector.createDenseVector(new double[]{1});
+        data[2] = DenseVector.createDenseVector(new double[]{2});
+        data[3] = DenseVector.createDenseVector(new double[]{3});
+        data[4] = DenseVector.createDenseVector(new double[]{4});
+        data[5] = DenseVector.createDenseVector(new double[]{5});
+        data[6] = DenseVector.createDenseVector(new double[]{6});
+        data[7] = DenseVector.createDenseVector(new double[]{7});
+        data[8] = DenseVector.createDenseVector(new double[]{8});
+        data[9] = DenseVector.createDenseVector(new double[]{9});
+
+        NeighboursBruteForceNewFactory factory = new NeighboursBruteForceNewFactory(DistanceType.L2, 1);
+        NeighboursBruteForceNew nbf = factory.createNeighboursQuery(data);
+
+        SGDVector candidate = DenseVector.createDenseVector(new double[]{1.75});
+
+        List<Pair<Integer,Double>> query = nbf.query(candidate,3);
+
+        assertEquals(2,query.get(0).getA());
+        assertEquals(1,query.get(1).getA());
+        assertEquals(3,query.get(2).getA());
     }
 
     private SGDVector[] getTestDataVectorArray() {
