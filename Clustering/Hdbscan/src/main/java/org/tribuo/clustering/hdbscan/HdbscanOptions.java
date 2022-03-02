@@ -36,20 +36,20 @@ public final class HdbscanOptions implements Options {
     /**
      * The minimum number of points required to form a cluster. Defaults to 5.
      */
-    @Option(longName = "minimum-cluster-size", usage = "The minimum number of points required to form a cluster.")
+    @Option(longName = "hdbscan-minimum-cluster-size", usage = "The minimum number of points required to form a cluster.")
     public int minClusterSize = 5;
 
 
     /**
-     * Distance function in HDBSCAN*. Defaults to L2(EUCLIDEAN).
+     * Distance function in HDBSCAN*. Defaults to L2 (EUCLIDEAN).
      */
-    @Option(longName = "distance-type-function", usage = "The type of distance function to use for various distance calculations.")
+    @Option(longName = "hdbscan-distance-type", usage = "The type of distance function to use for various distance calculations.")
     public DistanceType distType = DistanceType.L2;
 
     /**
      * The number of nearest-neighbors to use in the initial density approximation. Defaults to 5.
      */
-    @Option(longName = "k-nearest-neighbors", usage = "The number of nearest-neighbors to use in the initial density approximation. " +
+    @Option(longName = "hdbscan-k-nearest-neighbors", usage = "The number of nearest-neighbors to use in the initial density approximation. " +
         "The value includes the point itself.")
     public int k = 5;
 

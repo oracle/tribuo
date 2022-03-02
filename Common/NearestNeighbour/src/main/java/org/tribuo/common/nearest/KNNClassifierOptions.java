@@ -59,7 +59,7 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
     /**
      * Distance metric to use. Defaults to L2 (EUCLIDEAN).
      */
-    @Option(longName = "distance-type-function", usage = "Distance metric to use.")
+    @Option(longName = "knn-distance-type", usage = "Distance metric to use.")
     public DistanceType distType = DistanceType.L2;
 
     /**

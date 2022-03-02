@@ -71,16 +71,21 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
             this.distanceType = distanceType;
         }
 
+        /**
+         * Returns the {@link DistanceType} mapping for the enumeration's value.
+         *
+         * @return distanceType The {@link DistanceType} value.
+         */
         public DistanceType getDistanceType() {
             return distanceType;
         }
     }
 
     @Deprecated
-    @Config(mandatory = true, description="The distance function used to measure nearest neighbours. This is now deprecated.")
+    @Config(description="The distance function used to measure nearest neighbours. This is now deprecated.")
     private Distance distance;
 
-    @Config(mandatory = true, description = "The distance function used to measure nearest neighbours.")
+    @Config(description = "The distance function used to measure nearest neighbours.")
     private DistanceType distType;
 
     @Config(mandatory = true, description="The number of nearest neighbours to check.")
@@ -132,11 +137,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
      */
     @Deprecated
     public KNNTrainer(int k, Distance distance, int numThreads, EnsembleCombiner<T> combiner, Backend backend) {
-        this.k = k;
-        this.distType = distance.getDistanceType();
-        this.numThreads = numThreads;
-        this.combiner = combiner;
-        this.backend = backend;
+        this(k, distance.getDistanceType(), numThreads, combiner, backend);
         postConfig();
     }
 

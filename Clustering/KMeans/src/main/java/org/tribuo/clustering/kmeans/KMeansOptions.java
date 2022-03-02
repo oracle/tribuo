@@ -43,7 +43,7 @@ public class KMeansOptions implements Options {
     /**
      * Distance function in K-Means. Defaults to L2 (EUCLIDEAN).
      */
-    @Option(longName = "distance-type-function", usage = "The type of distance function to use for various distance calculations.")
+    @Option(longName = "kmeans-distance-type", usage = "The type of distance function to use for various distance calculations.")
     public DistanceType distType = DistanceType.L2;
     /**
      * Initialisation function in K-Means. Defaults to RANDOM.

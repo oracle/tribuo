@@ -36,6 +36,9 @@ import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.test.Helpers;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,6 +48,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Unit tests with generated datasets for KNN
@@ -182,6 +186,34 @@ public class TestKNN {
             Model<Regressor> model = regressionTrainer.train(pair.getA());
             model.predict(RegressionDataGenerator.invalidSparseExample());
         });
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void deserializeKNNRegressionV42ModelTest() {
+        String serializedModelPath = "src/test/resources/KNNTrainerRegressor_k3_L2_nt2_voting_streams_v4.2.model";
+
+        KNNModel<Regressor> model = null;
+        try (ObjectInputStream oin = new ObjectInputStream(new FileInputStream(serializedModelPath))) {
+            Object data = oin.readObject();
+            model = (KNNModel<Regressor>) data;
+            if (!model.validate(Regressor.class)) {
+                fail("This is not a Regression model.");
+            }
+        } catch (IOException e) {
+            fail("There is a problem accessing the serialized model file " + serializedModelPath);
+        } catch (ClassNotFoundException e) {
+            fail("There is a problem deserializing the model file "  + serializedModelPath);
+        }
+
+        Pair<Dataset<Regressor>,Dataset<Regressor>> pair = RegressionDataGenerator.denseTrainTest();
+
+        List<Prediction<Regressor>> predictions = model.predict(pair.getB());
+
+        assertEquals(5.0, predictions.get(0).getOutput().getValues()[0]);
+        assertEquals(10.0, predictions.get(1).getOutput().getValues()[0]);
+        assertEquals(20.0, predictions.get(2).getOutput().getValues()[0]);
+        assertEquals(50.0, predictions.get(3).getOutput().getValues()[0]);
     }
 
 }

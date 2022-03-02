@@ -101,6 +101,11 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             this.distanceType = distanceType;
         }
 
+        /**
+         * Returns the {@link DistanceType} mapping for the enumeration's value.
+         *
+         * @return distanceType The {@link DistanceType} value.
+         */
         public DistanceType getDistanceType() {
             return distanceType;
         }
@@ -154,10 +159,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      */
     @Deprecated
     public HdbscanTrainer(int minClusterSize, Distance distanceType, int k, int numThreads) {
-        this.minClusterSize = minClusterSize;
-        this.distType = distanceType.getDistanceType();
-        this.k = k;
-        this.numThreads = numThreads;
+        this(minClusterSize, distanceType.getDistanceType(), k, numThreads);
     }
 
     /**

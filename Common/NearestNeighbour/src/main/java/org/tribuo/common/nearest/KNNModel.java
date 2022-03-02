@@ -51,7 +51,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Future;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -284,7 +283,6 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * @return The predictions.
      */
     private List<Prediction<T>> innerPredictWithinExampleThreadPool(Iterable<Example<T>> examples) {
-        BiFunction<SGDVector,SGDVector,Double> distanceFunc = (a,b) -> DistanceType.getDistance(b, a, distType);
 
         List<Prediction<T>> predictions = new ArrayList<>();
 
@@ -293,7 +291,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool = ThreadLocal.withInitial(() -> new PriorityQueue<>(k, (a,b) -> Double.compare(b.value, a.value)));
 
         for (Example<T> example : examples) {
-            predictions.add(innerPredictThreadPool(pool,queuePool,distanceFunc,example));
+            predictions.add(innerPredictThreadPool(pool,queuePool,distType,example));
         }
 
         pool.shutdown();
@@ -303,7 +301,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     private Prediction<T> innerPredictThreadPool(ExecutorService pool,
                                                  ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool,
-                                                 BiFunction<SGDVector,SGDVector,Double> distanceFunc,
+                                                 DistanceType distType,
                                                  Example<T> example) {
         SparseVector vector = SparseVector.createSparseVector(example, featureIDMap, false);
         List<Future<List<OutputDoublePair<T>>>> futures = new ArrayList<>();
@@ -311,7 +309,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         for (int i = 0; i < numThreads; i++) {
             int start = i * (vectors.length / numThreads);
             int end = (i + 1) * (vectors.length / numThreads);
-            futures.add(pool.submit(() -> innerPredictChunk(queuePool,vectors,start,end,distanceFunc,k,vector)));
+            futures.add(pool.submit(() -> innerPredictChunk(queuePool,vectors,start,end,distType,k,vector)));
         }
 
         PriorityQueue<OutputDoublePair<T>> queue = new PriorityQueue<>(k, (a,b) -> Double.compare(b.value, a.value));
@@ -344,7 +342,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
                                                                             Pair<SGDVector,T>[] vectors,
                                                                             int start,
                                                                             int end,
-                                                                            BiFunction<SGDVector,SGDVector,Double> distanceFunc,
+                                                                            DistanceType distType,
                                                                             int k,
                                                                             SGDVector input) {
         PriorityQueue<OutputDoublePair<T>> queue = queuePool.get();
@@ -353,7 +351,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         end = Math.min(end, vectors.length);
 
         for (int i = start; i < end; i++) {
-            double curDistance = distanceFunc.apply(input,vectors[i].getA());
+            double curDistance = DistanceType.getDistance(vectors[i].getA(), input, distType);
 
             if (queue.size() < k) {
                 OutputDoublePair<T> newPair = new OutputDoublePair<>(vectors[i].getB(),curDistance);

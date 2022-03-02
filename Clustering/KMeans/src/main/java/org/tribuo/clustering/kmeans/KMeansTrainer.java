@@ -121,6 +121,11 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             this.distanceType = distanceType;
         }
 
+        /**
+         * Returns the {@link DistanceType} mapping for the enumeration's value.
+         *
+         * @return distanceType The {@link DistanceType} value.
+         */
         public DistanceType getDistanceType() {
             return distanceType;
         }
@@ -215,12 +220,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      */
     @Deprecated
     public KMeansTrainer(int centroids, int iterations, Distance distanceType, Initialisation initialisationType, int numThreads, long seed) {
-        this.centroids = centroids;
-        this.iterations = iterations;
-        this.distType = distanceType.getDistanceType();
-        this.initialisationType = initialisationType;
-        this.numThreads = numThreads;
-        this.seed = seed;
+        this(centroids, iterations, distanceType.getDistanceType(), initialisationType, numThreads, seed);
         postConfig();
     }
 
