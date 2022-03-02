@@ -138,7 +138,6 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
     @Deprecated
     public KNNTrainer(int k, Distance distance, int numThreads, EnsembleCombiner<T> combiner, Backend backend) {
         this(k, distance.getDistanceType(), numThreads, combiner, backend);
-        postConfig();
     }
 
     /**

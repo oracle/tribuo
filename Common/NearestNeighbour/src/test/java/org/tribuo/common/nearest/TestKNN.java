@@ -191,7 +191,8 @@ public class TestKNN {
     @Test
     @SuppressWarnings("unchecked")
     public void deserializeKNNRegressionV42ModelTest() {
-        String serializedModelPath = "src/test/resources/KNNTrainerRegressor_k3_L2_nt2_voting_streams_v4.2.model";
+        String serializedModelFilename = "KNNTrainerRegressor_k3_L2_nt2_voting_streams_v4.2.model";
+        String serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename).getPath();
 
         KNNModel<Regressor> model = null;
         try (ObjectInputStream oin = new ObjectInputStream(new FileInputStream(serializedModelPath))) {

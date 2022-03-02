@@ -63,11 +63,18 @@ import java.util.logging.Logger;
  * The cluster assignments and outlier scores can be retrieved from the model after training. Outliers or noise
  * points are assigned the label 0.
  * <p>
- * See:
+ * For the HDBSCAN* algorithm see:
  * <pre>
  * R.J.G.B. Campello, D. Moulavi, A. Zimek and J. Sander "Hierarchical Density Estimates for Data Clustering,
  * Visualization, and Outlier Detection", ACM Trans. on Knowledge Discovery from Data, Vol 10, 1 (July 2015), 1-51.
  * <a href="http://lapad-web.icmc.usp.br/?portfolio_1=a-handful-of-experiments">HDBSCAN*</a>
+ * </pre>
+ * <p>
+ * For this specific implementation and prediction technique, see:
+ * <pre>
+ * G. Stewart, M. Al-Khassaweneh. "An Implementation of the HDBSCAN* Clustering Algorithm",
+ * Applied Sciences. 2022; 12(5):2405.
+ * <a href="https://doi.org/10.3390/app12052405">Manuscript</a>
  * </pre>
  */
 public final class HdbscanTrainer implements Trainer<ClusterID> {

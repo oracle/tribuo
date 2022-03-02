@@ -221,7 +221,6 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     @Deprecated
     public KMeansTrainer(int centroids, int iterations, Distance distanceType, Initialisation initialisationType, int numThreads, long seed) {
         this(centroids, iterations, distanceType.getDistanceType(), initialisationType, numThreads, seed);
-        postConfig();
     }
 
     /**

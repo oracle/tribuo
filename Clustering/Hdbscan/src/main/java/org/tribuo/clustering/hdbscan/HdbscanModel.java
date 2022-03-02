@@ -44,6 +44,13 @@ import java.util.Optional;
  * The predict method of this model approximates the cluster labels for new data points, based on the
  * current clustering. The model is not updated with the new data. This is a novel prediction technique which
  * leverages the computed cluster exemplars from the HDBSCAN* algorithm.
+ * <p>
+ * See:
+ * <pre>
+ * G. Stewart, M. Al-Khassaweneh. "An Implementation of the HDBSCAN* Clustering Algorithm",
+ * Applied Sciences. 2022; 12(5):2405.
+ * <a href="https://doi.org/10.3390/app12052405">Manuscript</a>
+ * </pre>
  */
 public final class HdbscanModel extends Model<ClusterID> {
     private static final long serialVersionUID = 1L;
