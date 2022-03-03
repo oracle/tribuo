@@ -19,8 +19,8 @@ package org.tribuo.clustering.kmeans;
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
 import org.tribuo.Trainer;
-import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Initialisation;
+import org.tribuo.math.distance.DistanceType;
 
 import java.util.logging.Logger;
 
@@ -41,10 +41,10 @@ public class KMeansOptions implements Options {
     @Option(longName = "kmeans-num-centroids", usage = "Number of centroids in K-Means. Defaults to 10.")
     public int centroids = 10;
     /**
-     * Distance function in K-Means. Defaults to EUCLIDEAN.
+     * Distance function in K-Means. Defaults to L2 (EUCLIDEAN).
      */
-    @Option(longName = "kmeans-distance", usage = "Distance function in K-Means. Defaults to EUCLIDEAN.")
-    public Distance distance = Distance.EUCLIDEAN;
+    @Option(longName = "kmeans-distance-type", usage = "The type of distance function to use for various distance calculations.")
+    public DistanceType distType = DistanceType.L2;
     /**
      * Initialisation function in K-Means. Defaults to RANDOM.
      */
@@ -64,7 +64,6 @@ public class KMeansOptions implements Options {
      */
     public KMeansTrainer getTrainer() {
         logger.info("Configuring K-Means Trainer");
-        //public KMeansTrainer(int centroids, int iterations, Distance distanceType, int numThreads, int seed) {
-        return new KMeansTrainer(centroids, iterations, distance, initialisation, numThreads, seed);
+        return new KMeansTrainer(centroids, iterations, distType, initialisation, numThreads, seed);
     }
 }
