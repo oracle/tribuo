@@ -21,6 +21,7 @@ import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,6 +71,14 @@ public class LabelConfusionMatrixTest {
         assertEquals(1, cm.support(c));
 
         assertEquals(4, cm.support());
+
+        List<Label> lblOrder = new ArrayList<>();
+        lblOrder.add(a);
+        lblOrder.add(b);
+        lblOrder.add(c);
+
+        cm.setLabelOrder(lblOrder);
+
         String cmToString = cm.toString();
         assertEquals("       a   b   c\n" + 
         			 "a      1   0   0\n" + 

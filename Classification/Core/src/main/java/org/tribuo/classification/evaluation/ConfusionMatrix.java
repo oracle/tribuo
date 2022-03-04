@@ -19,6 +19,7 @@ package org.tribuo.classification.evaluation;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 
+import java.util.List;
 import java.util.function.ToDoubleFunction;
 
 /**
@@ -129,6 +130,18 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
     }
 
     /**
+     * The label order this confusion matrix uses in {@code toString}.
+     * @return An unmodifiable view on the label order.
+     */
+    public List<T> getLabelOrder();
+
+    /**
+     * Sets the label order this confusion matrix uses in {@code toString}.
+     * @param labelOrder The label order.
+     */
+    public void setLabelOrder(List<T> labelOrder);
+
+    /**
      * Sums the supplied getter over the domain.
      * @param domain The domain to sum over.
      * @param getter The getter to use.
@@ -142,4 +155,5 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
         }
         return total;
     }
+
 }

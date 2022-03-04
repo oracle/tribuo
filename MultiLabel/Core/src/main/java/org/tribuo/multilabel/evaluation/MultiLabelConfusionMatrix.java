@@ -25,6 +25,8 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -56,6 +58,8 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
     private final DenseMatrix[] mcm;
     private final DenseMatrix confusion;
 
+    private List<MultiLabel> labelOrder;
+
     /**
      * Constructs a multi-label confusion matrix for the specified model and predictions.
      * @param model The model.
@@ -67,6 +71,7 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
 
     MultiLabelConfusionMatrix(ImmutableOutputInfo<MultiLabel> domain, List<Prediction<MultiLabel>> predictions) {
         this.domain = domain;
+        this.labelOrder = Collections.unmodifiableList(new ArrayList<>(domain.getDomain()));
         ConfusionMatrixTuple tab = tabulate(domain, predictions);
         this.mcm = tab.mcm;
         this.confusion = tab.confusion;
@@ -162,9 +167,32 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
         return total;
     }
 
+    /**
+     * Sets the label order used in {@link #toString}.
+     *
+     * @param labelOrder The label order to use.
+     */
+    @Override
+    public void setLabelOrder(List<MultiLabel> labelOrder) {
+        if (labelOrder == null || labelOrder.isEmpty()) {
+            throw new IllegalArgumentException("Label order must be non-null and non-empty.");
+        }
+        this.labelOrder = Collections.unmodifiableList(new ArrayList<>(labelOrder));
+    }
+
+    /**
+     * Gets the current label order.
+     *
+     * May trigger order instantiation if the label order has not been set.
+     * @return The label order.
+     */
+    public List<MultiLabel> getLabelOrder() {
+        return labelOrder;
+    }
+
     @Override
     public String toString() {
-        return getDomain().getDomain().stream()
+        return labelOrder.stream()
             .map(multiLabel -> {
                   final int tp = (int) tp(multiLabel);
                   final int fn = (int) fn(multiLabel);

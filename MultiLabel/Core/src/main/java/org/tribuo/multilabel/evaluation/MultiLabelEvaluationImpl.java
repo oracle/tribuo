@@ -202,8 +202,7 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
 
     @Override
     public String toString() {
-        List<MultiLabel> labelOrder = new ArrayList<>(cm.getDomain().getDomain());
-        return toString(labelOrder);
+        return toString(cm.getLabelOrder());
     }
 
     private String toString(List<MultiLabel> labelOrder) {

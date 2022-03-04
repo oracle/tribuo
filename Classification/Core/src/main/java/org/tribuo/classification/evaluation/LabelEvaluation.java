@@ -95,6 +95,8 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
 
     /**
      * Returns a HTML formatted String representing this evaluation.
+     * <p>
+     * Uses the label order of the confusion matrix.
      * @return A HTML formatted String.
      */
     default String toHTML() {
@@ -106,12 +108,14 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
      * appropriate tabs and newlines, suitable for display on a terminal.
      * It can be used as an implementation of the {@link EvaluationRenderer}
      * functional interface.
+     * <p>
+     * Uses the label order of the confusion matrix.
      * @param evaluation The evaluation to format.
      * @return Formatted output showing the main results of the evaluation.
      */
     public static String toFormattedString(LabelEvaluation evaluation) {
         ConfusionMatrix<Label> cm = evaluation.getConfusionMatrix();
-        List<Label> labelOrder = new ArrayList<>(cm.getDomain().getDomain());
+        List<Label> labelOrder = cm.getLabelOrder();
         StringBuilder sb = new StringBuilder();
         int tp = 0;
         int fn = 0;
@@ -172,12 +176,14 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
      * appropriate tabs and newlines, suitable for integation into a webpage.
      * It can be used as an implementation of the {@link EvaluationRenderer}
      * functional interface.
+     * <p>
+     * Uses the label order of the confusion matrix.
      * @param evaluation The evaluation to format.
      * @return Formatted HTML output showing the main results of the evaluation.
      */
     public static String toHTML(LabelEvaluation evaluation) {
         ConfusionMatrix<Label> cm = evaluation.getConfusionMatrix();
-        List<Label> labelOrder = new ArrayList<>(cm.getDomain().getDomain());
+        List<Label> labelOrder = cm.getLabelOrder();
         StringBuilder sb = new StringBuilder();
         int tp = 0;
         int fn = 0;

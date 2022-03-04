@@ -127,6 +127,14 @@ public class LabelEvaluatorTest {
         LabelEvaluation evaluation = new LabelEvaluator()
                 .evaluate(model, testPreds, dataset.getProvenance());
 
+        List<Label> lblOrder = new ArrayList<>();
+        lblOrder.add(new Label("a"));
+        lblOrder.add(new Label("b"));
+        lblOrder.add(new Label("c"));
+        lblOrder.add(new Label("d"));
+
+        evaluation.getConfusionMatrix().setLabelOrder(lblOrder);
+
         // Uses String.format to respect JVM locale
         String expected =     "Class                           n          tp          fn          fp      recall        prec          f1\n" +
                 String.format("a                               1           1           0           0       %1.3f       %1.3f       %1.3f\n",1.0,1.0,1.0) +
@@ -166,6 +174,14 @@ public class LabelEvaluatorTest {
 
         LabelEvaluation evaluation = new LabelEvaluator()
                 .evaluate(model, testPreds, dataset.getProvenance());
+
+        List<Label> lblOrder = new ArrayList<>();
+        lblOrder.add(new Label("a"));
+        lblOrder.add(new Label("b"));
+        lblOrder.add(new Label("c"));
+        lblOrder.add(new Label("d"));
+
+        evaluation.getConfusionMatrix().setLabelOrder(lblOrder);
 
         // Uses String.format to respect JVM locale
         String expected = "<table>\n" +
