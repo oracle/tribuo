@@ -22,7 +22,9 @@ import org.tribuo.ImmutableOutputInfo;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,21 +51,23 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
 
     private ImmutableLabelInfo(ImmutableLabelInfo info) {
         super(info);
-        idLabelMap = new HashMap<>();
+        idLabelMap = new LinkedHashMap<>();
         idLabelMap.putAll(info.idLabelMap);
-        labelIDMap = new HashMap<>();
+        labelIDMap = new LinkedHashMap<>();
         labelIDMap.putAll(info.labelIDMap);
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 
     ImmutableLabelInfo(LabelInfo info) {
         super(info);
-        idLabelMap = new HashMap<>();
-        labelIDMap = new HashMap<>();
+        idLabelMap = new LinkedHashMap<>();
+        labelIDMap = new LinkedHashMap<>();
         int counter = 0;
-        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
-            idLabelMap.put(counter,e.getKey());
-            labelIDMap.put(e.getKey(),counter);
+        List<String> keys = new ArrayList<String>(labelCounts.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            idLabelMap.put(counter,key);
+            labelIDMap.put(key,counter);
             counter++;
         }
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
@@ -75,8 +79,8 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             throw new IllegalStateException("Mapping and info come from different sources, mapping.size() = " + mapping.size() + ", info.size() = " + info.size());
         }
 
-        idLabelMap = new HashMap<>();
-        labelIDMap = new HashMap<>();
+        idLabelMap = new LinkedHashMap<>();
+        labelIDMap = new LinkedHashMap<>();
         for (Map.Entry<Label,Integer> e : mapping.entrySet()) {
             idLabelMap.put(e.getValue(),e.getKey().label);
             labelIDMap.put(e.getKey().label,e.getValue());
