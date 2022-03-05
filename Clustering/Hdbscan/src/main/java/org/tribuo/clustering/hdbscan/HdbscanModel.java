@@ -107,6 +107,18 @@ public final class HdbscanModel extends Model<ClusterID> {
         return outlierScores;
     }
 
+    /**
+     * Returns a deep copy of the cluster exemplars.
+     * @return The cluster exemplars.
+     */
+    public List<HdbscanTrainer.ClusterExemplar> getClusterExemplars() {
+        List<HdbscanTrainer.ClusterExemplar> list = new ArrayList<>(clusterExemplars.size());
+        for (HdbscanTrainer.ClusterExemplar e : clusterExemplars) {
+            list.add(e.copy());
+        }
+        return list;
+    }
+
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
         SGDVector vector;
