@@ -54,12 +54,15 @@ public final class NeighboursBruteForce implements NeighboursQuery {
     public List<Pair<Integer, Double>> query(SGDVector point, int k) {
         PriorityQueue<MutablePair> queue = new PriorityQueue<>(k);
 
-        for (int neighbor = 0; neighbor < data.length; neighbor++) {
+        for (int neighbor = 0; neighbor < data.length && neighbor < k; neighbor++) {
             double distance = DistanceType.getDistance(point, data[neighbor], distanceType);
-            if (queue.size() < k) {
-                MutablePair newPair = new MutablePair(neighbor, distance);
-                queue.offer(newPair);
-            } else if (Double.compare(distance, queue.peek().value) < 0) {
+            MutablePair newPair = new MutablePair(neighbor, distance);
+            queue.offer(newPair);
+        }
+
+        for (int neighbor = k; neighbor < data.length; neighbor++) {
+            double distance = DistanceType.getDistance(point, data[neighbor], distanceType);
+            if (Double.compare(distance, queue.peek().value) < 0) {
                 MutablePair pair = queue.poll();
                 pair.index = neighbor;
                 pair.value = distance;
