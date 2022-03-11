@@ -26,6 +26,7 @@ import org.tribuo.common.nearest.KNNModel.Backend;
 import org.tribuo.common.nearest.KNNTrainer.Distance;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 
 /**
  * CLI Options for training a k-nearest neighbour predictor.
@@ -72,6 +73,11 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
      */
     @Option(longName = "knn-voting", usage = "Parallel backend to use.")
     public EnsembleCombinerType knnEnsembleCombiner = EnsembleCombinerType.VOTING;
+    /**
+     * The nearest neighbour implementation factory to use. Defaults to {@link NeighboursQueryFactoryType#KD_TREE}.
+     */
+    @Option(longName = "knn-neighbour-query-factory-type", usage = "The nearest neighbour implementation factory to use.")
+    public NeighboursQueryFactoryType nqFactoryType = NeighboursQueryFactoryType.KD_TREE;
 
     @Override
     public String getOptionsDescription() {
@@ -91,6 +97,6 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
 
     @Override
     public KNNTrainer<Label> getTrainer() {
-        return new KNNTrainer<>(knnK, distType, knnNumThreads, getEnsembleCombiner(), knnBackend);
+        return new KNNTrainer<>(knnK, distType, knnNumThreads, getEnsembleCombiner(), knnBackend, nqFactoryType);
     }
 }
