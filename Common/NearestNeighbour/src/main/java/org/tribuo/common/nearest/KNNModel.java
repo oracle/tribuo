@@ -32,7 +32,8 @@ import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.neighbour.NeighboursQuery;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
+import org.tribuo.math.neighbour.NeighboursQueryFactory;
+import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -107,9 +108,13 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     private final EnsembleCombiner<T> combiner;
 
+    // This is not final to support deserialization of older models. It will be final in a future version which doesn't
+    // maintain serialization compatibility with 4.X.
+    private NeighboursQueryFactory neighboursQueryFactory;
+
     KNNModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
              boolean generatesProbabilities, int k, DistanceType distType, int numThreads, EnsembleCombiner<T> combiner,
-             Pair<SGDVector,T>[] vectors, Backend backend) {
+             Pair<SGDVector,T>[] vectors, Backend backend, NeighboursQueryFactory neighboursQueryFactory) {
         super(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities);
         this.k = k;
         this.distType = distType;
@@ -117,6 +122,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         this.combiner = combiner;
         this.parallelBackend = backend;
         this.vectors = vectors;
+        this.neighboursQueryFactory = neighboursQueryFactory;
     }
 
     @Override
@@ -166,8 +172,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
             List<Prediction<T>> predictions = new ArrayList<>();
             List<Prediction<T>> innerPredictions = new ArrayList<>();
 
-            NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(distType, numThreads);
-            NeighboursQuery nq = nbff.createNeighboursQuery(getSGDVectorArr());
+            NeighboursQuery nq = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
 
             for (Example<T> example : examples) {
                 innerPredictions.clear();
@@ -257,8 +262,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
         List<Future<Prediction<T>>> futures = new ArrayList<>();
 
-        NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(distType, numThreads);
-        NeighboursQuery nq = nbff.createNeighboursQuery(getSGDVectorArr());
+        NeighboursQuery nq = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
 
         for (Example<T> example : examples) {
             futures.add(pool.submit(() -> innerPredictOne(nq,vectors,combiner,featureIDMap,outputIDInfo,k,example)));
@@ -410,13 +414,17 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         for (int i = 0; i < vectors.length; i++) {
             vectorCopy[i] = new Pair<>(vectors[i].getA().copy(),vectors[i].getB().copy());
         }
-        return new KNNModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,k,distType,numThreads,combiner,vectorCopy,parallelBackend);
+        return new KNNModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,k,distType,
+            numThreads,combiner,vectorCopy,parallelBackend,neighboursQueryFactory);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         if (distType == null) {
             distType = distance.getDistanceType();
+        }
+        if (neighboursQueryFactory == null) {
+            neighboursQueryFactory = new KDTreeFactory(distType, numThreads);
         }
     }
 

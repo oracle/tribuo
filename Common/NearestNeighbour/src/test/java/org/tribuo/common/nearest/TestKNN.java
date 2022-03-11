@@ -30,6 +30,7 @@ import org.tribuo.classification.example.DemoLabelDataSource;
 import org.tribuo.classification.example.NoisyInterlockingCrescentsDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -55,8 +56,10 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class TestKNN {
 
-    static final private KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 2, new AveragingCombiner(), KNNModel.Backend.STREAMS);
-    static final private KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 2, new VotingCombiner(), KNNModel.Backend.THREADPOOL);
+    static final private KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 2,
+        new AveragingCombiner(), KNNModel.Backend.STREAMS, NeighboursQueryFactoryType.BRUTE_FORCE);
+    static final private KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 2,
+        new VotingCombiner(), KNNModel.Backend.THREADPOOL, NeighboursQueryFactoryType.KD_TREE);
 
     @BeforeAll
     public static void setup() {
@@ -67,7 +70,8 @@ public class TestKNN {
     @Test
     public void invocationCounterTest() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> pair = RegressionDataGenerator.sparseTrainTest();
-        KNNTrainer<Regressor> trainer = new KNNTrainer<>(2, DistanceType.L1, 2, new AveragingCombiner(), KNNModel.Backend.THREADPOOL);
+        KNNTrainer<Regressor> trainer = new KNNTrainer<>(2, DistanceType.L1, 2, new AveragingCombiner(),
+            KNNModel.Backend.THREADPOOL, NeighboursQueryFactoryType.BRUTE_FORCE);
 
         for (int i = 0; i < 5; i++) {
             Model<Regressor> model = trainer.train(pair.getA());
@@ -104,7 +108,8 @@ public class TestKNN {
 
     @Test
     public void knnRegressionSingleThreadedTest() {
-        KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 1, new AveragingCombiner(), KNNModel.Backend.THREADPOOL);
+        KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 1,
+            new AveragingCombiner(), KNNModel.Backend.THREADPOOL, NeighboursQueryFactoryType.BRUTE_FORCE);
         testKNNRegression(regressionTrainer);
     }
 
@@ -135,7 +140,8 @@ public class TestKNN {
 
     @Test
     public void knnClassificationSingleThreadedTest() {
-        KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 1, new VotingCombiner(), KNNModel.Backend.INNERTHREADPOOL);
+        KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 1,
+            new VotingCombiner(), KNNModel.Backend.INNERTHREADPOOL, NeighboursQueryFactoryType.KD_TREE);
         testKNNClassification(classificationTrainer);
     }
 

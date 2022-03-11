@@ -19,69 +19,72 @@ package org.tribuo.math.neighbour;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.math.distance.DistanceType;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForce;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
+import org.tribuo.math.neighbour.kdtree.KDTree;
+import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Unit tests for the brute-force nearest neighbour query implementation.
+ * Unit tests for the k-d tree nearest neighbour query implementation. See {@link NeighbourQueryTestHelper} for the
+ * details of the tests.
  */
-public class TestNeighborsBruteForce {
-
+public class TestKDTree {
+    
     @BeforeAll
     public static void setup() {
-        Logger logger = Logger.getLogger(NeighboursBruteForce.class.getName());
+        Logger logger = Logger.getLogger(KDTree.class.getName());
         logger.setLevel(Level.WARNING);
     }
 
     @Test
     public void testSingleThreadQueryAll() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
         NeighbourQueryTestHelper.neighboursQueryAll(factory);
     }
 
     @Test
     public void testMultiThreadQueryAll() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 4);
         NeighbourQueryTestHelper.neighboursQueryAll(factory);
     }
 
 
     @Test
     public void testSingleThreadQueryMany() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
         NeighbourQueryTestHelper.neighboursQueryMany(factory);
     }
 
     @Test
     public void testMultiThreadQueryMany() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 2);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 2);
         NeighbourQueryTestHelper.neighboursQueryMany(factory);
     }
 
     @Test
     public void testNeighboursQueryOneInclusive() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
         NeighbourQueryTestHelper.neighboursQueryOneInclusive(factory);
     }
 
     @Test
     public void testNeighboursQueryOneExclusive() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
         NeighbourQueryTestHelper.neighboursQueryOneExclusive(factory);
     }
 
     @Test
     public void testSingleDimension() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
         NeighbourQueryTestHelper.neighboursQuerySingleDimension(factory);
     }
 
     @Test
     public void testMultiThreadQueryMany3D() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 2);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 2);
         NeighbourQueryTestHelper.neighboursQueryMany3D(factory);
     }
+
 }

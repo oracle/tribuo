@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.math.neighbour.bruteforce;
+package org.tribuo.math.neighbour.kdtree;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import org.tribuo.math.distance.DistanceType;
@@ -22,9 +22,9 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 
 /**
- * A factory which creates brute-force nearest neighbour query objects.
+ * A factory which creates k-d tree nearest neighbour query objects.
  */
-public final class NeighboursBruteForceFactory implements NeighboursQueryFactory {
+public class KDTreeFactory implements NeighboursQueryFactory {
     private static final long serialVersionUID = 1L;
 
     @Config(description = "The distance function to use.")
@@ -36,26 +36,25 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
     /**
      * for olcut.
      */
-    private NeighboursBruteForceFactory() {
+    private KDTreeFactory() {
     }
 
     /**
-     * Constructs a brute-force nearest neighbor query factory object using the supplied parameters.
+     * Constructs a k-d tree nearest neighbor query factory object using the supplied parameters.
      * @param distanceType The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    public NeighboursBruteForceFactory(DistanceType distanceType, int numThreads) {
+    public KDTreeFactory(DistanceType distanceType, int numThreads) {
         this.distanceType = distanceType;
         this.numThreads = numThreads;
     }
 
     /**
-     * Constructs a brute-force nearest neighbor query object using the supplied array of {@link SGDVector}.
+     * Constructs a k-d tree nearest neighbor query object using the supplied array of {@link SGDVector}.
      * @param data An array of {@link SGDVector}.
      */
     @Override
-    public NeighboursBruteForce createNeighboursQuery(SGDVector[] data) {
-        return new NeighboursBruteForce(data, this.distanceType, this.numThreads);
+    public KDTree createNeighboursQuery(SGDVector[] data) {
+        return new KDTree(data, this.distanceType, this.numThreads);
     }
-
 }
