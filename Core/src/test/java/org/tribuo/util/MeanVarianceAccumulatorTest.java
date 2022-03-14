@@ -99,13 +99,11 @@ public class MeanVarianceAccumulatorTest {
             values[i] = rng.nextDouble();
         }
 
-        double[] firstValues = new double[2048];
-        double[] secondValues = new double[2048];
+        double[] firstValues = new double[3072];
+        double[] secondValues = new double[1024];
 
-        for (int i = 0; i < firstValues.length; i++) {
-            firstValues[i] = values[i];
-            secondValues[i] = values[i+2048];
-        }
+        System.arraycopy(values, 0, firstValues, 0, firstValues.length);
+        System.arraycopy(values, 3072, secondValues, 0, secondValues.length);
 
         MeanVarianceAccumulator totalAccumulator = new MeanVarianceAccumulator(values);
 

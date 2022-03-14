@@ -215,7 +215,7 @@ public final class MeanVarianceAccumulator implements Serializable {
         double min = Math.min(first.min, second.min);
 
         long count = first.count + second.count;
-        double mean = (first.mean + second.mean) / 2.0;
+        double mean = ((first.mean * first.count) + (second.mean * second.count)) / count;
         double delta = second.mean - first.mean;
         double countFraction = ((double) first.count) / count;
         double sumSquares = first.sumSquares + second.sumSquares + ((delta*delta) * (countFraction * second.count));
