@@ -1,0 +1,198 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo core types and interfaces.
+ */
+package tribuo.core;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.protos.core";
+
+// We use any to encode polymorphism in feature domains, output domains, and model values
+import "google/protobuf/any.proto";
+
+// Import OLCUT's provenance proto
+import "olcut.proto";
+
+/*
+Base model protobuf. Contains the core model fields, along with an Any containing model specific information.
+ */
+message ModelProto {
+  /*
+  Version number of the model proto
+   */
+  int32 version = 1;
+  /*
+  The model name
+   */
+  string name = 2;
+  /*
+  The model provenance
+   */
+  olcut.RootProvenanceProto provenance = 3;
+  /*
+  Does the model generate probabilities
+   */
+  bool generate_probabilities = 4;
+  /*
+  Model feature domain
+   */
+  FeatureDomainProto feature_domain = 5;
+  /*
+  Model output domain
+   */
+  OutputDomainProto output_domain = 6;
+  /*
+  Model data
+   */
+  ModelDataProto model_data = 7;
+}
+
+/*
+Output Factory redirection proto
+ */
+message OutputFactoryProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Feature domain redirection proto
+ */
+message FeatureDomainProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Output domain redirection proto
+ */
+message OutputDomainProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Model data redirection proto
+ */
+message ModelDataProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Output redirection proto
+ */
+message OutputProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Example proto
+ */
+message ExampleProto {
+  int32 version = 1;
+  string class_name = 2;
+  OutputProto output = 3;
+  repeated string feature_name = 4;
+  repeated double feature_value = 5;
+  map<string,string> metadata = 6;
+}
+
+/*
+Dataset proto
+ */
+message DatasetProto {
+  int32 version = 1;
+  string class_name = 2;
+  olcut.RootProvenanceProto provenance = 3;
+  FeatureDomainProto feature_domain = 4;
+  OutputDomainProto output_domain = 5;
+  repeated ExampleProto examples = 6;
+  olcut.ListProvenanceProto transform_provenance = 7;
+}
+
+/*
+Prediction proto
+ */
+message PredictionProto {
+  int32 version = 1;
+  string class_name = 2;
+  ExampleProto example = 3;
+  OutputProto output = 4;
+  bool probability = 5;
+  int32 num_used = 6;
+  int32 example_size = 7;
+  map<string,OutputProto> output_scores = 8;
+}
+
+/*
+Combiner redirection proto
+ */
+message EnsembleCombinerProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Transformer redirection proto
+ */
+message TransformerProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Transformer map proto
+ */
+message TransformerMapProto {
+  int32 version = 1;
+  map<string, TransformerProto> map = 2;
+  olcut.RootProvenanceProto datasetProvenance = 3;
+  olcut.RootProvenanceProto transformationMapProvenance = 4;
+}
+
+/*
+Hasher redirection proto
+ */
+message HasherProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Mean variance accumulator proto
+ */
+message MeanVarianceProto {
+  int32 version = 1;
+  double max = 2;
+  double min = 3;
+  double mean = 4;
+  double sumSquares = 5;
+  int64 count = 6;
+}
