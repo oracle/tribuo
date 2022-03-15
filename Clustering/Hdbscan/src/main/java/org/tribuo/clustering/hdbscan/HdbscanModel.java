@@ -68,14 +68,17 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     private final List<HdbscanTrainer.ClusterExemplar> clusterExemplars;
 
+    private final double noisePointsOutlierScore;
+
     HdbscanModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                  ImmutableOutputInfo<ClusterID> outputIDInfo, List<Integer> clusterLabels, DenseVector outlierScoresVector,
-                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, DistanceType distType) {
+                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, DistanceType distType, double noisePointsOutlierScore) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.clusterLabels = clusterLabels;
         this.outlierScoresVector = outlierScoresVector;
         this.clusterExemplars = clusterExemplars;
         this.distType = distType;
+        this.noisePointsOutlierScore = noisePointsOutlierScore;
     }
 
     /**
@@ -115,18 +118,38 @@ public final class HdbscanModel extends Model<ClusterID> {
         if (vector.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example);
         }
+
         double minDistance = Double.POSITIVE_INFINITY;
-        int clusterLabel = -1;
-        double clusterOutlierScore = 0.0;
-        for (HdbscanTrainer.ClusterExemplar clusterExemplar : clusterExemplars) {
-            double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), vector, distType);
-            if (distance < minDistance) {
-                minDistance = distance;
-                clusterLabel = clusterExemplar.getLabel();
-                clusterOutlierScore = clusterExemplar.getOutlierScore();
+        int clusterLabel = HdbscanTrainer.OUTLIER_NOISE_CLUSTER_LABEL;
+        double outlierScore = 0.0;
+        if (Double.compare(noisePointsOutlierScore, 0) > 0) { // This will be true from models > 4.2
+            boolean isNoisePoint = true;
+            for (HdbscanTrainer.ClusterExemplar clusterExemplar : clusterExemplars) {
+                double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), vector, distType);
+                if (isNoisePoint && distance <= clusterExemplar.getMaxDistToEdge()) {
+                    isNoisePoint = false;
+                }
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    clusterLabel = clusterExemplar.getLabel();
+                    outlierScore = clusterExemplar.getOutlierScore();
+                }
+            }
+            if (isNoisePoint) {
+                outlierScore = noisePointsOutlierScore;
             }
         }
-        return new Prediction<>(new ClusterID(clusterLabel, clusterOutlierScore),vector.size(),example);
+        else {
+            for (HdbscanTrainer.ClusterExemplar clusterExemplar : clusterExemplars) {
+                double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), vector, distType);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    clusterLabel = clusterExemplar.getLabel();
+                    outlierScore = clusterExemplar.getOutlierScore();
+                }
+            }
+        }
+        return new Prediction<>(new ClusterID(clusterLabel, outlierScore),vector.size(),example);
     }
 
     @Override
@@ -145,7 +168,7 @@ public final class HdbscanModel extends Model<ClusterID> {
         List<Integer> copyClusterLabels = Collections.unmodifiableList(clusterLabels);
         List<HdbscanTrainer.ClusterExemplar> copyExemplars = new ArrayList<>(clusterExemplars);
         return new HdbscanModel(newName, newProvenance, featureIDMap, outputIDInfo, copyClusterLabels,
-            copyOutlierScoresVector, copyExemplars, distType);
+            copyOutlierScoresVector, copyExemplars, distType, noisePointsOutlierScore);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
