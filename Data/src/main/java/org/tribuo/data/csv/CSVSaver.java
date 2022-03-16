@@ -37,10 +37,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
-import java.util.Collections;
 import java.util.logging.Logger;
 
 /**
@@ -116,10 +114,8 @@ public class CSVSaver implements Configurable {
             responseToColumn.put(response, col);
             col++;
         }
-        List<String> featuresKeys = new ArrayList<String>(features.keySet());
-        Collections.sort(featuresKeys);
-        for (String featuresKey : featuresKeys) {
-            headerLine[col++] = features.get(featuresKey).getName();
+        for (int i = 0; i < features.size(); i++) {
+            headerLine[col++] = features.get(i).getName();
         }
         //
         // Write the CSV

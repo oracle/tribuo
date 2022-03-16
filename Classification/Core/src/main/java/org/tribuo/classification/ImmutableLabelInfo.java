@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -51,17 +51,17 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
 
     private ImmutableLabelInfo(ImmutableLabelInfo info) {
         super(info);
-        idLabelMap = new LinkedHashMap<>();
+        idLabelMap = new HashMap<>();
         idLabelMap.putAll(info.idLabelMap);
-        labelIDMap = new LinkedHashMap<>();
+        labelIDMap = new HashMap<>();
         labelIDMap.putAll(info.labelIDMap);
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 
     ImmutableLabelInfo(LabelInfo info) {
         super(info);
-        idLabelMap = new LinkedHashMap<>();
-        labelIDMap = new LinkedHashMap<>();
+        idLabelMap = new HashMap<>();
+        labelIDMap = new HashMap<>();
         int counter = 0;
         List<String> keys = new ArrayList<String>(labelCounts.keySet());
         Collections.sort(keys);
@@ -79,8 +79,8 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             throw new IllegalStateException("Mapping and info come from different sources, mapping.size() = " + mapping.size() + ", info.size() = " + info.size());
         }
 
-        idLabelMap = new LinkedHashMap<>();
-        labelIDMap = new LinkedHashMap<>();
+        idLabelMap = new HashMap<>();
+        labelIDMap = new HashMap<>();
         for (Map.Entry<Label,Integer> e : mapping.entrySet()) {
             idLabelMap.put(e.getValue(),e.getKey().label);
             labelIDMap.put(e.getKey().label,e.getValue());
