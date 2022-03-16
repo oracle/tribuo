@@ -197,7 +197,7 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
         for (Pair<Integer,T> p : outputInfo) {
             firstList.add(p);
         }
-        List<Pair<Integer,T>> comparisonSet = new ArrayList<>();
+        List<Pair<Integer,T>> comparisonList = new ArrayList<>();
         for (int i = 1; i < models.size(); i++) {
             comparisonList.clear();
             for (Pair<Integer,T> p : models.get(i).getOutputIDInfo()) {

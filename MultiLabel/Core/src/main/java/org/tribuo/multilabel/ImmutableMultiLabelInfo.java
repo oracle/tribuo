@@ -63,6 +63,7 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
         for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
             idLabelMap.put(counter,e.getKey());
             labelIDMap.put(e.getKey(),counter);
+            counter++;
         }
 
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));

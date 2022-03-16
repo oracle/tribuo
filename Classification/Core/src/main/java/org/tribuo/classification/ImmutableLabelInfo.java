@@ -64,6 +64,7 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
         for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
             idLabelMap.put(counter,e.getKey());
             labelIDMap.put(e.getKey(),counter);
+            counter++;
         }
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
