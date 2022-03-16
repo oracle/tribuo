@@ -206,8 +206,6 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
                 comparisonSet.add(p);
             }
             if (!firstSet.equals(comparisonSet)) {
-              System.out.println(firstSet);
-              System.out.println(comparisonSet);
                 throw new IllegalArgumentException("Model output domains are not equal.");
             }
         }
