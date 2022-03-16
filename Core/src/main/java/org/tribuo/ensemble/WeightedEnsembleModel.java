@@ -41,10 +41,8 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -195,17 +193,17 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
 
         // Validate output domains
         ImmutableOutputInfo<T> outputInfo = models.get(0).getOutputIDInfo();
-        Set<Pair<Integer,T>> firstSet = new HashSet<>();
+        List<Pair<Integer,T>> firstList = new ArrayList<>();
         for (Pair<Integer,T> p : outputInfo) {
-            firstSet.add(p);
+            firstList.add(p);
         }
-        Set<Pair<Integer,T>> comparisonSet = new HashSet<>();
+        List<Pair<Integer,T>> comparisonSet = new ArrayList<>();
         for (int i = 1; i < models.size(); i++) {
-            comparisonSet.clear();
+            comparisonList.clear();
             for (Pair<Integer,T> p : models.get(i).getOutputIDInfo()) {
-                comparisonSet.add(p);
+                comparisonList.add(p);
             }
-            if (!firstSet.equals(comparisonSet)) {
+            if (!firstList.equals(comparisonList)) {
                 throw new IllegalArgumentException("Model output domains are not equal.");
             }
         }

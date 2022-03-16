@@ -22,8 +22,6 @@ import org.tribuo.ImmutableOutputInfo;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -62,12 +60,9 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
         idLabelMap = new HashMap<>();
         labelIDMap = new HashMap<>();
         int counter = 0;
-        List<String> keys = new ArrayList<String>(labelCounts.keySet());
-        Collections.sort(keys);
-        for (String key : keys) {
-            idLabelMap.put(counter,key);
-            labelIDMap.put(key,counter);
-            counter++;
+        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
+            idLabelMap.put(counter,e.getKey());
+            labelIDMap.put(e.getKey(),counter);
         }
 
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
