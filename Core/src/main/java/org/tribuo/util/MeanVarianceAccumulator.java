@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,22 @@ public final class MeanVarianceAccumulator implements Serializable {
         this.mean = other.mean;
         this.sumSquares = other.sumSquares;
         this.count = other.count;
+    }
+
+    /**
+     * Internal constructor for merge.
+     * @param max The max value.
+     * @param min The min value.
+     * @param mean The mean value.
+     * @param sumSquares The running sum of squares.
+     * @param count The count of values.
+     */
+    private MeanVarianceAccumulator(double max, double min, double mean, double sumSquares, long count) {
+        this.max = max;
+        this.min = min;
+        this.mean = mean;
+        this.sumSquares = sumSquares;
+        this.count = count;
     }
 
     /**
@@ -186,5 +202,24 @@ public final class MeanVarianceAccumulator implements Serializable {
      */
     public void standardizeInPlace(double[] input) {
         Util.standardizeInPlace(input,getMean(),getVariance());
+    }
+
+    /**
+     * Implement Chan's algorithm for merging two mean variance accumulators.
+     * @param first The first mean variance accumulator.
+     * @param second The second mean variance accumulator.
+     * @return A merged mean variance accumulator.
+     */
+    public static MeanVarianceAccumulator merge(MeanVarianceAccumulator first, MeanVarianceAccumulator second) {
+        double max = Math.max(first.max, second.max);
+        double min = Math.min(first.min, second.min);
+
+        long count = first.count + second.count;
+        double mean = ((first.mean * first.count) + (second.mean * second.count)) / count;
+        double delta = second.mean - first.mean;
+        double countFraction = ((double) first.count) / count;
+        double sumSquares = first.sumSquares + second.sumSquares + ((delta*delta) * (countFraction * second.count));
+
+        return new MeanVarianceAccumulator(max,min,mean,sumSquares,count);
     }
 }
