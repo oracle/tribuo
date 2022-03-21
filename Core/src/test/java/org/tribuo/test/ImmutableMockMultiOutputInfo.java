@@ -70,6 +70,12 @@ public class ImmutableMockMultiOutputInfo extends MockMultiOutputInfo implements
         return totalCount;
     }
 
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<MockMultiOutput> other) {
+        ImmutableMockMultiOutputInfo otherInfo = (ImmutableMockMultiOutputInfo) other;
+        return otherInfo.idLabelMap.equals(idLabelMap);
+    }
+
     public long getLabelCount(int id) {
         String label = idLabelMap.get(id);
         if (label != null) {

@@ -76,4 +76,15 @@ public final class ImmutableAnomalyInfo extends AnomalyInfo implements Immutable
 
         return list.iterator();
     }
+
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<Event> other) {
+        if (other instanceof ImmutableAnomalyInfo) {
+            return true;
+        } else {
+            return other.size() == 2
+                    && other.getID(AnomalyFactory.ANOMALOUS_EVENT) == AnomalyFactory.ANOMALOUS_EVENT.getType().getID()
+                    && other.getID(AnomalyFactory.EXPECTED_EVENT) == AnomalyFactory.EXPECTED_EVENT.getType().getID();
+        }
+    }
 }

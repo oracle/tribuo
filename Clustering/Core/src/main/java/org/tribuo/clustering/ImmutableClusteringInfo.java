@@ -100,6 +100,11 @@ public class ImmutableClusteringInfo extends ClusteringInfo implements Immutable
         return new ImmutableInfoIterator(clusterCounts.keySet());
     }
 
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<ClusterID> other) {
+        return getDomain().equals(other.getDomain());
+    }
+
     private static class ImmutableInfoIterator implements Iterator<Pair<Integer,ClusterID>> {
 
         private final Iterator<Integer> itr;

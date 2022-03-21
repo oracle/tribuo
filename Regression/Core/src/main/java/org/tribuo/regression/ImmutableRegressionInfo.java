@@ -334,6 +334,23 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
         return new ImmutableInfoIterator(idLabelMap);
     }
 
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<Regressor> other) {
+        if (size() == other.size()) {
+            for (Map.Entry<Integer,String> e : idLabelMap.entrySet()) {
+                Regressor otherReg = other.getOutput(e.getKey());
+                if (otherReg == null) {
+                    return false;
+                } else if (!otherReg.getDimensionNamesString().equals(e.getValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private static class ImmutableInfoIterator implements Iterator<Pair<Integer, Regressor>> {
 
         private final Iterator<Map.Entry<Integer,String>> itr;

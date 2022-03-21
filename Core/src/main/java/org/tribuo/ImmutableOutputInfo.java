@@ -45,4 +45,12 @@ public interface ImmutableOutputInfo<T extends Output<T>> extends OutputInfo<T>,
      */
     public long getTotalObservations();
 
+    /**
+     * Checks if the domain is the same as the other output info's domain, and that
+     * each element is mapped to the same id number.
+     * @param other The output info to compare.
+     * @return True if the domains and ids are the same.
+     */
+    public boolean domainAndIDEquals(ImmutableOutputInfo<T> other);
+
 }

@@ -161,6 +161,12 @@ public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableO
     }
 
     @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<MockOutput> other) {
+        MockOutputInfo otherInfo = (MockOutputInfo) other;
+        return otherInfo.idLabelMap.equals(idLabelMap);
+    }
+
+    @Override
     public Iterator<Pair<Integer, MockOutput>> iterator() {
         return new ImmutableInfoIterator(idLabelMap);
     }
