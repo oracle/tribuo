@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.tribuo.classification.evaluation;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
 
@@ -131,15 +132,25 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
 
     /**
      * The label order this confusion matrix uses in {@code toString}.
+     * <p>
+     * The default implementation is provided for compatibility reasons and will be removed
+     * in a future major release.
      * @return An unmodifiable view on the label order.
      */
-    public List<T> getLabelOrder();
+    public default List<T> getLabelOrder() {
+        return new ArrayList<>(getDomain().getDomain());
+    }
 
     /**
      * Sets the label order this confusion matrix uses in {@code toString}.
+     * <p>
+     * The default implementation does not set the label order and is provided for
+     * backwards compatibility reasons. It should be overridden in all subclasses to
+     * ensure correct behaviour, and this default implementation will be removed in a
+     * future major release.
      * @param labelOrder The label order.
      */
-    public void setLabelOrder(List<T> labelOrder);
+    public default void setLabelOrder(List<T> labelOrder) {}
 
     /**
      * Sums the supplied getter over the domain.
