@@ -114,8 +114,8 @@ public class CSVSaver implements Configurable {
             responseToColumn.put(response, col);
             col++;
         }
-        for (VariableInfo feature : features) {
-            headerLine[col++] = feature.getName();
+        for (int i = 0; i < features.size(); i++) {
+            headerLine[col++] = features.get(i).getName();
         }
         //
         // Write the CSV
