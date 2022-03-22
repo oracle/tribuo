@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,17 @@
 
 package org.tribuo.hash;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
+import org.tribuo.protos.core.HashedFeatureMapProto;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ProtoUtil;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -39,6 +45,29 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
     private HashedFeatureMap(Hasher hasher) {
         super();
         this.hasher = hasher;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static HashedFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        HashedFeatureMapProto proto = message.unpack(HashedFeatureMapProto.class);
+        HasherProto hasherProto = proto.getHasher();
+        Hasher hasher = (Hasher) ProtoUtil.instantiate(hasherProto.getVersion(), hasherProto.getClassName(), hasherProto.getSerializedData());
+        HashedFeatureMap obj = new HashedFeatureMap(hasher);
+        for (VariableInfoProto infoProto : proto.getInfoList()) {
+            VariableIDInfo info = (VariableIDInfo) ProtoUtil.instantiate(infoProto.getVersion(), infoProto.getClassName(), infoProto.getSerializedData());
+            Object o = obj.idMap.put(info.getID(), info);
+            Object otherO = obj.m.put(info.getName(),info);
+            if ((o != null) || (otherO != null)) {
+                throw new IllegalStateException("Invalid protobuf, found two mappings for " + info.getName());
+            }
+        }
+        obj.size = proto.getInfoCount();
+        return obj;
     }
 
     @Override

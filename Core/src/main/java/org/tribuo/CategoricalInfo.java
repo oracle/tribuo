@@ -16,8 +16,12 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.MutableNumber;
+import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
@@ -115,6 +119,39 @@ public class CategoricalInfo extends SkeletalVariableInfo {
             observedValue = info.observedValue;
             observedCount = info.observedCount;
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static CategoricalInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        CategoricalInfoProto proto = message.unpack(CategoricalInfoProto.class);
+        if (proto.getId() != -1) {
+            throw new IllegalStateException("Invalid protobuf, found an id where none was expected, id = " + proto.getId());
+        }
+        CategoricalInfo info = new CategoricalInfo(proto.getName());
+        List<Double> keys = proto.getKeyList();
+        List<Long> values = proto.getValueList();
+        if (keys.size() != values.size()) {
+            throw new IllegalStateException("Invalid protobuf, keys and values don't match. keys.size() = " + keys.size() + ", values.size() = " + values.size());
+        }
+        int newCount = 0;
+        if (keys.size() > 1) {
+            info.valueCounts = new HashMap<>(keys.size());
+            for (int i = 0; i < keys.size(); i++) {
+                info.valueCounts.put(keys.get(i),new MutableLong(values.get(i)));
+                newCount += values.get(i).intValue();
+            }
+        } else {
+            info.observedValue = keys.get(0);
+            info.observedCount = values.get(0);
+            newCount = values.get(0).intValue();
+        }
+        info.count = newCount;
+        return info;
     }
 
     @Override
@@ -375,5 +412,25 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         totalObservations = -1;
         values = null;
         cdf = null;
+    }
+
+    @Override
+    public VariableInfoProto serialize() {
+        VariableInfoProto.Builder builder = VariableInfoProto.newBuilder();
+
+        CategoricalInfoProto.Builder categoricalBuilder = CategoricalInfoProto.newBuilder();
+        categoricalBuilder.setName(name);
+        categoricalBuilder.setCount(count);
+        categoricalBuilder.setId(-1);
+        for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
+            categoricalBuilder.addKey(e.getKey());
+            categoricalBuilder.addValue(e.getValue().longValue());
+        }
+
+        builder.setVersion(0);
+        builder.setClassName(this.getClass().getName());
+        builder.setSerializedData(Any.pack(categoricalBuilder.build()));
+
+        return builder.build();
     }
 }

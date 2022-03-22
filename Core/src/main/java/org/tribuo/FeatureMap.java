@@ -16,6 +16,8 @@
 
 package org.tribuo;
 
+import org.tribuo.protos.core.FeatureDomainProto;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,7 +29,7 @@ import java.util.TreeMap;
  * A map from Strings to {@link VariableInfo} objects storing
  * information about a feature.
  */
-public abstract class FeatureMap implements Serializable, Iterable<VariableInfo> {
+public abstract class FeatureMap implements Serializable, ProtoSerializable<FeatureDomainProto>, Iterable<VariableInfo> {
     private static final long serialVersionUID = 1L;
 
     /**

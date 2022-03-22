@@ -28,7 +28,7 @@ option java_package = "org.tribuo.protos.core";
 import "google/protobuf/any.proto";
 
 // Import OLCUT's provenance proto
-import "olcut.proto";
+import "olcut_proto.proto";
 
 /*
 Base model protobuf. Contains the core model fields, along with an Any containing model specific information.
@@ -77,6 +77,15 @@ message OutputFactoryProto {
 Feature domain redirection proto
  */
 message FeatureDomainProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Feature info redirection proto
+ */
+message VariableInfoProto {
   int32 version = 1;
   string class_name = 2;
   google.protobuf.Any serialized_data = 3;

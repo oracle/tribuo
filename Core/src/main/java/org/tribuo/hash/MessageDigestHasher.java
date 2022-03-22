@@ -16,12 +16,16 @@
 
 package org.tribuo.hash;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.MessageDigestHasherProto;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -82,6 +86,23 @@ public final class MessageDigestHasher extends Hasher {
         this.md = ThreadLocal.withInitial(getDigestSupplier(hashType));
         MessageDigest d = this.md.get(); // To trigger the unsupported digest exception.
         this.provenance = new MessageDigestHasherProvenance(hashType);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version number.
+     * @param className The class name.
+     * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the message cannot be parsed by {@link MessageDigestHasherProto}.
+     */
+    public static MessageDigestHasher deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        MessageDigestHasher obj = new MessageDigestHasher();
+        MessageDigestHasherProto proto = message.unpack(MessageDigestHasherProto.class);
+        obj.hashType = proto.getHashType();
+        obj.md = ThreadLocal.withInitial(getDigestSupplier(obj.hashType));
+        MessageDigest d = obj.md.get(); // To trigger the unsupported digest exception.
+        obj.provenance = new MessageDigestHasherProvenance(obj.hashType);
+        return obj;
     }
 
     /**
@@ -151,6 +172,15 @@ public final class MessageDigestHasher extends Hasher {
      */
     public static Supplier<MessageDigest> getDigestSupplier(String hashType) {
         return () -> { try { return MessageDigest.getInstance(hashType); } catch (NoSuchAlgorithmException e) { throw new IllegalArgumentException("Unsupported hashType = " + hashType,e);}};
+    }
+
+    @Override
+    public HasherProto serialize() {
+        HasherProto.Builder builder = HasherProto.newBuilder();
+        builder.setVersion(0);
+        builder.setClassName(this.getClass().getName());
+        builder.setSerializedData(Any.pack(MessageDigestHasherProto.newBuilder().setHashType(hashType).build()));
+        return builder.build();
     }
 
     /**

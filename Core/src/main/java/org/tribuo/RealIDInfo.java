@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 
 package org.tribuo;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.core.RealInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
 
 /**
  * Same as a {@link RealInfo}, but with an additional int id field.
@@ -59,6 +64,33 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
         this.id = info.id;
     }
 
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static RealIDInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        RealInfoProto proto = message.unpack(RealInfoProto.class);
+        if (proto.getId() == -1) {
+            throw new IllegalStateException("Invalid protobuf, found no id where one was expected.");
+        }
+        if (proto.getMax() < proto.getMin()) {
+            throw new IllegalStateException("Invalid protobuf, min greater than max.");
+        }
+        if (proto.getMean() > proto.getMax()) {
+            throw new IllegalStateException("Invalid protobuf, mean greater than max.");
+        }
+        if (proto.getMean() < proto.getMin()) {
+            throw new IllegalStateException("Invalid protobuf, mean less than min.");
+        }
+        RealIDInfo info = new RealIDInfo(proto.getName(),proto.getCount(),
+                proto.getMax(),proto.getMin(),
+                proto.getMean(),proto.getSumSquares(),
+                proto.getId());
+        return info;
+    }
+
     @Override
     public int getID() {
         return id;
@@ -82,5 +114,25 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
     @Override
     public String toString() {
         return String.format("RealFeature(name=%s,id=%d,count=%d,max=%f,min=%f,mean=%f,variance=%f)",name,id,count,max,min,mean,(sumSquares /(count-1)));
+    }
+
+    @Override
+    public VariableInfoProto serialize() {
+        VariableInfoProto.Builder builder = VariableInfoProto.newBuilder();
+
+        RealInfoProto.Builder realBuilder = RealInfoProto.newBuilder();
+        realBuilder.setName(name);
+        realBuilder.setCount(count);
+        realBuilder.setId(id);
+        realBuilder.setMax(max);
+        realBuilder.setMin(min);
+        realBuilder.setMean(mean);
+        realBuilder.setSumSquares(sumSquares);
+
+        builder.setVersion(0);
+        builder.setClassName(this.getClass().getName());
+        builder.setSerializedData(Any.pack(realBuilder.build()));
+
+        return builder.build();
     }
 }

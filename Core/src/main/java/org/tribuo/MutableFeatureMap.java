@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,15 @@
  */
 
 package org.tribuo;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.MutableFeatureMapProto;
+import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ProtoUtil;
+
+import java.util.stream.Collectors;
 
 /**
  * A feature map that can record new feature value observations.
@@ -42,6 +51,25 @@ public class MutableFeatureMap extends FeatureMap {
     public MutableFeatureMap(boolean convertHighCardinality) {
         super();
         this.convertHighCardinality = convertHighCardinality;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MutableFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        MutableFeatureMapProto proto = message.unpack(MutableFeatureMapProto.class);
+        MutableFeatureMap obj = new MutableFeatureMap(proto.getConvertHighCardinality());
+        for (VariableInfoProto infoProto : proto.getInfoList()) {
+            VariableInfo info = (VariableInfo) ProtoUtil.instantiate(infoProto.getVersion(), infoProto.getClassName(), infoProto.getSerializedData());
+            Object o = obj.put(info);
+            if (o != null) {
+                throw new IllegalStateException("Invalid protobuf, found two mappings for " + info.getName());
+            }
+        }
+        return obj;
     }
 
     /**
@@ -82,4 +110,19 @@ public class MutableFeatureMap extends FeatureMap {
         m.clear();
     }
 
+    @Override
+    public FeatureDomainProto serialize() {
+        FeatureDomainProto.Builder builder = FeatureDomainProto.newBuilder();
+
+        builder.setVersion(0);
+        builder.setClassName(this.getClass().getName());
+
+        MutableFeatureMapProto.Builder featureMapBuilder = MutableFeatureMapProto.newBuilder();
+        featureMapBuilder.setConvertHighCardinality(convertHighCardinality);
+        featureMapBuilder.addAllInfo(m.values().stream().map(VariableInfo::serialize).collect(Collectors.toList()));
+
+        builder.setSerializedData(Any.pack(featureMapBuilder.build()));
+
+        return builder.build();
+    }
 }

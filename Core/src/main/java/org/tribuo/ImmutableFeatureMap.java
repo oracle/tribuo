@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,19 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.ImmutableFeatureMapProto;
+import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ProtoUtil;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * ImmutableFeatureMap is used when unknown features should not be added to the FeatureMap.
@@ -84,6 +92,27 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
     }
 
     /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImmutableFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        ImmutableFeatureMapProto proto = message.unpack(ImmutableFeatureMapProto.class);
+        ImmutableFeatureMap obj = new ImmutableFeatureMap();
+        for (VariableInfoProto infoProto : proto.getInfoList()) {
+            VariableIDInfo info = (VariableIDInfo) ProtoUtil.instantiate(infoProto.getVersion(), infoProto.getClassName(), infoProto.getSerializedData());
+            Object o = obj.idMap.put(info.getID(), info);
+            Object otherO = obj.m.put(info.getName(),info);
+            if ((o != null) || (otherO != null)) {
+                throw new IllegalStateException("Invalid protobuf, found two mappings for " + info.getName());
+            }
+        }
+        obj.size = proto.getInfoCount();
+        return obj;
+    }
+
+    /**
      * Gets the {@link VariableIDInfo}
      * for this id number. Returns null if it's unknown.
      * @param id The id number to lookup.
@@ -121,6 +150,21 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
     @Override
     public int size() {
         return size;
+    }
+
+    @Override
+    public FeatureDomainProto serialize() {
+        FeatureDomainProto.Builder builder = FeatureDomainProto.newBuilder();
+
+        builder.setVersion(0);
+        builder.setClassName(this.getClass().getName());
+
+        ImmutableFeatureMapProto.Builder featureMapBuilder = ImmutableFeatureMapProto.newBuilder();
+        featureMapBuilder.addAllInfo(m.values().stream().map(VariableInfo::serialize).collect(Collectors.toList()));
+
+        builder.setSerializedData(Any.pack(featureMapBuilder.build()));
+
+        return builder.build();
     }
 
     /**
