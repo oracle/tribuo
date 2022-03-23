@@ -172,6 +172,26 @@ public class TestHdbscan {
 
         assertArrayEquals(expectedLabelPredictions, actualLabelPredictions);
         assertArrayEquals(expectedOutlierScorePredictions, actualOutlierScorePredictions);
+
+        CSVDataSource<ClusterID> nextCsvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict-with-outliers.csv"),rowProcessor,false);
+        Dataset<ClusterID> nextTestSet = new MutableDataset<>(nextCsvTestSource);
+
+        predictions = model.predict(nextTestSet);
+
+        i = 0;
+        actualLabelPredictions = new int[nextTestSet.size()];
+        actualOutlierScorePredictions = new double[nextTestSet.size()];
+        for (Prediction<ClusterID> pred : predictions) {
+            actualLabelPredictions[i] = pred.getOutput().getID();
+            actualOutlierScorePredictions[i] = pred.getOutput().getScore();
+            i++;
+        }
+
+        int[] nextExpectedLabelPredictions = {5,0,3,0,4,0};
+        double[] nextExpectedOutlierScorePredictions = {0.04384108680937504,0.837375806784261,0.04922915472735656,0.837375806784261,0.02915273635987492,0.837375806784261};
+
+        assertArrayEquals(nextExpectedLabelPredictions, actualLabelPredictions);
+        assertArrayEquals(nextExpectedOutlierScorePredictions, actualOutlierScorePredictions);
     }
 
     public static void runBasicTrainPredict(HdbscanTrainer trainer) {

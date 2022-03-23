@@ -55,6 +55,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * An HDBSCAN* trainer which generates a hierarchical, density-based clustering representation
@@ -715,6 +717,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      *
      * @param data An array of {@link DenseVector} containing the data.
      * @param clusterAssignments A map of the cluster labels, and the points assigned to them.
+     * @param distType The distance metric to employ.
      * @return A list of {@link ClusterExemplar}s which are used for predictions.
      */
     private static List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments,
@@ -740,29 +743,28 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                     numExemplarsThisCluster = outlierScoreIndexTree.size();
                 }
 
-                List<ClusterExemplar> subsetClusterExemplars = new ArrayList<>();
+                // First, get the entries that will be used for cluster exemplars.
+                // Note that for non-outliers, the first node is polled from the tree, which has the lowest outlier
+                // score out of the remaining points assigned this cluster.
+                List<Entry<Double, Integer>> partialClusterExemplars = new ArrayList<>();
+                Stream<Integer> intStream = IntStream.range(0, numExemplarsThisCluster).boxed();
+                intStream.forEach((i) -> partialClusterExemplars.add(outlierScoreIndexTree.pollFirstEntry()));
 
-                for (int i = 0; i < numExemplarsThisCluster; i++) {
-                    // Note that for non-outliers, the first node is polled from the tree, which has the lowest outlier
-                    // score out of the remaining points assigned this cluster.
-                    Entry<Double, Integer> entry = outlierScoreIndexTree.pollFirstEntry();
-                    subsetClusterExemplars.add(new ClusterExemplar(clusterLabel, entry.getKey(), data[entry.getValue()]));
-                }
-
-                // For each of the exemplars in this cluster, iterate the remaining nodes in the tree to find the maximum
-                // distance between the exemplar and the members of the cluster. The other exemplars don't need to be
-                // checked here since they won't be on the fringe of the cluster.
-                for (ClusterExemplar clusterExemplar : subsetClusterExemplars) {
+                // For each of the partial exemplars in this cluster, iterate the remaining nodes in the tree to find
+                // the maximum distance between the exemplar and the members of the cluster. The other exemplars don't
+                // need to be checked here since they won't be on the fringe of the cluster.
+                for (Entry<Double, Integer> partialClusterExemplar : partialClusterExemplars) {
+                    SGDVector features = data[partialClusterExemplar.getValue()];
                     double maxInnerDist = Double.NEGATIVE_INFINITY;
                     for (Entry<Double, Integer> entry : outlierScoreIndexTree.entrySet()) {
-                        double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), data[entry.getValue()], distType);
+                        double distance = DistanceType.getDistance(features, data[entry.getValue()], distType);
                         if (distance > maxInnerDist){
                             maxInnerDist = distance;
                         }
                     }
-                    clusterExemplar.setMaxDistToEdge(maxInnerDist);
+                    clusterExemplars.add(new ClusterExemplar(clusterLabel, partialClusterExemplar.getKey(), features,
+                                                             maxInnerDist));
                 }
-                clusterExemplars.addAll(subsetClusterExemplars);
             }
         }
         return clusterExemplars;
@@ -809,12 +811,13 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         private final Integer label;
         private final Double outlierScore;
         private final SGDVector features;
-        private Double maxDistToEdge = Double.NEGATIVE_INFINITY;
+        private final Double maxDistToEdge;
 
-        ClusterExemplar(Integer label, Double outlierScore, SGDVector features) {
+        ClusterExemplar(Integer label, Double outlierScore, SGDVector features, Double maxDistToEdge) {
             this.label = label;
             this.outlierScore = outlierScore;
             this.features = features;
+            this.maxDistToEdge = maxDistToEdge;
         }
 
         Integer getLabel() {
@@ -829,12 +832,13 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             return features;
         }
 
-        void setMaxDistToEdge(Double maxDistToEdge) {
-            this.maxDistToEdge = maxDistToEdge;
-        }
-
         Double getMaxDistToEdge() {
-            return maxDistToEdge;
+            if (maxDistToEdge != null) {
+                return maxDistToEdge;
+            }
+            else {
+                return Double.NEGATIVE_INFINITY;
+            }
         }
     }
     

@@ -136,6 +136,7 @@ public final class HdbscanModel extends Model<ClusterID> {
                 }
             }
             if (isNoisePoint) {
+                clusterLabel = HdbscanTrainer.OUTLIER_NOISE_CLUSTER_LABEL;
                 outlierScore = noisePointsOutlierScore;
             }
         }
