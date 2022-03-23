@@ -280,17 +280,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
-        boolean parallel = numThreads > 1;
-        ForkJoinPool fjp;
-        if (parallel) {
-            if (System.getSecurityManager() == null) {
-                fjp = new ForkJoinPool(numThreads);
-            } else {
-                fjp = new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
-            }
-        } else {
-            fjp = null;
-        }
+
 
         int[] oldCentre = new int[examples.size()];
         SGDVector[] data = new SGDVector[examples.size()];
@@ -320,6 +310,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         }
 
         Map<Integer, List<Integer>> clusterAssignments = new HashMap<>();
+        boolean parallel = numThreads > 1;
         for (int i = 0; i < centroids; i++) {
             clusterAssignments.put(i, parallel ? Collections.synchronizedList(new ArrayList<>()) : new ArrayList<>());
         }
@@ -348,38 +339,51 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         };
 
         boolean converged = false;
-
-        for (int i = 0; (i < iterations) && !converged; i++) {
-            logger.log(Level.FINE,"Beginning iteration " + i);
-            changeCounter.set(0);
-
-            for (Entry<Integer, List<Integer>> e : clusterAssignments.entrySet()) {
-                e.getValue().clear();
-            }
-
-            // E step
-            Stream<SGDVector> vecStream = Arrays.stream(data);
-            Stream<Integer> intStream = IntStream.range(0, data.length).boxed();
-            Stream<IntAndVector> zipStream = StreamUtil.zip(intStream, vecStream, IntAndVector::new);
+        ForkJoinPool fjp = null;
+        try {
             if (parallel) {
-                Stream<IntAndVector> parallelZipStream = StreamUtil.boundParallelism(zipStream.parallel());
-                try {
-                    fjp.submit(() -> parallelZipStream.forEach(eStepFunc)).get();
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException("Parallel execution failed", e);
+                if (System.getSecurityManager() == null) {
+                    fjp = new ForkJoinPool(numThreads);
+                } else {
+                    fjp = new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
                 }
-            } else {
-                zipStream.forEach(eStepFunc);
             }
-            logger.log(Level.FINE, "E step completed. " + changeCounter.get() + " words updated.");
+            for (int i = 0; (i < iterations) && !converged; i++) {
+                logger.log(Level.FINE,"Beginning iteration " + i);
+                changeCounter.set(0);
 
-            mStep(fjp, centroidVectors, clusterAssignments, data, weights);
+                for (Entry<Integer, List<Integer>> e : clusterAssignments.entrySet()) {
+                    e.getValue().clear();
+                }
 
-            logger.log(Level.INFO, "Iteration " + i + " completed. " + changeCounter.get() + " examples updated.");
+                // E step
+                Stream<SGDVector> vecStream = Arrays.stream(data);
+                Stream<Integer> intStream = IntStream.range(0, data.length).boxed();
+                Stream<IntAndVector> zipStream = StreamUtil.zip(intStream, vecStream, IntAndVector::new);
+                if (parallel) {
+                    Stream<IntAndVector> parallelZipStream = StreamUtil.boundParallelism(zipStream.parallel());
+                    try {
+                        fjp.submit(() -> parallelZipStream.forEach(eStepFunc)).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException("Parallel execution failed", e);
+                    }
+                } else {
+                    zipStream.forEach(eStepFunc);
+                }
+                logger.log(Level.FINE, "E step completed. " + changeCounter.get() + " words updated.");
 
-            if (changeCounter.get() == 0) {
-                converged = true;
-                logger.log(Level.INFO, "K-Means converged at iteration " + i);
+                mStep(fjp, centroidVectors, clusterAssignments, data, weights);
+
+                logger.log(Level.INFO, "Iteration " + i + " completed. " + changeCounter.get() + " examples updated.");
+
+                if (changeCounter.get() == 0) {
+                    converged = true;
+                    logger.log(Level.INFO, "K-Means converged at iteration " + i);
+                }
+            }
+        } finally {
+            if (fjp != null) {
+                fjp.shutdown();
             }
         }
 
