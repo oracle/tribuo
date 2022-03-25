@@ -121,7 +121,8 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
      */
     public static String toFormattedString(LabelEvaluation evaluation) {
         ConfusionMatrix<Label> cm = evaluation.getConfusionMatrix();
-        List<Label> labelOrder = cm.getLabelOrder();
+        List<Label> labelOrder = new ArrayList<>(cm.getLabelOrder());
+        labelOrder.retainAll(cm.observed());
         StringBuilder sb = new StringBuilder();
         int tp = 0;
         int fn = 0;

@@ -121,6 +121,11 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
     }
 
     @Override
+    public Set<Label> observed() {
+        return Collections.unmodifiableSet(observed);
+    }
+
+    @Override
     public double support() {
         return total;
     }

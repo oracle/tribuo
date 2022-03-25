@@ -228,6 +228,8 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
      * @return Formatted output showing the main results of the evaluation.
      */
     private String toString(List<MultiLabel> labelOrder) {
+        List<MultiLabel> retainedLabelOrder = new ArrayList<>(labelOrder);
+        retainedLabelOrder.retainAll(cm.observed());
         StringBuilder sb = new StringBuilder();
         int tp = 0;
         int fn = 0;
@@ -237,14 +239,14 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
         // Figure out the biggest class label and therefore the format string
         // that we should use for them.
         int maxLabelSize = "Balanced Error Rate".length();
-        for(MultiLabel label : labelOrder) {
+        for(MultiLabel label : retainedLabelOrder) {
             maxLabelSize = Math.max(maxLabelSize, label.getLabelString().length());
         }
         String labelFormatString = String.format("%%-%ds", maxLabelSize+2);
         sb.append(String.format(labelFormatString, "Class"));
         sb.append(String.format("%12s%12s%12s%12s", "n", "tp", "fn", "fp"));
         sb.append(String.format("%12s%12s%12s%n", "recall", "prec", "f1"));
-        for (MultiLabel label : labelOrder) {
+        for (MultiLabel label : retainedLabelOrder) {
             if (cm.support(label) == 0) {
                 continue;
             }

@@ -20,7 +20,9 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.function.ToDoubleFunction;
 
 /**
@@ -131,14 +133,25 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
     }
 
     /**
+     * The values this confusion matrix has seen.
+     * <p>
+     * The default implementation is provided for compatibility reasons and will be removed
+     * in a future major release. It defaults to returning the output domain.
+     * @return The set of observed outputs.
+     */
+    default public Set<T> observed() {
+        return getDomain().getDomain();
+    }
+
+    /**
      * The label order this confusion matrix uses in {@code toString}.
      * <p>
      * The default implementation is provided for compatibility reasons and will be removed
-     * in a future major release.
+     * in a future major release. It defaults to the output domain iterated in hash order.
      * @return An unmodifiable view on the label order.
      */
     public default List<T> getLabelOrder() {
-        return new ArrayList<>(getDomain().getDomain());
+        return Collections.unmodifiableList(new ArrayList<>(getDomain().getDomain()));
     }
 
     /**
