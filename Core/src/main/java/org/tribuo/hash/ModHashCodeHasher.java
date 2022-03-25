@@ -131,6 +131,23 @@ public final class ModHashCodeHasher extends Hasher {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ModHashCodeHasher that = (ModHashCodeHasher) o;
+        return dimension == that.dimension && Objects.equals(salt, that.salt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(salt, dimension);
+    }
+
+    @Override
     public HasherProto serialize() {
         HasherProto.Builder builder = HasherProto.newBuilder();
         builder.setVersion(0);

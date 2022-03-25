@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -158,6 +159,25 @@ public final class MessageDigestHasher extends Hasher {
     @Override
     public String toString() {
         return "MessageDigestHasher(algorithm="+md.get().getAlgorithm()+")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MessageDigestHasher that = (MessageDigestHasher) o;
+        return Objects.equals(hashType, that.hashType) && Arrays.equals(salt, that.salt);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(hashType);
+        result = 31 * result + Arrays.hashCode(salt);
+        return result;
     }
 
     @Override

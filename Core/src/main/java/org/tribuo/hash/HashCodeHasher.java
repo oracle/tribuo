@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Hashes names using String.hashCode().
@@ -102,6 +103,23 @@ public final class HashCodeHasher extends Hasher {
     @Override
     public String toString() {
         return "HashCodeHasher()";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        HashCodeHasher that = (HashCodeHasher) o;
+        return Objects.equals(salt, that.salt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(salt);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

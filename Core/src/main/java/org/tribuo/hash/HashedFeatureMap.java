@@ -23,13 +23,16 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
+import org.tribuo.protos.core.FeatureDomainProto;
 import org.tribuo.protos.core.HashedFeatureMapProto;
 import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.ImmutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.ProtoUtil;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * A {@link FeatureMap} used by the {@link HashingTrainer} to
@@ -102,6 +105,22 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
         hasher.setSalt(salt);
     }
 
+    @Override
+    public FeatureDomainProto serialize() {
+        FeatureDomainProto.Builder builder = FeatureDomainProto.newBuilder();
+
+        builder.setVersion(0);
+        builder.setClassName(this.getClass().getName());
+
+        HashedFeatureMapProto.Builder featureMapBuilder = HashedFeatureMapProto.newBuilder();
+        featureMapBuilder.addAllInfo(m.values().stream().map(VariableInfo::serialize).collect(Collectors.toList()));
+        featureMapBuilder.setHasher(hasher.serialize());
+
+        builder.setSerializedData(Any.pack(featureMapBuilder.build()));
+
+        return builder.build();
+    }
+
     /**
      * Converts a standard {@link FeatureMap} by hashing each entry
      * using the supplied hash function {@link Hasher}.
@@ -109,7 +128,7 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
      * This preserves the index ordering of the original feature names,
      * which is important for making sure test time performance is good.
      * <p>
-     * It guarantees any collisions will produce an feature id number lower
+     * It guarantees any collisions will produce a feature id number lower
      * than the previous feature's number, and so can be easily removed.
      *
      * @param map The {@link FeatureMap} to hash.
