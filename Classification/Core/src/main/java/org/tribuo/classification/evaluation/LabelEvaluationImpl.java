@@ -247,8 +247,14 @@ final class LabelEvaluationImpl implements LabelEvaluation {
     public EvaluationProvenance getProvenance() { return provenance; }
 
     /**
-     * This produces a formatted String suitable for a terminal.
-     * @return A formatted String representing this {@code LabelEvaluationImpl}.
+     * This method produces a nicely formatted String output, with
+     * appropriate tabs and newlines, suitable for display on a terminal.
+     * <p>
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
+     * @return Formatted output showing the main results of the evaluation.
      */
     @Override
     public String toString() {

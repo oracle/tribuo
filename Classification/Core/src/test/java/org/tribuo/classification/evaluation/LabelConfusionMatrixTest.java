@@ -85,6 +85,16 @@ public class LabelConfusionMatrixTest {
         			 "b      0   1   1\n" + 
         			 "c      0   1   0\n", cmToString);
 
+        lblOrder.clear();
+        lblOrder.add(c);
+        lblOrder.add(a);
+        cm.setLabelOrder(lblOrder);
+
+        cmToString = cm.toString();
+        assertEquals("       c   a\n" +
+            "c      0   0\n" +
+            "a      0   1\n", cmToString);
+
     }
 
 }

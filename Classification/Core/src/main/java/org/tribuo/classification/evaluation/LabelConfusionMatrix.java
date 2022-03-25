@@ -206,6 +206,9 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
 
     /**
      * Sets the label order used in {@link #toString}.
+     * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
      *
      * @param newLabelOrder The label order to use.
      */

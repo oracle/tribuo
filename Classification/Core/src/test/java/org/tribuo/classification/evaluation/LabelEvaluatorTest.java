@@ -150,6 +150,23 @@ public class LabelEvaluatorTest {
         String actual = evaluation.toString();
         actual = actual.replaceAll("\\r+", "");
         assertEquals(expected, actual);
+
+        String reducedExpected =     "Class                           n          tp          fn          fp      recall        prec          f1\n" +
+            String.format("c                               1           0           1           1       %1.3f       %1.3f       %1.3f\n",0.0,0.0,0.0) +
+            String.format("b                               2           1           1           1       %1.3f       %1.3f       %1.3f\n",0.5,0.5,0.5) +
+            String.format("Total                           3           1           2           2\n") +
+            String.format("Accuracy                                                                    %1.3f\n",0.6) +
+            String.format("Micro Average                                                               %1.3f       %1.3f       %1.3f\n",0.6,0.6,0.6) +
+            String.format("Macro Average                                                               %1.3f       %1.3f       %1.3f\n",0.625,0.625,0.625) +
+            String.format("Balanced Error Rate                                                         %1.3f",0.375);
+
+        lblOrder.clear();
+        lblOrder.add(new Label("c"));
+        lblOrder.add(new Label("b"));
+        evaluation.getConfusionMatrix().setLabelOrder(lblOrder);
+        String reducedActual = evaluation.toString();
+        reducedActual = reducedActual.replaceAll("\\r+", "");
+        assertEquals(reducedExpected, reducedActual);
     }
 
     @Test

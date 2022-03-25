@@ -27,17 +27,14 @@ import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;

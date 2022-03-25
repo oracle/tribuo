@@ -169,6 +169,9 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
 
     /**
      * Sets the label order used in {@link #toString}.
+     * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
      *
      * @param labelOrder The label order to use.
      */
@@ -182,8 +185,10 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
 
     /**
      * Gets the current label order.
+     * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
      *
-     * May trigger order instantiation if the label order has not been set.
      * @return The label order.
      */
     public List<MultiLabel> getLabelOrder() {

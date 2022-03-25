@@ -96,7 +96,10 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
     /**
      * Returns a HTML formatted String representing this evaluation.
      * <p>
-     * Uses the label order of the confusion matrix.
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
      * @return A HTML formatted String.
      */
     default String toHTML() {
@@ -109,7 +112,10 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
      * It can be used as an implementation of the {@link EvaluationRenderer}
      * functional interface.
      * <p>
-     * Uses the label order of the confusion matrix.
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
      * @param evaluation The evaluation to format.
      * @return Formatted output showing the main results of the evaluation.
      */
@@ -155,7 +161,7 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
         sb.append(String.format(labelFormatString, "Total"));
         sb.append(String.format("%,12d%,12d%,12d%,12d%n", n, tp, fn, fp));
         sb.append(String.format(labelFormatString, "Accuracy"));
-        sb.append(String.format("%60.3f%n", (double) tp / n));
+        sb.append(String.format("%60.3f%n", evaluation.accuracy()));
         sb.append(String.format(labelFormatString, "Micro Average"));
         sb.append(String.format("%60.3f%12.3f%12.3f%n",
                 evaluation.microAveragedRecall(),
@@ -173,11 +179,14 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
 
     /**
      * This method produces a HTML formatted String output, with
-     * appropriate tabs and newlines, suitable for integation into a webpage.
+     * appropriate tabs and newlines, suitable for integration into a webpage.
      * It can be used as an implementation of the {@link EvaluationRenderer}
      * functional interface.
      * <p>
-     * Uses the label order of the confusion matrix.
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
      * @param evaluation The evaluation to format.
      * @return Formatted HTML output showing the main results of the evaluation.
      */

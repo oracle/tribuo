@@ -144,6 +144,9 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
     /**
      * Sets the label order this confusion matrix uses in {@code toString}.
      * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
+     * <p>
      * The default implementation does not set the label order and is provided for
      * backwards compatibility reasons. It should be overridden in all subclasses to
      * ensure correct behaviour, and this default implementation will be removed in a
