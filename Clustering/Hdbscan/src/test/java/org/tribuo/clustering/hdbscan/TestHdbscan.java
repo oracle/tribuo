@@ -40,6 +40,9 @@ import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.test.Helpers;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Unit tests with small datasets for Hdbscan
@@ -172,6 +176,26 @@ public class TestHdbscan {
 
         assertArrayEquals(expectedLabelPredictions, actualLabelPredictions);
         assertArrayEquals(expectedOutlierScorePredictions, actualOutlierScorePredictions);
+
+        CSVDataSource<ClusterID> nextCsvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict-with-outliers.csv"),rowProcessor,false);
+        Dataset<ClusterID> nextTestSet = new MutableDataset<>(nextCsvTestSource);
+
+        predictions = model.predict(nextTestSet);
+
+        i = 0;
+        actualLabelPredictions = new int[nextTestSet.size()];
+        actualOutlierScorePredictions = new double[nextTestSet.size()];
+        for (Prediction<ClusterID> pred : predictions) {
+            actualLabelPredictions[i] = pred.getOutput().getID();
+            actualOutlierScorePredictions[i] = pred.getOutput().getScore();
+            i++;
+        }
+
+        int[] nextExpectedLabelPredictions = {5,0,3,0,4,0};
+        double[] nextExpectedOutlierScorePredictions = {0.04384108680937504,0.837375806784261,0.04922915472735656,0.837375806784261,0.02915273635987492,0.837375806784261};
+
+        assertArrayEquals(nextExpectedLabelPredictions, actualLabelPredictions);
+        assertArrayEquals(nextExpectedOutlierScorePredictions, actualOutlierScorePredictions);
     }
 
     public static void runBasicTrainPredict(HdbscanTrainer trainer) {
@@ -214,6 +238,52 @@ public class TestHdbscan {
     @Test
     public void testBasicTrainPredict() {
         runBasicTrainPredict(t);
+    }
+
+    @Test
+    public void deserializeHdbscanModelV42Test() {
+        String serializedModelFilename = "Hdbscan_minClSize7_L2_k7_nt1_v4.2.model";
+        String serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename).getPath();
+
+        HdbscanModel model = null;
+        try (ObjectInputStream oin = new ObjectInputStream(new FileInputStream(serializedModelPath))) {
+            Object data = oin.readObject();
+            model = (HdbscanModel) data;
+            if (!model.validate(ClusterID.class)) {
+                fail("This is not a Clustering model.");
+            }
+        } catch (IOException e) {
+            fail("There is a problem accessing the serialized model file " + serializedModelPath);
+        } catch (ClassNotFoundException e) {
+            fail("There is a problem deserializing the model file " + serializedModelPath);
+        }
+
+        ClusteringFactory clusteringFactory = new ClusteringFactory();
+        ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
+        Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
+        regexMappingProcessors.put("Feature1", new DoubleFieldProcessor("Feature1"));
+        regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
+        regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
+        RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
+        CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict.csv"),rowProcessor,false);
+        Dataset<ClusterID> testSet = new MutableDataset<>(csvTestSource);
+
+        List<Prediction<ClusterID>> predictions = model.predict(testSet);
+
+        int i = 0;
+        int[] actualLabelPredictions = new int[testSet.size()];
+        double[] actualOutlierScorePredictions = new double[testSet.size()];
+        for (Prediction<ClusterID> pred : predictions) {
+            actualLabelPredictions[i] = pred.getOutput().getID();
+            actualOutlierScorePredictions[i] = pred.getOutput().getScore();
+            i++;
+        }
+
+        int[] expectedLabelPredictions = {5,3,5,5,3,5,4,4,5,3,3,3,3,4,4,5,4,5,5,4};
+        double[] expectedOutlierScorePredictions = {0.04384108680937504,0.04922915472735656,4.6591582469379667E-4,0.025225544503289288,0.04922915472735656,0.0,0.044397942146806146,0.044397942146806146,0.025225544503289288,0.0,0.04922915472735656,0.0,0.0,0.044397942146806146,0.02395925569434121,0.003121298369468062,0.02915273635987492,0.03422951971100352,0.0,0.02915273635987492};
+
+        assertArrayEquals(expectedLabelPredictions, actualLabelPredictions);
+        assertArrayEquals(expectedOutlierScorePredictions, actualOutlierScorePredictions);
     }
 
     public static void runEvaluation(HdbscanTrainer trainer) {

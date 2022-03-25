@@ -55,6 +55,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * An HDBSCAN* trainer which generates a hierarchical, density-based clustering representation
@@ -81,6 +83,8 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     private static final Logger logger = Logger.getLogger(HdbscanTrainer.class.getName());
 
     static final int OUTLIER_NOISE_CLUSTER_LABEL = 0;
+
+    private static final double MAX_OUTLIER_SCORE = 0.9999;
 
     /**
      * Available distance functions.
@@ -241,7 +245,10 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         ImmutableOutputInfo<ClusterID> outputMap = new ImmutableClusteringInfo(counts);
 
         // Compute the cluster exemplars.
-        List<ClusterExemplar> clusterExemplars = computeExemplars(data, clusterAssignments);
+        List<ClusterExemplar> clusterExemplars = computeExemplars(data, clusterAssignments, distType);
+
+        // Get the outlier score value for points that are predicted as noise points.
+        double noisePointsOutlierScore = getNoisePointsOutlierScore(clusterAssignments);
 
         logger.log(Level.INFO, "Hdbscan is done.");
 
@@ -249,7 +256,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
         return new HdbscanModel("hdbscan-model", provenance, featureMap, outputMap, clusterLabels, outlierScoresVector,
-                                clusterExemplars, distType);
+                                clusterExemplars, distType, noisePointsOutlierScore);
     }
 
     @Override
@@ -705,14 +712,16 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     }
 
     /**
-     * Compute the exemplars. These are representative points which are subsets of their clusters and noise points, and
+     * Compute the exemplars. These are representative points which are subsets of their clusters, and
      * will be used for prediction on unseen data points.
      *
      * @param data An array of {@link DenseVector} containing the data.
      * @param clusterAssignments A map of the cluster labels, and the points assigned to them.
+     * @param distType The distance metric to employ.
      * @return A list of {@link ClusterExemplar}s which are used for predictions.
      */
-    private static List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments) {
+    private static List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments,
+                                                          DistanceType distType) {
         List<ClusterExemplar> clusterExemplars = new ArrayList<>();
         // The formula to calculate the exemplar number. This calculates the number of exemplars to be used for this
         // configuration. The appropriate number of exemplars is important for prediction. At the time, this
@@ -721,35 +730,66 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
         for (Entry<Integer, List<Pair<Double, Integer>>> e : clusterAssignments.entrySet()) {
             int clusterLabel = e.getKey();
-            List<Pair<Double, Integer>> outlierScoreIndexList = clusterAssignments.get(clusterLabel);
-
-            // Put the items into a TreeMap. This achieves the required sorting and removes duplicate outlier scores to
-            // provide the best samples
-            TreeMap<Double, Integer> outlierScoreIndexTree = new TreeMap<>();
-            outlierScoreIndexList.forEach(p -> outlierScoreIndexTree.put(p.getA(), p.getB()));
-            int numExemplarsThisCluster = e.getValue().size() * numExemplars / data.length;
-            if (numExemplarsThisCluster > outlierScoreIndexTree.size()) {
-                numExemplarsThisCluster = outlierScoreIndexTree.size();
-            }
 
             if (clusterLabel != OUTLIER_NOISE_CLUSTER_LABEL) {
-                for (int i = 0; i < numExemplarsThisCluster; i++) {
-                    // Note that for non-outliers, the first node is polled from the tree, which has the lowest outlier
-                    // score out of the remaining points assigned this cluster.
-                    Entry<Double, Integer> entry = outlierScoreIndexTree.pollFirstEntry();
-                    clusterExemplars.add(new ClusterExemplar(clusterLabel, entry.getKey(), data[entry.getValue()]));
+                List<Pair<Double, Integer>> outlierScoreIndexList = clusterAssignments.get(clusterLabel);
+
+                // Put the items into a TreeMap. This achieves the required sorting and removes duplicate outlier scores
+                // to provide the best samples.
+                TreeMap<Double, Integer> outlierScoreIndexTree = new TreeMap<>();
+                outlierScoreIndexList.forEach(p -> outlierScoreIndexTree.put(p.getA(), p.getB()));
+                int numExemplarsThisCluster = e.getValue().size() * numExemplars / data.length;
+                if (numExemplarsThisCluster > outlierScoreIndexTree.size()) {
+                    numExemplarsThisCluster = outlierScoreIndexTree.size();
                 }
-            }
-            else {
-                for (int i = 0; i < numExemplarsThisCluster; i++) {
-                    // Note that for outliers the last node is polled from the tree, which has the highest outlier score
-                    // out of the remaining points assigned this cluster.
-                    Entry<Double, Integer> entry = outlierScoreIndexTree.pollLastEntry();
-                    clusterExemplars.add(new ClusterExemplar(clusterLabel, entry.getKey(), data[entry.getValue()]));
+
+                // First, get the entries that will be used for cluster exemplars.
+                // The first node is polled from the tree, which has the lowest outlier score out of the remaining
+                // points assigned this cluster.
+                List<Entry<Double, Integer>> partialClusterExemplars = new ArrayList<>();
+                Stream<Integer> intStream = IntStream.range(0, numExemplarsThisCluster).boxed();
+                intStream.forEach((i) -> partialClusterExemplars.add(outlierScoreIndexTree.pollFirstEntry()));
+
+                // For each of the partial exemplars in this cluster, iterate the remaining nodes in the tree to find
+                // the maximum distance between the exemplar and the members of the cluster. The other exemplars don't
+                // need to be checked here since they won't be on the fringe of the cluster.
+                for (Entry<Double, Integer> partialClusterExemplar : partialClusterExemplars) {
+                    SGDVector features = data[partialClusterExemplar.getValue()];
+                    double maxInnerDist = Double.NEGATIVE_INFINITY;
+                    for (Entry<Double, Integer> entry : outlierScoreIndexTree.entrySet()) {
+                        double distance = DistanceType.getDistance(features, data[entry.getValue()], distType);
+                        if (distance > maxInnerDist){
+                            maxInnerDist = distance;
+                        }
+                    }
+                    clusterExemplars.add(new ClusterExemplar(clusterLabel, partialClusterExemplar.getKey(), features,
+                                                             maxInnerDist));
                 }
             }
         }
         return clusterExemplars;
+    }
+
+    /**
+     * Determine the outlier score value for points that are predicted as noise points.
+     *
+     * @param clusterAssignments A map of the cluster labels, and the points assigned to them.
+     * @return An outlier score value for points predicted as noise points.
+     */
+    private static double getNoisePointsOutlierScore(Map<Integer, List<Pair<Double, Integer>>> clusterAssignments) {
+
+        List<Pair<Double, Integer>> outlierScoreIndexList = clusterAssignments.get(OUTLIER_NOISE_CLUSTER_LABEL);
+        if ((outlierScoreIndexList == null) || outlierScoreIndexList.isEmpty()) {
+            return MAX_OUTLIER_SCORE;
+        }
+
+        double upperOutlierScoreBound = Double.NEGATIVE_INFINITY;
+        for (Pair<Double, Integer> outlierScoreIndex : outlierScoreIndexList) {
+            if (outlierScoreIndex.getA() > upperOutlierScoreBound) {
+                upperOutlierScoreBound = outlierScoreIndex.getA();
+            }
+        }
+        return upperOutlierScoreBound;
     }
 
     @Override
@@ -771,11 +811,13 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         private final Integer label;
         private final Double outlierScore;
         private final SGDVector features;
+        private final Double maxDistToEdge;
 
-        ClusterExemplar(Integer label, Double outlierScore, SGDVector features) {
+        ClusterExemplar(Integer label, Double outlierScore, SGDVector features, Double maxDistToEdge) {
             this.label = label;
             this.outlierScore = outlierScore;
             this.features = features;
+            this.maxDistToEdge = maxDistToEdge;
         }
 
         Integer getLabel() {
@@ -788,6 +830,15 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
         SGDVector getFeatures() {
             return features;
+        }
+
+        Double getMaxDistToEdge() {
+            if (maxDistToEdge != null) {
+                return maxDistToEdge;
+            }
+            else {
+                return Double.NEGATIVE_INFINITY;
+            }
         }
     }
     
