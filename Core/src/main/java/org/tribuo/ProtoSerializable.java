@@ -22,7 +22,8 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 /**
  * Interface for serializing an implementing object to the specified protobuf.
  * <p>
- * All classes which implement this interface must expose a static method which
+ * All classes which implement this interface must expose a static method called
+ * {@link org.tribuo.util.ProtoUtil#DESERIALIZATION_METHOD_NAME} which
  * accepts three arguments (int version, String className, com.google.protobuf.Any message)
  * and returns an instance of this class.
  * We can't require this with the type system yet, so it must be checked by tests.
