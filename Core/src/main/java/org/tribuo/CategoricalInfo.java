@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.stream.Collectors;
@@ -399,6 +400,43 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        CategoricalInfo that = (CategoricalInfo) o;
+        // MutableLong in OLCUT 5.2.0 doesn't implement equals,
+        // so we can't compare valueCounts with Objects.equals.
+        // That'll be fixed in the next OLCUT but for the time being we've got this workaround.
+        if (valueCounts != null ^ that.valueCounts != null) {
+            return false;
+        } else if (valueCounts != null && that.valueCounts != null) {
+            if (valueCounts.size() != that.valueCounts.size()) {
+                return false;
+            } else {
+                for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
+                    MutableLong other = that.valueCounts.get(e.getKey());
+                    if ((other == null) || (e.getValue().longValue() != other.longValue())) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return Double.compare(that.observedValue, observedValue) == 0 && observedCount == that.observedCount;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), valueCounts, observedValue, observedCount);
+    }
+
+    @Override
     public String toString() {
         if (valueCounts != null) {
             return "CategoricalFeature(name=" + name + ",count=" + count + ",map=" + valueCounts.toString() + ")";
@@ -422,9 +460,14 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         categoricalBuilder.setName(name);
         categoricalBuilder.setCount(count);
         categoricalBuilder.setId(-1);
-        for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
-            categoricalBuilder.addKey(e.getKey());
-            categoricalBuilder.addValue(e.getValue().longValue());
+        if (valueCounts != null) {
+            for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
+                categoricalBuilder.addKey(e.getKey());
+                categoricalBuilder.addValue(e.getValue().longValue());
+            }
+        } else {
+            categoricalBuilder.addKey(observedValue);
+            categoricalBuilder.addValue(observedCount);
         }
 
         builder.setVersion(0);

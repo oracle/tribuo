@@ -21,6 +21,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
+import java.util.Objects;
 import java.util.SplittableRandom;
 
 /**
@@ -204,6 +205,26 @@ public class RealInfo extends SkeletalVariableInfo {
     @Override
     public double uniformSample(SplittableRandom rng) {
         return (rng.nextDouble()*max) - min;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RealInfo realInfo = (RealInfo) o;
+        return Double.compare(realInfo.max, max) == 0 && Double.compare(realInfo.min, min) == 0 && Double.compare(realInfo.mean, mean) == 0 && Double.compare(realInfo.sumSquares, sumSquares) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), max, min, mean, sumSquares);
     }
 
     @Override

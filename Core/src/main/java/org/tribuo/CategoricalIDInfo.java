@@ -25,6 +25,7 @@ import org.tribuo.protos.core.VariableInfoProto;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Same as a {@link CategoricalInfo}, but with an additional int id field.
@@ -142,6 +143,26 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        CategoricalIDInfo that = (CategoricalIDInfo) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id);
+    }
+
+    @Override
     public VariableInfoProto serialize() {
         VariableInfoProto.Builder builder = VariableInfoProto.newBuilder();
 
@@ -149,9 +170,14 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
         categoricalBuilder.setName(name);
         categoricalBuilder.setCount(count);
         categoricalBuilder.setId(id);
-        for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
-            categoricalBuilder.addKey(e.getKey());
-            categoricalBuilder.addValue(e.getValue().longValue());
+        if (valueCounts != null) {
+            for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
+                categoricalBuilder.addKey(e.getKey());
+                categoricalBuilder.addValue(e.getValue().longValue());
+            }
+        } else {
+            categoricalBuilder.addKey(observedValue);
+            categoricalBuilder.addValue(observedCount);
         }
 
         builder.setVersion(0);

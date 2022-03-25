@@ -21,6 +21,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
+import java.util.Objects;
+
 /**
  * Same as a {@link RealInfo}, but with an additional int id field.
  */
@@ -114,6 +116,26 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
     @Override
     public String toString() {
         return String.format("RealFeature(name=%s,id=%d,count=%d,max=%f,min=%f,mean=%f,variance=%f)",name,id,count,max,min,mean,(sumSquares /(count-1)));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RealIDInfo that = (RealIDInfo) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id);
     }
 
     @Override

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.util.SplittableRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -154,6 +155,23 @@ public class CategoricalInfoTest {
         checkValueAndProb(c,2.0,0.05);
         checkValueAndProb(c,3.0,0.05);
         checkValueAndProb(c,4.0,0.05);
+    }
+
+    @Test
+    public void equalityTest() {
+        CategoricalInfo fullFirst = generateFullInfo();
+        CategoricalInfo fullSecond = generateFullInfo();
+        CategoricalInfo emptyFirst = generateEmptyInfo();
+        CategoricalInfo emptySecond = generateEmptyInfo();
+        CategoricalInfo oneFirst = generateOneValueInfo();
+        CategoricalInfo oneSecond = generateOneValueInfo();
+
+        assertEquals(fullFirst,fullSecond);
+        assertEquals(emptyFirst,emptySecond);
+        assertEquals(oneFirst,oneSecond);
+
+        assertNotEquals(fullFirst,emptyFirst);
+        assertNotEquals(fullFirst,oneFirst);
     }
 
 }
