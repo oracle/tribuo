@@ -734,8 +734,8 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             if (clusterLabel != OUTLIER_NOISE_CLUSTER_LABEL) {
                 List<Pair<Double, Integer>> outlierScoreIndexList = clusterAssignments.get(clusterLabel);
 
-                // Put the items into a TreeMap. This achieves the required sorting and removes duplicate outlier scores to
-                // provide the best samples
+                // Put the items into a TreeMap. This achieves the required sorting and removes duplicate outlier scores
+                // to provide the best samples.
                 TreeMap<Double, Integer> outlierScoreIndexTree = new TreeMap<>();
                 outlierScoreIndexList.forEach(p -> outlierScoreIndexTree.put(p.getA(), p.getB()));
                 int numExemplarsThisCluster = e.getValue().size() * numExemplars / data.length;
@@ -744,8 +744,8 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 }
 
                 // First, get the entries that will be used for cluster exemplars.
-                // Note that for non-outliers, the first node is polled from the tree, which has the lowest outlier
-                // score out of the remaining points assigned this cluster.
+                // The first node is polled from the tree, which has the lowest outlier score out of the remaining
+                // points assigned this cluster.
                 List<Entry<Double, Integer>> partialClusterExemplars = new ArrayList<>();
                 Stream<Integer> intStream = IntStream.range(0, numExemplarsThisCluster).boxed();
                 intStream.forEach((i) -> partialClusterExemplars.add(outlierScoreIndexTree.pollFirstEntry()));
