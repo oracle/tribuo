@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,11 +41,13 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * An ensemble model that uses weights to combine the ensemble member predictions.
@@ -191,25 +193,18 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
             throw new IllegalArgumentException("Must supply one weight per model, models.size() = " + models.size() + ", weights.length = " + weights.length);
         }
 
-        // Validate output domains
+        // Validate output & feature domains
         ImmutableOutputInfo<T> outputInfo = models.get(0).getOutputIDInfo();
-        List<Pair<Integer,T>> firstList = new ArrayList<>();
-        for (Pair<Integer,T> p : outputInfo) {
-            firstList.add(p);
-        }
-        List<Pair<Integer,T>> comparisonList = new ArrayList<>();
+        ImmutableFeatureMap featureMap = models.get(0).getFeatureIDMap();
+        Set<T> firstOutputDomain = outputInfo.getDomain();
         for (int i = 1; i < models.size(); i++) {
-            comparisonList.clear();
-            for (Pair<Integer,T> p : models.get(i).getOutputIDInfo()) {
-                comparisonList.add(p);
-            }
-            if (!firstList.equals(comparisonList)) {
+            if (!models.get(i).getOutputIDInfo().getDomain().equals(firstOutputDomain)) {
                 throw new IllegalArgumentException("Model output domains are not equal.");
             }
+            if (!models.get(i).getFeatureIDMap().domainEquals(featureMap)) {
+                throw new IllegalArgumentException("Model feature domains are not equal.");
+            }
         }
-
-        // Extract feature domain
-        ImmutableFeatureMap featureMap = models.get(0).getFeatureIDMap();
 
         // Defensive copy the model list (the weights are copied in the constructor)
         List<Model<T>> modelList = new ArrayList<>(models);
@@ -254,18 +249,34 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
     public ONNXNode writeONNXGraph(ONNXRef<?> input) {
         ONNXContext onnx = input.onnxContext();
         ONNXInitializer unsqueezeAxes = onnx.array("unsqueeze_ensemble_output", new long[]{2});
-        List<ONNXNode> unsquuezedMembers = new ArrayList<>();
+        List<ONNXNode> unsqueezedMembers = new ArrayList<>();
         for(Model<T> model : models) {
             if(model instanceof ONNXExportable) {
                 ONNXNode memberOutput = ((ONNXExportable) model).writeONNXGraph(input);
-                unsquuezedMembers.add(memberOutput.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes));
+                ONNXNode unsqueezedOutput = memberOutput.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
+                if (model.getOutputIDInfo().domainAndIDEquals(outputIDInfo)) {
+                    // Output domains line up
+                    unsqueezedMembers.add(unsqueezedOutput);
+                } else {
+                    // Output domains don't line up, add a gather to rearrange them
+                    int[] outputRemapping = new int[outputIDInfo.size()];
+                    for (int i = 0; i < outputRemapping.length; i++) {
+                        int otherId = outputIDInfo.getID(model.getOutputIDInfo().getOutput(i));
+                        outputRemapping[otherId] = i;
+                    }
+
+                    ONNXInitializer indices = onnx.array("ensemble_output_gather_indices", outputRemapping);
+
+                    ONNXNode gatheredOutput = unsqueezedOutput.apply(ONNXOperators.GATHER, indices, Collections.singletonMap("axis", 1));
+                    unsqueezedMembers.add(gatheredOutput);
+                }
             } else {
                 throw new IllegalStateException("Ensemble member '" + model.toString() + "' is not ONNXExportable.");
             }
         }
 
         ONNXInitializer ensembleWeights = onnx.array("ensemble_weights", weights);
-        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, unsquuezedMembers, "ensemble_concat", Collections.singletonMap("axis", 2));
+        ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, unsqueezedMembers, "ensemble_concat", Collections.singletonMap("axis", 2));
 
         return combiner.exportCombiner(concat, ensembleWeights);
     }

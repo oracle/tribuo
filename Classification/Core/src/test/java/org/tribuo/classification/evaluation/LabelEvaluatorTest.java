@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,6 +127,14 @@ public class LabelEvaluatorTest {
         LabelEvaluation evaluation = new LabelEvaluator()
                 .evaluate(model, testPreds, dataset.getProvenance());
 
+        List<Label> lblOrder = new ArrayList<>();
+        lblOrder.add(new Label("a"));
+        lblOrder.add(new Label("b"));
+        lblOrder.add(new Label("c"));
+        lblOrder.add(new Label("d"));
+
+        evaluation.getConfusionMatrix().setLabelOrder(lblOrder);
+
         // Uses String.format to respect JVM locale
         String expected =     "Class                           n          tp          fn          fp      recall        prec          f1\n" +
                 String.format("a                               1           1           0           0       %1.3f       %1.3f       %1.3f\n",1.0,1.0,1.0) +
@@ -142,6 +150,23 @@ public class LabelEvaluatorTest {
         String actual = evaluation.toString();
         actual = actual.replaceAll("\\r+", "");
         assertEquals(expected, actual);
+
+        String reducedExpected =     "Class                           n          tp          fn          fp      recall        prec          f1\n" +
+            String.format("c                               1           0           1           1       %1.3f       %1.3f       %1.3f\n",0.0,0.0,0.0) +
+            String.format("b                               2           1           1           1       %1.3f       %1.3f       %1.3f\n",0.5,0.5,0.5) +
+            String.format("Total                           3           1           2           2\n") +
+            String.format("Accuracy                                                                    %1.3f\n",0.6) +
+            String.format("Micro Average                                                               %1.3f       %1.3f       %1.3f\n",0.6,0.6,0.6) +
+            String.format("Macro Average                                                               %1.3f       %1.3f       %1.3f\n",0.625,0.625,0.625) +
+            String.format("Balanced Error Rate                                                         %1.3f",0.375);
+
+        lblOrder.clear();
+        lblOrder.add(new Label("c"));
+        lblOrder.add(new Label("b"));
+        evaluation.getConfusionMatrix().setLabelOrder(lblOrder);
+        String reducedActual = evaluation.toString();
+        reducedActual = reducedActual.replaceAll("\\r+", "");
+        assertEquals(reducedExpected, reducedActual);
     }
 
     @Test
@@ -166,6 +191,14 @@ public class LabelEvaluatorTest {
 
         LabelEvaluation evaluation = new LabelEvaluator()
                 .evaluate(model, testPreds, dataset.getProvenance());
+
+        List<Label> lblOrder = new ArrayList<>();
+        lblOrder.add(new Label("a"));
+        lblOrder.add(new Label("b"));
+        lblOrder.add(new Label("c"));
+        lblOrder.add(new Label("d"));
+
+        evaluation.getConfusionMatrix().setLabelOrder(lblOrder);
 
         // Uses String.format to respect JVM locale
         String expected = "<table>\n" +

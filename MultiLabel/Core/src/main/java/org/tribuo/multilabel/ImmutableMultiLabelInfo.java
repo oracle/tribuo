@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * An ImmutableOutputInfo for working with multi-label tasks.
+ * An {@link ImmutableOutputInfo} for working with {@link MultiLabel} tasks.
  */
 public class ImmutableMultiLabelInfo extends MultiLabelInfo implements ImmutableOutputInfo<MultiLabel> {
     private static final Logger logger = Logger.getLogger(ImmutableMultiLabelInfo.class.getName());
@@ -188,6 +188,23 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
     @Override
     public Iterator<Pair<Integer, MultiLabel>> iterator() {
         return new ImmutableInfoIterator(idLabelMap);
+    }
+
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<MultiLabel> other) {
+        if (size() == other.size()) {
+            for (Map.Entry<Integer,String> e : idLabelMap.entrySet()) {
+                MultiLabel otherLbl = other.getOutput(e.getKey());
+                if (otherLbl == null) {
+                    return false;
+                } else if (!otherLbl.getLabelString().equals(e.getValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private static class ImmutableInfoIterator implements Iterator<Pair<Integer,MultiLabel>> {

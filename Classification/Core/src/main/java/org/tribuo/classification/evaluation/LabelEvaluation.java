@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,6 +95,11 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
 
     /**
      * Returns a HTML formatted String representing this evaluation.
+     * <p>
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
      * @return A HTML formatted String.
      */
     default String toHTML() {
@@ -106,12 +111,18 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
      * appropriate tabs and newlines, suitable for display on a terminal.
      * It can be used as an implementation of the {@link EvaluationRenderer}
      * functional interface.
+     * <p>
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
      * @param evaluation The evaluation to format.
      * @return Formatted output showing the main results of the evaluation.
      */
     public static String toFormattedString(LabelEvaluation evaluation) {
         ConfusionMatrix<Label> cm = evaluation.getConfusionMatrix();
-        List<Label> labelOrder = new ArrayList<>(cm.getDomain().getDomain());
+        List<Label> labelOrder = new ArrayList<>(cm.getLabelOrder());
+        labelOrder.retainAll(cm.observed());
         StringBuilder sb = new StringBuilder();
         int tp = 0;
         int fn = 0;
@@ -151,7 +162,7 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
         sb.append(String.format(labelFormatString, "Total"));
         sb.append(String.format("%,12d%,12d%,12d%,12d%n", n, tp, fn, fp));
         sb.append(String.format(labelFormatString, "Accuracy"));
-        sb.append(String.format("%60.3f%n", (double) tp / n));
+        sb.append(String.format("%60.3f%n", evaluation.accuracy()));
         sb.append(String.format(labelFormatString, "Micro Average"));
         sb.append(String.format("%60.3f%12.3f%12.3f%n",
                 evaluation.microAveragedRecall(),
@@ -169,15 +180,20 @@ public interface LabelEvaluation extends ClassifierEvaluation<Label> {
 
     /**
      * This method produces a HTML formatted String output, with
-     * appropriate tabs and newlines, suitable for integation into a webpage.
+     * appropriate tabs and newlines, suitable for integration into a webpage.
      * It can be used as an implementation of the {@link EvaluationRenderer}
      * functional interface.
+     * <p>
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
      * @param evaluation The evaluation to format.
      * @return Formatted HTML output showing the main results of the evaluation.
      */
     public static String toHTML(LabelEvaluation evaluation) {
         ConfusionMatrix<Label> cm = evaluation.getConfusionMatrix();
-        List<Label> labelOrder = new ArrayList<>(cm.getDomain().getDomain());
+        List<Label> labelOrder = cm.getLabelOrder();
         StringBuilder sb = new StringBuilder();
         int tp = 0;
         int fn = 0;

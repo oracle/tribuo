@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,13 @@ import com.oracle.labs.mlrg.olcut.util.MutableNumber;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.SplittableRandom;
+import java.util.stream.Collectors;
 
 /**
  * Stores information about Categorical features.
@@ -186,7 +189,9 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         double mean;
 
         if (valueCounts != null) {
-            for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
+            List<Map.Entry<Double, MutableLong>> entries = valueCounts.entrySet().stream()
+                .sorted(Comparator.comparingDouble(Map.Entry::getKey)).collect(Collectors.toList());
+            for (Map.Entry<Double, MutableLong> e : entries) {
                 double value = e.getKey();
                 double valCount = e.getValue().longValue();
                 if (value > max) {
@@ -199,7 +204,7 @@ public class CategoricalInfo extends SkeletalVariableInfo {
             }
             mean = sum / count;
 
-            for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
+            for (Map.Entry<Double, MutableLong> e : entries) {
                 double value = e.getKey();
                 double valCount = e.getValue().longValue();
                 sumSquares += (value - mean) * (value - mean) * valCount;
@@ -286,7 +291,9 @@ public class CategoricalInfo extends SkeletalVariableInfo {
             counts[0] = newTotalObservations;
             int counter = 1;
             long total = 0;
-            for (Map.Entry<Double,MutableLong> e : valueCounts.entrySet()) {
+            List<Map.Entry<Double, MutableLong>> entries = valueCounts.entrySet().stream()
+                .sorted(Comparator.comparingDouble(Map.Entry::getKey)).collect(Collectors.toList());
+            for (Map.Entry<Double,MutableLong> e : entries){
                 if (e.getKey() != 0.0) {
                     values[counter] = e.getKey();
                     counts[counter] = e.getValue().longValue();
@@ -338,7 +345,7 @@ public class CategoricalInfo extends SkeletalVariableInfo {
                 values[0] = 0;
                 counter = 1;
             }
-            for (Double key : valueCounts.keySet()) {
+            for (Double key : valueCounts.keySet().stream().sorted().collect(Collectors.toList())) {
                 values[counter] = key;
                 counter++;
             }

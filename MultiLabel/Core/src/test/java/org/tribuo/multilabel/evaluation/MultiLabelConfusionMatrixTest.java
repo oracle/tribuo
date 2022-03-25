@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,11 +92,14 @@ public class MultiLabelConfusionMatrixTest {
 
     @Test
     public void testTabulateSingleLabel() {
+        MultiLabel a = label("a");
+        MultiLabel b = label("b");
+        MultiLabel c = label("c");
         List<Prediction<MultiLabel>> predictions = Arrays.asList(
-                mkPrediction(label("a"), label("a")),
-                mkPrediction(label("c"), label("b")),
-                mkPrediction(label("b"), label("b")),
-                mkPrediction(label("b"), label("c"))
+            mkPrediction(a, a),
+            mkPrediction(c, b),
+            mkPrediction(b, b),
+            mkPrediction(b, c)
         );
         ImmutableOutputInfo<MultiLabel> domain = mkDomain(predictions);
 
@@ -104,18 +107,23 @@ public class MultiLabelConfusionMatrixTest {
                 .tabulate(domain, predictions)
                 .getMCM();
 
+        int aIndex = domain.getID(a);
+        int bIndex = domain.getID(b);
+        int cIndex = domain.getID(c);
+
         assertEquals(domain.size(), mcm.length);
-        assertEquals(3d, mcm[0].get(0, 0));
-        assertEquals(1d, mcm[0].get(1, 1));
 
-        assertEquals(1d, mcm[1].get(0, 0));
-        assertEquals(1d, mcm[1].get(0, 1));
-        assertEquals(1d, mcm[1].get(1, 0));
-        assertEquals(1d, mcm[1].get(1, 1));
+        assertEquals(3d, mcm[aIndex].get(0, 0));
+        assertEquals(1d, mcm[aIndex].get(1, 1));
 
-        assertEquals(2d, mcm[2].get(0, 0));
-        assertEquals(1d, mcm[2].get(0, 1));
-        assertEquals(1d, mcm[2].get(1, 0));
+        assertEquals(1d, mcm[bIndex].get(0, 0));
+        assertEquals(1d, mcm[bIndex].get(0, 1));
+        assertEquals(1d, mcm[bIndex].get(1, 0));
+        assertEquals(1d, mcm[bIndex].get(1, 1));
+
+        assertEquals(2d, mcm[cIndex].get(0, 0));
+        assertEquals(1d, mcm[cIndex].get(0, 1));
+        assertEquals(1d, mcm[cIndex].get(1, 0));
     }
 
     /**
@@ -162,6 +170,9 @@ public class MultiLabelConfusionMatrixTest {
 
     @Test
     public void testTabulateMultiLabel() {
+        MultiLabel a = label("a");
+        MultiLabel b = label("b");
+        MultiLabel c = label("c");
         List<Prediction<MultiLabel>> predictions = Arrays.asList(
                 mkPrediction(label("a"), label("a", "b")),
                 mkPrediction(label("c", "b"), label("b")),
@@ -176,17 +187,21 @@ public class MultiLabelConfusionMatrixTest {
                 .tabulate(domain, predictions)
                 .getMCM();
 
+        int aIndex = domain.getID(a);
+        int bIndex = domain.getID(b);
+        int cIndex = domain.getID(c);
+
         assertEquals(domain.size(), mcm.length);
-        assertEquals(3d, mcm[0].get(0, 0));
-        assertEquals(1d, mcm[0].get(1, 1));
+        assertEquals(3d, mcm[aIndex].get(0, 0));
+        assertEquals(1d, mcm[aIndex].get(1, 1));
 
-        assertEquals(1d, mcm[1].get(0, 1));
-        assertEquals(1d, mcm[1].get(1, 0));
-        assertEquals(2d, mcm[1].get(1, 1));
+        assertEquals(1d, mcm[bIndex].get(0, 1));
+        assertEquals(1d, mcm[bIndex].get(1, 0));
+        assertEquals(2d, mcm[bIndex].get(1, 1));
 
-        assertEquals(2d, mcm[2].get(0, 0));
-        assertEquals(1d, mcm[2].get(0, 1));
-        assertEquals(1d, mcm[2].get(1, 0));
+        assertEquals(2d, mcm[cIndex].get(0, 0));
+        assertEquals(1d, mcm[cIndex].get(0, 1));
+        assertEquals(1d, mcm[cIndex].get(1, 0));
     }
 
     @Test

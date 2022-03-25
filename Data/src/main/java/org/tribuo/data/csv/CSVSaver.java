@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableIDInfo;
-import org.tribuo.VariableInfo;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,7 +35,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
