@@ -23,6 +23,7 @@ import org.tribuo.protos.core.MutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.ProtoUtil;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -108,6 +109,26 @@ public class MutableFeatureMap extends FeatureMap {
      */
     public void clear() {
         m.clear();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        MutableFeatureMap that = (MutableFeatureMap) o;
+        return convertHighCardinality == that.convertHighCardinality;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), convertHighCardinality);
     }
 
     @Override

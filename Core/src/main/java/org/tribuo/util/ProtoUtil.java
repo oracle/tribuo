@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Utilities for serializing & deserializing protobufs.
+ * Utilities for working with Tribuo protobufs.
  */
 public final class ProtoUtil {
 

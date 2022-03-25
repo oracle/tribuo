@@ -17,11 +17,13 @@
 package org.tribuo;
 
 import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.util.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -103,6 +105,23 @@ public abstract class FeatureMap implements Serializable, ProtoSerializable<Feat
         return m.values().iterator();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FeatureMap that = (FeatureMap) o;
+        return m.equals(that.m);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(m);
+    }
+
     /**
      * Same as the toString, but ordered by name, and with newlines.
      * @return A String representation of this FeatureMap.
@@ -136,6 +155,15 @@ public abstract class FeatureMap implements Serializable, ProtoSerializable<Feat
         } else {
             return false;
         }
+    }
+
+    /**
+     * Deserializes a {@link FeatureDomainProto} into a {@link FeatureMap} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized FeatureMap.
+     */
+    public static FeatureMap deserialize(FeatureDomainProto proto) {
+        return (FeatureMap) ProtoUtil.instantiate(proto.getVersion(), proto.getClassName(), proto.getSerializedData());
     }
 
 }
