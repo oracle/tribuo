@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,5 +75,16 @@ public final class ImmutableAnomalyInfo extends AnomalyInfo implements Immutable
         list.add(new Pair<>(AnomalyFactory.EXPECTED_EVENT.getType().getID(),AnomalyFactory.EXPECTED_EVENT));
 
         return list.iterator();
+    }
+
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<Event> other) {
+        if (other instanceof ImmutableAnomalyInfo) {
+            return true;
+        } else {
+            return other.size() == 2
+                    && other.getID(AnomalyFactory.ANOMALOUS_EVENT) == AnomalyFactory.ANOMALOUS_EVENT.getType().getID()
+                    && other.getID(AnomalyFactory.EXPECTED_EVENT) == AnomalyFactory.EXPECTED_EVENT.getType().getID();
+        }
     }
 }

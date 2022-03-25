@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ package org.tribuo.classification.evaluation;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.function.ToDoubleFunction;
 
 /**
@@ -129,6 +133,42 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
     }
 
     /**
+     * The values this confusion matrix has seen.
+     * <p>
+     * The default implementation is provided for compatibility reasons and will be removed
+     * in a future major release. It defaults to returning the output domain.
+     * @return The set of observed outputs.
+     */
+    default public Set<T> observed() {
+        return getDomain().getDomain();
+    }
+
+    /**
+     * The label order this confusion matrix uses in {@code toString}.
+     * <p>
+     * The default implementation is provided for compatibility reasons and will be removed
+     * in a future major release. It defaults to the output domain iterated in hash order.
+     * @return An unmodifiable view on the label order.
+     */
+    public default List<T> getLabelOrder() {
+        return Collections.unmodifiableList(new ArrayList<>(getDomain().getDomain()));
+    }
+
+    /**
+     * Sets the label order this confusion matrix uses in {@code toString}.
+     * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
+     * <p>
+     * The default implementation does not set the label order and is provided for
+     * backwards compatibility reasons. It should be overridden in all subclasses to
+     * ensure correct behaviour, and this default implementation will be removed in a
+     * future major release.
+     * @param labelOrder The label order.
+     */
+    public default void setLabelOrder(List<T> labelOrder) {}
+
+    /**
      * Sums the supplied getter over the domain.
      * @param domain The domain to sum over.
      * @param getter The getter to use.
@@ -142,4 +182,5 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
         }
         return total;
     }
+
 }

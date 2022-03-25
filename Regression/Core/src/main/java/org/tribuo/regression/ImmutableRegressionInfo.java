@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -332,6 +332,23 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
     @Override
     public Iterator<Pair<Integer, Regressor>> iterator() {
         return new ImmutableInfoIterator(idLabelMap);
+    }
+
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<Regressor> other) {
+        if (size() == other.size()) {
+            for (Map.Entry<Integer,String> e : idLabelMap.entrySet()) {
+                Regressor otherReg = other.getOutput(e.getKey());
+                if (otherReg == null) {
+                    return false;
+                } else if (!otherReg.getDimensionNamesString().equals(e.getValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private static class ImmutableInfoIterator implements Iterator<Pair<Integer, Regressor>> {

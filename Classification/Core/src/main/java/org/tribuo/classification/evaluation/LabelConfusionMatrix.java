@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.tribuo.classification.Label;
 import org.tribuo.math.la.DenseMatrix;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -66,7 +67,8 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
     /**
      * Creates a confusion matrix from the supplied predictions, using the label info
      * from the supplied model.
-     * @param model The model to use for the label information.
+     *
+     * @param model       The model to use for the label information.
      * @param predictions The predictions.
      */
     public LabelConfusionMatrix(Model<Label> model, List<Prediction<Label>> predictions) {
@@ -75,9 +77,10 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
 
     /**
      * Creates a confusion matrix from the supplied predictions and label info.
-     * @throws IllegalArgumentException If the domain doesn't contain all the predictions.
-     * @param domain The label information.
+     *
+     * @param domain      The label information.
      * @param predictions The predictions.
+     * @throws IllegalArgumentException If the domain doesn't contain all the predictions.
      */
     public LabelConfusionMatrix(ImmutableOutputInfo<Label> domain, List<Prediction<Label>> predictions) {
         this.domain = domain;
@@ -85,11 +88,13 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
         this.cm = new DenseMatrix(domain.size(), domain.size());
         this.occurrences = new HashMap<>();
         this.observed = new HashSet<>();
+        this.labelOrder = Collections.unmodifiableList(new ArrayList<>(domain.getDomain()));
         tabulate(predictions);
     }
 
     /**
      * Aggregate the predictions into this confusion matrix.
+     *
      * @param predictions The predictions to aggregate.
      */
     private void tabulate(List<Prediction<Label>> predictions) {
@@ -101,7 +106,7 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
             if (y.getLabel().equals(Label.UNKNOWN)) {
                 throw new IllegalArgumentException("Prediction with unknown ground truth. Unable to evaluate.");
             }
-            occurrences.merge(y,1d, Double::sum);
+            occurrences.merge(y, 1d, Double::sum);
             observed.add(y);
             observed.add(p);
             int iy = getIDOrThrow(y);
@@ -113,6 +118,11 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
     @Override
     public ImmutableOutputInfo<Label> getDomain() {
         return domain;
+    }
+
+    @Override
+    public Set<Label> observed() {
+        return Collections.unmodifiableSet(observed);
     }
 
     @Override
@@ -170,7 +180,8 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
 
     /**
      * A convenience method for extracting the appropriate label statistic.
-     * @param cls The label to check.
+     *
+     * @param cls    The label to check.
      * @param getter The get function which accepts a label id.
      * @return The statistic for that label id.
      */
@@ -186,6 +197,7 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
     /**
      * Gets the id for the supplied label, or throws an {@link IllegalArgumentException} if it's
      * an unknown label.
+     *
      * @param key The label.
      * @return The int id for that label.
      */
@@ -199,21 +211,37 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
 
     /**
      * Sets the label order used in {@link #toString}.
-     * @param labelOrder The label order to use.
+     * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
+     *
+     * @param newLabelOrder The label order to use.
      */
-    public void setLabelOrder(List<Label> labelOrder) {
-        this.labelOrder = labelOrder;
+    @Override
+    public void setLabelOrder(List<Label> newLabelOrder) {
+        if (newLabelOrder == null || newLabelOrder.isEmpty()) {
+            throw new IllegalArgumentException("Label order must be non-null and non-empty.");
+        }
+        this.labelOrder = Collections.unmodifiableList(new ArrayList<>(newLabelOrder));
+    }
+
+    /**
+     * Gets the current label order.
+     *
+     * May trigger order instantiation if the label order has not been set.
+     * @return The label order.
+     */
+    public List<Label> getLabelOrder() {
+        return labelOrder;
     }
 
     @Override
     public String toString() {
-        if (labelOrder == null) {
-            labelOrder = new ArrayList<>(domain.getDomain());
-        }
-        labelOrder.retainAll(observed);
-        
+        List<Label> curOrder = new ArrayList<>(labelOrder);
+        curOrder.retainAll(observed);
+
         int maxLen = Integer.MIN_VALUE;
-        for (Label label : labelOrder) {
+        for (Label label : curOrder) {
             maxLen = Math.max(label.getLabel().length(), maxLen);
             maxLen = Math.max(String.format(" %,d", (int)(double)occurrences.getOrDefault(label,0.0)).length(), maxLen);
         }
@@ -229,14 +257,14 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
 
         //
         // Labels across the top for predicted.
-        for (Label predictedLabel : labelOrder) {
+        for (Label predictedLabel : curOrder) {
             sb.append(String.format(predictedLabelFormat, predictedLabel.getLabel()));
         }
         sb.append('\n');
 
-        for (Label trueLabel : labelOrder) {
+        for (Label trueLabel : curOrder) {
             sb.append(String.format(trueLabelFormat, trueLabel.getLabel()));
-            for (Label predictedLabel : labelOrder) {
+            for (Label predictedLabel : curOrder) {
             	int confusion = (int) confusion(predictedLabel, trueLabel);
                 sb.append(String.format(countFormat, confusion));
             }
@@ -250,9 +278,6 @@ public final class LabelConfusionMatrix implements ConfusionMatrix<Label> {
      * @return The confusion matrix as a HTML table.
      */
     public String toHTML() {
-        if (labelOrder == null) {
-            labelOrder = new ArrayList<>(domain.getDomain());
-        }
         Set<Label> labelsToPrint = new LinkedHashSet<>(labelOrder);
         labelsToPrint.retainAll(observed);
         StringBuilder sb = new StringBuilder();

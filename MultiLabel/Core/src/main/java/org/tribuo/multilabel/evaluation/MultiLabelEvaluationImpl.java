@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -200,13 +200,36 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
         return provenance;
     }
 
+    /**
+     * This method produces a nicely formatted String output, with
+     * appropriate tabs and newlines, suitable for display on a terminal.
+     * <p>
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
+     * @return Formatted output showing the main results of the evaluation.
+     */
     @Override
     public String toString() {
-        List<MultiLabel> labelOrder = new ArrayList<>(cm.getDomain().getDomain());
-        return toString(labelOrder);
+        return toString(cm.getLabelOrder());
     }
 
+    /**
+     * This method produces a nicely formatted String output, with
+     * appropriate tabs and newlines, suitable for display on a terminal.
+     * <p>
+     * Uses the label order of the confusion matrix, which can be used to display
+     * a subset of the per label metrics. When they are subset the total row
+     * represents only the subset selected, not all the predictions, however
+     * the accuracy and averaged metrics cover all the predictions.
+     *
+     * @param labelOrder The label order to use.
+     * @return Formatted output showing the main results of the evaluation.
+     */
     private String toString(List<MultiLabel> labelOrder) {
+        List<MultiLabel> retainedLabelOrder = new ArrayList<>(labelOrder);
+        retainedLabelOrder.retainAll(cm.observed());
         StringBuilder sb = new StringBuilder();
         int tp = 0;
         int fn = 0;
@@ -216,14 +239,14 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
         // Figure out the biggest class label and therefore the format string
         // that we should use for them.
         int maxLabelSize = "Balanced Error Rate".length();
-        for(MultiLabel label : labelOrder) {
+        for(MultiLabel label : retainedLabelOrder) {
             maxLabelSize = Math.max(maxLabelSize, label.getLabelString().length());
         }
         String labelFormatString = String.format("%%-%ds", maxLabelSize+2);
         sb.append(String.format(labelFormatString, "Class"));
         sb.append(String.format("%12s%12s%12s%12s", "n", "tp", "fn", "fp"));
         sb.append(String.format("%12s%12s%12s%n", "recall", "prec", "f1"));
-        for (MultiLabel label : labelOrder) {
+        for (MultiLabel label : retainedLabelOrder) {
             if (cm.support(label) == 0) {
                 continue;
             }
@@ -243,7 +266,7 @@ public final class MultiLabelEvaluationImpl implements MultiLabelEvaluation {
         sb.append(String.format(labelFormatString, "Total"));
         sb.append(String.format("%,12d%,12d%,12d%,12d%n", n, tp, fn, fp));
         sb.append(String.format(labelFormatString, "Accuracy"));
-        sb.append(String.format("%60.3f%n", ((double) tp) / n));
+        sb.append(String.format("%60.3f%n", cm.tp() / cm.support()));
         sb.append(String.format(labelFormatString, "Micro Average"));
         sb.append(String.format("%60.3f%12.3f%12.3f%n", microAveragedRecall(), microAveragedPrecision(), microAveragedF1()));
         sb.append(String.format(labelFormatString, "Macro Average"));

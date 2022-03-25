@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * An ImmutableOutputInfo object for Labels.
+ * An {@link ImmutableOutputInfo} object for {@link Label}s.
  * <p>
  * Gives each unique label an id number. Also counts each label occurrence like {@link MutableLabelInfo} does,
  * though the counts are frozen in this object.
@@ -166,6 +166,23 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
     @Override
     public Iterator<Pair<Integer, Label>> iterator() {
         return new ImmutableInfoIterator(idLabelMap);
+    }
+
+    @Override
+    public boolean domainAndIDEquals(ImmutableOutputInfo<Label> other) {
+        if (size() == other.size()) {
+            for (Map.Entry<Integer,String> e : idLabelMap.entrySet()) {
+                Label otherLbl = other.getOutput(e.getKey());
+                if (otherLbl == null) {
+                    return false;
+                } else if (!otherLbl.label.equals(e.getValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

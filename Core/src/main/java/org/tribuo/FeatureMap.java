@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,6 +115,25 @@ public abstract class FeatureMap implements Serializable, Iterable<VariableInfo>
             sb.append(e.getValue().toString());
         }
         return sb.toString();
+    }
+
+    /**
+     * Check if this feature map contains the same features as the supplied one.
+     * @param other The feature map to check.
+     * @return True if the two feature maps contain the same named features.
+     */
+    public boolean domainEquals(FeatureMap other) {
+        if (size() == other.size()) {
+            for (Map.Entry<String, VariableInfo> e : m.entrySet()) {
+                VariableInfo otherInfo = other.get(e.getKey());
+                if (otherInfo == null) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

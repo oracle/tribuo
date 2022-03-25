@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,9 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.MultiLabelFactory;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -55,6 +58,10 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
     private final ImmutableOutputInfo<MultiLabel> domain;
     private final DenseMatrix[] mcm;
     private final DenseMatrix confusion;
+    private final Set<MultiLabel> observed;
+
+    private List<MultiLabel> labelOrder;
+
 
     /**
      * Constructs a multi-label confusion matrix for the specified model and predictions.
@@ -67,9 +74,11 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
 
     MultiLabelConfusionMatrix(ImmutableOutputInfo<MultiLabel> domain, List<Prediction<MultiLabel>> predictions) {
         this.domain = domain;
+        this.labelOrder = Collections.unmodifiableList(new ArrayList<>(domain.getDomain()));
         ConfusionMatrixTuple tab = tabulate(domain, predictions);
         this.mcm = tab.mcm;
         this.confusion = tab.confusion;
+        this.observed = tab.observed;
     }
 
     @Override
@@ -101,6 +110,11 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
     @Override
     public ImmutableOutputInfo<MultiLabel> getDomain() {
         return domain;
+    }
+
+    @Override
+    public Set<MultiLabel> observed() {
+        return Collections.unmodifiableSet(observed);
     }
 
     @Override
@@ -162,9 +176,37 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
         return total;
     }
 
+    /**
+     * Sets the label order used in {@link #toString}.
+     * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
+     *
+     * @param labelOrder The label order to use.
+     */
+    @Override
+    public void setLabelOrder(List<MultiLabel> labelOrder) {
+        if (labelOrder == null || labelOrder.isEmpty()) {
+            throw new IllegalArgumentException("Label order must be non-null and non-empty.");
+        }
+        this.labelOrder = Collections.unmodifiableList(new ArrayList<>(labelOrder));
+    }
+
+    /**
+     * Gets the current label order.
+     * <p>
+     * If the label order is a subset of the labels in the domain, only the
+     * labels present in the label order will be displayed.
+     *
+     * @return The label order.
+     */
+    public List<MultiLabel> getLabelOrder() {
+        return labelOrder;
+    }
+
     @Override
     public String toString() {
-        return getDomain().getDomain().stream()
+        return labelOrder.stream()
             .map(multiLabel -> {
                   final int tp = (int) tp(multiLabel);
                   final int fn = (int) fn(multiLabel);
@@ -181,6 +223,8 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
     static ConfusionMatrixTuple tabulate(ImmutableOutputInfo<MultiLabel> domain, List<Prediction<MultiLabel>> predictions) {
         // this just keeps track of how many times [class x] was predicted to be [class y]
         DenseMatrix confusion = new DenseMatrix(domain.size(), domain.size());
+
+        Set<MultiLabel> observed = new HashSet<>();
 
         DenseMatrix[] mcm = new DenseMatrix[domain.size()];
         for (int i = 0; i < domain.size(); i++) {
@@ -213,6 +257,7 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
                     // false positive: mcm[i, 1, 0]++
                     mcm[idx].add(1, 0, 1d);
                 }
+                observed.add(new MultiLabel(pred));
             }
 
             //
@@ -244,6 +289,7 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
                     mcm[idx].add(0, 1, 1d);
                 }
                 // else { true positive: already counted }
+                observed.add(new MultiLabel(trueLabel));
             }
 
             //
@@ -260,7 +306,7 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
             predIndex++;
         }
 
-        return new ConfusionMatrixTuple(mcm, confusion);
+        return new ConfusionMatrixTuple(mcm, confusion, observed);
     }
 
     /**
@@ -269,9 +315,11 @@ public final class MultiLabelConfusionMatrix implements ConfusionMatrix<MultiLab
     static final class ConfusionMatrixTuple {
         final DenseMatrix[] mcm;
         final DenseMatrix confusion;
-        ConfusionMatrixTuple(DenseMatrix[] mcm, DenseMatrix confusion) {
+        final Set<MultiLabel> observed;
+        ConfusionMatrixTuple(DenseMatrix[] mcm, DenseMatrix confusion, Set<MultiLabel> observed) {
             this.mcm = mcm;
             this.confusion = confusion;
+            this.observed = observed;
         }
 
         DenseMatrix[] getMCM() {

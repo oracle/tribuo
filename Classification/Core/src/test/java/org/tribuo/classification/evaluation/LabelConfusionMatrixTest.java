@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,11 +71,29 @@ public class LabelConfusionMatrixTest {
         assertEquals(1, cm.support(c));
 
         assertEquals(4, cm.support());
+
+        List<Label> lblOrder = new ArrayList<>();
+        lblOrder.add(a);
+        lblOrder.add(b);
+        lblOrder.add(c);
+
+        cm.setLabelOrder(lblOrder);
+
         String cmToString = cm.toString();
         assertEquals("       a   b   c\n" + 
         			 "a      1   0   0\n" + 
         			 "b      0   1   1\n" + 
         			 "c      0   1   0\n", cmToString);
+
+        lblOrder.clear();
+        lblOrder.add(c);
+        lblOrder.add(a);
+        cm.setLabelOrder(lblOrder);
+
+        cmToString = cm.toString();
+        assertEquals("       c   a\n" +
+            "c      0   0\n" +
+            "a      0   1\n", cmToString);
 
     }
 

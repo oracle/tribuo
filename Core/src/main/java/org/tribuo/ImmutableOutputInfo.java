@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 package org.tribuo;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * An {@link OutputInfo} that is fixed, and contains an id number for each valid output.
@@ -44,5 +48,30 @@ public interface ImmutableOutputInfo<T extends Output<T>> extends OutputInfo<T>,
      * @return The number of observed outputs.
      */
     public long getTotalObservations();
+
+    /**
+     * Checks if the domain is the same as the other output info's domain, and that
+     * each element is mapped to the same id number.
+     * <p>
+     * Note the default behaviour will be removed in a future major release, and should be
+     * overridden for performance reasons in all implementing classes.
+     * @param other The output info to compare.
+     * @return True if the domains and ids are the same.
+     */
+    default public boolean domainAndIDEquals(ImmutableOutputInfo<T> other) {
+        List<Pair<Integer,T>> self = new ArrayList<>();
+        for (Pair<Integer, T> p : this) {
+            self.add(p);
+        }
+        self.sort(Comparator.comparingInt(Pair::getA));
+
+        List<Pair<Integer,T>> otherList = new ArrayList<>();
+        for (Pair<Integer, T> p : other) {
+            otherList.add(p);
+        }
+        otherList.sort(Comparator.comparingInt(Pair::getA));
+
+        return self.equals(otherList);
+    }
 
 }
