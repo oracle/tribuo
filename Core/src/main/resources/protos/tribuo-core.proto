@@ -176,11 +176,18 @@ message TransformerProto {
 }
 
 /*
+Transformer list proto
+ */
+message TransformerListProto {
+  repeated TransformerProto transformer = 1;
+}
+
+/*
 Transformer map proto
  */
 message TransformerMapProto {
   int32 version = 1;
-  map<string, TransformerProto> map = 2;
+  map<string,TransformerListProto> transformers = 2;
   olcut.RootProvenanceProto datasetProvenance = 3;
   olcut.RootProvenanceProto transformationMapProvenance = 4;
 }

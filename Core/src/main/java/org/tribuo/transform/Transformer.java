@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.transform;
 
+import org.tribuo.ProtoSerializable;
+import org.tribuo.protos.core.TransformerProto;
+
 import java.io.Serializable;
 
 /**
@@ -26,7 +29,7 @@ import java.io.Serializable;
  * Transformers are serializable, and should only
  * be constructed by their {@link TransformStatistics}.
  */
-public interface Transformer extends Serializable {
+public interface Transformer extends ProtoSerializable<TransformerProto>, Serializable {
 
     /**
      * Applies the transformation to the supplied
