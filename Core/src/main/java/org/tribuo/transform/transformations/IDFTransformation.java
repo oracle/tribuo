@@ -16,9 +16,15 @@
 
 package org.tribuo.transform.transformations;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
+
+import org.tribuo.protos.core.IDFTransformerProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
@@ -103,15 +109,60 @@ public class IDFTransformation implements Transformation {
          * @param N The number of documents.
          */
         public IDFTransformer(int df, int N) {
+            if ((df < 0) || (N < 0)) {
+                throw new IllegalArgumentException("Both df and N must be positive");
+            }
             this.df = df;
             this.N = N;
+        }
+
+        /**
+         * Deserialization factory.
+         * @param version The serialized object version.
+         * @param className The class name.
+         * @param message The serialized data.
+         * @throws InvalidProtocolBufferException If the message is not a {@link IDFTransformerProto}.
+         */
+        public static IDFTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+            IDFTransformerProto proto = message.unpack(IDFTransformerProto.class);
+            if (version == 0) {
+                return new IDFTransformer((int)proto.getDf(), (int)proto.getN());
+            } else {
+                throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
+            }
         }
 
         @Override
         public double transform(double tf) {
             return Math.log(N / df) * (1 + Math.log(tf));
         }
-        
+
+        @Override
+        public TransformerProto serialize() {
+            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
+
+            protoBuilder.setVersion(0);
+            protoBuilder.setClassName(this.getClass().getName());
+
+            IDFTransformerProto transformProto = IDFTransformerProto.newBuilder()
+                    .setDf(df).setN(N).build();
+            protoBuilder.setSerializedData(Any.pack(transformProto));
+
+            return protoBuilder.build();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            IDFTransformer that = (IDFTransformer) o;
+            return Double.compare(that.df, df) == 0 && Double.compare(that.N, N) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(df, N);
+        }
     }
 
     /**

@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import org.tribuo.MutableDataset;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
@@ -284,6 +285,16 @@ public class TransformationMapTest {
         @Override
         public double transform(double input) {
             return input;
+        }
+
+        @Override
+        public TransformerProto serialize() {
+            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
+
+            protoBuilder.setVersion(0);
+            protoBuilder.setClassName(this.getClass().getName());
+
+            return protoBuilder.build();
         }
     }
 }

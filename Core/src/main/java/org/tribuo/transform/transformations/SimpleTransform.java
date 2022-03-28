@@ -16,11 +16,15 @@
 
 package org.tribuo.transform.transformations;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
+import org.tribuo.protos.core.SimpleTransformProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
@@ -181,12 +185,55 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
         }
     }
 
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the message is not a {@link SimpleTransformProto}.
+     */
+    public static SimpleTransform deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        SimpleTransformProto proto = message.unpack(SimpleTransformProto.class);
+        if (version == 0) {
+            return new SimpleTransform(Operation.valueOf(proto.getOp()), proto.getFirstOperand(), proto.getSecondOperand());
+        } else {
+            throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
+        }
+    }
+
     @Override
     public TransformationProvenance getProvenance() {
         if (provenance == null) {
             provenance = new SimpleTransformProvenance(this);
         }
         return provenance;
+    }
+
+    @Override
+    public TransformerProto serialize() {
+        TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
+
+        protoBuilder.setVersion(0);
+        protoBuilder.setClassName(this.getClass().getName());
+
+        SimpleTransformProto transformProto = SimpleTransformProto.newBuilder()
+                .setOp(op.name()).setFirstOperand(operand).setSecondOperand(secondOperand).build();
+        protoBuilder.setSerializedData(Any.pack(transformProto));
+
+        return protoBuilder.build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleTransform that = (SimpleTransform) o;
+        return Double.compare(that.operand, operand) == 0 && Double.compare(that.secondOperand, secondOperand) == 0 && op == that.op;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(op, operand, secondOperand);
     }
 
     /**

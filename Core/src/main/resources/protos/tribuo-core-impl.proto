@@ -24,9 +24,6 @@ package tribuo.core;
 option java_multiple_files = true;
 option java_package = "org.tribuo.protos.core";
 
-// We use any to encode polymorphism in feature domains, output domains, and model values
-import "google/protobuf/any.proto";
-
 // Import Tribuo's core protos
 import "tribuo-core.proto";
 
@@ -92,4 +89,50 @@ ModHashCodeHasher proto
  */
 message ModHashCodeHasherProto {
   int32 dimension = 1;
+}
+
+/*
+SimpleTransform proto
+ */
+message SimpleTransformProto {
+  string op = 1;
+  double first_operand = 2;
+  double second_operand = 3;
+}
+
+/*
+MeanStdDevTransformer proto
+ */
+message MeanStdDevTransformerProto {
+  double observedMean = 1;
+  double observedStdDev = 2;
+  double targetMean = 3;
+  double targetStdDev = 4;
+}
+
+/*
+LinearScalingTransformer proto
+ */
+message LinearScalingTransformerProto {
+  double observedMin = 1;
+  double observedMax = 2;
+  double targetMin = 3;
+  double targetMax = 4;
+}
+
+/*
+IDFTransformer proto
+ */
+message IDFTransformerProto {
+  double df = 1;
+  double N = 2;
+}
+
+/*
+BinningTransformer proto
+ */
+message BinningTransformerProto {
+  string binning_type = 1;
+  repeated double bins = 2;
+  repeated double values = 3;
 }

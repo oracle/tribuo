@@ -16,15 +16,20 @@
 
 package org.tribuo.transform.transformations;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
+import org.tribuo.protos.core.BinningTransformerProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
+import org.tribuo.util.Util;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -434,7 +439,7 @@ public final class BinningTransformation implements Transformation {
         }
     }
 
-    private static class BinningTransformer implements Transformer {
+    private static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         private final BinningType type;
@@ -445,6 +450,28 @@ public final class BinningTransformation implements Transformation {
             this.type = type;
             this.bins = bins;
             this.values = values;
+        }
+
+        /**
+         * Deserialization factory.
+         * @param version The serialized object version.
+         * @param className The class name.
+         * @param message The serialized data.
+         * @throws InvalidProtocolBufferException If the message is not a {@link BinningTransformerProto}.
+         */
+        public static BinningTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+            BinningTransformerProto proto = message.unpack(BinningTransformerProto.class);
+            if (version == 0) {
+                if (proto.getBinsCount() == proto.getValuesCount()) {
+                    double[] newBins = Util.toPrimitiveDouble(proto.getBinsList());
+                    double[] newValues = Util.toPrimitiveDouble(proto.getValuesList());
+                    return new BinningTransformer(BinningType.valueOf(proto.getBinningType()),newBins,newValues);
+                } else {
+                    throw new IllegalArgumentException("Invalid protobuf, found a differing number of bins and values.");
+                }
+            } else {
+                throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
+            }
         }
 
         @Override
@@ -462,8 +489,42 @@ public final class BinningTransformation implements Transformation {
         }
 
         @Override
+        public TransformerProto serialize() {
+            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
+
+            protoBuilder.setVersion(0);
+            protoBuilder.setClassName(this.getClass().getName());
+
+            BinningTransformerProto.Builder transformBuilder = BinningTransformerProto.newBuilder();
+            transformBuilder.setBinningType(type.name());
+            for (int i = 0; i < bins.length; i++) {
+                transformBuilder.addBins(bins[i]);
+                transformBuilder.addValues(values[i]);
+            }
+            protoBuilder.setSerializedData(Any.pack(transformBuilder.build()));
+
+            return protoBuilder.build();
+        }
+
+        @Override
         public String toString() {
             return "BinningTransformer(type="+type+",bins="+Arrays.toString(bins)+",values="+Arrays.toString(values)+")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BinningTransformer that = (BinningTransformer) o;
+            return type == that.type && Arrays.equals(bins, that.bins) && Arrays.equals(values, that.values);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(type);
+            result = 31 * result + Arrays.hashCode(bins);
+            result = 31 * result + Arrays.hashCode(values);
+            return result;
         }
     }
 }

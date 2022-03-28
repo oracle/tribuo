@@ -16,10 +16,14 @@
 
 package org.tribuo.transform.transformations;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
+import org.tribuo.protos.core.LinearScalingTransformerProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
@@ -193,7 +197,7 @@ public final class LinearScalingTransformation implements Transformation {
         }
     }
 
-    private static class LinearScalingTransformer implements Transformer {
+    private static final class LinearScalingTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         private final double observedMin;
@@ -204,6 +208,9 @@ public final class LinearScalingTransformation implements Transformation {
         private final boolean constant;
 
         public LinearScalingTransformer(double observedMin, double observedMax, double targetMin, double targetMax) {
+            if ((observedMin > observedMax) || (targetMin > targetMax)) {
+                throw new IllegalArgumentException("observedMin and targetMin must be less than observedMax and targetMax respectively");
+            }
             this.observedMin = observedMin;
             this.observedMax = observedMax;
             this.targetMin = targetMin;
@@ -212,6 +219,23 @@ public final class LinearScalingTransformation implements Transformation {
             this.constant = (observedRange == 0.0);
             double targetRange = targetMax - targetMin;
             this.scalingFactor = targetRange / observedRange;
+        }
+
+        /**
+         * Deserialization factory.
+         * @param version The serialized object version.
+         * @param className The class name.
+         * @param message The serialized data.
+         * @throws InvalidProtocolBufferException If the message is not a {@link LinearScalingTransformerProto}.
+         */
+        public static LinearScalingTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+            LinearScalingTransformerProto proto = message.unpack(LinearScalingTransformerProto.class);
+            if (version == 0) {
+                return new LinearScalingTransformer(proto.getObservedMin(),proto.getObservedMax(),
+                        proto.getTargetMin(),proto.getTargetMax());
+            } else {
+                throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
+            }
         }
 
         @Override
@@ -229,8 +253,36 @@ public final class LinearScalingTransformation implements Transformation {
         }
 
         @Override
+        public TransformerProto serialize() {
+            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
+
+            protoBuilder.setVersion(0);
+            protoBuilder.setClassName(this.getClass().getName());
+
+            LinearScalingTransformerProto transformProto = LinearScalingTransformerProto.newBuilder()
+                    .setObservedMin(observedMin).setObservedMax(observedMax)
+                    .setTargetMin(targetMin).setTargetMax(targetMax).build();
+            protoBuilder.setSerializedData(Any.pack(transformProto));
+
+            return protoBuilder.build();
+        }
+
+        @Override
         public String toString() {
             return "LinearScalingTransformer(observedMin="+observedMin+",observedMax="+observedMax+",targetMin="+targetMin+",targetMax="+targetMax+")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            LinearScalingTransformer that = (LinearScalingTransformer) o;
+            return Double.compare(that.observedMin, observedMin) == 0 && Double.compare(that.observedMax, observedMax) == 0 && Double.compare(that.targetMin, targetMin) == 0 && Double.compare(that.targetMax, targetMax) == 0 && Double.compare(that.scalingFactor, scalingFactor) == 0 && constant == that.constant;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(observedMin, observedMax, targetMin, targetMax, scalingFactor, constant);
         }
     }
 }
