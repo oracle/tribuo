@@ -18,6 +18,7 @@ package org.tribuo.transform;
 
 import org.tribuo.ProtoSerializable;
 import org.tribuo.protos.core.TransformerProto;
+import org.tribuo.util.ProtoUtil;
 
 import java.io.Serializable;
 
@@ -39,4 +40,12 @@ public interface Transformer extends ProtoSerializable<TransformerProto>, Serial
      */
     public double transform(double input);
 
+    /**
+     * Deserializes a {@link TransformerProto} into a {@link Transformer} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized FeatureMap.
+     */
+    public static Transformer deserialize(TransformerProto proto) {
+        return (Transformer) ProtoUtil.instantiate(proto.getVersion(), proto.getClassName(), proto.getSerializedData());
+    }
 }

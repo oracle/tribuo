@@ -80,7 +80,7 @@ public final class ProtoUtil {
         String targetClassName = REDIRECT_MAP.getOrDefault(key, className);
         try {
             Class<?> targetClass = Class.forName(targetClassName);
-            Method method = targetClass.getMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
+            Method method = targetClass.getDeclaredMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
             method.setAccessible(true);
             Object o = method.invoke(null, version, className, message);
             method.setAccessible(false);

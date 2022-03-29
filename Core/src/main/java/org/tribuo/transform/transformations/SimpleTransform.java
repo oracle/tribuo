@@ -115,7 +115,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
      */
     private SimpleTransform() {}
 
-    private SimpleTransform(Operation op, double operand, double secondOperand) {
+    SimpleTransform(Operation op, double operand, double secondOperand) {
         this.op = op;
         this.operand = operand;
         this.secondOperand = secondOperand;
@@ -192,7 +192,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
      * @param message The serialized data.
      * @throws InvalidProtocolBufferException If the message is not a {@link SimpleTransformProto}.
      */
-    public static SimpleTransform deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    static SimpleTransform deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         SimpleTransformProto proto = message.unpack(SimpleTransformProto.class);
         if (version == 0) {
             return new SimpleTransform(Operation.valueOf(proto.getOp()), proto.getFirstOperand(), proto.getSecondOperand());

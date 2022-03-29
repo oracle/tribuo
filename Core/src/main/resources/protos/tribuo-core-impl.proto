@@ -136,3 +136,13 @@ message BinningTransformerProto {
   repeated double bins = 2;
   repeated double values = 3;
 }
+
+/*
+CountTransformer proto (used in tests)
+ */
+message TestCountTransformerProto {
+  int32 count = 1;
+  int32 sparseCount = 2;
+  repeated double countMapKeys = 3;
+  repeated int64 countMapValues = 4;
+}

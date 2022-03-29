@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-package org.tribuo.transform;
+package org.tribuo.transform.transformations;
 
 import org.tribuo.CategoricalInfo;
 import org.tribuo.Dataset;
 import org.tribuo.FeatureMap;
 import org.tribuo.MutableDataset;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
-import org.tribuo.transform.transformations.BinningTransformation;
+import org.tribuo.transform.TransformationMap;
+import org.tribuo.transform.Transformer;
+import org.tribuo.transform.TransformerMap;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 /**
  *
@@ -92,6 +97,15 @@ public class BinningTest {
         assertEquals(2033,((CategoricalInfo)testFMap.get("F1")).getObservationCount(3));
         assertEquals(1980,((CategoricalInfo)testFMap.get("F1")).getObservationCount(4));
         assertEquals(2007,((CategoricalInfo)testFMap.get("F1")).getObservationCount(5));
+
+        List<Transformer> f0Transformer = tMap.get("F0");
+        assertEquals(1,f0Transformer.size());
+
+        TransformerProto proto = f0Transformer.get(0).serialize();
+        Transformer transformer = Transformer.deserialize(proto);
+
+        assertEquals(f0Transformer.get(0), transformer);
+        assertNotSame(f0Transformer.get(0), transformer);
     }
 
     @Test

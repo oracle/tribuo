@@ -195,9 +195,9 @@ public final class TransformerMap implements ProtoSerializable<TransformerMapPro
     }
     
     /**
-     * Gets the transformer associated with a given feature name.
+     * Gets the transformers associated with a given feature name.
      * @param featureName the name of the feature for which we want the transformer
-     * @return the transformer associated with the feature name, which may be <code>null</code> 
+     * @return the transformer list associated with the feature name, which may be <code>null</code>
      * if there is no feature with that name.
      */
     public List<Transformer> get(String featureName) {
@@ -207,6 +207,19 @@ public final class TransformerMap implements ProtoSerializable<TransformerMapPro
     @Override
     public String toString() {
         return "TransformerMap(map="+map.toString()+")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TransformerMap that = (TransformerMap) o;
+        return map.equals(that.map) && datasetProvenance.equals(that.datasetProvenance) && transformationMapProvenance.equals(that.transformationMapProvenance);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(map, datasetProvenance, transformationMapProvenance);
     }
 
     /**

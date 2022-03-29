@@ -197,7 +197,7 @@ public final class LinearScalingTransformation implements Transformation {
         }
     }
 
-    private static final class LinearScalingTransformer implements Transformer {
+    static final class LinearScalingTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         private final double observedMin;
@@ -207,7 +207,7 @@ public final class LinearScalingTransformation implements Transformation {
         private final double scalingFactor;
         private final boolean constant;
 
-        public LinearScalingTransformer(double observedMin, double observedMax, double targetMin, double targetMax) {
+        LinearScalingTransformer(double observedMin, double observedMax, double targetMin, double targetMax) {
             if ((observedMin > observedMax) || (targetMin > targetMax)) {
                 throw new IllegalArgumentException("observedMin and targetMin must be less than observedMax and targetMax respectively");
             }
@@ -228,7 +228,7 @@ public final class LinearScalingTransformation implements Transformation {
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link LinearScalingTransformerProto}.
          */
-        public static LinearScalingTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        static LinearScalingTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             LinearScalingTransformerProto proto = message.unpack(LinearScalingTransformerProto.class);
             if (version == 0) {
                 return new LinearScalingTransformer(proto.getObservedMin(),proto.getObservedMax(),

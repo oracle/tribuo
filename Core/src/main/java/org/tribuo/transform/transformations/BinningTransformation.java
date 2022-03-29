@@ -439,14 +439,14 @@ public final class BinningTransformation implements Transformation {
         }
     }
 
-    private static final class BinningTransformer implements Transformer {
+    static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         private final BinningType type;
         private final double[] bins;
         private final double[] values;
 
-        public BinningTransformer(BinningType type, double[] bins, double[] values) {
+        BinningTransformer(BinningType type, double[] bins, double[] values) {
             this.type = type;
             this.bins = bins;
             this.values = values;
@@ -459,7 +459,7 @@ public final class BinningTransformation implements Transformation {
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link BinningTransformerProto}.
          */
-        public static BinningTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        static BinningTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             BinningTransformerProto proto = message.unpack(BinningTransformerProto.class);
             if (version == 0) {
                 if (proto.getBinsCount() == proto.getValuesCount()) {

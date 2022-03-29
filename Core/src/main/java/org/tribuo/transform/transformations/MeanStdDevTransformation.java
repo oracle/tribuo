@@ -205,7 +205,7 @@ public final class MeanStdDevTransformation implements Transformation {
         }
     }
 
-    private static final class MeanStdDevTransformer implements Transformer {
+    static final class MeanStdDevTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         private final double observedMean;
@@ -213,7 +213,7 @@ public final class MeanStdDevTransformation implements Transformation {
         private final double targetMean;
         private final double targetStdDev;
 
-        public MeanStdDevTransformer(double observedMean, double observedStdDev, double targetMean, double targetStdDev) {
+        MeanStdDevTransformer(double observedMean, double observedStdDev, double targetMean, double targetStdDev) {
             if ((observedStdDev < 0) || (targetStdDev < 0)) {
                 throw new IllegalArgumentException("Standard deviations must be non-negative.");
             }
@@ -230,7 +230,7 @@ public final class MeanStdDevTransformation implements Transformation {
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link MeanStdDevTransformerProto}.
          */
-        public static MeanStdDevTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        static MeanStdDevTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             MeanStdDevTransformerProto proto = message.unpack(MeanStdDevTransformerProto.class);
             if (version == 0) {
                 return new MeanStdDevTransformer(proto.getObservedMean(),proto.getObservedStdDev(),

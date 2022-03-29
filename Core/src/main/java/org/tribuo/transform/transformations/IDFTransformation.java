@@ -96,7 +96,7 @@ public class IDFTransformation implements Transformation {
         
     }
     
-    private static class IDFTransformer implements Transformer {
+    static class IDFTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         private final double df;
@@ -108,7 +108,7 @@ public class IDFTransformation implements Transformation {
          * @param df The document frequency.
          * @param N The number of documents.
          */
-        public IDFTransformer(int df, int N) {
+        IDFTransformer(int df, int N) {
             if ((df < 0) || (N < 0)) {
                 throw new IllegalArgumentException("Both df and N must be positive");
             }
@@ -123,7 +123,7 @@ public class IDFTransformation implements Transformation {
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link IDFTransformerProto}.
          */
-        public static IDFTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        static IDFTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             IDFTransformerProto proto = message.unpack(IDFTransformerProto.class);
             if (version == 0) {
                 return new IDFTransformer((int)proto.getDf(), (int)proto.getN());
