@@ -866,12 +866,13 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
          * @return A deep copy of this cluster exemplar.
          */
         public ClusterExemplar copy() {
-            return new ClusterExemplar(label,outlierScore,features.copy());
+            return new ClusterExemplar(label,outlierScore,features.copy(),maxDistToEdge);
         }
 
         @Override
         public String toString() {
-            return "ClusterExemplar(label="+label+",outlierScore="+outlierScore+",vector="+features+")";
+            double dist = maxDistToEdge == null ? Double.NEGATIVE_INFINITY : maxDistToEdge;
+            return "ClusterExemplar(label="+label+",outlierScore="+outlierScore+",vector="+features+",maxDistToEdge="+dist+")";
         }
 
         @Override
@@ -879,12 +880,12 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             ClusterExemplar that = (ClusterExemplar) o;
-            return label.equals(that.label) && outlierScore.equals(that.outlierScore) && features.equals(that.features);
+            return label.equals(that.label) && outlierScore.equals(that.outlierScore) && features.equals(that.features) && Objects.equals(maxDistToEdge, that.maxDistToEdge);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(label, outlierScore, features);
+            return Objects.hash(label, outlierScore, features, maxDistToEdge);
         }
     }
     
