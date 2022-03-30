@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,10 +41,6 @@ import java.util.logging.Logger;
 
 /**
  * A {@link Trainer} which wraps a liblinear-java anomaly detection trainer using a one-class SVM.
- * <p>
- * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
- * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
- * avoids locking on classes Tribuo does not control.
  * <p>
  * See:
  * <pre>
@@ -94,6 +90,8 @@ public class LibLinearAnomalyTrainer extends LibLinearTrainer<Event> {
 
     /**
      * Creates a trainer for a LibLinear model
+     * <p>
+     * Uses {@link Trainer#DEFAULT_SEED} as the RNG seed.
      * @param trainerType Loss function and optimisation method combination.
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param maxIterations The maximum number of dataset iterations.
@@ -101,7 +99,20 @@ public class LibLinearAnomalyTrainer extends LibLinearTrainer<Event> {
      * @param nu The nu parameter in the one-class SVM.
      */
     public LibLinearAnomalyTrainer(LinearAnomalyType trainerType, double cost, int maxIterations, double terminationCriterion, double nu) {
-        super(trainerType,cost,maxIterations,terminationCriterion);
+        this(trainerType,cost,maxIterations,terminationCriterion,nu,Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Creates a trainer for a LibLinear model
+     * @param trainerType Loss function and optimisation method combination.
+     * @param cost Cost penalty for each incorrectly classified training point.
+     * @param maxIterations The maximum number of dataset iterations.
+     * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
+     * @param nu The nu parameter in the one-class SVM.
+     * @param seed The RNG seed.
+     */
+    public LibLinearAnomalyTrainer(LinearAnomalyType trainerType, double cost, int maxIterations, double terminationCriterion, double nu, long seed) {
+        super(trainerType,cost,maxIterations,terminationCriterion,seed);
         this.nu = nu;
     }
 
@@ -119,7 +130,7 @@ public class LibLinearAnomalyTrainer extends LibLinearTrainer<Event> {
     @Override
     protected Parameter setupParameters(ImmutableOutputInfo<Event> labelIDMap) {
         libLinearParams.setNu(nu);
-        return libLinearParams;
+        return libLinearParams.clone();
     }
 
     @Override
@@ -131,9 +142,6 @@ public class LibLinearAnomalyTrainer extends LibLinearTrainer<Event> {
         data.x = features;
         data.n = numFeatures;
 
-        // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
-        // Concurrency safety is handled by the global lock on LibLinearTrainer.class in LibLinearTrainer.train.
-        Linear.resetRandom();
         return Collections.singletonList(Linear.train(data,curParams));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -103,7 +103,9 @@ public class TestLibLinear {
     @Test
     public void testThreeDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
-        LibLinearModel<Regressor> llModel = t.train(p.getA());
+        LibLinearRegressionTrainer localTrainer = new LibLinearRegressionTrainer(new LinearRegressionType(LinearType.L2R_L2LOSS_SVR_DUAL),1.0,1000,0.1,0.5);
+        localTrainer.forceZero = true;
+        LibLinearModel<Regressor> llModel = localTrainer.train(p.getA());
         RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
         double expectedDim1 = 0.6634367596601265;
         double expectedDim2 = 0.6634367596601265;
@@ -116,7 +118,7 @@ public class TestLibLinear {
         assertEquals(expectedAve,llEval.averageR2(),1e-6);
 
         p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
-        llModel = t.train(p.getA());
+        llModel = localTrainer.train(p.getA());
         llEval = e.evaluate(llModel,p.getB());
 
         assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);

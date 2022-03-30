@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,14 +39,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.SplittableRandom;
 import java.util.logging.Logger;
 
 /**
  * A {@link Trainer} which wraps a liblinear-java trainer.
- * <p>
- * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
- * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
- * avoids locking on classes Tribuo does not control.
  * <p>
  * See:
  * <pre>
@@ -82,12 +80,22 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     @Config(description="Epsilon insensitivity in the regression cost function.")
     protected double epsilon = 0.1;
 
+    @Config(description="RNG seed.")
+    protected long seed = Trainer.DEFAULT_SEED;
+
+    private SplittableRandom rng;
+
     private int trainInvocationCount = 0;
 
+    /**
+     * For OLCUT
+     */
     protected LibLinearTrainer() {}
 
     /**
      * Creates a trainer for a LibLinear model
+     * <p>
+     * Uses {@link Trainer#DEFAULT_SEED} as the RNG seed, and 0.1 as epsilon.
      * @param trainerType Loss function and optimisation method combination.
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param maxIterations The maximum number of dataset iterations.
@@ -103,14 +111,41 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param maxIterations The maximum number of dataset iterations.
      * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
+     */
+    protected LibLinearTrainer(LibLinearType<T> trainerType, double cost, int maxIterations, double terminationCriterion, long seed) {
+        this(trainerType,cost,maxIterations,terminationCriterion,0.1, seed);
+    }
+
+    /**
+     * Creates a trainer for a LibLinear model
+     * <p>
+     * Uses {@link Trainer#DEFAULT_SEED} as the RNG seed.
+     * @param trainerType Loss function and optimisation method combination.
+     * @param cost Cost penalty for each incorrectly classified training point.
+     * @param maxIterations The maximum number of dataset iterations.
+     * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
      * @param epsilon The insensitivity of the regression loss to small differences.
      */
     protected LibLinearTrainer(LibLinearType<T> trainerType, double cost, int maxIterations, double terminationCriterion, double epsilon) {
+        this(trainerType,cost,maxIterations,terminationCriterion,epsilon,Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Creates a trainer for a LibLinear model
+     * @param trainerType Loss function and optimisation method combination.
+     * @param cost Cost penalty for each incorrectly classified training point.
+     * @param maxIterations The maximum number of dataset iterations.
+     * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
+     * @param epsilon The insensitivity of the regression loss to small differences.
+     * @param seed The RNG seed.
+     */
+    protected LibLinearTrainer(LibLinearType<T> trainerType, double cost, int maxIterations, double terminationCriterion, double epsilon, long seed) {
         this.trainerType = trainerType;
         this.cost = cost;
         this.maxIterations = maxIterations;
         this.terminationCriterion = terminationCriterion;
         this.epsilon = epsilon;
+        this.seed = seed;
         postConfig();
     }
 
@@ -120,6 +155,7 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     @Override
     public void postConfig() {
         libLinearParams = new Parameter(trainerType.getSolverType(),cost,terminationCriterion,maxIterations,epsilon);
+        rng = new SplittableRandom(seed);
         Linear.disableDebugOutput();
     }
 
@@ -134,27 +170,35 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     }
 
     @Override
-    public synchronized LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
+    public LibLinearModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }
+
+        // Creates a new RNG, adds one to the invocation count.
+        TrainerProvenance trainerProvenance;
+        SplittableRandom localRNG;
+        synchronized(this) {
+            if(invocationCount != INCREMENT_INVOCATION_COUNT) {
+                setInvocationCount(invocationCount);
+            }
+            localRNG = rng.split();
+            trainerProvenance = getProvenance();
+            trainInvocationCount++;
+        }
+
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
-        if(invocationCount != INCREMENT_INVOCATION_COUNT) {
-            setInvocationCount(invocationCount);
-        }
-        TrainerProvenance trainerProvenance = getProvenance();
-        ModelProvenance provenance = new ModelProvenance(LibLinearModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
-        trainInvocationCount++;
 
+        // Setup parameters and RNG
         Parameter curParams = setupParameters(outputIDInfo);
+        curParams.setRandom(new Random(localRNG.nextLong()));
+
+        ModelProvenance provenance = new ModelProvenance(LibLinearModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
 
         Pair<FeatureNode[][],double[][]> data = extractData(examples,outputIDInfo,featureIDMap);
 
-        List<de.bwaldvogel.liblinear.Model> models;
-        synchronized (LibLinearTrainer.class) {
-            models = trainModels(curParams, featureIDMap.size() + 1, data.getA(), data.getB());
-        }
+        List<de.bwaldvogel.liblinear.Model> models = trainModels(curParams, featureIDMap.size() + 1, data.getA(), data.getB());
 
         return createModel(provenance,featureIDMap,outputIDInfo,models);
     }
@@ -170,7 +214,11 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
             throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
         }
 
-        this.trainInvocationCount = invocationCount;
+        rng = new SplittableRandom(seed);
+
+        for (trainInvocationCount = 0; trainInvocationCount < invocationCount; trainInvocationCount++){
+            SplittableRandom localRNG = rng.split();
+        }
     }
 
     @Override
@@ -188,6 +236,8 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
         buffer.append(libLinearParams.getMaxIters());
         buffer.append(",regression-epsilon=");
         buffer.append(libLinearParams.getP());
+        buffer.append(",seed=");
+        buffer.append(seed);
         buffer.append(')');
 
         return buffer.toString();
@@ -223,13 +273,13 @@ public abstract class LibLinearTrainer<T extends Output<T>> implements Trainer<T
     protected abstract Pair<FeatureNode[][],double[][]> extractData(Dataset<T> data, ImmutableOutputInfo<T> outputInfo, ImmutableFeatureMap featureMap);
 
     /**
-     * Constructs the parameters. Most of the time this is a no-op, but
+     * Constructs the parameters. Most of the time this just clones the existing ones, but
      * classification overrides it to incorporate label weights if they exist.
      * @param info The output info.
      * @return The Parameters to use for training.
      */
     protected Parameter setupParameters(ImmutableOutputInfo<T> info) {
-        return libLinearParams;
+        return libLinearParams.clone();
     }
 
     /**
