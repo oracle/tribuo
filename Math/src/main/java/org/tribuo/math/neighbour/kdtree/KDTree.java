@@ -409,8 +409,7 @@ public class KDTree implements NeighboursQuery {
 
     /**
      * A bounded min heap implementation which wraps a priority queue specific to {@link MutableDistRecordTuple}
-     * objects. This facilitates offering records to the queue without duplicating the logic wherever offer calls
-     * must be performed.
+     * objects. This logic needs to be encapsulated to handle duplicates.
      */
     static final class DistanceRecordBoundedMinHeap {
         // A set containing the record ids needs to be maintained to prevent duplicates from being added into the

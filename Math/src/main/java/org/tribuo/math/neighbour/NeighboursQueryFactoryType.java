@@ -31,7 +31,7 @@ public enum NeighboursQueryFactoryType {
     KD_TREE;
 
     /**
-     * Returns the appropriate {@link NeighboursQueryFactory}.
+     * Returns the appropriate {@link NeighboursQueryFactory} implementation.
      * @param distanceType The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */

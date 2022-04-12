@@ -23,7 +23,7 @@ import static org.tribuo.math.neighbour.kdtree.KDTree.IntAndVector;
 import static org.tribuo.math.neighbour.kdtree.KDTree.DistanceRecordBoundedMinHeap;
 
 /**
- * A node used to in a k-d tree ({@link KDTree}). A node is a point from a dataset and is placed according to the value
+ * A node used in a k-d tree {@link KDTree}. A node is a point from a dataset and is placed according to its value
  * at a specific dimension of the point.
  */
 public class DimensionNode {
@@ -44,7 +44,7 @@ public class DimensionNode {
 
     /**
      * Constructs a dimension node using a record containing a {@link SGDVector} and its original index position and
-     * the dimension of the point. The default region has no bounds for all dimensions.
+     * the dimension of the point.
      *
      * @param dimension The dimension that this node represents.
      * @param record The point.
@@ -121,7 +121,7 @@ public class DimensionNode {
     }
 
     /**
-     * Traverse the (sub)tree rooted at this node to see if its descendants are closer to the provided point.
+     * Traverse the (sub)tree rooted at this node to see which of its descendants are closest to the provided point.
      *
      * @param point The target point.
      * @param queue The priority queue used to maintain the k nearest neighbours.
