@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
+import org.tribuo.Feature;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
@@ -37,7 +38,10 @@ import org.tribuo.data.columnar.processors.field.DoubleFieldProcessor;
 import org.tribuo.data.columnar.processors.response.EmptyResponseProcessor;
 import org.tribuo.data.csv.CSVDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
+import org.tribuo.impl.ArrayExample;
 import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.test.Helpers;
 
 import java.io.FileInputStream;
@@ -47,8 +51,10 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -57,6 +63,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -205,8 +212,35 @@ public class TestHdbscan {
         Dataset<ClusterID> testData = new MutableDataset<>(splitter.getTest());
 
         HdbscanModel model = trainer.train(trainData);
+
+        for (HdbscanTrainer.ClusterExemplar e : model.getClusterExemplars()) {
+            assertTrue(e.getMaxDistToEdge() > 0.0);
+        }
+
         List<Integer> clusterLabels = model.getClusterLabels();
         List<Double> outlierScores = model.getOutlierScores();
+        List<Pair<Integer,List<Feature>>> exemplarLists = model.getClusters();
+        List<HdbscanTrainer.ClusterExemplar> exemplars = model.getClusterExemplars();
+
+        assertEquals(exemplars.size(), exemplarLists.size());
+
+        // Check there's at least one exemplar per label
+        Set<Integer> exemplarLabels = exemplarLists.stream().map(Pair::getA).collect(Collectors.toSet());
+        Set<Integer> clusterLabelSet = new HashSet<>(clusterLabels);
+        // Remove the noise label
+        clusterLabelSet.remove(Integer.valueOf(0));
+        assertEquals(exemplarLabels,clusterLabelSet);
+
+        for (int i = 0; i < exemplars.size(); i++) {
+            HdbscanTrainer.ClusterExemplar e = exemplars.get(i);
+            Pair<Integer, List<Feature>> p = exemplarLists.get(i);
+            assertEquals(model.getFeatureIDMap().size(), e.getFeatures().size());
+            assertEquals(p.getB().size(), e.getFeatures().size());
+            SGDVector otherFeatures = DenseVector.createDenseVector(
+                    new ArrayExample<>(trainData.getOutputFactory().getUnknownOutput(), p.getB()),
+                    model.getFeatureIDMap(), false);
+            assertEquals(otherFeatures, e.getFeatures());
+        }
 
         int [] expectedIntClusterLabels = {4,3,4,5,3,5,3,4,3,4,5,5,3,4,4,0,3,4,0,5,5,3,3,4,4,4,4,4,4,4,4,4,4,0,4,5,3,5,3,4,3,4,4,3,0,5,0,4,4,4,4,4,5,4,3,4,4,4,4,4,5,3,4,3,5,3,4,5,3,4,0,5,4,4,4,4,4,5,4,4,4,4,4,5,3,4,4,3,4,3,5,5,0,5,4,4,3,5,5,4,5,5,3,5,4,4,3,5,4,5,5,5,4,4,5,5,3,5,4,4,3,5,5,3,5,4,4,5,5,5,3,5,4,5,3,4,3,5,4,4,3,3,5,4,4,5,5,4,3,4,5,4,5,4,3,3,3,4,5,4,5,5,3,4,3,3,4,5,3,5,5,5,5,5,4,4,3,4,5,5,4,4,3,4,3,4,5,4,4,5,4,3,3,0,3,5,5,3,3,3,4,3,3,5,5,5,5,3,5,5,3,5,3,4,5,3,3,3,4,4,3,3,3,5,3,4,5,3,5,5,5,3,5,3,5,4,5,4,4,5,5,5,3,5,4,5,5,4,4,4,5,4,5,4,3,3,4,5,4,4,3,3,3,4,5,4,4,4,4,5,4,4,4,5,3,5,4,5,3,5,3,5,4,4,0,4,4,5,3,4,5,5,0,5,4,5,3,4,3,5,5,4,5,5,5,5,5,5,3,5,4,3,3,5,3,4,5,4,3,5,4,3,3,3,5,4,5,4,5,5,4,3,5,4,5,4,5,4,3,4,5,4,4,5,5,5,3,4,5,4,0,3,5,3,4,3,3,5,5,5,4,4,3,3,4,3,5,3,3,4,3,5,3,4,5,4,4,3,4,4,3,3,5,4,4,5,3,5,3,3,4,5,3,4,5,5,4,4,4,5,5,5,5,3,3,4,4,4,4,4,3,5,4,3,4,4,5,3,5,3,4,5,4,4,5,3,4,4,4,5,5,4,5,0,4,5,3,4,5,4,4,4,5,4,4,4,0,3,4,5,5,4,4,3,3,4,3,3,4,5,5,4,3,5,4,4,4,4,5,4,4,3,4,5,5,4,3,4,5,4,3,5,5,5,3,4,4,4,4,4,4,5,3,3,3,5,5,4,5,3,5,3,5,4,5,3,4,5,4,3,5,4,4,5,5,0,3,3,5,5,3,0,5,5,5,5,3,4,5,4,3,3,4,5,4,4,0,5,3,4,4,4,4,5,5,5,3,5,4,3,3,5,3,4,3,5,3,3,4,3,5,4,3,4,3,0,4,5,5,5,3,4,3,5,5,4,5,4,4,4,5,4,3,4,3,4,5,3,5,4,5,3,0,4,0,4,3,3,4,3,0,3,3,3,3,4,4,5,3,3,5,4,4,4,5,5,5,3,3,4,4,3,4,5,3,4,4,5,3,4,4,4,3,4,4,4,5,4,4,5,5,5,4,4,4,5,5,5,5,4,3,4,3,3,3,4,4,5,4,5,4,4,4,4,4,5,4,5,5,5,4,3,5,3,5,4,5,4,4,5,0,5,3,4,5,4,4,5,3,4,4,3,5,4,4,4,5,3,3,4,4,5,5,5,3,4,3,4,5,5,4,4,3,3,4,4,5,5,5,3,4,3,4,4,4,5,5,5,0,4,5,5,3,3,4,5,4,3,3,4,3,4,5,4,3,4,5,5,3,3,4,4,3,3,5,4,5,3,4,5,4,3,3,4,5,5,5,3,3,4,4,5,5,5,4,5,5,5,4,4,4,5,4,5,5,3,3,4,4,3,5,5,3,3,4,4,5,3,3,3};
         List<Integer> expectedClusterLabels = Arrays.stream(expectedIntClusterLabels).boxed().collect(Collectors.toList());
@@ -256,6 +290,11 @@ public class TestHdbscan {
             fail("There is a problem accessing the serialized model file " + serializedModelPath);
         } catch (ClassNotFoundException e) {
             fail("There is a problem deserializing the model file " + serializedModelPath);
+        }
+
+        // In v4.2 models this value is unset and defaults to negative infinity.
+        for (HdbscanTrainer.ClusterExemplar e : model.getClusterExemplars()) {
+            assertEquals(Double.NEGATIVE_INFINITY, e.getMaxDistToEdge());
         }
 
         ClusteringFactory clusteringFactory = new ClusteringFactory();
