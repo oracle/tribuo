@@ -50,6 +50,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -805,7 +806,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     /**
      * A cluster exemplar, with attributes for the point's label, outlier score and its features.
      */
-    final static class ClusterExemplar implements Serializable {
+    public final static class ClusterExemplar implements Serializable {
         private static final long serialVersionUID = 1L;
 
         private final Integer label;
@@ -820,25 +821,71 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             this.maxDistToEdge = maxDistToEdge;
         }
 
-        Integer getLabel() {
+        /**
+         * Get the label in this exemplar.
+         * @return The label.
+         */
+        public Integer getLabel() {
             return label;
         }
 
-        Double getOutlierScore() {
+        /**
+         * Get the outlier score in this exemplar.
+         * @return The outlier score.
+         */
+        public Double getOutlierScore() {
             return outlierScore;
         }
 
-        SGDVector getFeatures() {
+        /**
+         * Get the feature vector in this exemplar.
+         * @return The feature vector.
+         */
+        public SGDVector getFeatures() {
             return features;
         }
 
-        Double getMaxDistToEdge() {
+        /**
+         * Get the maximum distance from this exemplar to the edge of the cluster.
+         * <p>
+         * For models trained in 4.2 this will return {@link Double#NEGATIVE_INFINITY} as that information is 
+         * not produced by 4.2 models.
+         * @return The distance to the edge of the cluster.
+         */
+        public Double getMaxDistToEdge() {
             if (maxDistToEdge != null) {
                 return maxDistToEdge;
             }
             else {
                 return Double.NEGATIVE_INFINITY;
             }
+        }
+
+        /**
+         * Copies this cluster exemplar.
+         * @return A deep copy of this cluster exemplar.
+         */
+        public ClusterExemplar copy() {
+            return new ClusterExemplar(label,outlierScore,features.copy(),maxDistToEdge);
+        }
+
+        @Override
+        public String toString() {
+            double dist = maxDistToEdge == null ? Double.NEGATIVE_INFINITY : maxDistToEdge;
+            return "ClusterExemplar(label="+label+",outlierScore="+outlierScore+",vector="+features+",maxDistToEdge="+dist+")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ClusterExemplar that = (ClusterExemplar) o;
+            return label.equals(that.label) && outlierScore.equals(that.outlierScore) && features.equals(that.features) && Objects.equals(maxDistToEdge, that.maxDistToEdge);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(label, outlierScore, features, maxDistToEdge);
         }
     }
     

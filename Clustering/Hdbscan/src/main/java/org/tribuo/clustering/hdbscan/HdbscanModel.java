@@ -19,6 +19,7 @@ package org.tribuo.clustering.hdbscan;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
+import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
@@ -29,6 +30,7 @@ import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.VectorTuple;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -105,6 +107,43 @@ public final class HdbscanModel extends Model<ClusterID> {
             outlierScores.add(outlierScore);
         }
         return outlierScores;
+    }
+
+    /**
+     * Returns a deep copy of the cluster exemplars.
+     * @return The cluster exemplars.
+     */
+    public List<HdbscanTrainer.ClusterExemplar> getClusterExemplars() {
+        List<HdbscanTrainer.ClusterExemplar> list = new ArrayList<>(clusterExemplars.size());
+        for (HdbscanTrainer.ClusterExemplar e : clusterExemplars) {
+            list.add(e.copy());
+        }
+        return list;
+    }
+
+    /**
+     * Returns the features in each cluster exemplar.
+     * <p>
+     * In many cases this should be used in preference to {@link #getClusterExemplars()}
+     * as it performs the mapping from Tribuo's internal feature ids to
+     * the externally visible feature names.
+     * @return The cluster exemplars.
+     */
+    public List<Pair<Integer,List<Feature>>> getClusters() {
+        List<Pair<Integer,List<Feature>>> list = new ArrayList<>(clusterExemplars.size());
+
+        for (HdbscanTrainer.ClusterExemplar e : clusterExemplars) {
+            List<Feature> features = new ArrayList<>(e.getFeatures().numActiveElements());
+
+            for (VectorTuple v : e.getFeatures()) {
+                Feature f = new Feature(featureIDMap.get(v.index).getName(),v.value);
+                features.add(f);
+            }
+
+            list.add(new Pair<>(e.getLabel(),features));
+        }
+
+        return list;
     }
 
     @Override
