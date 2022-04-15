@@ -34,6 +34,7 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -132,17 +133,18 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     private Distance distanceType;
 
     @Config(description = "The distance function to use.")
-    private DistanceType distType;
+    private DistanceType distType = DistanceType.L2;
 
     @Config(mandatory = true, description = "The number of nearest-neighbors to use in the initial density approximation. " +
         "This includes the point itself.")
     private int k;
 
-    @Config(description = "The number of threads to use for training.")
+    @Deprecated
+    @Config(description = "The number of threads to use for training. This is now deprecated.")
     private int numThreads = 1;
 
     @Config(description = "The nearest neighbour implementation factory to use.")
-    private NeighboursQueryFactory neighboursQueryFactory;
+    private NeighboursQueryFactory neighboursQueryFactory = new NeighboursBruteForceFactory(distType, 1);
 
     private int trainInvocationCounter;
 
@@ -158,15 +160,15 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @param minClusterSize The minimum number of points required to form a cluster.
      * {@link #distType} defaults to {@link DistanceType#L2}, {@link #k} defaults to {@link #minClusterSize},
      * {@link #numThreads} defaults to 1 and {@link #neighboursQueryFactory} defaults to
-     * {@link NeighboursQueryFactoryType#KD_TREE}.
+     * {@link NeighboursBruteForceFactory}.
      */
     public HdbscanTrainer(int minClusterSize) {
-        this(minClusterSize, DistanceType.L2, minClusterSize, 1, NeighboursQueryFactoryType.KD_TREE);
+        this(minClusterSize, DistanceType.L2, minClusterSize, 1, NeighboursQueryFactoryType.BRUTE_FORCE);
     }
 
     /**
      * Constructs an HDBSCAN* trainer using the supplied parameters. {@link #neighboursQueryFactory} defaults to
-     * {@link NeighboursQueryFactoryType#KD_TREE}.
+     * {@link NeighboursBruteForceFactory}.
      * @deprecated
      * This Constructor is deprecated in version 4.3.
      *
@@ -177,7 +179,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      */
     @Deprecated
     public HdbscanTrainer(int minClusterSize, Distance distanceType, int k, int numThreads) {
-        this(minClusterSize, distanceType.getDistanceType(), k, numThreads, NeighboursQueryFactoryType.KD_TREE);
+        this(minClusterSize, distanceType.getDistanceType(), k, numThreads, NeighboursQueryFactoryType.BRUTE_FORCE);
     }
 
     /**
@@ -187,7 +189,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @param distType The distance function.
      * @param k The number of nearest-neighbors to use in the initial density approximation.
      * @param numThreads The number of threads.
-     * @param nqFactoryType The nearest neighbour implementation factory to use.
+     * @param nqFactoryType The nearest neighbour query implementation factory to use.
      */
     public HdbscanTrainer(int minClusterSize, DistanceType distType, int k, int numThreads, NeighboursQueryFactoryType nqFactoryType) {
         this.minClusterSize = minClusterSize;

@@ -33,7 +33,7 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
-import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -112,6 +112,8 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     // maintain serialization compatibility with 4.X.
     private NeighboursQueryFactory neighboursQueryFactory;
 
+    private transient NeighboursQuery neighboursQuery;
+
     KNNModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
              boolean generatesProbabilities, int k, DistanceType distType, int numThreads, EnsembleCombiner<T> combiner,
              Pair<SGDVector,T>[] vectors, Backend backend, NeighboursQueryFactory neighboursQueryFactory) {
@@ -172,7 +174,13 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
             List<Prediction<T>> predictions = new ArrayList<>();
             List<Prediction<T>> innerPredictions = new ArrayList<>();
 
-            NeighboursQuery nq = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
+            if (neighboursQuery == null) {
+                synchronized (this) {
+                    if (neighboursQuery == null) {
+                        neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
+                    }
+                }
+            }
 
             for (Example<T> example : examples) {
                 innerPredictions.clear();
@@ -183,7 +191,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
                     input = SparseVector.createSparseVector(example, featureIDMap, false);
                 }
 
-                List<Pair<Integer, Double>> indexDistancePairList = nq.query(input, k);
+                List<Pair<Integer, Double>> indexDistancePairList = neighboursQuery.query(input, k);
 
                 for (Pair<Integer, Double> simplePair : indexDistancePairList) {
                     Pair<SGDVector,T> pair = vectors[simplePair.getA()];
@@ -262,10 +270,16 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
         List<Future<Prediction<T>>> futures = new ArrayList<>();
 
-        NeighboursQuery nq = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
+        if (neighboursQuery == null) {
+            synchronized (this) {
+                if (neighboursQuery == null) {
+                    neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
+                }
+            }
+        }
 
         for (Example<T> example : examples) {
-            futures.add(pool.submit(() -> innerPredictOne(nq,vectors,combiner,featureIDMap,outputIDInfo,k,example)));
+            futures.add(pool.submit(() -> innerPredictOne(neighboursQuery,vectors,combiner,featureIDMap,outputIDInfo,k,example)));
         }
 
         try {
@@ -424,8 +438,9 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
             distType = distance.getDistanceType();
         }
         if (neighboursQueryFactory == null) {
-            neighboursQueryFactory = new KDTreeFactory(distType, numThreads);
+            neighboursQueryFactory = new NeighboursBruteForceFactory(distType, numThreads);
         }
+        neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
     }
 
     private SGDVector[] getSGDVectorArr() {

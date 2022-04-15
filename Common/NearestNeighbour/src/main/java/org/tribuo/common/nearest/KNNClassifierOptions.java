@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,7 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
      * The nearest neighbour implementation factory to use. Defaults to {@link NeighboursQueryFactoryType#KD_TREE}.
      */
     @Option(longName = "knn-neighbour-query-factory-type", usage = "The nearest neighbour implementation factory to use.")
-    public NeighboursQueryFactoryType nqFactoryType = NeighboursQueryFactoryType.KD_TREE;
+    public NeighboursQueryFactoryType nqFactoryType = NeighboursQueryFactoryType.BRUTE_FORCE;
 
     @Override
     public String getOptionsDescription() {

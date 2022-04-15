@@ -20,17 +20,17 @@ import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 
 import static org.tribuo.math.neighbour.kdtree.KDTree.IntAndVector;
-import static org.tribuo.math.neighbour.kdtree.KDTree.DistanceRecordBoundedMinHeap;
+import static org.tribuo.math.neighbour.kdtree.KDTree.DistanceIntAndVectorBoundedMinHeap;
 
 /**
  * A node used in a k-d tree {@link KDTree}. A node is a point from a dataset and is placed according to its value
  * at a specific dimension of the point.
  */
-public class DimensionNode {
+public final class DimensionNode {
 
     private final int dimension;
 
-    private final IntAndVector record;
+    private final IntAndVector intAndVector;
 
     private final int maxD;
 
@@ -43,19 +43,19 @@ public class DimensionNode {
     private DimensionNode above;
 
     /**
-     * Constructs a dimension node using a record containing a {@link SGDVector} and its original index position and
+     * Constructs a dimension node using an {@link IntAndVector} containing a {@link SGDVector} and its original index position and
      * the dimension of the point.
      *
      * @param dimension The dimension that this node represents.
-     * @param record The point.
+     * @param intAndVector The point.
      * @param distanceType The distance function.
      */
-    public DimensionNode(int dimension, IntAndVector record, DistanceType distanceType) {
+    public DimensionNode(int dimension, IntAndVector intAndVector, DistanceType distanceType) {
         this.dimension = dimension;
-        this.record = record;
-        this.maxD = record.vector.size();
+        this.intAndVector = intAndVector;
+        this.maxD = intAndVector.vector.size();
         this.distanceType = distanceType;
-        this.coord = record.vector.get(dimension-1);
+        this.coord = intAndVector.vector.get(dimension-1);
     }
 
     /**
@@ -82,12 +82,10 @@ public class DimensionNode {
     public void setBelow(DimensionNode node) {
         if (node == null) {
             this.below = null;
-        }
-        // Ensure the dimension of node being added is only 1 greater, or is the dimension wrap around case.
-        else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
+        } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
+            // Ensure the dimension of node being added is only 1 greater, or is the dimension wrap around case.
             this.below = node;
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Setting the below/left node failed because the dimensions are incorrect.");
         }
     }
@@ -100,12 +98,10 @@ public class DimensionNode {
     public void setAbove(DimensionNode node) {
         if (node == null) {
             this.above = null;
-        }
-        // Ensure the dimension of node being added is only 1 greater, or is the dimension wrap around case.
-        else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
+        } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
+            // Ensure the dimension of node being added is only 1 greater, or is the dimension wrap around case.
             this.above = node;
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Setting the above/right node failed because the dimensions are incorrect.");
         }
     }
@@ -127,15 +123,15 @@ public class DimensionNode {
      * @param queue The priority queue used to maintain the k nearest neighbours.
      * @param isInitializing A flag which indicates if this method is being called during query initialization.
      */
-    void nearest(SGDVector point, DistanceRecordBoundedMinHeap queue, boolean isInitializing) {
+    void nearest(SGDVector point, DistanceIntAndVectorBoundedMinHeap queue, boolean isInitializing) {
         // stop the recursion during initialization, as soon at the queue has reached is target capacity bound.
         if (isInitializing && queue.isFull()) {
             return;
         }
         
         // Get the distance between this node and the target point.
-        double dist = DistanceType.getDistance(this.record.vector, point, distanceType);
-        queue.boundedOffer(this.record, dist);
+        double dist = DistanceType.getDistance(this.intAndVector.vector, point, distanceType);
+        queue.boundedOffer(this.intAndVector, dist);
 
         // Determine if we must traverse this node's subtrees by computing the perpendicular distance between the point
         // and the axis this node makes to separate the points in this region.
