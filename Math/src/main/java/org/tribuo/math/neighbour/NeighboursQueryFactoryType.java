@@ -25,9 +25,15 @@ import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
  * implementation.
  */
 public enum NeighboursQueryFactoryType {
-
+    /**
+     * A factory which emits nearest neighbour query objects using a brute-force search.
+     * {@link NeighboursBruteForceFactory}
+     */
     BRUTE_FORCE,
-
+    /**
+     * A factory which emits nearest neighbour query objects using a k-d tree search.
+     * {@link KDTreeFactory}
+     */
     KD_TREE;
 
     /**

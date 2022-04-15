@@ -87,4 +87,9 @@ public class TestKDTree {
         NeighbourQueryTestHelper.neighboursQueryMany3D(factory);
     }
 
+    @Test
+    public void testMultiThreadQueryAllIntegers4D() {
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 4);
+        NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
+    }
 }

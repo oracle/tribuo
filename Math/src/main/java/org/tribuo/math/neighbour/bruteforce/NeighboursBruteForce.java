@@ -45,6 +45,12 @@ public final class NeighboursBruteForce implements NeighboursQuery {
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
     NeighboursBruteForce(SGDVector[] data, DistanceType distanceType, int numThreads) {
+        int numFeatures = data[0].size();
+        for (SGDVector vector : data) {
+            if (vector.size() != numFeatures) {
+                throw new IllegalArgumentException("All the SGDVectors must be the same size.");
+            }
+        }
         this.data = data;
         this.distanceType = distanceType;
         this.numThreads = numThreads;

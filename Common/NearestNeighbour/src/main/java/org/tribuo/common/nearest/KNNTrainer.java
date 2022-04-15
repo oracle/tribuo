@@ -35,6 +35,7 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -88,7 +89,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
     private Distance distance;
 
     @Config(description = "The distance function used to measure nearest neighbours.")
-    private DistanceType distType;
+    private DistanceType distType = DistanceType.L2;
 
     @Config(mandatory = true, description="The number of nearest neighbours to check.")
     private int k;
@@ -103,7 +104,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
     private Backend backend = Backend.THREADPOOL;
 
     @Config(description = "The nearest neighbour implementation factory to use.")
-    private NeighboursQueryFactoryType nqFactoryType;
+    private NeighboursQueryFactory neighboursQueryFactory = new NeighboursBruteForceFactory(distType, 1);
 
     private int trainInvocationCount = 0;
 
@@ -128,13 +129,13 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
         this.numThreads = numThreads;
         this.combiner = combiner;
         this.backend = backend;
-        this.nqFactoryType = nqFactoryType;
+        this.neighboursQueryFactory = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, distType, numThreads);
         postConfig();
     }
 
     /**
-     * Creates a K-NN trainer using the supplied parameters. {@link #nqFactoryType} defaults to
-     * {@link NeighboursQueryFactoryType#KD_TREE}.
+     * Creates a K-NN trainer using the supplied parameters. {@link #neighboursQueryFactory} defaults to
+     * {@link NeighboursBruteForceFactory}.
      * @deprecated
      * This Constructor is deprecated in version 4.3.
      *
@@ -146,7 +147,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
      */
     @Deprecated
     public KNNTrainer(int k, Distance distance, int numThreads, EnsembleCombiner<T> combiner, Backend backend) {
-        this(k, distance.getDistanceType(), numThreads, combiner, backend, NeighboursQueryFactoryType.KD_TREE);
+        this(k, distance.getDistanceType(), numThreads, combiner, backend, NeighboursQueryFactoryType.BRUTE_FORCE);
     }
 
     /**
@@ -198,9 +199,8 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
 
         ModelProvenance provenance = new ModelProvenance(KNNModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), getProvenance(), runProvenance);
 
-        NeighboursQueryFactory nqf = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, distType, numThreads);
         return new KNNModel<>(k+"nn",provenance, featureIDMap, labelIDMap, false, k, distType,
-            numThreads, combiner, vectors, backend, nqf);
+            numThreads, combiner, vectors, backend, neighboursQueryFactory);
     }
 
     @Override

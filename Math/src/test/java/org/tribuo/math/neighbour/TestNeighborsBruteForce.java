@@ -84,4 +84,10 @@ public class TestNeighborsBruteForce {
         NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 2);
         NeighbourQueryTestHelper.neighboursQueryMany3D(factory);
     }
+
+    @Test
+    public void testMultiThreadQueryAllIntegers4D() {
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
+        NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
+    }
 }

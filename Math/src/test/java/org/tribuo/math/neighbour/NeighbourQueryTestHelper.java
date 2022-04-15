@@ -133,6 +133,102 @@ public class NeighbourQueryTestHelper {
             expectedDistance2, expectedDistance3);
     }
 
+    static void neighboursQueryAllIntegers4D(NeighboursQueryFactory nqf) {
+        SGDVector[] data = get4DIntegerTestDataVectorArray();
+
+        NeighboursQuery nq = nqf.createNeighboursQuery(data);
+
+        List<List<Pair<Integer, Double>>> indexDistancePairListOfLists = nq.queryAll(NUM_NEIGHBOURS_K);
+
+        //////////////////////////////////////////////
+        // Check the first point in the data (9,8,9,8)
+        List<Pair<Integer, Double>> indexDistancePairList = indexDistancePairListOfLists.get(59);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring points.
+        double[] firstExpectedPoint0 = {9.0,8.0,9.0,8.0};
+        double[] firstExpectedPoint1 = {9.0,8.0,9.0,8.0};
+        double[] firstExpectedPoint2 = {9.0,9.0,9.0,8.0};
+        double[] firstExpectedPoint3 = {9.0,9.0,9.0,9.0};
+
+        assertNeighbourPoints(data, indexDistancePairList, firstExpectedPoint0,
+            firstExpectedPoint1, firstExpectedPoint2, firstExpectedPoint3);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring distances.
+        double expectedDistance0 = 0.0;
+        double expectedDistance1 = 0.0;
+        double expectedDistance2 = 1.0;
+        double expectedDistance3 = 1.4142135623730951;
+
+        assertNeighbourDistances(indexDistancePairList, expectedDistance0, expectedDistance1,
+            expectedDistance2, expectedDistance3);
+
+        //////////////////////////////////////////////
+        // Check another point in the data (0,0,2,0)
+        indexDistancePairList = indexDistancePairListOfLists.get(77);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring points.
+        double[] secondExpectedPoint0 = {0.0,0.0,2.0,0.0};
+        double[] secondExpectedPoint1 = {0.0,1.0,3.0,1.0};
+        double[] secondExpectedPoint2 = {1.0,2.0,2.0,0.0};
+        double[] secondExpectedPoint3 = {0.0,1.0,3.0,2.0};
+
+        assertNeighbourPoints(data, indexDistancePairList, secondExpectedPoint0,
+            secondExpectedPoint1, secondExpectedPoint2, secondExpectedPoint3);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring distances
+        expectedDistance0 = 0.0;
+        expectedDistance1 = 1.7320508075688772;
+        expectedDistance2 = 2.23606797749979;
+        expectedDistance3 = 2.449489742783178;
+
+        assertNeighbourDistances(indexDistancePairList, expectedDistance0, expectedDistance1,
+            expectedDistance2, expectedDistance3);
+
+        //////////////////////////////////////////////
+        // Check another point in the data (4,4,4,4)
+        indexDistancePairList = indexDistancePairListOfLists.get(707);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring points.
+        double[] thirdExpectedPoint0 = {4.0,4.0,4.0,4.0};
+        double[] thirdExpectedPoint1 = {4.0,4.0,4.0,4.0};
+        double[] thirdExpectedPoint2 = {4.0,4.0,4.0,4.0};
+        double[] thirdExpectedPoint3 = {4.0,4.0,4.0,3.0};
+
+        assertNeighbourPoints(data, indexDistancePairList, thirdExpectedPoint0,
+            thirdExpectedPoint1, thirdExpectedPoint2, thirdExpectedPoint3);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring distances.
+        expectedDistance0 = 0.0;
+        expectedDistance1 = 0.0;
+        expectedDistance2 = 0.0;
+        expectedDistance3 = 1.0;
+
+        assertNeighbourDistances(indexDistancePairList, expectedDistance0, expectedDistance1,
+            expectedDistance2, expectedDistance3);
+
+        //////////////////////////////////////////////
+        // Check the last point in the data (7,7,7,8)
+        indexDistancePairList = indexDistancePairListOfLists.get(823);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring points.
+        double[] fourthExpectedPoint0 = {7.0,7.0,7.0,8.0};
+        double[] fourthExpectedPoint1 = {7.0,7.0,6.0,8.0};
+        double[] fourthExpectedPoint2 = {7.0,8.0,7.0,9.0};
+        double[] fourthExpectedPoint3 = {6.0,8.0,7.0,7.0};
+
+        assertNeighbourPoints(data, indexDistancePairList, fourthExpectedPoint0,
+            fourthExpectedPoint1, fourthExpectedPoint2, fourthExpectedPoint3);
+
+        // These tests use NUM_NEIGHBOURS_K = 4 throughout. These are the expected neighboring distances.
+        expectedDistance0 = 0.0;
+        expectedDistance1 = 1.0;
+        expectedDistance2 = 1.4142135623730951;
+        expectedDistance3 = 1.7320508075688772;
+
+        assertNeighbourDistances(indexDistancePairList, expectedDistance0, expectedDistance1,
+            expectedDistance2, expectedDistance3);
+    }
+
     static void neighboursQueryMany(NeighboursQueryFactory nqf) {
         // The tests should still work regardless of the order of the data - shuffle the array.
         SGDVector[] data = getShuffledTestDataVectorArray();
@@ -378,6 +474,12 @@ public class NeighbourQueryTestHelper {
 
     private static SGDVector[] get3DTestDataVectorArray() {
         String filename = "basic-gaussians-3d.csv";
+        String filepath = NeighbourQueryTestHelper.class.getClassLoader().getResource(filename).getPath();
+        return SGDVectorsFromCSV.getSGDVectorsFromCSV(filepath, true);
+    }
+
+    private static SGDVector[] get4DIntegerTestDataVectorArray() {
+        String filename = "integers-1K-4features.csv";
         String filepath = NeighbourQueryTestHelper.class.getClassLoader().getResource(filename).getPath();
         return SGDVectorsFromCSV.getSGDVectorsFromCSV(filepath, true);
     }
