@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -187,15 +188,21 @@ public class TestLibLinearModel {
 
     @Test
     public void testReproducible() {
-        // Note this test will need to change if LibLinearTrainer grows a per Problem RNG.
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        t.setInvocationCount(0);
         Model<Label> m = t.train(p.getA());
         Map<String, List<Pair<String,Double>>> mFeatures = m.getTopFeatures(-1);
 
+        t.setInvocationCount(0);
         Model<Label> mTwo = t.train(p.getA());
         Map<String, List<Pair<String,Double>>> mTwoFeatures = mTwo.getTopFeatures(-1);
 
         assertEquals(mFeatures,mTwoFeatures);
+
+        Model<Label> mThree = t.train(p.getA());
+        Map<String, List<Pair<String,Double>>> mThreeFeatures = mThree.getTopFeatures(-1);
+
+        assertNotEquals(mFeatures, mThreeFeatures);
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,16 +36,13 @@ import de.bwaldvogel.liblinear.Problem;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Logger;
 
 /**
  * A {@link Trainer} which wraps a liblinear-java regression trainer.
  * <p>
  * This generates an independent liblinear model for each regression dimension.
- * <p>
- * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
- * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
- * avoids locking on classes Tribuo does not control.
  * <p>
  * See:
  * <pre>
@@ -63,6 +60,11 @@ import java.util.logging.Logger;
 public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
 
     private static final Logger logger = Logger.getLogger(LibLinearRegressionTrainer.class.getName());
+
+    /**
+     * Used in the tests for regression dimension re-ordering to revert to the 4.2 behaviour.
+     */
+    boolean forceZero = false;
 
     /**
      * Creates a trainer using the default values (L2R_L2LOSS_SVR, 1, 1000, 0.1, 0.1).
@@ -83,6 +85,8 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
 
     /**
      * Creates a trainer for a LibLinear regression model.
+     * <p>
+     * Uses {@link Trainer#DEFAULT_SEED} as the RNG seed.
      * @param trainerType Loss function and optimisation method combination.
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param maxIterations The maximum number of dataset iterations.
@@ -90,7 +94,20 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
      * @param epsilon The insensitivity of the regression loss to small differences.
      */
     public LibLinearRegressionTrainer(LinearRegressionType trainerType, double cost, int maxIterations, double terminationCriterion, double epsilon) {
-        super(trainerType,cost,maxIterations,terminationCriterion,epsilon);
+        this(trainerType,cost,maxIterations,terminationCriterion,epsilon,Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Creates a trainer for a LibLinear regression model.
+     * @param trainerType Loss function and optimisation method combination.
+     * @param cost Cost penalty for each incorrectly classified training point.
+     * @param maxIterations The maximum number of dataset iterations.
+     * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
+     * @param epsilon The insensitivity of the regression loss to small differences.
+     * @param seed The RNG seed.
+     */
+    public LibLinearRegressionTrainer(LinearRegressionType trainerType, double cost, int maxIterations, double terminationCriterion, double epsilon, long seed) {
+        super(trainerType,cost,maxIterations,terminationCriterion,epsilon,seed);
     }
 
     /**
@@ -117,9 +134,14 @@ public class LibLinearRegressionTrainer extends LibLinearTrainer<Regressor> {
             data.n = numFeatures;
             data.bias = 1.0;
 
-            // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
-            // Concurrency safety is handled by the global lock on LibLinearTrainer.class in LibLinearTrainer.train.
-            Linear.resetRandom();
+            /*
+             * Enforces the behaviour of Tribuo 4.2 and liblinear-java 2.43 to allow
+             * TestLibLinear.testThreeDenseData to validate that regression indices
+             * are handled correctly.
+             */
+            if (forceZero) {
+                curParams.setRandom(new Random(0));
+            }
             models.add(Linear.train(data, curParams));
         }
 

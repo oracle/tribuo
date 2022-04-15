@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,6 @@ import java.util.logging.Logger;
 /**
  * A {@link Trainer} which wraps a liblinear-java classifier trainer.
  * <p>
- * Note the train method is synchronized on {@code LibLinearTrainer.class} due to a global RNG in liblinear-java.
- * This is insufficient to ensure reproducibility if liblinear-java is used directly in the same JVM as Tribuo, but
- * avoids locking on classes Tribuo does not control.
- * <p>
  * See:
  * <pre>
  * Fan RE, Chang KW, Hsieh CJ, Wang XR, Lin CJ.
@@ -70,14 +66,16 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
     private Map<String,Float> labelWeights = Collections.emptyMap();
 
     /**
-     * Creates a trainer using the default values (L2R_L2LOSS_SVC_DUAL, 1, 0.1).
+     * Creates a trainer using the default values ({@link LinearType#L2R_L2LOSS_SVC_DUAL}, 1, 0.1, {@link Trainer#DEFAULT_SEED}).
      */
     public LibLinearClassificationTrainer() {
         this(new LinearClassificationType(LinearType.L2R_L2LOSS_SVC_DUAL),1,1000,0.1);
     }
 
     /**
-     * Creates a trainer for a LibLinearClassificationModel. Sets maxIterations to 1000.
+     * Creates a trainer for a LibLinearClassificationModel.
+     * <p>
+     * Uses {@link Trainer#DEFAULT_SEED} as the RNG seed. Sets maxIterations to 1000.
      * @param trainerType Loss function and optimisation method combination.
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
@@ -88,13 +86,27 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
 
     /**
      * Creates a trainer for a LibLinear model
+     * <p>
+     * Uses {@link Trainer#DEFAULT_SEED} as the RNG seed.
      * @param trainerType Loss function and optimisation method combination.
      * @param cost Cost penalty for each incorrectly classified training point.
      * @param maxIterations The maximum number of dataset iterations.
      * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
      */
     public LibLinearClassificationTrainer(LinearClassificationType trainerType, double cost, int maxIterations, double terminationCriterion) {
-        super(trainerType,cost,maxIterations,terminationCriterion);
+        this(trainerType,cost,maxIterations,terminationCriterion,Trainer.DEFAULT_SEED);
+    }
+
+    /**
+     * Creates a trainer for a LibLinear model
+     * @param trainerType Loss function and optimisation method combination.
+     * @param cost Cost penalty for each incorrectly classified training point.
+     * @param maxIterations The maximum number of dataset iterations.
+     * @param terminationCriterion How close does the optimisation function need to be before terminating that subproblem (usually set to 0.1).
+     * @param seed The RNG seed.
+     */
+    public LibLinearClassificationTrainer(LinearClassificationType trainerType, double cost, int maxIterations, double terminationCriterion, long seed) {
+        super(trainerType,cost,maxIterations,terminationCriterion,seed);
     }
 
     /**
@@ -118,9 +130,6 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
         data.n = numFeatures;
         data.bias = 1.0;
 
-        // Note this isn't sufficient for reproducibility as it doesn't cope with concurrency.
-        // Concurrency safety is handled by the global lock on LibLinearTrainer.class in LibLinearTrainer.train.
-        Linear.resetRandom();
         return Collections.singletonList(Linear.train(data,curParams));
     }
 
@@ -148,9 +157,8 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
 
     @Override
     protected Parameter setupParameters(ImmutableOutputInfo<Label> labelIDMap) {
-        Parameter curParams;
+        Parameter curParams = libLinearParams.clone();
         if (!labelWeights.isEmpty()) {
-            curParams = new Parameter(libLinearParams.getSolverType(),libLinearParams.getC(),libLinearParams.getEps());
             double[] weights = new double[labelIDMap.size()];
             int[] indices = new int[labelIDMap.size()];
             int i = 0;
@@ -167,8 +175,6 @@ public class LibLinearClassificationTrainer extends LibLinearTrainer<Label> impl
             }
             curParams.setWeights(weights,indices);
             //logger.info("Weights = " + Arrays.toString(weights) + ", labels = " + Arrays.toString(indices) + ", outputIDInfo = " + outputIDInfo);
-        } else {
-            curParams = libLinearParams;
         }
         return curParams;
     }
