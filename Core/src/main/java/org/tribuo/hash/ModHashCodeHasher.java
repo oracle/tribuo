@@ -16,6 +16,17 @@
 
 package org.tribuo.hash;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import org.tribuo.ProtobufClass;
+import org.tribuo.ProtobufField;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.ModHashCodeHasherProto;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
@@ -25,18 +36,12 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
-import org.tribuo.protos.core.HasherProto;
-import org.tribuo.protos.core.ModHashCodeHasherProto;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Hashes names using String.hashCode(), then reduces the dimension.
  */
+
+@ProtobufClass(serializedClass = HasherProto.class, serializedData = ModHashCodeHasherProto.class)
 public final class ModHashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
 
@@ -45,6 +50,7 @@ public final class ModHashCodeHasher extends Hasher {
     @Config(mandatory = true,redact = true,description="Salt used in the hash.")
     private transient String salt = null;
 
+    @ProtobufField
     @Config(mandatory = true,description="Range of the hashing function.")
     private int dimension = 100;
 

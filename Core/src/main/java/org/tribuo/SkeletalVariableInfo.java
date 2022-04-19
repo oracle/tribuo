@@ -31,11 +31,13 @@ public abstract class SkeletalVariableInfo implements VariableInfo {
     /**
      * The name of the feature.
      */
+    @ProtobufField
     protected final String name;
     
     /**
      * How often the feature occurs in the dataset.
      */
+    @ProtobufField
     protected int count;
 
     /**

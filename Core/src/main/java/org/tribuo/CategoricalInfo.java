@@ -53,6 +53,8 @@ import java.util.stream.Collectors;
  * </p>
  */
 public class CategoricalInfo extends SkeletalVariableInfo {
+    private Object object;
+
     private static final long serialVersionUID = 2L;
 
     private static final MutableLong ZERO = new MutableLong(0);
@@ -65,16 +67,20 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     /**
      * The occurrence counts of each value.
      */
+    @ProtobufField(fieldName="key")
+    @ProtobufField(fieldName="value")
     protected Map<Double,MutableLong> valueCounts = null;
 
     /**
      * The observed value if it's only seen a single one.
      */
+    @ProtobufField(fieldName="key")
     protected double observedValue = Double.NaN;
 
     /**
      * The count of the observed value if it's only seen a single one.
      */
+    @ProtobufField(fieldName="value")
     protected long observedCount = 0;
 
     // These variables are used in the sampling methods, and regenerated after serialization if a sample is required.

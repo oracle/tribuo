@@ -17,12 +17,21 @@
 package org.tribuo.util;
 
 import com.google.protobuf.Any;
+import com.google.protobuf.GeneratedMessageV3.Builder;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.tribuo.ProtoSerializable;
+import org.tribuo.ProtobufClass;
+import org.tribuo.ProtobufField;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.ModHashCodeHasherProto;
+import org.tribuo.protos.core.VariableInfoProto;
 
 /**
  * Utilities for working with Tribuo protobufs.
@@ -101,4 +110,54 @@ public final class ProtoUtil {
      */
     private ProtoUtil() {}
 
+    
+    public static <SERIALIZED_CLASS extends com.google.protobuf.GeneratedMessageV3, 
+                   SERIALIZED_DATA extends com.google.protobuf.GeneratedMessageV3, 
+                   PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> 
+        SERIALIZED_CLASS serialize(PROTO_SERIALIZABLE protoSerializable) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        
+        ProtobufClass annotation = protoSerializable.getClass().getAnnotation(ProtobufClass.class);
+
+        
+        
+        Class<? extends com.google.protobuf.GeneratedMessageV3> serializedClass = annotation.serializedClass();
+        Class<? extends com.google.protobuf.GeneratedMessageV3> serializedData = annotation.serializedData();
+        com.google.protobuf.GeneratedMessageV3.Builder<?> serializedClassBuilder = (com.google.protobuf.GeneratedMessageV3.Builder<?>) serializedClass.getMethod("newBuilder").invoke(null);
+        com.google.protobuf.GeneratedMessageV3.Builder<?> serializedDataBuilder = (com.google.protobuf.GeneratedMessageV3.Builder<?>) serializedData.getMethod("newBuilder").invoke(null);
+        Class<? extends com.google.protobuf.GeneratedMessageV3.Builder> serializedClassBuilderClass = serializedClassBuilder.getClass();
+        Class<? extends com.google.protobuf.GeneratedMessageV3.Builder> serializedDataBuilderClass = serializedDataBuilder.getClass();
+        
+        
+        for(Field field : protoSerializable.getClass().getDeclaredFields()) {
+            ProtobufField protobufField = field.getAnnotation(ProtobufField.class);
+            if(protobufField == null) continue;
+            String fieldName = protobufField.name();
+            if(fieldName.equals(ProtobufField.DEFAULT_FIELD_NAME)) {
+                fieldName = field.getName();
+            }
+            Method setter = serializedDataBuilderClass.getMethod(setterName(fieldName), Integer.TYPE);
+            setter.setAccessible(true);
+            field.setAccessible(true);
+            Object obj = field.get(protoSerializable);
+            setter.invoke(serializedDataBuilder, obj);
+        }
+        
+        serializedClassBuilderClass.getMethod("setVersion", Integer.TYPE).invoke(serializedClassBuilder, 0);
+        serializedClassBuilderClass.getMethod("setClassName", String.class).invoke(serializedClassBuilder, protoSerializable.getClass().getName());
+
+        ModHashCodeHasherProto mhchProto = (ModHashCodeHasherProto) serializedDataBuilder.build();
+
+        
+        serializedClassBuilderClass.getMethod("setSerializedData", com.google.protobuf.Any.class).invoke(serializedClassBuilder, Any.pack(mhchProto));
+
+        return (SERIALIZED_CLASS) serializedClassBuilder.build();
+    }
+    
+    public static String setterName(String name) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("set");
+        sb.append((""+name.charAt(0)).toUpperCase());
+        sb.append(name.substring(1));
+        return sb.toString();
+    }
 }

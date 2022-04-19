@@ -30,9 +30,11 @@ import java.util.Objects;
 /**
  * Same as a {@link CategoricalInfo}, but with an additional int id field.
  */
+@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = CategoricalInfoProto.class)
 public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo {
     private static final long serialVersionUID = 2L;
 
+    @ProtobufField
     private final int id;
 
     /**
