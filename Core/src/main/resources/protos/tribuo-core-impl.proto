@@ -75,6 +75,8 @@ message CategoricalInfoProto {
   int32 id = 3;
   repeated double key = 10;
   repeated int64 value = 11;
+  double observed_value = 12;
+  int64 observed_count = 13;
 }
 
 /*
