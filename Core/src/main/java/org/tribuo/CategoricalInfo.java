@@ -16,14 +16,6 @@
 
 package org.tribuo;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import com.oracle.labs.mlrg.olcut.util.MutableNumber;
-import org.tribuo.protos.core.CategoricalInfoProto;
-import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.util.Util;
-
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,6 +25,16 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.stream.Collectors;
+
+import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ProtoUtil;
+import org.tribuo.util.Util;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import com.oracle.labs.mlrg.olcut.util.MutableNumber;
 
 /**
  * Stores information about Categorical features.
@@ -52,10 +54,14 @@ import java.util.stream.Collectors;
  * are recomputed. Care should be taken if data is read while {@link #observe(double)} is called.
  * </p>
  */
+@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = CategoricalInfoProto.class)
 public class CategoricalInfo extends SkeletalVariableInfo {
     private Object object;
 
     private static final long serialVersionUID = 2L;
+
+    @ProtobufField
+    private final int id = -1;
 
     private static final MutableLong ZERO = new MutableLong(0);
     /**
@@ -67,20 +73,20 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     /**
      * The occurrence counts of each value.
      */
-    @ProtobufField(fieldName="key")
-    @ProtobufField(fieldName="value")
+    @ProtobufField(name="key")
+    @ProtobufField(name="value")
     protected Map<Double,MutableLong> valueCounts = null;
 
     /**
      * The observed value if it's only seen a single one.
      */
-    @ProtobufField(fieldName="key")
+    @ProtobufField
     protected double observedValue = Double.NaN;
 
     /**
      * The count of the observed value if it's only seen a single one.
      */
-    @ProtobufField(fieldName="value")
+    @ProtobufField
     protected long observedCount = 0;
 
     // These variables are used in the sampling methods, and regenerated after serialization if a sample is required.
@@ -153,9 +159,9 @@ public class CategoricalInfo extends SkeletalVariableInfo {
                 newCount += values.get(i).intValue();
             }
         } else {
-            info.observedValue = keys.get(0);
-            info.observedCount = values.get(0);
-            newCount = values.get(0).intValue();
+            info.observedValue = proto.getObservedValue();
+            info.observedCount = proto.getObservedCount();
+            newCount = (int) proto.getObservedCount();
         }
         info.count = newCount;
         return info;
@@ -460,26 +466,6 @@ public class CategoricalInfo extends SkeletalVariableInfo {
 
     @Override
     public VariableInfoProto serialize() {
-        VariableInfoProto.Builder builder = VariableInfoProto.newBuilder();
-
-        CategoricalInfoProto.Builder categoricalBuilder = CategoricalInfoProto.newBuilder();
-        categoricalBuilder.setName(name);
-        categoricalBuilder.setCount(count);
-        categoricalBuilder.setId(-1);
-        if (valueCounts != null) {
-            for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
-                categoricalBuilder.addKey(e.getKey());
-                categoricalBuilder.addValue(e.getValue().longValue());
-            }
-        } else {
-            categoricalBuilder.addKey(observedValue);
-            categoricalBuilder.addValue(observedCount);
-        }
-
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-        builder.setSerializedData(Any.pack(categoricalBuilder.build()));
-
-        return builder.build();
+        return ProtoUtil.serialize(this);
     }
 }

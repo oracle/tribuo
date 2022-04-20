@@ -16,11 +16,14 @@
 
 package org.tribuo.hash;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
+import org.tribuo.ProtobufClass;
+import org.tribuo.ProtobufField;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
 import org.tribuo.protos.core.FeatureDomainProto;
@@ -30,9 +33,8 @@ import org.tribuo.protos.core.ImmutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.ProtoUtil;
 
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * A {@link FeatureMap} used by the {@link HashingTrainer} to
@@ -40,9 +42,11 @@ import java.util.stream.Collectors;
  * does not contain feature name information, but still works
  * with unhashed features names.
  */
+@ProtobufClass(serializedClass = FeatureDomainProto.class, serializedData = HashedFeatureMapProto.class)
 public final class HashedFeatureMap extends ImmutableFeatureMap {
     private static final long serialVersionUID = 1L;
 
+    @ProtobufField
     private final Hasher hasher;
 
     private HashedFeatureMap(Hasher hasher) {
@@ -107,18 +111,7 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
 
     @Override
     public FeatureDomainProto serialize() {
-        FeatureDomainProto.Builder builder = FeatureDomainProto.newBuilder();
-
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-
-        HashedFeatureMapProto.Builder featureMapBuilder = HashedFeatureMapProto.newBuilder();
-        featureMapBuilder.addAllInfo(m.values().stream().map(VariableInfo::serialize).collect(Collectors.toList()));
-        featureMapBuilder.setHasher(hasher.serialize());
-
-        builder.setSerializedData(Any.pack(featureMapBuilder.build()));
-
-        return builder.build();
+        return ProtoUtil.serialize(this);
     }
 
     /**

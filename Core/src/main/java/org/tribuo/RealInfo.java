@@ -20,6 +20,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ProtoUtil;
 
 import java.util.Objects;
 import java.util.SplittableRandom;
@@ -32,27 +33,35 @@ import java.util.SplittableRandom;
  * Does not contain an id number, but can be transformed into {@link RealIDInfo} which
  * does contain an id number.
  */
+@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = RealInfoProto.class)
 public class RealInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 1L;
+
+    @ProtobufField
+    private final int id = -1;
 
     /**
      * The maximum observed feature value.
      */
+    @ProtobufField
     protected double max = Double.NEGATIVE_INFINITY;
 
     /**
      * The minimum observed feature value.
      */
+    @ProtobufField
     protected double min = Double.POSITIVE_INFINITY;
 
     /**
      * The feature mean.
      */
+    @ProtobufField
     protected double mean = 0.0;
 
     /**
      * The sum of the squared feature values (used to compute the variance).
      */
+    @ProtobufField
     protected double sumSquares = 0.0;
 
     /**
@@ -234,21 +243,6 @@ public class RealInfo extends SkeletalVariableInfo {
 
     @Override
     public VariableInfoProto serialize() {
-        VariableInfoProto.Builder builder = VariableInfoProto.newBuilder();
-
-        RealInfoProto.Builder realBuilder = RealInfoProto.newBuilder();
-        realBuilder.setName(name);
-        realBuilder.setCount(count);
-        realBuilder.setId(-1);
-        realBuilder.setMax(max);
-        realBuilder.setMin(min);
-        realBuilder.setMean(mean);
-        realBuilder.setSumSquares(sumSquares);
-
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-        builder.setSerializedData(Any.pack(realBuilder.build()));
-
-        return builder.build();
+        return ProtoUtil.serialize(this);
     }
 }

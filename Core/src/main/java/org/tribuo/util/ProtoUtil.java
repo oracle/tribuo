@@ -17,14 +17,21 @@
 package org.tribuo.util;
 
 import com.google.protobuf.Any;
+import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.GeneratedMessageV3.Builder;
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.tribuo.ProtoSerializable;
 import org.tribuo.ProtobufClass;
@@ -110,53 +117,189 @@ public final class ProtoUtil {
      */
     private ProtoUtil() {}
 
-    
-    public static <SERIALIZED_CLASS extends com.google.protobuf.GeneratedMessageV3, 
-                   SERIALIZED_DATA extends com.google.protobuf.GeneratedMessageV3, 
-                   PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> 
-        SERIALIZED_CLASS serialize(PROTO_SERIALIZABLE protoSerializable) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-        
-        ProtobufClass annotation = protoSerializable.getClass().getAnnotation(ProtobufClass.class);
+    public static <SERIALIZED_CLASS extends com.google.protobuf.GeneratedMessageV3, SERIALIZED_DATA extends com.google.protobuf.GeneratedMessageV3, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> SERIALIZED_CLASS serialize(
+            PROTO_SERIALIZABLE protoSerializable) {
+        try {
 
-        
-        
-        Class<? extends com.google.protobuf.GeneratedMessageV3> serializedClass = annotation.serializedClass();
-        Class<? extends com.google.protobuf.GeneratedMessageV3> serializedData = annotation.serializedData();
-        com.google.protobuf.GeneratedMessageV3.Builder<?> serializedClassBuilder = (com.google.protobuf.GeneratedMessageV3.Builder<?>) serializedClass.getMethod("newBuilder").invoke(null);
-        com.google.protobuf.GeneratedMessageV3.Builder<?> serializedDataBuilder = (com.google.protobuf.GeneratedMessageV3.Builder<?>) serializedData.getMethod("newBuilder").invoke(null);
-        Class<? extends com.google.protobuf.GeneratedMessageV3.Builder> serializedClassBuilderClass = serializedClassBuilder.getClass();
-        Class<? extends com.google.protobuf.GeneratedMessageV3.Builder> serializedDataBuilderClass = serializedDataBuilder.getClass();
-        
-        
-        for(Field field : protoSerializable.getClass().getDeclaredFields()) {
-            ProtobufField protobufField = field.getAnnotation(ProtobufField.class);
-            if(protobufField == null) continue;
-            String fieldName = protobufField.name();
-            if(fieldName.equals(ProtobufField.DEFAULT_FIELD_NAME)) {
-                fieldName = field.getName();
+            ProtobufClass annotation = protoSerializable.getClass().getAnnotation(ProtobufClass.class);
+            if (annotation == null) {
+                throw new IllegalArgumentException(
+                        "instance of ProtoSerializable must be annotated with @ProtobufClass to be serialized with ProtoUtil.serialize()");
             }
-            Method setter = serializedDataBuilderClass.getMethod(setterName(fieldName), Integer.TYPE);
-            setter.setAccessible(true);
-            field.setAccessible(true);
-            Object obj = field.get(protoSerializable);
-            setter.invoke(serializedDataBuilder, obj);
+
+            Class<? extends com.google.protobuf.GeneratedMessageV3> serializedClass = annotation.serializedClass();
+            com.google.protobuf.GeneratedMessageV3.Builder<?> serializedClassBuilder = (com.google.protobuf.GeneratedMessageV3.Builder<?>) serializedClass
+                    .getMethod("newBuilder").invoke(null);
+            Class<? extends com.google.protobuf.GeneratedMessageV3.Builder> serializedClassBuilderClass = serializedClassBuilder
+                    .getClass();
+            serializedClassBuilderClass.getMethod("setVersion", Integer.TYPE).invoke(serializedClassBuilder,
+                    annotation.version());
+            serializedClassBuilderClass.getMethod("setClassName", String.class).invoke(serializedClassBuilder,
+                    protoSerializable.getClass().getName());
+
+            Class<? extends com.google.protobuf.GeneratedMessageV3> serializedData = annotation.serializedData();
+            if (serializedData != GeneratedMessageV3.class) {
+                com.google.protobuf.GeneratedMessageV3.Builder<?> serializedDataBuilder = (com.google.protobuf.GeneratedMessageV3.Builder<?>) serializedData
+                        .getMethod("newBuilder").invoke(null);
+                Class<? extends com.google.protobuf.GeneratedMessageV3.Builder> serializedDataBuilderClass = serializedDataBuilder
+                        .getClass();
+
+                for (Field field : getFields(protoSerializable.getClass())) {
+                    ProtobufField protobufField = field.getAnnotation(ProtobufField.class);
+                    if (protobufField == null)
+                        continue;
+                    String fieldName = protobufField.name();
+                    if (fieldName.equals(ProtobufField.DEFAULT_FIELD_NAME)) {
+                        fieldName = field.getName();
+                    }
+                    
+                    field.setAccessible(true);
+                    Object obj = field.get(protoSerializable);
+                    Method setter;
+                    if (obj instanceof ProtoSerializable) {
+                        obj = ((ProtoSerializable) obj).serialize();
+                        setter = findMethod(serializedDataBuilderClass, "set", fieldName);
+                    } else if (obj instanceof Iterable) {
+                        setter = findMethod(serializedDataBuilderClass, "addAll", fieldName);
+                    } else if (obj instanceof Map) {
+                        obj = toList((Map) obj);
+                        setter = findMethod(serializedDataBuilderClass, "addAll", fieldName);
+                    } else {
+                        obj = convert(obj);
+                        setter = findMethod(serializedDataBuilderClass, "set", fieldName);
+                    }
+                    
+                    setter.setAccessible(true);
+                    setter.invoke(serializedDataBuilder, obj);
+                }
+
+                for (Field field : getMapFields(protoSerializable.getClass())) {
+                    ProtobufField[] protobufFields = field.getAnnotationsByType(ProtobufField.class);
+                    ProtobufField keyField = protobufFields[0];
+                    ProtobufField valueField = protobufFields[1];
+
+                    Method keyAdder = findMethod(serializedDataBuilderClass, "add", keyField.name());
+                    keyAdder.setAccessible(true);
+                    Method valueAdder = findMethod(serializedDataBuilderClass, "add", valueField.name());
+                    valueAdder.setAccessible(true);
+                    field.setAccessible(true);
+
+                    Map map = (Map) field.get(protoSerializable);
+                    if(map != null) {
+                        Set<Map.Entry> entrySet = map.entrySet();
+                        for (Map.Entry e : entrySet) {
+                            keyAdder.invoke(serializedDataBuilder, convert(e.getKey()));
+                            valueAdder.invoke(serializedDataBuilder, convert(e.getValue()));
+                        }
+                    }
+                }
+
+                serializedClassBuilderClass.getMethod("setSerializedData", com.google.protobuf.Any.class).invoke(serializedClassBuilder, Any.pack(serializedDataBuilder.build()));
+            }
+            return (SERIALIZED_CLASS) serializedClassBuilder.build();
+        } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException
+                | SecurityException e) {
+            throw new RuntimeException(e);
         }
-        
-        serializedClassBuilderClass.getMethod("setVersion", Integer.TYPE).invoke(serializedClassBuilder, 0);
-        serializedClassBuilderClass.getMethod("setClassName", String.class).invoke(serializedClassBuilder, protoSerializable.getClass().getName());
-
-        ModHashCodeHasherProto mhchProto = (ModHashCodeHasherProto) serializedDataBuilder.build();
-
-        
-        serializedClassBuilderClass.getMethod("setSerializedData", com.google.protobuf.Any.class).invoke(serializedClassBuilder, Any.pack(mhchProto));
-
-        return (SERIALIZED_CLASS) serializedClassBuilder.build();
     }
-    
-    public static String setterName(String name) {
+
+    private static List toList(Map obj) {
+        List values = new ArrayList();
+        for(Object value : obj.values()) {
+            if(value instanceof ProtoSerializable) {
+                value = ((ProtoSerializable) value).serialize();
+            }
+            values.add(value);
+        }
+        return values;
+    }
+
+    private static Object convert(Object obj) {
+        if (obj instanceof MutableLong) {
+            return ((MutableLong) obj).longValue();
+        }
+        return obj;
+    }
+
+    private static List<Field> getMapFields(Class<? extends ProtoSerializable> class1) {
+        Set<String> fieldNameSet = new HashSet<>();
+        List<Field> fields = new ArrayList<>();
+        for (Field field : class1.getDeclaredFields()) {
+            ProtobufField[] protobufFields = field.getAnnotationsByType(ProtobufField.class);
+            if (protobufFields.length == 2) {
+                Class<?> fieldType = field.getType();
+                if (Map.class.isAssignableFrom(fieldType)) {
+                    if (fieldNameSet.contains(field.getName()))
+                        continue;
+                    fields.add(field);
+                    fieldNameSet.add(field.getName());
+                }
+            }
+        }
+        Class<?> superclass = class1.getSuperclass();
+        if (ProtoSerializable.class.isAssignableFrom(superclass)) {
+            List<Field> superfields = getMapFields((Class<? extends ProtoSerializable>) superclass);
+            for (Field field : superfields) {
+                if (fieldNameSet.contains(field.getName()))
+                    continue;
+                fields.add(field);
+                fieldNameSet.add(field.getName());
+            }
+        }
+        return fields;
+    }
+
+    private static List<Field> getFields(Class<? extends ProtoSerializable> class1) {
+        Set<String> fieldNameSet = new HashSet<>();
+        List<Field> fields = new ArrayList<>();
+        for (Field field : class1.getDeclaredFields()) {
+            ProtobufField protobufField = field.getAnnotation(ProtobufField.class);
+            if (protobufField == null)
+                continue;
+            if (fieldNameSet.contains(field.getName()))
+                continue;
+            fields.add(field);
+            fieldNameSet.add(field.getName());
+        }
+
+        Class<?> superclass = class1.getSuperclass();
+        if (ProtoSerializable.class.isAssignableFrom(superclass)) {
+            List<Field> superfields = getFields((Class<? extends ProtoSerializable>) superclass);
+            for (Field field : superfields) {
+                if (fieldNameSet.contains(field.getName()))
+                    continue;
+                fields.add(field);
+                fieldNameSet.add(field.getName());
+            }
+
+        }
+
+        return fields;
+    }
+
+    private static Method findMethod(Class<? extends Builder> serializedDataBuilderClass, String prefixName, String fieldName) {
+        String methodName = generateMethodName(prefixName, fieldName);
+
+        for (Method method : serializedDataBuilderClass.getMethods()) {
+            if (method.getName().equals(methodName)) {
+                if(method.getParameterTypes().length != 1) {
+                    continue;
+                }
+                Class<?> class1 = method.getParameterTypes()[0];
+                if(com.google.protobuf.GeneratedMessageV3.Builder.class.isAssignableFrom(class1)) {
+                    continue;
+                }
+                return method;
+            }
+        }
+        throw new IllegalArgumentException("unable to find method "+methodName+" for field name: " + fieldName + " in class: "
+                + serializedDataBuilderClass.getName());
+    }
+
+    public static String generateMethodName(String prefix, String name) {
         StringBuilder sb = new StringBuilder();
-        sb.append("set");
-        sb.append((""+name.charAt(0)).toUpperCase());
+        sb.append(prefix);
+        sb.append(("" + name.charAt(0)).toUpperCase());
         sb.append(name.substring(1));
         return sb.toString();
     }

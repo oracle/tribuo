@@ -24,8 +24,12 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+
+import org.tribuo.ProtobufClass;
+import org.tribuo.ProtobufField;
 import org.tribuo.protos.core.HasherProto;
 import org.tribuo.protos.core.MessageDigestHasherProto;
+import org.tribuo.protos.core.ModHashCodeHasherProto;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -43,6 +47,7 @@ import java.util.function.Supplier;
 /**
  * Hashes Strings using the supplied MessageDigest type.
  */
+@ProtobufClass(serializedClass = HasherProto.class, serializedData = MessageDigestHasherProto.class)
 public final class MessageDigestHasher extends Hasher {
     private static final long serialVersionUID = 3L;
 
@@ -53,7 +58,9 @@ public final class MessageDigestHasher extends Hasher {
 
     static final String HASH_TYPE = "hashType";
 
+    
     @Config(mandatory = true,description="MessageDigest hashing function.")
+    @ProtobufField
     private String hashType;
 
     private transient ThreadLocal<MessageDigest> md;

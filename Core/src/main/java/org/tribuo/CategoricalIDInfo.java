@@ -21,6 +21,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ProtoUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -94,9 +95,9 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
                 newCount += values.get(i).intValue();
             }
         } else {
-            info.observedValue = keys.get(0);
-            info.observedCount = values.get(0);
-            newCount = values.get(0).intValue();
+            info.observedValue = proto.getObservedValue();
+            info.observedCount = proto.getObservedCount();
+            newCount = (int) proto.getObservedCount();
         }
         if (newCount != proto.getCount()) {
             throw new IllegalStateException("Invalid protobuf, count " + newCount + " did not match expected value " + proto.getCount());
@@ -166,26 +167,6 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
 
     @Override
     public VariableInfoProto serialize() {
-        VariableInfoProto.Builder builder = VariableInfoProto.newBuilder();
-
-        CategoricalInfoProto.Builder categoricalBuilder = CategoricalInfoProto.newBuilder();
-        categoricalBuilder.setName(name);
-        categoricalBuilder.setCount(count);
-        categoricalBuilder.setId(id);
-        if (valueCounts != null) {
-            for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
-                categoricalBuilder.addKey(e.getKey());
-                categoricalBuilder.addValue(e.getValue().longValue());
-            }
-        } else {
-            categoricalBuilder.addKey(observedValue);
-            categoricalBuilder.addValue(observedCount);
-        }
-
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-        builder.setSerializedData(Any.pack(categoricalBuilder.build()));
-
-        return builder.build();
+        return ProtoUtil.serialize(this);
     }
 }

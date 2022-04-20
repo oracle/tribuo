@@ -18,17 +18,22 @@ package org.tribuo;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+
+import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ProtoUtil;
 
 import java.util.Objects;
 
 /**
  * Same as a {@link RealInfo}, but with an additional int id field.
  */
+@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = RealInfoProto.class)
 public class RealIDInfo extends RealInfo implements VariableIDInfo {
     private static final long serialVersionUID = 1L;
 
+    @ProtobufField
     private final int id;
 
     /**
@@ -140,21 +145,6 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
 
     @Override
     public VariableInfoProto serialize() {
-        VariableInfoProto.Builder builder = VariableInfoProto.newBuilder();
-
-        RealInfoProto.Builder realBuilder = RealInfoProto.newBuilder();
-        realBuilder.setName(name);
-        realBuilder.setCount(count);
-        realBuilder.setId(id);
-        realBuilder.setMax(max);
-        realBuilder.setMin(min);
-        realBuilder.setMean(mean);
-        realBuilder.setSumSquares(sumSquares);
-
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-        builder.setSerializedData(Any.pack(realBuilder.build()));
-
-        return builder.build();
+        return ProtoUtil.serialize(this);
     }
 }

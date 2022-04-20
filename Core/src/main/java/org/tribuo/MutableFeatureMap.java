@@ -19,6 +19,7 @@ package org.tribuo;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.HashedFeatureMapProto;
 import org.tribuo.protos.core.MutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.ProtoUtil;
@@ -29,9 +30,11 @@ import java.util.stream.Collectors;
 /**
  * A feature map that can record new feature value observations.
  */
+@ProtobufClass(serializedClass = FeatureDomainProto.class, serializedData = MutableFeatureMapProto.class)
 public class MutableFeatureMap extends FeatureMap {
     private static final long serialVersionUID = 2L;
 
+    @ProtobufField
     private final boolean convertHighCardinality;
 
     /**
@@ -133,17 +136,6 @@ public class MutableFeatureMap extends FeatureMap {
 
     @Override
     public FeatureDomainProto serialize() {
-        FeatureDomainProto.Builder builder = FeatureDomainProto.newBuilder();
-
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-
-        MutableFeatureMapProto.Builder featureMapBuilder = MutableFeatureMapProto.newBuilder();
-        featureMapBuilder.setConvertHighCardinality(convertHighCardinality);
-        featureMapBuilder.addAllInfo(m.values().stream().map(VariableInfo::serialize).collect(Collectors.toList()));
-
-        builder.setSerializedData(Any.pack(featureMapBuilder.build()));
-
-        return builder.build();
+        return ProtoUtil.serialize(this);
     }
 }
