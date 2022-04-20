@@ -57,4 +57,9 @@ public class KDTreeFactory implements NeighboursQueryFactory {
     public KDTree createNeighboursQuery(SGDVector[] data) {
         return new KDTree(data, this.distanceType, this.numThreads);
     }
+
+    @Override
+    public DistanceType getDistanceType() {
+        return distanceType;
+    }
 }

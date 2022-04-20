@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -125,6 +125,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         this.parallelBackend = backend;
         this.vectors = vectors;
         this.neighboursQueryFactory = neighboursQueryFactory;
+        this.neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
     }
 
     @Override
@@ -173,14 +174,6 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         } else {
             List<Prediction<T>> predictions = new ArrayList<>();
             List<Prediction<T>> innerPredictions = new ArrayList<>();
-
-            if (neighboursQuery == null) {
-                synchronized (this) {
-                    if (neighboursQuery == null) {
-                        neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
-                    }
-                }
-            }
 
             for (Example<T> example : examples) {
                 innerPredictions.clear();
@@ -269,14 +262,6 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         ExecutorService pool = Executors.newFixedThreadPool(numThreads);
 
         List<Future<Prediction<T>>> futures = new ArrayList<>();
-
-        if (neighboursQuery == null) {
-            synchronized (this) {
-                if (neighboursQuery == null) {
-                    neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
-                }
-            }
-        }
 
         for (Example<T> example : examples) {
             futures.add(pool.submit(() -> innerPredictOne(neighboursQuery,vectors,combiner,featureIDMap,outputIDInfo,k,example)));

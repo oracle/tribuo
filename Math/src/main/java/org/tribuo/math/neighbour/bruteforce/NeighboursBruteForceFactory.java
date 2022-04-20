@@ -58,4 +58,9 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
         return new NeighboursBruteForce(data, this.distanceType, this.numThreads);
     }
 
+    @Override
+    public DistanceType getDistanceType() {
+        return distanceType;
+    }
+
 }

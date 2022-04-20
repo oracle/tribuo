@@ -85,7 +85,7 @@ public final class NeighboursBruteForce implements NeighboursQuery {
             indexDistanceArr[k - i] = new Pair<>(mutablePair.index, mutablePair.value);
             i++;
         }
-        return new ArrayList<>(Arrays.asList(indexDistanceArr));
+        return Arrays.asList(indexDistanceArr);
     }
 
     @Override
@@ -93,7 +93,7 @@ public final class NeighboursBruteForce implements NeighboursQuery {
         int numQueries = points.length;
 
         @SuppressWarnings("unchecked")
-        List<Pair<Integer, Double>>[] indexDistancePairListArray = (List<Pair<Integer, Double>>[]) new ArrayList[numQueries];
+        List<Pair<Integer, Double>>[] indexDistancePairListArray = (List<Pair<Integer, Double>>[]) new List[numQueries];
 
         // When the number of threads is 1, the overhead of thread pools must be avoided
         if (numThreads == 1) {

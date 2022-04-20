@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 
 import java.io.Serializable;
@@ -34,6 +35,12 @@ public interface NeighboursQueryFactory extends Configurable, Provenancable<Conf
      * @param data An array of {@link SGDVector}.
      */
     NeighboursQuery createNeighboursQuery(SGDVector[] data);
+
+    /**
+     * Gets the {@link DistanceType} set on this object.
+     * @return The distance function.
+     */
+    DistanceType getDistanceType();
 
     @Override
     default ConfiguredObjectProvenance getProvenance() {

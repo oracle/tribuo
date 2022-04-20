@@ -61,8 +61,6 @@ public final class KDTree implements NeighboursQuery {
      * @param numThreads The number of threads to be used to parallelize queries for multiple points.
      */
     KDTree(SGDVector[] data, DistanceType distanceType, int numThreads) {
-
-
         this.data = data;
         this.numThreads = numThreads;
 
@@ -102,7 +100,7 @@ public final class KDTree implements NeighboursQuery {
             indexDistanceArr[k - i] = new Pair<>(tuple.intAndVector.idx, tuple.dist);
             i++;
         }
-        return new ArrayList<>(Arrays.asList(indexDistanceArr));
+        return Arrays.asList(indexDistanceArr);
     }
 
     @Override
@@ -110,7 +108,7 @@ public final class KDTree implements NeighboursQuery {
         int numQueries = points.length;
 
         @SuppressWarnings("unchecked")
-        List<Pair<Integer, Double>>[] indexDistancePairListArray = (List<Pair<Integer, Double>>[]) new ArrayList[numQueries];
+        List<Pair<Integer, Double>>[] indexDistancePairListArray = (List<Pair<Integer, Double>>[]) new List[numQueries];
 
         // When the number of threads is 1, the overhead of thread pools must be avoided
         if (numThreads == 1) {

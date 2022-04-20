@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
     private Distance distance;
 
     @Config(description = "The distance function used to measure nearest neighbours.")
-    private DistanceType distType = DistanceType.L2;
+    private DistanceType distType;
 
     @Config(mandatory = true, description="The number of nearest neighbours to check.")
     private int k;
@@ -104,7 +104,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
     private Backend backend = Backend.THREADPOOL;
 
     @Config(description = "The nearest neighbour implementation factory to use.")
-    private NeighboursQueryFactory neighboursQueryFactory = new NeighboursBruteForceFactory(distType, 1);
+    private NeighboursQueryFactory neighboursQueryFactory;
 
     private int trainInvocationCount = 0;
 
@@ -151,6 +151,26 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
     }
 
     /**
+     * Creates a K-NN trainer using the supplied parameters.
+     *
+     * @param k The number of nearest neighbours to consider.
+     * @param numThreads The number of threads to use.
+     * @param combiner The combination function to aggregate the k predictions.
+     * @param backend The computational backend.
+     * @param neighboursQueryFactory The nearest neighbour implementation factory to use.
+     */
+    public KNNTrainer(int k, int numThreads, EnsembleCombiner<T> combiner,
+                      Backend backend, NeighboursQueryFactory neighboursQueryFactory) {
+        this.k = k;
+        this.distType = neighboursQueryFactory.getDistanceType();
+        this.numThreads = numThreads;
+        this.combiner = combiner;
+        this.backend = backend;
+        this.neighboursQueryFactory = neighboursQueryFactory;
+        postConfig();
+    }
+
+    /**
      * Used by the OLCUT configuration system, and should not be called by external code.
      */
     @Override
@@ -165,6 +185,16 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
             } else {
                 this.distType = this.distance.getDistanceType();
                 this.distance = null;
+            }
+        }
+
+        if (neighboursQueryFactory == null) {
+            int numberThreads = (this.numThreads <= 0) ? 1 : this.numThreads;
+            this.neighboursQueryFactory = new NeighboursBruteForceFactory(distType, numberThreads);
+        } else {
+            if (!this.distType.equals(neighboursQueryFactory.getDistanceType())) {
+                throw new PropertyException("neighboursQueryFactory", "distType and its field on the " +
+                    "NeighboursQueryFactory must be equal.");
             }
         }
     }

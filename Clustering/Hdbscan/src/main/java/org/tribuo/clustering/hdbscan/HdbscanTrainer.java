@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,18 +133,19 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     private Distance distanceType;
 
     @Config(description = "The distance function to use.")
-    private DistanceType distType = DistanceType.L2;
+    private DistanceType distType;
 
     @Config(mandatory = true, description = "The number of nearest-neighbors to use in the initial density approximation. " +
         "This includes the point itself.")
     private int k;
 
     @Deprecated
-    @Config(description = "The number of threads to use for training. This is now deprecated.")
+    @Config(description = "The number of threads to use for training. This is now deprecated since it is a field on the " +
+        "NeighboursQueryFactory object.")
     private int numThreads = 1;
 
     @Config(description = "The nearest neighbour implementation factory to use.")
-    private NeighboursQueryFactory neighboursQueryFactory = new NeighboursBruteForceFactory(distType, 1);
+    private NeighboursQueryFactory neighboursQueryFactory;
 
     private int trainInvocationCounter;
 
@@ -200,6 +201,20 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     }
 
     /**
+     * Constructs an HDBSCAN* trainer using the supplied parameters.
+     *
+     * @param minClusterSize The minimum number of points required to form a cluster.
+     * @param k The number of nearest-neighbors to use in the initial density approximation.
+     * @param neighboursQueryFactory The nearest neighbour query implementation factory to use.
+     */
+    public HdbscanTrainer(int minClusterSize, int k, NeighboursQueryFactory neighboursQueryFactory) {
+        this.minClusterSize = minClusterSize;
+        this.distType = neighboursQueryFactory.getDistanceType();
+        this.k = k;
+        this.neighboursQueryFactory = neighboursQueryFactory;
+    }
+
+    /**
      * Used by the OLCUT configuration system, and should not be called by external code.
      */
     @Override
@@ -212,6 +227,17 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 this.distanceType = null;
             }
         }
+
+        if (neighboursQueryFactory == null) {
+            int numberThreads = (this.numThreads <= 0) ? 1 : this.numThreads;
+            this.neighboursQueryFactory = new NeighboursBruteForceFactory(distType, numberThreads);
+        } else {
+            if (!this.distType.equals(neighboursQueryFactory.getDistanceType())) {
+                throw new PropertyException("neighboursQueryFactory", "distType and its field on the " +
+                    "NeighboursQueryFactory must be equal.");
+            }
+        }
+
     }
 
     @Override

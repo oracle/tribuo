@@ -26,7 +26,7 @@ import static org.tribuo.math.neighbour.kdtree.KDTree.DistanceIntAndVectorBounde
  * A node used in a k-d tree {@link KDTree}. A node is a point from a dataset and is placed according to its value
  * at a specific dimension of the point.
  */
-public final class DimensionNode {
+final class DimensionNode {
 
     private final int dimension;
 
@@ -50,7 +50,7 @@ public final class DimensionNode {
      * @param intAndVector The point.
      * @param distanceType The distance function.
      */
-    public DimensionNode(int dimension, IntAndVector intAndVector, DistanceType distanceType) {
+    DimensionNode(int dimension, IntAndVector intAndVector, DistanceType distanceType) {
         this.dimension = dimension;
         this.intAndVector = intAndVector;
         this.maxD = intAndVector.vector.size();
@@ -62,7 +62,7 @@ public final class DimensionNode {
      * Return the node below this one in the k-d tree.
      * @return The node below this one.
      */
-    public DimensionNode getBelow() {
+    DimensionNode getBelow() {
         return below;
     }
 
@@ -70,7 +70,7 @@ public final class DimensionNode {
      * Return the node above this one in the k-d tree.
      * @return The node below this one.
      */
-    public DimensionNode getAbove() {
+    DimensionNode getAbove() {
         return above;
     }
 
@@ -79,7 +79,7 @@ public final class DimensionNode {
      *
      * @param node The node being added to the tree.
      */
-    public void setBelow(DimensionNode node) {
+    void setBelow(DimensionNode node) {
         if (node == null) {
             this.below = null;
         } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
@@ -95,7 +95,7 @@ public final class DimensionNode {
      *
      * @param node The node being added to the tree.
      */
-    public void setAbove(DimensionNode node) {
+    void setAbove(DimensionNode node) {
         if (node == null) {
             this.above = null;
         } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
