@@ -77,8 +77,7 @@ public final class KDTree implements NeighboursQuery {
             }
         }
 
-        // Start generating the tree at dimension 1, which is index 0 of the array of IntAndVectors.
-        root = generateTree(1, numDimensions, points, 0, data.length - 1, distanceType);
+        root = generateTree(0, numDimensions-1, points, 0, data.length - 1, distanceType);
     }
 
     @Override
@@ -162,15 +161,15 @@ public final class KDTree implements NeighboursQuery {
         // Points before it (with lower index) will be <= median, although not sorted. Points after it
         // (with higher index) will be >= median, again not sorted.
         int median = 1 + (right-left)/2;
-        setMedian(points, median, left, right, d-1);
+        setMedian(points, median, left, right, d);
 
         // Construct a dimension node using the median point
         DimensionNode medianNode = new DimensionNode(d, points[left+median-1], distanceType);
 
-        // Increment the dimension, resetting back to 1 when it exceeds maxD
+        // Increment the dimension, resetting back to 0 when it exceeds maxD
         d++;
         if (d > maxD) {
-            d = 1;
+            d = 0;
         }
 
         // Generate the below/left and above/right subtrees.

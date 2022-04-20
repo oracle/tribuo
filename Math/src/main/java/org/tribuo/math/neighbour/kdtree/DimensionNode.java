@@ -53,9 +53,9 @@ final class DimensionNode {
     DimensionNode(int dimension, IntAndVector intAndVector, DistanceType distanceType) {
         this.dimension = dimension;
         this.intAndVector = intAndVector;
-        this.maxD = intAndVector.vector.size();
+        this.maxD = intAndVector.vector.size() - 1;
         this.distanceType = distanceType;
-        this.coord = intAndVector.vector.get(dimension-1);
+        this.coord = intAndVector.vector.get(dimension);
     }
 
     /**
@@ -82,7 +82,7 @@ final class DimensionNode {
     void setBelow(DimensionNode node) {
         if (node == null) {
             this.below = null;
-        } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
+        } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 0)) {
             // Ensure the dimension of node being added is only 1 greater, or is the dimension wrap around case.
             this.below = node;
         } else {
@@ -98,7 +98,7 @@ final class DimensionNode {
     void setAbove(DimensionNode node) {
         if (node == null) {
             this.above = null;
-        } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 1)) {
+        } else if ((this.dimension + 1 == node.dimension) || (this.dimension == maxD && node.dimension == 0)) {
             // Ensure the dimension of node being added is only 1 greater, or is the dimension wrap around case.
             this.above = node;
         } else {
@@ -113,7 +113,7 @@ final class DimensionNode {
      * @return true when the provided point is below this node.
      */
     boolean isBelow(SGDVector point) {
-        return point.get(dimension - 1) < coord;
+        return point.get(dimension) < coord;
     }
 
     /**
@@ -137,7 +137,7 @@ final class DimensionNode {
         // and the axis this node makes to separate the points in this region.
         // When distPerp is less than or equal to the largest distance currently in the queue, both sides of the tree
         // must be considered.
-        double distPerp = Math.abs(coord - point.get(dimension - 1));
+        double distPerp = Math.abs(coord - point.get(dimension));
 
         if (Double.compare(distPerp, queue.peek().dist) <= 0) {
             // Check both sides
@@ -149,7 +149,7 @@ final class DimensionNode {
             }
         } else {
             // Only need to check one subtree, determine which one.
-            if (point.get(dimension - 1) < coord) {
+            if (point.get(dimension) < coord) {
                 if (below != null) {
                     below.nearest (point, queue, isInitializing);
                 }
