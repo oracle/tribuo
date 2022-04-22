@@ -174,7 +174,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
      * Used by the OLCUT configuration system, and should not be called by external code.
      */
     @Override
-    public void postConfig() {
+    public synchronized void postConfig() {
         if (k < 1) {
             throw new PropertyException("","k","k must be greater than 0");
         }

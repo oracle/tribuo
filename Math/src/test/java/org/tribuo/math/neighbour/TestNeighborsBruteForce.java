@@ -16,6 +16,7 @@
 
 package org.tribuo.math.neighbour;
 
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.math.distance.DistanceType;
@@ -24,6 +25,8 @@ import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for the brute-force nearest neighbour query implementation.
@@ -89,5 +92,9 @@ public class TestNeighborsBruteForce {
     public void testMultiThreadQueryAllIntegers4D() {
         NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
         NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
+    }
+
+    @Test void testInvalidKDTreeFactory() {
+        assertThrows(PropertyException.class, () -> new NeighboursBruteForceFactory(DistanceType.L1, 0) );
     }
 }

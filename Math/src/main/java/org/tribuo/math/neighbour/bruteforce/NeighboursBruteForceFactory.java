@@ -17,6 +17,7 @@
 package org.tribuo.math.neighbour.bruteforce;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
@@ -47,6 +48,7 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
     public NeighboursBruteForceFactory(DistanceType distanceType, int numThreads) {
         this.distanceType = distanceType;
         this.numThreads = numThreads;
+        postConfig();
     }
 
     /**
@@ -63,4 +65,18 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
         return distanceType;
     }
 
+    @Override
+    public int getNumThreads() {
+        return numThreads;
+    }
+
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
+    @Override
+    public synchronized void postConfig() {
+        if (numThreads <= 0) {
+            throw new PropertyException("numThreads", "The number of threads must be a number greater than 0.");
+        }
+    }
 }

@@ -129,7 +129,7 @@ public final class KDTree implements NeighboursQuery {
                 throw new RuntimeException("Parallel execution failed", e);
             }
         }
-        return new ArrayList<>(Arrays.asList(indexDistancePairListArray));
+        return Arrays.asList(indexDistancePairListArray);
     }
 
     @Override
@@ -245,9 +245,9 @@ public final class KDTree implements NeighboursQuery {
     }
 
     /**
-     * Partition the array into two parts around the provided array index. Those less than the value at the provided
-     * array index will be on the left. Those greater than or equal to the value at the provided array index will fall
-     * on the left. The operation is performed for a specific dimension of the vectors defined by the comparator.
+     * Partition the array into two parts around the provided array index. Those less than or equal to the value at the
+     * provided array index will be on the left. Those greater than the value at the provided array index will fall
+     * on the right. The operation is performed for a specific dimension of the vectors defined by the comparator.
      *
      * @param points The array of {@link IntAndVector}s. NOTE: The order of the array will be changed.
      * @param left The left-bound to use during this operation.

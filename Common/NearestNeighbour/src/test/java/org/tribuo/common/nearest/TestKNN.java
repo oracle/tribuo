@@ -30,7 +30,9 @@ import org.tribuo.classification.example.DemoLabelDataSource;
 import org.tribuo.classification.example.NoisyInterlockingCrescentsDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
+import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -108,8 +110,9 @@ public class TestKNN {
 
     @Test
     public void knnRegressionSingleThreadedTest() {
-        KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 1,
-            new AveragingCombiner(), KNNModel.Backend.THREADPOOL, NeighboursQueryFactoryType.BRUTE_FORCE);
+        NeighboursQueryFactory neighboursQueryFactory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, 1, new AveragingCombiner(),
+            KNNModel.Backend.THREADPOOL, neighboursQueryFactory);
         testKNNRegression(regressionTrainer);
     }
 

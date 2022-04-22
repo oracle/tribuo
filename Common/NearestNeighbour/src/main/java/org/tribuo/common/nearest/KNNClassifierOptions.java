@@ -74,7 +74,7 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
     @Option(longName = "knn-voting", usage = "Parallel backend to use.")
     public EnsembleCombinerType knnEnsembleCombiner = EnsembleCombinerType.VOTING;
     /**
-     * The nearest neighbour implementation factory to use. Defaults to {@link NeighboursQueryFactoryType#KD_TREE}.
+     * The nearest neighbour implementation factory to use. Defaults to {@link NeighboursQueryFactoryType#BRUTE_FORCE}.
      */
     @Option(longName = "knn-neighbour-query-factory-type", usage = "The nearest neighbour implementation factory to use.")
     public NeighboursQueryFactoryType nqFactoryType = NeighboursQueryFactoryType.BRUTE_FORCE;

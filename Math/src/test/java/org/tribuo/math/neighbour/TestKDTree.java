@@ -16,15 +16,17 @@
 
 package org.tribuo.math.neighbour;
 
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.math.distance.DistanceType;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.math.neighbour.kdtree.KDTree;
 import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Unit tests for the k-d tree nearest neighbour query implementation. See {@link NeighbourQueryTestHelper} for the
@@ -91,5 +93,9 @@ public class TestKDTree {
     public void testMultiThreadQueryAllIntegers4D() {
         KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 4);
         NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
+    }
+
+    @Test void testInvalidKDTreeFactory() {
+        assertThrows(PropertyException.class, () -> new KDTreeFactory(DistanceType.L2, 0) );
     }
 }

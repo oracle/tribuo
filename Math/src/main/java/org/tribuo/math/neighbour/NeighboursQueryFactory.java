@@ -42,6 +42,13 @@ public interface NeighboursQueryFactory extends Configurable, Provenancable<Conf
      */
     DistanceType getDistanceType();
 
+    /**
+     * Get the number of threads set on this object. There could be factory implementations that are sequential,
+     * meaning they are single threaded.
+     * @return The number of threads used to parallelize the query operation.
+     */
+    int getNumThreads();
+
     @Override
     default ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"NeighboursQueryFactory");
