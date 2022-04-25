@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.neighbour.NeighboursQuery;
+import org.tribuo.math.neighbour.NeighboursQueryFactory;
+import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
@@ -137,8 +139,13 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         "This includes the point itself.")
     private int k;
 
-    @Config(description = "The number of threads to use for training.")
+    @Deprecated
+    @Config(description = "The number of threads to use for training. This is now deprecated since it is a field on the " +
+        "NeighboursQueryFactory object.")
     private int numThreads = 1;
+
+    @Config(description = "The nearest neighbour implementation factory to use.")
+    private NeighboursQueryFactory neighboursQueryFactory;
 
     private int trainInvocationCounter;
 
@@ -153,14 +160,16 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
      * {@link #distType} defaults to {@link DistanceType#L2}, {@link #k} defaults to {@link #minClusterSize},
-     * and {@link #numThreads} defaults to 1.
+     * {@link #numThreads} defaults to 1 and {@link #neighboursQueryFactory} defaults to
+     * {@link NeighboursBruteForceFactory}.
      */
     public HdbscanTrainer(int minClusterSize) {
-        this(minClusterSize, DistanceType.L2, minClusterSize, 1);
+        this(minClusterSize, DistanceType.L2, minClusterSize, 1, NeighboursQueryFactoryType.BRUTE_FORCE);
     }
 
     /**
-     * Constructs an HDBSCAN* trainer using the supplied parameters.
+     * Constructs an HDBSCAN* trainer using the supplied parameters. {@link #neighboursQueryFactory} defaults to
+     * {@link NeighboursBruteForceFactory}.
      * @deprecated
      * This Constructor is deprecated in version 4.3.
      *
@@ -171,7 +180,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      */
     @Deprecated
     public HdbscanTrainer(int minClusterSize, Distance distanceType, int k, int numThreads) {
-        this(minClusterSize, distanceType.getDistanceType(), k, numThreads);
+        this(minClusterSize, distanceType.getDistanceType(), k, numThreads, NeighboursQueryFactoryType.BRUTE_FORCE);
     }
 
     /**
@@ -181,12 +190,28 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @param distType The distance function.
      * @param k The number of nearest-neighbors to use in the initial density approximation.
      * @param numThreads The number of threads.
+     * @param nqFactoryType The nearest neighbour query implementation factory to use.
      */
-    public HdbscanTrainer(int minClusterSize, DistanceType distType, int k, int numThreads) {
+    public HdbscanTrainer(int minClusterSize, DistanceType distType, int k, int numThreads, NeighboursQueryFactoryType nqFactoryType) {
         this.minClusterSize = minClusterSize;
         this.distType = distType;
         this.k = k;
         this.numThreads = numThreads;
+        this.neighboursQueryFactory = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, distType, numThreads);
+    }
+
+    /**
+     * Constructs an HDBSCAN* trainer using the supplied parameters.
+     *
+     * @param minClusterSize The minimum number of points required to form a cluster.
+     * @param k The number of nearest-neighbors to use in the initial density approximation.
+     * @param neighboursQueryFactory The nearest neighbour query implementation factory to use.
+     */
+    public HdbscanTrainer(int minClusterSize, int k, NeighboursQueryFactory neighboursQueryFactory) {
+        this.minClusterSize = minClusterSize;
+        this.distType = neighboursQueryFactory.getDistanceType();
+        this.k = k;
+        this.neighboursQueryFactory = neighboursQueryFactory;
     }
 
     /**
@@ -202,6 +227,17 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 this.distanceType = null;
             }
         }
+
+        if (neighboursQueryFactory == null) {
+            int numberThreads = (this.numThreads <= 0) ? 1 : this.numThreads;
+            this.neighboursQueryFactory = new NeighboursBruteForceFactory(distType, numberThreads);
+        } else {
+            if (!this.distType.equals(neighboursQueryFactory.getDistanceType())) {
+                throw new PropertyException("neighboursQueryFactory", "distType and its field on the " +
+                    "NeighboursQueryFactory must be equal.");
+            }
+        }
+
     }
 
     @Override
@@ -225,7 +261,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             n++;
         }
 
-        DenseVector coreDistances = calculateCoreDistances(data, k, distType, numThreads);
+        DenseVector coreDistances = calculateCoreDistances(data, k, neighboursQueryFactory);
         ExtendedMinimumSpanningTree emst = constructEMST(data, coreDistances, distType);
 
         double[] pointNoiseLevels = new double[data.length];    // The levels at which each point becomes noise
@@ -284,11 +320,10 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      *
      * @param data An array of {@link DenseVector} containing the data.
      * @param k The number of nearest-neighbors to use in these calculations.
-     * @param distType The distance metric to employ.
-     * @param numThreads  The number of threads to use for training.
+     * @param neighboursQueryFactory The nearest neighbour implementation factory.
      * @return A {@link DenseVector} containing the core distances for every point.
      */
-    private static DenseVector calculateCoreDistances(SGDVector[] data, int k, DistanceType distType, int numThreads) {
+    private static DenseVector calculateCoreDistances(SGDVector[] data, int k, NeighboursQueryFactory neighboursQueryFactory) {
         DenseVector coreDistances = new DenseVector(data.length);
 
         // A value of k=1 will not return any neighbouring points
@@ -296,8 +331,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             return coreDistances;
         }
 
-        NeighboursBruteForceFactory nbff = new NeighboursBruteForceFactory(distType, numThreads);
-        NeighboursQuery nq = nbff.createNeighboursQuery(data);
+        NeighboursQuery nq = neighboursQueryFactory.createNeighboursQuery(data);
         List<List<Pair<Integer, Double>>> indexDistancePairListOfLists = nq.queryAll(k);
         for (int point = 0; point < data.length; point++) {
             coreDistances.set(point, indexDistancePairListOfLists.get(point).get(k-1).getB());

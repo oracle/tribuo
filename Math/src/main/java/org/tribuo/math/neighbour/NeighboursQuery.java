@@ -27,7 +27,9 @@ import java.util.List;
 public interface NeighboursQuery {
 
     /**
-     * Queries a set of {@link SGDVector}s to determine the k points nearest to the provided point.
+     * Queries a set of {@link SGDVector}s to determine the k points nearest to the provided point. When there are
+     * multiple points equidistant from the provided point, the order in which they are returned may vary depending on
+     * the implementation.
      * @param point The point to determine the nearest k points for.
      * @param k The number of neighbouring points to identify.
      * @return A list of k {@link Pair}s, where a pair contains the index of the neighbouring point in the original
@@ -36,7 +38,9 @@ public interface NeighboursQuery {
     List<Pair<Integer, Double>> query(SGDVector point, int k);
 
     /**
-     * Queries a set of {@link SGDVector}s to determine the k points nearest to the provided points.
+     * Queries a set of {@link SGDVector}s to determine the k points nearest to the provided points. When there are
+     * multiple points equidistant from a provided point, the order in which they are returned may vary depending on
+     * the implementation.
      * @param points An array of points to determine the nearest k points for.
      * @param k The number of neighbouring points to identify.
      * @return An list containing lists of k {@link Pair}s. There is list entry for each provided point which is a
@@ -46,7 +50,9 @@ public interface NeighboursQuery {
     List<List<Pair<Integer, Double>>> query(SGDVector[] points, int k);
 
     /**
-     * Queries a set of {@link SGDVector}s to determine the k points nearest to every point in the set.
+     * Queries a set of {@link SGDVector}s to determine the k points nearest to every point in the set. When there are
+     * multiple points equidistant from a point in the set, the order in which they are returned may vary depending on
+     * the implementation.
      * @param k The number of neighbouring points to identify.
      * @return A list containing lists of k {@link Pair}s. There is list entry for each provided point which is a
      *         list of k pairs. Each pair contains the index of the neighbouring point in the original data and the

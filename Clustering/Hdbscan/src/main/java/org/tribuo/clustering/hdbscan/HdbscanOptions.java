@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@ package org.tribuo.clustering.hdbscan;
 
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
-import org.tribuo.clustering.hdbscan.HdbscanTrainer.Distance;
 import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 
 import java.util.logging.Logger;
 
@@ -60,11 +60,17 @@ public final class HdbscanOptions implements Options {
     public int numThreads = 2;
 
     /**
+     * The nearest neighbour implementation factory to use. Defaults to {@link NeighboursQueryFactoryType#KD_TREE}.
+     */
+    @Option(longName = "hdbscan-neighbour-query-factory-type", usage = "The nearest neighbour implementation factory to use.")
+    public NeighboursQueryFactoryType nqFactoryType = NeighboursQueryFactoryType.KD_TREE;
+
+    /**
      * Gets the configured HdbscanTrainer using the options in this object.
      * @return A HdbscanTrainer.
      */
     public HdbscanTrainer getTrainer() {
         logger.info("Configuring Hdbscan Trainer");
-        return new HdbscanTrainer(minClusterSize, distType, k, numThreads);
+        return new HdbscanTrainer(minClusterSize, distType, k, numThreads, nqFactoryType);
     }
 }

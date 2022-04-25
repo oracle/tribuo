@@ -20,18 +20,34 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
+
+import java.io.Serializable;
 
 /**
  * An interface for factories which create nearest neighbour query objects.
  */
-public interface NeighboursQueryFactory extends Configurable, Provenancable<ConfiguredObjectProvenance> {
+public interface NeighboursQueryFactory extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Constructs a nearest neighbour query object using the supplied array of {@link SGDVector}.
      * @param data An array of {@link SGDVector}.
      */
     NeighboursQuery createNeighboursQuery(SGDVector[] data);
+
+    /**
+     * Gets the {@link DistanceType} set on this object.
+     * @return The distance function.
+     */
+    DistanceType getDistanceType();
+
+    /**
+     * Get the number of threads set on this object. There could be factory implementations that are sequential,
+     * meaning they are single threaded.
+     * @return The number of threads used to parallelize the query operation.
+     */
+    int getNumThreads();
 
     @Override
     default ConfiguredObjectProvenance getProvenance() {
