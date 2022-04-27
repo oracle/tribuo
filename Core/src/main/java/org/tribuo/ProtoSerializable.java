@@ -20,7 +20,6 @@ import org.tribuo.util.ProtoUtil;
 
 import com.google.protobuf.Message;
 import com.oracle.labs.mlrg.olcut.config.protobuf.ProtoProvenanceSerialization;
-import com.oracle.labs.mlrg.olcut.provenance.io.ProvenanceSerialization;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 
 /**

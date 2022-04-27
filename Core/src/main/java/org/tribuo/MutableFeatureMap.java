@@ -65,7 +65,7 @@ public class MutableFeatureMap extends FeatureMap {
         MutableFeatureMapProto proto = message.unpack(MutableFeatureMapProto.class);
         MutableFeatureMap obj = new MutableFeatureMap(proto.getConvertHighCardinality());
         for (VariableInfoProto infoProto : proto.getInfoList()) {
-            VariableInfo info = (VariableInfo) ProtoUtil.instantiate(infoProto.getVersion(), infoProto.getClassName(), infoProto.getSerializedData());
+            VariableInfo info = ProtoUtil.deserialize(infoProto);
             Object o = obj.put(info);
             if (o != null) {
                 throw new IllegalStateException("Invalid protobuf, found two mappings for " + info.getName());

@@ -68,7 +68,7 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     /**
      * The occurrence counts of each value.
      */
-    @ProtoSerializableKeysValuesField(keyName="key", valueName="value")
+    @ProtoSerializableKeysValuesField(keysName="key", valuesName="value")
     protected Map<Double,MutableLong> valueCounts = null;
 
     /**

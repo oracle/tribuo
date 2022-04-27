@@ -37,7 +37,7 @@ public abstract class FeatureMap implements Serializable, ProtoSerializable<Feat
     /**
      * Map from the feature names to their info.
      */
-    @ProtoSerializableField(name="info")
+    @ProtoSerializableMapValuesField(valuesName = "info")
     protected final Map<String, VariableInfo> m;
 
     /**
@@ -164,7 +164,7 @@ public abstract class FeatureMap implements Serializable, ProtoSerializable<Feat
      * @return The deserialized FeatureMap.
      */
     public static FeatureMap deserialize(FeatureDomainProto proto) {
-        return (FeatureMap) ProtoUtil.instantiate(proto.getVersion(), proto.getClassName(), proto.getSerializedData());
+        return ProtoUtil.deserialize(proto);
     }
 
 }

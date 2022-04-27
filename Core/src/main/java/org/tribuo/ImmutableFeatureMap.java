@@ -102,7 +102,7 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
         ImmutableFeatureMapProto proto = message.unpack(ImmutableFeatureMapProto.class);
         ImmutableFeatureMap obj = new ImmutableFeatureMap();
         for (VariableInfoProto infoProto : proto.getInfoList()) {
-            VariableIDInfo info = (VariableIDInfo) ProtoUtil.instantiate(infoProto.getVersion(), infoProto.getClassName(), infoProto.getSerializedData());
+            VariableIDInfo info = ProtoUtil.deserialize(infoProto);
             Object o = obj.idMap.put(info.getID(), info);
             Object otherO = obj.m.put(info.getName(),info);
             if ((o != null) || (otherO != null)) {

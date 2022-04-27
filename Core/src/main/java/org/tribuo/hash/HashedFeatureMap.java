@@ -63,10 +63,10 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
     public static HashedFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         HashedFeatureMapProto proto = message.unpack(HashedFeatureMapProto.class);
         HasherProto hasherProto = proto.getHasher();
-        Hasher hasher = (Hasher) ProtoUtil.instantiate(hasherProto.getVersion(), hasherProto.getClassName(), hasherProto.getSerializedData());
+        Hasher hasher = ProtoUtil.deserialize(hasherProto);
         HashedFeatureMap obj = new HashedFeatureMap(hasher);
         for (VariableInfoProto infoProto : proto.getInfoList()) {
-            VariableIDInfo info = (VariableIDInfo) ProtoUtil.instantiate(infoProto.getVersion(), infoProto.getClassName(), infoProto.getSerializedData());
+            VariableIDInfo info = ProtoUtil.deserialize(infoProto);
             Object o = obj.idMap.put(info.getID(), info);
             Object otherO = obj.m.put(info.getName(),info);
             if ((o != null) || (otherO != null)) {

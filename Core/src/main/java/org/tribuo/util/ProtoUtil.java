@@ -17,12 +17,17 @@
 package org.tribuo.util;
 
 import com.google.protobuf.Any;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.GeneratedMessageV3.Builder;
 import com.google.protobuf.Message;
+import com.oracle.labs.mlrg.olcut.config.Configurable;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 
+import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -38,6 +43,7 @@ import org.tribuo.ProtoSerializable;
 import org.tribuo.ProtoSerializableClass;
 import org.tribuo.ProtoSerializableField;
 import org.tribuo.ProtoSerializableKeysValuesField;
+import org.tribuo.ProtoSerializableMapValuesField;
 import org.tribuo.protos.core.HasherProto;
 import org.tribuo.protos.core.ModHashCodeHasherProto;
 import org.tribuo.protos.core.VariableInfoProto;
@@ -51,21 +57,6 @@ public final class ProtoUtil {
 
     private static final Map<Pair<Integer, String>, String> REDIRECT_MAP = new HashMap<>();
 
-    /**
-     * Adds a redirect mapping to the internal redirection map.
-     * <p>
-     * This is used when a class name changes, to allow old protobufs to be deserialized into
-     * the new class.
-     * @param input The version and class name to redirect.
-     * @param targetClassName The class name that should be used to deserialize the protobuf.
-     */
-    public static void registerRedirect(Pair<Integer, String> input, String targetClassName) {
-        if (REDIRECT_MAP.containsKey(input)) {
-            throw new IllegalArgumentException("Redirect map is append only, key " + input + " already has mapping " + REDIRECT_MAP.get(input));
-        } else {
-            REDIRECT_MAP.put(input, targetClassName);
-        }
-    }
 
     /**
      * Instantiates the class from the supplied protobuf fields.
@@ -93,26 +84,113 @@ public final class ProtoUtil {
      * @param message The object's serialized representation.
      * @return The deserialized object.
      */
-    public static Object instantiate(int version, String className, Any message) {
-        Pair<Integer, String> key = new Pair<>(version, className);
-        String targetClassName = REDIRECT_MAP.getOrDefault(key, className);
+
+    public static <SERIALIZED extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(SERIALIZED serialized) {
+
         try {
-            Class<?> targetClass = Class.forName(targetClassName);
-            Method method = targetClass.getDeclaredMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
-            method.setAccessible(true);
-            Object o = method.invoke(null, version, className, message);
-            method.setAccessible(false);
-            return o;
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Failed to find class " + targetClassName, e);
-        } catch (NoSuchMethodException e) {
-            throw new IllegalStateException("Failed to find deserialization method " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Failed to invoke deserialization method " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
-        } catch (InvocationTargetException e) {
-            throw new IllegalStateException("The deserialization method for " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName + " threw an exception", e);
+            //extract version from serialized
+            FieldDescriptor fieldDescriptor = serialized.getDescriptorForType().findFieldByName("version");
+            int version = ((Integer) serialized.getField(fieldDescriptor)).intValue();
+            //extract class_name of return value from serialized
+            fieldDescriptor = serialized.getDescriptorForType().findFieldByName("class_name");
+            String className = (String) serialized.getField(fieldDescriptor);
+            Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(className);
+
+            fieldDescriptor = serialized.getDescriptorForType().findFieldByName("serialized_data");
+            Any serializedData = (Any) serialized.getField(fieldDescriptor);
+
+            try {
+                Method method = protoSerializableClass.getDeclaredMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
+                method.setAccessible(true);
+                PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) method.invoke(null, version, className, serializedData);
+                method.setAccessible(false);
+                return protoSerializable;
+            } catch (NoSuchMethodException nsme) {
+                return ProtoUtil.deserialize(version, className, serializedData);
+            }
+        } catch (ClassNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+                | SecurityException e) {
+            throw new RuntimeException(e);
         }
     }
+    
+    public static <SERIALIZED extends Message, SERIALIZED_DATA extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(
+            int version, String className, Any serializedData) {
+        try {
+            System.out.println("ProtoUtil.deserialize");
+
+            Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(className);
+
+            //initialize return value
+            Constructor<PROTO_SERIALIZABLE> declaredConstructor = protoSerializableClass.getDeclaredConstructor();
+            declaredConstructor.setAccessible(true);
+            PROTO_SERIALIZABLE protoSerializable = declaredConstructor.newInstance();
+
+            //get @ProtobuffClass annotation from class definition of serialized ProtoSerializable
+            ProtoSerializableClass protobufClassAnnotation = protoSerializableClass.getAnnotation(ProtoSerializableClass.class);
+            Class<SERIALIZED> serializedClass = getSerializedClass(protoSerializable);
+            Class<SERIALIZED_DATA> serializedDataClass = (Class<SERIALIZED_DATA>) protobufClassAnnotation.serializedDataClass();
+
+            System.out.println("serialized_class: " + serializedClass.getName());
+            System.out.println("version: " + version);
+            System.out.println("class_name: " + className);
+
+            //e.g. HashCodeHasher has no serializable data so exit early
+            if (serializedData.getValue().size() == 0) {
+                return protoSerializable;
+            }
+            
+            SERIALIZED_DATA proto = serializedData.unpack(serializedDataClass);
+
+            System.out.println("serialized_data: " + proto.getClass().getName());
+            System.out.println("protoSerializable: " + protoSerializable.getClass().getName());
+
+            for (Field field : getFields(protoSerializableClass)) {
+                System.out.println("field: " + field.getName());
+                ProtoSerializableField protobufField = field.getAnnotation(ProtoSerializableField.class);
+                String fieldName = protobufField.name();
+                if (fieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
+                    fieldName = field.getName();
+                    System.out.println("field: " + field.getName());
+                }
+                field.setAccessible(true);
+
+                Method getter = findMethod(serializedDataClass, "get", fieldName, 0);
+                Object obj = getter.invoke(proto);
+                if (obj instanceof GeneratedMessageV3) {
+                    System.out.println("calling nested deserialize for " + fieldName);
+                    obj = deserialize((GeneratedMessageV3) obj);
+                }
+                System.out.println("obj = " + obj.getClass().getName());
+                field.set(protoSerializable, obj);
+            }
+
+            if (protoSerializable instanceof Configurable) {
+                ((Configurable) protoSerializable).postConfig();
+            }
+            return protoSerializable;
+
+        } catch (ClassNotFoundException | PropertyException | IOException | IllegalArgumentException | IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException | SecurityException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    /**
+     * Adds a redirect mapping to the internal redirection map.
+     * <p>
+     * This is used when a class name changes, to allow old protobufs to be deserialized into
+     * the new class.
+     * @param input The version and class name to redirect.
+     * @param targetClassName The class name that should be used to deserialize the protobuf.
+     */
+    public static void registerRedirect(Pair<Integer, String> input, String targetClassName) {
+        if (REDIRECT_MAP.containsKey(input)) {
+            throw new IllegalArgumentException("Redirect map is append only, key " + input + " already has mapping " + REDIRECT_MAP.get(input));
+        } else {
+            REDIRECT_MAP.put(input, targetClassName);
+        }
+    }
+
 
     /**
      * Private final constructor for static utility class.
@@ -134,12 +212,16 @@ public final class ProtoUtil {
             serializedClassBuilderClass.getMethod("setClassName", String.class).invoke(serializedClassBuilder, protoSerializable.getClass().getName());
 
             Class<SERIALIZED_DATA> serializedDataClass = (Class<SERIALIZED_DATA>) annotation.serializedDataClass();
-            //the default value for 
+            //the default value for ProtoSerializableClass.serializedDataClass is GeneratedMessageV3 which is how you can signal that
+            //there is no serialized data to be serialized.
             if (serializedDataClass != GeneratedMessageV3.class) {
                 SERIALIZED_DATA.Builder serializedDataBuilder = (SERIALIZED_DATA.Builder) serializedDataClass.getMethod("newBuilder").invoke(null);
                 Class<SERIALIZED_DATA.Builder> serializedDataBuilderClass = (Class<SERIALIZED_DATA.Builder>) serializedDataBuilder.getClass();
 
                 for (Field field : getFields(protoSerializable.getClass())) {
+                    field.setAccessible(true);
+                    Object obj = field.get(protoSerializable);
+                    
                     ProtoSerializableField protoSerializableField = field.getAnnotation(ProtoSerializableField.class);
                     if (protoSerializableField != null) {
                         String fieldName = protoSerializableField.name();
@@ -147,32 +229,19 @@ public final class ProtoUtil {
                             fieldName = field.getName();
                         }
                         
-                        field.setAccessible(true);
-                        Object obj = field.get(protoSerializable);
-                        Method setter;
-                        if (obj instanceof Iterable) {
-                            setter = findMethod(serializedDataBuilderClass, "addAll", fieldName);
-                        } else if (obj instanceof Map) {
-                            obj = toList((Map) obj);
-                            setter = findMethod(serializedDataBuilderClass, "addAll", fieldName);
-                        } else {
-                            obj = convert(obj);
-                            setter = findMethod(serializedDataBuilderClass, "set", fieldName);
-                        }
-                        
+                        Method setter = findMethod(serializedDataBuilderClass, "set", fieldName, 1);
+                        obj = convert(obj);
                         setter.setAccessible(true);
                         setter.invoke(serializedDataBuilder, obj);
                     }
                     
                     ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
                     if (pskvf != null) {
-                        Method keyAdder = findMethod(serializedDataBuilderClass, "add", pskvf.keyName());
+                        Method keyAdder = findMethod(serializedDataBuilderClass, "add", pskvf.keysName(), 1);
                         keyAdder.setAccessible(true);
-                        Method valueAdder = findMethod(serializedDataBuilderClass, "add", pskvf.valueName());
+                        Method valueAdder = findMethod(serializedDataBuilderClass, "add", pskvf.valuesName(), 1);
                         valueAdder.setAccessible(true);
-                        field.setAccessible(true);
-
-                        Map map = (Map) field.get(protoSerializable);
+                        Map map = (Map) obj;
                         if(map != null) {
                             Set<Map.Entry> entrySet = map.entrySet();
                             for (Map.Entry e : entrySet) {
@@ -180,11 +249,17 @@ public final class ProtoUtil {
                                 valueAdder.invoke(serializedDataBuilder, convert(e.getValue()));
                             }
                         }
-   
                     }
-
+                    
+                    ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
+                    if (psmvf != null) {
+                        Method valuesAdder = findMethod(serializedDataBuilderClass, "addAll", psmvf.valuesName(), 1);
+                        valuesAdder.setAccessible(true);
+                        obj = toList((Map) obj);
+                        valuesAdder.setAccessible(true);
+                        valuesAdder.invoke(serializedDataBuilder, obj);
+                    }
                 }
-
                 serializedClassBuilderClass.getMethod("setSerializedData", com.google.protobuf.Any.class).invoke(serializedClassBuilder, Any.pack(serializedDataBuilder.build()));
             }
             return (SERIALIZED_CLASS) serializedClassBuilder.build();
@@ -203,10 +278,7 @@ public final class ProtoUtil {
     private static List toList(Map obj) {
         List values = new ArrayList();
         for(Object value : obj.values()) {
-            if(value instanceof ProtoSerializable) {
-                value = ((ProtoSerializable) value).serialize();
-            }
-            values.add(value);
+            values.add(convert(value));
         }
         return values;
     }
@@ -219,34 +291,6 @@ public final class ProtoUtil {
             return ((MutableLong) obj).longValue();
         }
         return obj;
-    }
-
-    private static List<Field> getMapFields(Class<? extends ProtoSerializable> class1) {
-        Set<String> fieldNameSet = new HashSet<>();
-        List<Field> fields = new ArrayList<>();
-        for (Field field : class1.getDeclaredFields()) {
-            ProtoSerializableField[] protobufFields = field.getAnnotationsByType(ProtoSerializableField.class);
-            if (protobufFields.length == 2) {
-                Class<?> fieldType = field.getType();
-                if (Map.class.isAssignableFrom(fieldType)) {
-                    if (fieldNameSet.contains(field.getName()))
-                        continue;
-                    fields.add(field);
-                    fieldNameSet.add(field.getName());
-                }
-            }
-        }
-        Class<?> superclass = class1.getSuperclass();
-        if (ProtoSerializable.class.isAssignableFrom(superclass)) {
-            List<Field> superfields = getMapFields((Class<? extends ProtoSerializable>) superclass);
-            for (Field field : superfields) {
-                if (fieldNameSet.contains(field.getName()))
-                    continue;
-                fields.add(field);
-                fieldNameSet.add(field.getName());
-            }
-        }
-        return fields;
     }
 
     private static List<Field> getFields(Class<? extends ProtoSerializable> class1) {
@@ -274,8 +318,8 @@ public final class ProtoUtil {
             
             ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
             if (pskvf !=null) {
-                String keyName = pskvf.keyName();
-                String valueName = pskvf.valueName();
+                String keyName = pskvf.keysName();
+                String valueName = pskvf.valuesName();
                 if(fieldNameSet.contains(keyName) && fieldNameSet.contains(valueName)) {
                     continue;
                 }
@@ -286,6 +330,17 @@ public final class ProtoUtil {
                 fieldNameSet.add(keyName);
                 fieldNameSet.add(valueName);
             }
+            
+            ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
+            if (psmvf !=null) {
+                String valuesName = psmvf.valuesName();
+                if(fieldNameSet.contains(valuesName)) {
+                    continue;
+                }
+                fields.add(field);
+                fieldNameSet.add(valuesName);
+            }
+
         }
 
         Class<?> superclass = class1.getSuperclass();
@@ -294,13 +349,16 @@ public final class ProtoUtil {
         }
     }
 
-    private static <SERIALIZED_DATA extends Message> Method findMethod(Class<SERIALIZED_DATA.Builder> serializedDataBuilderClass, String prefixName, String fieldName) {
+    private static Method findMethod(Class<?> serializedDataBuilderClass, String prefixName, String fieldName, int expectedParamCount) {
         String methodName = generateMethodName(prefixName, fieldName);
 
         for (Method method : serializedDataBuilderClass.getMethods()) {
             if (method.getName().equals(methodName)) {
-                if(method.getParameterTypes().length != 1) {
+                if(method.getParameterTypes().length != expectedParamCount) {
                     continue;
+                }
+                if(expectedParamCount == 0) {
+                    return method;
                 }
                 Class<?> class1 = method.getParameterTypes()[0];
                 if(com.google.protobuf.GeneratedMessageV3.Builder.class.isAssignableFrom(class1)) {
@@ -320,4 +378,7 @@ public final class ProtoUtil {
         sb.append(name.substring(1));
         return sb.toString();
     }
+    
+    
+    
 }

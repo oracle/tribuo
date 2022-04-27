@@ -25,7 +25,6 @@ import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.ProtoUtil;
-import org.tribuo.util.ReflectUtil;
 
 public class ProtoUtilTest {
 
@@ -47,9 +46,9 @@ public class ProtoUtilTest {
         MessageDigestHasherProto mdhp = hasherProto.getSerializedData().unpack(MessageDigestHasherProto.class);
         assertEquals("SHA-512", mdhp.getHashType());
         
-        HashedFeatureMap hfmDeserialized = (HashedFeatureMap) ProtoUtil.instantiate(fdp.getVersion(), fdp.getClassName(), fdp.getSerializedData());
+        HashedFeatureMap hfmDeserialized = ProtoUtil.deserialize(fdp);
         hfmDeserialized.setSalt("abcdefghi");
-        VariableIDInfo variableIDInfo = hfmDeserialized.get("goldrat");
+        assertEquals(hfm, hfmDeserialized);
     }
     
     @Test
@@ -59,10 +58,9 @@ public class ProtoUtilTest {
         assertEquals(0, hasherProto.getVersion());
         assertEquals("org.tribuo.hash.ModHashCodeHasher", hasherProto.getClassName());
         
-        ModHashCodeHasher hasherD = (ModHashCodeHasher) ProtoUtil.instantiate(hasherProto.getVersion(), hasherProto.getClassName(), hasherProto.getSerializedData());
+        ModHashCodeHasher hasherD = ProtoUtil.deserialize(hasherProto);
         hasherD.setSalt("abcdefghi");
         assertTrue(hasher.equals(hasherD));
-        
         assertEquals(200, hasherProto.getSerializedData().unpack(ModHashCodeHasherProto.class).getDimension());
     }
     
