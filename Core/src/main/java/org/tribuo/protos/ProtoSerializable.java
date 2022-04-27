@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo;
-
-import org.tribuo.util.ProtoUtil;
+package org.tribuo.protos;
 
 import com.google.protobuf.Message;
 import com.oracle.labs.mlrg.olcut.config.protobuf.ProtoProvenanceSerialization;

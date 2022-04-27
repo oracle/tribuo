@@ -1,4 +1,4 @@
-package org.tribuo;
+package org.tribuo.protos;
 
 import static java.lang.annotation.ElementType.TYPE;
 

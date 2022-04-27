@@ -19,7 +19,8 @@ package org.tribuo.hash;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
-import org.tribuo.ProtoSerializable;
+
+import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.core.HasherProto;
 
 import java.io.Serializable;

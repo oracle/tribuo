@@ -17,7 +17,9 @@
 package org.tribuo;
 
 import org.tribuo.protos.core.FeatureDomainProto;
-import org.tribuo.util.ProtoUtil;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoSerializableMapValuesField;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.HashMap;

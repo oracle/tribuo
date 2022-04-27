@@ -21,7 +21,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.protos.core.FeatureDomainProto;
 import org.tribuo.protos.core.ImmutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.util.ProtoUtil;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.HashMap;

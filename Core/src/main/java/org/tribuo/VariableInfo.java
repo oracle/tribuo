@@ -16,6 +16,7 @@
 
 package org.tribuo;
 
+import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.core.VariableInfoProto;
 
 import java.io.Serializable;

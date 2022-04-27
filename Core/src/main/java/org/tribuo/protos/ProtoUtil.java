@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.util;
-
-import com.google.protobuf.Any;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.GeneratedMessageV3;
-import com.google.protobuf.GeneratedMessageV3.Builder;
-import com.google.protobuf.Message;
-import com.oracle.labs.mlrg.olcut.config.Configurable;
-import com.oracle.labs.mlrg.olcut.config.PropertyException;
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import com.oracle.labs.mlrg.olcut.util.Pair;
+package org.tribuo.protos;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -32,21 +22,20 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.tribuo.ProtoSerializable;
-import org.tribuo.ProtoSerializableClass;
-import org.tribuo.ProtoSerializableField;
-import org.tribuo.ProtoSerializableKeysValuesField;
-import org.tribuo.ProtoSerializableMapValuesField;
-import org.tribuo.protos.core.HasherProto;
-import org.tribuo.protos.core.ModHashCodeHasherProto;
-import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.ReflectUtil;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.Message;
+import com.oracle.labs.mlrg.olcut.config.Configurable;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
 
 /**
  * Utilities for working with Tribuo protobufs.
@@ -54,9 +43,6 @@ import org.tribuo.protos.core.VariableInfoProto;
 public final class ProtoUtil {
 
     public static final String DESERIALIZATION_METHOD_NAME = "deserializeFromProto";
-
-    private static final Map<Pair<Integer, String>, String> REDIRECT_MAP = new HashMap<>();
-
 
     /**
      * Instantiates the class from the supplied protobuf fields.
@@ -94,6 +80,7 @@ public final class ProtoUtil {
             //extract class_name of return value from serialized
             fieldDescriptor = serialized.getDescriptorForType().findFieldByName("class_name");
             String className = (String) serialized.getField(fieldDescriptor);
+            @SuppressWarnings("unchecked")
             Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(className);
 
             fieldDescriptor = serialized.getDescriptorForType().findFieldByName("serialized_data");
@@ -102,6 +89,7 @@ public final class ProtoUtil {
             try {
                 Method method = protoSerializableClass.getDeclaredMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
                 method.setAccessible(true);
+                @SuppressWarnings("unchecked")
                 PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) method.invoke(null, version, className, serializedData);
                 method.setAccessible(false);
                 return protoSerializable;
@@ -119,6 +107,7 @@ public final class ProtoUtil {
         try {
             System.out.println("ProtoUtil.deserialize");
 
+            @SuppressWarnings("unchecked")
             Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(className);
 
             //initialize return value
@@ -129,6 +118,7 @@ public final class ProtoUtil {
             //get @ProtobuffClass annotation from class definition of serialized ProtoSerializable
             ProtoSerializableClass protobufClassAnnotation = protoSerializableClass.getAnnotation(ProtoSerializableClass.class);
             Class<SERIALIZED> serializedClass = getSerializedClass(protoSerializable);
+            @SuppressWarnings("unchecked")
             Class<SERIALIZED_DATA> serializedDataClass = (Class<SERIALIZED_DATA>) protobufClassAnnotation.serializedDataClass();
 
             System.out.println("serialized_class: " + serializedClass.getName());
@@ -176,27 +166,11 @@ public final class ProtoUtil {
     }
     
     /**
-     * Adds a redirect mapping to the internal redirection map.
-     * <p>
-     * This is used when a class name changes, to allow old protobufs to be deserialized into
-     * the new class.
-     * @param input The version and class name to redirect.
-     * @param targetClassName The class name that should be used to deserialize the protobuf.
-     */
-    public static void registerRedirect(Pair<Integer, String> input, String targetClassName) {
-        if (REDIRECT_MAP.containsKey(input)) {
-            throw new IllegalArgumentException("Redirect map is append only, key " + input + " already has mapping " + REDIRECT_MAP.get(input));
-        } else {
-            REDIRECT_MAP.put(input, targetClassName);
-        }
-    }
-
-
-    /**
      * Private final constructor for static utility class.
      */
     private ProtoUtil() {}
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <SERIALIZED_CLASS extends Message, SERIALIZED_DATA extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> SERIALIZED_CLASS serialize(PROTO_SERIALIZABLE protoSerializable) {
         try {
 
@@ -275,6 +249,7 @@ public final class ProtoUtil {
         return (Class<SERIALIZED_CLASS>) typeParameterTypes.get(0);
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static List toList(Map obj) {
         List values = new ArrayList();
         for(Object value : obj.values()) {
@@ -283,6 +258,7 @@ public final class ProtoUtil {
         return values;
     }
 
+    @SuppressWarnings("rawtypes")
     private static Object convert(Object obj) {
         if (obj instanceof ProtoSerializable) {
             return ((ProtoSerializable) obj).serialize();
@@ -293,14 +269,14 @@ public final class ProtoUtil {
         return obj;
     }
 
-    private static List<Field> getFields(Class<? extends ProtoSerializable> class1) {
+    private static List<Field> getFields(Class<?> class1) {
         Set<String> fieldNameSet = new HashSet<>();
         List<Field> fields = new ArrayList<>();    
         _getFields(class1, fieldNameSet, fields);
         return fields;
     }
     
-    private static void _getFields(Class<? extends ProtoSerializable> class1, Set<String> fieldNameSet, List<Field> fields) {
+    private static void _getFields(Class<?> class1, Set<String> fieldNameSet, List<Field> fields) {
         for (Field field : class1.getDeclaredFields()) {
             String protoFieldName = null;
             ProtoSerializableField psf = field.getAnnotation(ProtoSerializableField.class);
@@ -344,8 +320,8 @@ public final class ProtoUtil {
         }
 
         Class<?> superclass = class1.getSuperclass();
-        if (ProtoSerializable.class.isAssignableFrom(superclass)) {
-            _getFields((Class<? extends ProtoSerializable>) superclass, fieldNameSet, fields);
+        if(superclass != null && !superclass.equals(Object.class)) {
+            _getFields(superclass, fieldNameSet, fields);
         }
     }
 

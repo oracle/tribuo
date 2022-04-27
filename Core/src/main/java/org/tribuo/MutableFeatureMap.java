@@ -20,7 +20,9 @@ import java.util.Objects;
 
 import org.tribuo.protos.core.MutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.util.ProtoUtil;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;

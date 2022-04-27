@@ -26,6 +26,9 @@ import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.stream.Collectors;
 
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoSerializableKeysValuesField;
 import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.util.Util;
 

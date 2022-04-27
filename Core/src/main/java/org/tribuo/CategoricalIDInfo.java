@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.core.CategoricalIDInfoProto;
 
 import com.google.protobuf.Any;

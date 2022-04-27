@@ -24,7 +24,7 @@ import org.tribuo.protos.core.ModHashCodeHasherProto;
 import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.util.ProtoUtil;
+import org.tribuo.protos.ProtoUtil;
 
 public class ProtoUtilTest {
 

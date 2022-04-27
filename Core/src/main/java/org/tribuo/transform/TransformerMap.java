@@ -27,14 +27,14 @@ import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.Output;
-import org.tribuo.ProtoSerializable;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.protos.core.TransformerListProto;
 import org.tribuo.protos.core.TransformerMapProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformerMap.TransformerMapProvenance;
-import org.tribuo.util.ProtoUtil;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -92,7 +92,7 @@ public final class TransformerMap implements ProtoSerializable<TransformerMapPro
             for (Map.Entry<String,TransformerListProto> e : proto.getTransformersMap().entrySet()) {
                 List<Transformer> list = new ArrayList<>();
                 for (TransformerProto p : e.getValue().getTransformerList()) {
-                    list.add((Transformer) ProtoUtil.instantiate(p.getVersion(), p.getClassName(), p.getSerializedData()));
+                    list.add(ProtoUtil.deserialize(p));
                 }
                 map.put(e.getKey(),list);
             }

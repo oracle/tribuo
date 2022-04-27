@@ -19,6 +19,8 @@ package org.tribuo;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+import org.tribuo.protos.ProtoSerializableField;
+
 /**
  * Contains information about a feature and can be stored in the feature map
  * in a {@link Dataset}.
