@@ -5,21 +5,21 @@ package org.tribuo.protos.core;
 
 /**
  * <pre>
- *CategoricalInfo proto
+ *CategoricalIDInfo proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.CategoricalInfoProto}
+ * Protobuf type {@code tribuo.core.CategoricalIDInfoProto}
  */
-public final class CategoricalInfoProto extends
+public final class CategoricalIDInfoProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.CategoricalInfoProto)
-    CategoricalInfoProtoOrBuilder {
+    // @@protoc_insertion_point(message_implements:tribuo.core.CategoricalIDInfoProto)
+    CategoricalIDInfoProtoOrBuilder {
 private static final long serialVersionUID = 0L;
-  // Use CategoricalInfoProto.newBuilder() to construct.
-  private CategoricalInfoProto(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+  // Use CategoricalIDInfoProto.newBuilder() to construct.
+  private CategoricalIDInfoProto(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
     super(builder);
   }
-  private CategoricalInfoProto() {
+  private CategoricalIDInfoProto() {
     name_ = "";
     key_ = emptyDoubleList();
     value_ = emptyLongList();
@@ -29,7 +29,7 @@ private static final long serialVersionUID = 0L;
   @SuppressWarnings({"unused"})
   protected java.lang.Object newInstance(
       UnusedPrivateParameter unused) {
-    return new CategoricalInfoProto();
+    return new CategoricalIDInfoProto();
   }
 
   @java.lang.Override
@@ -37,7 +37,7 @@ private static final long serialVersionUID = 0L;
   getUnknownFields() {
     return this.unknownFields;
   }
-  private CategoricalInfoProto(
+  private CategoricalIDInfoProto(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
@@ -65,6 +65,11 @@ private static final long serialVersionUID = 0L;
           case 16: {
 
             count_ = input.readInt32();
+            break;
+          }
+          case 24: {
+
+            id_ = input.readInt32();
             break;
           }
           case 81: {
@@ -148,15 +153,15 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalInfoProto_descriptor;
+    return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalIDInfoProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalInfoProto_fieldAccessorTable
+    return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalIDInfoProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
-            org.tribuo.protos.core.CategoricalInfoProto.class, org.tribuo.protos.core.CategoricalInfoProto.Builder.class);
+            org.tribuo.protos.core.CategoricalIDInfoProto.class, org.tribuo.protos.core.CategoricalIDInfoProto.Builder.class);
   }
 
   public static final int NAME_FIELD_NUMBER = 1;
@@ -206,6 +211,17 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public int getCount() {
     return count_;
+  }
+
+  public static final int ID_FIELD_NUMBER = 3;
+  private int id_;
+  /**
+   * <code>int32 id = 3;</code>
+   * @return The id.
+   */
+  @java.lang.Override
+  public int getId() {
+    return id_;
   }
 
   public static final int KEY_FIELD_NUMBER = 10;
@@ -307,6 +323,9 @@ private static final long serialVersionUID = 0L;
     if (count_ != 0) {
       output.writeInt32(2, count_);
     }
+    if (id_ != 0) {
+      output.writeInt32(3, id_);
+    }
     if (getKeyList().size() > 0) {
       output.writeUInt32NoTag(82);
       output.writeUInt32NoTag(keyMemoizedSerializedSize);
@@ -342,6 +361,10 @@ private static final long serialVersionUID = 0L;
     if (count_ != 0) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(2, count_);
+    }
+    if (id_ != 0) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(3, id_);
     }
     {
       int dataSize = 0;
@@ -386,15 +409,17 @@ private static final long serialVersionUID = 0L;
     if (obj == this) {
      return true;
     }
-    if (!(obj instanceof org.tribuo.protos.core.CategoricalInfoProto)) {
+    if (!(obj instanceof org.tribuo.protos.core.CategoricalIDInfoProto)) {
       return super.equals(obj);
     }
-    org.tribuo.protos.core.CategoricalInfoProto other = (org.tribuo.protos.core.CategoricalInfoProto) obj;
+    org.tribuo.protos.core.CategoricalIDInfoProto other = (org.tribuo.protos.core.CategoricalIDInfoProto) obj;
 
     if (!getName()
         .equals(other.getName())) return false;
     if (getCount()
         != other.getCount()) return false;
+    if (getId()
+        != other.getId()) return false;
     if (!getKeyList()
         .equals(other.getKeyList())) return false;
     if (!getValueList()
@@ -419,6 +444,8 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getName().hashCode();
     hash = (37 * hash) + COUNT_FIELD_NUMBER;
     hash = (53 * hash) + getCount();
+    hash = (37 * hash) + ID_FIELD_NUMBER;
+    hash = (53 * hash) + getId();
     if (getKeyCount() > 0) {
       hash = (37 * hash) + KEY_FIELD_NUMBER;
       hash = (53 * hash) + getKeyList().hashCode();
@@ -438,69 +465,69 @@ private static final long serialVersionUID = 0L;
     return hash;
   }
 
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       java.nio.ByteBuffer data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       java.nio.ByteBuffer data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       com.google.protobuf.ByteString data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       com.google.protobuf.ByteString data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(byte[] data)
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(byte[] data)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       byte[] data,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws com.google.protobuf.InvalidProtocolBufferException {
     return PARSER.parseFrom(data, extensionRegistry);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(java.io.InputStream input)
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input, extensionRegistry);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseDelimitedFrom(java.io.InputStream input)
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseDelimitedFrom(java.io.InputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseDelimitedFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseDelimitedFrom(
       java.io.InputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       com.google.protobuf.CodedInputStream input)
       throws java.io.IOException {
     return com.google.protobuf.GeneratedMessageV3
         .parseWithIOException(PARSER, input);
   }
-  public static org.tribuo.protos.core.CategoricalInfoProto parseFrom(
+  public static org.tribuo.protos.core.CategoricalIDInfoProto parseFrom(
       com.google.protobuf.CodedInputStream input,
       com.google.protobuf.ExtensionRegistryLite extensionRegistry)
       throws java.io.IOException {
@@ -513,7 +540,7 @@ private static final long serialVersionUID = 0L;
   public static Builder newBuilder() {
     return DEFAULT_INSTANCE.toBuilder();
   }
-  public static Builder newBuilder(org.tribuo.protos.core.CategoricalInfoProto prototype) {
+  public static Builder newBuilder(org.tribuo.protos.core.CategoricalIDInfoProto prototype) {
     return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
   }
   @java.lang.Override
@@ -530,29 +557,29 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *CategoricalInfo proto
+   *CategoricalIDInfo proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.CategoricalInfoProto}
+   * Protobuf type {@code tribuo.core.CategoricalIDInfoProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.CategoricalInfoProto)
-      org.tribuo.protos.core.CategoricalInfoProtoOrBuilder {
+      // @@protoc_insertion_point(builder_implements:tribuo.core.CategoricalIDInfoProto)
+      org.tribuo.protos.core.CategoricalIDInfoProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalInfoProto_descriptor;
+      return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalIDInfoProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalInfoProto_fieldAccessorTable
+      return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalIDInfoProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
-              org.tribuo.protos.core.CategoricalInfoProto.class, org.tribuo.protos.core.CategoricalInfoProto.Builder.class);
+              org.tribuo.protos.core.CategoricalIDInfoProto.class, org.tribuo.protos.core.CategoricalIDInfoProto.Builder.class);
     }
 
-    // Construct using org.tribuo.protos.core.CategoricalInfoProto.newBuilder()
+    // Construct using org.tribuo.protos.core.CategoricalIDInfoProto.newBuilder()
     private Builder() {
       maybeForceBuilderInitialization();
     }
@@ -574,6 +601,8 @@ private static final long serialVersionUID = 0L;
 
       count_ = 0;
 
+      id_ = 0;
+
       key_ = emptyDoubleList();
       bitField0_ = (bitField0_ & ~0x00000001);
       value_ = emptyLongList();
@@ -588,17 +617,17 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalInfoProto_descriptor;
+      return org.tribuo.protos.core.TribuoCoreImpl.internal_static_tribuo_core_CategoricalIDInfoProto_descriptor;
     }
 
     @java.lang.Override
-    public org.tribuo.protos.core.CategoricalInfoProto getDefaultInstanceForType() {
-      return org.tribuo.protos.core.CategoricalInfoProto.getDefaultInstance();
+    public org.tribuo.protos.core.CategoricalIDInfoProto getDefaultInstanceForType() {
+      return org.tribuo.protos.core.CategoricalIDInfoProto.getDefaultInstance();
     }
 
     @java.lang.Override
-    public org.tribuo.protos.core.CategoricalInfoProto build() {
-      org.tribuo.protos.core.CategoricalInfoProto result = buildPartial();
+    public org.tribuo.protos.core.CategoricalIDInfoProto build() {
+      org.tribuo.protos.core.CategoricalIDInfoProto result = buildPartial();
       if (!result.isInitialized()) {
         throw newUninitializedMessageException(result);
       }
@@ -606,11 +635,12 @@ private static final long serialVersionUID = 0L;
     }
 
     @java.lang.Override
-    public org.tribuo.protos.core.CategoricalInfoProto buildPartial() {
-      org.tribuo.protos.core.CategoricalInfoProto result = new org.tribuo.protos.core.CategoricalInfoProto(this);
+    public org.tribuo.protos.core.CategoricalIDInfoProto buildPartial() {
+      org.tribuo.protos.core.CategoricalIDInfoProto result = new org.tribuo.protos.core.CategoricalIDInfoProto(this);
       int from_bitField0_ = bitField0_;
       result.name_ = name_;
       result.count_ = count_;
+      result.id_ = id_;
       if (((bitField0_ & 0x00000001) != 0)) {
         key_.makeImmutable();
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -661,22 +691,25 @@ private static final long serialVersionUID = 0L;
     }
     @java.lang.Override
     public Builder mergeFrom(com.google.protobuf.Message other) {
-      if (other instanceof org.tribuo.protos.core.CategoricalInfoProto) {
-        return mergeFrom((org.tribuo.protos.core.CategoricalInfoProto)other);
+      if (other instanceof org.tribuo.protos.core.CategoricalIDInfoProto) {
+        return mergeFrom((org.tribuo.protos.core.CategoricalIDInfoProto)other);
       } else {
         super.mergeFrom(other);
         return this;
       }
     }
 
-    public Builder mergeFrom(org.tribuo.protos.core.CategoricalInfoProto other) {
-      if (other == org.tribuo.protos.core.CategoricalInfoProto.getDefaultInstance()) return this;
+    public Builder mergeFrom(org.tribuo.protos.core.CategoricalIDInfoProto other) {
+      if (other == org.tribuo.protos.core.CategoricalIDInfoProto.getDefaultInstance()) return this;
       if (!other.getName().isEmpty()) {
         name_ = other.name_;
         onChanged();
       }
       if (other.getCount() != 0) {
         setCount(other.getCount());
+      }
+      if (other.getId() != 0) {
+        setId(other.getId());
       }
       if (!other.key_.isEmpty()) {
         if (key_.isEmpty()) {
@@ -719,11 +752,11 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws java.io.IOException {
-      org.tribuo.protos.core.CategoricalInfoProto parsedMessage = null;
+      org.tribuo.protos.core.CategoricalIDInfoProto parsedMessage = null;
       try {
         parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
-        parsedMessage = (org.tribuo.protos.core.CategoricalInfoProto) e.getUnfinishedMessage();
+        parsedMessage = (org.tribuo.protos.core.CategoricalIDInfoProto) e.getUnfinishedMessage();
         throw e.unwrapIOException();
       } finally {
         if (parsedMessage != null) {
@@ -837,6 +870,37 @@ private static final long serialVersionUID = 0L;
     public Builder clearCount() {
       
       count_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private int id_ ;
+    /**
+     * <code>int32 id = 3;</code>
+     * @return The id.
+     */
+    @java.lang.Override
+    public int getId() {
+      return id_;
+    }
+    /**
+     * <code>int32 id = 3;</code>
+     * @param value The id to set.
+     * @return This builder for chaining.
+     */
+    public Builder setId(int value) {
+      
+      id_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>int32 id = 3;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearId() {
+      
+      id_ = 0;
       onChanged();
       return this;
     }
@@ -1073,41 +1137,41 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.CategoricalInfoProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.core.CategoricalIDInfoProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.CategoricalInfoProto)
-  private static final org.tribuo.protos.core.CategoricalInfoProto DEFAULT_INSTANCE;
+  // @@protoc_insertion_point(class_scope:tribuo.core.CategoricalIDInfoProto)
+  private static final org.tribuo.protos.core.CategoricalIDInfoProto DEFAULT_INSTANCE;
   static {
-    DEFAULT_INSTANCE = new org.tribuo.protos.core.CategoricalInfoProto();
+    DEFAULT_INSTANCE = new org.tribuo.protos.core.CategoricalIDInfoProto();
   }
 
-  public static org.tribuo.protos.core.CategoricalInfoProto getDefaultInstance() {
+  public static org.tribuo.protos.core.CategoricalIDInfoProto getDefaultInstance() {
     return DEFAULT_INSTANCE;
   }
 
-  private static final com.google.protobuf.Parser<CategoricalInfoProto>
-      PARSER = new com.google.protobuf.AbstractParser<CategoricalInfoProto>() {
+  private static final com.google.protobuf.Parser<CategoricalIDInfoProto>
+      PARSER = new com.google.protobuf.AbstractParser<CategoricalIDInfoProto>() {
     @java.lang.Override
-    public CategoricalInfoProto parsePartialFrom(
+    public CategoricalIDInfoProto parsePartialFrom(
         com.google.protobuf.CodedInputStream input,
         com.google.protobuf.ExtensionRegistryLite extensionRegistry)
         throws com.google.protobuf.InvalidProtocolBufferException {
-      return new CategoricalInfoProto(input, extensionRegistry);
+      return new CategoricalIDInfoProto(input, extensionRegistry);
     }
   };
 
-  public static com.google.protobuf.Parser<CategoricalInfoProto> parser() {
+  public static com.google.protobuf.Parser<CategoricalIDInfoProto> parser() {
     return PARSER;
   }
 
   @java.lang.Override
-  public com.google.protobuf.Parser<CategoricalInfoProto> getParserForType() {
+  public com.google.protobuf.Parser<CategoricalIDInfoProto> getParserForType() {
     return PARSER;
   }
 
   @java.lang.Override
-  public org.tribuo.protos.core.CategoricalInfoProto getDefaultInstanceForType() {
+  public org.tribuo.protos.core.CategoricalIDInfoProto getDefaultInstanceForType() {
     return DEFAULT_INSTANCE;
   }
 

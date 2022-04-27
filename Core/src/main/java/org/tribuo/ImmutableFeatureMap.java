@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * those features are unobserved. This is an extremely important property of {@link Feature}s,
  * {@link Example}s and {@link ImmutableFeatureMap}.
  */
-@ProtobufClass(serializedClass = FeatureDomainProto.class, serializedData = ImmutableFeatureMapProto.class)
+@ProtoSerializableClass(serializedDataClass = ImmutableFeatureMapProto.class)
 public class ImmutableFeatureMap extends FeatureMap implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -151,11 +151,6 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
     @Override
     public int size() {
         return size;
-    }
-
-    @Override
-    public FeatureDomainProto serialize() {
-        return ProtoUtil.serialize(this);
     }
 
     /**

@@ -3,8 +3,8 @@
 
 package org.tribuo.protos.core;
 
-public interface RealInfoProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.RealInfoProto)
+public interface RealIDInfoProtoOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:tribuo.core.RealIDInfoProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**
@@ -24,6 +24,12 @@ public interface RealInfoProtoOrBuilder extends
    * @return The count.
    */
   int getCount();
+
+  /**
+   * <code>int32 id = 3;</code>
+   * @return The id.
+   */
+  int getId();
 
   /**
    * <code>double max = 10;</code>

@@ -16,6 +16,8 @@
 
 package org.tribuo;
 
+import org.tribuo.util.ProtoUtil;
+
 import com.google.protobuf.Message;
 import com.oracle.labs.mlrg.olcut.config.protobuf.ProtoProvenanceSerialization;
 import com.oracle.labs.mlrg.olcut.provenance.io.ProvenanceSerialization;
@@ -48,6 +50,8 @@ public interface ProtoSerializable<T extends Message> {
      * Serializes this object to a protobuf.
      * @return The protobuf
      */
-    public T serialize();
+    default T serialize() {
+        return ProtoUtil.serialize(this);
+    }
 
 }

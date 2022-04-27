@@ -16,26 +16,24 @@
 
 package org.tribuo;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+
+import org.tribuo.protos.core.CategoricalIDInfoProto;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import org.tribuo.protos.core.CategoricalInfoProto;
-import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.util.ProtoUtil;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Same as a {@link CategoricalInfo}, but with an additional int id field.
  */
-@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = CategoricalInfoProto.class)
+@ProtoSerializableClass(serializedDataClass = CategoricalIDInfoProto.class)
 public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo {
     private static final long serialVersionUID = 2L;
 
-    @ProtobufField
+    @ProtoSerializableField
     private final int id;
 
     /**
@@ -77,7 +75,7 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
      * @param message The serialized data.
      */
     public static CategoricalIDInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
-        CategoricalInfoProto proto = message.unpack(CategoricalInfoProto.class);
+        CategoricalIDInfoProto proto = message.unpack(CategoricalIDInfoProto.class);
         if (proto.getId() == -1) {
             throw new IllegalStateException("Invalid protobuf, found no id where one was expected.");
         }
@@ -165,8 +163,4 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
         return Objects.hash(super.hashCode(), id);
     }
 
-    @Override
-    public VariableInfoProto serialize() {
-        return ProtoUtil.serialize(this);
-    }
 }

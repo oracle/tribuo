@@ -3,8 +3,8 @@
 
 package org.tribuo.protos.core;
 
-public interface CategoricalInfoProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.CategoricalInfoProto)
+public interface CategoricalIDInfoProtoOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:tribuo.core.CategoricalIDInfoProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**
@@ -24,6 +24,12 @@ public interface CategoricalInfoProtoOrBuilder extends
    * @return The count.
    */
   int getCount();
+
+  /**
+   * <code>int32 id = 3;</code>
+   * @return The id.
+   */
+  int getId();
 
   /**
    * <code>repeated double key = 10;</code>

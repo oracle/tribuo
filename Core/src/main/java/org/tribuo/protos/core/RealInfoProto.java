@@ -5,7 +5,7 @@ package org.tribuo.protos.core;
 
 /**
  * <pre>
- *RealIDInfo proto
+ *RealInfo proto
  * </pre>
  *
  * Protobuf type {@code tribuo.core.RealInfoProto}
@@ -62,11 +62,6 @@ private static final long serialVersionUID = 0L;
           case 16: {
 
             count_ = input.readInt32();
-            break;
-          }
-          case 24: {
-
-            id_ = input.readInt32();
             break;
           }
           case 81: {
@@ -172,17 +167,6 @@ private static final long serialVersionUID = 0L;
     return count_;
   }
 
-  public static final int ID_FIELD_NUMBER = 3;
-  private int id_;
-  /**
-   * <code>int32 id = 3;</code>
-   * @return The id.
-   */
-  @java.lang.Override
-  public int getId() {
-    return id_;
-  }
-
   public static final int MAX_FIELD_NUMBER = 10;
   private double max_;
   /**
@@ -247,9 +231,6 @@ private static final long serialVersionUID = 0L;
     if (count_ != 0) {
       output.writeInt32(2, count_);
     }
-    if (id_ != 0) {
-      output.writeInt32(3, id_);
-    }
     if (java.lang.Double.doubleToRawLongBits(max_) != 0) {
       output.writeDouble(10, max_);
     }
@@ -277,10 +258,6 @@ private static final long serialVersionUID = 0L;
     if (count_ != 0) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(2, count_);
-    }
-    if (id_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(3, id_);
     }
     if (java.lang.Double.doubleToRawLongBits(max_) != 0) {
       size += com.google.protobuf.CodedOutputStream
@@ -317,8 +294,6 @@ private static final long serialVersionUID = 0L;
         .equals(other.getName())) return false;
     if (getCount()
         != other.getCount()) return false;
-    if (getId()
-        != other.getId()) return false;
     if (java.lang.Double.doubleToLongBits(getMax())
         != java.lang.Double.doubleToLongBits(
             other.getMax())) return false;
@@ -346,8 +321,6 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getName().hashCode();
     hash = (37 * hash) + COUNT_FIELD_NUMBER;
     hash = (53 * hash) + getCount();
-    hash = (37 * hash) + ID_FIELD_NUMBER;
-    hash = (53 * hash) + getId();
     hash = (37 * hash) + MAX_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         java.lang.Double.doubleToLongBits(getMax()));
@@ -457,7 +430,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *RealIDInfo proto
+   *RealInfo proto
    * </pre>
    *
    * Protobuf type {@code tribuo.core.RealInfoProto}
@@ -501,8 +474,6 @@ private static final long serialVersionUID = 0L;
 
       count_ = 0;
 
-      id_ = 0;
-
       max_ = 0D;
 
       min_ = 0D;
@@ -539,7 +510,6 @@ private static final long serialVersionUID = 0L;
       org.tribuo.protos.core.RealInfoProto result = new org.tribuo.protos.core.RealInfoProto(this);
       result.name_ = name_;
       result.count_ = count_;
-      result.id_ = id_;
       result.max_ = max_;
       result.min_ = min_;
       result.mean_ = mean_;
@@ -598,9 +568,6 @@ private static final long serialVersionUID = 0L;
       }
       if (other.getCount() != 0) {
         setCount(other.getCount());
-      }
-      if (other.getId() != 0) {
-        setId(other.getId());
       }
       if (other.getMax() != 0D) {
         setMax(other.getMax());
@@ -746,37 +713,6 @@ private static final long serialVersionUID = 0L;
     public Builder clearCount() {
       
       count_ = 0;
-      onChanged();
-      return this;
-    }
-
-    private int id_ ;
-    /**
-     * <code>int32 id = 3;</code>
-     * @return The id.
-     */
-    @java.lang.Override
-    public int getId() {
-      return id_;
-    }
-    /**
-     * <code>int32 id = 3;</code>
-     * @param value The id to set.
-     * @return This builder for chaining.
-     */
-    public Builder setId(int value) {
-      
-      id_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>int32 id = 3;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearId() {
-      
-      id_ = 0;
       onChanged();
       return this;
     }

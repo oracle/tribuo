@@ -27,8 +27,6 @@ import java.util.SplittableRandom;
 import java.util.stream.Collectors;
 
 import org.tribuo.protos.core.CategoricalInfoProto;
-import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.util.ProtoUtil;
 import org.tribuo.util.Util;
 
 import com.google.protobuf.Any;
@@ -54,14 +52,11 @@ import com.oracle.labs.mlrg.olcut.util.MutableNumber;
  * are recomputed. Care should be taken if data is read while {@link #observe(double)} is called.
  * </p>
  */
-@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = CategoricalInfoProto.class)
+@ProtoSerializableClass(serializedDataClass = CategoricalInfoProto.class)
 public class CategoricalInfo extends SkeletalVariableInfo {
     private Object object;
 
     private static final long serialVersionUID = 2L;
-
-    @ProtobufField
-    private final int id = -1;
 
     private static final MutableLong ZERO = new MutableLong(0);
     /**
@@ -73,20 +68,19 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     /**
      * The occurrence counts of each value.
      */
-    @ProtobufField(name="key")
-    @ProtobufField(name="value")
+    @ProtoSerializableKeysValuesField(keyName="key", valueName="value")
     protected Map<Double,MutableLong> valueCounts = null;
 
     /**
      * The observed value if it's only seen a single one.
      */
-    @ProtobufField
+    @ProtoSerializableField
     protected double observedValue = Double.NaN;
 
     /**
      * The count of the observed value if it's only seen a single one.
      */
-    @ProtobufField
+    @ProtoSerializableField
     protected long observedCount = 0;
 
     // These variables are used in the sampling methods, and regenerated after serialization if a sample is required.
@@ -142,9 +136,6 @@ public class CategoricalInfo extends SkeletalVariableInfo {
      */
     public static CategoricalInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         CategoricalInfoProto proto = message.unpack(CategoricalInfoProto.class);
-        if (proto.getId() != -1) {
-            throw new IllegalStateException("Invalid protobuf, found an id where none was expected, id = " + proto.getId());
-        }
         CategoricalInfo info = new CategoricalInfo(proto.getName());
         List<Double> keys = proto.getKeyList();
         List<Long> values = proto.getValueList();
@@ -462,10 +453,5 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         totalObservations = -1;
         values = null;
         cdf = null;
-    }
-
-    @Override
-    public VariableInfoProto serialize() {
-        return ProtoUtil.serialize(this);
     }
 }

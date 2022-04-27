@@ -22,8 +22,8 @@ import java.util.TreeMap;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
-import org.tribuo.ProtobufClass;
-import org.tribuo.ProtobufField;
+import org.tribuo.ProtoSerializableClass;
+import org.tribuo.ProtoSerializableField;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
 import org.tribuo.protos.core.FeatureDomainProto;
@@ -42,11 +42,11 @@ import com.google.protobuf.InvalidProtocolBufferException;
  * does not contain feature name information, but still works
  * with unhashed features names.
  */
-@ProtobufClass(serializedClass = FeatureDomainProto.class, serializedData = HashedFeatureMapProto.class)
+@ProtoSerializableClass(serializedDataClass = HashedFeatureMapProto.class)
 public final class HashedFeatureMap extends ImmutableFeatureMap {
     private static final long serialVersionUID = 1L;
 
-    @ProtobufField
+    @ProtoSerializableField
     private final Hasher hasher;
 
     private HashedFeatureMap(Hasher hasher) {
@@ -107,11 +107,6 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
      */
     public void setSalt(String salt) {
         hasher.setSalt(salt);
-    }
-
-    @Override
-    public FeatureDomainProto serialize() {
-        return ProtoUtil.serialize(this);
     }
 
     /**

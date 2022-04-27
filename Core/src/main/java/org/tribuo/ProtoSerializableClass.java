@@ -7,11 +7,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.Message;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(TYPE)
-public @interface ProtobufClass {
-    Class<? extends GeneratedMessageV3> serializedClass();
-    Class<? extends GeneratedMessageV3> serializedData() default GeneratedMessageV3.class;
+public @interface ProtoSerializableClass {
+    Class<? extends Message> serializedDataClass() default GeneratedMessageV3.class;
     int version() default 0;
 }

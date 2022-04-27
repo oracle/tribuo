@@ -37,7 +37,7 @@ public abstract class FeatureMap implements Serializable, ProtoSerializable<Feat
     /**
      * Map from the feature names to their info.
      */
-    @ProtobufField(name="info")
+    @ProtoSerializableField(name="info")
     protected final Map<String, VariableInfo> m;
 
     /**

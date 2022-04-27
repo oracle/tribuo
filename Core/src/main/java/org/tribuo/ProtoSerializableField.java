@@ -9,8 +9,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(FIELD)
-@Repeatable(ProtobufFields.class)
-public @interface ProtobufField {
+public @interface ProtoSerializableField {
     
     public static final String DEFAULT_FIELD_NAME = "[DEFAULT_FIELD_NAME]";
 

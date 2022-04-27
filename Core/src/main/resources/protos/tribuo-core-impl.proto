@@ -54,9 +54,21 @@ message MutableFeatureMapProto {
 }
 
 /*
-RealIDInfo proto
+RealInfo proto
  */
 message RealInfoProto {
+  string name = 1;
+  int32 count = 2;
+  double max = 10;
+  double min = 11;
+  double mean = 12;
+  double sumSquares = 13;
+}
+
+/*
+RealIDInfo proto
+ */
+message RealIDInfoProto {
   string name = 1;
   int32 count = 2;
   int32 id = 3;
@@ -67,9 +79,21 @@ message RealInfoProto {
 }
 
 /*
-CategoricalIDInfo proto
+CategoricalInfo proto
  */
 message CategoricalInfoProto {
+  string name = 1;
+  int32 count = 2;
+  repeated double key = 10;
+  repeated int64 value = 11;
+  double observed_value = 12;
+  int64 observed_count = 13;
+}
+
+/*
+CategoricalIDInfo proto
+ */
+message CategoricalIDInfoProto {
   string name = 1;
   int32 count = 2;
   int32 id = 3;

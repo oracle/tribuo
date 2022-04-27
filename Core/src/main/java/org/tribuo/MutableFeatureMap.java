@@ -16,25 +16,23 @@
 
 package org.tribuo;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.tribuo.protos.core.FeatureDomainProto;
-import org.tribuo.protos.core.HashedFeatureMapProto;
+import java.util.Objects;
+
 import org.tribuo.protos.core.MutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.ProtoUtil;
 
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * A feature map that can record new feature value observations.
  */
-@ProtobufClass(serializedClass = FeatureDomainProto.class, serializedData = MutableFeatureMapProto.class)
+@ProtoSerializableClass(serializedDataClass = MutableFeatureMapProto.class)
 public class MutableFeatureMap extends FeatureMap {
     private static final long serialVersionUID = 2L;
 
-    @ProtobufField
+    @ProtoSerializableField
     private final boolean convertHighCardinality;
 
     /**
@@ -134,8 +132,4 @@ public class MutableFeatureMap extends FeatureMap {
         return Objects.hash(super.hashCode(), convertHighCardinality);
     }
 
-    @Override
-    public FeatureDomainProto serialize() {
-        return ProtoUtil.serialize(this);
-    }
 }

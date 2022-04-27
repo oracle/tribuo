@@ -33,35 +33,32 @@ import java.util.SplittableRandom;
  * Does not contain an id number, but can be transformed into {@link RealIDInfo} which
  * does contain an id number.
  */
-@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = RealInfoProto.class)
+@ProtoSerializableClass(serializedDataClass = RealInfoProto.class)
 public class RealInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 1L;
-
-    @ProtobufField
-    private final int id = -1;
 
     /**
      * The maximum observed feature value.
      */
-    @ProtobufField
+    @ProtoSerializableField
     protected double max = Double.NEGATIVE_INFINITY;
 
     /**
      * The minimum observed feature value.
      */
-    @ProtobufField
+    @ProtoSerializableField
     protected double min = Double.POSITIVE_INFINITY;
 
     /**
      * The feature mean.
      */
-    @ProtobufField
+    @ProtoSerializableField
     protected double mean = 0.0;
 
     /**
      * The sum of the squared feature values (used to compute the variance).
      */
-    @ProtobufField
+    @ProtoSerializableField
     protected double sumSquares = 0.0;
 
     /**
@@ -129,9 +126,6 @@ public class RealInfo extends SkeletalVariableInfo {
      */
     public static RealInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         RealInfoProto proto = message.unpack(RealInfoProto.class);
-        if (proto.getId() != -1) {
-            throw new IllegalStateException("Invalid protobuf, found an id where none was expected. id = " + proto.getId());
-        }
         if (proto.getMax() < proto.getMin()) {
             throw new IllegalStateException("Invalid protobuf, min greater than max.");
         }
@@ -241,8 +235,4 @@ public class RealInfo extends SkeletalVariableInfo {
         return String.format("RealFeature(name=%s,count=%d,max=%f,min=%f,mean=%f,variance=%f)",name,count,max,min,mean,(sumSquares /(count-1)));
     }
 
-    @Override
-    public VariableInfoProto serialize() {
-        return ProtoUtil.serialize(this);
-    }
 }

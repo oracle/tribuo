@@ -23,7 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 
-import org.tribuo.ProtobufClass;
+import org.tribuo.ProtoSerializableClass;
 import org.tribuo.protos.core.HasherProto;
 import org.tribuo.protos.core.MessageDigestHasherProto;
 import org.tribuo.util.ProtoUtil;
@@ -37,7 +37,7 @@ import java.util.Objects;
 /**
  * Hashes names using String.hashCode().
  */
-@ProtobufClass(serializedClass = HasherProto.class)
+@ProtoSerializableClass
 public final class HashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
 

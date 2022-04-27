@@ -20,6 +20,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.ProtoUtil;
@@ -29,11 +30,11 @@ import java.util.Objects;
 /**
  * Same as a {@link RealInfo}, but with an additional int id field.
  */
-@ProtobufClass(serializedClass = VariableInfoProto.class, serializedData = RealInfoProto.class)
+@ProtoSerializableClass(serializedDataClass = RealIDInfoProto.class)
 public class RealIDInfo extends RealInfo implements VariableIDInfo {
     private static final long serialVersionUID = 1L;
 
-    @ProtobufField
+    @ProtoSerializableField
     private final int id;
 
     /**
@@ -78,7 +79,7 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
      * @param message The serialized data.
      */
     public static RealIDInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
-        RealInfoProto proto = message.unpack(RealInfoProto.class);
+        RealIDInfoProto proto = message.unpack(RealIDInfoProto.class);
         if (proto.getId() == -1) {
             throw new IllegalStateException("Invalid protobuf, found no id where one was expected.");
         }
@@ -143,8 +144,4 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
         return Objects.hash(super.hashCode(), id);
     }
 
-    @Override
-    public VariableInfoProto serialize() {
-        return ProtoUtil.serialize(this);
-    }
 }
