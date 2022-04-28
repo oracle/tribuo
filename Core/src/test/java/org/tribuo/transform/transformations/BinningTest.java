@@ -21,6 +21,7 @@ import org.tribuo.Dataset;
 import org.tribuo.FeatureMap;
 import org.tribuo.MutableDataset;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
@@ -28,15 +29,16 @@ import org.tribuo.test.MockOutputFactory;
 import org.tribuo.transform.TransformationMap;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.BinningTransformation.BinningTransformer;
+import org.tribuo.transform.transformations.BinningTransformation.BinningType;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 /**
  *
@@ -190,4 +192,11 @@ public class BinningTest {
         assertEquals(0,((CategoricalInfo)testFMap.get("F1")).getObservationCount(6));
     }
 
+    @Test
+    void testSerializeBinningTransformer() throws Exception {
+        BinningTransformer bt = new BinningTransformer(BinningType.EQUAL_FREQUENCY, new double[] {0.0, 0.1, 0.2}, new double[] {1.0, 10.0, 100.0});
+        TransformerProto tp = bt.serialize();
+        BinningTransformer btd = ProtoUtil.deserialize(tp);
+        assertEquals(bt, btd);
+    }
 }

@@ -208,7 +208,20 @@ public final class ProtoUtil {
                         setter.setAccessible(true);
                         setter.invoke(serializedDataBuilder, obj);
                     }
-                    
+
+                    ProtoSerializableArrayField psaf = field.getAnnotation(ProtoSerializableArrayField.class);
+                    if (psaf != null) {
+                        String fieldName = psaf.name();
+                        if (fieldName.equals(ProtoSerializableArrayField.DEFAULT_FIELD_NAME)) {
+                            fieldName = field.getName();
+                        }
+                        
+                        Method setter = findMethod(serializedDataBuilderClass, "addAll", fieldName, 1);
+                        obj = toList(obj);
+                        setter.setAccessible(true);
+                        setter.invoke(serializedDataBuilder, obj);
+                    }
+
                     ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
                     if (pskvf != null) {
                         Method keyAdder = findMethod(serializedDataBuilderClass, "add", pskvf.keysName(), 1);
@@ -243,6 +256,17 @@ public final class ProtoUtil {
         }
     }
 
+    private static Object toList(Object obj) {
+        if(obj instanceof double[]) {
+            List<Double> doubles = new ArrayList<>();
+            for(double db : (double[])obj) {
+                doubles.add(db);
+            }
+            return doubles;
+        }
+        throw new RuntimeException("unable to convert "+obj+" to list");
+    }
+
     @SuppressWarnings("unchecked")
     private static <SERIALIZED_CLASS extends Message,PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
         List<Class<?>> typeParameterTypes = ReflectUtil.getTypeParameterTypes(ProtoSerializable.class, protoSerializable.getClass());
@@ -265,6 +289,9 @@ public final class ProtoUtil {
         }
         if (obj instanceof MutableLong) {
             return ((MutableLong) obj).longValue();
+        }
+        if (obj.getClass().isEnum()) {
+            return ((Enum) obj).name();
         }
         return obj;
     }
@@ -291,6 +318,20 @@ public final class ProtoUtil {
                 fieldNameSet.add(field.getName());
                 continue;
             }
+
+            ProtoSerializableArrayField psaf = field.getAnnotation(ProtoSerializableArrayField.class);
+            if (psaf !=null) {
+                protoFieldName = psaf.name();
+                if (protoFieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
+                    protoFieldName = field.getName();
+                }
+                if (fieldNameSet.contains(protoFieldName))
+                    continue;
+                fields.add(field);
+                fieldNameSet.add(field.getName());
+                continue;
+            }
+            
             
             ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
             if (pskvf !=null) {
@@ -305,6 +346,7 @@ public final class ProtoUtil {
                 fields.add(field);
                 fieldNameSet.add(keyName);
                 fieldNameSet.add(valueName);
+                continue;
             }
             
             ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
@@ -315,6 +357,7 @@ public final class ProtoUtil {
                 }
                 fields.add(field);
                 fieldNameSet.add(valuesName);
+                continue;
             }
 
         }

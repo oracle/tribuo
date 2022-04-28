@@ -23,7 +23,12 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
+
+import org.tribuo.protos.ProtoSerializableArrayField;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.core.BinningTransformerProto;
+import org.tribuo.protos.core.HashedFeatureMapProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
@@ -439,11 +444,15 @@ public final class BinningTransformation implements Transformation {
         }
     }
 
+    @ProtoSerializableClass(serializedDataClass = BinningTransformerProto.class)
     static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
+        @ProtoSerializableField(name = "binningType")
         private final BinningType type;
+        @ProtoSerializableArrayField
         private final double[] bins;
+        @ProtoSerializableArrayField
         private final double[] values;
 
         BinningTransformer(BinningType type, double[] bins, double[] values) {
@@ -486,24 +495,6 @@ public final class BinningTransformation implements Transformation {
                     return values[index];
                 }
             }
-        }
-
-        @Override
-        public TransformerProto serialize() {
-            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
-
-            protoBuilder.setVersion(0);
-            protoBuilder.setClassName(this.getClass().getName());
-
-            BinningTransformerProto.Builder transformBuilder = BinningTransformerProto.newBuilder();
-            transformBuilder.setBinningType(type.name());
-            for (int i = 0; i < bins.length; i++) {
-                transformBuilder.addBins(bins[i]);
-                transformBuilder.addValues(values[i]);
-            }
-            protoBuilder.setSerializedData(Any.pack(transformBuilder.build()));
-
-            return protoBuilder.build();
         }
 
         @Override
