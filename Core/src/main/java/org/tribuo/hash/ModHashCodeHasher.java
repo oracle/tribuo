@@ -153,15 +153,6 @@ public final class ModHashCodeHasher extends Hasher {
         return Objects.hash(salt, dimension);
     }
 
-    @Override
-    public HasherProto serialize() {
-        HasherProto.Builder builder = HasherProto.newBuilder();
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-        builder.setSerializedData(Any.pack(ModHashCodeHasherProto.newBuilder().setDimension(dimension).build()));
-        return builder.build();
-    }
-
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         salt = null;

@@ -201,15 +201,6 @@ public final class MessageDigestHasher extends Hasher {
         return () -> { try { return MessageDigest.getInstance(hashType); } catch (NoSuchAlgorithmException e) { throw new IllegalArgumentException("Unsupported hashType = " + hashType,e);}};
     }
 
-    @Override
-    public HasherProto serialize() {
-        HasherProto.Builder builder = HasherProto.newBuilder();
-        builder.setVersion(0);
-        builder.setClassName(this.getClass().getName());
-        builder.setSerializedData(Any.pack(MessageDigestHasherProto.newBuilder().setHashType(hashType).build()));
-        return builder.build();
-    }
-
     /**
      * Provenance for {@link MessageDigestHasher}.
      */
