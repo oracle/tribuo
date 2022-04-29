@@ -1,7 +1,6 @@
 package org.tribuo;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,9 +10,9 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import org.tribuo.hash.HashCodeHasher;
 import org.tribuo.hash.HashedFeatureMap;
-import org.tribuo.hash.Hasher;
 import org.tribuo.hash.MessageDigestHasher;
 import org.tribuo.hash.ModHashCodeHasher;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.CategoricalIDInfoProto;
 import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.protos.core.FeatureDomainProto;
@@ -24,7 +23,9 @@ import org.tribuo.protos.core.ModHashCodeHasherProto;
 import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.protos.ProtoUtil;
+import org.tribuo.transform.Transformer;
+import org.tribuo.transform.transformations.SimpleTransform;
+import org.tribuo.transform.transformations.SimpleTransform.Operation;
 
 public class ProtoUtilTest {
 
@@ -46,18 +47,21 @@ public class ProtoUtilTest {
         MessageDigestHasherProto mdhp = hasherProto.getSerializedData().unpack(MessageDigestHasherProto.class);
         assertEquals("SHA-512", mdhp.getHashType());
         
-        HashedFeatureMap hfmDeserialized = ProtoUtil.deserialize(fdp);
-        hfmDeserialized.setSalt("abcdefghi");
-        assertEquals(hfm, hfmDeserialized);
+        HashedFeatureMap hfmD = ProtoUtil.deserialize(fdp);
+        hfmD.setSalt("abcdefghi");
+        assertEquals(hfm, hfmD);
     }
     
     @Test
-    void testSerializeModHashCodeHasherOld() throws Exception {
+    void testSerializeModHashCodeHasher() throws Exception {
         ModHashCodeHasher hasher = new ModHashCodeHasher(200, "abcdefghi");
+        
         HasherProto hasherProto = hasher.serialize();
         assertEquals(0, hasherProto.getVersion());
         assertEquals("org.tribuo.hash.ModHashCodeHasher", hasherProto.getClassName());
-        
+        ModHashCodeHasherProto proto = hasherProto.getSerializedData().unpack(ModHashCodeHasherProto.class);
+        assertEquals(200, proto.getDimension());
+
         ModHashCodeHasher hasherD = ProtoUtil.deserialize(hasherProto);
         hasherD.setSalt("abcdefghi");
         assertTrue(hasher.equals(hasherD));
@@ -65,47 +69,36 @@ public class ProtoUtilTest {
     }
     
     @Test
-    void testSerializeModHashCodeHasher() throws Exception {
-        ModHashCodeHasher hasher = new ModHashCodeHasher(200, "42");
-        
-        HasherProto hasherProto = ProtoUtil.serialize(hasher);
-        assertEquals(0, hasherProto.getVersion());
-        assertEquals("org.tribuo.hash.ModHashCodeHasher", hasherProto.getClassName());
-        ModHashCodeHasherProto proto = hasherProto.getSerializedData().unpack(ModHashCodeHasherProto.class);
-        assertEquals(200, proto.getDimension());
-
-        Hasher hashr = new ModHashCodeHasher(200, "42");
-        hasherProto = ProtoUtil.serialize(hashr);
-        assertEquals(0, hasherProto.getVersion());
-        assertEquals("org.tribuo.hash.ModHashCodeHasher", hasherProto.getClassName());
-        proto = hasherProto.getSerializedData().unpack(ModHashCodeHasherProto.class);
-        assertEquals(200, proto.getDimension());
-    }
-    
-    @Test
     void testMessageDigestHasher() throws Exception {
-        MessageDigestHasher hasher = new MessageDigestHasher("SHA-256", "42");
-        HasherProto hasherProto = ProtoUtil.serialize(hasher);
+        MessageDigestHasher hasher = new MessageDigestHasher("SHA-256", "abcdefghi");
+        HasherProto hasherProto = hasher.serialize();
         assertEquals(0, hasherProto.getVersion());
         assertEquals("org.tribuo.hash.MessageDigestHasher", hasherProto.getClassName());
         MessageDigestHasherProto proto = hasherProto.getSerializedData().unpack(MessageDigestHasherProto.class);
         assertEquals("SHA-256", proto.getHashType());
+        
+        MessageDigestHasher hasherD = ProtoUtil.deserialize(hasherProto);
+        hasherD.setSalt("abcdefghi");
+        assertEquals(hasher, hasherD);
     }
 
     @Test
     void testHashCodeHasher() throws Exception {
-        HashCodeHasher hasher = new HashCodeHasher("42");
-        HasherProto hasherProto = ProtoUtil.serialize(hasher);
+        HashCodeHasher hasher = new HashCodeHasher("abcdefghi");
+        HasherProto hasherProto = hasher.serialize();
         assertEquals(0, hasherProto.getVersion());
         assertEquals("org.tribuo.hash.HashCodeHasher", hasherProto.getClassName());
-        System.out.println(hasherProto.getSerializedData());
-    }
+        
+        HashCodeHasher hasherD = ProtoUtil.deserialize(hasherProto);
+        hasherD.setSalt("abcdefghi");
+        assertEquals(hasher, hasherD);
+     }
 
     
     @Test
     void testRealIDInfo() throws Exception {
         VariableInfo info = new RealIDInfo("bob", 100, 1000.0, 0.0, 25.0, 125.0, 12345);
-        VariableInfoProto infoProto = ProtoUtil.serialize(info);
+        VariableInfoProto infoProto = info.serialize();
         assertEquals(0, infoProto.getVersion());
         assertEquals("org.tribuo.RealIDInfo", infoProto.getClassName());
         RealIDInfoProto proto = infoProto.getSerializedData().unpack(RealIDInfoProto.class);
@@ -116,12 +109,15 @@ public class ProtoUtilTest {
         assertEquals(25.0, proto.getMean());
         assertEquals(125.0, proto.getSumSquares());
         assertEquals(12345, proto.getId());
+        
+        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(info, infoD);
     }
     
     @Test
     void testRealInfo() throws Exception {
         VariableInfo info = new RealInfo("bob", 100, 1000.0, 0.0, 25.0, 125.0);
-        VariableInfoProto infoProto = ProtoUtil.serialize(info);
+        VariableInfoProto infoProto = info.serialize();
         assertEquals(0, infoProto.getVersion());
         assertEquals("org.tribuo.RealInfo", infoProto.getClassName());
         RealInfoProto proto = infoProto.getSerializedData().unpack(RealInfoProto.class);
@@ -131,6 +127,9 @@ public class ProtoUtilTest {
         assertEquals(0.0, proto.getMin());
         assertEquals(25.0, proto.getMean());
         assertEquals(125.0, proto.getSumSquares());
+        
+        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(info, infoD);
     }
 
     
@@ -167,6 +166,9 @@ public class ProtoUtilTest {
         for (int i=0; i<keyList.size(); i++) {
             assertEquals(expectedCounts.get(keyList.get(i)), valueList.get(i));
         }
+        
+        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(info, infoD);
     }
 
     @Test
@@ -176,7 +178,7 @@ public class ProtoUtilTest {
             info.observe(5);
         });
         
-        VariableInfoProto infoProto = ProtoUtil.serialize(info);
+        VariableInfoProto infoProto = info.serialize();
         assertEquals(0, infoProto.getVersion());
         assertEquals("org.tribuo.CategoricalInfo", infoProto.getClassName());
         CategoricalInfoProto proto = infoProto.getSerializedData().unpack(CategoricalInfoProto.class);
@@ -190,6 +192,9 @@ public class ProtoUtilTest {
         assertEquals(0, valueList.size());
         assertEquals(5, proto.getObservedValue());
         assertEquals(10, proto.getObservedCount());
+        
+        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(info, infoD);
     }
 
     @Test
@@ -203,7 +208,7 @@ public class ProtoUtilTest {
 
         CategoricalIDInfo idInfo = info.makeIDInfo(12345);
         
-        VariableInfoProto infoProto = ProtoUtil.serialize(idInfo);
+        VariableInfoProto infoProto = idInfo.serialize();
         assertEquals(0, infoProto.getVersion());
         assertEquals("org.tribuo.CategoricalIDInfo", infoProto.getClassName());
         CategoricalIDInfoProto proto = infoProto.getSerializedData().unpack(CategoricalIDInfoProto.class);
@@ -227,8 +232,10 @@ public class ProtoUtilTest {
         for (int i=0; i<keyList.size(); i++) {
             assertEquals(expectedCounts.get(keyList.get(i)), valueList.get(i));
         }
+
+        VariableInfo idInfoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(idInfo, idInfoD);
+
     }
 
-    
-    
 }
