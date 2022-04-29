@@ -21,6 +21,9 @@ import org.tribuo.FeatureMap;
 import org.tribuo.MutableDataset;
 import org.tribuo.RealInfo;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.MeanStdDevTransformerProto;
+import org.tribuo.protos.core.SimpleTransformProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
@@ -29,6 +32,8 @@ import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationMap;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.MeanStdDevTransformation.MeanStdDevTransformer;
+import org.tribuo.transform.transformations.SimpleTransform.Operation;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -140,4 +145,20 @@ public class MeanStdDevTest {
         assertNotSame(f0Transformer.get(0), transformer);
     }
 
+    
+    @Test
+    void testSerializeMeanStdDevTransformer() throws Exception {
+        Transformer t = new MeanStdDevTransformer(Math.E, Math.PI, 0.618033988749, 1.059463094359);
+        TransformerProto tp = t.serialize();
+        assertEquals(0, tp.getVersion());
+        assertEquals("org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformer", tp.getClassName());
+        MeanStdDevTransformerProto proto = tp.getSerializedData().unpack(MeanStdDevTransformerProto.class);
+        assertEquals(Math.E, proto.getObservedMean());
+        assertEquals(Math.PI, proto.getObservedStdDev());
+        assertEquals(0.618033988749, proto.getTargetMean());
+        assertEquals(1.059463094359, proto.getTargetStdDev());
+
+        Transformer tD = ProtoUtil.deserialize(tp);
+        assertEquals(t, tD);
+    }    
 }

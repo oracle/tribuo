@@ -23,6 +23,10 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
+
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.protos.core.SimpleTransformProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
@@ -47,6 +51,7 @@ import java.util.function.DoubleUnaryOperator;
  * Wraps a {@link DoubleUnaryOperator} which actually performs the
  * transformation.
  */
+@ProtoSerializableClass(serializedDataClass = SimpleTransformProto.class)
 public final class SimpleTransform implements Transformer, Transformation, TransformStatistics {
     private static final long serialVersionUID = 1L;
 
@@ -97,13 +102,16 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
         threshold
     }
 
+    @ProtoSerializableField
     @Config(mandatory = true,description="Type of the simple transformation.")
     private Operation op;
 
+    @ProtoSerializableField
     @Config(description="Operand (if required).")
     private double operand = Double.NaN;
 
     @Config(description="Second operand (if required).")
+    @ProtoSerializableField
     private double secondOperand = Double.NaN;
 
     private SerializableDoubleUnaryOperator operation;

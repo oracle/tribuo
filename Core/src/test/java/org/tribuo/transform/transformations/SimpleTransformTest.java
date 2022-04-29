@@ -16,20 +16,9 @@
 
 package org.tribuo.transform.transformations;
 
-import org.tribuo.Dataset;
-import org.tribuo.Example;
-import org.tribuo.Feature;
-import org.tribuo.MutableDataset;
-import org.tribuo.impl.ArrayExample;
-import org.tribuo.protos.core.TransformerProto;
-import org.tribuo.test.MockDataSourceProvenance;
-import org.tribuo.test.MockOutput;
-import org.tribuo.test.MockOutputFactory;
-import org.tribuo.transform.Transformation;
-import org.tribuo.transform.TransformationMap;
-import org.tribuo.transform.Transformer;
-import org.tribuo.transform.TransformerMap;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.tribuo.transform.transformations.SimpleTransform.EPSILON;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,9 +29,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.DoubleUnaryOperator;
 
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.tribuo.transform.transformations.SimpleTransform.EPSILON;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.tribuo.Dataset;
+import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.MutableDataset;
+import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.SimpleTransformProto;
+import org.tribuo.protos.core.TransformerProto;
+import org.tribuo.test.MockDataSourceProvenance;
+import org.tribuo.test.MockOutput;
+import org.tribuo.test.MockOutputFactory;
+import org.tribuo.transform.Transformation;
+import org.tribuo.transform.TransformationMap;
+import org.tribuo.transform.Transformer;
+import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.SimpleTransform.Operation;
 
 /**
  *
@@ -330,5 +333,21 @@ public class SimpleTransformTest {
             }
         }
     }
+
+    @Test
+    void testSerializeSimpleTransform() throws Exception {
+        Transformer t = new SimpleTransform(Operation.exp, Math.E, Math.PI);
+        TransformerProto tp = t.serialize();
+        assertEquals(0, tp.getVersion());
+        assertEquals("org.tribuo.transform.transformations.SimpleTransform", tp.getClassName());
+        SimpleTransformProto proto = tp.getSerializedData().unpack(SimpleTransformProto.class);
+        assertEquals("exp", proto.getOp());
+        assertEquals(Math.E, proto.getFirstOperand());
+        assertEquals(Math.PI, proto.getSecondOperand());
+
+        Transformer tD = ProtoUtil.deserialize(tp);
+        assertEquals(t, tD);
+    }    
+    
 
 }

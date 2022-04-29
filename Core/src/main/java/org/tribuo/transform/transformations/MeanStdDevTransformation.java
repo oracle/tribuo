@@ -16,24 +16,26 @@
 
 package org.tribuo.transform.transformations;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
+
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.core.MeanStdDevTransformerProto;
+import org.tribuo.transform.TransformStatistics;
+import org.tribuo.transform.Transformation;
+import org.tribuo.transform.TransformationProvenance;
+import org.tribuo.transform.Transformer;
+
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
-import org.tribuo.protos.core.MeanStdDevTransformerProto;
-import org.tribuo.protos.core.TransformerProto;
-import org.tribuo.transform.TransformStatistics;
-import org.tribuo.transform.Transformation;
-import org.tribuo.transform.TransformationProvenance;
-import org.tribuo.transform.Transformer;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
 
 /**
  * A Transformation which takes an observed distribution and rescales
@@ -205,12 +207,17 @@ public final class MeanStdDevTransformation implements Transformation {
         }
     }
 
+    @ProtoSerializableClass(serializedDataClass = MeanStdDevTransformerProto.class)
     static final class MeanStdDevTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
+        @ProtoSerializableField
         private final double observedMean;
+        @ProtoSerializableField
         private final double observedStdDev;
+        @ProtoSerializableField
         private final double targetMean;
+        @ProtoSerializableField
         private final double targetStdDev;
 
         MeanStdDevTransformer(double observedMean, double observedStdDev, double targetMean, double targetStdDev) {
@@ -245,20 +252,6 @@ public final class MeanStdDevTransformation implements Transformation {
             return (((input - observedMean) / observedStdDev) * targetStdDev) + targetMean;
         }
 
-        @Override
-        public TransformerProto serialize() {
-            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
-
-            protoBuilder.setVersion(0);
-            protoBuilder.setClassName(this.getClass().getName());
-
-            MeanStdDevTransformerProto transformProto = MeanStdDevTransformerProto.newBuilder()
-                    .setObservedMean(observedMean).setObservedStdDev(observedStdDev)
-                    .setTargetMean(targetMean).setTargetStdDev(targetStdDev).build();
-            protoBuilder.setSerializedData(Any.pack(transformProto));
-
-            return protoBuilder.build();
-        }
 
         @Override
         public String toString() {
