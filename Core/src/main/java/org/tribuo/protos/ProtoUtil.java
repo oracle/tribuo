@@ -202,8 +202,9 @@ public final class ProtoUtil {
         throw new RuntimeException("unable to convert "+obj+" to list");
     }
 
+    @SuppressWarnings("unchecked")
     public static <SERIALIZED_CLASS extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
-        Class<SERIALIZED_CLASS> serializedClass = ReflectUtil.resolveTypeParameter(protoSerializable.getClass(), ProtoSerializable.class.getTypeParameters()[0]);
+        Class<SERIALIZED_CLASS> serializedClass = (Class<SERIALIZED_CLASS>) ReflectUtil.resolveTypeParameter(ProtoSerializable.class, protoSerializable.getClass(), ProtoSerializable.class.getTypeParameters()[0]);
         if(serializedClass != null) {
             return serializedClass;
         }

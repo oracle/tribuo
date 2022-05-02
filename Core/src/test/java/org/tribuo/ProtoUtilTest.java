@@ -24,10 +24,6 @@ import org.tribuo.protos.core.ModHashCodeHasherProto;
 import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.transform.Transformer;
-import org.tribuo.transform.transformations.SimpleTransform;
-import org.tribuo.transform.transformations.SimpleTransform.Operation;
-import org.tribuo.util.ReflectUtil;
 
 import com.google.protobuf.Message;
 
@@ -244,20 +240,21 @@ public class ProtoUtilTest {
     
     @Test
     void testGetSerializedClass() throws Exception {
-        PSC psc = new PSC();
-        assertEquals(CategoricalIDInfoProto.class, ProtoUtil.getSerializedClass(psc));
-           
-        CategoricalInfo info = new CategoricalInfo("cat");
+        CategoricalInfo ci = new CategoricalInfo("cat");
         IntStream.range(0, 10).forEach(i -> {
             IntStream.range(0, i*2).forEach(j -> {
-                info.observe(i);
+                ci.observe(i);
             });
         });
 
-        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(info));
-        CategoricalIDInfo idInfo = info.makeIDInfo(12345);
-        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(idInfo));
-
+        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(ci));
+        CategoricalIDInfo cidi = ci.makeIDInfo(12345);
+        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(cidi));
+        VariableInfo ridi = new RealIDInfo("bob", 100, 1000.0, 0.0, 25.0, 125.0, 12345);
+        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(ridi));
+        RealInfo ri = new RealInfo("bob", 100, 1000.0, 0.0, 25.0, 125.0);
+        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(ri));
+        
         MutableFeatureMap mfm = new MutableFeatureMap(); 
         mfm.add("goldrat", 1.618033988749);
         mfm.add("e", Math.E);
@@ -265,8 +262,22 @@ public class ProtoUtilTest {
         HashedFeatureMap hfm = HashedFeatureMap.generateHashedFeatureMap(mfm, new MessageDigestHasher("SHA-512", "abcdefghi"));
         assertEquals(FeatureDomainProto.class, ProtoUtil.getSerializedClass(hfm));
         
-        
+        ModHashCodeHasher mdch = new ModHashCodeHasher(200, "abcdefghi");
+        assertEquals(HasherProto.class, ProtoUtil.getSerializedClass(mdch));
+
+        MessageDigestHasher mdh = new MessageDigestHasher("SHA-256", "abcdefghi");
+        assertEquals(HasherProto.class, ProtoUtil.getSerializedClass(mdh));
+
+        HashCodeHasher hch = new HashCodeHasher("abcdefghi");
+        assertEquals(HasherProto.class, ProtoUtil.getSerializedClass(hch));
+
+        assertEquals(CategoricalIDInfoProto.class, ProtoUtil.getSerializedClass(new PSC()));
+        assertEquals(RealIDInfoProto.class, ProtoUtil.getSerializedClass(new PSD2()));
+        assertEquals(RealIDInfoProto.class, ProtoUtil.getSerializedClass(new PSC2()));
+        assertThrows(IllegalArgumentException.class, () -> ProtoUtil.getSerializedClass(new PSB2<RealInfoProto>()));
     }
+
+
     
     public static interface IPS<W, X, Y extends Message> extends ProtoSerializable<Y>{
         
@@ -284,4 +295,25 @@ public class ProtoUtilTest {
         
     }
 
+    public static interface IPS2<Y extends Message> extends ProtoSerializable<Y>{
+        
+    }
+
+    //Tricky!  we purposefully mixed up the type variable names
+    public static class PSA2<A, B extends Message, Y extends Message> implements IPS2<B>{
+        
+    }
+    
+    public static class PSB2<Y extends Message> extends PSA2<String, Y, CategoricalIDInfoProto>{
+        
+    }
+
+    public static class PSC2 extends PSB<RealIDInfoProto>{
+        
+    }
+
+    public static class PSD2 extends PSC2{
+        
+    }
+    
 }
