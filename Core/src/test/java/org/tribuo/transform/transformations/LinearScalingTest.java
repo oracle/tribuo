@@ -21,6 +21,9 @@ import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.MutableDataset;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.LinearScalingTransformerProto;
+import org.tribuo.protos.core.MeanStdDevTransformerProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
@@ -29,6 +32,8 @@ import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationMap;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.LinearScalingTransformation.LinearScalingTransformer;
+import org.tribuo.transform.transformations.MeanStdDevTransformation.MeanStdDevTransformer;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -166,5 +171,24 @@ public class LinearScalingTest {
         TransformationMap t = new TransformationMap(Collections.singletonList(new LinearScalingTransformation()),map);
         testGlobalLinearScaling(t,0,1);
     }
+
+    @Test
+    void testSerialize() throws Exception {
+        LinearScalingTransformer lst = new LinearScalingTransformer(Math.E, Math.PI, 0.618033988749, 1.059463094359);
+        TransformerProto tp = lst.serialize();
+        assertEquals(0, tp.getVersion());
+        assertEquals("org.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformer", tp.getClassName());
+        LinearScalingTransformerProto proto = tp.getSerializedData().unpack(LinearScalingTransformerProto.class);
+        assertEquals(Math.E, proto.getObservedMin());
+        assertEquals(Math.PI, proto.getObservedMax());
+        assertEquals(0.618033988749, proto.getTargetMin());
+        assertEquals(1.059463094359, proto.getTargetMax());
+
+        Transformer tD = ProtoUtil.deserialize(tp);
+        assertEquals(lst, tD);
+        
+        assertEquals(TransformerProto.class, ProtoUtil.getSerializedClass(lst));
+
+    }    
 
 }

@@ -160,5 +160,8 @@ public class MeanStdDevTest {
 
         Transformer tD = ProtoUtil.deserialize(tp);
         assertEquals(t, tD);
+        
+        assertEquals(TransformerProto.class, ProtoUtil.getSerializedClass(t));
+
     }    
 }
