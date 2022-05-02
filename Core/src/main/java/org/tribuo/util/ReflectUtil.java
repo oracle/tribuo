@@ -6,104 +6,98 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.tribuo.protos.ProtoSerializable;
+
+import com.google.protobuf.Message;
+
 public class ReflectUtil {
 
-    public static <I, C extends I> List<Class> getLineage(Class<I> intface, Class<C> clazz){
-        if(!intface.isAssignableFrom(clazz)) {
-            throw new RuntimeException(""+intface.getName()+" is not assignable from "+clazz.getName());
-        }
-        List<Class> lineage = new ArrayList<>();
-        lineage.add(clazz);
-        return getLineage(intface, clazz, lineage);
+    public static <SERIALIZED_CLASS extends Message> Class<SERIALIZED_CLASS> resolveTypeParameter(Class<?> clazz, TypeVariable<?> typeVariable) {
+        return resolveTypeParameter(clazz, new MutableTypeVariable(typeVariable));
     }
     
-    private static <I, C extends I> List<Class> getLineage(Class<I> intface, Class<C> clazz, List<Class> lineage) {
-        if(clazz.equals(intface)) {
-            return lineage;
-        }
+    private static <SERIALIZED_CLASS extends Message> Class<SERIALIZED_CLASS> resolveTypeParameter(Class<?> clazz, MutableTypeVariable typeVariable) {
+        System.out.println("resolveTypeParameter("+clazz.getName()+", "+typeVariable.var.getName()+")");
         Class superClass = clazz.getSuperclass();
-        if(superClass != null && intface.isAssignableFrom(superClass)) {
-            lineage.add(superClass);
-            return getLineage(intface, superClass, lineage);
-        }
-        for(Class intClass : clazz.getInterfaces()) {
-            if(intface.isAssignableFrom(intClass)) {
-                lineage.add(intClass);
-                return getLineage(intface, intClass, lineage);
+        //go up the class hierarchy
+        if(superClass != null && ProtoSerializable.class.isAssignableFrom(superClass)) {
+            Class<SERIALIZED_CLASS> serializedClass = resolveTypeParameter(superClass, typeVariable);
+            if(serializedClass != null) {
+                return serializedClass;
             }
         }
-        throw new RuntimeException("unable to create lineage from class="+clazz.getName()+" to ancestor="+intface.getName());
-    }
-
-    public static <I, C extends I> List<Class<?>> getTypeParameterTypes(Class<I> intface, Class<C> clazz) {
-        TypeVariable[] typeVariables = intface.getTypeParameters();
-        List<Object> typeParameterTypes = new ArrayList<>();
-        for(TypeVariable typeVariable : typeVariables) {
-            typeParameterTypes.add(typeVariable.getName());
-        }
-        
-        List<Class> lineage = getLineage(intface, clazz);
-        
-        for(int i=lineage.size()-2; i>=0; i--) {
-            Class cls = lineage.get(i);
-
-            List<String> typeVariableNames = new ArrayList<>();
-            for(TypeVariable tv : cls.getTypeParameters()) {
-                typeVariableNames.add(tv.getName());
-            }
-
-            for(Type genericInterface : cls.getGenericInterfaces()) {
-                if(genericInterface instanceof ParameterizedType) {
-                    ParameterizedType pt = (ParameterizedType) genericInterface;
-                    if(lineage.get(i+1).equals(pt.getRawType())) {
-                        int j=0;
-                        for(Type at : pt.getActualTypeArguments()) {
-                            Object tpt = typeParameterTypes.get(j);
-                            while(tpt instanceof Class) {
-                                tpt = typeParameterTypes.get(++j);
-                            }
-                            if(at instanceof Class) {
-                                typeParameterTypes.set(j, at);
-                            }
-                            if(at instanceof TypeVariable) {
-                                typeParameterTypes.set(j, ((TypeVariable)at).getName());
-                            }
-                        }
-                    }
+        //go up the implemented interfaces hierarchy
+        for(Class intrface : clazz.getInterfaces()) {
+            if(ProtoSerializable.class.isAssignableFrom(intrface) && !ProtoSerializable.class.equals(intrface)) {
+                Class<SERIALIZED_CLASS> serializedClass = resolveTypeParameter(intrface, typeVariable);
+                if(serializedClass != null) {
+                    return serializedClass;
                 }
             }
+        }
 
-            Type t = cls.getGenericSuperclass();
-            if(t instanceof ParameterizedType) {
-                ParameterizedType pt = (ParameterizedType) t;
-                if(lineage.get(i+1).equals(pt.getRawType())) {
-                    int j=0;
-                    for(Type at : pt.getActualTypeArguments()) {
-                        Object tpt = typeParameterTypes.get(j);
-                        while(tpt instanceof Class) {
-                            tpt = typeParameterTypes.get(++j);
-                        }
-                        if(at instanceof Class) {
-                            typeParameterTypes.set(j, at);
-                        }
-                        if(at instanceof TypeVariable) {
-                            typeParameterTypes.set(j, ((TypeVariable)at).getName());
-                        }
-                    }
-                }
-            }
-            
-        }
-        
-        List<Class<?>> returnValues = new ArrayList<>();
-        for(Object obj : typeParameterTypes) {
-            if(obj instanceof Class) {
-                returnValues.add((Class<?>)obj);
-            } else {
-                throw new RuntimeException("type parameter unresolved: "+obj);
+        List<ParameterizedType> pts = getGenericSuperParameterizedTypes(clazz); 
+
+        for(ParameterizedType genericInterface : pts) {
+            Type t = getTypeParameter(genericInterface, typeVariable.var);
+            if(t instanceof TypeVariable) {
+                typeVariable.var = (TypeVariable) t;
+            } else if(t instanceof Class) {
+                return (Class) t;
             }
         }
         
-        return returnValues;
+        return null;
     }
+
+    private static List<ParameterizedType> getGenericSuperParameterizedTypes(Class clazz){
+        List<ParameterizedType> pts = new ArrayList<>();
+        Type genericSuperclass = clazz.getGenericSuperclass();
+        if(genericSuperclass instanceof ParameterizedType) {
+            pts.add((ParameterizedType)genericSuperclass);
+        }
+        for(Type genericInterface : clazz.getGenericInterfaces()) {
+            if(genericInterface instanceof ParameterizedType) {
+                pts.add((ParameterizedType) genericInterface);
+            }
+        }
+        return pts;
+    }
+    
+    private static Type getTypeParameter(ParameterizedType t, TypeVariable typeVariable) {
+       System.out.println("t="+t);
+       ParameterizedType pt = (ParameterizedType) t;
+       System.out.println("pt="+pt);
+        
+       Type rawType = pt.getRawType();
+       if(rawType instanceof Class) {
+           TypeVariable[] typeParameters = ((Class) rawType).getTypeParameters();
+           Type[] actualTypeArguments = pt.getActualTypeArguments();
+           System.out.println("raw type params="+typeParameters.length);
+           for(TypeVariable tp: typeParameters) {
+               System.out.println(tp);
+           }
+           for(Type at : actualTypeArguments) {
+               System.out.println("at="+at);
+           }
+           for(int i=0; i<typeParameters.length; i++) {
+               TypeVariable tp = typeParameters[i];
+               if(tp.getName().equals(typeVariable.getName())) {
+                   Type actualTypeArgument = actualTypeArguments[i];
+                   return actualTypeArgument;
+               }
+           }
+        }
+        return null;
+    }
+
+    private static class MutableTypeVariable{
+        private TypeVariable var;
+
+        public MutableTypeVariable(TypeVariable var) {
+            this.var = var;
+        }
+    }
+    
+
 }

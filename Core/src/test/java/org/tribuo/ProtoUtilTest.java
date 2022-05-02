@@ -12,6 +12,7 @@ import org.tribuo.hash.HashCodeHasher;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.hash.MessageDigestHasher;
 import org.tribuo.hash.ModHashCodeHasher;
+import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.CategoricalIDInfoProto;
 import org.tribuo.protos.core.CategoricalInfoProto;
@@ -26,13 +27,15 @@ import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.transformations.SimpleTransform;
 import org.tribuo.transform.transformations.SimpleTransform.Operation;
+import org.tribuo.util.ReflectUtil;
+
+import com.google.protobuf.Message;
 
 public class ProtoUtilTest {
 
     @Test
     void testHashedFeatureMap() throws Exception {
         MutableFeatureMap mfm = new MutableFeatureMap(); 
-        
         mfm.add("goldrat", 1.618033988749);
         mfm.add("e", Math.E);
         mfm.add("pi", Math.PI);
@@ -207,7 +210,7 @@ public class ProtoUtilTest {
         });
 
         CategoricalIDInfo idInfo = info.makeIDInfo(12345);
-        
+
         VariableInfoProto infoProto = idInfo.serialize();
         assertEquals(0, infoProto.getVersion());
         assertEquals("org.tribuo.CategoricalIDInfo", infoProto.getClassName());
@@ -236,6 +239,49 @@ public class ProtoUtilTest {
         VariableInfo idInfoD = ProtoUtil.deserialize(infoProto);
         assertEquals(idInfo, idInfoD);
 
+    }
+
+    
+    @Test
+    void testGetSerializedClass() throws Exception {
+        PSC psc = new PSC();
+        assertEquals(CategoricalIDInfoProto.class, ProtoUtil.getSerializedClass(psc));
+           
+        CategoricalInfo info = new CategoricalInfo("cat");
+        IntStream.range(0, 10).forEach(i -> {
+            IntStream.range(0, i*2).forEach(j -> {
+                info.observe(i);
+            });
+        });
+
+        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(info));
+        CategoricalIDInfo idInfo = info.makeIDInfo(12345);
+        assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(idInfo));
+
+        MutableFeatureMap mfm = new MutableFeatureMap(); 
+        mfm.add("goldrat", 1.618033988749);
+        mfm.add("e", Math.E);
+        mfm.add("pi", Math.PI);
+        HashedFeatureMap hfm = HashedFeatureMap.generateHashedFeatureMap(mfm, new MessageDigestHasher("SHA-512", "abcdefghi"));
+        assertEquals(FeatureDomainProto.class, ProtoUtil.getSerializedClass(hfm));
+        
+        
+    }
+    
+    public static interface IPS<W, X, Y extends Message> extends ProtoSerializable<Y>{
+        
+    }
+    
+    public static class PSA<A, B extends Message> implements IPS<String, String, B>{
+        
+    }
+    
+    public static class PSB<C extends Message> extends PSA<String, C>{
+        
+    }
+
+    public static class PSC extends PSB<CategoricalIDInfoProto>{
+        
     }
 
 }

@@ -202,10 +202,13 @@ public final class ProtoUtil {
         throw new RuntimeException("unable to convert "+obj+" to list");
     }
 
-    @SuppressWarnings("unchecked")
-    private static <SERIALIZED_CLASS extends Message,PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
-        List<Class<?>> typeParameterTypes = ReflectUtil.getTypeParameterTypes(ProtoSerializable.class, protoSerializable.getClass());
-        return (Class<SERIALIZED_CLASS>) typeParameterTypes.get(0);
+    public static <SERIALIZED_CLASS extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
+        Class<SERIALIZED_CLASS> serializedClass = ReflectUtil.resolveTypeParameter(protoSerializable.getClass(), ProtoSerializable.class.getTypeParameters()[0]);
+        if(serializedClass != null) {
+            return serializedClass;
+        }
+        String tpName = ProtoSerializable.class.getTypeParameters()[0].getName();
+        throw new IllegalArgumentException("unable to resolve type parameter '"+ tpName +"' in ProtoSerializable<"+tpName+"> for class "+protoSerializable.getClass().getName());
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
