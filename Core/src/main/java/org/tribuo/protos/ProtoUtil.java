@@ -16,8 +16,6 @@
 
 package org.tribuo.protos;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,8 +31,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.Message;
-import com.oracle.labs.mlrg.olcut.config.Configurable;
-import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 
 /**
@@ -73,95 +69,34 @@ public final class ProtoUtil {
 
     public static <SERIALIZED extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(SERIALIZED serialized) {
 
-        try {
             //extract version from serialized
             FieldDescriptor fieldDescriptor = serialized.getDescriptorForType().findFieldByName("version");
             int version = ((Integer) serialized.getField(fieldDescriptor)).intValue();
             //extract class_name of return value from serialized
             fieldDescriptor = serialized.getDescriptorForType().findFieldByName("class_name");
-            String className = (String) serialized.getField(fieldDescriptor);
+            String targetClassName = (String) serialized.getField(fieldDescriptor);
+
+        try {
             @SuppressWarnings("unchecked")
-            Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(className);
+            Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(targetClassName);
 
             fieldDescriptor = serialized.getDescriptorForType().findFieldByName("serialized_data");
             Any serializedData = (Any) serialized.getField(fieldDescriptor);
 
-            try {
-                Method method = protoSerializableClass.getDeclaredMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
-                method.setAccessible(true);
-                @SuppressWarnings("unchecked")
-                PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) method.invoke(null, version, className, serializedData);
-                method.setAccessible(false);
-                return protoSerializable;
-            } catch (NoSuchMethodException nsme) {
-                return ProtoUtil.deserialize(version, className, serializedData);
-            }
-        } catch (ClassNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
-                | SecurityException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    public static <SERIALIZED extends Message, SERIALIZED_DATA extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(
-            int version, String className, Any serializedData) {
-        try {
-            System.out.println("ProtoUtil.deserialize");
-
+            Method method = protoSerializableClass.getDeclaredMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
+            method.setAccessible(true);
             @SuppressWarnings("unchecked")
-            Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(className);
-
-            //initialize return value
-            Constructor<PROTO_SERIALIZABLE> declaredConstructor = protoSerializableClass.getDeclaredConstructor();
-            declaredConstructor.setAccessible(true);
-            PROTO_SERIALIZABLE protoSerializable = declaredConstructor.newInstance();
-
-            //get @ProtobuffClass annotation from class definition of serialized ProtoSerializable
-            ProtoSerializableClass protobufClassAnnotation = protoSerializableClass.getAnnotation(ProtoSerializableClass.class);
-            Class<SERIALIZED> serializedClass = getSerializedClass(protoSerializable);
-            @SuppressWarnings("unchecked")
-            Class<SERIALIZED_DATA> serializedDataClass = (Class<SERIALIZED_DATA>) protobufClassAnnotation.serializedDataClass();
-
-            System.out.println("serialized_class: " + serializedClass.getName());
-            System.out.println("version: " + version);
-            System.out.println("class_name: " + className);
-
-            //e.g. HashCodeHasher has no serializable data so exit early
-            if (serializedData.getValue().size() == 0) {
-                return protoSerializable;
-            }
-            
-            SERIALIZED_DATA proto = serializedData.unpack(serializedDataClass);
-
-            System.out.println("serialized_data: " + proto.getClass().getName());
-            System.out.println("protoSerializable: " + protoSerializable.getClass().getName());
-
-            for (Field field : getFields(protoSerializableClass)) {
-                System.out.println("field: " + field.getName());
-                ProtoSerializableField protobufField = field.getAnnotation(ProtoSerializableField.class);
-                String fieldName = protobufField.name();
-                if (fieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
-                    fieldName = field.getName();
-                    System.out.println("field: " + field.getName());
-                }
-                field.setAccessible(true);
-
-                Method getter = findMethod(serializedDataClass, "get", fieldName, 0);
-                Object obj = getter.invoke(proto);
-                if (obj instanceof GeneratedMessageV3) {
-                    System.out.println("calling nested deserialize for " + fieldName);
-                    obj = deserialize((GeneratedMessageV3) obj);
-                }
-                System.out.println("obj = " + obj.getClass().getName());
-                field.set(protoSerializable, obj);
-            }
-
-            if (protoSerializable instanceof Configurable) {
-                ((Configurable) protoSerializable).postConfig();
-            }
+            PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) method.invoke(null, version, targetClassName, serializedData);
+            method.setAccessible(false);
             return protoSerializable;
-
-        } catch (ClassNotFoundException | PropertyException | IOException | IllegalArgumentException | IllegalAccessException | InvocationTargetException | InstantiationException | NoSuchMethodException | SecurityException e) {
-            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Failed to find class " + targetClassName, e);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException("Failed to find deserialization method " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Failed to invoke deserialization method " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
+        } catch (InvocationTargetException e) {
+            throw new IllegalStateException("The deserialization method for " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName + " threw an exception", e);
         }
     }
     
