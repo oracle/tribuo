@@ -29,7 +29,10 @@ import java.util.stream.Collectors;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoSerializableKeysValuesField;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.TransformerProto;
+import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.Util;
 
 import com.google.protobuf.Any;
@@ -161,6 +164,12 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         return info;
     }
 
+    @Override
+    public VariableInfoProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    
     @Override
     protected void observe(double value) {
         if (value != 0.0) {

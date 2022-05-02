@@ -43,12 +43,6 @@ public interface ProtoSerializable<T extends Message> {
      */
     public static final ProtoProvenanceSerialization PROVENANCE_SERIALIZER = new ProtoProvenanceSerialization(false);
 
-    /**
-     * Serializes this object to a protobuf.
-     * @return The protobuf
-     */
-    default T serialize() {
-        return ProtoUtil.serialize(this);
-    }
+    public T serialize();
 
 }

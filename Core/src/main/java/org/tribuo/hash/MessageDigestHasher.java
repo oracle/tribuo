@@ -16,21 +16,6 @@
 
 package org.tribuo.hash;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.config.Config;
-import com.oracle.labs.mlrg.olcut.config.PropertyException;
-import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
-
-import org.tribuo.protos.ProtoSerializableClass;
-import org.tribuo.protos.ProtoSerializableField;
-import org.tribuo.protos.core.HasherProto;
-import org.tribuo.protos.core.MessageDigestHasherProto;
-import org.tribuo.protos.core.ModHashCodeHasherProto;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.charset.Charset;
@@ -43,6 +28,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
+
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.MessageDigestHasherProto;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 
 /**
  * Hashes Strings using the supplied MessageDigest type.
@@ -145,6 +145,11 @@ public final class MessageDigestHasher extends Hasher {
         localDigest.update(salt);
         byte[] hash = localDigest.digest(input.getBytes(utf8Charset));
         return Base64.getEncoder().encodeToString(hash);
+    }
+
+    @Override
+    public HasherProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

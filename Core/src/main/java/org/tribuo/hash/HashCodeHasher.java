@@ -24,7 +24,6 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 
 import org.tribuo.protos.core.HasherProto;
-import org.tribuo.protos.core.MessageDigestHasherProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 
@@ -70,6 +69,12 @@ public final class HashCodeHasher extends Hasher {
         return new HashCodeHasher();
     }
 
+    @Override
+    public HasherProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    
     @Override
     public String hash(String name) {
         if (salt == null) {

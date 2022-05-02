@@ -18,6 +18,7 @@ package org.tribuo;
 
 import java.util.Objects;
 
+import org.tribuo.protos.core.FeatureDomainProto;
 import org.tribuo.protos.core.MutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.protos.ProtoSerializableClass;
@@ -74,6 +75,11 @@ public class MutableFeatureMap extends FeatureMap {
             }
         }
         return obj;
+    }
+
+    @Override
+    public FeatureDomainProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**

@@ -16,20 +16,20 @@
 
 package org.tribuo;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import org.tribuo.protos.core.FeatureDomainProto;
-import org.tribuo.protos.core.ImmutableFeatureMapProto;
-import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.protos.ProtoSerializableClass;
-import org.tribuo.protos.ProtoUtil;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
+
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.ImmutableFeatureMapProto;
+import org.tribuo.protos.core.VariableInfoProto;
+
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * ImmutableFeatureMap is used when unknown features should not be added to the FeatureMap.
@@ -114,6 +114,11 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
         return obj;
     }
 
+    @Override
+    public FeatureDomainProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
     /**
      * Gets the {@link VariableIDInfo}
      * for this id number. Returns null if it's unknown.
@@ -194,5 +199,6 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
         }
         return outputMap;
     }
+
 
 }

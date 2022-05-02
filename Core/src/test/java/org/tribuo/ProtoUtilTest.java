@@ -23,6 +23,7 @@ import org.tribuo.protos.core.MessageDigestHasherProto;
 import org.tribuo.protos.core.ModHashCodeHasherProto;
 import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
 import com.google.protobuf.Message;
@@ -284,6 +285,11 @@ public class ProtoUtilTest {
     }
     
     public static class PSA<A, B extends Message> implements IPS<String, String, B>{
+
+        @Override
+        public B serialize() {
+            return ProtoUtil.serialize(this);
+        }
         
     }
     
@@ -301,6 +307,11 @@ public class ProtoUtilTest {
 
     //Tricky!  we purposefully mixed up the type variable names
     public static class PSA2<A, B extends Message, Y extends Message> implements IPS2<B>{
+
+        @Override
+        public B serialize() {
+            return ProtoUtil.serialize(this);
+        }
         
     }
     

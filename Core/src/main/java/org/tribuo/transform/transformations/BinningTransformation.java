@@ -16,19 +16,18 @@
 
 package org.tribuo.transform.transformations;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.config.Config;
-import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 import org.tribuo.protos.ProtoSerializableArrayField;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.BinningTransformerProto;
-import org.tribuo.protos.core.HashedFeatureMapProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
@@ -36,12 +35,13 @@ import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
 import org.tribuo.util.Util;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
 
 /**
  * A Transformation which bins values.
@@ -517,5 +517,11 @@ public final class BinningTransformation implements Transformation {
             result = 31 * result + Arrays.hashCode(values);
             return result;
         }
+        
+        @Override
+        public TransformerProto serialize() {
+            return ProtoUtil.serialize(this);
+        }
+
     }
 }

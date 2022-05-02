@@ -24,6 +24,7 @@ import java.util.Objects;
 
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.HasherProto;
 import org.tribuo.protos.core.ModHashCodeHasherProto;
 
@@ -93,6 +94,11 @@ public final class ModHashCodeHasher extends Hasher {
         obj.dimension = proto.getDimension();
         obj.postConfig();
         return obj;
+    }
+
+    @Override
+    public HasherProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**

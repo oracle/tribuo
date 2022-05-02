@@ -24,7 +24,9 @@ import java.util.logging.Logger;
 
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.MeanStdDevTransformerProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
@@ -245,6 +247,11 @@ public final class MeanStdDevTransformation implements Transformation {
             } else {
                 throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
             }
+        }
+
+        @Override
+        public TransformerProto serialize() {
+            return ProtoUtil.serialize(this);
         }
 
         @Override
