@@ -16,17 +16,16 @@
 
 package org.tribuo.transform.transformations;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.config.Config;
-import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.DoubleUnaryOperator;
 
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
-import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.SimpleTransformProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
@@ -34,12 +33,13 @@ import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.DoubleUnaryOperator;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 
 /**
  * This is used for stateless functions such as exp, log, addition or multiplication by a constant.
@@ -106,7 +106,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
     @Config(mandatory = true,description="Type of the simple transformation.")
     private Operation op;
 
-    @ProtoSerializableField
+    @ProtoSerializableField(name="firstOperand")
     @Config(description="Operand (if required).")
     private double operand = Double.NaN;
 
@@ -219,16 +219,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
 
     @Override
     public TransformerProto serialize() {
-        TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
-
-        protoBuilder.setVersion(0);
-        protoBuilder.setClassName(this.getClass().getName());
-
-        SimpleTransformProto transformProto = SimpleTransformProto.newBuilder()
-                .setOp(op.name()).setFirstOperand(operand).setSecondOperand(secondOperand).build();
-        protoBuilder.setSerializedData(Any.pack(transformProto));
-
-        return protoBuilder.build();
+        return ProtoUtil.serialize(this);
     }
 
     @Override
