@@ -23,6 +23,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.IDFTransformerProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
@@ -96,11 +99,14 @@ public class IDFTransformation implements Transformation {
         
     }
     
+    @ProtoSerializableClass(serializedDataClass = IDFTransformerProto.class)
     static class IDFTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
+        @ProtoSerializableField
         private final double df;
         
+        @ProtoSerializableField
         private final double N;
 
         /**
@@ -139,16 +145,7 @@ public class IDFTransformation implements Transformation {
 
         @Override
         public TransformerProto serialize() {
-            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
-
-            protoBuilder.setVersion(0);
-            protoBuilder.setClassName(this.getClass().getName());
-
-            IDFTransformerProto transformProto = IDFTransformerProto.newBuilder()
-                    .setDf(df).setN(N).build();
-            protoBuilder.setSerializedData(Any.pack(transformProto));
-
-            return protoBuilder.build();
+            return ProtoUtil.serialize(this);
         }
 
         @Override
