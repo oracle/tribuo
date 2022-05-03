@@ -21,6 +21,7 @@ import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -31,6 +32,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,13 @@ import java.util.stream.Collectors;
  * Utilities for working with Tribuo protobufs.
  */
 public final class ProtoUtil {
+
+    /**
+     * Used to provide internal Tribuo redirects as classes are redefined.
+     * <p>
+     * Must only be used for namespaces which are owned by Tribuo modules.
+     */
+    private static final Map<Pair<Integer, String>, String> REDIRECT_MAP = new HashMap<>();
 
     /**
      * Private final constructor for static utility class.
@@ -76,12 +85,15 @@ public final class ProtoUtil {
      */
     public static <SERIALIZED extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(SERIALIZED serialized) {
 
-        //extract version from serialized
+        // Extract version from serialized
         FieldDescriptor fieldDescriptor = serialized.getDescriptorForType().findFieldByName("version");
         int version = ((Integer) serialized.getField(fieldDescriptor)).intValue();
-        //extract class_name of return value from serialized
+        // Extract class_name of return value from serialized
         fieldDescriptor = serialized.getDescriptorForType().findFieldByName("class_name");
-        String targetClassName = (String) serialized.getField(fieldDescriptor);
+        // Allow redirect for Tribuo's classes.
+        String className = (String) serialized.getField(fieldDescriptor);
+        Pair<Integer, String> key = new Pair<>(version, className);
+        String targetClassName = REDIRECT_MAP.getOrDefault(key, className);
 
         try {
             @SuppressWarnings("unchecked")
