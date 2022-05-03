@@ -39,7 +39,7 @@ import java.util.TreeMap;
  * does not contain feature name information, but still works
  * with unhashed features names.
  */
-@ProtoSerializableClass(serializedDataClass = HashedFeatureMapProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = HashedFeatureMapProto.class)
 public final class HashedFeatureMap extends ImmutableFeatureMap {
     private static final long serialVersionUID = 1L;
 

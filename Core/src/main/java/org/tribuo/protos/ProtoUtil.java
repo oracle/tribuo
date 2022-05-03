@@ -18,7 +18,6 @@ package org.tribuo.protos;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.Message;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 
@@ -29,10 +28,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utilities for working with Tribuo protobufs.
@@ -123,7 +125,7 @@ public final class ProtoUtil {
             Class<SERIALIZED_DATA> serializedDataClass = (Class<SERIALIZED_DATA>) annotation.serializedDataClass();
             //the default value for ProtoSerializableClass.serializedDataClass is GeneratedMessageV3 which is how you can signal that
             //there is no serialized data to be serialized.
-            if (serializedDataClass != GeneratedMessageV3.class) {
+            if (serializedDataClass != Message.class) {
                 SERIALIZED_DATA.Builder serializedDataBuilder = (SERIALIZED_DATA.Builder) serializedDataClass.getMethod("newBuilder").invoke(null);
                 Class<SERIALIZED_DATA.Builder> serializedDataBuilderClass = (Class<SERIALIZED_DATA.Builder>) serializedDataBuilder.getClass();
 
@@ -138,27 +140,20 @@ public final class ProtoUtil {
                             fieldName = field.getName();
                         }
 
-                        Method setter = findMethod(serializedDataBuilderClass, "set", fieldName, 1);
+                        Class<?> fieldClazz = field.getType();
+                        String nameStub = (fieldClazz.isArray() || Collection.class.isAssignableFrom(fieldClazz)) ? "addAll" : "set";
+                        Method setter = findMethod(serializedDataBuilderClass, nameStub, fieldName, 1);
                         obj = convert(obj);
                         setter.setAccessible(true);
                         setter.invoke(serializedDataBuilder, obj);
-                    }
-
-                    ProtoSerializableArrayField psaf = field.getAnnotation(ProtoSerializableArrayField.class);
-                    if (psaf != null) {
-                        String fieldName = psaf.name();
-                        if (fieldName.equals(ProtoSerializableArrayField.DEFAULT_FIELD_NAME)) {
-                            fieldName = field.getName();
-                        }
-
-                        Method setter = findMethod(serializedDataBuilderClass, "addAll", fieldName, 1);
-                        obj = toList(obj);
-                        setter.setAccessible(true);
-                        setter.invoke(serializedDataBuilder, obj);
+                        setter.setAccessible(false);
                     }
 
                     ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
                     if (pskvf != null) {
+                        if (!(obj instanceof Map)) {
+                            throw new IllegalStateException("Field of type " + obj.getClass() + " was annotated with ProtoSerializableKeysValuesField which is only supported on java.util.Map fields");
+                        }
                         Method keyAdder = findMethod(serializedDataBuilderClass, "add", pskvf.keysName(), 1);
                         keyAdder.setAccessible(true);
                         Method valueAdder = findMethod(serializedDataBuilderClass, "add", pskvf.valuesName(), 1);
@@ -171,16 +166,23 @@ public final class ProtoUtil {
                                 valueAdder.invoke(serializedDataBuilder, convert(e.getValue()));
                             }
                         }
+                        keyAdder.setAccessible(false);
+                        valueAdder.setAccessible(false);
                     }
 
                     ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
                     if (psmvf != null) {
+                        if (!(obj instanceof Map)) {
+                            throw new IllegalStateException("Field of type " + obj.getClass() + " was annotated with ProtoSerializableMapValuesField which is only supported on java.util.Map fields");
+                        }
                         Method valuesAdder = findMethod(serializedDataBuilderClass, "addAll", psmvf.valuesName(), 1);
-                        valuesAdder.setAccessible(true);
                         obj = toList((Map) obj);
                         valuesAdder.setAccessible(true);
                         valuesAdder.invoke(serializedDataBuilder, obj);
+                        valuesAdder.setAccessible(false);
                     }
+
+                    field.setAccessible(false);
                 }
                 serializedClassBuilderClass.getMethod("setSerializedData", com.google.protobuf.Any.class).invoke(serializedClassBuilder, Any.pack(serializedDataBuilder.build()));
             }
@@ -188,6 +190,21 @@ public final class ProtoUtil {
         } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException
                  | SecurityException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * If this class is annotated with {@link ProtoSerializableClass} returns the
+     * version number, otherwise returns -1.
+     * @param clazz The class to check.
+     * @return The version number, or -1 if it does not use the annotation.
+     */
+    public static int getCurrentVersion(Class<? extends ProtoSerializable<?>> clazz) {
+        ProtoSerializableClass ann = clazz.getAnnotation(ProtoSerializableClass.class);
+        if (ann != null) {
+            return ann.version();
+        } else {
+            return -1;
         }
     }
 
@@ -230,6 +247,10 @@ public final class ProtoUtil {
         if (obj.getClass().isEnum()) {
             return ((Enum<?>) obj).name();
         }
+        if (obj instanceof double[]) {
+            double[] t = (double[]) obj;
+            return Arrays.stream(t).boxed().collect(Collectors.toList());
+        }
         return obj;
     }
 
@@ -255,20 +276,6 @@ public final class ProtoUtil {
                 fieldNameSet.add(field.getName());
                 continue;
             }
-
-            ProtoSerializableArrayField psaf = field.getAnnotation(ProtoSerializableArrayField.class);
-            if (psaf != null) {
-                protoFieldName = psaf.name();
-                if (protoFieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
-                    protoFieldName = field.getName();
-                }
-                if (fieldNameSet.contains(protoFieldName))
-                    continue;
-                fields.add(field);
-                fieldNameSet.add(field.getName());
-                continue;
-            }
-
 
             ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
             if (pskvf != null) {
@@ -316,7 +323,7 @@ public final class ProtoUtil {
                     return method;
                 }
                 Class<?> clazz = method.getParameterTypes()[0];
-                if (com.google.protobuf.GeneratedMessageV3.Builder.class.isAssignableFrom(clazz)) {
+                if (Message.Builder.class.isAssignableFrom(clazz)) {
                     continue;
                 }
                 return method;

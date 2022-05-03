@@ -23,7 +23,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
-import org.tribuo.protos.ProtoSerializableArrayField;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
@@ -443,15 +442,15 @@ public final class BinningTransformation implements Transformation {
         }
     }
 
-    @ProtoSerializableClass(serializedDataClass = BinningTransformerProto.class)
+    @ProtoSerializableClass(version = 0, serializedDataClass = BinningTransformerProto.class)
     static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         @ProtoSerializableField(name = "binningType")
         private final BinningType type;
-        @ProtoSerializableArrayField
+        @ProtoSerializableField
         private final double[] bins;
-        @ProtoSerializableArrayField
+        @ProtoSerializableField
         private final double[] values;
 
         BinningTransformer(BinningType type, double[] bins, double[] values) {

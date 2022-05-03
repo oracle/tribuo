@@ -35,7 +35,7 @@ import java.util.SplittableRandom;
  * Does not contain an id number, but can be transformed into {@link RealIDInfo} which
  * does contain an id number.
  */
-@ProtoSerializableClass(serializedDataClass = RealInfoProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = RealInfoProto.class)
 public class RealInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 1L;
 

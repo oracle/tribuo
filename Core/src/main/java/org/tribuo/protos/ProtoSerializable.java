@@ -41,7 +41,7 @@ public interface ProtoSerializable<T extends Message> {
 
     /**
      * Serializes this object to a protobuf.
-     * @return The protobuf
+     * @return The protobuf.
      */
     public T serialize();
 

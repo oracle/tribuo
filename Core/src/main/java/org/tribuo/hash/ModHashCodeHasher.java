@@ -41,7 +41,7 @@ import java.util.Objects;
  * Hashes names using String.hashCode(), then reduces the dimension.
  */
 
-@ProtoSerializableClass(serializedDataClass = ModHashCodeHasherProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = ModHashCodeHasherProto.class)
 public final class ModHashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
 

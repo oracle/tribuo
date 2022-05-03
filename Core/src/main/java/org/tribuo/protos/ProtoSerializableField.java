@@ -22,12 +22,29 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.FIELD;
 
+/**
+ * Annotation which denotes that a field should be part of the protobuf serialized representation.
+ * <p>
+ * Behaviour is undefined when used on a class which doesn't implement {@link ProtoSerializable}.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(FIELD)
 public @interface ProtoSerializableField {
-    
+
+    /**
+     * The default field name, used to signify it should use the field name rather than a supplied value.
+     */
     public static final String DEFAULT_FIELD_NAME = "[DEFAULT_FIELD_NAME]";
 
+    /**
+     * The protobuf version when this field was added.
+     * @return The version.
+     */
     int sinceVersion() default 0;
+
+    /**
+     * The name of the field in the protobuf in Java.
+     * @return The field name.
+     */
     String name() default DEFAULT_FIELD_NAME; 
 }

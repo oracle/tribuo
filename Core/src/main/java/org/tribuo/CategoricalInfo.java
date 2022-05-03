@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  * are recomputed. Care should be taken if data is read while {@link #observe(double)} is called.
  * </p>
  */
-@ProtoSerializableClass(serializedDataClass = CategoricalInfoProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = CategoricalInfoProto.class)
 public class CategoricalInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 2L;
 

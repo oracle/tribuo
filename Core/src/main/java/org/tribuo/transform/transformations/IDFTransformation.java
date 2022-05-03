@@ -99,7 +99,7 @@ public class IDFTransformation implements Transformation {
         
     }
     
-    @ProtoSerializableClass(serializedDataClass = IDFTransformerProto.class)
+    @ProtoSerializableClass(version = 0, serializedDataClass = IDFTransformerProto.class)
     static class IDFTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 

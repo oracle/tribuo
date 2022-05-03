@@ -46,7 +46,7 @@ import java.util.function.Supplier;
 /**
  * Hashes Strings using the supplied MessageDigest type.
  */
-@ProtoSerializableClass(serializedDataClass = MessageDigestHasherProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = MessageDigestHasherProto.class)
 public final class MessageDigestHasher extends Hasher {
     private static final long serialVersionUID = 3L;
 

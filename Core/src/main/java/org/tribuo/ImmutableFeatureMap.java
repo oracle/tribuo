@@ -40,7 +40,7 @@ import java.util.TreeMap;
  * those features are unobserved. This is an extremely important property of {@link Feature}s,
  * {@link Example}s and {@link ImmutableFeatureMap}.
  */
-@ProtoSerializableClass(serializedDataClass = ImmutableFeatureMapProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = ImmutableFeatureMapProto.class)
 public class ImmutableFeatureMap extends FeatureMap implements Serializable {
     private static final long serialVersionUID = 1L;
 

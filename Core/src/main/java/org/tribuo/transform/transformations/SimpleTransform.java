@@ -50,7 +50,7 @@ import java.util.function.DoubleUnaryOperator;
  * Wraps a {@link DoubleUnaryOperator} which actually performs the
  * transformation.
  */
-@ProtoSerializableClass(serializedDataClass = SimpleTransformProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = SimpleTransformProto.class)
 public final class SimpleTransform implements Transformer, Transformation, TransformStatistics {
     private static final long serialVersionUID = 1L;
 

@@ -200,7 +200,7 @@ public final class LinearScalingTransformation implements Transformation {
         }
     }
 
-    @ProtoSerializableClass(serializedDataClass = LinearScalingTransformerProto.class)
+    @ProtoSerializableClass(version = 0, serializedDataClass = LinearScalingTransformerProto.class)
     static final class LinearScalingTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 

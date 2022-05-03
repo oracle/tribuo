@@ -16,7 +16,6 @@
 
 package org.tribuo.protos;
 
-import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.Message;
 
 import java.lang.annotation.Retention;
@@ -27,15 +26,20 @@ import static java.lang.annotation.ElementType.TYPE;
 
 /**
  * Mark a class as being {@link ProtoSerializable} and specify
- * the class type used to serialize the "serialized_data"
+ * the class type used to serialize the "serialized_data".
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(TYPE)
 public @interface ProtoSerializableClass {
     /**
-     * Specifies
-     * @return
+     * Specifies the type of the serialized data payload.
+     * @return The proto class of the serialized data.
      */
-    Class<? extends Message> serializedDataClass() default GeneratedMessageV3.class;
-    int version() default 0;
+    Class<? extends Message> serializedDataClass() default Message.class;
+
+    /**
+     * The current version of this proto serialized class.
+     * @return The version number.
+     */
+    int version();
 }

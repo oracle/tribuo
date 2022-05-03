@@ -22,10 +22,28 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.FIELD;
 
+/**
+ * Annotation which denotes that the map field this is applied to is
+ * serialized as two repeated fields, one for keys and one for values.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(FIELD)
 public @interface ProtoSerializableKeysValuesField {
+    /**
+     * The protobuf version when this field was added.
+     * @return The version.
+     */
     int sinceVersion() default 0;
+
+    /**
+     * The name of the key field in the protobuf in Java.
+     * @return The key field name.
+     */
     String keysName();
+
+    /**
+     * The name of the value field in the protobuf in Java.
+     * @return The value field name.
+     */
     String valuesName();
 }

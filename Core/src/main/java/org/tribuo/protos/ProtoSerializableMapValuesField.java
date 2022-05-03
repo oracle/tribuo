@@ -22,9 +22,22 @@ import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.FIELD;
 
+/**
+ * Annotation which denotes that the map field this is applied to is
+ * serialized as a list of values.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(FIELD)
 public @interface ProtoSerializableMapValuesField {
+    /**
+     * The protobuf version when this field was added.
+     * @return The version.
+     */
     int sinceVersion() default 0;
+
+    /**
+     * The name of the value field in the protobuf in Java.
+     * @return The value field name.
+     */
     String valuesName();
 }

@@ -30,7 +30,7 @@ import java.util.Objects;
 /**
  * Same as a {@link CategoricalInfo}, but with an additional int id field.
  */
-@ProtoSerializableClass(serializedDataClass = CategoricalIDInfoProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = CategoricalIDInfoProto.class)
 public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo {
     private static final long serialVersionUID = 2L;
 

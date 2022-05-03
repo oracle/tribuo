@@ -35,7 +35,7 @@ import java.util.Objects;
 /**
  * Hashes names using String.hashCode().
  */
-@ProtoSerializableClass
+@ProtoSerializableClass(version = 0)
 public final class HashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
 

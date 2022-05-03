@@ -27,7 +27,7 @@ import java.util.Objects;
 /**
  * Same as a {@link RealInfo}, but with an additional int id field.
  */
-@ProtoSerializableClass(serializedDataClass = RealIDInfoProto.class)
+@ProtoSerializableClass(version = 0, serializedDataClass = RealIDInfoProto.class)
 public class RealIDInfo extends RealInfo implements VariableIDInfo {
     private static final long serialVersionUID = 1L;
 
