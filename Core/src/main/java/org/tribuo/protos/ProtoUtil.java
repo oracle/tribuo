@@ -87,7 +87,7 @@ public final class ProtoUtil {
 
         // Extract version from serialized
         FieldDescriptor fieldDescriptor = serialized.getDescriptorForType().findFieldByName("version");
-        int version = ((Integer) serialized.getField(fieldDescriptor)).intValue();
+        int version = (Integer) serialized.getField(fieldDescriptor);
         // Extract class_name of return value from serialized
         fieldDescriptor = serialized.getDescriptorForType().findFieldByName("class_name");
         // Allow redirect for Tribuo's classes.
@@ -218,7 +218,7 @@ public final class ProtoUtil {
         }
     }
 
-    public static <SERIALIZED_CLASS extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
+    static <SERIALIZED_CLASS extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
         @SuppressWarnings("unchecked")
         Class<SERIALIZED_CLASS> serializedClass = (Class<SERIALIZED_CLASS>) resolveTypeParameter(ProtoSerializable.class, protoSerializable.getClass(), ProtoSerializable.class.getTypeParameters()[0]);
         if (serializedClass != null) {

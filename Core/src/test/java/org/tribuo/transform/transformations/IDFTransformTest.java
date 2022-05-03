@@ -39,8 +39,6 @@ public class IDFTransformTest {
 
         Transformer tD = ProtoUtil.deserialize(tp);
         assertEquals(idft, tD);
-        
-        assertEquals(TransformerProto.class, ProtoUtil.getSerializedClass(idft));
     }
 
 }

@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.tribuo;
+package org.tribuo.protos;
 
 import com.google.protobuf.Message;
 import org.junit.jupiter.api.Test;
+import org.tribuo.CategoricalIDInfo;
+import org.tribuo.CategoricalInfo;
+import org.tribuo.CategoricalInfoTest;
+import org.tribuo.MutableFeatureMap;
+import org.tribuo.RealIDInfo;
+import org.tribuo.RealInfo;
+import org.tribuo.VariableInfo;
 import org.tribuo.hash.HashCodeHasher;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.hash.MessageDigestHasher;
 import org.tribuo.hash.ModHashCodeHasher;
-import org.tribuo.protos.ProtoSerializable;
-import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.CategoricalIDInfoProto;
-import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.protos.core.FeatureDomainProto;
 import org.tribuo.protos.core.HashedFeatureMapProto;
 import org.tribuo.protos.core.HasherProto;
@@ -35,20 +39,14 @@ import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ProtoUtilTest {
 
     @Test
     void testHashedFeatureMap() throws Exception {
-        MutableFeatureMap mfm = new MutableFeatureMap(); 
+        MutableFeatureMap mfm = new MutableFeatureMap();
         mfm.add("goldrat", 1.618033988749);
         mfm.add("e", Math.E);
         mfm.add("pi", Math.PI);
@@ -80,7 +78,7 @@ public class ProtoUtilTest {
 
         ModHashCodeHasher hasherD = ProtoUtil.deserialize(hasherProto);
         hasherD.setSalt("abcdefghi");
-        assertTrue(hasher.equals(hasherD));
+        assertEquals(hasher, hasherD);
         assertEquals(200, hasherProto.getSerializedData().unpack(ModHashCodeHasherProto.class).getDimension());
     }
     
@@ -148,121 +146,9 @@ public class ProtoUtilTest {
         assertEquals(info, infoD);
     }
 
-    
-    @Test
-    void testCategoricalInfo() throws Exception {
-        CategoricalInfo info = new CategoricalInfo("cat");
-        IntStream.range(0, 10).forEach(i -> {
-            IntStream.range(0, i*2).forEach(j -> {
-                info.observe(i);
-            });
-        });
-        
-        VariableInfoProto infoProto = info.serialize();
-        assertEquals(0, infoProto.getVersion());
-        assertEquals("org.tribuo.CategoricalInfo", infoProto.getClassName());
-        CategoricalInfoProto proto = infoProto.getSerializedData().unpack(CategoricalInfoProto.class);
-        assertEquals("cat", proto.getName());
-        assertEquals(90, proto.getCount());
-        assertEquals(0, proto.getObservedCount());
-        assertEquals(Double.NaN, proto.getObservedValue());
-        
-        List<Double> keyList = proto.getKeyList();
-        List<Long> valueList = proto.getValueList();
-
-        assertEquals(9, keyList.size());
-        assertEquals(9, valueList.size());
-        
-        Map<Double, Long> expectedCounts = new HashMap<>();
-        IntStream.range(0, 10).forEach(i -> {
-            long count = info.getObservationCount(i);
-            expectedCounts.put((double)i, count);
-        });
-        
-        for (int i=0; i<keyList.size(); i++) {
-            assertEquals(expectedCounts.get(keyList.get(i)), valueList.get(i));
-        }
-        
-        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
-        assertEquals(info, infoD);
-    }
-
-    @Test
-    void testCategoricalInfo2() throws Exception {
-        CategoricalInfo info = new CategoricalInfo("cat");
-        IntStream.range(0, 10).forEach(i -> {
-            info.observe(5);
-        });
-        
-        VariableInfoProto infoProto = info.serialize();
-        assertEquals(0, infoProto.getVersion());
-        assertEquals("org.tribuo.CategoricalInfo", infoProto.getClassName());
-        CategoricalInfoProto proto = infoProto.getSerializedData().unpack(CategoricalInfoProto.class);
-        assertEquals("cat", proto.getName());
-        assertEquals(10, proto.getCount());
-        
-        List<Double> keyList = proto.getKeyList();
-        List<Long> valueList = proto.getValueList();
-
-        assertEquals(0, keyList.size());
-        assertEquals(0, valueList.size());
-        assertEquals(5, proto.getObservedValue());
-        assertEquals(10, proto.getObservedCount());
-        
-        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
-        assertEquals(info, infoD);
-    }
-
-    @Test
-    void testCategoricalIdInfo() throws Exception {
-        CategoricalInfo info = new CategoricalInfo("cat");
-        IntStream.range(0, 10).forEach(i -> {
-            IntStream.range(0, i*2).forEach(j -> {
-                info.observe(i);
-            });
-        });
-
-        CategoricalIDInfo idInfo = info.makeIDInfo(12345);
-
-        VariableInfoProto infoProto = idInfo.serialize();
-        assertEquals(0, infoProto.getVersion());
-        assertEquals("org.tribuo.CategoricalIDInfo", infoProto.getClassName());
-        CategoricalIDInfoProto proto = infoProto.getSerializedData().unpack(CategoricalIDInfoProto.class);
-        assertEquals("cat", proto.getName());
-        assertEquals(90, proto.getCount());
-        assertEquals(12345, proto.getId());
-        assertEquals(0, proto.getObservedCount());
-        assertEquals(Double.NaN, proto.getObservedValue());
-        
-        List<Double> keyList = proto.getKeyList();
-        List<Long> valueList = proto.getValueList();
-
-        assertEquals(keyList.size(), valueList.size());
-        
-        Map<Double, Long> expectedCounts = new HashMap<>();
-        IntStream.range(0, 10).forEach(i -> {
-            long count = idInfo.getObservationCount(i);
-            expectedCounts.put((double)i, count);
-        });
-        
-        for (int i=0; i<keyList.size(); i++) {
-            assertEquals(expectedCounts.get(keyList.get(i)), valueList.get(i));
-        }
-
-        VariableInfo idInfoD = ProtoUtil.deserialize(infoProto);
-        assertEquals(idInfo, idInfoD);
-
-    }
-
-    
     @Test
     void testGetSerializedClass() throws Exception {
-        CategoricalInfo ci = new CategoricalInfo("cat");
-        IntStream.range(0, 10).forEach(i -> {
-            IntStream.range(0, i*2).forEach(j -> {
-                ci.observe(i);
-            });
-        });
+        CategoricalInfo ci = CategoricalInfoTest.generateProtoTestInfo();
 
         assertEquals(VariableInfoProto.class, ProtoUtil.getSerializedClass(ci));
         CategoricalIDInfo cidi = ci.makeIDInfo(12345);

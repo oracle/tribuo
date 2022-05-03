@@ -184,9 +184,6 @@ public class LinearScalingTest {
 
         Transformer tD = ProtoUtil.deserialize(tp);
         assertEquals(lst, tD);
-        
-        assertEquals(TransformerProto.class, ProtoUtil.getSerializedClass(lst));
-
-    }    
+    }
 
 }

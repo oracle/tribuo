@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,16 @@
 package org.tribuo;
 
 import org.junit.jupiter.api.Test;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.CategoricalIDInfoProto;
+import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.SplittableRandom;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -62,6 +70,18 @@ public class CategoricalInfoTest {
         }
 
         return newInfo;
+    }
+
+    public static CategoricalInfo generateProtoTestInfo() {
+        CategoricalInfo ci = new CategoricalInfo("cat");
+
+        IntStream.range(0, 10).forEach(i -> {
+            IntStream.range(0, i*2).forEach(j -> {
+                ci.observe(i);
+            });
+        });
+
+         return ci;
     }
 
     public void checkValueAndProb(CategoricalInfo c, double value, double probability) {
@@ -174,4 +194,107 @@ public class CategoricalInfoTest {
         assertNotEquals(fullFirst,oneFirst);
     }
 
+    @Test
+    void testCategoricalInfo() throws Exception {
+        CategoricalInfo info = new CategoricalInfo("cat");
+        IntStream.range(0, 10).forEach(i -> {
+            IntStream.range(0, i*2).forEach(j -> {
+                info.observe(i);
+            });
+        });
+
+        VariableInfoProto infoProto = info.serialize();
+        assertEquals(0, infoProto.getVersion());
+        assertEquals("org.tribuo.CategoricalInfo", infoProto.getClassName());
+        CategoricalInfoProto proto = infoProto.getSerializedData().unpack(CategoricalInfoProto.class);
+        assertEquals("cat", proto.getName());
+        assertEquals(90, proto.getCount());
+        assertEquals(0, proto.getObservedCount());
+        assertEquals(Double.NaN, proto.getObservedValue());
+
+        List<Double> keyList = proto.getKeyList();
+        List<Long> valueList = proto.getValueList();
+
+        assertEquals(9, keyList.size());
+        assertEquals(9, valueList.size());
+
+        Map<Double, Long> expectedCounts = new HashMap<>();
+        IntStream.range(0, 10).forEach(i -> {
+            long count = info.getObservationCount(i);
+            expectedCounts.put((double)i, count);
+        });
+
+        for (int i=0; i<keyList.size(); i++) {
+            assertEquals(expectedCounts.get(keyList.get(i)), valueList.get(i));
+        }
+
+        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(info, infoD);
+    }
+
+    @Test
+    void testCategoricalInfo2() throws Exception {
+        CategoricalInfo info = new CategoricalInfo("cat");
+        IntStream.range(0, 10).forEach(i -> {
+            info.observe(5);
+        });
+
+        VariableInfoProto infoProto = info.serialize();
+        assertEquals(0, infoProto.getVersion());
+        assertEquals("org.tribuo.CategoricalInfo", infoProto.getClassName());
+        CategoricalInfoProto proto = infoProto.getSerializedData().unpack(CategoricalInfoProto.class);
+        assertEquals("cat", proto.getName());
+        assertEquals(10, proto.getCount());
+
+        List<Double> keyList = proto.getKeyList();
+        List<Long> valueList = proto.getValueList();
+
+        assertEquals(0, keyList.size());
+        assertEquals(0, valueList.size());
+        assertEquals(5, proto.getObservedValue());
+        assertEquals(10, proto.getObservedCount());
+
+        VariableInfo infoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(info, infoD);
+    }
+
+    @Test
+    void testCategoricalIdInfo() throws Exception {
+        CategoricalInfo info = new CategoricalInfo("cat");
+        IntStream.range(0, 10).forEach(i -> {
+            IntStream.range(0, i*2).forEach(j -> {
+                info.observe(i);
+            });
+        });
+
+        CategoricalIDInfo idInfo = info.makeIDInfo(12345);
+
+        VariableInfoProto infoProto = idInfo.serialize();
+        assertEquals(0, infoProto.getVersion());
+        assertEquals("org.tribuo.CategoricalIDInfo", infoProto.getClassName());
+        CategoricalIDInfoProto proto = infoProto.getSerializedData().unpack(CategoricalIDInfoProto.class);
+        assertEquals("cat", proto.getName());
+        assertEquals(90, proto.getCount());
+        assertEquals(12345, proto.getId());
+        assertEquals(0, proto.getObservedCount());
+        assertEquals(Double.NaN, proto.getObservedValue());
+
+        List<Double> keyList = proto.getKeyList();
+        List<Long> valueList = proto.getValueList();
+
+        assertEquals(keyList.size(), valueList.size());
+
+        Map<Double, Long> expectedCounts = new HashMap<>();
+        IntStream.range(0, 10).forEach(i -> {
+            long count = idInfo.getObservationCount(i);
+            expectedCounts.put((double)i, count);
+        });
+
+        for (int i=0; i<keyList.size(); i++) {
+            assertEquals(expectedCounts.get(keyList.get(i)), valueList.get(i));
+        }
+
+        VariableInfo idInfoD = ProtoUtil.deserialize(infoProto);
+        assertEquals(idInfo, idInfoD);
+    }
 }
