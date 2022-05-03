@@ -16,6 +16,20 @@
 
 package org.tribuo.hash;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.MessageDigestHasherProto;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.charset.Charset;
@@ -28,21 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
-
-import org.tribuo.protos.ProtoSerializableClass;
-import org.tribuo.protos.ProtoSerializableField;
-import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.HasherProto;
-import org.tribuo.protos.core.MessageDigestHasherProto;
-
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.config.Config;
-import com.oracle.labs.mlrg.olcut.config.PropertyException;
-import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 
 /**
  * Hashes Strings using the supplied MessageDigest type.
@@ -58,7 +57,6 @@ public final class MessageDigestHasher extends Hasher {
 
     static final String HASH_TYPE = "hashType";
 
-    
     @Config(mandatory = true,description="MessageDigest hashing function.")
     @ProtoSerializableField
     private String hashType;

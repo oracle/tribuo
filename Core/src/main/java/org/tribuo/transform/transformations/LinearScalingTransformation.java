@@ -22,7 +22,6 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
-
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
@@ -264,17 +263,6 @@ public final class LinearScalingTransformation implements Transformation {
         @Override
         public TransformerProto serialize() {
             return ProtoUtil.serialize(this);
-//            TransformerProto.Builder protoBuilder = TransformerProto.newBuilder();
-//
-//            protoBuilder.setVersion(0);
-//            protoBuilder.setClassName(this.getClass().getName());
-//
-//            LinearScalingTransformerProto transformProto = LinearScalingTransformerProto.newBuilder()
-//                    .setObservedMin(observedMin).setObservedMax(observedMax)
-//                    .setTargetMin(targetMin).setTargetMax(targetMax).build();
-//            protoBuilder.setSerializedData(Any.pack(transformProto));
-//
-//            return protoBuilder.build();
         }
 
         @Override

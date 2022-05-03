@@ -19,10 +19,6 @@ package org.tribuo.transform.transformations;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
-
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
@@ -32,6 +28,10 @@ import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * A feature transformation that computes the IDF for features and then transforms

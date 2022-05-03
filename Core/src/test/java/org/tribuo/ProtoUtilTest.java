@@ -1,12 +1,22 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tribuo;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
-
+import com.google.protobuf.Message;
 import org.junit.jupiter.api.Test;
 import org.tribuo.hash.HashCodeHasher;
 import org.tribuo.hash.HashedFeatureMap;
@@ -23,10 +33,16 @@ import org.tribuo.protos.core.MessageDigestHasherProto;
 import org.tribuo.protos.core.ModHashCodeHasherProto;
 import org.tribuo.protos.core.RealIDInfoProto;
 import org.tribuo.protos.core.RealInfoProto;
-import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
-import com.google.protobuf.Message;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ProtoUtilTest {
 
@@ -278,11 +294,7 @@ public class ProtoUtilTest {
         assertThrows(IllegalArgumentException.class, () -> ProtoUtil.getSerializedClass(new PSB2<RealInfoProto>()));
     }
 
-
-    
-    public static interface IPS<W, X, Y extends Message> extends ProtoSerializable<Y>{
-        
-    }
+    public static interface IPS<W, X, Y extends Message> extends ProtoSerializable<Y>{ }
     
     public static class PSA<A, B extends Message> implements IPS<String, String, B>{
 
@@ -293,17 +305,11 @@ public class ProtoUtilTest {
         
     }
     
-    public static class PSB<C extends Message> extends PSA<String, C>{
-        
-    }
+    public static class PSB<C extends Message> extends PSA<String, C>{ }
 
-    public static class PSC extends PSB<CategoricalIDInfoProto>{
-        
-    }
+    public static class PSC extends PSB<CategoricalIDInfoProto>{ }
 
-    public static interface IPS2<Y extends Message> extends ProtoSerializable<Y>{
-        
-    }
+    public static interface IPS2<Y extends Message> extends ProtoSerializable<Y>{ }
 
     //Tricky!  we purposefully mixed up the type variable names
     public static class PSA2<A, B extends Message, Y extends Message> implements IPS2<B>{
@@ -315,16 +321,10 @@ public class ProtoUtilTest {
         
     }
     
-    public static class PSB2<Y extends Message> extends PSA2<String, Y, CategoricalIDInfoProto>{
-        
-    }
+    public static class PSB2<Y extends Message> extends PSA2<String, Y, CategoricalIDInfoProto>{ }
 
-    public static class PSC2 extends PSB<RealIDInfoProto>{
-        
-    }
+    public static class PSC2 extends PSB<RealIDInfoProto>{ }
 
-    public static class PSD2 extends PSC2{
-        
-    }
+    public static class PSD2 extends PSC2{ }
     
 }

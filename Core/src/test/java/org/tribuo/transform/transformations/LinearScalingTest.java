@@ -16,6 +16,7 @@
 
 package org.tribuo.transform.transformations;
 
+import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -23,7 +24,6 @@ import org.tribuo.MutableDataset;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.LinearScalingTransformerProto;
-import org.tribuo.protos.core.MeanStdDevTransformerProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
@@ -33,8 +33,6 @@ import org.tribuo.transform.TransformationMap;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.transform.transformations.LinearScalingTransformation.LinearScalingTransformer;
-import org.tribuo.transform.transformations.MeanStdDevTransformation.MeanStdDevTransformer;
-import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;

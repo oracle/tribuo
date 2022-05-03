@@ -16,13 +16,13 @@
 
 package org.tribuo.transform.transformations;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.logging.Logger;
-
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
 import org.tribuo.protos.ProtoSerializableArrayField;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
@@ -35,13 +35,12 @@ import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
 import org.tribuo.util.Util;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.config.Config;
-import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * A Transformation which bins values.

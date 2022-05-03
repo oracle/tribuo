@@ -16,6 +16,7 @@
 
 package org.tribuo.transform.transformations;
 
+import org.junit.jupiter.api.Test;
 import org.tribuo.CategoricalInfo;
 import org.tribuo.Dataset;
 import org.tribuo.FeatureMap;
@@ -31,14 +32,14 @@ import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.transform.transformations.BinningTransformation.BinningTransformer;
 import org.tribuo.transform.transformations.BinningTransformation.BinningType;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 /**
  *

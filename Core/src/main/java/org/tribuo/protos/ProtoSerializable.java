@@ -18,22 +18,18 @@ package org.tribuo.protos;
 
 import com.google.protobuf.Message;
 import com.oracle.labs.mlrg.olcut.config.protobuf.ProtoProvenanceSerialization;
-import com.oracle.labs.mlrg.olcut.util.Pair;
 
 /**
  * Interface for serializing an implementing object to the specified protobuf.
  * <p>
  * All classes which implement this interface must expose a static method called
- * {@link org.tribuo.util.ProtoUtil#DESERIALIZATION_METHOD_NAME} which
+ * {@link ProtoUtil#DESERIALIZATION_METHOD_NAME} which
  * accepts three arguments (int version, String className, com.google.protobuf.Any message)
  * and returns an instance of this class.
  * We can't require this with the type system yet, so it must be checked by tests.
  * <p>
  * The deserialization factory is accessed reflectively, and so if it is not public
  * the module must be opened to the {@code org.tribuo.core} module.
- * <p>
- * If the type being deserialized changes its name then a redirect can be added via
- * {@link org.tribuo.util.ProtoUtil#registerRedirect(Pair, String)}.
  * @param <T> The protobuf type.
  */
 public interface ProtoSerializable<T extends Message> {
@@ -43,6 +39,10 @@ public interface ProtoSerializable<T extends Message> {
      */
     public static final ProtoProvenanceSerialization PROVENANCE_SERIALIZER = new ProtoProvenanceSerialization(false);
 
+    /**
+     * Serializes this object to a protobuf.
+     * @return The protobuf
+     */
     public T serialize();
 
 }

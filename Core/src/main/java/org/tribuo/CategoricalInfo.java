@@ -16,6 +16,18 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import com.oracle.labs.mlrg.olcut.util.MutableNumber;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoSerializableKeysValuesField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.util.Util;
+
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -25,20 +37,6 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.stream.Collectors;
-
-import org.tribuo.protos.ProtoSerializableClass;
-import org.tribuo.protos.ProtoSerializableField;
-import org.tribuo.protos.ProtoSerializableKeysValuesField;
-import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.CategoricalInfoProto;
-import org.tribuo.protos.core.TransformerProto;
-import org.tribuo.protos.core.VariableInfoProto;
-import org.tribuo.util.Util;
-
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import com.oracle.labs.mlrg.olcut.util.MutableNumber;
 
 /**
  * Stores information about Categorical features.
@@ -60,8 +58,6 @@ import com.oracle.labs.mlrg.olcut.util.MutableNumber;
  */
 @ProtoSerializableClass(serializedDataClass = CategoricalInfoProto.class)
 public class CategoricalInfo extends SkeletalVariableInfo {
-    private Object object;
-
     private static final long serialVersionUID = 2L;
 
     private static final MutableLong ZERO = new MutableLong(0);
@@ -169,7 +165,6 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         return ProtoUtil.serialize(this);
     }
 
-    
     @Override
     protected void observe(double value) {
         if (value != 0.0) {

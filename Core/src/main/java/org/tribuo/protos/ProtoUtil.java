@@ -16,6 +16,12 @@
 
 package org.tribuo.protos;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.Message;
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,18 +34,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.Descriptors.FieldDescriptor;
-import com.google.protobuf.GeneratedMessageV3;
-import com.google.protobuf.Message;
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
-
 /**
  * Utilities for working with Tribuo protobufs.
  */
 public final class ProtoUtil {
 
     public static final String DESERIALIZATION_METHOD_NAME = "deserializeFromProto";
+
+    /**
+     * Private final constructor for static utility class.
+     */
+    private ProtoUtil() {}
 
     /**
      * Instantiates the class from the supplied protobuf fields.
@@ -62,20 +67,20 @@ public final class ProtoUtil {
      *     <li>the constructor could not be invoked due to its accessibility, or is in some other way invalid</li>
      *     <li>the constructor threw an exception</li>
      * </ul>
-     * @param version The version number of the protobuf.
+     *
+     * @param version   The version number of the protobuf.
      * @param className The class name of the serialized object.
-     * @param message The object's serialized representation.
+     * @param message   The object's serialized representation.
      * @return The deserialized object.
      */
-
     public static <SERIALIZED extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(SERIALIZED serialized) {
 
-            //extract version from serialized
-            FieldDescriptor fieldDescriptor = serialized.getDescriptorForType().findFieldByName("version");
-            int version = ((Integer) serialized.getField(fieldDescriptor)).intValue();
-            //extract class_name of return value from serialized
-            fieldDescriptor = serialized.getDescriptorForType().findFieldByName("class_name");
-            String targetClassName = (String) serialized.getField(fieldDescriptor);
+        //extract version from serialized
+        FieldDescriptor fieldDescriptor = serialized.getDescriptorForType().findFieldByName("version");
+        int version = ((Integer) serialized.getField(fieldDescriptor)).intValue();
+        //extract class_name of return value from serialized
+        fieldDescriptor = serialized.getDescriptorForType().findFieldByName("class_name");
+        String targetClassName = (String) serialized.getField(fieldDescriptor);
 
         try {
             @SuppressWarnings("unchecked")
@@ -100,16 +105,10 @@ public final class ProtoUtil {
             throw new IllegalStateException("The deserialization method for " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName + " threw an exception", e);
         }
     }
-    
-    /**
-     * Private final constructor for static utility class.
-     */
-    private ProtoUtil() {}
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <SERIALIZED_CLASS extends Message, SERIALIZED_DATA extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> SERIALIZED_CLASS serialize(PROTO_SERIALIZABLE protoSerializable) {
         try {
-
             ProtoSerializableClass annotation = protoSerializable.getClass().getAnnotation(ProtoSerializableClass.class);
             if (annotation == null) {
                 throw new IllegalArgumentException("instance of ProtoSerializable must be annotated with @ProtoSerializableClass to be serialized with ProtoUtil.serialize()");
@@ -131,14 +130,14 @@ public final class ProtoUtil {
                 for (Field field : getFields(protoSerializable.getClass())) {
                     field.setAccessible(true);
                     Object obj = field.get(protoSerializable);
-                    
+
                     ProtoSerializableField protoSerializableField = field.getAnnotation(ProtoSerializableField.class);
                     if (protoSerializableField != null) {
                         String fieldName = protoSerializableField.name();
                         if (fieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
                             fieldName = field.getName();
                         }
-                        
+
                         Method setter = findMethod(serializedDataBuilderClass, "set", fieldName, 1);
                         obj = convert(obj);
                         setter.setAccessible(true);
@@ -151,7 +150,7 @@ public final class ProtoUtil {
                         if (fieldName.equals(ProtoSerializableArrayField.DEFAULT_FIELD_NAME)) {
                             fieldName = field.getName();
                         }
-                        
+
                         Method setter = findMethod(serializedDataBuilderClass, "addAll", fieldName, 1);
                         obj = toList(obj);
                         setter.setAccessible(true);
@@ -165,7 +164,7 @@ public final class ProtoUtil {
                         Method valueAdder = findMethod(serializedDataBuilderClass, "add", pskvf.valuesName(), 1);
                         valueAdder.setAccessible(true);
                         Map map = (Map) obj;
-                        if(map != null) {
+                        if (map != null) {
                             Set<Map.Entry> entrySet = map.entrySet();
                             for (Map.Entry e : entrySet) {
                                 keyAdder.invoke(serializedDataBuilder, convert(e.getKey()));
@@ -173,7 +172,7 @@ public final class ProtoUtil {
                             }
                         }
                     }
-                    
+
                     ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
                     if (psmvf != null) {
                         Method valuesAdder = findMethod(serializedDataBuilderClass, "addAll", psmvf.valuesName(), 1);
@@ -187,67 +186,65 @@ public final class ProtoUtil {
             }
             return (SERIALIZED_CLASS) serializedClassBuilder.build();
         } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException
-                | SecurityException e) {
+                 | SecurityException e) {
             throw new RuntimeException(e);
         }
     }
 
     private static Object toList(Object obj) {
-        if(obj instanceof double[]) {
+        if (obj instanceof double[]) {
             List<Double> doubles = new ArrayList<>();
-            for(double db : (double[])obj) {
+            for (double db : (double[]) obj) {
                 doubles.add(db);
             }
             return doubles;
         }
-        throw new RuntimeException("unable to convert "+obj+" to list");
+        throw new RuntimeException("unable to convert " + obj + " to list");
     }
 
-    @SuppressWarnings("unchecked")
     public static <SERIALIZED_CLASS extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
+        @SuppressWarnings("unchecked")
         Class<SERIALIZED_CLASS> serializedClass = (Class<SERIALIZED_CLASS>) resolveTypeParameter(ProtoSerializable.class, protoSerializable.getClass(), ProtoSerializable.class.getTypeParameters()[0]);
-        if(serializedClass != null) {
+        if (serializedClass != null) {
             return serializedClass;
         }
         String tpName = ProtoSerializable.class.getTypeParameters()[0].getName();
-        throw new IllegalArgumentException("unable to resolve type parameter '"+ tpName +"' in ProtoSerializable<"+tpName+"> for class "+protoSerializable.getClass().getName());
+        throw new IllegalArgumentException("unable to resolve type parameter '" + tpName + "' in ProtoSerializable<" + tpName + "> for class " + protoSerializable.getClass().getName());
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private static List toList(Map obj) {
-        List values = new ArrayList();
-        for(Object value : obj.values()) {
+    private static List<Object> toList(Map<?,?> obj) {
+        List<Object> values = new ArrayList<>();
+        for (Object value : obj.values()) {
             values.add(convert(value));
         }
         return values;
     }
 
-    @SuppressWarnings("rawtypes")
     private static Object convert(Object obj) {
         if (obj instanceof ProtoSerializable) {
-            return ((ProtoSerializable) obj).serialize();
+            return ((ProtoSerializable<?>) obj).serialize();
         }
         if (obj instanceof MutableLong) {
             return ((MutableLong) obj).longValue();
         }
         if (obj.getClass().isEnum()) {
-            return ((Enum) obj).name();
+            return ((Enum<?>) obj).name();
         }
         return obj;
     }
 
     private static List<Field> getFields(Class<?> class1) {
         Set<String> fieldNameSet = new HashSet<>();
-        List<Field> fields = new ArrayList<>();    
-        _getFields(class1, fieldNameSet, fields);
+        List<Field> fields = new ArrayList<>();
+        getFields(class1, fieldNameSet, fields);
         return fields;
     }
-    
-    private static void _getFields(Class<?> class1, Set<String> fieldNameSet, List<Field> fields) {
-        for (Field field : class1.getDeclaredFields()) {
+
+    private static void getFields(Class<?> clazz, Set<String> fieldNameSet, List<Field> fields) {
+        for (Field field : clazz.getDeclaredFields()) {
             String protoFieldName = null;
             ProtoSerializableField psf = field.getAnnotation(ProtoSerializableField.class);
-            if(psf != null) {
+            if (psf != null) {
                 protoFieldName = psf.name();
                 if (protoFieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
                     protoFieldName = field.getName();
@@ -260,7 +257,7 @@ public final class ProtoUtil {
             }
 
             ProtoSerializableArrayField psaf = field.getAnnotation(ProtoSerializableArrayField.class);
-            if (psaf !=null) {
+            if (psaf != null) {
                 protoFieldName = psaf.name();
                 if (protoFieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
                     protoFieldName = field.getName();
@@ -271,40 +268,39 @@ public final class ProtoUtil {
                 fieldNameSet.add(field.getName());
                 continue;
             }
-            
-            
+
+
             ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
-            if (pskvf !=null) {
+            if (pskvf != null) {
                 String keyName = pskvf.keysName();
                 String valueName = pskvf.valuesName();
-                if(fieldNameSet.contains(keyName) && fieldNameSet.contains(valueName)) {
+                if (fieldNameSet.contains(keyName) && fieldNameSet.contains(valueName)) {
                     continue;
                 }
-                if(fieldNameSet.contains(keyName) || fieldNameSet.contains(valueName)) {
-                    throw new RuntimeException("ProtoSerializableKeysValuesField on "+class1.getName()+"."+field.getName()+" collides with another protoserializable annotation");
+                if (fieldNameSet.contains(keyName) || fieldNameSet.contains(valueName)) {
+                    throw new RuntimeException("ProtoSerializableKeysValuesField on " + clazz.getName() + "." + field.getName() + " collides with another protoserializable annotation");
                 }
                 fields.add(field);
                 fieldNameSet.add(keyName);
                 fieldNameSet.add(valueName);
                 continue;
             }
-            
+
             ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
-            if (psmvf !=null) {
+            if (psmvf != null) {
                 String valuesName = psmvf.valuesName();
-                if(fieldNameSet.contains(valuesName)) {
+                if (fieldNameSet.contains(valuesName)) {
                     continue;
                 }
                 fields.add(field);
                 fieldNameSet.add(valuesName);
                 continue;
             }
-
         }
 
-        Class<?> superclass = class1.getSuperclass();
-        if(superclass != null && !superclass.equals(Object.class)) {
-            _getFields(superclass, fieldNameSet, fields);
+        Class<?> superclass = clazz.getSuperclass();
+        if (superclass != null && !superclass.equals(Object.class)) {
+            getFields(superclass, fieldNameSet, fields);
         }
     }
 
@@ -313,20 +309,20 @@ public final class ProtoUtil {
 
         for (Method method : serializedDataBuilderClass.getMethods()) {
             if (method.getName().equals(methodName)) {
-                if(method.getParameterTypes().length != expectedParamCount) {
+                if (method.getParameterTypes().length != expectedParamCount) {
                     continue;
                 }
-                if(expectedParamCount == 0) {
+                if (expectedParamCount == 0) {
                     return method;
                 }
-                Class<?> class1 = method.getParameterTypes()[0];
-                if(com.google.protobuf.GeneratedMessageV3.Builder.class.isAssignableFrom(class1)) {
+                Class<?> clazz = method.getParameterTypes()[0];
+                if (com.google.protobuf.GeneratedMessageV3.Builder.class.isAssignableFrom(clazz)) {
                     continue;
                 }
                 return method;
             }
         }
-        throw new IllegalArgumentException("unable to find method "+methodName+" for field name: " + fieldName + " in class: "
+        throw new IllegalArgumentException("Unable to find method " + methodName + " for field name: " + fieldName + " in class: "
                 + serializedDataBuilderClass.getName());
     }
 
@@ -337,36 +333,34 @@ public final class ProtoUtil {
         sb.append(name.substring(1));
         return sb.toString();
     }
-    
 
-    
     /**
-     * @param <I> the type of the generic interface
-     * @param <C> the type of the subclass we are trying to resolve the parameter for
-     * @param intrface a generically typed interface/class that has a type parameter that we want to resolve
-     * @param clazz a subclass of intrface that we to resolve the type parameter for (if possible)
+     * @param <I>          the type of the generic interface
+     * @param <C>          the type of the subclass we are trying to resolve the parameter for
+     * @param intrface     a generically typed interface/class that has a type parameter that we want to resolve
+     * @param clazz        a subclass of intrface that we to resolve the type parameter for (if possible)
      * @param typeVariable the type variable/parameter that we want resolved (e.g. the type variable corresponding to &lt;T&gt;)
      * @return null if the type parameter has not been resolved, otherwise the class type of the type parameter for the provided class.
      */
     private static <I, C extends I> Class<?> resolveTypeParameter(Class<I> intrface, Class<C> clazz, TypeVariable<?> typeVariable) {
         return resolveTypeParameter(intrface, clazz, new MutableTypeVariable(typeVariable));
     }
-    
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static <I, C extends I> Class<?> resolveTypeParameter(Class<I> intrface, Class<C> clazz, MutableTypeVariable typeVariable) {
-        //go up the class hierarchy until super class is no longer a assignable to the interface
+        //go up the class hierarchy until super class is no longer assignable to the interface
         Class superClass = clazz.getSuperclass();
-        if(superClass != null && intrface.isAssignableFrom(superClass)) {
+        if (superClass != null && intrface.isAssignableFrom(superClass)) {
             Class<?> serializedClass = resolveTypeParameter(intrface, superClass, typeVariable);
-            if(serializedClass != null) {
+            if (serializedClass != null) {
                 return serializedClass;
             }
         }
         //go up the interfaces hierarchy - but only those assignable to the interface
-        for(Class iface : clazz.getInterfaces()) {
-            if(intrface.isAssignableFrom(iface) && !intrface.equals(iface)) {
+        for (Class iface : clazz.getInterfaces()) {
+            if (intrface.isAssignableFrom(iface) && !intrface.equals(iface)) {
                 Class<?> serializedClass = resolveTypeParameter(intrface, iface, typeVariable);
-                if(serializedClass != null) {
+                if (serializedClass != null) {
                     return serializedClass;
                 }
             }
@@ -374,88 +368,86 @@ public final class ProtoUtil {
 
         //get all the generic supertypes that are parameterized types (but only those
         //assignable to the interface)
-        List<ParameterizedType> pts = getGenericSuperParameterizedTypes(intrface, clazz); 
+        List<ParameterizedType> pts = getGenericSuperParameterizedTypes(intrface, clazz);
 
         //loop over each and get the type of the type variable for the typed generic interface
-        for(ParameterizedType genericInterface : pts) {
+        for (ParameterizedType genericInterface : pts) {
             Type t = getParameterType(genericInterface, typeVariable.var);
             //if the resulting type is another type variable, then we need to update the 
             //type variable that we are trying to match against
-            if(t instanceof TypeVariable) {
+            if (t instanceof TypeVariable) {
                 typeVariable.var = (TypeVariable) t;
             }
-            //otherwise, we are done and we can return the class typ of the type variable.
-            else if(t instanceof Class) {
-                return (Class) t;
+            //otherwise, we are done and we can return the class type of the type variable.
+            else if (t instanceof Class) {
+                return (Class<?>) t;
             }
         }
-        
+
         return null;
     }
 
     /**
      * Puts the generic superclass and generic interfaces into a single list
-     * to make it easy to iterate over each in a single collection.  All 
+     * to make it easy to iterate over each in a single collection.  All
      * returned values will be of type ParameterizedType and assignable to the
      * intface (i.e. subclass sub-interface).
+     *
      * @param clazz the class definition to find the  generic parameterized types for.
      * @return
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private static List<ParameterizedType> getGenericSuperParameterizedTypes(Class intrface, Class clazz){
+    private static List<ParameterizedType> getGenericSuperParameterizedTypes(Class<?> intrface, Class<?> clazz) {
         List<ParameterizedType> pts = new ArrayList<>();
         Type genericSuperclass = clazz.getGenericSuperclass();
-        if(genericSuperclass instanceof ParameterizedType) {
-            pts.add((ParameterizedType)genericSuperclass);
+        if (genericSuperclass instanceof ParameterizedType) {
+            pts.add((ParameterizedType) genericSuperclass);
         }
-        for(Type genericInterface : clazz.getGenericInterfaces()) {
-            if(genericInterface instanceof ParameterizedType) {
+        for (Type genericInterface : clazz.getGenericInterfaces()) {
+            if (genericInterface instanceof ParameterizedType) {
                 ParameterizedType pt = (ParameterizedType) genericInterface;
-                if(intrface.isAssignableFrom((Class)pt.getRawType())) {
+                if (intrface.isAssignableFrom((Class<?>) pt.getRawType())) {
                     pts.add((ParameterizedType) genericInterface);
                 }
             }
         }
         return pts;
     }
-    
+
     /**
      * a class or type variable corresponding to the parameterized type's parameter
      * type for the given type variable The returned type will either be a class if
      * specified or another type variable if not.
-     * 
-     * @param parameterizedType - either a generic superclass or a generic interface
-     * @param typeVariable      - a type variable corresponding to e.g. &lt;T&gt;
+     *
+     * @param parameterizedType either a generic superclass or a generic interface
+     * @param typeVariable      a type variable corresponding to e.g. &lt;T&gt;
      * @return a class or type variable corresponding to the parameterized type's
-     *         parameter type for the given type variable
+     * parameter type for the given type variable
      */
     @SuppressWarnings("rawtypes")
-    private static Type getParameterType(ParameterizedType parameterizedType, TypeVariable typeVariable) {
-       Type rawType = parameterizedType.getRawType();
-       if(rawType instanceof Class) {
-           TypeVariable[] typeParameters = ((Class) rawType).getTypeParameters();
-           Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-           if(typeParameters.length == actualTypeArguments.length) {
-               for(int i=0; i<typeParameters.length; i++) {
-                   TypeVariable tp = typeParameters[i];
-                   if(tp.getName().equals(typeVariable.getName())) {
-                       Type actualTypeArgument = actualTypeArguments[i];
-                       return actualTypeArgument;
-                   }
-               }
-           }
+    private static Type getParameterType(ParameterizedType parameterizedType, TypeVariable<?> typeVariable) {
+        Type rawType = parameterizedType.getRawType();
+        if (rawType instanceof Class) {
+            TypeVariable<?>[] typeParameters = ((Class<?>) rawType).getTypeParameters();
+            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+            if (typeParameters.length == actualTypeArguments.length) {
+                for (int i = 0; i < typeParameters.length; i++) {
+                    TypeVariable<?> tp = typeParameters[i];
+                    if (tp.getName().equals(typeVariable.getName())) {
+                        Type actualTypeArgument = actualTypeArguments[i];
+                        return actualTypeArgument;
+                    }
+                }
+            }
         }
         return null;
     }
 
-    @SuppressWarnings("rawtypes")
-    private static class MutableTypeVariable{
-        private TypeVariable var;
-        public MutableTypeVariable(TypeVariable var) {
+    private static final class MutableTypeVariable {
+        private TypeVariable<?> var;
+
+        MutableTypeVariable(TypeVariable<?> var) {
             this.var = var;
         }
     }
-    
 
-    
 }

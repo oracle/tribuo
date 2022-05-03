@@ -18,14 +18,9 @@ package org.tribuo;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-
-import org.tribuo.protos.core.CategoricalInfoProto;
-import org.tribuo.protos.core.RealIDInfoProto;
-import org.tribuo.protos.core.RealInfoProto;
-import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
-import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.RealIDInfoProto;
 
 import java.util.Objects;
 

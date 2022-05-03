@@ -16,20 +16,19 @@
 
 package org.tribuo;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.FeatureDomainProto;
 import org.tribuo.protos.core.ImmutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * ImmutableFeatureMap is used when unknown features should not be added to the FeatureMap.
@@ -199,6 +198,5 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
         }
         return outputMap;
     }
-
 
 }

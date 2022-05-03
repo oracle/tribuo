@@ -16,19 +16,6 @@
 
 package org.tribuo.transform.transformations;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.tribuo.transform.transformations.SimpleTransform.EPSILON;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.DoubleUnaryOperator;
-
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -46,6 +33,19 @@ import org.tribuo.transform.TransformationMap;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.transform.transformations.SimpleTransform.Operation;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.DoubleUnaryOperator;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.tribuo.transform.transformations.SimpleTransform.EPSILON;
 
 /**
  *
@@ -349,9 +349,6 @@ public class SimpleTransformTest {
         assertEquals(t, tD);
         
         assertEquals(TransformerProto.class, ProtoUtil.getSerializedClass(t));
-
-        
-    }    
-    
+    }
 
 }

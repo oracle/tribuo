@@ -16,17 +16,16 @@
 
 package org.tribuo;
 
-import java.util.Objects;
-
-import org.tribuo.protos.core.FeatureDomainProto;
-import org.tribuo.protos.core.MutableFeatureMapProto;
-import org.tribuo.protos.core.VariableInfoProto;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.MutableFeatureMapProto;
+import org.tribuo.protos.core.VariableInfoProto;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Objects;
 
 /**
  * A feature map that can record new feature value observations.

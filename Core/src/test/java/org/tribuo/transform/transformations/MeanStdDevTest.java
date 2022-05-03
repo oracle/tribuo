@@ -23,7 +23,6 @@ import org.tribuo.RealInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.MeanStdDevTransformerProto;
-import org.tribuo.protos.core.SimpleTransformProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
@@ -33,7 +32,6 @@ import org.tribuo.transform.TransformationMap;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.transform.transformations.MeanStdDevTransformation.MeanStdDevTransformer;
-import org.tribuo.transform.transformations.SimpleTransform.Operation;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;

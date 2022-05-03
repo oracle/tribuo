@@ -16,25 +16,22 @@
 
 package org.tribuo.hash;
 
-import java.util.Map;
-import java.util.TreeMap;
-
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
-import org.tribuo.protos.core.FeatureDomainProto;
-import org.tribuo.protos.core.HashedFeatureMapProto;
-import org.tribuo.protos.core.HasherProto;
-import org.tribuo.protos.core.ImmutableFeatureMapProto;
-import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.HashedFeatureMapProto;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.VariableInfoProto;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * A {@link FeatureMap} used by the {@link HashingTrainer} to

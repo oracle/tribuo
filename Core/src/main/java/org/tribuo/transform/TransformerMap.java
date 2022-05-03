@@ -28,13 +28,13 @@ import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.TransformerListProto;
 import org.tribuo.protos.core.TransformerMapProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformerMap.TransformerMapProvenance;
-import org.tribuo.protos.ProtoSerializable;
-import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;

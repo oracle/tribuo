@@ -148,7 +148,6 @@ public class RealInfo extends SkeletalVariableInfo {
         return ProtoUtil.serialize(this);
     }
 
-
     @Override
     protected void observe(double value) {
         if (value != 0.0) {

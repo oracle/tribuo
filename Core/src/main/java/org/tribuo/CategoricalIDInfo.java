@@ -16,17 +16,16 @@
 
 package org.tribuo;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.core.CategoricalIDInfoProto;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Same as a {@link CategoricalInfo}, but with an additional int id field.

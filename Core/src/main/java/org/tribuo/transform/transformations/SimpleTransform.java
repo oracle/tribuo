@@ -16,13 +16,13 @@
 
 package org.tribuo.transform.transformations;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.DoubleUnaryOperator;
-
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
@@ -33,13 +33,12 @@ import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
 
-import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.config.Config;
-import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.Provenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
-import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.DoubleUnaryOperator;
 
 /**
  * This is used for stateless functions such as exp, log, addition or multiplication by a constant.
@@ -110,8 +109,8 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
     @Config(description="Operand (if required).")
     private double operand = Double.NaN;
 
-    @Config(description="Second operand (if required).")
     @ProtoSerializableField
+    @Config(description="Second operand (if required).")
     private double secondOperand = Double.NaN;
 
     private SerializableDoubleUnaryOperator operation;
