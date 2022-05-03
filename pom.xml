@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo</artifactId>
-    <version>4.2.1-SNAPSHOT</version>
+    <version>4.2.1</version>
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
@@ -244,7 +244,7 @@
                         </tag>
                     </tags>
                     <overview>./Core/src/main/javadoc/overview.html</overview>
-                    <bottom>Copyright &#169; 2015&#x2013;2021 Oracle and/or its affiliates. All rights reserved.</bottom>
+                    <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
                     <groups>
                         <group>
                             <title>Core Packages</title>
@@ -301,7 +301,7 @@
                                 <additionalJOption>65536</additionalJOption>
                             </additionalJOptions>
                             <overview>./Core/src/main/javadoc/overview.html</overview>
-                            <bottom>Copyright &#169; 2015&#x2013;2021 Oracle and/or its affiliates. All rights reserved.</bottom>
+                            <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
                             <groups>
                                 <group>
                                     <title>Core Packages</title>
@@ -439,7 +439,7 @@
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>3.2.0</version>
                         <configuration>
-                            <bottom>Copyright &#169; 2015&#x2013;2021 Oracle and/or its affiliates. All rights reserved.</bottom>
+                            <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
                         </configuration>
                         <executions>
                             <execution>
