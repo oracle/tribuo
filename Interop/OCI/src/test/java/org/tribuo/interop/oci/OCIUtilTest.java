@@ -37,7 +37,6 @@ public class OCIUtilTest {
                 "test_conda",
                 "oci://service-conda-packs@id19sfcrra6z/service_pack/cpu/Onnx for CPU Python 3.7/1.0/test_conda");
         Path zip = OCIUtil.createModelArtifact(new File(OCIUtilTest.class.getResource("iris-lr-model.onnx").toURI()).toPath(),config);
-        System.out.println(zip);
         zip.toFile().delete();
     }
 
