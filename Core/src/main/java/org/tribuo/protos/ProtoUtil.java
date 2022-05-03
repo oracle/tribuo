@@ -19,6 +19,7 @@ package org.tribuo.protos;
 import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
+import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 
 import java.lang.reflect.Field;
@@ -41,8 +42,6 @@ import java.util.stream.Collectors;
  */
 public final class ProtoUtil {
 
-    public static final String DESERIALIZATION_METHOD_NAME = "deserializeFromProto";
-
     /**
      * Private final constructor for static utility class.
      */
@@ -56,7 +55,7 @@ public final class ProtoUtil {
      *     <li>Check to see if there is a valid redirect for this version & class name tuple.
      *     If there is then the new class name is used for the following steps.</li>
      *     <li>Lookup the class name and instantiate the {@link Class} object.</li>
-     *     <li>Find the 3 arg static method {@code  deserializeFromProto(int version, String className, com.google.protobuf.Any message)}.</li>
+     *     <li>Find the 3 arg static method {@code deserializeFromProto(int version, String className, com.google.protobuf.Any message)}.</li>
      *     <li>Call the method passing along the original three arguments (note this uses the
      *     original class name even if a redirect has been applied).</li>
      *     <li>Return the freshly constructed object, or rethrow any runtime exceptions.</li>
@@ -66,13 +65,13 @@ public final class ProtoUtil {
      * <ul>
      *     <li>the requested class could not be found on the classpath/modulepath</li>
      *     <li>the requested class does not have the necessary 3 arg constructor</li>
-     *     <li>the constructor could not be invoked due to its accessibility, or is in some other way invalid</li>
-     *     <li>the constructor threw an exception</li>
+     *     <li>the deserialization method could not be invoked due to its accessibility, or is in some other way invalid</li>
+     *     <li>the deserialization method threw an exception</li>
      * </ul>
      *
-     * @param version   The version number of the protobuf.
-     * @param className The class name of the serialized object.
-     * @param message   The object's serialized representation.
+     * @param serialized The protobuf to deserialize.
+     * @param <SERIALIZED> The protobuf type.
+     * @param <PROTO_SERIALIZABLE> The deserialized type.
      * @return The deserialized object.
      */
     public static <SERIALIZED extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(SERIALIZED serialized) {
@@ -91,7 +90,7 @@ public final class ProtoUtil {
             fieldDescriptor = serialized.getDescriptorForType().findFieldByName("serialized_data");
             Any serializedData = (Any) serialized.getField(fieldDescriptor);
 
-            Method method = protoSerializableClass.getDeclaredMethod(DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
+            Method method = protoSerializableClass.getDeclaredMethod(ProtoSerializable.DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
             method.setAccessible(true);
             @SuppressWarnings("unchecked")
             PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) method.invoke(null, version, targetClassName, serializedData);
@@ -100,15 +99,15 @@ public final class ProtoUtil {
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Failed to find class " + targetClassName, e);
         } catch (NoSuchMethodException e) {
-            throw new IllegalStateException("Failed to find deserialization method " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
+            throw new IllegalStateException("Failed to find deserialization method " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
         } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Failed to invoke deserialization method " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
+            throw new IllegalStateException("Failed to invoke deserialization method " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
         } catch (InvocationTargetException e) {
-            throw new IllegalStateException("The deserialization method for " + DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName + " threw an exception", e);
+            throw new IllegalStateException("The deserialization method for " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName + " threw an exception", e);
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings("unchecked")
     public static <SERIALIZED_CLASS extends Message, SERIALIZED_DATA extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> SERIALIZED_CLASS serialize(PROTO_SERIALIZABLE protoSerializable) {
         try {
             ProtoSerializableClass annotation = protoSerializable.getClass().getAnnotation(ProtoSerializableClass.class);
@@ -151,17 +150,16 @@ public final class ProtoUtil {
 
                     ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
                     if (pskvf != null) {
-                        if (!(obj instanceof Map)) {
+                        if (!(obj instanceof Map) && (obj != null)) {
                             throw new IllegalStateException("Field of type " + obj.getClass() + " was annotated with ProtoSerializableKeysValuesField which is only supported on java.util.Map fields");
                         }
                         Method keyAdder = findMethod(serializedDataBuilderClass, "add", pskvf.keysName(), 1);
                         keyAdder.setAccessible(true);
                         Method valueAdder = findMethod(serializedDataBuilderClass, "add", pskvf.valuesName(), 1);
                         valueAdder.setAccessible(true);
-                        Map map = (Map) obj;
+                        Map<?,?> map = (Map<?,?>) obj;
                         if (map != null) {
-                            Set<Map.Entry> entrySet = map.entrySet();
-                            for (Map.Entry e : entrySet) {
+                            for (Map.Entry<?,?> e : map.entrySet()) {
                                 keyAdder.invoke(serializedDataBuilder, convert(e.getKey()));
                                 valueAdder.invoke(serializedDataBuilder, convert(e.getValue()));
                             }
@@ -172,11 +170,11 @@ public final class ProtoUtil {
 
                     ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
                     if (psmvf != null) {
-                        if (!(obj instanceof Map)) {
+                        if (!(obj instanceof Map) && (obj != null)) {
                             throw new IllegalStateException("Field of type " + obj.getClass() + " was annotated with ProtoSerializableMapValuesField which is only supported on java.util.Map fields");
                         }
                         Method valuesAdder = findMethod(serializedDataBuilderClass, "addAll", psmvf.valuesName(), 1);
-                        obj = toList((Map) obj);
+                        obj = convertValues((Map<?,?>) obj);
                         valuesAdder.setAccessible(true);
                         valuesAdder.invoke(serializedDataBuilder, obj);
                         valuesAdder.setAccessible(false);
@@ -187,8 +185,7 @@ public final class ProtoUtil {
                 serializedClassBuilderClass.getMethod("setSerializedData", com.google.protobuf.Any.class).invoke(serializedClassBuilder, Any.pack(serializedDataBuilder.build()));
             }
             return (SERIALIZED_CLASS) serializedClassBuilder.build();
-        } catch (InvocationTargetException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException
-                 | SecurityException e) {
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }
@@ -196,6 +193,7 @@ public final class ProtoUtil {
     /**
      * If this class is annotated with {@link ProtoSerializableClass} returns the
      * version number, otherwise returns -1.
+     *
      * @param clazz The class to check.
      * @return The version number, or -1 if it does not use the annotation.
      */
@@ -208,17 +206,6 @@ public final class ProtoUtil {
         }
     }
 
-    private static Object toList(Object obj) {
-        if (obj instanceof double[]) {
-            List<Double> doubles = new ArrayList<>();
-            for (double db : (double[]) obj) {
-                doubles.add(db);
-            }
-            return doubles;
-        }
-        throw new RuntimeException("unable to convert " + obj + " to list");
-    }
-
     public static <SERIALIZED_CLASS extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> Class<SERIALIZED_CLASS> getSerializedClass(PROTO_SERIALIZABLE protoSerializable) {
         @SuppressWarnings("unchecked")
         Class<SERIALIZED_CLASS> serializedClass = (Class<SERIALIZED_CLASS>) resolveTypeParameter(ProtoSerializable.class, protoSerializable.getClass(), ProtoSerializable.class.getTypeParameters()[0]);
@@ -229,7 +216,7 @@ public final class ProtoUtil {
         throw new IllegalArgumentException("unable to resolve type parameter '" + tpName + "' in ProtoSerializable<" + tpName + "> for class " + protoSerializable.getClass().getName());
     }
 
-    private static List<Object> toList(Map<?,?> obj) {
+    private static List<Object> convertValues(Map<?, ?> obj) {
         List<Object> values = new ArrayList<>();
         for (Object value : obj.values()) {
             values.add(convert(value));
@@ -240,68 +227,83 @@ public final class ProtoUtil {
     private static Object convert(Object obj) {
         if (obj instanceof ProtoSerializable) {
             return ((ProtoSerializable<?>) obj).serialize();
-        }
-        if (obj instanceof MutableLong) {
+        } else if (obj instanceof MutableLong) {
             return ((MutableLong) obj).longValue();
-        }
-        if (obj.getClass().isEnum()) {
+        } else if (obj instanceof MutableDouble) {
+            return ((MutableDouble) obj).doubleValue();
+        } else if (obj.getClass().isEnum()) {
             return ((Enum<?>) obj).name();
-        }
-        if (obj instanceof double[]) {
+        } else if (obj instanceof int[]) {
+            int[] t = (int[]) obj;
+            return Arrays.stream(t).boxed().collect(Collectors.toList());
+        } else if (obj instanceof long[]) {
+            long[] t = (long[]) obj;
+            return Arrays.stream(t).boxed().collect(Collectors.toList());
+        } else if (obj instanceof float[]) {
+            float[] t = (float[]) obj;
+            List<Float> floats = new ArrayList<>();
+            for (float f : t) {
+                floats.add(f);
+            }
+            return floats;
+        } else if (obj instanceof double[]) {
             double[] t = (double[]) obj;
             return Arrays.stream(t).boxed().collect(Collectors.toList());
+        } else if (obj instanceof String[]) {
+            return Arrays.asList((String[]) obj);
+        } else {
+            return obj;
         }
-        return obj;
     }
 
-    private static List<Field> getFields(Class<?> class1) {
+    private static List<Field> getFields(Class<?> clazz) {
         Set<String> fieldNameSet = new HashSet<>();
         List<Field> fields = new ArrayList<>();
-        getFields(class1, fieldNameSet, fields);
+        getFields(clazz, fieldNameSet, fields);
         return fields;
     }
 
     private static void getFields(Class<?> clazz, Set<String> fieldNameSet, List<Field> fields) {
         for (Field field : clazz.getDeclaredFields()) {
-            String protoFieldName = null;
             ProtoSerializableField psf = field.getAnnotation(ProtoSerializableField.class);
-            if (psf != null) {
-                protoFieldName = psf.name();
-                if (protoFieldName.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
-                    protoFieldName = field.getName();
-                }
-                if (fieldNameSet.contains(protoFieldName))
-                    continue;
-                fields.add(field);
-                fieldNameSet.add(field.getName());
-                continue;
-            }
-
             ProtoSerializableKeysValuesField pskvf = field.getAnnotation(ProtoSerializableKeysValuesField.class);
-            if (pskvf != null) {
+            ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
+            if ((psf != null) && (pskvf == null) && (psmvf == null)) {
+                String protoFieldName;
+                if (psf.equals(ProtoSerializableField.DEFAULT_FIELD_NAME)) {
+                    protoFieldName = field.getName();
+                } else {
+                    protoFieldName = psf.name();
+                }
+                if (!fieldNameSet.contains(protoFieldName)) {
+                    fields.add(field);
+                    fieldNameSet.add(field.getName());
+                }
+            } else if ((psf == null) && (pskvf != null) && (psmvf == null)) {
                 String keyName = pskvf.keysName();
                 String valueName = pskvf.valuesName();
                 if (fieldNameSet.contains(keyName) && fieldNameSet.contains(valueName)) {
                     continue;
                 }
                 if (fieldNameSet.contains(keyName) || fieldNameSet.contains(valueName)) {
-                    throw new RuntimeException("ProtoSerializableKeysValuesField on " + clazz.getName() + "." + field.getName() + " collides with another protoserializable annotation");
+                    throw new IllegalStateException("ProtoSerializableKeysValuesField on " + clazz.getName() + "." + field.getName() + " collides with another ProtoSerializable annotation");
                 }
                 fields.add(field);
                 fieldNameSet.add(keyName);
                 fieldNameSet.add(valueName);
-                continue;
-            }
-
-            ProtoSerializableMapValuesField psmvf = field.getAnnotation(ProtoSerializableMapValuesField.class);
-            if (psmvf != null) {
+            } else if ((psf == null) && (pskvf == null) && (psmvf != null)) {
                 String valuesName = psmvf.valuesName();
-                if (fieldNameSet.contains(valuesName)) {
-                    continue;
+                if (!fieldNameSet.contains(valuesName)) {
+                    fields.add(field);
+                    fieldNameSet.add(valuesName);
                 }
-                fields.add(field);
-                fieldNameSet.add(valuesName);
-                continue;
+            } else if ((psf != null) || (pskvf != null) || (psmvf != null)) {
+                String message = "Multiple ProtoSerializable annotations applied to the same field, found "
+                        + "ProtoSerializableField = " + psf
+                        + ", ProtoSerializableKeysValuesField = " + pskvf
+                        + ", ProtoSerializableMapValuesField = " + psmvf
+                        + " on field named " + field.getName() + " of class " + clazz;
+                throw new IllegalStateException(message);
             }
         }
 

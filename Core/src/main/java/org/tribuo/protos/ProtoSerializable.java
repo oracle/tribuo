@@ -23,7 +23,7 @@ import com.oracle.labs.mlrg.olcut.config.protobuf.ProtoProvenanceSerialization;
  * Interface for serializing an implementing object to the specified protobuf.
  * <p>
  * All classes which implement this interface must expose a static method called
- * {@link ProtoUtil#DESERIALIZATION_METHOD_NAME} which
+ * {@link ProtoSerializable#DESERIALIZATION_METHOD_NAME} which
  * accepts three arguments (int version, String className, com.google.protobuf.Any message)
  * and returns an instance of this class.
  * We can't require this with the type system yet, so it must be checked by tests.
@@ -38,6 +38,11 @@ public interface ProtoSerializable<T extends Message> {
      * Serializer used for provenance objects.
      */
     public static final ProtoProvenanceSerialization PROVENANCE_SERIALIZER = new ProtoProvenanceSerialization(false);
+
+    /**
+     * The name of the static deserialization method for {@link ProtoSerializable} classes.
+     */
+    public static final String DESERIALIZATION_METHOD_NAME = "deserializeFromProto";
 
     /**
      * Serializes this object to a protobuf.
