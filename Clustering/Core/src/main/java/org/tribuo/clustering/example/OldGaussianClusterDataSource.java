@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,10 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
+import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.tribuo.ConfigurableDataSource;
+import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.OutputFactory;
@@ -30,7 +33,6 @@ import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.impl.ArrayExample;
-import org.tribuo.math.rng.MultivariateNormalDistribution;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.util.Util;
@@ -60,7 +62,7 @@ import java.util.Random;
  * and the mixing distribution is:
  * [0.1, 0.35, 0.05, 0.25, 0.25].
  */
-public final class GaussianClusterDataSource implements ConfigurableDataSource<ClusterID> {
+public final class OldGaussianClusterDataSource implements ConfigurableDataSource<ClusterID> {
 
     private static final ClusteringFactory factory = new ClusteringFactory();
 
@@ -112,7 +114,7 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
     /**
      * For OLCUT.
      */
-    private GaussianClusterDataSource() {
+    private OldGaussianClusterDataSource() {
     }
 
     /**
@@ -132,7 +134,7 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
      * @param numSamples The size of the output dataset.
      * @param seed       The rng seed to use.
      */
-    public GaussianClusterDataSource(int numSamples, long seed) {
+    public OldGaussianClusterDataSource(int numSamples, long seed) {
         this.numSamples = numSamples;
         this.seed = seed;
         postConfig();
@@ -157,13 +159,13 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
      * @param fifthVariance      The variance of the fifth Gaussian, linearised from a row-major matrix.
      * @param seed               The rng seed to use.
      */
-    public GaussianClusterDataSource(int numSamples, double[] mixingDistribution,
-                                        double[] firstMean, double[] firstVariance,
-                                        double[] secondMean, double[] secondVariance,
-                                        double[] thirdMean, double[] thirdVariance,
-                                        double[] fourthMean, double[] fourthVariance,
-                                        double[] fifthMean, double[] fifthVariance,
-                                        long seed) {
+    public OldGaussianClusterDataSource(int numSamples, double[] mixingDistribution,
+                                     double[] firstMean, double[] firstVariance,
+                                     double[] secondMean, double[] secondVariance,
+                                     double[] thirdMean, double[] thirdVariance,
+                                     double[] fourthMean, double[] fourthVariance,
+                                     double[] fifthMean, double[] fifthVariance,
+                                     long seed) {
         this.numSamples = numSamples;
         this.mixingDistribution = mixingDistribution;
         this.firstMean = firstMean;
@@ -233,26 +235,26 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
         double[] mixingCDF = Util.generateCDF(mixingDistribution);
         String[] featureNames = Arrays.copyOf(allFeatureNames, firstMean.length);
         Random rng = new Random(seed);
-        MultivariateNormalDistribution first = new MultivariateNormalDistribution(
-                firstMean, reshapeAndValidate(firstVariance, "firstVariance"), rng.nextInt()
+        MultivariateNormalDistribution first = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                firstMean, reshapeAndValidate(firstVariance, "firstVariance")
         );
-        MultivariateNormalDistribution second = new MultivariateNormalDistribution(
-                secondMean, reshapeAndValidate(secondVariance, "secondVariance"), rng.nextInt()
+        MultivariateNormalDistribution second = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                secondMean, reshapeAndValidate(secondVariance, "secondVariance")
         );
-        MultivariateNormalDistribution third = new MultivariateNormalDistribution(
-                thirdMean, reshapeAndValidate(thirdVariance, "thirdVariance"), rng.nextInt()
+        MultivariateNormalDistribution third = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                thirdMean, reshapeAndValidate(thirdVariance, "thirdVariance")
         );
-        MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(
-                fourthMean, reshapeAndValidate(fourthVariance, "fourthVariance"), rng.nextInt()
+        MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                fourthMean, reshapeAndValidate(fourthVariance, "fourthVariance")
         );
-        MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(
-                fifthMean, reshapeAndValidate(fifthVariance, "fifthVariance"), rng.nextInt()
+        MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
+                fifthMean, reshapeAndValidate(fifthVariance, "fifthVariance")
         );
         MultivariateNormalDistribution[] Gaussians = new MultivariateNormalDistribution[]{first, second, third, fourth, fifth};
         List<Example<ClusterID>> examples = new ArrayList<>(numSamples);
         for (int i = 0; i < numSamples; i++) {
             int centroid = Util.sampleFromCDF(mixingCDF, rng);
-            double[] sample = Gaussians[centroid].sampleArray();
+            double[] sample = Gaussians[centroid].sample();
             examples.add(new ArrayExample<>(new ClusterID(centroid), featureNames, sample));
         }
         this.examples = Collections.unmodifiableList(examples);
@@ -265,7 +267,7 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
 
     @Override
     public DataSourceProvenance getProvenance() {
-        return new GaussianClusterDataSourceProvenance(this);
+        return new OldGaussianClusterDataSourceProvenance(this);
     }
 
     @Override
@@ -321,16 +323,16 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
                                                      double[] fourthMean, double[] fourthVariance,
                                                      double[] fifthMean, double[] fifthVariance,
                                                      long seed) {
-        GaussianClusterDataSource source = new GaussianClusterDataSource(numSamples, mixingDistribution,
+        OldGaussianClusterDataSource source = new OldGaussianClusterDataSource(numSamples, mixingDistribution,
                 firstMean, firstVariance, secondMean, secondVariance, thirdMean, thirdVariance, fourthMean, fourthVariance,
                 fifthMean, fifthVariance, seed);
         return new MutableDataset<>(source);
     }
 
     /**
-     * Provenance for {@link GaussianClusterDataSource}.
+     * Provenance for {@link OldGaussianClusterDataSource}.
      */
-    public static final class GaussianClusterDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
+    public static final class OldGaussianClusterDataSourceProvenance extends SkeletalConfiguredObjectProvenance implements ConfiguredDataSourceProvenance {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -338,7 +340,7 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
          *
          * @param host The host to read.
          */
-        GaussianClusterDataSourceProvenance(GaussianClusterDataSource host) {
+        OldGaussianClusterDataSourceProvenance(OldGaussianClusterDataSource host) {
             super(host, "DataSource");
         }
 
@@ -347,11 +349,11 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
          *
          * @param map The map of field values.
          */
-        public GaussianClusterDataSourceProvenance(Map<String, Provenance> map) {
+        public OldGaussianClusterDataSourceProvenance(Map<String, Provenance> map) {
             this(extractProvenanceInfo(map));
         }
 
-        private GaussianClusterDataSourceProvenance(ExtractedInfo info) {
+        private OldGaussianClusterDataSourceProvenance(ExtractedInfo info) {
             super(info);
         }
 
@@ -363,8 +365,8 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
          */
         protected static ExtractedInfo extractProvenanceInfo(Map<String, Provenance> map) {
             Map<String, Provenance> configuredParameters = new HashMap<>(map);
-            String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters, CLASS_NAME, StringProvenance.class, GaussianClusterDataSourceProvenance.class.getSimpleName()).getValue();
-            String hostTypeStringName = ObjectProvenance.checkAndExtractProvenance(configuredParameters, HOST_SHORT_NAME, StringProvenance.class, GaussianClusterDataSourceProvenance.class.getSimpleName()).getValue();
+            String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters, CLASS_NAME, StringProvenance.class, OldGaussianClusterDataSourceProvenance.class.getSimpleName()).getValue();
+            String hostTypeStringName = ObjectProvenance.checkAndExtractProvenance(configuredParameters, HOST_SHORT_NAME, StringProvenance.class, OldGaussianClusterDataSourceProvenance.class.getSimpleName()).getValue();
 
             return new ExtractedInfo(className, hostTypeStringName, configuredParameters, Collections.emptyMap());
         }

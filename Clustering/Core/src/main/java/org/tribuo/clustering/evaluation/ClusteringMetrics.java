@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,10 @@
 
 package org.tribuo.clustering.evaluation;
 
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.evaluation.metrics.MetricTarget;
 import org.tribuo.util.infotheory.InformationTheory;
-import org.tribuo.util.infotheory.impl.PairDistribution;
-import org.apache.commons.math3.special.Gamma;
 
-import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
 
 /**
@@ -73,7 +68,7 @@ public enum ClusteringMetrics {
         double mi = InformationTheory.mi(context.getPredictedIDs(), context.getTrueIDs());
         double predEntropy = InformationTheory.entropy(context.getPredictedIDs());
         double trueEntropy = InformationTheory.entropy(context.getTrueIDs());
-        double expectedMI = expectedMI(context.getPredictedIDs(), context.getTrueIDs());
+        double expectedMI = InformationTheory.expectedMI(context.getPredictedIDs(), context.getTrueIDs());
 
         double minEntropy = Math.min(predEntropy, trueEntropy);
 
@@ -91,46 +86,6 @@ public enum ClusteringMetrics {
         double trueEntropy = InformationTheory.entropy(context.getTrueIDs());
 
         return predEntropy < trueEntropy ? mi / predEntropy : mi / trueEntropy;
-    }
-
-    private static double expectedMI(List<Integer> first, List<Integer> second) {
-        PairDistribution<Integer,Integer> pd = PairDistribution.constructFromLists(first,second);
-
-        Map<Integer, MutableLong> firstCount = pd.firstCount;
-        Map<Integer,MutableLong> secondCount = pd.secondCount;
-        long count = pd.count;
-
-        double output = 0.0;
-
-        for (Map.Entry<Integer,MutableLong> f : firstCount.entrySet()) {
-            for (Map.Entry<Integer,MutableLong> s : secondCount.entrySet()) {
-                long fVal = f.getValue().longValue();
-                long sVal = s.getValue().longValue();
-                long minCount = Math.min(fVal, sVal);
-
-                long threshold = fVal + sVal - count;
-                long start = threshold > 1 ? threshold : 1;
-
-                for (long nij = start; nij < minCount; nij++) {
-                    double acc = ((double) nij) / count;
-                    acc *= Math.log(((double) (count * nij)) / (fVal * sVal));
-                    //numerator
-                    double logSpace = Gamma.logGamma(fVal + 1);
-                    logSpace += Gamma.logGamma(sVal + 1);
-                    logSpace += Gamma.logGamma(count - fVal + 1);
-                    logSpace += Gamma.logGamma(count - sVal + 1);
-                    //denominator
-                    logSpace -= Gamma.logGamma(count + 1);
-                    logSpace -= Gamma.logGamma(nij + 1);
-                    logSpace -= Gamma.logGamma(fVal - nij + 1);
-                    logSpace -= Gamma.logGamma(sVal - nij + 1);
-                    logSpace -= Gamma.logGamma(count - fVal - sVal + nij + 1);
-                    acc *= Math.exp(logSpace);
-                    output += acc;
-                }
-            }
-        }
-        return output;
     }
 
 }

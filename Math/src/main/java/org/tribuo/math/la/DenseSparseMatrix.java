@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,6 +107,19 @@ public class DenseSparseMatrix implements Matrix {
         SparseVector[] newValues = new SparseVector[values.length];
         for (int i = 0; i < values.length; i++) {
             newValues[i] = values[i].copy();
+        }
+        return new DenseSparseMatrix(newValues);
+    }
+
+    /**
+     * Creates an identity matrix of the specified size.
+     * @param dimension The matrix dimension.
+     * @return The identity matrix.
+     */
+    public static DenseSparseMatrix createIdentity(int dimension) {
+        SparseVector[] newValues = new SparseVector[dimension];
+        for (int i = 0; i < dimension; i++) {
+            newValues[i] = new SparseVector(dimension, new int[]{i}, new double[]{1.0});
         }
         return new DenseSparseMatrix(newValues);
     }

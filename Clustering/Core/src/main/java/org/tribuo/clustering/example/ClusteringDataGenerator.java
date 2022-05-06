@@ -17,8 +17,6 @@
 package org.tribuo.clustering.example;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
-import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
@@ -26,6 +24,7 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.datasource.ListDataSource;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.math.rng.MultivariateNormalDistribution;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.util.Util;
 
@@ -63,27 +62,27 @@ public abstract class ClusteringDataGenerator {
         String[] featureNames = new String[]{"A","B"};
         double[] mixingPMF = new double[]{0.1,0.35,0.05,0.25,0.25};
         double[] mixingCDF = Util.generateCDF(mixingPMF);
-        MultivariateNormalDistribution first = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                new double[]{0.0,0.0}, new double[][]{{1.0,0.0},{0.0,1.0}}
+        MultivariateNormalDistribution first = new MultivariateNormalDistribution(
+                new double[]{0.0,0.0}, new double[][]{{1.0,0.0},{0.0,1.0}}, rng.nextInt()
         );
-        MultivariateNormalDistribution second = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                new double[]{5.0,5.0}, new double[][]{{1.0,0.0},{0.0,1.0}}
+        MultivariateNormalDistribution second = new MultivariateNormalDistribution(
+                new double[]{5.0,5.0}, new double[][]{{1.0,0.0},{0.0,1.0}}, rng.nextInt()
         );
-        MultivariateNormalDistribution third = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                new double[]{2.5,2.5}, new double[][]{{1.0,0.5},{0.5,1.0}}
+        MultivariateNormalDistribution third = new MultivariateNormalDistribution(
+                new double[]{2.5,2.5}, new double[][]{{1.0,0.5},{0.5,1.0}}, rng.nextInt()
         );
-        MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                new double[]{10.0,0.0}, new double[][]{{0.1,0.0},{0.0,0.1}}
+        MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(
+                new double[]{10.0,0.0}, new double[][]{{0.1,0.0},{0.0,0.1}}, rng.nextInt()
         );
-        MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                new double[]{-1.0,0.0}, new double[][]{{1.0,0.0},{0.0,0.1}}
+        MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(
+                new double[]{-1.0,0.0}, new double[][]{{1.0,0.0},{0.0,0.1}}, rng.nextInt()
         );
         MultivariateNormalDistribution[] gaussians = new MultivariateNormalDistribution[]{first,second,third,fourth,fifth};
 
         List<Example<ClusterID>> trainingData = new ArrayList<>();
         for (int i = 0; i < size; i++) {
             int centroid = Util.sampleFromCDF(mixingCDF,rng);
-            double[] sample = gaussians[centroid].sample();
+            double[] sample = gaussians[centroid].sampleArray();
             trainingData.add(new ArrayExample<>(new ClusterID(centroid),featureNames,sample));
         }
 

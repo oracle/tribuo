@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,11 @@ package org.tribuo.math.la;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Matrices used -
@@ -198,6 +202,38 @@ public class DenseMatrixTest {
         values[2][1] = 896;
         values[2][2] = 978;
         values[2][3] = 12;
+
+        return new DenseMatrix(values);
+    }
+
+    public static DenseMatrix generateSymmetric() {
+        double[][] values = new double[3][3];
+
+        values[0][0] = 4;
+        values[0][1] = 12;
+        values[0][2] = -16;
+        values[1][0] = 12;
+        values[1][1] = 37;
+        values[1][2] = -43;
+        values[2][0] = -16;
+        values[2][1] = -43;
+        values[2][2] = 98;
+
+        return new DenseMatrix(values);
+    }
+
+    public static DenseMatrix generateCholOutput() {
+        double[][] values = new double[3][3];
+
+        values[0][0] = 2;
+        values[0][1] = 0;
+        values[0][2] = 0;
+        values[1][0] = 6;
+        values[1][1] = 1;
+        values[1][2] = 0;
+        values[2][0] = -8;
+        values[2][1] = 5;
+        values[2][2] = 3;
 
         return new DenseMatrix(values);
     }
@@ -1363,4 +1399,17 @@ public class DenseMatrixTest {
         assertEquals(matrixMatrixOutput,matrixVectorOutput);
     }
 
+    @Test
+    public void symmetricTest() {
+        assertFalse(generateA().isSymmetric());
+        assertFalse(generateB().isSymmetric());
+        assertTrue(generateSymmetric().isSymmetric());
+    }
+
+    @Test
+    public void choleskyTest() {
+        Optional<DenseMatrix.CholeskyFactorization> cholOpt = generateSymmetric().choleskyFactorization();
+        assertTrue(cholOpt.isPresent());
+        assertEquals(generateCholOutput(),cholOpt.get().matrix);
+    }
 }

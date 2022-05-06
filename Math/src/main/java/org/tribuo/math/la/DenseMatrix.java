@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.tribuo.math.util.VectorNormalizer;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.DoubleUnaryOperator;
 
 /**
@@ -731,6 +732,71 @@ public class DenseMatrix implements Matrix {
         return Math.sqrt(output);
     }
 
+    /**
+     * Returns true if this matrix is square and symmetric.
+     * @return True if the matrix is symmetric.
+     */
+    public boolean isSymmetric() {
+        if (dim1 != dim2) {
+            return false;
+        } else {
+            for (int i = 0; i < dim1; i++) {
+                for (int j = i + 1; j < dim1; j++) {
+                    if (Double.compare(values[i][j],values[j][i]) != 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Computes the Cholesky factorization of a positive definite matrix.
+     * <p>
+     * If the matrix is not symmetric or positive definite then it returns an empty optional.
+     * @return The Cholesky factorization or an empty optional.
+     */
+    public Optional<CholeskyFactorization> choleskyFactorization() {
+        if (!isSymmetric()) {
+            return Optional.empty();
+        } else {
+            // Copy the matrix first
+            DenseMatrix chol = new DenseMatrix(this);
+
+            double[][] cholMatrix = chol.values;
+
+            // Compute factorization
+            for (int i = 0; i < dim1; i++) {
+                for (int j = i; j < dim1; j++) {
+                    double sum = cholMatrix[i][j];
+                    for (int k = i-1; k >= 0; k--) {
+                        sum -= cholMatrix[i][k] * cholMatrix[j][k];
+                    }
+                    if (i == j) {
+                        if (sum <= 0) {
+                            // Matrix is not positive definite as it has a negative diagonal element.
+                            return Optional.empty();
+                        } else {
+                            cholMatrix[i][i] = Math.sqrt(sum);
+                        }
+                    } else {
+                        cholMatrix[j][i] = sum / cholMatrix[i][i];
+                    }
+                }
+            }
+
+            // Zero out the upper triangle
+            for (int i = 0; i < chol.dim1; i++) {
+                for (int j = 0; j < i; j++) {
+                    chol.values[j][i] = 0.0;
+                }
+            }
+
+            return Optional.of(new CholeskyFactorization(chol));
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
@@ -831,4 +897,61 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * The output of a successful Cholesky factorization.
+     * <p>
+     * Essentially wraps a {@link DenseMatrix}, but has additional
+     * operations which allow more efficient implementations when the
+     * matrix is known to be the result of a Cholesky factorization.
+     * <p>
+     * Mutating the wrapped matrix will cause undefined behaviour in the methods
+     * of this class.
+     */
+    public static final class CholeskyFactorization {
+        public final DenseMatrix matrix;
+
+        CholeskyFactorization(DenseMatrix matrix) {
+            this.matrix = matrix;
+        }
+
+        /**
+         * Compute the matrix determinant of the factorized matrix.
+         * @return The matrix determinant.
+         */
+        public double determinant() {
+            double det = 0.0;
+            for (int i = 0; i < matrix.dim1; i++) {
+                det *= matrix.values[i][i] * matrix.values[i][i];
+            }
+            return det;
+        }
+
+        /**
+         * Solves a system of linear equations A * b = y, where y is the input vector,
+         * A is the matrix which produced this Cholesky factorization, and b is the returned value.
+         * @param vector The input vector y.
+         * @return The vector b.
+         */
+        public SGDVector solve(SGDVector vector) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Solves the system A * X = Y, where Y is the input matrix, and A is the matrix which
+         * produced this Cholesky factorization.
+         * @param matrix The input matrix Y.
+         * @return The matrix X.
+         */
+        public DenseMatrix solve(Matrix matrix) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Generates the inverse of the matrix with this Cholesky factorization.
+         * @return The matrix inverse.
+         */
+        public DenseMatrix inverse() {
+            return solve(DenseSparseMatrix.createIdentity(matrix.dim1));
+        }
+    }
 }
