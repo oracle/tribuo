@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -236,6 +237,42 @@ public class DenseMatrixTest {
         values[2][2] = 3;
 
         return new DenseMatrix(values);
+    }
+
+    public static DenseMatrix.LUFactorization generateLUOutput() {
+        double[][] lValues = new double[3][3];
+
+        lValues[0][0] = 1;
+        lValues[0][1] = 0;
+        lValues[0][2] = 0;
+        lValues[1][0] = -0.75;
+        lValues[1][1] = 1;
+        lValues[1][2] = 0;
+        lValues[2][0] = -0.25;
+        lValues[2][1] = 0.26315789;
+        lValues[2][2] = 1;
+
+        DenseMatrix l = new DenseMatrix(lValues);
+
+        double[][] uValues = new double[3][3];
+
+        uValues[0][0] = -16;
+        uValues[0][1] = -43;
+        uValues[0][2] = 98;
+        uValues[1][0] = 0;
+        uValues[1][1] = 4.75;
+        uValues[1][2] = 30.5;
+        uValues[2][0] = 0;
+        uValues[2][1] = 0;
+        uValues[2][2] = 0.47368421;
+
+        DenseMatrix u = new DenseMatrix(uValues);
+
+        int[] permutation = new int[]{2,1,0};
+
+        DenseMatrix.LUFactorization lu = new DenseMatrix.LUFactorization(l,u,permutation,true);
+
+        return lu;
     }
 
     public static DenseVector generateVector() {
@@ -1411,5 +1448,22 @@ public class DenseMatrixTest {
         Optional<DenseMatrix.CholeskyFactorization> cholOpt = generateSymmetric().choleskyFactorization();
         assertTrue(cholOpt.isPresent());
         assertEquals(generateCholOutput(),cholOpt.get().matrix);
+    }
+
+    @Test
+    public void luTest() {
+        DenseMatrix symmetric = generateSymmetric();
+        Optional<DenseMatrix.LUFactorization> luOpt = symmetric.luFactorization();
+        assertTrue(luOpt.isPresent());
+        DenseMatrix.LUFactorization lu = luOpt.get();
+
+        Matrix computedSymmetric = lu.l.matrixMultiply(lu.u);
+        assertEquals(lu.permutationMatrix.matrixMultiply(symmetric),computedSymmetric);
+
+        DenseMatrix.LUFactorization output = generateLUOutput();
+        assertEquals(output.l,luOpt.get().l);
+        assertEquals(output.u,luOpt.get().u);
+        assertArrayEquals(output.permutationArr,luOpt.get().permutationArr);
+        assertEquals(output.oddSwaps,luOpt.get().oddSwaps);
     }
 }

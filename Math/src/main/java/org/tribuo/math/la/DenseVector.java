@@ -21,6 +21,7 @@ import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.util.MeanVarianceAccumulator;
 import org.tribuo.util.Util;
 
 import java.util.ArrayList;
@@ -667,6 +668,20 @@ public class DenseVector implements SGDVector {
         } else {
             throw new IllegalArgumentException("Unknown vector subclass " + other.getClass().getCanonicalName() + " for input");
         }
+    }
+
+    /**
+     * Compute the mean and variance of this vector.
+     * @return The mean and variance.
+     */
+    public MeanVarianceAccumulator meanVariance() {
+        MeanVarianceAccumulator acc = new MeanVarianceAccumulator();
+
+        for (int i = 0; i < elements.length; i++) {
+            acc.observe(get(i));
+        }
+
+        return acc;
     }
 
     private static class DenseVectorIterator implements VectorIterator {

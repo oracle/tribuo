@@ -19,6 +19,7 @@ package org.tribuo.math.la;
 import org.tribuo.math.util.VectorNormalizer;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -117,6 +118,30 @@ public class DenseMatrix implements Matrix {
             }
             newValues[i] = Arrays.copyOf(values[i],values[i].length);
         }
+        return new DenseMatrix(newValues);
+    }
+
+    /**
+     * Constructs a new DenseMatrix copying the values from the supplied vectors.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the supplied vectors are ragged (i.e., are not all the same size).
+     * @param vectors The vectors to coalesce.
+     * @return A new dense matrix.
+     */
+    public static DenseMatrix createDenseMatrix(SGDVector[] vectors) {
+        if (vectors == null || vectors.length == 0) {
+            throw new IllegalArgumentException("Invalid vector array.");
+        }
+        double[][] newValues = new double[vectors.length][];
+
+        int size = vectors[0].size();
+        for (int i = 0; i < vectors.length; i++) {
+            if (vectors[i].size() != size) {
+                throw new IllegalArgumentException("Expected size " + size + " but found size " + vectors[i].size() + " at index " + i);
+            }
+            newValues[i] = vectors[i].toArray();
+        }
+
         return new DenseMatrix(newValues);
     }
 
@@ -686,11 +711,38 @@ public class DenseMatrix implements Matrix {
      * @return A copy of the column.
      */
     public DenseVector getColumn(int index) {
+        if (index < 0 || index > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + index);
+        }
         double[] output = new double[dim1];
         for (int i = 0; i < dim1; i++) {
             output[i] = values[i][index];
         }
         return new DenseVector(output);
+    }
+
+    /**
+     * Sets the column to the supplied vector value.
+     * @param index The column to set.
+     * @param vector The vector to write.
+     */
+    public void setColumn(int index, SGDVector vector) {
+        if (index < 0 || index > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + index);
+        }
+        if (vector.size() == dim1) {
+            if (vector instanceof DenseVector) {
+                for (int i = 0; i < dim1; i++) {
+                    values[i][index] = vector.get(index);
+                }
+            } else {
+                for (VectorTuple t : vector) {
+                    values[t.index][index] = t.value;
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("Vector size mismatch, expected " + dim2 + " found " + vector.size());
+        }
     }
 
     /**
@@ -733,11 +785,19 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
+     * Is this a square matrix?
+     * @return True if the matrix is square.
+     */
+    public boolean isSquare() {
+        return dim1 == dim2;
+    }
+
+    /**
      * Returns true if this matrix is square and symmetric.
      * @return True if the matrix is symmetric.
      */
     public boolean isSymmetric() {
-        if (dim1 != dim2) {
+        if (!isSquare()) {
             return false;
         } else {
             for (int i = 0; i < dim1; i++) {
@@ -763,14 +823,13 @@ public class DenseMatrix implements Matrix {
         } else {
             // Copy the matrix first
             DenseMatrix chol = new DenseMatrix(this);
-
             double[][] cholMatrix = chol.values;
 
             // Compute factorization
             for (int i = 0; i < dim1; i++) {
                 for (int j = i; j < dim1; j++) {
                     double sum = cholMatrix[i][j];
-                    for (int k = i-1; k >= 0; k--) {
+                    for (int k = i - 1; k >= 0; k--) {
                         sum -= cholMatrix[i][k] * cholMatrix[j][k];
                     }
                     if (i == j) {
@@ -787,13 +846,57 @@ public class DenseMatrix implements Matrix {
             }
 
             // Zero out the upper triangle
-            for (int i = 0; i < chol.dim1; i++) {
+            for (int i = 0; i < dim1; i++) {
                 for (int j = 0; j < i; j++) {
-                    chol.values[j][i] = 0.0;
+                    cholMatrix[j][i] = 0.0;
                 }
             }
 
             return Optional.of(new CholeskyFactorization(chol));
+        }
+    }
+
+    /**
+     * Computes the LU factorization of a square matrix.
+     * <p>
+     * If the matrix is singular or not square it returns an empty optional.
+     * @return The LU factorization or an empty optional.
+     */
+    public Optional<LUFactorization> luFactorization() {
+        if (!isSquare()) {
+            return Optional.empty();
+        } else {
+            // Copy the matrix first
+            DenseMatrix lu = new DenseMatrix(this);
+            double[][] luMatrix = lu.values;
+            int[] permutation = new int[dim1];
+            boolean oddSwaps = false;
+
+            // Decompose matrix
+
+            // Split into two matrices
+            DenseMatrix l = new DenseMatrix(lu);
+            DenseMatrix u = new DenseMatrix(lu);
+
+            // Zero lower triangle of u
+            for (int i = 0; i < dim1; i++) {
+                for (int j = 0; j < i; j++) {
+                    u.values[i][j] = 0.0;
+                }
+            }
+
+            // Zero upper triangle of l and set diagonal to 1.
+            for (int i = 0; i < dim1; i++) {
+                for (int j = 0; j <= i; j++) {
+                    if (i == j) {
+                        l.values[i][j] = 1.0;
+                    } else {
+                        l.values[j][i] = 0.0;
+                    }
+                }
+            }
+
+            return Optional.of(new LUFactorization(l,u,permutation,oddSwaps));
         }
     }
 
@@ -853,6 +956,58 @@ public class DenseMatrix implements Matrix {
             }
         }
         return new DenseVector(columnSum);
+    }
+
+    /**
+     * Returns a new DenseMatrix containing a copy of the selected columns.
+     * <p>
+     * Throws {@link IllegalArgumentException} if any column index is invalid or the array is null/empty.
+     * @param columnIndices The column indices
+     * @return The submatrix comprising the selected columns.
+     */
+    public DenseMatrix selectColumns(int[] columnIndices) {
+        if (columnIndices == null || columnIndices.length == 0) {
+            throw new IllegalArgumentException("Invalid column indices.");
+        }
+        DenseMatrix returnVal = new DenseMatrix(dim1,columnIndices.length);
+
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < columnIndices.length; j++) {
+                int curIdx = columnIndices[j];
+                if (curIdx < 0 || curIdx >= dim2) {
+                    throw new IllegalArgumentException("Invalid column index, expected [0, " + dim2 +"), found " + curIdx);
+                }
+                returnVal.values[i][j] = values[i][curIdx];
+            }
+        }
+
+        return returnVal;
+    }
+
+    /**
+     * Returns a new DenseMatrix containing a copy of the selected columns.
+     * <p>
+     * Throws {@link IllegalArgumentException} if any column index is invalid or the array is null/empty.
+     * @param columnIndices The column indices
+     * @return The submatrix comprising the selected columns.
+     */
+    public DenseMatrix selectColumns(List<Integer> columnIndices) {
+        if (columnIndices == null || columnIndices.isEmpty()) {
+            throw new IllegalArgumentException("Invalid column indices.");
+        }
+        DenseMatrix returnVal = new DenseMatrix(dim1,columnIndices.size());
+
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < columnIndices.size(); j++) {
+                int curIdx = columnIndices.get(j);
+                if (curIdx < 0 || curIdx >= dim2) {
+                    throw new IllegalArgumentException("Invalid column index, expected [0, " + dim2 +"), found " + curIdx);
+                }
+                returnVal.values[i][j] = values[i][curIdx];
+            }
+        }
+
+        return returnVal;
     }
 
     private class DenseMatrixIterator implements MatrixIterator {
@@ -952,6 +1107,80 @@ public class DenseMatrix implements Matrix {
          */
         public DenseMatrix inverse() {
             return solve(DenseSparseMatrix.createIdentity(matrix.dim1));
+        }
+    }
+
+    /**
+     * The output of a successful LU factorization.
+     * <p>
+     * Essentially wraps a pair of {@link DenseMatrix}, but has additional
+     * operations which allow more efficient implementations when the
+     * matrices are known to be the result of a LU factorization.
+     * <p>
+     * Mutating the wrapped matrices will cause undefined behaviour in the methods
+     * of this class.
+     */
+    public static final class LUFactorization {
+        public final DenseMatrix l;
+        public final DenseMatrix u;
+        public final int[] permutationArr;
+        public final Matrix permutationMatrix;
+        public final boolean oddSwaps;
+
+        LUFactorization(DenseMatrix l, DenseMatrix u, int[] permutationArr, boolean oddSwaps) {
+            this.l = l;
+            this.u = u;
+            this.permutationArr = permutationArr;
+            SparseVector[] vecs = new SparseVector[permutationArr.length];
+            for (int i = 0; i < vecs.length; i++) {
+                vecs[i] = new SparseVector(l.dim1,new int[]{permutationArr[i]}, new double[]{1.0});
+            }
+            this.permutationMatrix = DenseSparseMatrix.createFromSparseVectors(vecs);
+            this.oddSwaps = oddSwaps;
+        }
+
+        /**
+         * Compute the matrix determinant of the factorized matrix.
+         * @return The matrix determinant.
+         */
+        public double determinant() {
+            double det = 0.0;
+            for (int i = 0; i < u.dim1; i++) {
+                det *= u.values[i][i];
+            }
+            if (oddSwaps) {
+                return -det;
+            } else {
+                return det;
+            }
+        }
+
+        /**
+         * Solves a system of linear equations A * b = y, where y is the input vector,
+         * A is the matrix which produced this LU factorization, and b is the returned value.
+         * @param vector The input vector y.
+         * @return The vector b.
+         */
+        public SGDVector solve(SGDVector vector) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Solves the system A * X = Y, where Y is the input matrix, and A is the matrix which
+         * produced this LU factorization.
+         * @param matrix The input matrix Y.
+         * @return The matrix X.
+         */
+        public DenseMatrix solve(Matrix matrix) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Generates the inverse of the matrix with this LU factorization.
+         * @return The matrix inverse.
+         */
+        public DenseMatrix inverse() {
+            return solve(DenseSparseMatrix.createIdentity(permutationArr.length));
         }
     }
 }
