@@ -40,9 +40,14 @@ import java.util.TreeMap;
  * those features are unobserved. This is an extremely important property of {@link Feature}s,
  * {@link Example}s and {@link ImmutableFeatureMap}.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = ImmutableFeatureMapProto.class)
+@ProtoSerializableClass(version = ImmutableFeatureMap.CURRENT_VERSION, serializedDataClass = ImmutableFeatureMapProto.class)
 public class ImmutableFeatureMap extends FeatureMap implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * The map from id numbers to the feature infos.
@@ -99,6 +104,9 @@ public class ImmutableFeatureMap extends FeatureMap implements Serializable {
      * @param message The serialized data.
      */
     public static ImmutableFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         ImmutableFeatureMapProto proto = message.unpack(ImmutableFeatureMapProto.class);
         ImmutableFeatureMap obj = new ImmutableFeatureMap();
         for (VariableInfoProto infoProto : proto.getInfoList()) {

@@ -50,9 +50,14 @@ import java.util.function.DoubleUnaryOperator;
  * Wraps a {@link DoubleUnaryOperator} which actually performs the
  * transformation.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = SimpleTransformProto.class)
+@ProtoSerializableClass(version = SimpleTransform.CURRENT_VERSION, serializedDataClass = SimpleTransformProto.class)
 public final class SimpleTransform implements Transformer, Transformation, TransformStatistics {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private static final String OP = "op";
     private static final String OPERAND = "operand";
@@ -201,7 +206,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
      */
     static SimpleTransform deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         SimpleTransformProto proto = message.unpack(SimpleTransformProto.class);
-        if (version == 0) {
+        if (version == CURRENT_VERSION) {
             return new SimpleTransform(Operation.valueOf(proto.getOp()), proto.getFirstOperand(), proto.getSecondOperand());
         } else {
             throw new IllegalArgumentException("Unknown version " + version + " expected {0}");

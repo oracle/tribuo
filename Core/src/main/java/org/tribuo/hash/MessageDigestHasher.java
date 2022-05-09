@@ -46,9 +46,14 @@ import java.util.function.Supplier;
 /**
  * Hashes Strings using the supplied MessageDigest type.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = MessageDigestHasherProto.class)
+@ProtoSerializableClass(version = MessageDigestHasher.CURRENT_VERSION, serializedDataClass = MessageDigestHasherProto.class)
 public final class MessageDigestHasher extends Hasher {
     private static final long serialVersionUID = 3L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Alias for {@link StandardCharsets#UTF_8}.
@@ -102,6 +107,9 @@ public final class MessageDigestHasher extends Hasher {
      * @throws InvalidProtocolBufferException If the message cannot be parsed by {@link MessageDigestHasherProto}.
      */
     public static MessageDigestHasher deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         MessageDigestHasher obj = new MessageDigestHasher();
         MessageDigestHasherProto proto = message.unpack(MessageDigestHasherProto.class);
         obj.hashType = proto.getHashType();

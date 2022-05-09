@@ -35,9 +35,14 @@ import java.util.SplittableRandom;
  * Does not contain an id number, but can be transformed into {@link RealIDInfo} which
  * does contain an id number.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = RealInfoProto.class)
+@ProtoSerializableClass(version = RealInfo.CURRENT_VERSION, serializedDataClass = RealInfoProto.class)
 public class RealInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * The maximum observed feature value.
@@ -93,6 +98,18 @@ public class RealInfo extends SkeletalVariableInfo {
      */
     public RealInfo(String name, int count, double max, double min, double mean, double sumSquares) {
         super(name, count);
+        if (max < min) {
+            throw new IllegalArgumentException("Invalid RealInfo, min greater than max.");
+        }
+        if (mean > max) {
+            throw new IllegalArgumentException("Invalid RealInfo, mean greater than max.");
+        }
+        if (mean < min) {
+            throw new IllegalArgumentException("Invalid RealInfo, mean less than min.");
+        }
+        if (sumSquares < 0) {
+            throw new IllegalArgumentException("Invalid RealInfo, variance must be non-negative.");
+        }
         this.max = max;
         this.min = min;
         this.mean = mean;
@@ -127,16 +144,10 @@ public class RealInfo extends SkeletalVariableInfo {
      * @param message The serialized data.
      */
     public static RealInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         RealInfoProto proto = message.unpack(RealInfoProto.class);
-        if (proto.getMax() < proto.getMin()) {
-            throw new IllegalStateException("Invalid protobuf, min greater than max.");
-        }
-        if (proto.getMean() > proto.getMax()) {
-            throw new IllegalStateException("Invalid protobuf, mean greater than max.");
-        }
-        if (proto.getMean() < proto.getMin()) {
-            throw new IllegalStateException("Invalid protobuf, mean less than min.");
-        }
         RealInfo info = new RealInfo(proto.getName(),proto.getCount(),
                 proto.getMax(),proto.getMin(),
                 proto.getMean(),proto.getSumSquares());

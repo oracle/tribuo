@@ -30,9 +30,14 @@ import java.util.Objects;
 /**
  * Same as a {@link CategoricalInfo}, but with an additional int id field.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = CategoricalIDInfoProto.class)
+@ProtoSerializableClass(version = CategoricalIDInfo.CURRENT_VERSION, serializedDataClass = CategoricalIDInfoProto.class)
 public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     @ProtoSerializableField
     private final int id;
@@ -44,6 +49,9 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
      */
     public CategoricalIDInfo(CategoricalInfo info, int id) {
         super(info);
+        if (id < 0) {
+            throw new IllegalArgumentException("Invalid id number, must be non-negative, found " + id);
+        }
         this.id = id;
     }
 
@@ -66,6 +74,9 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
      */
     private CategoricalIDInfo(String name, int id) {
         super(name);
+        if (id < 0) {
+            throw new IllegalArgumentException("Invalid id number, must be non-negative, found " + id);
+        }
         this.id = id;
     }
 
@@ -76,10 +87,10 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
      * @param message The serialized data.
      */
     public static CategoricalIDInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
-        CategoricalIDInfoProto proto = message.unpack(CategoricalIDInfoProto.class);
-        if (proto.getId() == -1) {
-            throw new IllegalStateException("Invalid protobuf, found no id where one was expected.");
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
+        CategoricalIDInfoProto proto = message.unpack(CategoricalIDInfoProto.class);
         CategoricalIDInfo info = new CategoricalIDInfo(proto.getName(),proto.getId());
         List<Double> keys = proto.getKeyList();
         List<Long> values = proto.getValueList();
@@ -90,6 +101,9 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
         if (keys.size() > 1) {
             info.valueCounts = new HashMap<>(keys.size());
             for (int i = 0; i < keys.size(); i++) {
+                if (values.get(i) < 0) {
+                    throw new IllegalStateException("Invalid protobuf, counts must be positive, found " + values.get(i) + " for value " + keys.get(i));
+                }
                 info.valueCounts.put(keys.get(i),new MutableLong(values.get(i)));
                 newCount += values.get(i).intValue();
             }
@@ -97,6 +111,9 @@ public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo
             info.observedValue = proto.getObservedValue();
             info.observedCount = proto.getObservedCount();
             newCount = (int) proto.getObservedCount();
+            if (info.observedCount < 0) {
+                throw new IllegalStateException("Invalid protobuf, counts must be positive, found " + info.observedCount + " for value " + info.observedValue);
+            }
         }
         if (newCount != proto.getCount()) {
             throw new IllegalStateException("Invalid protobuf, count " + newCount + " did not match expected value " + proto.getCount());

@@ -442,9 +442,14 @@ public final class BinningTransformation implements Transformation {
         }
     }
 
-    @ProtoSerializableClass(version = 0, serializedDataClass = BinningTransformerProto.class)
+    @ProtoSerializableClass(version = BinningTransformer.CURRENT_VERSION, serializedDataClass = BinningTransformerProto.class)
     static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
+
+        /**
+         * Protobuf serialization version.
+         */
+        public static final int CURRENT_VERSION = 0;
 
         @ProtoSerializableField(name = "binningType")
         private final BinningType type;
@@ -454,6 +459,12 @@ public final class BinningTransformation implements Transformation {
         private final double[] values;
 
         BinningTransformer(BinningType type, double[] bins, double[] values) {
+            if (bins == null || bins.length == 0) {
+                throw new IllegalArgumentException("Invalid bin array");
+            }
+            if (values == null || values.length == 0) {
+                throw new IllegalArgumentException("Invalid value array");
+            }
             this.type = type;
             this.bins = bins;
             this.values = values;
@@ -468,7 +479,7 @@ public final class BinningTransformation implements Transformation {
          */
         static BinningTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             BinningTransformerProto proto = message.unpack(BinningTransformerProto.class);
-            if (version == 0) {
+            if (version == CURRENT_VERSION) {
                 if (proto.getBinsCount() == proto.getValuesCount()) {
                     double[] newBins = Util.toPrimitiveDouble(proto.getBinsList());
                     double[] newValues = Util.toPrimitiveDouble(proto.getValuesList());

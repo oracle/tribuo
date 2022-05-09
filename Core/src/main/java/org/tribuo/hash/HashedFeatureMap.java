@@ -39,9 +39,14 @@ import java.util.TreeMap;
  * does not contain feature name information, but still works
  * with unhashed features names.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = HashedFeatureMapProto.class)
+@ProtoSerializableClass(version = HashedFeatureMap.CURRENT_VERSION, serializedDataClass = HashedFeatureMapProto.class)
 public final class HashedFeatureMap extends ImmutableFeatureMap {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     @ProtoSerializableField
     private final Hasher hasher;
@@ -58,6 +63,9 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
      * @param message The serialized data.
      */
     public static HashedFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         HashedFeatureMapProto proto = message.unpack(HashedFeatureMapProto.class);
         HasherProto hasherProto = proto.getHasher();
         Hasher hasher = ProtoUtil.deserialize(hasherProto);

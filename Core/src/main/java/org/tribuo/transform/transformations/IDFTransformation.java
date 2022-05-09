@@ -99,9 +99,14 @@ public class IDFTransformation implements Transformation {
         
     }
     
-    @ProtoSerializableClass(version = 0, serializedDataClass = IDFTransformerProto.class)
+    @ProtoSerializableClass(version = IDFTransformer.CURRENT_VERSION, serializedDataClass = IDFTransformerProto.class)
     static class IDFTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
+
+        /**
+         * Protobuf serialization version.
+         */
+        public static final int CURRENT_VERSION = 0;
 
         @ProtoSerializableField
         private final double df;
@@ -131,7 +136,7 @@ public class IDFTransformation implements Transformation {
          */
         static IDFTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             IDFTransformerProto proto = message.unpack(IDFTransformerProto.class);
-            if (version == 0) {
+            if (version == CURRENT_VERSION) {
                 return new IDFTransformer((int)proto.getDf(), (int)proto.getN());
             } else {
                 throw new IllegalArgumentException("Unknown version " + version + " expected {0}");

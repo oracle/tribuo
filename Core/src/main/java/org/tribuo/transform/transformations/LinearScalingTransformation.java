@@ -200,9 +200,14 @@ public final class LinearScalingTransformation implements Transformation {
         }
     }
 
-    @ProtoSerializableClass(version = 0, serializedDataClass = LinearScalingTransformerProto.class)
+    @ProtoSerializableClass(version = LinearScalingTransformer.CURRENT_VERSION, serializedDataClass = LinearScalingTransformerProto.class)
     static final class LinearScalingTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
+
+        /**
+         * Protobuf serialization version.
+         */
+        public static final int CURRENT_VERSION = 0;
 
         @ProtoSerializableField
         private final double observedMin;
@@ -238,7 +243,7 @@ public final class LinearScalingTransformation implements Transformation {
          */
         static LinearScalingTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             LinearScalingTransformerProto proto = message.unpack(LinearScalingTransformerProto.class);
-            if (version == 0) {
+            if (version == CURRENT_VERSION) {
                 return new LinearScalingTransformer(proto.getObservedMin(),proto.getObservedMax(),
                         proto.getTargetMin(),proto.getTargetMax());
             } else {

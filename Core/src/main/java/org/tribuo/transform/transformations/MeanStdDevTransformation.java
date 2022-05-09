@@ -208,9 +208,14 @@ public final class MeanStdDevTransformation implements Transformation {
         }
     }
 
-    @ProtoSerializableClass(version = 0, serializedDataClass = MeanStdDevTransformerProto.class)
+    @ProtoSerializableClass(version = MeanStdDevTransformer.CURRENT_VERSION, serializedDataClass = MeanStdDevTransformerProto.class)
     static final class MeanStdDevTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
+
+        /**
+         * Protobuf serialization version.
+         */
+        public static final int CURRENT_VERSION = 0;
 
         @ProtoSerializableField
         private final double observedMean;
@@ -240,7 +245,7 @@ public final class MeanStdDevTransformation implements Transformation {
          */
         static MeanStdDevTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             MeanStdDevTransformerProto proto = message.unpack(MeanStdDevTransformerProto.class);
-            if (version == 0) {
+            if (version == CURRENT_VERSION) {
                 return new MeanStdDevTransformer(proto.getObservedMean(),proto.getObservedStdDev(),
                         proto.getTargetMean(),proto.getTargetStdDev());
             } else {

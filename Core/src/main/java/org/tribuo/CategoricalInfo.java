@@ -56,9 +56,14 @@ import java.util.stream.Collectors;
  * are recomputed. Care should be taken if data is read while {@link #observe(double)} is called.
  * </p>
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = CategoricalInfoProto.class)
+@ProtoSerializableClass(version = CategoricalInfo.CURRENT_VERSION, serializedDataClass = CategoricalInfoProto.class)
 public class CategoricalInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private static final MutableLong ZERO = new MutableLong(0);
     /**
@@ -137,6 +142,9 @@ public class CategoricalInfo extends SkeletalVariableInfo {
      * @param message The serialized data.
      */
     public static CategoricalInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         CategoricalInfoProto proto = message.unpack(CategoricalInfoProto.class);
         CategoricalInfo info = new CategoricalInfo(proto.getName());
         List<Double> keys = proto.getKeyList();
@@ -148,6 +156,9 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         if (keys.size() > 1) {
             info.valueCounts = new HashMap<>(keys.size());
             for (int i = 0; i < keys.size(); i++) {
+                if (values.get(i) < 0) {
+                    throw new IllegalStateException("Invalid protobuf, counts must be positive, found " + values.get(i) + " for value " + keys.get(i));
+                }
                 info.valueCounts.put(keys.get(i),new MutableLong(values.get(i)));
                 newCount += values.get(i).intValue();
             }
@@ -155,6 +166,9 @@ public class CategoricalInfo extends SkeletalVariableInfo {
             info.observedValue = proto.getObservedValue();
             info.observedCount = proto.getObservedCount();
             newCount = (int) proto.getObservedCount();
+            if (info.observedCount < 0) {
+                throw new IllegalStateException("Invalid protobuf, counts must be positive, found " + info.observedCount + " for value " + info.observedValue);
+            }
         }
         info.count = newCount;
         return info;

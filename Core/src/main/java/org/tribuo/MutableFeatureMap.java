@@ -30,9 +30,14 @@ import java.util.Objects;
 /**
  * A feature map that can record new feature value observations.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = MutableFeatureMapProto.class)
+@ProtoSerializableClass(version = MutableFeatureMap.CURRENT_VERSION, serializedDataClass = MutableFeatureMapProto.class)
 public class MutableFeatureMap extends FeatureMap {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     @ProtoSerializableField
     private final boolean convertHighCardinality;
@@ -64,6 +69,9 @@ public class MutableFeatureMap extends FeatureMap {
      * @param message The serialized data.
      */
     public static MutableFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         MutableFeatureMapProto proto = message.unpack(MutableFeatureMapProto.class);
         MutableFeatureMap obj = new MutableFeatureMap(proto.getConvertHighCardinality());
         for (VariableInfoProto infoProto : proto.getInfoList()) {

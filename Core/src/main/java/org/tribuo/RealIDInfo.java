@@ -27,9 +27,14 @@ import java.util.Objects;
 /**
  * Same as a {@link RealInfo}, but with an additional int id field.
  */
-@ProtoSerializableClass(version = 0, serializedDataClass = RealIDInfoProto.class)
+@ProtoSerializableClass(version = RealIDInfo.CURRENT_VERSION, serializedDataClass = RealIDInfoProto.class)
 public class RealIDInfo extends RealInfo implements VariableIDInfo {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     @ProtoSerializableField
     private final int id;
@@ -46,6 +51,9 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
      */
     public RealIDInfo(String name, int count, double max, double min, double mean, double sumSquares, int id) {
         super(name,count,max,min,mean,sumSquares);
+        if (id < 0) {
+            throw new IllegalArgumentException("Invalid id number, must be non-negative, found " + id);
+        }
         this.id = id;
     }
 
@@ -56,6 +64,9 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
      */
     public RealIDInfo(RealInfo info, int id) {
         super(info);
+        if (id < 0) {
+            throw new IllegalArgumentException("Invalid id number, must be non-negative, found " + id);
+        }
         this.id = id;
     }
 
@@ -76,18 +87,12 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
      * @param message The serialized data.
      */
     public static RealIDInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         RealIDInfoProto proto = message.unpack(RealIDInfoProto.class);
-        if (proto.getId() == -1) {
+        if (proto.getId() < 0) {
             throw new IllegalStateException("Invalid protobuf, found no id where one was expected.");
-        }
-        if (proto.getMax() < proto.getMin()) {
-            throw new IllegalStateException("Invalid protobuf, min greater than max.");
-        }
-        if (proto.getMean() > proto.getMax()) {
-            throw new IllegalStateException("Invalid protobuf, mean greater than max.");
-        }
-        if (proto.getMean() < proto.getMin()) {
-            throw new IllegalStateException("Invalid protobuf, mean less than min.");
         }
         RealIDInfo info = new RealIDInfo(proto.getName(),proto.getCount(),
                 proto.getMax(),proto.getMin(),

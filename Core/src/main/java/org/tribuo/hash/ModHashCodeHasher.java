@@ -41,9 +41,14 @@ import java.util.Objects;
  * Hashes names using String.hashCode(), then reduces the dimension.
  */
 
-@ProtoSerializableClass(version = 0, serializedDataClass = ModHashCodeHasherProto.class)
+@ProtoSerializableClass(version = ModHashCodeHasher.CURRENT_VERSION, serializedDataClass = ModHashCodeHasherProto.class)
 public final class ModHashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     static final String DIMENSION = "dimension";
 
@@ -88,6 +93,9 @@ public final class ModHashCodeHasher extends Hasher {
      * @throws InvalidProtocolBufferException If the message cannot be parsed by {@link ModHashCodeHasherProto}.
      */
     public static ModHashCodeHasher deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         ModHashCodeHasherProto proto = message.unpack(ModHashCodeHasherProto.class);
         ModHashCodeHasher obj = new ModHashCodeHasher();
         obj.dimension = proto.getDimension();

@@ -60,10 +60,15 @@ import java.util.logging.Logger;
  */
 public final class TransformerMap implements ProtoSerializable<TransformerMapProto>,
         Provenancable<TransformerMapProvenance>, Serializable {
-    
+
     private static final Logger logger = Logger.getLogger(TransformerMap.class.getName());
     
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final Map<String, List<Transformer>> map;
     private final DatasetProvenance datasetProvenance;
@@ -87,7 +92,7 @@ public final class TransformerMap implements ProtoSerializable<TransformerMapPro
      * @return The deserialized TransformerMap.
      */
     public static TransformerMap deserialize(TransformerMapProto proto) {
-        if (proto.getVersion() == 0) {
+        if (proto.getVersion() == CURRENT_VERSION) {
             Map<String,List<Transformer>> map = new LinkedHashMap<>();
             for (Map.Entry<String,TransformerListProto> e : proto.getTransformersMap().entrySet()) {
                 List<Transformer> list = new ArrayList<>();
@@ -169,7 +174,6 @@ public final class TransformerMap implements ProtoSerializable<TransformerMapPro
      * @return A deep copy of the dataset (and it's examples) with the transformers applied to it's features.
      */
     public <T extends Output<T>> MutableDataset<T> transformDataset(Dataset<T> dataset, boolean densify) {
-        
         logger.fine("Creating deep copy of data set");
         
         MutableDataset<T> newDataset = MutableDataset.createDeepCopy(dataset);
@@ -239,7 +243,7 @@ public final class TransformerMap implements ProtoSerializable<TransformerMapPro
     public TransformerMapProto serialize() {
         TransformerMapProto.Builder builder = TransformerMapProto.newBuilder();
 
-        builder.setVersion(0);
+        builder.setVersion(CURRENT_VERSION);
         builder.setDatasetProvenance(
                 PROVENANCE_SERIALIZER.serializeToProto(
                         ProvenanceUtil.marshalProvenance(datasetProvenance)));

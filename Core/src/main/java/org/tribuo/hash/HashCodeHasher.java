@@ -35,9 +35,14 @@ import java.util.Objects;
 /**
  * Hashes names using String.hashCode().
  */
-@ProtoSerializableClass(version = 0)
+@ProtoSerializableClass(version = HashCodeHasher.CURRENT_VERSION)
 public final class HashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     @Config(mandatory = true, redact = true, description="Salt used in the hash.")
     private transient String salt = null;
@@ -65,6 +70,9 @@ public final class HashCodeHasher extends Hasher {
      * @param message The serialized data.
      */
     public static HashCodeHasher deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
         return new HashCodeHasher();
     }
 
