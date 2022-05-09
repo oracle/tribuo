@@ -774,7 +774,10 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 TreeMap<Double, Integer> outlierScoreIndexTree = new TreeMap<>();
                 outlierScoreIndexList.forEach(p -> outlierScoreIndexTree.put(p.getA(), p.getB()));
                 int numExemplarsThisCluster = e.getValue().size() * numExemplars / data.length;
-                if (numExemplarsThisCluster > outlierScoreIndexTree.size()) {
+                if (numExemplarsThisCluster == 0) {
+                    numExemplarsThisCluster = 1;
+                }
+                else if (numExemplarsThisCluster > outlierScoreIndexTree.size()) {
                     numExemplarsThisCluster = outlierScoreIndexTree.size();
                 }
 
