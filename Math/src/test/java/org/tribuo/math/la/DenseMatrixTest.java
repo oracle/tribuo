@@ -40,14 +40,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class DenseMatrixTest {
 
-    public static DenseMatrix identity(int size) {
+    public static double[][] identityArr(int size) {
         double[][] values = new double[size][size];
 
         for (int i = 0; i < size; i++) {
             values[i][i] = 1.0;
         }
 
-        return new DenseMatrix(values);
+        return values;
+    }
+
+    public static DenseMatrix identity(int size) {
+        return new DenseMatrix(identityArr(size));
     }
 
     // a 4x4 matrix
@@ -249,7 +253,7 @@ public class DenseMatrixTest {
         lValues[1][1] = 1;
         lValues[1][2] = 0;
         lValues[2][0] = -0.25;
-        lValues[2][1] = 0.26315789;
+        lValues[2][1] = 0.263157894736842;
         lValues[2][2] = 1;
 
         DenseMatrix l = new DenseMatrix(lValues);
@@ -264,7 +268,7 @@ public class DenseMatrixTest {
         uValues[1][2] = 30.5;
         uValues[2][0] = 0;
         uValues[2][1] = 0;
-        uValues[2][2] = 0.47368421;
+        uValues[2][2] = 0.473684210526317;
 
         DenseMatrix u = new DenseMatrix(uValues);
 
@@ -1465,5 +1469,18 @@ public class DenseMatrixTest {
         assertEquals(output.u,luOpt.get().u);
         assertArrayEquals(output.permutationArr,luOpt.get().permutationArr);
         assertEquals(output.oddSwaps,luOpt.get().oddSwaps);
+
+        // check solve vector method
+        DenseVector y = new DenseVector(new double[]{5, 6, 34});
+        DenseVector b = lu.solve(y);
+        assertEquals(symmetric.rightMultiply(b), y);
+
+        // check inverse method
+        DenseMatrix inv = lu.inverse();
+        double[][] identityArr = identityArr(3);
+        DenseMatrix outputMatrix = symmetric.matrixMultiply(inv);
+        for (int i = 0; i < identityArr.length; i++) {
+            assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), 1e-13);
+        }
     }
 }

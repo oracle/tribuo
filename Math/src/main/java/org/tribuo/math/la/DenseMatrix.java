@@ -31,6 +31,11 @@ import java.util.function.DoubleUnaryOperator;
 public class DenseMatrix implements Matrix {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Tolerance for non-zero diagonal values in the factorizations.
+     */
+    public static final double FACTORIZATION_TOLERANCE = 1e-14;
+
     private static final double DELTA = 1e-10;
 
     protected final double[][] values;
@@ -80,8 +85,16 @@ public class DenseMatrix implements Matrix {
         this.dim1 = other.getDimension1Size();
         this.dim2 = other.getDimension2Size();
         this.values = new double[dim1][dim2];
-        for (MatrixTuple t : other) {
-            this.values[t.i][t.j] = t.value;
+        if (other instanceof DenseMatrix) {
+            for (int i = 0; i < dim1; i++) {
+                for (int j = 0; j < dim2; j++) {
+                    this.values[i][j] = other.get(i,j);
+                }
+            }
+        } else {
+            for (MatrixTuple t : other) {
+                this.values[t.i][t.j] = t.value;
+            }
         }
         this.shape = new int[]{dim1,dim2};
         this.numElements = dim1*dim2;
@@ -833,7 +846,7 @@ public class DenseMatrix implements Matrix {
                         sum -= cholMatrix[i][k] * cholMatrix[j][k];
                     }
                     if (i == j) {
-                        if (sum <= 0) {
+                        if (sum <= FACTORIZATION_TOLERANCE) {
                             // Matrix is not positive definite as it has a negative diagonal element.
                             return Optional.empty();
                         } else {
@@ -866,13 +879,58 @@ public class DenseMatrix implements Matrix {
         if (!isSquare()) {
             return Optional.empty();
         } else {
-            // Copy the matrix first
+            // Copy the matrix first & init variables
             DenseMatrix lu = new DenseMatrix(this);
             double[][] luMatrix = lu.values;
             int[] permutation = new int[dim1];
             boolean oddSwaps = false;
+            for (int i = 0; i < dim1; i++) {
+                permutation[i] = i;
+            }
 
             // Decompose matrix
+            for (int i = 0; i < dim1; i++) {
+                double max = 0.0;
+                int maxIdx = i;
+
+                // Find max element
+                for (int k = i; k < dim1; k++) {
+                    double cur = Math.abs(luMatrix[k][i]);
+                    if (cur > max) {
+                        max = cur;
+                        maxIdx = k;
+                    }
+                }
+
+                if (max < FACTORIZATION_TOLERANCE) {
+                    // zero diagonal element, matrix is singular
+                    return Optional.empty();
+                }
+
+                // Pivot matrix if necessary
+                if (maxIdx != i) {
+                    // Update permutation array
+                    int tmpIdx = permutation[maxIdx];
+                    permutation[maxIdx] = permutation[i];
+                    permutation[i] = tmpIdx;
+                    oddSwaps = !oddSwaps;
+
+                    // Swap rows
+                    double[] tmpRow = luMatrix[maxIdx];
+                    luMatrix[maxIdx] = luMatrix[i];
+                    luMatrix[i] = tmpRow;
+                }
+
+                // Eliminate row
+                for (int j = i + 1; j < dim1; j++) {
+                    // Rescale lower triangle
+                    luMatrix[j][i] /= luMatrix[i][i];
+
+                    for (int k = i + 1; k < dim1; k++) {
+                        luMatrix[j][k] -= luMatrix[j][i] * luMatrix[i][k];
+                    }
+                }
+            }
 
             // Split into two matrices
             DenseMatrix l = new DenseMatrix(lu);
@@ -1161,8 +1219,31 @@ public class DenseMatrix implements Matrix {
          * @param vector The input vector y.
          * @return The vector b.
          */
-        public SGDVector solve(SGDVector vector) {
-            throw new UnsupportedOperationException();
+        public DenseVector solve(SGDVector vector) {
+            if (vector.size() != l.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + l.dim1 + ", received " + vector.size());
+            }
+            // Apply permutation to input
+            final double[] vectorArr = vector.toArray();
+            final double[] output = new double[vectorArr.length];
+            for (int i = 0; i < permutationArr.length; i++) {
+                output[i] = vectorArr[permutationArr[i]];
+
+                // Solve L * Y = b
+                for (int k = 0; k < i; k++) {
+                    output[i] -= l.values[i][k] * output[k];
+                }
+            }
+
+            // Solve U * X = Y
+            for (int i = permutationArr.length-1; i >= 0; i--) {
+                for (int k = i + 1; k < permutationArr.length; k++) {
+                    output[i] -= u.values[i][k] * output[k];
+                }
+                output[i] /= u.values[i][i];
+            }
+
+            return new DenseVector(output);
         }
 
         /**
@@ -1172,7 +1253,44 @@ public class DenseMatrix implements Matrix {
          * @return The matrix X.
          */
         public DenseMatrix solve(Matrix matrix) {
-            throw new UnsupportedOperationException();
+            if (matrix.getDimension1Size() != l.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + l.dim1 + ", received " + matrix.getDimension1Size());
+            }
+            final int outputDim1 = l.dim1;
+            final int outputDim2 = matrix.getDimension2Size();
+            final double[][] output = new double[l.dim1][];
+
+            // Apply permutation and copy over
+            for (int i = 0; i < outputDim1; i++) {
+                int permutedIdx = permutationArr[i];
+                for (int j = 0; j < outputDim2; j++) {
+                    output[i] = matrix.getRow(permutedIdx).toArray();
+                }
+            }
+
+            // Solve LY = B
+            for (int i = 0; i < outputDim1; i++) {
+                for (int j = i + 1; j < outputDim1; j++) {
+                    for (int k = 0; k < outputDim2; k++) {
+                        output[j][k] -= output[i][k] * l.values[j][i];
+                    }
+                }
+            }
+
+            // Solve UX = Y
+            for (int i = outputDim1 - 1; i >= 0; i--) {
+                // scale by diagonal
+                for (int j = 0; j < outputDim2; j++) {
+                    output[i][j] /= u.values[i][i];
+                }
+                for (int j = 0; j < i; j++) {
+                    for (int k = 0; k < outputDim2; k++) {
+                        output[j][k] -= output[i][k] * u.values[j][i];
+                    }
+                }
+            }
+
+            return new DenseMatrix(output);
         }
 
         /**
