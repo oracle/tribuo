@@ -124,6 +124,20 @@ public class DenseSparseMatrix implements Matrix {
         return new DenseSparseMatrix(newValues);
     }
 
+    /**
+     * Creates a diagonal matrix using the supplied values.
+     * @param diagonal The values along the diagonal.
+     * @return A diagonal matrix.
+     */
+    public static DenseSparseMatrix createDiagonal(SGDVector diagonal) {
+        int dimension = diagonal.size();
+        SparseVector[] newValues = new SparseVector[dimension];
+        for (int i = 0; i < dimension; i++) {
+            newValues[i] = new SparseVector(dimension, new int[]{i}, new double[]{diagonal.get(i)});
+        }
+        return new DenseSparseMatrix(newValues);
+    }
+
     @Override
     public int[] getShape() {
         return shape;

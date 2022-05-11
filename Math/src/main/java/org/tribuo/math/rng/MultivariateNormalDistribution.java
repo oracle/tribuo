@@ -17,6 +17,7 @@
 package org.tribuo.math.rng;
 
 import org.tribuo.math.la.DenseMatrix;
+import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
 
 import java.util.Arrays;
@@ -28,78 +29,104 @@ import java.util.Random;
  */
 public final class MultivariateNormalDistribution {
 
-  private final Random rng;
-  private final DenseVector means;
-  private final DenseMatrix covariance;
-  private final DenseMatrix samplingCovariance;
+    private final Random rng;
+    private final DenseVector means;
+    private final DenseMatrix covariance;
+    private final DenseMatrix samplingCovariance;
+    private final boolean eigenDecomposition;
 
-  /**
-   * Constructs a multivariate normal distribution that can be sampled from.
-   * <p>
-   * Throws {@link IllegalArgumentException} if the covariance matrix is not positive definite.
-   * @param means The mean vector.
-   * @param covariance The covariance matrix.
-   * @param seed The RNG seed.
-   */
-  public MultivariateNormalDistribution(double[] means, double[][] covariance, long seed) {
-    this.rng = new Random(seed);
-    this.means = DenseVector.createDenseVector(means);
-    this.covariance = DenseMatrix.createDenseMatrix(covariance);
-    if (this.covariance.getDimension1Size() != this.means.size() || this.covariance.getDimension2Size() != this.means.size()) {
-      throw new IllegalArgumentException("Covariance matrix must be square and the same dimension as the mean vector. Mean vector size = " + means.length + ", covariance size = " + Arrays.toString(this.covariance.getShape()));
-    }
-    Optional<DenseMatrix.CholeskyFactorization> factorization = this.covariance.choleskyFactorization();
-    if (factorization.isPresent()) {
-      this.samplingCovariance = factorization.get().matrix;
-    } else {
-      throw new IllegalArgumentException("Covariance matrix is not positive definite.");
-    }
-  }
-
-  /**
-   * Constructs a multivariate normal distribution that can be sampled from.
-   * <p>
-   * Throws {@link IllegalArgumentException} if the covariance matrix is not positive definite.
-   * @param means The mean vector.
-   * @param covariance The covariance matrix.
-   * @param seed The RNG seed.
-   */
-  public MultivariateNormalDistribution(DenseVector means, DenseMatrix covariance, long seed) {
-    this.rng = new Random(seed);
-    this.means = means.copy();
-    this.covariance = covariance.copy();
-    if (this.covariance.getDimension1Size() != this.means.size() || this.covariance.getDimension2Size() != this.means.size()) {
-      throw new IllegalArgumentException("Covariance matrix must be square and the same dimension as the mean vector. Mean vector size = " + means.size() + ", covariance size = " + Arrays.toString(this.covariance.getShape()));
-    }
-    Optional<DenseMatrix.CholeskyFactorization> factorization = this.covariance.choleskyFactorization();
-    if (factorization.isPresent()) {
-      this.samplingCovariance = factorization.get().matrix;
-    } else {
-      throw new IllegalArgumentException("Covariance matrix is not positive definite.");
-    }
-  }
-
-  /**
-   * Sample a vector from this multivariate normal distribution.
-   * @return A sample from this distribution.
-   */
-  public DenseVector sampleVector() {
-    DenseVector sampled = new DenseVector(means.size());
-    for (int i = 0; i < means.size(); i++) {
-      sampled.set(i,rng.nextGaussian());
+    /**
+     * Constructs a multivariate normal distribution that can be sampled from.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the covariance matrix is not positive definite.
+     * <p>
+     * Uses a {@link org.tribuo.math.la.DenseMatrix.CholeskyFactorization} to compute the sampling
+     * covariance matrix.
+     * @param means The mean vector.
+     * @param covariance The covariance matrix.
+     * @param seed The RNG seed.
+     */
+    public MultivariateNormalDistribution(double[] means, double[][] covariance, long seed) {
+        this(DenseVector.createDenseVector(means),DenseMatrix.createDenseMatrix(covariance),seed);
     }
 
-    sampled = samplingCovariance.rightMultiply(sampled);
+    /**
+     * Constructs a multivariate normal distribution that can be sampled from.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the covariance matrix is not positive definite.
+     * <p>
+     * Uses a {@link org.tribuo.math.la.DenseMatrix.CholeskyFactorization} to compute the sampling
+     * covariance matrix.
+     * @param means The mean vector.
+     * @param covariance The covariance matrix.
+     * @param seed The RNG seed.
+     */
+    public MultivariateNormalDistribution(DenseVector means, DenseMatrix covariance, long seed) {
+        this(means,covariance,seed,false);
+    }
 
-    return means.add(sampled);
-  }
+    /**
+     * Constructs a multivariate normal distribution that can be sampled from.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the covariance matrix is not positive definite.
+     * @param means The mean vector.
+     * @param covariance The covariance matrix.
+     * @param seed The RNG seed.
+     * @param eigenDecomposition If true use an eigen decomposition to compute the sampling covariance matrix
+     *                           rather than a cholesky factorization.
+     */
+    public MultivariateNormalDistribution(DenseVector means, DenseMatrix covariance, long seed, boolean eigenDecomposition) {
+        this.rng = new Random(seed);
+        this.means = means.copy();
+        this.covariance = covariance.copy();
+        if (this.covariance.getDimension1Size() != this.means.size() || this.covariance.getDimension2Size() != this.means.size()) {
+            throw new IllegalArgumentException("Covariance matrix must be square and the same dimension as the mean vector. Mean vector size = " + means.size() + ", covariance size = " + Arrays.toString(this.covariance.getShape()));
+        }
+        this.eigenDecomposition = eigenDecomposition;
+        if (eigenDecomposition) {
+            Optional<DenseMatrix.EigenDecomposition> factorization = this.covariance.eigenDecomposition();
+            if (factorization.isPresent() && factorization.get().positiveEigenvalues()) {
+                DenseVector eigenvalues = factorization.get().eigenvalues;
+                // rows are eigenvectors
+                DenseMatrix eigenvectors = new DenseMatrix(factorization.get().eigenvectors);
+                // scale eigenvectors by sqrt of eigenvalues
+                eigenvalues.foreachInPlace(Math::sqrt);
+                DenseSparseMatrix diagonal = DenseSparseMatrix.createDiagonal(eigenvalues);;
+                this.samplingCovariance = eigenvectors.matrixMultiply(diagonal);
+            } else {
+                throw new IllegalArgumentException("Covariance matrix is not positive definite.");
+            }
+        } else {
+            Optional<DenseMatrix.CholeskyFactorization> factorization = this.covariance.choleskyFactorization();
+            if (factorization.isPresent()) {
+                this.samplingCovariance = factorization.get().matrix;
+            } else {
+                throw new IllegalArgumentException("Covariance matrix is not positive definite.");
+            }
+        }
+    }
 
-  /**
-   * Sample a vector from this multivariate normal distribution.
-   * @return A sample from this distribution.
-   */
-  public double[] sampleArray() {
-    return sampleVector().toArray();
-  }
+    /**
+     * Sample a vector from this multivariate normal distribution.
+     * @return A sample from this distribution.
+     */
+    public DenseVector sampleVector() {
+        DenseVector sampled = new DenseVector(means.size());
+        for (int i = 0; i < means.size(); i++) {
+            sampled.set(i,rng.nextGaussian());
+        }
+
+        sampled = samplingCovariance.leftMultiply(sampled);
+
+        return means.add(sampled);
+    }
+
+    /**
+     * Sample a vector from this multivariate normal distribution.
+     * @return A sample from this distribution.
+     */
+    public double[] sampleArray() {
+        return sampleVector().toArray();
+    }
 
 }

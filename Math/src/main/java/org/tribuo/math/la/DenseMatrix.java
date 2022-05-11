@@ -957,6 +957,10 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    public Optional<EigenDecomposition> eigenDecomposition() {
+        return Optional.empty();
+    }
+
     @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
@@ -1298,6 +1302,26 @@ public class DenseMatrix implements Matrix {
          */
         public DenseMatrix inverse() {
             return solve(DenseSparseMatrix.createIdentity(permutationArr.length));
+        }
+    }
+
+    /**
+     * The output of a successful eigen decomposition.
+     * <p>
+     * Wraps a dense vector containing the eigenvalues and a dense matrix containing the eigenvectors as rows.
+     * Mutating these fields will cause undefined behaviour.
+     */
+    public static final class EigenDecomposition {
+        public final DenseVector eigenvalues;
+        public final DenseMatrix eigenvectors;
+
+        EigenDecomposition(DenseVector eigenvalues, DenseMatrix eigenvectors) {
+            this.eigenvalues = eigenvalues;
+            this.eigenvectors = eigenvectors;
+        }
+
+        public boolean positiveEigenvalues() {
+            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
         }
     }
 }
