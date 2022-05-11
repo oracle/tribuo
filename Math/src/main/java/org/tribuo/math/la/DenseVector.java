@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.ToDoubleBiFunction;
@@ -183,6 +184,8 @@ public class DenseVector implements SGDVector {
 
     /**
      * Performs a reduction from left to right of this vector.
+     * <p>
+     * The first argument to the reducer is the transformed element, the second is the state.
      * @param initialValue The initial value.
      * @param op The element wise operation to apply before reducing.
      * @param reduction The reduction operation (should be commutative).
@@ -194,6 +197,24 @@ public class DenseVector implements SGDVector {
         for (int i = 0; i < elements.length; i++) {
             double transformed = op.applyAsDouble(get(i));
             output = reduction.applyAsDouble(transformed,output);
+        }
+        return output;
+    }
+
+    /**
+     * Performs a reduction from left to right of this vector.
+     * <p>
+     * The first argument to the reducer is the transformed vector element, the second is the state.
+     * @param initialValue The initial value.
+     * @param op The element wise operation to apply before reducing.
+     * @param reduction The reduction operation (should be commutative).
+     * @return The reduced value.
+     */
+    public <T> T reduce(T initialValue, DoubleUnaryOperator op, BiFunction<Double, T, T> reduction) {
+        T output = initialValue;
+        for (int i = 0; i < elements.length; i++) {
+            double transformed = op.applyAsDouble(get(i));
+            output = reduction.apply(transformed, output);
         }
         return output;
     }

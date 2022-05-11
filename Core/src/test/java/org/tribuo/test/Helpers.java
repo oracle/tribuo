@@ -24,6 +24,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -182,6 +183,36 @@ public final class Helpers {
         } catch (ClassNotFoundException ex) {
             logger.severe("ClassNotFoundException when reading in model");
             Assertions.fail("Failed to deserialize sequence model class " + model.getClass().toString(), ex);
+        }
+    }
+
+    public static boolean topFeaturesEqual(Map<String, List<Pair<String,Double>>> first, Map<String, List<Pair<String,Double>>> second, double tolerance)  {
+        if (first.size() == second.size() && first.keySet().containsAll(second.keySet())) {
+            // keys the same, now check lists
+            for (Map.Entry<String, List<Pair<String, Double>>> e : first.entrySet()) {
+                List<Pair<String,Double>> firstList = e.getValue();
+                List<Pair<String,Double>> secondList = second.get(e.getKey());
+                if (firstList.size() == secondList.size()) {
+                    // Now compare lists
+                    for (int i = 0; i < firstList.size(); i++) {
+                        Pair<String, Double> firstPair = firstList.get(i);
+                        Pair<String, Double> secondPair = secondList.get(i);
+                        if (firstPair.getA().equals(secondPair.getA())) {
+                            double diff = Math.abs(firstPair.getB() - secondPair.getB());
+                            if (diff > tolerance) {
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    }
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
         }
     }
 }

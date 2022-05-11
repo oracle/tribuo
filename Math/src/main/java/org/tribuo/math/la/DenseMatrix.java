@@ -223,7 +223,7 @@ public class DenseMatrix implements Matrix {
         double[] outputValues = new double[dim2];
 
         for (int i = 0; i < elements.length; i++) {
-            outputValues[i] = values[elements[i]][i];
+            outputValues[i] = get(elements[i],i);
         }
 
         return new DenseVector(outputValues);
@@ -241,7 +241,7 @@ public class DenseMatrix implements Matrix {
         double[] outputValues = new double[dim1];
 
         for (int i = 0; i < elements.length; i++) {
-            outputValues[i] = values[i][elements[i]];
+            outputValues[i] = get(i,elements[i]);
         }
 
         return new DenseVector(outputValues);
@@ -285,7 +285,7 @@ public class DenseMatrix implements Matrix {
     @Override
     public int hashCode() {
         int result = Objects.hash(dim1, dim2, numElements);
-        result = 31 * result + Arrays.hashCode(values);
+        result = 31 * result + Arrays.deepHashCode(values);
         result = 31 * result + Arrays.hashCode(getShape());
         return result;
     }
@@ -320,7 +320,7 @@ public class DenseMatrix implements Matrix {
                 // If it's sparse we iterate the tuples
                 for (VectorTuple tuple : input) {
                     for (int i = 0; i < output.length; i++) {
-                        output[i] += values[i][tuple.index] * tuple.value;
+                        output[i] += get(i,tuple.index) * tuple.value;
                     }
                 }
             }
@@ -346,7 +346,7 @@ public class DenseMatrix implements Matrix {
                 // If it's sparse we iterate the tuples
                 for (VectorTuple tuple : input) {
                     for (int i = 0; i < output.length; i++) {
-                        output[i] += values[tuple.index][i] * tuple.value;
+                        output[i] += get(tuple.index,i) * tuple.value;
                     }
                 }
             }
@@ -540,7 +540,7 @@ public class DenseMatrix implements Matrix {
         for (int i = 0; i < dim1; i++) {
             double tmp = 0.0;
             for (int j = 0; j < dim2; j++) {
-                tmp += values[i][j];
+                tmp += get(i,j);
             }
             rowSum[i] = tmp;
         }
@@ -729,7 +729,7 @@ public class DenseMatrix implements Matrix {
         }
         double[] output = new double[dim1];
         for (int i = 0; i < dim1; i++) {
-            output[i] = values[i][index];
+            output[i] = get(i,index);
         }
         return new DenseVector(output);
     }
@@ -746,7 +746,7 @@ public class DenseMatrix implements Matrix {
         if (vector.size() == dim1) {
             if (vector instanceof DenseVector) {
                 for (int i = 0; i < dim1; i++) {
-                    values[i][index] = vector.get(index);
+                    values[i][index] = vector.get(i);
                 }
             } else {
                 for (VectorTuple t : vector) {
@@ -754,7 +754,7 @@ public class DenseMatrix implements Matrix {
                 }
             }
         } else {
-            throw new IllegalArgumentException("Vector size mismatch, expected " + dim2 + " found " + vector.size());
+            throw new IllegalArgumentException("Vector size mismatch, expected " + dim1 + " found " + vector.size());
         }
     }
 
@@ -764,10 +764,9 @@ public class DenseMatrix implements Matrix {
      * @return The row sum.
      */
     public double rowSum(int rowIndex) {
-        double[] row = values[rowIndex];
         double sum = 0d;
-        for (int i = 0; i < row.length; i++) {
-            sum += row[i];
+        for (int i = 0; i < dim2; i++) {
+            sum += get(rowIndex,i);
         }
         return sum;
     }
@@ -780,7 +779,7 @@ public class DenseMatrix implements Matrix {
     public double columnSum(int columnIndex) {
         double sum = 0d;
         for (int i = 0; i < dim1; i++) {
-            sum += values[i][columnIndex];
+            sum += get(i,columnIndex);
         }
         return sum;
     }
@@ -815,7 +814,7 @@ public class DenseMatrix implements Matrix {
         } else {
             for (int i = 0; i < dim1; i++) {
                 for (int j = i + 1; j < dim1; j++) {
-                    if (Double.compare(values[i][j],values[j][i]) != 0) {
+                    if (Double.compare(get(i,j),get(j,i)) != 0) {
                         return false;
                     }
                 }
@@ -1010,7 +1009,7 @@ public class DenseMatrix implements Matrix {
         double[] columnSum = new double[dim2];
         for (int i = 0; i < dim1; i++) {
             for (int j = 0; j < dim2; j++) {
-                columnSum[j] += values[i][j];
+                columnSum[j] += get(i,j);
             }
         }
         return new DenseVector(columnSum);
@@ -1035,7 +1034,7 @@ public class DenseMatrix implements Matrix {
                 if (curIdx < 0 || curIdx >= dim2) {
                     throw new IllegalArgumentException("Invalid column index, expected [0, " + dim2 +"), found " + curIdx);
                 }
-                returnVal.values[i][j] = values[i][curIdx];
+                returnVal.values[i][j] = get(i,curIdx);
             }
         }
 
@@ -1061,7 +1060,7 @@ public class DenseMatrix implements Matrix {
                 if (curIdx < 0 || curIdx >= dim2) {
                     throw new IllegalArgumentException("Invalid column index, expected [0, " + dim2 +"), found " + curIdx);
                 }
-                returnVal.values[i][j] = values[i][curIdx];
+                returnVal.values[i][j] = get(i,curIdx);
             }
         }
 
