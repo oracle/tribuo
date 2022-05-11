@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,26 +18,20 @@ package org.tribuo.regression.slm;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.SparseTrainer;
 import org.tribuo.WeightedExamples;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
-import org.tribuo.math.la.VectorTuple;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.regression.Regressor;
-import org.tribuo.util.Util;
-import org.apache.commons.math3.linear.Array2DRowRealMatrix;
-import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.LUDecomposition;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
-import org.apache.commons.math3.linear.SingularMatrixException;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -46,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -94,13 +89,20 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
      */
     protected SLMTrainer() {}
 
-    protected RealVector newWeights(SLMState state) {
-        RealVector result = SLMTrainer.ordinaryLeastSquares(state.xpi,state.y);
+    /**
+     * Computes the new feature weights.
+     * <p>
+     * In this version it returns the ordinary least squares solution for the current state.
+     * @param state The SLM state to operate on.
+     * @return The new feature weights.
+     */
+    protected DenseVector newWeights(SLMState state) {
+        Pair<DenseVector,DenseMatrix> result = SLMTrainer.ordinaryLeastSquares(state.xpi,state.y);
 
         if (result == null) {
             return null;
         } else {
-            return state.unpack(result);
+            return state.unpack(result.getA());
         }
     }
 
@@ -141,7 +143,7 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
         int numOutputs = outputInfo.size();
         int numExamples = examples.size();
         int numFeatures = normalize ? featureIDMap.size() : featureIDMap.size() + 1; //include bias
-        double[][] outputs = new double[numOutputs][numExamples];
+        DenseMatrix outputMatrix = new DenseMatrix(numOutputs,numExamples);
         SparseVector[] inputs = new SparseVector[numExamples];
         int n = 0;
         for (Example<Regressor> e : examples) {
@@ -150,71 +152,43 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
             inputs[n].scaleInPlace(curWeight); //rescale features by example weight
             for (Regressor.DimensionTuple r : e.getOutput()) {
                 int id = outputInfo.getID(r);
-                outputs[id][n] = r.getValue() * curWeight; //rescale output by example weight
+                outputMatrix.set(id,n,r.getValue() * curWeight); //rescale output by example weight
             }
             n++;
         }
 
         // Extract featureMatrix from the sparse vectors
-        RealMatrix featureMatrix = new Array2DRowRealMatrix(numExamples, numFeatures);
-        double[] denseFeatures = new double[numFeatures];
-        for (int i = 0; i < inputs.length; i++) {
-            Arrays.fill(denseFeatures,0.0);
-            for (VectorTuple vec : inputs[i]) {
-                denseFeatures[vec.index] = vec.value;
-            }
-            featureMatrix.setRow(i, denseFeatures);
-        }
+        DenseMatrix featureMatrix = DenseMatrix.createDenseMatrix(inputs);
 
         double[] featureMeans = new double[numFeatures];
-        double[] featureVariances = new double[numFeatures];
+        double[] featureNorms = new double[numFeatures];
         double[] outputMeans = new double[numOutputs];
-        double[] outputVariances = new double[numOutputs];
+        double[] outputNorms = new double[numOutputs];
         if (normalize) {
             for (int i = 0; i < numFeatures; ++i) {
-                double[] featV = featureMatrix.getColumn(i);
-                featureMeans[i] = Util.mean(featV);
-
-                for (int j=0; j < featV.length; ++j) {
-                    featV[j] -= featureMeans[i];
-                }
-
-                RealVector xp = new ArrayRealVector(featV);
-                featureVariances[i] = xp.getNorm();
-                featureMatrix.setColumnVector(i,xp.mapDivideToSelf(featureVariances[i]));
+                DenseVector col = featureMatrix.getColumn(i);
+                double colMean = col.meanVariance().getMean();
+                double colNorm = Math.sqrt(col.reduce(0.0, a -> a - colMean, (a,b) -> b + a*a));
+                col.foreachInPlace(a -> (a - colMean) / colNorm);
+                featureMatrix.setColumn(i,col);
+                featureMeans[i] = colMean;
+                featureNorms[i] = colNorm;
             }
 
             for (int i = 0; i < numOutputs; i++) {
-                outputMeans[i] = Util.mean(outputs[i]);
-                // Remove mean and aggregate variance
-                double sum = 0.0;
-                for (int j = 0; j < numExamples; j++) {
-                    outputs[i][j] -= outputMeans[i];
-                    sum += outputs[i][j] * outputs[i][j];
-                }
-                outputVariances[i] = Math.sqrt(sum);
-                // Remove variance
-                for (int j = 0; j < numExamples; j++) {
-                    outputs[i][j] /= outputVariances[i];
-                }
+                DenseVector row = outputMatrix.getRow(i);
+                double rowMean = row.meanVariance().getMean();
+                double rowNorm = Math.sqrt(row.reduce(0.0, a -> a - rowMean, (a,b) -> b + a*a));
+                row.foreachInPlace(a -> (a - rowMean) / rowNorm);
+                outputMeans[i] = rowMean;
+                outputNorms[i] = rowNorm;
             }
         } else {
             Arrays.fill(featureMeans,0.0);
-            Arrays.fill(featureVariances,1.0);
+            Arrays.fill(featureNorms,1.0);
             Arrays.fill(outputMeans,0.0);
-            Arrays.fill(outputVariances,1.0);
+            Arrays.fill(outputNorms,1.0);
         }
-
-        // Construct the output matrix from the double[][] after scaling
-        RealMatrix outputMatrix = new Array2DRowRealMatrix(outputs);
-
-        // Array example is useful to compute a submatrix
-        int[] exampleRows = new int[numExamples];
-        for (int i = 0; i < numExamples; ++i) {
-            exampleRows[i] = i;
-        }
-
-        RealVector one = new ArrayRealVector(numExamples,1.0);
 
         int numToSelect;
         if ((maxNumFeatures < 1) || (maxNumFeatures > featureIDMap.size())) {
@@ -228,14 +202,14 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
         for (Regressor r : domain) {
             int id = outputInfo.getID(r);
             dimensionNames[id] = r.getNames()[0];
-            SLMState state = new SLMState(featureMatrix,outputMatrix.getRowVector(id),featureIDMap,normalize);
-            modelWeights[id] = trainSingleDimension(state,exampleRows,numToSelect,one);
+            SLMState state = new SLMState(featureMatrix,outputMatrix.getRow(id),featureIDMap,normalize);
+            modelWeights[id] = trainSingleDimension(state,numToSelect);
         }
 
         ModelProvenance provenance = new ModelProvenance(SparseLinearModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance);
         return new SparseLinearModel("slm-model", dimensionNames, provenance, featureIDMap, outputInfo, modelWeights,
-                DenseVector.createDenseVector(featureMeans), DenseVector.createDenseVector(featureVariances),
-                outputMeans, outputVariances, !normalize);
+                DenseVector.createDenseVector(featureMeans), DenseVector.createDenseVector(featureNorms),
+                outputMeans, outputNorms, !normalize);
     }
 
     @Override
@@ -265,28 +239,26 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
     /**
      * Trains a single dimension.
      * @param state The state object to use.
-     * @param exampleRows An array with the row indices in.
      * @param numToSelect The number of features to select.
-     * @param one A RealVector of ones.
      * @return The sparse vector representing the learned feature weights.
      */
-    private SparseVector trainSingleDimension(SLMState state, int[] exampleRows, int numToSelect, RealVector one) {
+    private SparseVector trainSingleDimension(SLMState state, int numToSelect) {
         int iter = 0;
         while (state.active.size() < numToSelect) {
             // Compute the residual
-            state.r = state.y.subtract(state.X.operate(state.beta));
+            state.r = state.y.subtract(state.X.leftMultiply(state.beta));
 
-            logger.info("At iteration " + iter + " Average residual " + state.r.dotProduct(one) / state.numExamples);
+            logger.info("At iteration " + iter + " Average residual " + state.r.sum() / state.numExamples);
             iter++;
             // Compute the correlation
-            state.corr = state.X.transpose().operate(state.r);
+            state.corr = state.X.rightMultiply(state.r);
 
             // Identify most correlated feature
             double max = -1;
             int feature = -1;
             for (int i = 0; i < state.numFeatures; ++i) {
                 if (!state.activeSet.contains(i)) {
-                    double absCorr = Math.abs(state.corr.getEntry(i));
+                    double absCorr = Math.abs(state.corr.get(i));
 
                     if (absCorr > max) {
                         max = absCorr;
@@ -307,14 +279,13 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
             }
 
             // Compute the active matrix
-            int[] activeFeatures = Util.toPrimitiveInt(state.active);
-            state.xpi = state.X.getSubMatrix(exampleRows, activeFeatures);
+            state.xpi = state.X.selectColumns(state.active);
 
             if (state.active.size() == (numToSelect - 1)) {
                 state.last = true;
             }
 
-            RealVector betapi = newWeights(state);
+            DenseVector betapi = newWeights(state);
 
             if (betapi == null) {
                 // Matrix was not invertible
@@ -328,8 +299,8 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
         Map<Integer, Double> parameters = new HashMap<>();
 
         for (int i = 0; i < state.numFeatures; ++i) {
-            if (state.beta.getEntry(i) != 0) {
-                parameters.put(i, state.beta.getEntry(i));
+            if (state.beta.get(i) != 0) {
+                parameters.put(i, state.beta.get(i));
             }
         }
 
@@ -344,45 +315,23 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
      * @param target The vector of target values.
      * @return The OLS solution for the supplied features.
      */
-    static RealVector ordinaryLeastSquares(RealMatrix M, RealVector target) {
-        RealMatrix inv;
-        try {
-            inv = new LUDecomposition(M.transpose().multiply(M)).getSolver().getInverse();
-        } catch (SingularMatrixException s) {
+    static Pair<DenseVector,DenseMatrix> ordinaryLeastSquares(DenseMatrix M, DenseVector target) {
+        Optional<DenseMatrix.LUFactorization> lu = M.matrixMultiply(M,true,false).luFactorization();
+        if (lu.isPresent()) {
+            DenseMatrix inv = lu.get().inverse();
+            return new Pair<>(inv.matrixMultiply(M,false,true).leftMultiply(target),inv);
+        } else {
             // Matrix is not invertible, there is nothing we can do
             // We will let the caller decide what to do
             return null;
         }
-
-        return inv.multiply(M.transpose()).operate(target);
     }
 
-    /**
-     * Sums inverted matrix.
-     * @param matrix The Matrix to operate on.
-     * @return The sum of the inverted matrix.
-     */
-    static double sumInverted(RealMatrix matrix) {
-        // Why are we not trying to catch the potential exception?
-        // Because in the context of LARS, if we call this method, we know the matrix is invertible
-        RealMatrix inv = new LUDecomposition(matrix.transpose().multiply(matrix)).getSolver().getInverse();
-
-        RealVector one = new ArrayRealVector(matrix.getColumnDimension(),1.0);
-
-        return one.dotProduct(inv.operate(one));
-    }
-
-    /**
-     * Inverts the matrix, takes the dot product and scales it by the supplied value.
-     * @param M The matrix to invert.
-     * @param AA The value to scale by.
-     * @return The vector of feature values.
-     */
-    static RealVector getwa(RealMatrix M, double AA) {
-        RealMatrix inv = new LUDecomposition(M.transpose().multiply(M)).getSolver().getInverse();
-        RealVector one = new ArrayRealVector(M.getColumnDimension(),1.0);
-
-        return inv.operate(one).mapMultiply(AA);
+    static DenseVector getWA(DenseMatrix inv, double AA) {
+        DenseVector ones = new DenseVector(inv.getDimension2Size(),1.0);
+        DenseVector output = inv.rightMultiply(ones);
+        output.scaleInPlace(AA);
+        return output;
     }
 
     /**
@@ -393,9 +342,9 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
      * @param v A vector.
      * @return (M . v) . D^T
      */
-    static RealVector getA(RealMatrix D, RealMatrix M, RealVector v) {
-        RealVector u = M.operate(v);
-        return D.transpose().operate(u);
+    static DenseVector getA(DenseMatrix D, DenseMatrix M, DenseVector v) {
+        DenseVector u = M.leftMultiply(v);
+        return D.rightMultiply(u);
     }
 
     static class SLMState {
@@ -407,26 +356,26 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
         protected final Set<Integer> activeSet;
         protected final List<Integer> active;
 
-        protected final RealMatrix X;
-        protected final RealVector y;
+        protected final DenseMatrix X;
+        protected final DenseVector y;
 
-        protected RealMatrix xpi;
-        protected RealVector r;
-        protected RealVector beta;
+        protected DenseMatrix xpi;
+        protected DenseVector r;
+        protected DenseVector beta;
 
         protected double C;
-        protected RealVector corr;
+        protected DenseVector corr;
 
-        protected Boolean last = false;
+        protected boolean last = false;
 
-        public SLMState(RealMatrix features, RealVector outputs, ImmutableFeatureMap featureIDMap, boolean normalize) {
-            this.numExamples = features.getRowDimension();
-            this.numFeatures = features.getColumnDimension();
+        public SLMState(DenseMatrix features, DenseVector outputs, ImmutableFeatureMap featureIDMap, boolean normalize) {
+            this.numExamples = features.getDimension1Size();
+            this.numFeatures = features.getDimension2Size();
             this.featureIDMap = featureIDMap;
             this.normalize = normalize;
-            this.active = new ArrayList<>();
+            this.active = new ArrayList<>(numFeatures);
             this.activeSet = new HashSet<>();
-            this.beta = new ArrayRealVector(numFeatures);
+            this.beta = new DenseVector(numFeatures);
             this.X = features;
             this.y = outputs;
         }
@@ -436,11 +385,11 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
          * @param values The values.
          * @return A dense vector representing the values at the active set indices.
          */
-        public RealVector unpack(RealVector values) {
-            RealVector u = new ArrayRealVector(numFeatures);
+        public DenseVector unpack(DenseVector values) {
+            DenseVector u = new DenseVector(numFeatures);
 
             for (int i = 0; i < active.size(); ++i) {
-                u.setEntry(active.get(i), values.getEntry(i));
+                u.set(active.get(i), values.get(i));
             }
 
             return u;

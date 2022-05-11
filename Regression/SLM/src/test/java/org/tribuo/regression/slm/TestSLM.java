@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,21 @@ package org.tribuo.regression.slm;
 
 import ai.onnxruntime.OrtException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.SparseModel;
-import org.tribuo.Trainer;
+import org.tribuo.SparseTrainer;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.NonlinearGaussianDataSource;
 import org.tribuo.regression.example.RegressionDataGenerator;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
@@ -47,18 +47,17 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSLM {
     private static final Logger logger = Logger.getLogger(TestSLM.class.getName());
 
     private static final SLMTrainer SFS = new SLMTrainer(false,-1);
-    private static final SLMTrainer SFSN = new SLMTrainer(false,-1);
-    private static final ElasticNetCDTrainer ELASTIC_NET = new ElasticNetCDTrainer(1.0,0.5,1e-4,500,false,0);
+    private static final SLMTrainer SFSN = new SLMTrainer(true,-1);
     private static final LARSTrainer LARS = new LARSTrainer(10);
     private static final LARSLassoTrainer LARS_LASSO = new LARSLassoTrainer(-1);
 
+    private static final ElasticNetCDTrainer ELASTIC_NET = new ElasticNetCDTrainer(1.0,0.5,1e-4,500,false,0);
     private static final RegressionEvaluator e = new RegressionEvaluator();
 
     private static final URL TEST_REGRESSION_REORDER_ENET_MODEL = TestSLM.class.getResource("enet-4.1.0.model");
@@ -73,10 +72,10 @@ public class TestSLM {
     }
 
     // This is a bit contrived, but it makes the trainer that failed appear in the stack trace.
-    public static Model<Regressor> testTrainer(Trainer<Regressor> trainer,
-                                               Pair<Dataset<Regressor>,Dataset<Regressor>> p,
-                                               boolean testONNX) {
-        Model<Regressor> m = trainer.train(p.getA());
+    public static SparseModel<Regressor> testTrainer(SparseTrainer<Regressor> trainer,
+                                                     Pair<Dataset<Regressor>,Dataset<Regressor>> p,
+                                                     boolean testONNX) {
+        SparseModel<Regressor> m = trainer.train(p.getA());
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
@@ -102,19 +101,23 @@ public class TestSLM {
     }
 
     public static Model<Regressor> testSFS(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
-        return testTrainer(SFS,p,testONNX);
+        SparseModel<Regressor> newM = testTrainer(SFS,p,testONNX);
+        return newM;
     }
 
     public static Model<Regressor> testSFSN(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
-        return testTrainer(SFSN,p,testONNX);
+        SparseModel<Regressor> newM = testTrainer(SFSN,p,testONNX);
+        return newM;
     }
 
     public static Model<Regressor> testLARS(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
-        return testTrainer(LARS,p,testONNX);
+        SparseModel<Regressor> newM = testTrainer(LARS,p,testONNX);
+        return newM;
     }
 
     public static Model<Regressor> testLASSO(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
-        return testTrainer(LARS_LASSO,p,testONNX);
+        SparseModel<Regressor> newM = testTrainer(LARS_LASSO,p,testONNX);
+        return newM;
     }
 
     public static Model<Regressor> testElasticNet(Pair<Dataset<Regressor>,Dataset<Regressor>> p, boolean testONNX) {
