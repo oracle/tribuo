@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,6 +75,9 @@ public final class MessageDigestHasher extends Hasher {
      */
     public MessageDigestHasher(String hashType, String salt) {
         this.hashType = hashType;
+        if (!Hasher.validateSalt(salt)) {
+            throw new IllegalArgumentException("Salt: '" + salt + ", does not meet the requirements for a salt.");
+        }
         this.salt = salt.getBytes(utf8Charset);
         this.md = ThreadLocal.withInitial(getDigestSupplier(hashType));
         MessageDigest d = this.md.get(); // To trigger the unsupported digest exception.
@@ -87,6 +90,9 @@ public final class MessageDigestHasher extends Hasher {
     @Override
     public void postConfig() throws PropertyException {
         if (saltStr != null) {
+            if (!Hasher.validateSalt(saltStr)) {
+                throw new PropertyException("","saltStr","Salt does not meet the requirements for a salt.");
+            }
             salt = saltStr.getBytes(utf8Charset);
         } else {
             throw new PropertyException("","saltStr","Salt not set in MessageDigestHasher.");
