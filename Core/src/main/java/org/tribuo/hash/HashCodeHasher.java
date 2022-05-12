@@ -65,11 +65,10 @@ public final class HashCodeHasher extends Hasher {
      * Used by the OLCUT configuration system, and should not be called by external code.
      */
     @Override
-    public synchronized void postConfig() throws PropertyException{
+    public void postConfig() throws PropertyException{
         if (salt == null) {
             throw new PropertyException("","salt","Salt not set in HashCodeHasher.");
-        }
-        else if (!Hasher.validateSalt(salt)) {
+        } else if (!Hasher.validateSalt(salt)) {
             throw new PropertyException("","salt","Salt does not meet the requirements for a salt.");
         }
     }

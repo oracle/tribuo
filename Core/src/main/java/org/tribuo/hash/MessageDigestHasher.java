@@ -88,7 +88,7 @@ public final class MessageDigestHasher extends Hasher {
      * Used by the OLCUT configuration system, and should not be called by external code.
      */
     @Override
-    public synchronized void postConfig() throws PropertyException {
+    public void postConfig() throws PropertyException {
         if (saltStr != null) {
             if (!Hasher.validateSalt(saltStr)) {
                 throw new PropertyException("","saltStr","Salt does not meet the requirements for a salt.");
