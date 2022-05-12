@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.tribuo.hash;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
@@ -48,6 +49,7 @@ public final class HashCodeHasher extends Hasher {
      */
     public HashCodeHasher(String salt) {
         this.salt = salt;
+        postConfig();
     }
 
     @Override
@@ -57,6 +59,18 @@ public final class HashCodeHasher extends Hasher {
         }
         String salted = salt + name;
         return ""+salted.hashCode();
+    }
+
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
+    @Override
+    public void postConfig() throws PropertyException{
+        if (salt == null) {
+            throw new PropertyException("","salt","Salt not set in HashCodeHasher.");
+        } else if (!Hasher.validateSalt(salt)) {
+            throw new PropertyException("","salt","Salt does not meet the requirements for a salt.");
+        }
     }
 
     @Override
