@@ -16,6 +16,7 @@
 
 package org.tribuo.math.la;
 
+import com.oracle.labs.mlrg.olcut.util.SortUtil;
 import org.tribuo.math.util.VectorNormalizer;
 
 import java.util.Arrays;
@@ -24,12 +25,14 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.DoubleUnaryOperator;
+import java.util.logging.Logger;
 
 /**
  * A dense matrix, backed by a primitive array.
  */
 public class DenseMatrix implements Matrix {
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = Logger.getLogger(DenseMatrix.class.getName());
 
     /**
      * Tolerance for non-zero diagonal values in the factorizations.
@@ -831,6 +834,7 @@ public class DenseMatrix implements Matrix {
      */
     public Optional<CholeskyFactorization> choleskyFactorization() {
         if (!isSymmetric()) {
+            logger.fine("Returning empty optional as matrix is not symmetric");
             return Optional.empty();
         } else {
             // Copy the matrix first
@@ -847,6 +851,7 @@ public class DenseMatrix implements Matrix {
                     if (i == j) {
                         if (sum <= FACTORIZATION_TOLERANCE) {
                             // Matrix is not positive definite as it has a negative diagonal element.
+                            logger.fine("Returning empty optional as matrix is not positive definite");
                             return Optional.empty();
                         } else {
                             cholMatrix[i][i] = Math.sqrt(sum);
@@ -876,6 +881,7 @@ public class DenseMatrix implements Matrix {
      */
     public Optional<LUFactorization> luFactorization() {
         if (!isSquare()) {
+            logger.fine("Returning empty optional as matrix is not square");
             return Optional.empty();
         } else {
             // Copy the matrix first & init variables
@@ -903,6 +909,7 @@ public class DenseMatrix implements Matrix {
 
                 if (max < FACTORIZATION_TOLERANCE) {
                     // zero diagonal element, matrix is singular
+                    logger.fine("Returning empty optional as matrix is singular");
                     return Optional.empty();
                 }
 
@@ -957,8 +964,246 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * Eigen decomposition of a symmetric matrix.
+     * <p>
+     * Non-symmetric matrices return an empty Optional as they may have complex eigenvalues.
+     * @return The eigen decomposition of a symmetric matrix, or an empty optional if it's not symmetric.
+     */
     public Optional<EigenDecomposition> eigenDecomposition() {
-        return Optional.empty();
+        if (!isSymmetric()) {
+            logger.fine("Returning empty optional as matrix is not symmetric");
+            return Optional.empty();
+        } else {
+            // Copy the matrix first & init variables
+            DenseMatrix transform = new DenseMatrix(this);
+            double[][] transformValues = transform.values;
+
+            // arrays for holding the tridiagonal form.
+            double[] diagonal = new double[dim1];
+            double[] offDiagonal = new double[dim1]; // first element is zero
+
+            // First tridiagonalize the matrix via a Householder reduction
+
+            // Copy last row into diagonal
+            System.arraycopy(transformValues[dim1 - 1], 0, diagonal, 0, dim1);
+
+            // Iterate up the matrix, reducing it
+            for (int i = dim1-1; i > 0; i--) {
+                // Accumulate scale along current diagonal
+                double scale = 0.0;
+                for (int k = 0; k < i; k++) {
+                    scale += Math.abs(diagonal[k]);
+                }
+
+                double diagElement = 0.0;
+                if (scale == 0.0) {
+                    System.out.println("Diagonal = " + Arrays.toString(diagonal));
+                    System.out.println("Off diagonal = " + Arrays.toString(offDiagonal));
+                    offDiagonal[i] = diagonal[i-1]; // surely this is zero?
+                    for (int j = 0; j < i; j++) {
+                        // copy in new row
+                        diagonal[j] = transformValues[i-1][j];
+                        // zero row & column
+                        transformValues[i][j] = 0.0;
+                        transformValues[j][i] = 0.0;
+                    }
+                } else {
+                    // Generate Householder vector
+                    for (int k = 0; k < i; k++) {
+                        final double tmp = diagonal[k] / scale;
+                        diagElement += tmp * tmp;
+                        diagonal[k] = tmp;
+                        offDiagonal[k] = 0;
+                    }
+                    final double nextDiag = diagonal[i-1];
+                    final double offDiag = nextDiag >= 0 ? -Math.sqrt(diagElement) : Math.sqrt(diagElement);
+
+                    offDiagonal[i] = scale * offDiag;
+                    diagElement -= offDiag * nextDiag;
+                    diagonal[i-1] = nextDiag - offDiag;
+
+                    // Transform the remaining vectors
+                    for (int j = 0; j < i; j++) {
+                        final double transDiag = diagonal[j];
+                        // Write back to matrix
+                        transformValues[j][i] = transDiag;
+                        double transOffDiag = offDiagonal[j] + transformValues[j][j] * transDiag;
+
+                        // Sum remaining column and update off diagonals
+                        for (int k = j + 1; k < i; k++) {
+                            double tmp = transformValues[k][j];
+                            transOffDiag += tmp * diagonal[k];
+                            offDiagonal[k] += tmp * transDiag;
+                        }
+                        offDiagonal[j] = transOffDiag;
+                    }
+
+                    double scaledElementSum = 0.0;
+                    for (int j = 0; j < i; j++) {
+                        final double tmp = offDiagonal[j] / diagElement;
+                        offDiagonal[j] = tmp;
+                        scaledElementSum += tmp * diagonal[j];
+                    }
+                    final double offDiagScalingFactor = scaledElementSum / (diagElement + diagElement);
+                    for (int j = 0; j < i; j++) {
+                        offDiagonal[j] -= offDiagScalingFactor * diagonal[j];
+                    }
+
+                    for (int j = 0; j < i; j++) {
+                        final double tmpDiag = diagonal[j];
+                        final double tmpOffDiag = offDiagonal[j];
+                        for (int k = j + 1; k < i; k++) {
+                            transformValues[k][j] -= (tmpDiag * offDiagonal[k]) + (tmpOffDiag * diagonal[k]);
+                        }
+                        diagonal[j] = transformValues[i-1][j];
+                        transformValues[i][j] = 0.0;
+                    }
+                }
+                diagonal[i] = diagElement;
+            }
+
+            // Finish transformation to tridiagonal
+            int dimMinusOne = dim1-1;
+            for (int i = 0; i < dimMinusOne; i++) {
+                transformValues[dimMinusOne][i] = transformValues[i][i];
+                transformValues[i][i] = 1.0;
+                final int nextIdx = i + 1;
+                final double nextDiag = diagonal[nextIdx];
+                if (nextDiag != 0.0) {
+                    // Recompute diagonal and rescale matrix
+                    for (int k = 0; k < nextIdx; k++) {
+                        diagonal[k] = transformValues[k][nextIdx] / nextDiag;
+                    }
+                    for (int j = 0; j < nextIdx; j++) {
+                        double scaleAccumulator = 0.0;
+                        for (int k = 0; k < nextIdx; k++) {
+                            scaleAccumulator += transformValues[k][nextIdx] * transformValues[k][j];
+                        }
+                        for (int k = 0; k < nextIdx; k++) {
+                            transformValues[k][j] -= scaleAccumulator * diagonal[k];
+                        }
+                    }
+                    // Zero lower column
+                    for (int j = 0; j < nextIdx; j++) {
+                        transformValues[j][nextIdx] = 0.0;
+                    }
+                }
+            }
+            for (int j = 0; j < dim1; j++) {
+                diagonal[j] = transformValues[dimMinusOne][j];
+                transformValues[dimMinusOne][j] = 0.0;
+            }
+            transformValues[dimMinusOne][dimMinusOne] = 1.0;
+            offDiagonal[0] = 0.0;
+
+            // Copy to dense vector/matrix as we're going to mutate the arrays
+            DenseVector diagVector = DenseVector.createDenseVector(diagonal);
+            DenseVector offDiagVector = DenseVector.createDenseVector(offDiagonal);
+            DenseMatrix householderMatrix = new DenseMatrix(transform);
+
+            // Then compute eigen vectors & values using an iterated tridiagonal QL algorithm
+
+            // Setup constants
+            final int maxItr = 35; // Maximum number of QL iterations before giving up and returning empty optional.
+            final double eps = Double.longBitsToDouble(4372995238176751616L); // Math.pow(2,-52)
+
+            // Copy off diagonal up for ease of use
+            System.arraycopy(offDiagonal, 1, offDiagonal, 0, dimMinusOne);
+            offDiagonal[dimMinusOne] = 0.0;
+
+            double diagAccum = 0.0;
+            double largestDiagSum = 0.0;
+            for (int i = 0; i < dim1; i++) {
+                largestDiagSum = Math.max(largestDiagSum, Math.abs(diagonal[i]) + Math.abs(offDiagonal[i]));
+                final double testVal = largestDiagSum*eps;
+                // Find small value to partition the matrix
+                int idx = i;
+                while (idx < dim1) {
+                    if (Math.abs(offDiagonal[idx]) <= testVal) {
+                        break;
+                    }
+                    idx++;
+                }
+
+                // if we didn't break out of the loop the diagonal value is an eigenvalue
+                // otherwise perform QL iterations
+                if (idx > i) {
+                    int iter = 0;
+                    do {
+                        if (iter > maxItr) {
+                            // Exceeded QL iteration count;
+                            logger.fine("Exceeded QL iteration count in eigenDecomposition");
+                            return Optional.empty();
+                        } else {
+                            iter++;
+                        }
+
+                        // Compute shift
+                        final double curDiag = diagonal[i];
+                        final double shift = (diagonal[i+1] - curDiag) / (2 * offDiagonal[i]);
+                        final double shiftLength = shift < 0 ? -Math.hypot(shift, 1.0) : Math.hypot(shift, 1.0);
+                        diagonal[i] = offDiagonal[i] / (shift + shiftLength);
+                        diagonal[i+1] = offDiagonal[i] * (shift + shiftLength);
+
+                        final double nextDiag = diagonal[i+1];
+                        final double diagShift = curDiag - diagonal[i];
+                        for (int j = i + 2; j < dim1; j++) {
+                            diagonal[j] -= diagShift;
+                        }
+                        diagAccum += diagShift;
+
+                        // Compute implicit QL
+                        double partitionDiag = diagonal[idx];
+                        final double oldOffDiag = offDiagonal[i+1];
+                        double c = 1.0, c2 = 1.0, c3 = 1.0;
+                        double s = 0.0, s2 = 0.0;
+                        for (int j = idx-1; j >= i; j--) {
+                            c3 = c2;
+                            c2 = c;
+                            s2 = s;
+                            final double scaledOffDiag = c * offDiagonal[j];
+                            final double scaledDiag = c * partitionDiag;
+                            final double dist = Math.hypot(partitionDiag, offDiagonal[j]);
+                            offDiagonal[j+1] = s * dist;
+                            s = offDiagonal[j] / dist;
+                            c = partitionDiag / dist;
+                            partitionDiag = (c * diagonal[j]) - (s * scaledOffDiag);
+                            diagonal[j+1] = scaledDiag + s * ((c * scaledOffDiag) + (s * diagonal[j]));
+
+                            // Update eigenvectors
+                            for (int k = 0; k < dim1; k++) {
+                                final double[] row = transformValues[k];
+                                final double tmp = row[j+1];
+                                row[j+1] = (s * row[j]) + (c * tmp);
+                                row[j] = (c * row[j]) - (s * tmp);
+                            }
+                        }
+                        partitionDiag = -s * s2 * c3 * oldOffDiag * offDiagonal[i] / nextDiag;
+                        offDiagonal[i] = s * partitionDiag;
+                        diagonal[i] = c * partitionDiag;
+                    } while (Math.abs(offDiagonal[i]) > testVal);
+                }
+
+                diagonal[i] += diagAccum;
+                offDiagonal[i] = 0.0;
+            }
+
+            // Sort eigenvalues and eigenvectors
+            int[] indices = SortUtil.argsort(diagonal, false);
+            double[] eigenVectors = new double[dim1];
+
+            for (int i = 0; i < indices.length; i++) {
+                eigenVectors[i] = diagonal[indices[i]];
+                for (int j = 0; j < dim1; j++) {
+                    double tmp = transformValues[j][i];
+                    transformValues[j][i] = transformValues[j][indices[i]];
+                    transformValues[j][indices[i]] = tmp;
+                }
+            }
+
+            return Optional.of(new EigenDecomposition(new DenseVector(eigenVectors),transform,diagVector,offDiagVector,householderMatrix));
+        }
     }
 
     @Override
@@ -1308,20 +1553,47 @@ public class DenseMatrix implements Matrix {
     /**
      * The output of a successful eigen decomposition.
      * <p>
-     * Wraps a dense vector containing the eigenvalues and a dense matrix containing the eigenvectors as rows.
+     * Wraps a dense vector containing the eigenvalues and a dense matrix containing the eigenvectors as columns.
      * Mutating these fields will cause undefined behaviour.
+     * <p>
+     * Also has fields representing the tridiagonal form used as an intermediate step in the eigen decomposition.
      */
     public static final class EigenDecomposition {
+        // Eigen decomposition fields
         public final DenseVector eigenvalues;
         public final DenseMatrix eigenvectors;
 
-        EigenDecomposition(DenseVector eigenvalues, DenseMatrix eigenvectors) {
+        // Tridiagonal form fields
+        public final DenseVector diagonal;
+        public final DenseVector offDiagonal;
+        public final DenseMatrix householderMatrix;
+
+        EigenDecomposition(DenseVector eigenvalues, DenseMatrix eigenvectors, DenseVector diagonal, DenseVector offDiagonal, DenseMatrix householderMatrix) {
             this.eigenvalues = eigenvalues;
             this.eigenvectors = eigenvectors;
+            this.diagonal = diagonal;
+            this.offDiagonal = offDiagonal;
+            this.householderMatrix = householderMatrix;
         }
 
+        /**
+         * Returns true if all the eigenvalues are positive.
+         * @return True if the eigenvalues are positive.
+         */
         public boolean positiveEigenvalues() {
             return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
+        }
+
+        /**
+         * Returns the dense vector representing the i'th eigenvector.
+         * @param i The index.
+         * @return The i'th eigenvector.
+         */
+        public DenseVector getEigenVector(int i) {
+            if (i < 0 || i > eigenvectors.dim1) {
+                throw new IllegalArgumentException("Invalid index, must be [0," + eigenvectors.dim1 + "), found " + i);
+            }
+            return eigenvectors.getColumn(i);
         }
     }
 }

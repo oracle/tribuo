@@ -1483,4 +1483,25 @@ public class DenseMatrixTest {
             assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), 1e-13);
         }
     }
+
+    @Test
+    public void eigenTest() {
+        DenseMatrix symmetric = generateSymmetric();
+
+        Optional<DenseMatrix.EigenDecomposition> eigOpt = symmetric.eigenDecomposition();
+        assertTrue(eigOpt.isPresent());
+        DenseMatrix.EigenDecomposition eig = eigOpt.get();
+
+        // Check decomposition
+        for (int i = 0; i < symmetric.dim1; i++) {
+            // assert A.x = \lambda.x
+            double eigenValue = eig.eigenvalues.get(i);
+            DenseVector eigenVector = eig.getEigenVector(i);
+            double[] output = symmetric.rightMultiply(eigenVector).toArray();
+            double[] expected = eigenVector.scale(eigenValue).toArray();
+            assertArrayEquals(expected,output,1e-13);
+        }
+
+
+    }
 }
