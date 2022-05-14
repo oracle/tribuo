@@ -234,19 +234,19 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
         String[] featureNames = Arrays.copyOf(allFeatureNames, firstMean.length);
         Random rng = new Random(seed);
         MultivariateNormalDistribution first = new MultivariateNormalDistribution(
-                firstMean, reshapeAndValidate(firstVariance, "firstVariance"), rng.nextInt()
+                firstMean, reshapeAndValidate(firstVariance, "firstVariance"), rng.nextInt(), true
         );
         MultivariateNormalDistribution second = new MultivariateNormalDistribution(
-                secondMean, reshapeAndValidate(secondVariance, "secondVariance"), rng.nextInt()
+                secondMean, reshapeAndValidate(secondVariance, "secondVariance"), rng.nextInt(), true
         );
         MultivariateNormalDistribution third = new MultivariateNormalDistribution(
-                thirdMean, reshapeAndValidate(thirdVariance, "thirdVariance"), rng.nextInt()
+                thirdMean, reshapeAndValidate(thirdVariance, "thirdVariance"), rng.nextInt(), true
         );
         MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(
-                fourthMean, reshapeAndValidate(fourthVariance, "fourthVariance"), rng.nextInt()
+                fourthMean, reshapeAndValidate(fourthVariance, "fourthVariance"), rng.nextInt(), true
         );
         MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(
-                fifthMean, reshapeAndValidate(fifthVariance, "fifthVariance"), rng.nextInt()
+                fifthMean, reshapeAndValidate(fifthVariance, "fifthVariance"), rng.nextInt(), true
         );
         MultivariateNormalDistribution[] Gaussians = new MultivariateNormalDistribution[]{first, second, third, fourth, fifth};
         List<Example<ClusterID>> examples = new ArrayList<>(numSamples);

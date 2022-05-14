@@ -800,6 +800,18 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
+     * Returns a copy of this matrix as a 2d array.
+     * @return A copy of this matrix.
+     */
+    public double[][] toArray() {
+        double[][] copy = new double[dim1][];
+        for (int i = 0; i < dim1; i++) {
+            copy[i] = Arrays.copyOf(values[i],dim2);
+        }
+        return copy;
+    }
+
+    /**
      * Is this a square matrix?
      * @return True if the matrix is square.
      */
@@ -998,8 +1010,6 @@ public class DenseMatrix implements Matrix {
 
                 double diagElement = 0.0;
                 if (scale == 0.0) {
-                    System.out.println("Diagonal = " + Arrays.toString(diagonal));
-                    System.out.println("Off diagonal = " + Arrays.toString(offDiagonal));
                     offDiagonal[i] = diagonal[i-1]; // surely this is zero?
                     for (int j = 0; j < i; j++) {
                         // copy in new row
@@ -1053,7 +1063,7 @@ public class DenseMatrix implements Matrix {
                     for (int j = 0; j < i; j++) {
                         final double tmpDiag = diagonal[j];
                         final double tmpOffDiag = offDiagonal[j];
-                        for (int k = j + 1; k < i; k++) {
+                        for (int k = j; k < i; k++) {
                             transformValues[k][j] -= (tmpDiag * offDiagonal[k]) + (tmpOffDiag * diagonal[k]);
                         }
                         diagonal[j] = transformValues[i-1][j];
@@ -1191,18 +1201,17 @@ public class DenseMatrix implements Matrix {
 
             // Sort eigenvalues and eigenvectors
             int[] indices = SortUtil.argsort(diagonal, false);
-            double[] eigenVectors = new double[dim1];
+            double[] eigenValues = new double[dim1];
+            double[][] eigenVectors = new double[dim1][dim1];
 
             for (int i = 0; i < indices.length; i++) {
-                eigenVectors[i] = diagonal[indices[i]];
+                eigenValues[i] = diagonal[indices[i]];
                 for (int j = 0; j < dim1; j++) {
-                    double tmp = transformValues[j][i];
-                    transformValues[j][i] = transformValues[j][indices[i]];
-                    transformValues[j][indices[i]] = tmp;
+                    eigenVectors[j][i] = transformValues[j][indices[i]];
                 }
             }
 
-            return Optional.of(new EigenDecomposition(new DenseVector(eigenVectors),transform,diagVector,offDiagVector,householderMatrix));
+            return Optional.of(new EigenDecomposition(new DenseVector(eigenValues),new DenseMatrix(eigenVectors),diagVector,offDiagVector,householderMatrix));
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,19 +63,19 @@ public abstract class ClusteringDataGenerator {
         double[] mixingPMF = new double[]{0.1,0.35,0.05,0.25,0.25};
         double[] mixingCDF = Util.generateCDF(mixingPMF);
         MultivariateNormalDistribution first = new MultivariateNormalDistribution(
-                new double[]{0.0,0.0}, new double[][]{{1.0,0.0},{0.0,1.0}}, rng.nextInt()
+                new double[]{0.0,0.0}, new double[][]{{1.0,0.0},{0.0,1.0}}, rng.nextInt(), true
         );
         MultivariateNormalDistribution second = new MultivariateNormalDistribution(
-                new double[]{5.0,5.0}, new double[][]{{1.0,0.0},{0.0,1.0}}, rng.nextInt()
+                new double[]{5.0,5.0}, new double[][]{{1.0,0.0},{0.0,1.0}}, rng.nextInt(), true
         );
         MultivariateNormalDistribution third = new MultivariateNormalDistribution(
-                new double[]{2.5,2.5}, new double[][]{{1.0,0.5},{0.5,1.0}}, rng.nextInt()
+                new double[]{2.5,2.5}, new double[][]{{1.0,0.5},{0.5,1.0}}, rng.nextInt(), true
         );
         MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(
-                new double[]{10.0,0.0}, new double[][]{{0.1,0.0},{0.0,0.1}}, rng.nextInt()
+                new double[]{10.0,0.0}, new double[][]{{0.1,0.0},{0.0,0.1}}, rng.nextInt(), true
         );
         MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(
-                new double[]{-1.0,0.0}, new double[][]{{1.0,0.0},{0.0,0.1}}, rng.nextInt()
+                new double[]{-1.0,0.0}, new double[][]{{1.0,0.0},{0.0,0.1}}, rng.nextInt(), true
         );
         MultivariateNormalDistribution[] gaussians = new MultivariateNormalDistribution[]{first,second,third,fourth,fifth};
 

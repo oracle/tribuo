@@ -54,6 +54,20 @@ public final class MultivariateNormalDistribution {
      * Constructs a multivariate normal distribution that can be sampled from.
      * <p>
      * Throws {@link IllegalArgumentException} if the covariance matrix is not positive definite.
+     * @param means The mean vector.
+     * @param covariance The covariance matrix.
+     * @param seed The RNG seed.
+     * @param eigenDecomposition If true use an eigen decomposition to compute the sampling covariance matrix
+     *                           rather than a cholesky factorization.
+     */
+    public MultivariateNormalDistribution(double[] means, double[][] covariance, long seed, boolean eigenDecomposition) {
+        this(DenseVector.createDenseVector(means),DenseMatrix.createDenseMatrix(covariance),seed, eigenDecomposition);
+    }
+
+    /**
+     * Constructs a multivariate normal distribution that can be sampled from.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the covariance matrix is not positive definite.
      * <p>
      * Uses a {@link org.tribuo.math.la.DenseMatrix.CholeskyFactorization} to compute the sampling
      * covariance matrix.
@@ -92,7 +106,7 @@ public final class MultivariateNormalDistribution {
                 // scale eigenvectors by sqrt of eigenvalues
                 eigenvalues.foreachInPlace(Math::sqrt);
                 DenseSparseMatrix diagonal = DenseSparseMatrix.createDiagonal(eigenvalues);;
-                this.samplingCovariance = eigenvectors.matrixMultiply(diagonal);
+                this.samplingCovariance = eigenvectors.matrixMultiply(diagonal).matrixMultiply(eigenvectors,false,true);
             } else {
                 throw new IllegalArgumentException("Covariance matrix is not positive definite.");
             }

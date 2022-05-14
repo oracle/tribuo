@@ -1492,16 +1492,17 @@ public class DenseMatrixTest {
         assertTrue(eigOpt.isPresent());
         DenseMatrix.EigenDecomposition eig = eigOpt.get();
 
+        Matrix computed = eig.eigenvectors.matrixMultiply(DenseSparseMatrix.createDiagonal(eig.eigenvalues)).matrixMultiply(eig.eigenvectors,false,true);
+
         // Check decomposition
         for (int i = 0; i < symmetric.dim1; i++) {
             // assert A.x = \lambda.x
             double eigenValue = eig.eigenvalues.get(i);
             DenseVector eigenVector = eig.getEigenVector(i);
-            double[] output = symmetric.rightMultiply(eigenVector).toArray();
+            double[] output = symmetric.leftMultiply(eigenVector).toArray();
             double[] expected = eigenVector.scale(eigenValue).toArray();
             assertArrayEquals(expected,output,1e-13);
+            assertArrayEquals(symmetric.getRow(i).toArray(), computed.getRow(i).toArray(), 1e-13);
         }
-
-
     }
 }
