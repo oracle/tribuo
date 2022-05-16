@@ -23,12 +23,26 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 public class MultivariateNormalDistributionTest {
 
     @Test
-    public void testMeanAndVar() {
+    public void testMeanAndVarChol() {
         double[] mean = new double[]{2.5, 2.5};
 
         double[][] covariance = new double[][]{{1.0, 0.5}, {0.5, 1.0}};
         MultivariateNormalDistribution rng = new MultivariateNormalDistribution(mean, covariance, 12345);
 
+        meanVarComp(rng,mean,covariance,1e-2);
+    }
+
+    @Test
+    public void testMeanAndVarEigen() {
+        double[] mean = new double[]{2.5, 2.5};
+
+        double[][] covariance = new double[][]{{1.0, 0.5}, {0.5, 1.0}};
+        MultivariateNormalDistribution rng = new MultivariateNormalDistribution(mean, covariance, 12345, true);
+
+        meanVarComp(rng,mean,covariance,1e-2);
+    }
+
+    private static void meanVarComp(MultivariateNormalDistribution rng, double[] mean, double[][]covariance, double tolerance) {
         double[][] samples = new double[100000][];
         double[] computedMean = new double[2];
         for (int i = 0; i < samples.length; i++) {
@@ -52,8 +66,8 @@ public class MultivariateNormalDistributionTest {
         computedCovariance[1][1] /= samples.length-1;
 
         assertArrayEquals(mean,computedMean,1e-2);
-        assertArrayEquals(covariance[0],computedCovariance[0],1e-2);
-        assertArrayEquals(covariance[1],computedCovariance[1],1e-2);
+        assertArrayEquals(covariance[0],computedCovariance[0],tolerance);
+        assertArrayEquals(covariance[1],computedCovariance[1],tolerance);
     }
 
 }

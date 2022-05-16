@@ -1378,10 +1378,10 @@ public class DenseMatrix implements Matrix {
      * of this class.
      */
     public static final class CholeskyFactorization {
-        public final DenseMatrix matrix;
+        public final DenseMatrix lMatrix;
 
-        CholeskyFactorization(DenseMatrix matrix) {
-            this.matrix = matrix;
+        CholeskyFactorization(DenseMatrix lMatrix) {
+            this.lMatrix = lMatrix;
         }
 
         /**
@@ -1390,8 +1390,8 @@ public class DenseMatrix implements Matrix {
          */
         public double determinant() {
             double det = 0.0;
-            for (int i = 0; i < matrix.dim1; i++) {
-                det *= matrix.values[i][i] * matrix.values[i][i];
+            for (int i = 0; i < lMatrix.dim1; i++) {
+                det *= lMatrix.values[i][i] * lMatrix.values[i][i];
             }
             return det;
         }
@@ -1402,18 +1402,72 @@ public class DenseMatrix implements Matrix {
          * @param vector The input vector y.
          * @return The vector b.
          */
-        public SGDVector solve(SGDVector vector) {
-            throw new UnsupportedOperationException();
+        public DenseVector solve(SGDVector vector) {
+            if (vector.size() != lMatrix.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lMatrix.dim1 + ", received " + vector.size());
+            }
+            final double[] vectorArr = vector.toArray();
+            final double[] output = new double[lMatrix.dim1];
+
+            // Solve matrix . y = vector
+            for (int i = 0; i < lMatrix.dim1; i++) {
+                double sum = vectorArr[i];
+                for (int j = i-1; j >= 0; j--) {
+                    sum -= lMatrix.values[i][j] * output[j];
+                }
+                output[i] = sum / lMatrix.values[i][i];
+            }
+
+            // Solve matrix^T . output = y
+            for (int i = lMatrix.dim1-1; i >= 0; i--) {
+                double sum = output[i];
+                for (int j = i+1; j < lMatrix.dim1; j++) {
+                    sum -= lMatrix.values[j][i] * output[j];
+                }
+                output[i] = sum / lMatrix.values[i][i];
+            }
+
+            return new DenseVector(output);
         }
 
         /**
-         * Solves the system A * X = Y, where Y is the input matrix, and A is the matrix which
+         * Solves the system A * X = B, where B is the input matrix, and A is the matrix which
          * produced this Cholesky factorization.
-         * @param matrix The input matrix Y.
+         * @param matrix The input matrix B.
          * @return The matrix X.
          */
         public DenseMatrix solve(Matrix matrix) {
-            throw new UnsupportedOperationException();
+            if (matrix.getDimension1Size() != lMatrix.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lMatrix.dim1 + ", received " + matrix.getDimension1Size());
+            }
+            final int outputDim1 = lMatrix.dim1;
+            final int outputDim2 = matrix.getDimension2Size();
+            final DenseMatrix output = new DenseMatrix(matrix);
+            final double[][] outputArr = output.values;
+
+            // Solve L.Y = B
+            for (int i = 0; i < outputDim1; i++) {
+                for (int j = 0; j < outputDim2; j++) {
+                    for (int k = 0; k < i; k++) {
+                        outputArr[i][j] -= outputArr[k][j] * lMatrix.values[i][k];
+                    }
+                    // scale by diagonal
+                    outputArr[i][j] /= lMatrix.values[i][i];
+                }
+            }
+
+            // Solve L^T.X = Y
+            for (int i = outputDim1 - 1; i >= 0; i--) {
+                for (int j = 0; j < outputDim2; j++) {
+                    for (int k = i + 1; k < outputDim2; k++) {
+                        outputArr[i][j] -= outputArr[k][j] * lMatrix.values[k][i];
+                    }
+                    // scale by diagonal
+                    outputArr[i][j] /= lMatrix.values[i][i];
+                }
+            }
+
+            return output;
         }
 
         /**
@@ -1421,7 +1475,7 @@ public class DenseMatrix implements Matrix {
          * @return The matrix inverse.
          */
         public DenseMatrix inverse() {
-            return solve(DenseSparseMatrix.createIdentity(matrix.dim1));
+            return solve(DenseSparseMatrix.createIdentity(lMatrix.dim1));
         }
     }
 

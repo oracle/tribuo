@@ -423,7 +423,7 @@ public final class Gamma {
    * Computes the regularised partial gamma function P.
    * <p>
    * See <a href="https://mathworld.wolfram.com/RegularizedGammaFunction.html">RegularisedGammaFunction</a>.
-   * Throws {@link }
+   * Throws {@link IllegalStateException} if the iterations don't converge.
    * @param a shape (when used as a CDF)
    * @param x value / scale (when used as a CDF)
    * @param epsilon Tolerance.

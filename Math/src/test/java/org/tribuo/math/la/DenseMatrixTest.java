@@ -1449,9 +1449,29 @@ public class DenseMatrixTest {
 
     @Test
     public void choleskyTest() {
-        Optional<DenseMatrix.CholeskyFactorization> cholOpt = generateSymmetric().choleskyFactorization();
+        DenseMatrix symmetric = generateSymmetric();
+        Optional<DenseMatrix.CholeskyFactorization> cholOpt = symmetric.choleskyFactorization();
         assertTrue(cholOpt.isPresent());
-        assertEquals(generateCholOutput(),cholOpt.get().matrix);
+
+        DenseMatrix.CholeskyFactorization chol = cholOpt.get();
+        assertEquals(generateCholOutput(),chol.lMatrix);
+
+        // Check factorization
+        Matrix computedSymmetric = chol.lMatrix.matrixMultiply(chol.lMatrix,false,true);
+        assertEquals(symmetric,computedSymmetric);
+
+        // check solve vector method
+        DenseVector y = new DenseVector(new double[]{5, 6, 34});
+        DenseVector b = chol.solve(y);
+        assertEquals(symmetric.rightMultiply(b), y);
+
+        // Check inverse method
+        DenseMatrix inv = chol.inverse();
+        double[][] identityArr = identityArr(3);
+        DenseMatrix outputMatrix = symmetric.matrixMultiply(inv);
+        for (int i = 0; i < identityArr.length; i++) {
+            assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), 1e-13);
+        }
     }
 
     @Test
@@ -1494,6 +1514,11 @@ public class DenseMatrixTest {
 
         Matrix computed = eig.eigenvectors.matrixMultiply(DenseSparseMatrix.createDiagonal(eig.eigenvalues)).matrixMultiply(eig.eigenvectors,false,true);
 
+        // Check factorization
+        for (int i =0 ; i < symmetric.dim1; i++) {
+            assertArrayEquals(symmetric.getRow(i).toArray(), computed.getRow(i).toArray(), 1e-13);
+        }
+
         // Check decomposition
         for (int i = 0; i < symmetric.dim1; i++) {
             // assert A.x = \lambda.x
@@ -1502,7 +1527,6 @@ public class DenseMatrixTest {
             double[] output = symmetric.leftMultiply(eigenVector).toArray();
             double[] expected = eigenVector.scale(eigenValue).toArray();
             assertArrayEquals(expected,output,1e-13);
-            assertArrayEquals(symmetric.getRow(i).toArray(), computed.getRow(i).toArray(), 1e-13);
         }
     }
 }

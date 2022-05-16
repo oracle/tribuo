@@ -113,7 +113,7 @@ public final class MultivariateNormalDistribution {
         } else {
             Optional<DenseMatrix.CholeskyFactorization> factorization = this.covariance.choleskyFactorization();
             if (factorization.isPresent()) {
-                this.samplingCovariance = factorization.get().matrix;
+                this.samplingCovariance = factorization.get().lMatrix;
             } else {
                 throw new IllegalArgumentException("Covariance matrix is not positive definite.");
             }
