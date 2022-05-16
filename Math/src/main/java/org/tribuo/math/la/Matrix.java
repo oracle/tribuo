@@ -135,4 +135,11 @@ public interface Matrix extends Tensor, Iterable<MatrixTuple> {
      */
     public SGDVector getRow(int i);
 
+    /**
+     * Returns a copy of the specified column.
+     * @param index The column index.
+     * @return A copy of the column.
+     */
+    public SGDVector getColumn(int index);
+
 }

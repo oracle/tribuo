@@ -718,6 +718,9 @@ public class DenseMatrix implements Matrix {
 
     @Override
     public DenseVector getRow(int i) {
+        if (i < 0 || i > dim1) {
+            throw new IllegalArgumentException("Invalid row index, must be [0,"+dim1+"), received " + i);
+        }
         return new DenseVector(values[i]);
     }
 
@@ -726,6 +729,7 @@ public class DenseMatrix implements Matrix {
      * @param index The column index.
      * @return A copy of the column.
      */
+    @Override
     public DenseVector getColumn(int index) {
         if (index < 0 || index > dim2) {
             throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + index);
@@ -979,7 +983,8 @@ public class DenseMatrix implements Matrix {
     /**
      * Eigen decomposition of a symmetric matrix.
      * <p>
-     * Non-symmetric matrices return an empty Optional as they may have complex eigenvalues.
+     * Non-symmetric matrices return an empty Optional as they may have complex eigenvalues, as does
+     * any matrix which exceeds the default number of QL iterations in the decomposition.
      * @return The eigen decomposition of a symmetric matrix, or an empty optional if it's not symmetric.
      */
     public Optional<EigenDecomposition> eigenDecomposition() {
@@ -1107,7 +1112,7 @@ public class DenseMatrix implements Matrix {
             transformValues[dimMinusOne][dimMinusOne] = 1.0;
             offDiagonal[0] = 0.0;
 
-            // Copy to dense vector/matrix as we're going to mutate the arrays
+            // Copy to dense vector/matrix for storage in the returned object as we're going to mutate these arrays
             DenseVector diagVector = DenseVector.createDenseVector(diagonal);
             DenseVector offDiagVector = DenseVector.createDenseVector(offDiagonal);
             DenseMatrix householderMatrix = new DenseMatrix(transform);
@@ -1640,11 +1645,29 @@ public class DenseMatrix implements Matrix {
         }
 
         /**
+         * Computes the determinant of the matrix which was decomposed.
+         * <p>
+         * This is the product of the eigenvalues.
+         * @return The determinant.
+         */
+        public double determinant() {
+            return eigenvalues.reduce(1.0,DoubleUnaryOperator.identity(), (a,b) -> a*b);
+        }
+
+        /**
          * Returns true if all the eigenvalues are positive.
          * @return True if the eigenvalues are positive.
          */
         public boolean positiveEigenvalues() {
             return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
+        }
+
+        /**
+         * Returns true if all the eigenvalues are non-zero.
+         * @return True if the eigenvalues are non-zero (i.e. the matrix is not singular).
+         */
+        public boolean nonSingular() {
+            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value != 0.0);
         }
 
         /**
@@ -1657,6 +1680,64 @@ public class DenseMatrix implements Matrix {
                 throw new IllegalArgumentException("Invalid index, must be [0," + eigenvectors.dim1 + "), found " + i);
             }
             return eigenvectors.getColumn(i);
+        }
+
+        /**
+         * Solves a system of linear equations A * b = y, where y is the input vector,
+         * A is the matrix which produced this eigen decomposition, and b is the returned value.
+         * @param vector The input vector y.
+         * @return The vector b.
+         */
+        public DenseVector solve(SGDVector vector) {
+            if (vector.size() != eigenvectors.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + eigenvectors.dim1 + ", received " + vector.size());
+            }
+            final double[] output = new double[vector.size()];
+            for (int i = 0; i < output.length; i++) {
+                DenseVector eigenVector = getEigenVector(i);
+                double value = vector.dot(eigenVector) / eigenvalues.get(i);
+                for (int j = 0; j < output.length; j++) {
+                    output[j] += value * eigenVector.get(j);
+                }
+            }
+
+            return new DenseVector(output);
+        }
+
+        /**
+         * Solves the system A * X = Y, where Y is the input matrix, and A is the matrix which
+         * produced this eigen decomposition.
+         * @param matrix The input matrix Y.
+         * @return The matrix X.
+         */
+        public DenseMatrix solve(Matrix matrix) {
+            if (matrix.getDimension1Size() != eigenvectors.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + eigenvectors.dim1 + ", received " + matrix.getDimension1Size());
+            }
+            final int outputDim1 = eigenvalues.size();
+            final int outputDim2 = matrix.getDimension2Size();
+            final double[][] output = new double[outputDim1][outputDim2];
+
+            for (int k = 0; k < outputDim2; k++) {
+                SGDVector column = matrix.getColumn(k);
+                for (int i = 0; i < outputDim1; i++) {
+                    DenseVector eigen = getEigenVector(i);
+                    double value = eigen.dot(column) / eigenvalues.get(i);
+                    for (int j = 0; j < output.length; j++) {
+                        output[j][k] += value * eigen.get(j);
+                    }
+                }
+            }
+
+            return new DenseMatrix(output);
+        }
+
+        /**
+         * Generates the inverse of the matrix with this eigen decomposition.
+         * @return The matrix inverse.
+         */
+        public DenseMatrix inverse() {
+            return solve(DenseSparseMatrix.createIdentity(eigenvalues.size()));
         }
     }
 }

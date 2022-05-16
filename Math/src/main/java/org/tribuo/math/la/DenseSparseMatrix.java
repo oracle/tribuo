@@ -16,6 +16,7 @@
 
 package org.tribuo.math.la;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -287,7 +288,41 @@ public class DenseSparseMatrix implements Matrix {
 
     @Override
     public SparseVector getRow(int i) {
+        if (i < 0 || i > dim1) {
+            throw new IllegalArgumentException("Invalid row index, must be [0,"+dim1+"), received " + i);
+        }
         return values[i];
+    }
+
+    /**
+     * Gets a copy of the column.
+     * <p>
+     * This function is O(dim1 * log(dim2)) as it requires searching each vector for the column index.
+     * @param i The column index.
+     * @return A copy of the column as a sparse vector.
+     */
+    @Override
+    public SparseVector getColumn(int i) {
+        if (i < 0 || i > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + i);
+        }
+        List<Integer> indexList = new ArrayList<>();
+        List<Double> valueList = new ArrayList<>();
+        for (int j = 0; j < dim1; j++) {
+            double tmp = values[j].get(i);
+            if (tmp != 0) {
+                indexList.add(j);
+                valueList.add(tmp);
+            }
+        }
+
+        int[] indicesArr = new int[valueList.size()];
+        double[] valuesArr = new double[valueList.size()];
+        for (int j = 0; j < valueList.size(); j++) {
+            indicesArr[j] = indexList.get(j);
+            valuesArr[j] = valueList.get(j);
+        }
+        return new SparseVector(dim1, indicesArr, valuesArr);
     }
 
     @Override
