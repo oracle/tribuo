@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.tribuo.regression.xgboost;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -222,6 +223,9 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
     public void postConfig() {
         super.postConfig();
         parameters.put("objective",rType.paramName);
+        if (!overrideParameters.isEmpty() && !overrideParameters.get("objective").equals(rType.paramName)) {
+            throw new PropertyException("","overrideParameters","The objective in overrideParameters must match the one supplied as rType.");
+        }
     }
 
     @Override
@@ -265,10 +269,11 @@ public final class XGBoostRegressionTrainer extends XGBoostTrainer<Regressor> {
             }
             trainingData.data.setWeight(weights);
 
+            Map<String,Object> curParams = overrideParameters.isEmpty() ? copyParams(parameters) : copyParams(overrideParameters);
             // Finished setup, now train one model per dimension.
             for (i = 0; i < numOutputs; i++) {
                 trainingData.data.setLabel(outputs[i]);
-                models.add(XGBoost.train(trainingData.data, parameters, numTrees, Collections.emptyMap(), null, null));
+                models.add(XGBoost.train(trainingData.data, curParams, numTrees, Collections.emptyMap(), null, null));
             }
         } catch (XGBoostError e) {
             logger.log(Level.SEVERE, "XGBoost threw an error", e);
