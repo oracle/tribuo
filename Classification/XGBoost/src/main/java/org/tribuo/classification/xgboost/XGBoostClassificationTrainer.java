@@ -189,6 +189,11 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
     }
 
     @Override
+    public synchronized XGBoostModel<Label> train(Dataset<Label> examples) {
+        return train(examples, Collections.emptyMap());
+    }
+
+    @Override
     public synchronized XGBoostModel<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
         return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
     }
