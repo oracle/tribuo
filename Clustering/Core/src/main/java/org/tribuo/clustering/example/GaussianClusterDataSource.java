@@ -30,7 +30,7 @@ import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.impl.ArrayExample;
-import org.tribuo.math.rng.MultivariateNormalDistribution;
+import org.tribuo.math.distributions.MultivariateNormalDistribution;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.util.Util;

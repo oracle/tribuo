@@ -24,7 +24,7 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.datasource.ListDataSource;
 import org.tribuo.impl.ArrayExample;
-import org.tribuo.math.rng.MultivariateNormalDistribution;
+import org.tribuo.math.distributions.MultivariateNormalDistribution;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.util.Util;
 

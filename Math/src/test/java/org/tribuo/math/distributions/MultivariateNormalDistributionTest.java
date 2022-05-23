@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.math.rng;
+package org.tribuo.math.distributions;
 
 import org.junit.jupiter.api.Test;
 

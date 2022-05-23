@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.math.rng;
+package org.tribuo.math.distributions;
 
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
@@ -29,6 +29,7 @@ import java.util.Random;
  */
 public final class MultivariateNormalDistribution {
 
+    private final long seed;
     private final Random rng;
     private final DenseVector means;
     private final DenseMatrix covariance;
@@ -90,6 +91,7 @@ public final class MultivariateNormalDistribution {
      *                           rather than a cholesky factorization.
      */
     public MultivariateNormalDistribution(DenseVector means, DenseMatrix covariance, long seed, boolean eigenDecomposition) {
+        this.seed = seed;
         this.rng = new Random(seed);
         this.means = means.copy();
         this.covariance = covariance.copy();
@@ -143,4 +145,8 @@ public final class MultivariateNormalDistribution {
         return sampleVector().toArray();
     }
 
+    @Override
+    public String toString() {
+        return "MultivariateNormal(mean="+means+",covariance="+covariance+",seed="+seed+",useEigenDecomposition="+eigenDecomposition+")";
+    }
 }
