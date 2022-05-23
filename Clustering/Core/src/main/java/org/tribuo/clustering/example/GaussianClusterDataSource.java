@@ -158,12 +158,12 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
      * @param seed               The rng seed to use.
      */
     public GaussianClusterDataSource(int numSamples, double[] mixingDistribution,
-                                        double[] firstMean, double[] firstVariance,
-                                        double[] secondMean, double[] secondVariance,
-                                        double[] thirdMean, double[] thirdVariance,
-                                        double[] fourthMean, double[] fourthVariance,
-                                        double[] fifthMean, double[] fifthVariance,
-                                        long seed) {
+                                     double[] firstMean, double[] firstVariance,
+                                     double[] secondMean, double[] secondVariance,
+                                     double[] thirdMean, double[] thirdVariance,
+                                     double[] fourthMean, double[] fourthVariance,
+                                     double[] fifthMean, double[] fifthVariance,
+                                     long seed) {
         this.numSamples = numSamples;
         this.mixingDistribution = mixingDistribution;
         this.firstMean = firstMean;

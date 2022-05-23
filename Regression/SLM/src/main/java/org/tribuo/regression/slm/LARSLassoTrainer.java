@@ -97,30 +97,6 @@ public class LARSLassoTrainer extends SLMTrainer {
 
         double gamma = Collections.min(candidates);
 
-//        // The lasso modification
-//        if (active.size() >= 2) {
-//            int min = active.get(0);
-//            double min_gamma = - beta.getEntry(min) / (wa.getEntry(active.indexOf(new Integer(min))) * (corr.getEntry(min) >= 0 ? +1 : -1));
-//
-//            for (int i = 1; i < active.size()-1; ++i) {
-//                int idx = active.get(i);
-//                double gamma_i = - beta.getEntry(idx) / (wa.getEntry(active.indexOf(new Integer(idx))) * (corr.getEntry(idx) >= 0 ? +1 : -1));
-//                if (gamma_i < 0) continue;
-//                if (gamma_i < min) {
-//                    min = i;
-//                    min_gamma = gamma_i;
-//                }
-//            }
-//
-//            if (min_gamma < gamma) {
-//                active.remove(new Integer(min));
-//                beta.setEntry(min,0.0);
-//                return beta.add(delta.mapMultiplyToSelf(min_gamma));
-//            }
-//        }
-//
-//        return beta.add(delta.mapMultiplyToSelf(gamma));
-
         delta.scaleInPlace(gamma);
 
         for (int i = 0; i < state.numFeatures; ++i) {
