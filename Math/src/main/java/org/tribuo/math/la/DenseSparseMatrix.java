@@ -36,6 +36,12 @@ public class DenseSparseMatrix implements Matrix {
     private final int dim2;
     private final int[] shape;
 
+    /**
+     * Constructs a DenseSparseMatrix from the supplied vector array.
+     * <p>
+     * Does not copy the values, used internally by the la package.
+     * @param values The sparse vectors.
+     */
     DenseSparseMatrix(SparseVector[] values) {
         this.values = values;
         this.dim1 = values.length;
@@ -94,9 +100,7 @@ public class DenseSparseMatrix implements Matrix {
         this.values = new SparseVector[dim1];
         this.shape = new int[]{dim1,dim2};
         SparseVector emptyVector = new SparseVector(dim2);
-        for (int i = 0; i < values.length; i++) {
-            values[i] = emptyVector;
-        }
+        Arrays.fill(values, emptyVector);
     }
 
     /**
@@ -586,7 +590,7 @@ public class DenseSparseMatrix implements Matrix {
         private Iterator<VectorTuple> itr;
         private VectorTuple vecTuple;
 
-        public DenseSparseMatrixIterator(DenseSparseMatrix matrix) {
+        DenseSparseMatrixIterator(DenseSparseMatrix matrix) {
             this.matrix = matrix;
             this.tuple = new MatrixTuple();
             this.i = 0;

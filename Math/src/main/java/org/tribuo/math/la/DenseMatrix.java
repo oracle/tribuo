@@ -983,8 +983,9 @@ public class DenseMatrix implements Matrix {
     /**
      * Eigen decomposition of a symmetric matrix.
      * <p>
-     * Non-symmetric matrices return an empty Optional as they may have complex eigenvalues, as does
-     * any matrix which exceeds the default number of QL iterations in the decomposition.
+     * Non-symmetric matrices return an empty Optional as they may have complex eigenvalues, and
+     * any matrix which exceeds the default number of QL iterations in the decomposition also
+     * returns an empty Optional.
      * @return The eigen decomposition of a symmetric matrix, or an empty optional if it's not symmetric.
      */
     public Optional<EigenDecomposition> eigenDecomposition() {
@@ -1172,11 +1173,11 @@ public class DenseMatrix implements Matrix {
                         double partitionDiag = diagonal[idx];
                         final double oldOffDiag = offDiagonal[i+1];
                         double c = 1.0, c2 = 1.0, c3 = 1.0;
-                        double s = 0.0, s2 = 0.0;
+                        double s = 0.0, prevS = 0.0;
                         for (int j = idx-1; j >= i; j--) {
                             c3 = c2;
                             c2 = c;
-                            s2 = s;
+                            prevS = s;
                             final double scaledOffDiag = c * offDiagonal[j];
                             final double scaledDiag = c * partitionDiag;
                             final double dist = Math.hypot(partitionDiag, offDiagonal[j]);
@@ -1194,7 +1195,7 @@ public class DenseMatrix implements Matrix {
                                 row[j] = (c * row[j]) - (s * tmp);
                             }
                         }
-                        partitionDiag = -s * s2 * c3 * oldOffDiag * offDiagonal[i] / nextDiag;
+                        partitionDiag = -s * prevS * c3 * oldOffDiag * offDiagonal[i] / nextDiag;
                         offDiagonal[i] = s * partitionDiag;
                         diagonal[i] = c * partitionDiag;
                     } while (Math.abs(offDiagonal[i]) > testVal);
@@ -1265,7 +1266,7 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
-     * Returns the dense vector containing each column sum.
+     * Returns a dense vector containing each column sum.
      * @return The column sums.
      */
     public DenseVector columnSum() {
@@ -1307,7 +1308,7 @@ public class DenseMatrix implements Matrix {
     /**
      * Returns a new DenseMatrix containing a copy of the selected columns.
      * <p>
-     * Throws {@link IllegalArgumentException} if any column index is invalid or the array is null/empty.
+     * Throws {@link IllegalArgumentException} if any column index is invalid or the list is null/empty.
      * @param columnIndices The column indices
      * @return The submatrix comprising the selected columns.
      */
@@ -1336,7 +1337,7 @@ public class DenseMatrix implements Matrix {
         private int i;
         private int j;
 
-        public DenseMatrixIterator(DenseMatrix matrix) {
+        DenseMatrixIterator(DenseMatrix matrix) {
             this.matrix = matrix;
             this.tuple = new MatrixTuple();
             this.i = 0;
@@ -1383,6 +1384,9 @@ public class DenseMatrix implements Matrix {
      * of this class.
      */
     public static final class CholeskyFactorization {
+        /**
+         * The lower triangular factorized matrix.
+         */
         public final DenseMatrix lMatrix;
 
         CholeskyFactorization(DenseMatrix lMatrix) {
@@ -1495,10 +1499,25 @@ public class DenseMatrix implements Matrix {
      * of this class.
      */
     public static final class LUFactorization {
+        /**
+         * The lower triangular matrix, with ones on the diagonal.
+         */
         public final DenseMatrix l;
+        /**
+         * The upper triangular matrix.
+         */
         public final DenseMatrix u;
+        /**
+         * The row permutations applied to get this factorization.
+         */
         public final int[] permutationArr;
+        /**
+         * The row permutations stored as a sparse matrix of ones.
+         */
         public final Matrix permutationMatrix;
+        /**
+         * Is there an odd number of row swaps (used to compute the determinant).
+         */
         public final boolean oddSwaps;
 
         LUFactorization(DenseMatrix l, DenseMatrix u, int[] permutationArr, boolean oddSwaps) {
@@ -1628,12 +1647,27 @@ public class DenseMatrix implements Matrix {
      */
     public static final class EigenDecomposition {
         // Eigen decomposition fields
+        /**
+         * The vector of eigenvalues, in descending order.
+         */
         public final DenseVector eigenvalues;
+        /**
+         * The eigenvectors for each eigenvalue, stored in the columns of the matrix.
+         */
         public final DenseMatrix eigenvectors;
 
         // Tridiagonal form fields
+        /**
+         * The diagonal vector.
+         */
         public final DenseVector diagonal;
+        /**
+         * The off diagonal vector, with the first element set to zero.
+         */
         public final DenseVector offDiagonal;
+        /**
+         * The Householder matrix produced during the tridiagonalisation.
+         */
         public final DenseMatrix householderMatrix;
 
         EigenDecomposition(DenseVector eigenvalues, DenseMatrix eigenvectors, DenseVector diagonal, DenseVector offDiagonal, DenseMatrix householderMatrix) {
