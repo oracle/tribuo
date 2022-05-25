@@ -103,7 +103,7 @@ public final class ModHashCodeHasher extends Hasher {
         ModHashCodeHasherProto proto = message.unpack(ModHashCodeHasherProto.class);
         ModHashCodeHasher obj = new ModHashCodeHasher();
         obj.dimension = proto.getDimension();
-        obj.postConfig();
+        obj.provenance = new ModHashCodeHasherProvenance(obj.dimension);
         return obj;
     }
 
