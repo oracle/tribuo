@@ -38,6 +38,8 @@ import java.util.TreeMap;
  * provide feature name hashing and guarantee that the {@link Model}
  * does not contain feature name information, but still works
  * with unhashed features names.
+ * <p>
+ * The salt must be set after this object has been deserialized.
  */
 @ProtoSerializableClass(version = HashedFeatureMap.CURRENT_VERSION, serializedDataClass = HashedFeatureMapProto.class)
 public final class HashedFeatureMap extends ImmutableFeatureMap {

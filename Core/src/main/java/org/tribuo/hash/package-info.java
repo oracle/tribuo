@@ -24,5 +24,9 @@
  * a specific range, and {@link org.tribuo.hash.MessageDigestHasher} which uses a
  * {@link java.security.MessageDigest} implementation to perform the hashing. Only MessageDigestHasher provides
  * security guarantees suitable for production usage.
+ * <p>
+ * Note {@link org.tribuo.hash.Hasher} implementations require a salt which is serialized separately
+ * from the {@code Hasher} object. Without supplying this seed the hash methods will throw
+ * {@link java.lang.IllegalStateException}.
  */
 package org.tribuo.hash;

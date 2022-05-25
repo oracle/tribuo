@@ -45,6 +45,9 @@ import java.util.function.Supplier;
 
 /**
  * Hashes Strings using the supplied MessageDigest type.
+ * <p>
+ * MessageDigestHasher does not serialize the salt in its serialized forms, and
+ * thus the salt must be set after deserialization.
  */
 @ProtoSerializableClass(version = MessageDigestHasher.CURRENT_VERSION, serializedDataClass = MessageDigestHasherProto.class)
 public final class MessageDigestHasher extends Hasher {
@@ -101,6 +104,8 @@ public final class MessageDigestHasher extends Hasher {
 
     /**
      * Deserialization factory.
+     * <p>
+     * Note the salt must be set after the hasher has been deserialized.
      * @param version The serialized object version number.
      * @param className The class name.
      * @param message The serialized data.

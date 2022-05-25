@@ -39,8 +39,10 @@ import java.util.Objects;
 
 /**
  * Hashes names using String.hashCode(), then reduces the dimension.
+ * <p>
+ * ModHashCodeHasher does not serialize the salt in its serialized forms, and
+ * thus the salt must be set after deserialization.
  */
-
 @ProtoSerializableClass(version = ModHashCodeHasher.CURRENT_VERSION, serializedDataClass = ModHashCodeHasherProto.class)
 public final class ModHashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
@@ -87,6 +89,8 @@ public final class ModHashCodeHasher extends Hasher {
 
     /**
      * Deserialization constructor.
+     * <p>
+     * Note the salt must be set after the hasher has been deserialized.
      * @param version The version number.
      * @param className The class name.
      * @param message The serialized data.

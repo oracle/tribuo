@@ -34,6 +34,9 @@ import java.util.Objects;
 
 /**
  * Hashes names using String.hashCode().
+ * <p>
+ * HashCodeHasher does not serialize the salt in its serialized forms, and
+ * thus the salt must be set after deserialization.
  */
 @ProtoSerializableClass(version = HashCodeHasher.CURRENT_VERSION)
 public final class HashCodeHasher extends Hasher {
@@ -65,6 +68,8 @@ public final class HashCodeHasher extends Hasher {
 
     /**
      * Deserialization factory.
+     * <p>
+     * Note the salt must be set after the hasher has been deserialized.
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
