@@ -37,12 +37,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * Utilities for working with Tribuo protobufs.
  */
 public final class ProtoUtil {
+    private static final Logger logger = Logger.getLogger(ProtoUtil.class.getName());
 
     /**
      * Used to provide internal Tribuo redirects as classes are redefined.
@@ -263,8 +265,10 @@ public final class ProtoUtil {
             return Arrays.stream(t).boxed().collect(Collectors.toList());
         } else if (obj instanceof String[]) {
             return Arrays.asList((String[]) obj);
-        } else {
+        } else if (obj instanceof Double || obj instanceof Float || obj instanceof Byte || obj instanceof Short || obj instanceof Character || obj instanceof Integer || obj instanceof Long || obj instanceof Boolean || obj instanceof String) {
             return obj;
+        } else {
+            throw new IllegalArgumentException("Invalid protobuf field type " + obj.getClass());
         }
     }
 
@@ -290,6 +294,8 @@ public final class ProtoUtil {
                 if (!fieldNameSet.contains(protoFieldName)) {
                     fields.add(field);
                     fieldNameSet.add(field.getName());
+                } else {
+                    logger.warning("Duplicate field named " + protoFieldName + " detected in class " + clazz);
                 }
             } else if ((psf == null) && (pskvf != null) && (psmvf == null)) {
                 String keyName = pskvf.keysName();
