@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.classification.xgboost;
 
+import com.oracle.labs.mlrg.olcut.provenance.MapProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -48,11 +50,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -178,16 +182,16 @@ public class TestXGBoost {
         }
     }
 
-    public static Model<Label> testXGBoost(XGBoostClassificationTrainer trainer, Pair<Dataset<Label>,Dataset<Label>> p) {
-        Model<Label> m = trainer.train(p.getA());
+    public static XGBoostModel<Label> testXGBoost(XGBoostClassificationTrainer trainer, Pair<Dataset<Label>,Dataset<Label>> p) {
+        XGBoostModel<Label> m = trainer.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
-        Assertions.assertFalse(features.isEmpty());
+        assertFalse(features.isEmpty());
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
-        Assertions.assertFalse(features.isEmpty());
+        assertFalse(features.isEmpty());
         return m;
     }
 
@@ -219,7 +223,28 @@ public class TestXGBoost {
         Helpers.testModelSerialization(model,Label.class);
         testXGBoost(dart,p);
         testXGBoost(linear,p);
-        testXGBoost(gbtree,p);
+        XGBoostModel<Label> m = testXGBoost(gbtree,p);
+
+        // Check params are not overridden by default
+        @SuppressWarnings("unchecked")
+        MapProvenance<StringProvenance> params = (MapProvenance<StringProvenance>) m.getProvenance().getTrainerProvenance().getConfiguredParameters().get("overrideParameters");
+        assertTrue(params.getMap().isEmpty());
+
+        // Check overridden params are the right size
+        Map<String,Object> overrideParams = new HashMap<>();
+        overrideParams.put("objective","multi:softprob");
+        overrideParams.put("eta","0.1");
+        overrideParams.put("sampling_method","gradient_based");
+        XGBoostClassificationTrainer overrideTrainer = new XGBoostClassificationTrainer(5, overrideParams);
+        XGBoostModel<Label> overrideM = testXGBoost(overrideTrainer,p);
+
+        @SuppressWarnings("unchecked")
+        MapProvenance<StringProvenance> overrideProvMapParams = (MapProvenance<StringProvenance>) overrideM.getProvenance().getTrainerProvenance().getConfiguredParameters().get("overrideParameters");
+        Map<String, StringProvenance> overrideMap = overrideProvMapParams.getMap();
+        assertEquals(overrideParams.size(), overrideMap.size());
+        assertEquals(overrideParams.get("objective"), overrideMap.get("objective").getValue());
+        assertEquals(overrideParams.get("eta"), overrideMap.get("eta").getValue());
+        assertEquals(overrideParams.get("sampling_method"), overrideMap.get("sampling_method").getValue());
     }
 
     @Test

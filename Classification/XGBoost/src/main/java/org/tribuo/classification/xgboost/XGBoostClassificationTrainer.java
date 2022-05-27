@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.tribuo.classification.xgboost;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.Dataset;
 import org.tribuo.ImmutableFeatureMap;
@@ -172,11 +173,29 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
         if (!evalMetric.isEmpty()) {
             parameters.put("eval_metric", evalMetric);
         }
+        if (!overrideParameters.isEmpty()) {
+            String value = overrideParameters.get("objective");
+            switch (value) {
+                case "multi:softprob":
+                case "multi:softmax":
+                case "binary:logistic":
+                case "binary:logitraw":
+                case "binary:hinge":
+                    break;
+                default:
+                    throw new PropertyException("","overrideParameters","The objective in overrideParameters must be a valid classification objective.");
+            }
+        }
+    }
+
+    @Override
+    public synchronized XGBoostModel<Label> train(Dataset<Label> examples) {
+        return train(examples, Collections.emptyMap());
     }
 
     @Override
     public synchronized XGBoostModel<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
-        return (train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
     }
 
     @Override
@@ -191,12 +210,13 @@ public final class XGBoostClassificationTrainer extends XGBoostTrainer<Label> {
         }
         TrainerProvenance trainerProvenance = getProvenance();
         trainInvocationCounter++;
-        parameters.put("num_class", outputInfo.size());
+        Map<String,Object> curParams = overrideParameters.isEmpty() ? copyParams(parameters) : copyParams(overrideParameters);
+        curParams.put("num_class", outputInfo.size());
         Booster model;
         Function<Label,Float> responseExtractor = (Label l) -> (float) outputInfo.getID(l);
         try {
             DMatrixTuple<Label> trainingData = convertExamples(examples, featureMap, responseExtractor);
-            model = XGBoost.train(trainingData.data, parameters, numTrees, Collections.emptyMap(), null, null);
+            model = XGBoost.train(trainingData.data, curParams, numTrees, Collections.emptyMap(), null, null);
         } catch (XGBoostError e) {
             logger.log(Level.SEVERE, "XGBoost threw an error", e);
             throw new IllegalStateException(e);
