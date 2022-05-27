@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.tribuo.common.xgboost;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -179,6 +180,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
 
     protected final Map<String, Object> parameters = new HashMap<>();
 
+    @Config(description = "Override for parameters, if used must contain all the relevant parameters, including the objective")
+    protected Map<String, String> overrideParameters = new HashMap<>();
+
     @Config(mandatory = true,description="The number of trees to build.")
     protected int numTrees;
 
@@ -329,7 +333,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
             throw new IllegalArgumentException("Must supply a positive number of trees. Received " + numTrees);
         }
         this.numTrees = numTrees;
-        this.parameters.putAll(parameters);
+        for (Map.Entry<String,Object> e : parameters.entrySet()) {
+            this.overrideParameters.put(e.getKey(),e.getValue().toString());
+        }
     }
 
     /**
@@ -359,6 +365,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         }
         parameters.put("booster", booster.paramName);
         parameters.put("tree_method", treeMethod.paramName);
+        if (!overrideParameters.isEmpty() && !overrideParameters.containsKey("objective")) {
+            throw new PropertyException("","overrideParameters","When using the override parameters must supply an objective");
+        }
     }
 
     @Override
@@ -376,6 +385,15 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
 
     protected XGBoostModel<T> createModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, List<Booster> models, XGBoostOutputConverter<T> converter) {
         return new XGBoostModel<>(name,provenance,featureIDMap,outputIDInfo,models,converter);
+    }
+
+    /**
+     * Returns a copy of the supplied parameter map which
+     * has the appropriate type for passing to XGBoost.train.
+     * @return A (shallow) copy of the supplied map.
+     */
+    protected Map<String,Object> copyParams(Map<String, ?> input) {
+        return new HashMap<>(input);
     }
 
     @Override
