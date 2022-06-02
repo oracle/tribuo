@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,17 @@
 
 package org.tribuo.transform.transformations;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.MeanStdDevTransformerProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
@@ -201,19 +208,54 @@ public final class MeanStdDevTransformation implements Transformation {
         }
     }
 
-    private static class MeanStdDevTransformer implements Transformer {
+    @ProtoSerializableClass(version = MeanStdDevTransformer.CURRENT_VERSION, serializedDataClass = MeanStdDevTransformerProto.class)
+    static final class MeanStdDevTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Protobuf serialization version.
+         */
+        public static final int CURRENT_VERSION = 0;
+
+        @ProtoSerializableField
         private final double observedMean;
+        @ProtoSerializableField
         private final double observedStdDev;
+        @ProtoSerializableField
         private final double targetMean;
+        @ProtoSerializableField
         private final double targetStdDev;
 
-        public MeanStdDevTransformer(double observedMean, double observedStdDev, double targetMean, double targetStdDev) {
+        MeanStdDevTransformer(double observedMean, double observedStdDev, double targetMean, double targetStdDev) {
+            if ((observedStdDev < 0) || (targetStdDev < 0)) {
+                throw new IllegalArgumentException("Standard deviations must be non-negative.");
+            }
             this.observedMean = observedMean;
             this.observedStdDev = observedStdDev;
             this.targetMean = targetMean;
             this.targetStdDev = targetStdDev;
+        }
+
+        /**
+         * Deserialization factory.
+         * @param version The serialized object version.
+         * @param className The class name.
+         * @param message The serialized data.
+         * @throws InvalidProtocolBufferException If the message is not a {@link MeanStdDevTransformerProto}.
+         */
+        static MeanStdDevTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+            MeanStdDevTransformerProto proto = message.unpack(MeanStdDevTransformerProto.class);
+            if (version == CURRENT_VERSION) {
+                return new MeanStdDevTransformer(proto.getObservedMean(),proto.getObservedStdDev(),
+                        proto.getTargetMean(),proto.getTargetStdDev());
+            } else {
+                throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
+            }
+        }
+
+        @Override
+        public TransformerProto serialize() {
+            return ProtoUtil.serialize(this);
         }
 
         @Override
@@ -224,6 +266,19 @@ public final class MeanStdDevTransformation implements Transformation {
         @Override
         public String toString() {
             return "MeanStdDevTransformer(observedMean="+observedMean+",observedStdDev="+observedStdDev+",targetMean="+targetMean+",targetStdDev="+targetStdDev+")";
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            MeanStdDevTransformer that = (MeanStdDevTransformer) o;
+            return Double.compare(that.observedMean, observedMean) == 0 && Double.compare(that.observedStdDev, observedStdDev) == 0 && Double.compare(that.targetMean, targetMean) == 0 && Double.compare(that.targetStdDev, targetStdDev) == 0;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(observedMean, observedStdDev, targetMean, targetStdDev);
         }
     }
 }

@@ -16,22 +16,36 @@
 
 package org.tribuo.hash;
 
+import com.google.protobuf.Any;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Hashes names using String.hashCode().
+ * <p>
+ * HashCodeHasher does not serialize the salt in its serialized forms, and
+ * thus the salt must be set after deserialization.
  */
+@ProtoSerializableClass(version = HashCodeHasher.CURRENT_VERSION)
 public final class HashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     @Config(mandatory = true, redact = true, description="Salt used in the hash.")
     private transient String salt = null;
@@ -50,6 +64,26 @@ public final class HashCodeHasher extends Hasher {
     public HashCodeHasher(String salt) {
         this.salt = salt;
         postConfig();
+    }
+
+    /**
+     * Deserialization factory.
+     * <p>
+     * Note the salt must be set after the hasher has been deserialized.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static HashCodeHasher deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        return new HashCodeHasher();
+    }
+
+    @Override
+    public HasherProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override
@@ -90,6 +124,23 @@ public final class HashCodeHasher extends Hasher {
     @Override
     public String toString() {
         return "HashCodeHasher()";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        HashCodeHasher that = (HashCodeHasher) o;
+        return Objects.equals(salt, that.salt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(salt);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

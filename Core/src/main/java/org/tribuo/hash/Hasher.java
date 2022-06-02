@@ -19,22 +19,30 @@ package org.tribuo.hash;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.core.HasherProto;
 
 import java.io.Serializable;
 
 /**
  * An abstract base class for hash functions used to hash the names of features.
+ * <p>
+ * Hasher implementations do not serialize the salt in their serialized forms, and
+ * thus the salt must be set after deserialization.
  */
-public abstract class Hasher implements Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public abstract class Hasher implements Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable,
+        ProtoSerializable<HasherProto>  {
     private static final long serialVersionUID = 2L;
 
     /**
      * The minimum length of the salt. Salts shorter than this will not validate.
      */
-    public static final int MIN_LENGTH=8;
+    public static final int MIN_LENGTH = 8;
 
     /**
      * Hashes the supplied input using the hashing function.
+     * <p>
+     * If the salt is not set then this throws {@link IllegalStateException}.
      * @param input The input to hash.
      * @return A String representation of the hashed output.
      */

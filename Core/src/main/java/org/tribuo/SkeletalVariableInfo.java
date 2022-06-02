@@ -19,6 +19,8 @@ package org.tribuo;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+import org.tribuo.protos.ProtoSerializableField;
+
 /**
  * Contains information about a feature and can be stored in the feature map
  * in a {@link Dataset}.
@@ -31,11 +33,13 @@ public abstract class SkeletalVariableInfo implements VariableInfo {
     /**
      * The name of the feature.
      */
+    @ProtoSerializableField
     protected final String name;
     
     /**
      * How often the feature occurs in the dataset.
      */
+    @ProtoSerializableField
     protected int count;
 
     /**

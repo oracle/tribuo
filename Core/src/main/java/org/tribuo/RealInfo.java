@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,15 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.core.RealInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+
+import java.util.Objects;
 import java.util.SplittableRandom;
 
 /**
@@ -26,27 +35,37 @@ import java.util.SplittableRandom;
  * Does not contain an id number, but can be transformed into {@link RealIDInfo} which
  * does contain an id number.
  */
+@ProtoSerializableClass(version = RealInfo.CURRENT_VERSION, serializedDataClass = RealInfoProto.class)
 public class RealInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 1L;
 
     /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    /**
      * The maximum observed feature value.
      */
+    @ProtoSerializableField
     protected double max = Double.NEGATIVE_INFINITY;
 
     /**
      * The minimum observed feature value.
      */
+    @ProtoSerializableField
     protected double min = Double.POSITIVE_INFINITY;
 
     /**
      * The feature mean.
      */
+    @ProtoSerializableField
     protected double mean = 0.0;
 
     /**
      * The sum of the squared feature values (used to compute the variance).
      */
+    @ProtoSerializableField
     protected double sumSquares = 0.0;
 
     /**
@@ -79,6 +98,18 @@ public class RealInfo extends SkeletalVariableInfo {
      */
     public RealInfo(String name, int count, double max, double min, double mean, double sumSquares) {
         super(name, count);
+        if (max < min) {
+            throw new IllegalArgumentException("Invalid RealInfo, min greater than max.");
+        }
+        if (mean > max) {
+            throw new IllegalArgumentException("Invalid RealInfo, mean greater than max.");
+        }
+        if (mean < min) {
+            throw new IllegalArgumentException("Invalid RealInfo, mean less than min.");
+        }
+        if (sumSquares < 0) {
+            throw new IllegalArgumentException("Invalid RealInfo, variance must be non-negative.");
+        }
         this.max = max;
         this.min = min;
         this.mean = mean;
@@ -104,6 +135,28 @@ public class RealInfo extends SkeletalVariableInfo {
         this.min = other.min;
         this.mean = other.mean;
         this.sumSquares = other.sumSquares;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static RealInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        RealInfoProto proto = message.unpack(RealInfoProto.class);
+        RealInfo info = new RealInfo(proto.getName(),proto.getCount(),
+                proto.getMax(),proto.getMin(),
+                proto.getMean(),proto.getSumSquares());
+        return info;
+    }
+
+    @Override
+    public VariableInfoProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override
@@ -176,7 +229,28 @@ public class RealInfo extends SkeletalVariableInfo {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RealInfo realInfo = (RealInfo) o;
+        return Double.compare(realInfo.max, max) == 0 && Double.compare(realInfo.min, min) == 0 && Double.compare(realInfo.mean, mean) == 0 && Double.compare(realInfo.sumSquares, sumSquares) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), max, min, mean, sumSquares);
+    }
+
+    @Override
     public String toString() {
         return String.format("RealFeature(name=%s,count=%d,max=%f,min=%f,mean=%f,variance=%f)",name,count,max,min,mean,(sumSquares /(count-1)));
     }
+
 }

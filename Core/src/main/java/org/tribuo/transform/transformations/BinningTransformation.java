@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,23 @@
 
 package org.tribuo.transform.transformations;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.BinningTransformerProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
+import org.tribuo.util.Util;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -434,17 +442,54 @@ public final class BinningTransformation implements Transformation {
         }
     }
 
-    private static class BinningTransformer implements Transformer {
+    @ProtoSerializableClass(version = BinningTransformer.CURRENT_VERSION, serializedDataClass = BinningTransformerProto.class)
+    static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Protobuf serialization version.
+         */
+        public static final int CURRENT_VERSION = 0;
+
+        @ProtoSerializableField(name = "binningType")
         private final BinningType type;
+        @ProtoSerializableField
         private final double[] bins;
+        @ProtoSerializableField
         private final double[] values;
 
-        public BinningTransformer(BinningType type, double[] bins, double[] values) {
+        BinningTransformer(BinningType type, double[] bins, double[] values) {
+            if (bins == null || bins.length == 0) {
+                throw new IllegalArgumentException("Invalid bin array");
+            }
+            if (values == null || values.length == 0) {
+                throw new IllegalArgumentException("Invalid value array");
+            }
             this.type = type;
             this.bins = bins;
             this.values = values;
+        }
+
+        /**
+         * Deserialization factory.
+         * @param version The serialized object version.
+         * @param className The class name.
+         * @param message The serialized data.
+         * @throws InvalidProtocolBufferException If the message is not a {@link BinningTransformerProto}.
+         */
+        static BinningTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+            BinningTransformerProto proto = message.unpack(BinningTransformerProto.class);
+            if (version == CURRENT_VERSION) {
+                if (proto.getBinsCount() == proto.getValuesCount()) {
+                    double[] newBins = Util.toPrimitiveDouble(proto.getBinsList());
+                    double[] newValues = Util.toPrimitiveDouble(proto.getValuesList());
+                    return new BinningTransformer(BinningType.valueOf(proto.getBinningType()),newBins,newValues);
+                } else {
+                    throw new IllegalArgumentException("Invalid protobuf, found a differing number of bins and values.");
+                }
+            } else {
+                throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
+            }
         }
 
         @Override
@@ -465,5 +510,27 @@ public final class BinningTransformation implements Transformation {
         public String toString() {
             return "BinningTransformer(type="+type+",bins="+Arrays.toString(bins)+",values="+Arrays.toString(values)+")";
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BinningTransformer that = (BinningTransformer) o;
+            return type == that.type && Arrays.equals(bins, that.bins) && Arrays.equals(values, that.values);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hash(type);
+            result = 31 * result + Arrays.hashCode(bins);
+            result = 31 * result + Arrays.hashCode(values);
+            return result;
+        }
+        
+        @Override
+        public TransformerProto serialize() {
+            return ProtoUtil.serialize(this);
+        }
+
     }
 }

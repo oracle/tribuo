@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 
 package org.tribuo.transform;
 
+import org.tribuo.protos.core.TransformerProto;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+
 import java.io.Serializable;
 
 /**
@@ -26,7 +30,7 @@ import java.io.Serializable;
  * Transformers are serializable, and should only
  * be constructed by their {@link TransformStatistics}.
  */
-public interface Transformer extends Serializable {
+public interface Transformer extends ProtoSerializable<TransformerProto>, Serializable {
 
     /**
      * Applies the transformation to the supplied
@@ -36,4 +40,12 @@ public interface Transformer extends Serializable {
      */
     public double transform(double input);
 
+    /**
+     * Deserializes a {@link TransformerProto} into a {@link Transformer} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized FeatureMap.
+     */
+    public static Transformer deserialize(TransformerProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,19 @@
 
 package org.tribuo.hash;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.VariableInfo;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.HashedFeatureMapProto;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.VariableInfoProto;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,15 +38,50 @@ import java.util.TreeMap;
  * provide feature name hashing and guarantee that the {@link Model}
  * does not contain feature name information, but still works
  * with unhashed features names.
+ * <p>
+ * The salt must be set after this object has been deserialized.
  */
+@ProtoSerializableClass(version = HashedFeatureMap.CURRENT_VERSION, serializedDataClass = HashedFeatureMapProto.class)
 public final class HashedFeatureMap extends ImmutableFeatureMap {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    @ProtoSerializableField
     private final Hasher hasher;
 
     private HashedFeatureMap(Hasher hasher) {
         super();
         this.hasher = hasher;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static HashedFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        HashedFeatureMapProto proto = message.unpack(HashedFeatureMapProto.class);
+        HasherProto hasherProto = proto.getHasher();
+        Hasher hasher = ProtoUtil.deserialize(hasherProto);
+        HashedFeatureMap obj = new HashedFeatureMap(hasher);
+        for (VariableInfoProto infoProto : proto.getInfoList()) {
+            VariableIDInfo info = ProtoUtil.deserialize(infoProto);
+            Object o = obj.idMap.put(info.getID(), info);
+            Object otherO = obj.m.put(info.getName(),info);
+            if ((o != null) || (otherO != null)) {
+                throw new IllegalStateException("Invalid protobuf, found two mappings for " + info.getName());
+            }
+        }
+        obj.size = proto.getInfoCount();
+        return obj;
     }
 
     @Override
@@ -80,7 +123,7 @@ public final class HashedFeatureMap extends ImmutableFeatureMap {
      * This preserves the index ordering of the original feature names,
      * which is important for making sure test time performance is good.
      * <p>
-     * It guarantees any collisions will produce an feature id number lower
+     * It guarantees any collisions will produce a feature id number lower
      * than the previous feature's number, and so can be easily removed.
      *
      * @param map The {@link FeatureMap} to hash.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,30 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.MutableFeatureMapProto;
+import org.tribuo.protos.core.VariableInfoProto;
+
+import java.util.Objects;
+
 /**
  * A feature map that can record new feature value observations.
  */
+@ProtoSerializableClass(version = MutableFeatureMap.CURRENT_VERSION, serializedDataClass = MutableFeatureMapProto.class)
 public class MutableFeatureMap extends FeatureMap {
     private static final long serialVersionUID = 2L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    @ProtoSerializableField
     private final boolean convertHighCardinality;
 
     /**
@@ -42,6 +60,33 @@ public class MutableFeatureMap extends FeatureMap {
     public MutableFeatureMap(boolean convertHighCardinality) {
         super();
         this.convertHighCardinality = convertHighCardinality;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MutableFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MutableFeatureMapProto proto = message.unpack(MutableFeatureMapProto.class);
+        MutableFeatureMap obj = new MutableFeatureMap(proto.getConvertHighCardinality());
+        for (VariableInfoProto infoProto : proto.getInfoList()) {
+            VariableInfo info = ProtoUtil.deserialize(infoProto);
+            Object o = obj.put(info);
+            if (o != null) {
+                throw new IllegalStateException("Invalid protobuf, found two mappings for " + info.getName());
+            }
+        }
+        return obj;
+    }
+
+    @Override
+    public FeatureDomainProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**
@@ -80,6 +125,26 @@ public class MutableFeatureMap extends FeatureMap {
      */
     public void clear() {
         m.clear();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        MutableFeatureMap that = (MutableFeatureMap) o;
+        return convertHighCardinality == that.convertHighCardinality;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), convertHighCardinality);
     }
 
 }

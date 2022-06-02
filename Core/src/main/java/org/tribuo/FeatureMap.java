@@ -16,10 +16,16 @@
 
 package org.tribuo;
 
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoSerializableMapValuesField;
+import org.tribuo.protos.ProtoUtil;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -27,12 +33,13 @@ import java.util.TreeMap;
  * A map from Strings to {@link VariableInfo} objects storing
  * information about a feature.
  */
-public abstract class FeatureMap implements Serializable, Iterable<VariableInfo> {
+public abstract class FeatureMap implements Serializable, ProtoSerializable<FeatureDomainProto>, Iterable<VariableInfo> {
     private static final long serialVersionUID = 1L;
 
     /**
      * Map from the feature names to their info.
      */
+    @ProtoSerializableMapValuesField(valuesName = "info")
     protected final Map<String, VariableInfo> m;
 
     /**
@@ -101,6 +108,23 @@ public abstract class FeatureMap implements Serializable, Iterable<VariableInfo>
         return m.values().iterator();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FeatureMap that = (FeatureMap) o;
+        return m.equals(that.m);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(m);
+    }
+
     /**
      * Same as the toString, but ordered by name, and with newlines.
      * @return A String representation of this FeatureMap.
@@ -134,6 +158,15 @@ public abstract class FeatureMap implements Serializable, Iterable<VariableInfo>
         } else {
             return false;
         }
+    }
+
+    /**
+     * Deserializes a {@link FeatureDomainProto} into a {@link FeatureMap} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized FeatureMap.
+     */
+    public static FeatureMap deserialize(FeatureDomainProto proto) {
+        return ProtoUtil.deserialize(proto);
     }
 
 }

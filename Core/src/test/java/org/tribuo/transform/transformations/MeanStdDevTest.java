@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,33 @@
  * limitations under the License.
  */
 
-package org.tribuo.transform;
+package org.tribuo.transform.transformations;
 
 import org.tribuo.Dataset;
 import org.tribuo.FeatureMap;
 import org.tribuo.MutableDataset;
 import org.tribuo.RealInfo;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.MeanStdDevTransformerProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
-import org.tribuo.transform.transformations.MeanStdDevTransformation;
+import org.tribuo.transform.Transformation;
+import org.tribuo.transform.TransformationMap;
+import org.tribuo.transform.Transformer;
+import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.MeanStdDevTransformation.MeanStdDevTransformer;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -123,6 +132,31 @@ public class MeanStdDevTest {
 
         assertEquals(targetMean,((RealInfo)testFMap.get("F1")).getMean(),1e-2);
         assertEquals(targetStdDev,Math.sqrt(((RealInfo)testFMap.get("F1")).getVariance()),1e-2);
+
+        List<Transformer> f0Transformer = tMap.get("F0");
+        assertEquals(1,f0Transformer.size());
+
+        TransformerProto proto = f0Transformer.get(0).serialize();
+        Transformer transformer = Transformer.deserialize(proto);
+
+        assertEquals(f0Transformer.get(0), transformer);
+        assertNotSame(f0Transformer.get(0), transformer);
     }
 
+    
+    @Test
+    void testSerializeMeanStdDevTransformer() throws Exception {
+        Transformer t = new MeanStdDevTransformer(Math.E, Math.PI, 0.618033988749, 1.059463094359);
+        TransformerProto tp = t.serialize();
+        assertEquals(0, tp.getVersion());
+        assertEquals("org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformer", tp.getClassName());
+        MeanStdDevTransformerProto proto = tp.getSerializedData().unpack(MeanStdDevTransformerProto.class);
+        assertEquals(Math.E, proto.getObservedMean());
+        assertEquals(Math.PI, proto.getObservedStdDev());
+        assertEquals(0.618033988749, proto.getTargetMean());
+        assertEquals(1.059463094359, proto.getTargetStdDev());
+
+        Transformer tD = ProtoUtil.deserialize(tp);
+        assertEquals(t, tD);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
@@ -27,6 +28,11 @@ import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.TransformerListProto;
+import org.tribuo.protos.core.TransformerMapProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformerMap.TransformerMapProvenance;
 
@@ -34,6 +40,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -51,11 +58,17 @@ import java.util.logging.Logger;
  * first call {@link MutableDataset#densify} on the datasets.
  * See {@link org.tribuo.transform} for a more detailed discussion of densify.
  */
-public final class TransformerMap implements Provenancable<TransformerMapProvenance>, Serializable {
-    
+public final class TransformerMap implements ProtoSerializable<TransformerMapProto>,
+        Provenancable<TransformerMapProvenance>, Serializable {
+
     private static final Logger logger = Logger.getLogger(TransformerMap.class.getName());
     
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final Map<String, List<Transformer>> map;
     private final DatasetProvenance datasetProvenance;
@@ -71,6 +84,32 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
         this.map = Collections.unmodifiableMap(map);
         this.datasetProvenance = datasetProvenance;
         this.transformationMapProvenance = transformationMapProvenance;
+    }
+
+    /**
+     * Deserializes a {@link TransformerMapProto} into a {@link TransformerMap}.
+     * @param proto The proto to deserialize.
+     * @return The deserialized TransformerMap.
+     */
+    public static TransformerMap deserialize(TransformerMapProto proto) {
+        if (proto.getVersion() == CURRENT_VERSION) {
+            Map<String,List<Transformer>> map = new LinkedHashMap<>();
+            for (Map.Entry<String,TransformerListProto> e : proto.getTransformersMap().entrySet()) {
+                List<Transformer> list = new ArrayList<>();
+                for (TransformerProto p : e.getValue().getTransformerList()) {
+                    list.add(ProtoUtil.deserialize(p));
+                }
+                map.put(e.getKey(),list);
+            }
+            DatasetProvenance datasetProvenance = (DatasetProvenance) ProvenanceUtil.unmarshalProvenance(
+                    PROVENANCE_SERIALIZER.deserializeFromProto(proto.getDatasetProvenance()));
+            ConfiguredObjectProvenance transformationMapProvenance = (ConfiguredObjectProvenance)
+                    ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(
+                            proto.getTransformationMapProvenance()));
+            return new TransformerMap(map,datasetProvenance,transformationMapProvenance);
+        } else {
+            throw new IllegalArgumentException("Unknown version " + proto.getVersion() + " expected {0}");
+        }
     }
 
     /**
@@ -135,7 +174,6 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
      * @return A deep copy of the dataset (and it's examples) with the transformers applied to it's features.
      */
     public <T extends Output<T>> MutableDataset<T> transformDataset(Dataset<T> dataset, boolean densify) {
-        
         logger.fine("Creating deep copy of data set");
         
         MutableDataset<T> newDataset = MutableDataset.createDeepCopy(dataset);
@@ -161,9 +199,9 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
     }
     
     /**
-     * Gets the transformer associated with a given feature name.
+     * Gets the transformers associated with a given feature name.
      * @param featureName the name of the feature for which we want the transformer
-     * @return the transformer associated with the feature name, which may be <code>null</code> 
+     * @return the transformer list associated with the feature name, which may be <code>null</code>
      * if there is no feature with that name.
      */
     public List<Transformer> get(String featureName) {
@@ -173,6 +211,19 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
     @Override
     public String toString() {
         return "TransformerMap(map="+map.toString()+")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TransformerMap that = (TransformerMap) o;
+        return map.equals(that.map) && datasetProvenance.equals(that.datasetProvenance) && transformationMapProvenance.equals(that.transformationMapProvenance);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(map, datasetProvenance, transformationMapProvenance);
     }
 
     /**
@@ -186,6 +237,28 @@ public final class TransformerMap implements Provenancable<TransformerMapProvena
     @Override
     public TransformerMapProvenance getProvenance() {
         return new TransformerMapProvenance(this);
+    }
+
+    @Override
+    public TransformerMapProto serialize() {
+        TransformerMapProto.Builder builder = TransformerMapProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setDatasetProvenance(
+                PROVENANCE_SERIALIZER.serializeToProto(
+                        ProvenanceUtil.marshalProvenance(datasetProvenance)));
+        builder.setTransformationMapProvenance(
+                PROVENANCE_SERIALIZER.serializeToProto(
+                        ProvenanceUtil.marshalProvenance(transformationMapProvenance)));
+        for (Map.Entry<String, List<Transformer>> e : map.entrySet()) {
+            TransformerListProto.Builder listBuilder = TransformerListProto.newBuilder();
+            for (Transformer t : e.getValue()) {
+                listBuilder.addTransformer(t.serialize());
+            }
+            builder.putTransformers(e.getKey(),listBuilder.build());
+        }
+
+        return builder.build();
     }
 
     /**

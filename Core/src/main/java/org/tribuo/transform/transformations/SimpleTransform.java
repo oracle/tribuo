@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,18 @@
 
 package org.tribuo.transform.transformations;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.SimpleTransformProto;
+import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
@@ -43,8 +50,14 @@ import java.util.function.DoubleUnaryOperator;
  * Wraps a {@link DoubleUnaryOperator} which actually performs the
  * transformation.
  */
+@ProtoSerializableClass(version = SimpleTransform.CURRENT_VERSION, serializedDataClass = SimpleTransformProto.class)
 public final class SimpleTransform implements Transformer, Transformation, TransformStatistics {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private static final String OP = "op";
     private static final String OPERAND = "operand";
@@ -93,12 +106,15 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
         threshold
     }
 
+    @ProtoSerializableField
     @Config(mandatory = true,description="Type of the simple transformation.")
     private Operation op;
 
+    @ProtoSerializableField(name="firstOperand")
     @Config(description="Operand (if required).")
     private double operand = Double.NaN;
 
+    @ProtoSerializableField
     @Config(description="Second operand (if required).")
     private double secondOperand = Double.NaN;
 
@@ -111,7 +127,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
      */
     private SimpleTransform() {}
 
-    private SimpleTransform(Operation op, double operand, double secondOperand) {
+    SimpleTransform(Operation op, double operand, double secondOperand) {
         this.op = op;
         this.operand = operand;
         this.secondOperand = secondOperand;
@@ -181,12 +197,46 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
         }
     }
 
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the message is not a {@link SimpleTransformProto}.
+     */
+    static SimpleTransform deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        SimpleTransformProto proto = message.unpack(SimpleTransformProto.class);
+        if (version == CURRENT_VERSION) {
+            return new SimpleTransform(Operation.valueOf(proto.getOp()), proto.getFirstOperand(), proto.getSecondOperand());
+        } else {
+            throw new IllegalArgumentException("Unknown version " + version + " expected {0}");
+        }
+    }
+
     @Override
     public TransformationProvenance getProvenance() {
         if (provenance == null) {
             provenance = new SimpleTransformProvenance(this);
         }
         return provenance;
+    }
+
+    @Override
+    public TransformerProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SimpleTransform that = (SimpleTransform) o;
+        return Double.compare(that.operand, operand) == 0 && Double.compare(that.secondOperand, secondOperand) == 0 && op == that.op;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(op, operand, secondOperand);
     }
 
     /**

@@ -16,6 +16,8 @@
 
 package org.tribuo.hash;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
@@ -23,6 +25,11 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.ModHashCodeHasherProto;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -32,15 +39,25 @@ import java.util.Objects;
 
 /**
  * Hashes names using String.hashCode(), then reduces the dimension.
+ * <p>
+ * ModHashCodeHasher does not serialize the salt in its serialized forms, and
+ * thus the salt must be set after deserialization.
  */
+@ProtoSerializableClass(version = ModHashCodeHasher.CURRENT_VERSION, serializedDataClass = ModHashCodeHasherProto.class)
 public final class ModHashCodeHasher extends Hasher {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     static final String DIMENSION = "dimension";
 
     @Config(mandatory = true,redact = true,description="Salt used in the hash.")
     private transient String salt = null;
 
+    @ProtoSerializableField
     @Config(mandatory = true,description="Range of the hashing function.")
     private int dimension = 100;
 
@@ -68,6 +85,31 @@ public final class ModHashCodeHasher extends Hasher {
         this.dimension = dimension;
         this.salt = salt;
         postConfig();
+    }
+
+    /**
+     * Deserialization constructor.
+     * <p>
+     * Note the salt must be set after the hasher has been deserialized.
+     * @param version The version number.
+     * @param className The class name.
+     * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the message cannot be parsed by {@link ModHashCodeHasherProto}.
+     */
+    public static ModHashCodeHasher deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ModHashCodeHasherProto proto = message.unpack(ModHashCodeHasherProto.class);
+        ModHashCodeHasher obj = new ModHashCodeHasher();
+        obj.dimension = proto.getDimension();
+        obj.provenance = new ModHashCodeHasherProvenance(obj.dimension);
+        return obj;
+    }
+
+    @Override
+    public HasherProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**
@@ -109,6 +151,23 @@ public final class ModHashCodeHasher extends Hasher {
     @Override
     public String toString() {
         return "ModHashCodeHasher(dimension=" + dimension + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ModHashCodeHasher that = (ModHashCodeHasher) o;
+        return dimension == that.dimension && Objects.equals(salt, that.salt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(salt, dimension);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {

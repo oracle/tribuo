@@ -16,8 +16,16 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.MutableNumber;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoSerializableKeysValuesField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
@@ -25,6 +33,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.SplittableRandom;
 import java.util.stream.Collectors;
@@ -47,8 +56,14 @@ import java.util.stream.Collectors;
  * are recomputed. Care should be taken if data is read while {@link #observe(double)} is called.
  * </p>
  */
+@ProtoSerializableClass(version = CategoricalInfo.CURRENT_VERSION, serializedDataClass = CategoricalInfoProto.class)
 public class CategoricalInfo extends SkeletalVariableInfo {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private static final MutableLong ZERO = new MutableLong(0);
     /**
@@ -60,16 +75,19 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     /**
      * The occurrence counts of each value.
      */
+    @ProtoSerializableKeysValuesField(keysName="key", valuesName="value")
     protected Map<Double,MutableLong> valueCounts = null;
 
     /**
      * The observed value if it's only seen a single one.
      */
+    @ProtoSerializableField
     protected double observedValue = Double.NaN;
 
     /**
      * The count of the observed value if it's only seen a single one.
      */
+    @ProtoSerializableField
     protected long observedCount = 0;
 
     // These variables are used in the sampling methods, and regenerated after serialization if a sample is required.
@@ -115,6 +133,50 @@ public class CategoricalInfo extends SkeletalVariableInfo {
             observedValue = info.observedValue;
             observedCount = info.observedCount;
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static CategoricalInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        CategoricalInfoProto proto = message.unpack(CategoricalInfoProto.class);
+        CategoricalInfo info = new CategoricalInfo(proto.getName());
+        List<Double> keys = proto.getKeyList();
+        List<Long> values = proto.getValueList();
+        if (keys.size() != values.size()) {
+            throw new IllegalStateException("Invalid protobuf, keys and values don't match. keys.size() = " + keys.size() + ", values.size() = " + values.size());
+        }
+        int newCount = 0;
+        if (keys.size() > 1) {
+            info.valueCounts = new HashMap<>(keys.size());
+            for (int i = 0; i < keys.size(); i++) {
+                if (values.get(i) < 0) {
+                    throw new IllegalStateException("Invalid protobuf, counts must be positive, found " + values.get(i) + " for value " + keys.get(i));
+                }
+                info.valueCounts.put(keys.get(i),new MutableLong(values.get(i)));
+                newCount += values.get(i).intValue();
+            }
+        } else {
+            info.observedValue = proto.getObservedValue();
+            info.observedCount = proto.getObservedCount();
+            newCount = (int) proto.getObservedCount();
+            if (info.observedCount < 0) {
+                throw new IllegalStateException("Invalid protobuf, counts must be positive, found " + info.observedCount + " for value " + info.observedValue);
+            }
+        }
+        info.count = newCount;
+        return info;
+    }
+
+    @Override
+    public VariableInfoProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override
@@ -359,6 +421,43 @@ public class CategoricalInfo extends SkeletalVariableInfo {
                 values[1] = observedValue;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        CategoricalInfo that = (CategoricalInfo) o;
+        // MutableLong in OLCUT 5.2.0 doesn't implement equals,
+        // so we can't compare valueCounts with Objects.equals.
+        // That'll be fixed in the next OLCUT but for the time being we've got this workaround.
+        if (valueCounts != null ^ that.valueCounts != null) {
+            return false;
+        } else if (valueCounts != null && that.valueCounts != null) {
+            if (valueCounts.size() != that.valueCounts.size()) {
+                return false;
+            } else {
+                for (Map.Entry<Double, MutableLong> e : valueCounts.entrySet()) {
+                    MutableLong other = that.valueCounts.get(e.getKey());
+                    if ((other == null) || (e.getValue().longValue() != other.longValue())) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return Double.compare(that.observedValue, observedValue) == 0 && observedCount == that.observedCount;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), valueCounts, observedValue, observedCount);
     }
 
     @Override

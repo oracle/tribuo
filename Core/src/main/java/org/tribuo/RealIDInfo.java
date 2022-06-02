@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,27 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.core.RealIDInfoProto;
+
+import java.util.Objects;
+
 /**
  * Same as a {@link RealInfo}, but with an additional int id field.
  */
+@ProtoSerializableClass(version = RealIDInfo.CURRENT_VERSION, serializedDataClass = RealIDInfoProto.class)
 public class RealIDInfo extends RealInfo implements VariableIDInfo {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    @ProtoSerializableField
     private final int id;
 
     /**
@@ -36,6 +51,9 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
      */
     public RealIDInfo(String name, int count, double max, double min, double mean, double sumSquares, int id) {
         super(name,count,max,min,mean,sumSquares);
+        if (id < 0) {
+            throw new IllegalArgumentException("Invalid id number, must be non-negative, found " + id);
+        }
         this.id = id;
     }
 
@@ -46,6 +64,9 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
      */
     public RealIDInfo(RealInfo info, int id) {
         super(info);
+        if (id < 0) {
+            throw new IllegalArgumentException("Invalid id number, must be non-negative, found " + id);
+        }
         this.id = id;
     }
 
@@ -57,6 +78,27 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
     private RealIDInfo(RealIDInfo info, String newName) {
         super(info,newName);
         this.id = info.id;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static RealIDInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        RealIDInfoProto proto = message.unpack(RealIDInfoProto.class);
+        if (proto.getId() < 0) {
+            throw new IllegalStateException("Invalid protobuf, found no id where one was expected.");
+        }
+        RealIDInfo info = new RealIDInfo(proto.getName(),proto.getCount(),
+                proto.getMax(),proto.getMin(),
+                proto.getMean(),proto.getSumSquares(),
+                proto.getId());
+        return info;
     }
 
     @Override
@@ -83,4 +125,25 @@ public class RealIDInfo extends RealInfo implements VariableIDInfo {
     public String toString() {
         return String.format("RealFeature(name=%s,id=%d,count=%d,max=%f,min=%f,mean=%f,variance=%f)",name,id,count,max,min,mean,(sumSquares /(count-1)));
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        RealIDInfo that = (RealIDInfo) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id);
+    }
+
 }

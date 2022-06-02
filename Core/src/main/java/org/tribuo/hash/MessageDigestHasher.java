@@ -16,12 +16,19 @@
 
 package org.tribuo.hash;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.protos.core.MessageDigestHasherProto;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -29,6 +36,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,9 +45,18 @@ import java.util.function.Supplier;
 
 /**
  * Hashes Strings using the supplied MessageDigest type.
+ * <p>
+ * MessageDigestHasher does not serialize the salt in its serialized forms, and
+ * thus the salt must be set after deserialization.
  */
+@ProtoSerializableClass(version = MessageDigestHasher.CURRENT_VERSION, serializedDataClass = MessageDigestHasherProto.class)
 public final class MessageDigestHasher extends Hasher {
     private static final long serialVersionUID = 3L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Alias for {@link StandardCharsets#UTF_8}.
@@ -49,6 +66,7 @@ public final class MessageDigestHasher extends Hasher {
     static final String HASH_TYPE = "hashType";
 
     @Config(mandatory = true,description="MessageDigest hashing function.")
+    @ProtoSerializableField
     private String hashType;
 
     private transient ThreadLocal<MessageDigest> md;
@@ -82,6 +100,28 @@ public final class MessageDigestHasher extends Hasher {
         this.md = ThreadLocal.withInitial(getDigestSupplier(hashType));
         MessageDigest d = this.md.get(); // To trigger the unsupported digest exception.
         this.provenance = new MessageDigestHasherProvenance(hashType);
+    }
+
+    /**
+     * Deserialization factory.
+     * <p>
+     * Note the salt must be set after the hasher has been deserialized.
+     * @param version The serialized object version number.
+     * @param className The class name.
+     * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the message cannot be parsed by {@link MessageDigestHasherProto}.
+     */
+    public static MessageDigestHasher deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MessageDigestHasher obj = new MessageDigestHasher();
+        MessageDigestHasherProto proto = message.unpack(MessageDigestHasherProto.class);
+        obj.hashType = proto.getHashType();
+        obj.md = ThreadLocal.withInitial(getDigestSupplier(obj.hashType));
+        MessageDigest d = obj.md.get(); // To trigger the unsupported digest exception.
+        obj.provenance = new MessageDigestHasherProvenance(obj.hashType);
+        return obj;
     }
 
     /**
@@ -119,6 +159,11 @@ public final class MessageDigestHasher extends Hasher {
     }
 
     @Override
+    public HasherProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    @Override
     public void setSalt(String salt) {
         if (Hasher.validateSalt(salt)) {
             this.salt = salt.getBytes(utf8Charset);
@@ -137,6 +182,25 @@ public final class MessageDigestHasher extends Hasher {
     @Override
     public String toString() {
         return "MessageDigestHasher(algorithm="+md.get().getAlgorithm()+")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MessageDigestHasher that = (MessageDigestHasher) o;
+        return Objects.equals(hashType, that.hashType) && Arrays.equals(salt, that.salt);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(hashType);
+        result = 31 * result + Arrays.hashCode(salt);
+        return result;
     }
 
     @Override
