@@ -1014,7 +1014,7 @@ public class DenseMatrix implements Matrix {
 
                 double diagElement = 0.0;
                 if (scale == 0.0) {
-                    offDiagonal[i] = diagonal[i-1]; // surely this is zero?
+                    offDiagonal[i] = 0.0; // if scale is zero then diagonal[0...i-1] = 0
                     for (int j = 0; j < i; j++) {
                         // copy in new row
                         diagonal[j] = transformValues[i-1][j];
