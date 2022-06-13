@@ -960,9 +960,7 @@ public class DenseMatrix implements Matrix {
 
             // Zero lower triangle of u
             for (int i = 0; i < dim1; i++) {
-                for (int j = 0; j < i; j++) {
-                    u.values[i][j] = 0.0;
-                }
+                Arrays.fill(u.values[i],0,i,0.0);
             }
 
             // Zero upper triangle of l and set diagonal to 1.
