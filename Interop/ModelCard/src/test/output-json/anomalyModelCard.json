@@ -1,0 +1,60 @@
+{
+  "ModelDetails" : {
+    "schema-version" : "1.0",
+    "model-type" : "LibSVMAnomalyModel",
+    "model-package" : "org.tribuo.anomaly.libsvm.LibSVMAnomalyModel",
+    "tribuo-version" : "4.2.0",
+    "java-version" : "17.0.2",
+    "configured-parameters" : {
+      "cost" : 1.0,
+      "coef0" : 0.0,
+      "seed" : 12345,
+      "cache_size" : 500.0,
+      "probability" : "false",
+      "nu" : 0.1,
+      "degree" : 3,
+      "eps" : 0.001,
+      "kernelType" : "RBF",
+      "p" : 0.1,
+      "shrinking" : "true",
+      "svmType" : {
+        "className" : "org.tribuo.anomaly.libsvm.SVMAnomalyType",
+        "type" : "ONE_CLASS"
+      },
+      "gamma" : 1.0
+    }
+  },
+  "TrainingDetails" : {
+    "schema-version" : "1.0",
+    "training-time" : "2022-06-18T21:17:22.882070-07:00",
+    "training-set-size" : 2000,
+    "num-features" : 5,
+    "features-list" : [ "A", "B", "C", "D", "E" ],
+    "num-outputs" : 2,
+    "outputs-distribution" : {
+      "ANOMALOUS" : 0,
+      "EXPECTED" : 2000
+    }
+  },
+  "TestingDetails" : {
+    "schema-version" : "1.0",
+    "testing-set-size" : 2000,
+    "metrics" : {
+      "overall-precision" : 0.6357927786499215,
+      "overall-recall" : 1.0
+    }
+  },
+  "UsageDetails" : {
+    "schema-version" : "1.0",
+    "intended-use" : "",
+    "intended-users" : "",
+    "out-of-scope-uses" : [ ],
+    "pre-processing-steps" : [ ],
+    "considerations-list" : [ ],
+    "relevant-factors-list" : [ ],
+    "resources-list" : [ ],
+    "primary-contact" : "",
+    "model-citation" : "",
+    "model-license" : ""
+  }
+}

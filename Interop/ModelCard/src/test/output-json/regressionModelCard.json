@@ -1,0 +1,55 @@
+{
+  "ModelDetails" : {
+    "schema-version" : "1.0",
+    "model-type" : "LinearSGDModel",
+    "model-package" : "org.tribuo.regression.sgd.linear.LinearSGDModel",
+    "tribuo-version" : "4.2.0",
+    "java-version" : "17.0.2",
+    "configured-parameters" : {
+      "seed" : 1,
+      "minibatchSize" : 1,
+      "shuffle" : "true",
+      "epochs" : 10,
+      "optimiser" : {
+        "className" : "org.tribuo.math.optimisers.LinearDecaySGD",
+        "initialLearningRate" : 0.01,
+        "rho" : 0.0,
+        "useMomentum" : "NONE"
+      },
+      "loggingInterval" : 279,
+      "objective" : {
+        "className" : "org.tribuo.regression.sgd.objectives.SquaredLoss"
+      }
+    }
+  },
+  "TrainingDetails" : {
+    "schema-version" : "1.0",
+    "training-time" : "2022-06-18T21:17:24.909421-07:00",
+    "training-set-size" : 1119,
+    "num-features" : 11,
+    "features-list" : [ "alcohol", "chlorides", "citric acid", "density", "fixed acidity", "free sulfur dioxide", "pH", "residual sugar", "sulphates", "total sulfur dioxide", "volatile acidity" ],
+    "num-outputs" : 1,
+    "outputs-distribution" : { }
+  },
+  "TestingDetails" : {
+    "schema-version" : "1.0",
+    "testing-set-size" : 480,
+    "metrics" : {
+      "average-rmse" : 0.9674499961834514,
+      "average-r2" : -0.43925534551981915
+    }
+  },
+  "UsageDetails" : {
+    "schema-version" : "1.0",
+    "intended-use" : "",
+    "intended-users" : "",
+    "out-of-scope-uses" : [ ],
+    "pre-processing-steps" : [ ],
+    "considerations-list" : [ ],
+    "relevant-factors-list" : [ ],
+    "resources-list" : [ ],
+    "primary-contact" : "",
+    "model-citation" : "",
+    "model-license" : ""
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "ModelDetails" : {
+    "schema-version" : "1.0",
+    "model-type" : "WeightedEnsembleModel",
+    "model-package" : "org.tribuo.ensemble.WeightedEnsembleModel",
+    "tribuo-version" : "4.2.0",
+    "java-version" : "17.0.2",
+    "configured-parameters" : {
+      "seed" : 12345,
+      "innerTrainer" : {
+        "className" : "org.tribuo.multilabel.sgd.linear.LinearSGDTrainer",
+        "seed" : 1,
+        "minibatchSize" : 1,
+        "shuffle" : "true",
+        "epochs" : 3,
+        "optimiser" : {
+          "className" : "org.tribuo.math.optimisers.AdaGrad",
+          "epsilon" : 0.1,
+          "initialLearningRate" : 0.1,
+          "initialValue" : 0.0
+        },
+        "objective" : {
+          "className" : "org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy"
+        },
+        "loggingInterval" : 1000
+      },
+      "combiner" : {
+        "className" : "org.tribuo.multilabel.ensemble.MultiLabelVotingCombiner"
+      },
+      "numMembers" : 5
+    }
+  },
+  "TrainingDetails" : {
+    "schema-version" : "1.0",
+    "training-time" : "2022-06-18T21:22:18.140625-07:00",
+    "training-set-size" : 100,
+    "num-features" : 4,
+    "features-list" : [ "X_0", "X_1", "X_2", "X_3" ],
+    "num-outputs" : 3,
+    "outputs-distribution" : {
+      "Y_1" : 61,
+      "Y_0" : 38,
+      "Y_2" : 34
+    }
+  },
+  "TestingDetails" : {
+    "schema-version" : "1.0",
+    "testing-set-size" : 100,
+    "metrics" : {
+      "balanced-error-rate" : 0.08187134502923976,
+      "jaccard-score" : 0.9
+    }
+  },
+  "UsageDetails" : {
+    "schema-version" : "1.0",
+    "intended-use" : "",
+    "intended-users" : "",
+    "out-of-scope-uses" : [ ],
+    "pre-processing-steps" : [ ],
+    "considerations-list" : [ ],
+    "relevant-factors-list" : [ ],
+    "resources-list" : [ ],
+    "primary-contact" : "",
+    "model-citation" : "",
+    "model-license" : ""
+  }
+}
