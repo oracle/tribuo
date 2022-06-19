@@ -1,0 +1,40 @@
+{
+  "ModelDetails" : {
+    "schema-version" : "1.0",
+    "model-type" : "WeightedEnsembleModel",
+    "model-package" : "org.tribuo.ensemble.WeightedEnsembleModel",
+    "tribuo-version" : "4.2.0",
+    "java-version" : "17.0.2",
+    "configured-parameters" : { }
+  },
+  "TrainingDetails" : {
+    "schema-version" : "1.0",
+    "training-time" : "2022-06-18T21:22:18.102725-07:00",
+    "training-set-size" : 100,
+    "num-features" : 2,
+    "features-list" : [ "X_0", "X_1" ],
+    "num-outputs" : 1,
+    "outputs-distribution" : { }
+  },
+  "TestingDetails" : {
+    "schema-version" : "1.0",
+    "testing-set-size" : 100,
+    "metrics" : {
+      "averaged-R2" : 0.8359038114405755,
+      "averaged-RMSE" : 1.8265714038161835
+    }
+  },
+  "UsageDetails" : {
+    "schema-version" : "1.0",
+    "intended-use" : "",
+    "intended-users" : "",
+    "out-of-scope-uses" : [ ],
+    "pre-processing-steps" : [ ],
+    "considerations-list" : [ ],
+    "relevant-factors-list" : [ ],
+    "resources-list" : [ ],
+    "primary-contact" : "",
+    "model-citation" : "",
+    "model-license" : ""
+  }
+}

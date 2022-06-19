@@ -1,0 +1,65 @@
+{
+  "ModelDetails" : {
+    "schema-version" : "1.0",
+    "model-type" : "WeightedEnsembleModel",
+    "model-package" : "org.tribuo.ensemble.WeightedEnsembleModel",
+    "tribuo-version" : "4.2.0",
+    "java-version" : "17.0.2",
+    "configured-parameters" : {
+      "seed" : 12345,
+      "innerTrainer" : {
+        "className" : "org.tribuo.classification.sgd.linear.LogisticRegressionTrainer",
+        "seed" : 12345,
+        "minibatchSize" : 1,
+        "shuffle" : "true",
+        "epochs" : 5,
+        "optimiser" : {
+          "className" : "org.tribuo.math.optimisers.AdaGrad",
+          "epsilon" : 0.1,
+          "initialLearningRate" : 1.0,
+          "initialValue" : 0.0
+        },
+        "loggingInterval" : 1000,
+        "objective" : {
+          "className" : "org.tribuo.classification.sgd.objectives.LogMulticlass"
+        }
+      },
+      "combiner" : {
+        "className" : "org.tribuo.classification.ensemble.VotingCombiner"
+      },
+      "numMembers" : 5
+    }
+  },
+  "TrainingDetails" : {
+    "schema-version" : "1.0",
+    "training-time" : "2022-06-18T21:22:18.171579-07:00",
+    "training-set-size" : 100,
+    "num-features" : 2,
+    "features-list" : [ "X1", "X2" ],
+    "num-outputs" : 2,
+    "outputs-distribution" : {
+      "X" : 50,
+      "O" : 50
+    }
+  },
+  "TestingDetails" : {
+    "schema-version" : "1.0",
+    "testing-set-size" : 100,
+    "metrics" : {
+      "overall-accuracy" : 0.82
+    }
+  },
+  "UsageDetails" : {
+    "schema-version" : "1.0",
+    "intended-use" : "",
+    "intended-users" : "",
+    "out-of-scope-uses" : [ ],
+    "pre-processing-steps" : [ ],
+    "considerations-list" : [ ],
+    "relevant-factors-list" : [ ],
+    "resources-list" : [ ],
+    "primary-contact" : "",
+    "model-citation" : "",
+    "model-license" : ""
+  }
+}

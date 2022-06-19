@@ -31,6 +31,7 @@
         <module>OCI</module>
         <module>ONNX</module>
         <module>Tensorflow</module>
+        <module>ModelCard</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
