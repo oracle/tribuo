@@ -77,6 +77,26 @@ public class TransformedModel<T extends Output<T>> extends Model<T> {
         return transformerMap;
     }
 
+    /**
+     * Gets the inner model to allow access to any class specific methods
+     * that model contains (e.g., to examine cluster centroids).
+     * <p>
+     * Note that this model expects all examples to have been transformed using
+     * the transformer map, which can be extracted with {@link #getTransformerMap}.
+     * @return The inner model.
+     */
+    public Model<T> getInnerModel() {
+        return innerModel;
+    }
+
+    /**
+     * Returns true if the model densifies the feature space before applying the transformations.
+     * @return True if the transforms operate on the dense feature space.
+     */
+    public boolean getDensify() {
+        return densify;
+    }
+
     @Override
     public Prediction<T> predict(Example<T> example) {
         Example<T> transformedExample;
