@@ -401,6 +401,15 @@
             </modules>
         </profile>
         <profile>
+            <id>model-card-java17</id>
+            <activation>
+                <jdk>[17,)</jdk>
+            </activation>
+            <modules>
+                <module>Interop/ModelCard</module>
+            </modules>
+        </profile>
+        <profile>
             <!-- Turn off ONNX, XGBoost and TF tests on ARM platforms as the binaries are not available -->
             <id>arm</id>
             <properties>
