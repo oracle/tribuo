@@ -16,11 +16,15 @@
 
 package org.tribuo.test;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.test.protos.MockOutputInfoProto;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,12 +59,79 @@ public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableO
     }
 
     private MockOutputInfo(MockOutputInfo other) {
-        labelCounts = new HashMap<>(labelCounter);
+        labelCounts = new HashMap<>(other.labelCounter);
         labelCounter = other.labelCounter;
         unknownCount = other.unknownCount;
         labels = new HashMap<>(other.labels);
         idLabelMap = new HashMap<>(other.idLabelMap);
         labelIDMap = new HashMap<>(other.labelIDMap);
+    }
+
+    private MockOutputInfo(Map<String, MutableLong> labelCounts, Map<String, Integer> labelIDMap, int unknownCount, int labelCounter) {
+        this.unknownCount = unknownCount;
+        this.labelCounter = labelCounter;
+        this.labelCounts = labelCounts;
+        this.labelIDMap = labelIDMap;
+        this.idLabelMap = new HashMap<>();
+        this.labels = new HashMap<>();
+        for (Map.Entry<String,Integer> e : labelIDMap.entrySet()) {
+            idLabelMap.put(e.getValue(),e.getKey());
+            labels.put(e.getKey(),new MockOutput(e.getKey()));
+        }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MockOutputInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        MockOutputInfoProto proto = message.unpack(MockOutputInfoProto.class);
+
+        if (proto.getLabelCount() != proto.getCountsCount() || proto.getCountsCount() != proto.getIdCount()) {
+            throw new IllegalArgumentException("Invalid protobuf, must have a label, id and count for each entry");
+        }
+        HashMap<String, MutableLong> counts = new HashMap<>();
+        HashMap<String, Integer> ids = new HashMap<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            MutableLong count = new MutableLong(proto.getCounts(i));
+            if (count.longValue() < 1) {
+                throw new IllegalArgumentException("Counts must be positive, for label " + proto.getLabel(i) + " found " + count);
+            }
+            counts.put(proto.getLabel(i), count);
+            int tmpId = proto.getId(i);
+            if (tmpId < 0) {
+                throw new IllegalArgumentException("Id must be non-negative, for label " + proto.getLabel(i) + " found " + tmpId);
+            }
+            ids.put(proto.getLabel(i),tmpId);
+        }
+
+        return new MockOutputInfo(counts, ids, proto.getUnknownCount(), proto.getLabelCounter());
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        MockOutputInfoProto.Builder protoBuilder = MockOutputInfoProto.newBuilder();
+
+        protoBuilder.setLabelCounter(labelCounter);
+        protoBuilder.setUnknownCount(unknownCount);
+        for (Map.Entry<String, MutableLong> e : labelCounts.entrySet()) {
+            protoBuilder.addLabel(e.getKey());
+            protoBuilder.addCounts(e.getValue().longValue());
+            protoBuilder.addId(labelIDMap.get(e.getKey()));
+        }
+
+        OutputDomainProto.Builder outputBuilder = OutputDomainProto.newBuilder();
+
+        outputBuilder.setVersion(0);
+        outputBuilder.setClassName(this.getClass().getName());
+        outputBuilder.setSerializedData(Any.pack(protoBuilder.build()));
+
+        return outputBuilder.build();
     }
 
     @Override

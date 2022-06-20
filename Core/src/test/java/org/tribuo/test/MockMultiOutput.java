@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,12 @@
 
 package org.tribuo.test;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputProto;
+import org.tribuo.test.protos.MockMultiOutputProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -87,6 +92,35 @@ public class MockMultiOutput implements Output<MockMultiOutput> {
      */
     public MockMultiOutput(MockOutput label) {
         this(Collections.singleton(label));
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MockMultiOutput deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        MockMultiOutputProto proto = message.unpack(MockMultiOutputProto.class);
+        Set<MockOutput> labels = new HashSet<>();
+        for (String s : proto.getLabelList()) {
+            labels.add(new MockOutput(s));
+        }
+        MockMultiOutput info = new MockMultiOutput(labels, proto.getScore());
+        return info;
+    }
+
+    @Override
+    public OutputProto serialize() {
+        MockMultiOutputProto.Builder builder = MockMultiOutputProto.newBuilder();
+        for (MockOutput m : labels) {
+            builder.addLabel(m.label);
+        }
+        builder.setScore(score);
+        return OutputProto.newBuilder().setVersion(0).setClassName(this.getClass().getName()).setSerializedData(Any.pack(builder.build())).build();
     }
 
     /**

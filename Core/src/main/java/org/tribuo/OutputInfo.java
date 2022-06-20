@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,10 @@
 package org.tribuo;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.OutputDomainProto;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -27,7 +31,7 @@ import java.util.Set;
  * Can generate a {@link ImmutableOutputInfo} which contains id numbers, and
  * a {@link MutableOutputInfo} for repeated training with more data.
  */
-public interface OutputInfo<T extends Output<T>> extends Serializable {
+public interface OutputInfo<T extends Output<T>> extends ProtoSerializable<OutputDomainProto>, Serializable {
 
     /**
      * Returns a set of {@link Output} which represent the space of possible
@@ -92,4 +96,12 @@ public interface OutputInfo<T extends Output<T>> extends Serializable {
      */
     public Iterable<Pair<String,Long>> outputCountsIterable();
 
+    /**
+     * Deserializes a {@link OutputDomainProto} into a {@link OutputInfo} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized OutputInfo.
+     */
+    public static OutputInfo<?> deserialize(OutputDomainProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,9 @@
  */
 
 package org.tribuo;
+
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.core.OutputProto;
 
 import java.io.Serializable;
 
@@ -32,7 +35,7 @@ import java.io.Serializable;
  * Equals and hashcode are defined to only look at the strings stored in an Output, not any score
  * values. For equality that takes into account the scores, use {@link Output#fullEquals}.
  */
-public interface Output<T extends Output<T>> extends Serializable {
+public interface Output<T extends Output<T>> extends ProtoSerializable<OutputProto>, Serializable {
 
     /**
      * Deep copy of the output up to it's immutable state.
