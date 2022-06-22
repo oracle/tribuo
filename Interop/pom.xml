@@ -107,4 +107,16 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>model-card-java17</id>
+            <activation>
+                <jdk>[17,)</jdk>
+            </activation>
+            <modules>
+                <module>ModelCard</module>
+            </modules>
+        </profile>
+    </profiles>
+
 </project>
