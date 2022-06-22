@@ -109,7 +109,7 @@
 
     <profiles>
         <profile>
-            <id>modelcard-java17</id>
+            <id>model-card-java17</id>
             <activation>
                 <jdk>[17,)</jdk>
             </activation>
