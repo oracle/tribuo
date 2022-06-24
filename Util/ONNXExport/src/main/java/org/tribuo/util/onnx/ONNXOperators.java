@@ -29,7 +29,9 @@ import java.util.Set;
 import static org.tribuo.util.onnx.ONNXAttribute.VARIADIC_INPUT;
 
 /**
- * ONNX Opset 13.
+ * ONNX Opset 13, and ONNX-ML version 1.
+ * <p>
+ * In a future version of Tribuo this class will be split into two enums, one for ONNX opset 13 and one for ONNX-ML v1.
  */
 public enum ONNXOperators implements ONNXOperator {
     /**
