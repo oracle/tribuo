@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * An abstract reference that represents both a node in an ONNX computation graph and a container for a specific ONNX
  * proto object that denotes that node. In its role as the former it provides a fluent interface for applying
- * {@link ONNXOperators} to {@link ONNXRef} instances. ONNXRef instances are ultimately created by an {@link ONNXContext}
+ * {@link ONNXOperator}s to {@link ONNXRef} instances. ONNXRef instances are ultimately created by an {@link ONNXContext}
  * instance, and ONNXRefs created by different instances of ONNXContext are incompatible. All ONNX proto objects
  * produced by calling {@code apply} methods on ONNXRefs are added to a {@link ai.onnx.proto.OnnxMl.GraphProto} field
  * in their governing ONNXContext. Instances of ONNXRef have a backreference to the ONNXContext that created them and
