@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
  * ONNXContext or of {@link ONNXRef}s produced by multiple ONNXContexts is not supported.
  * <p>
  * The ONNXContext has all of the logic needed to produce ONNX graphs, but is typically used explicitly to produce leaf
- * nodes of graphs (inputs, outputs, and weight matrices) that have more fluent interfaces to {@link ONNXContext#operation(ONNXOperators, List, List, Map)}.
+ * nodes of graphs (inputs, outputs, and weight matrices) that have more fluent interfaces to {@link ONNXContext#operation(ONNXOperator, List, List, Map)}.
  * Produced ONNX protobuf objects are encapsulated by instances of {@link ONNXRef} and its subclasses.
  */
 public final class ONNXContext {
@@ -62,7 +62,7 @@ public final class ONNXContext {
      * @param <T> The ONNXRef type of inputs
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public <T extends ONNXRef<?>> List<ONNXNode> operation(ONNXOperators op,
+    public <T extends ONNXRef<?>> List<ONNXNode> operation(ONNXOperator op,
                                                     List<T> inputs,
                                                     List<String> outputs,
                                                     Map<String, Object> attributes) {
@@ -88,26 +88,27 @@ public final class ONNXContext {
      * @param <T> The ONNXRef type of inputs
      * @return An {@link ONNXNode} that is the output nodes of {@code op}.
      */
-    public <T extends ONNXRef<?>> ONNXNode operation(ONNXOperators op, List<T> inputs, String outputName, Map<String, Object> attributes) {
+    public <T extends ONNXRef<?>> ONNXNode operation(ONNXOperator op, List<T> inputs, String outputName, Map<String, Object> attributes) {
         List<ONNXNode> opOutputs = operation(op, inputs, Collections.singletonList(outputName), attributes);
         if(opOutputs.get(0).backRef.getOutputList().size() > 1) {
-            throw new IllegalStateException("Requested a single output from operation " + op.opName + " which produced " + opOutputs.get(0).backRef.getOutputList().size() + " outputs");
+            throw new IllegalStateException("Requested a single output from operation " + op.getOpName() + " which produced " + opOutputs.get(0).backRef.getOutputList().size() + " outputs");
         } else {
             return opOutputs.get(0);
         }
     }
 
     /**
-     * Method for creating {@link ONNXNode}s from {@link ONNXOperators} and inputs. Returns a single ONNXNode and throws
-     * IllegalStateException if the operator has multiple outputs. The graph elements created by the operation are added
-     * to the calling ONNXContext instance. All inputs must belong to the calling instance of ONNXContext.
+     * Method for creating {@link ONNXNode}s from {@link ONNXOperator} instances and inputs. Returns a single ONNXNode
+     * and throws IllegalStateException if the operator has multiple outputs. The graph elements created by the
+     * operation are added to the calling ONNXContext instance. All inputs must belong to the calling instance of
+     * ONNXContext.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param inputs A list of {@link ONNXRef}s created by this instance of ONNXContext.
      * @param outputName Name that the output node of {@code op} should take.
      * @param <T> The ONNXRef type of inputs
      * @return An {@link ONNXNode} that is the output nodes of {@code op}.
      */
-    public <T extends ONNXRef<?>> ONNXNode operation(ONNXOperators op, List<T> inputs, String outputName) {
+    public <T extends ONNXRef<?>> ONNXNode operation(ONNXOperator op, List<T> inputs, String outputName) {
         return operation(op, inputs, outputName, Collections.emptyMap());
     }
 
