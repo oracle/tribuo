@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.command.Command;
 import com.oracle.labs.mlrg.olcut.command.CommandGroup;
 import com.oracle.labs.mlrg.olcut.command.CommandInterpreter;
-import org.tribuo.ModelExplorer;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class UsageDetails implements CommandGroup {
+public final class UsageDetails implements CommandGroup {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
-    private static final Logger logger = Logger.getLogger(ModelExplorer.class.getName());
+    private static final Logger logger = Logger.getLogger(UsageDetails.class.getName());
     private final CommandInterpreter shell = new CommandInterpreter();
     private final String schemaVersion;
     private String intendedUse;
