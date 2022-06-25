@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
@@ -76,7 +77,7 @@ public class NativeModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/classificationModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -101,7 +102,7 @@ public class NativeModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/multiClassificationModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -127,7 +128,7 @@ public class NativeModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/regressionModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -148,7 +149,7 @@ public class NativeModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/KMeansModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -173,6 +174,6 @@ public class NativeModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/anomalyModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 }
