@@ -34,7 +34,9 @@ public class ModelCard {
     private final UsageDetails usageDetails;
 
     public ModelCard(Model<?> model, Evaluation<?> evaluation) {
-        if (model instanceof ExternalModel) throw new IllegalArgumentException();
+        if (model instanceof ExternalModel) {
+            throw new IllegalArgumentException();
+        }
         modelDetails = new ModelDetails(model);
         trainingDetails = new TrainingDetails(model);
         testingDetails = new TestingDetails(evaluation);

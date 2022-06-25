@@ -39,8 +39,10 @@ public class TestingDetails {
         schemaVersion = testingDetailsJson.get("schema-version").textValue();
         testingSetSize = testingDetailsJson.get("testing-set-size").intValue();
         Map<String, Double> parsed = mapper.readValue(testingDetailsJson.get("metrics").toString(), Map.class);
-        for (var entry : parsed.keySet())
+        for (var entry : parsed.keySet()) {
             metrics.put(entry, parsed.get(entry));
+        }
+
     }
 
     public String getSchemaVersion() {

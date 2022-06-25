@@ -42,8 +42,9 @@ public class ModelDetails {
         javaVersion = model.getProvenance().getJavaVersion();
 
         Map<String,?> parameters = model.getProvenance().getTrainerProvenance().getConfiguredParameters();
-        for (String key : parameters.keySet())
+        for (String key : parameters.keySet()) {
             configuredParams.put(key, parameters.get(key));
+        }
     }
 
     public ModelDetails(JsonNode modelDetailsJson) throws JsonProcessingException {
@@ -53,8 +54,9 @@ public class ModelDetails {
         tribuoVersion = modelDetailsJson.get("tribuo-version").textValue();
         javaVersion = modelDetailsJson.get("java-version").textValue();
         Map<?,?> params = mapper.readValue(modelDetailsJson.get("configured-parameters").toString(), Map.class);
-        for (var key : params.keySet())
+        for (var key : params.keySet()) {
             configuredParams.put(key.toString(), params.get(key));
+        }
     }
 
     public String getSchemaVersion() {
@@ -95,7 +97,9 @@ public class ModelDetails {
 
     private ObjectNode paramsToJson(String name, Map<?,?> params) {
         ObjectNode paramsArr = mapper.createObjectNode();
-        if (name != null) paramsArr.put("className", name);
+        if (name != null) {
+            paramsArr.put("className", name);
+        }
         for (var key : params.keySet()) {
             if (params.get(key) instanceof ConfiguredObjectProvenance) {
                 ConfiguredObjectProvenance prov = (ConfiguredObjectProvenance) params.get(key);
@@ -106,11 +110,14 @@ public class ModelDetails {
                 ObjectNode nestedParam = paramsToJson(null, map);
                 paramsArr.set(key.toString(), nestedParam);
             } else if (isNumeric(params.get(key).toString())) {
-                if (params.get(key).toString().contains("."))
+                if (params.get(key).toString().contains(".")) {
                     paramsArr.put(key.toString(), Double.parseDouble(params.get(key).toString()));
-                else
+                } else {
                     paramsArr.put(key.toString(), Integer.parseInt(params.get(key).toString()));
-            } else paramsArr.put(key.toString(), params.get(key).toString());
+                }
+            } else {
+                paramsArr.put(key.toString(), params.get(key).toString());
+            }
         }
         return paramsArr;
     }

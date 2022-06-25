@@ -44,8 +44,9 @@ public class TrainingDetails {
         trainingSetSize = model.getProvenance().getDatasetProvenance().getNumExamples();
 
         numFeatures = model.getProvenance().getDatasetProvenance().getNumFeatures();
-        for (int i = 0; i < model.getFeatureIDMap().size(); i++)
+        for (int i = 0; i < model.getFeatureIDMap().size(); i++) {
             features.add(model.getFeatureIDMap().get(i).getName());
+        }
 
         numOutputs = model.getProvenance().getDatasetProvenance().getNumOutputs();
 
@@ -58,12 +59,14 @@ public class TrainingDetails {
                     break;
                 }
             }
-        } else if (model.getClass().getTypeName().contains("regression"))
+        } else if (model.getClass().getTypeName().contains("regression")) {
             includeOutputDist = false;
+        }
 
         if (includeOutputDist) {
-            for (var pair : model.getOutputIDInfo().outputCountsIterable())
+            for (var pair : model.getOutputIDInfo().outputCountsIterable()) {
                 outputsDistribution.put(pair.getA(), pair.getB());
+            }
         }
     }
 
@@ -73,13 +76,15 @@ public class TrainingDetails {
         trainingSetSize = trainingDetailsJson.get("training-set-size").intValue();
 
         numFeatures = trainingDetailsJson.get("num-features").intValue();
-        for (int i = 0; i < trainingDetailsJson.get("features-list").size(); i++)
+        for (int i = 0; i < trainingDetailsJson.get("features-list").size(); i++) {
             features.add(trainingDetailsJson.get("features-list").get(i).textValue());
+        }
 
         numOutputs = trainingDetailsJson.get("num-outputs").intValue();
         Map<String, Integer> parsed = mapper.readValue(trainingDetailsJson.get("outputs-distribution").toString(), Map.class);
-        for (var entry : parsed.keySet())
+        for (var entry : parsed.keySet()) {
             outputsDistribution.put(entry, parsed.get(entry).longValue());
+        }
     }
 
     public String getSchemaVersion() {
@@ -118,13 +123,16 @@ public class TrainingDetails {
 
         datasetDetailsObject.put("num-features", numFeatures);
         ArrayNode featuresArr = mapper.createArrayNode();
-        for (String s : features) featuresArr.add(s);
+        for (String s : features) {
+            featuresArr.add(s);
+        }
         datasetDetailsObject.set("features-list", featuresArr);
 
         datasetDetailsObject.put("num-outputs", numOutputs);
         ObjectNode outputsArr = mapper.createObjectNode();
-        for (String description : outputsDistribution.keySet())
+        for (String description : outputsDistribution.keySet()) {
             outputsArr.put(description, outputsDistribution.get(description));
+        }
         datasetDetailsObject.set("outputs-distribution", outputsArr);
 
         return datasetDetailsObject;

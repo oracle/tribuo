@@ -62,17 +62,21 @@ public class UsageDetails implements CommandGroup {
         intendedUse = usageDetailsJson.get("intended-use").textValue();
         intendedUsers = usageDetailsJson.get("intended-users").textValue();
 
-        for (int i = 0; i < usageDetailsJson.get("out-of-scope-uses").size(); i++)
+        for (int i = 0; i < usageDetailsJson.get("out-of-scope-uses").size(); i++) {
             outOfScopeUses.add(usageDetailsJson.get("out-of-scope-uses").get(i).textValue());
-        for (int i = 0; i < usageDetailsJson.get("pre-processing-steps").size(); i++)
+        }
+        for (int i = 0; i < usageDetailsJson.get("pre-processing-steps").size(); i++) {
             preProcessingSteps.add(usageDetailsJson.get("pre-processing-steps").get(i).textValue());
-        for (int i = 0; i < usageDetailsJson.get("considerations-list").size(); i++)
+        }
+        for (int i = 0; i < usageDetailsJson.get("considerations-list").size(); i++) {
             considerations.add(usageDetailsJson.get("considerations-list").get(i).textValue());
-        for (int i = 0; i < usageDetailsJson.get("relevant-factors-list").size(); i++)
+        }
+        for (int i = 0; i < usageDetailsJson.get("relevant-factors-list").size(); i++) {
             factors.add(usageDetailsJson.get("relevant-factors-list").get(i).textValue());
-        for (int i = 0; i < usageDetailsJson.get("resources-list").size(); i++)
+        }
+        for (int i = 0; i < usageDetailsJson.get("resources-list").size(); i++) {
             resources.add(usageDetailsJson.get("resources-list").get(i).textValue());
-
+        }
         primaryContact = usageDetailsJson.get("primary-contact").textValue();
         modelCitation = usageDetailsJson.get("model-citation").textValue();
         modelLicense = usageDetailsJson.get("model-license").textValue();
@@ -134,23 +138,33 @@ public class UsageDetails implements CommandGroup {
         usageDetailsObject.put("intended-users", intendedUsers);
 
         ArrayNode usesArr = mapper.createArrayNode();
-        for (String s : outOfScopeUses) usesArr.add(s);
+        for (String s : outOfScopeUses) {
+            usesArr.add(s);
+        }
         usageDetailsObject.set("out-of-scope-uses", usesArr);
 
         ArrayNode processingArr = mapper.createArrayNode();
-        for (String s : preProcessingSteps) processingArr.add(s);
+        for (String s : preProcessingSteps) {
+            processingArr.add(s);
+        }
         usageDetailsObject.set("pre-processing-steps", processingArr);
 
         ArrayNode considerationsArr = mapper.createArrayNode();
-        for (String s : considerations) considerationsArr.add(s);
+        for (String s : considerations) {
+            considerationsArr.add(s);
+        }
         usageDetailsObject.set("considerations-list", considerationsArr);
 
         ArrayNode factorsArr = mapper.createArrayNode();
-        for (String s : factors) factorsArr.add(s);
+        for (String s : factors) {
+            factorsArr.add(s);
+        }
         usageDetailsObject.set("relevant-factors-list", factorsArr);
 
         ArrayNode resourcesArr = mapper.createArrayNode();
-        for (String s : resources) resourcesArr.add(s);
+        for (String s : resources) {
+            resourcesArr.add(s);
+        }
         usageDetailsObject.set("resources-list", resourcesArr);
 
         usageDetailsObject.put("primary-contact", primaryContact);
