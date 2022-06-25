@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
@@ -101,7 +102,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/homogeneousClassificationModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -131,7 +132,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/heterogeneousClassificationModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
 
     }
 
@@ -157,7 +158,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/homogeneousRegressionModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -187,7 +188,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/heterogeneousRegressionModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -214,7 +215,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/homogeneousMultiLabelModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
     @Test
@@ -246,7 +247,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard("src/test/output-json/heterogeneousMultiLabelModelCard.json");
-        assert(modelCard.toString().equals(modelCardCopy.toString()));
+        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
 }
