@@ -48,6 +48,7 @@ import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.sgd.linear.LinearSGDTrainer;
 import org.tribuo.regression.sgd.objectives.SquaredLoss;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
@@ -70,13 +71,16 @@ public class NativeModelsTest {
         LabelEvaluation evaluation = evaluator.evaluate(irisModel, evalData);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(irisModel, evaluation);
         modelCard.addMetric("overall-accuracy", evaluation.accuracy());
         modelCard.addMetric("average-precision", evaluation.macroAveragedPrecision());
-        modelCard.saveToFile("src/test/output-json/classificationModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/classificationModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -95,13 +99,16 @@ public class NativeModelsTest {
         var evaluation = evaluator.evaluate(model, evalData);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(model, evaluation);
         modelCard.addMetric("jaccord-score", evaluation.jaccardScore());
         modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
-        modelCard.saveToFile("src/test/output-json/multiClassificationModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/multiClassificationModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -121,13 +128,16 @@ public class NativeModelsTest {
         var evaluation = evaluator.evaluate(wineModel, evalData);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(wineModel, evaluation);
         modelCard.addMetric("average-rmse", evaluation.averageRMSE());
         modelCard.addMetric("average-r2", evaluation.averageR2());
-        modelCard.saveToFile("src/test/output-json/regressionModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/regressionModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -142,13 +152,16 @@ public class NativeModelsTest {
         var evaluation = evaluator.evaluate(model,evalData);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(model, evaluation);
         modelCard.addMetric("adjusted-mi", evaluation.adjustedMI());
         modelCard.addMetric("normalized-mi", evaluation.normalizedMI());
-        modelCard.saveToFile("src/test/output-json/KMeansModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/KMeansModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -167,13 +180,16 @@ public class NativeModelsTest {
         var evaluation = evaluator.evaluate(model,evalData);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(model, evaluation);
         modelCard.addMetric("overall-precision", evaluation.getPrecision());
         modelCard.addMetric("overall-recall", evaluation.getRecall());
-        modelCard.saveToFile("src/test/output-json/anomalyModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/anomalyModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 }

@@ -52,6 +52,7 @@ import org.tribuo.regression.example.NonlinearGaussianDataSource;
 import org.tribuo.regression.sgd.fm.FMRegressionTrainer;
 import org.tribuo.regression.sgd.objectives.SquaredLoss;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -96,12 +97,15 @@ public class EnsembleModelsTest {
         var evaluation = evaluator.evaluate(ensemble, test);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(ensemble, evaluation);
         modelCard.addMetric("overall-accuracy", evaluation.accuracy());
-        modelCard.saveToFile("src/test/output-json/homogeneousClassificationModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/homogeneousClassificationModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -126,12 +130,15 @@ public class EnsembleModelsTest {
         var evaluation = evaluator.evaluate(ensemble, test);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(ensemble, evaluation);
         modelCard.addMetric("overall-accuracy", evaluation.accuracy());
-        modelCard.saveToFile("src/test/output-json/heterogeneousClassificationModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/heterogeneousClassificationModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
 
     }
@@ -151,13 +158,16 @@ public class EnsembleModelsTest {
         var evaluation = evaluator.evaluate(ensemble, test);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(ensemble, evaluation);
         modelCard.addMetric("averaged-R2", evaluation.averageR2());
         modelCard.addMetric("averaged-RMSE", evaluation.averageRMSE());
-        modelCard.saveToFile("src/test/output-json/homogeneousRegressionModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/homogeneousRegressionModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -181,13 +191,16 @@ public class EnsembleModelsTest {
         var evaluation = evaluator.evaluate(ensemble, test);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(ensemble, evaluation);
         modelCard.addMetric("averaged-R2", evaluation.averageR2());
         modelCard.addMetric("averaged-RMSE", evaluation.averageRMSE());
-        modelCard.saveToFile("src/test/output-json/heterogeneousRegressionModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/heterogeneousRegressionModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -208,13 +221,16 @@ public class EnsembleModelsTest {
         var evaluation = evaluator.evaluate(ensemble, test);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(ensemble, evaluation);
         modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
         modelCard.addMetric("jaccard-score", evaluation.jaccardScore());
-        modelCard.saveToFile("src/test/output-json/homogeneousMultiLabelModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/homogeneousMultiLabelModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 
@@ -240,13 +256,16 @@ public class EnsembleModelsTest {
         var evaluation = evaluator.evaluate(ensemble, test);
 
         // create Model Card object and write to file
+        File output = File.createTempFile("output", "json");
+        output.deleteOnExit();
+
         ModelCard modelCard = new ModelCard(ensemble, evaluation);
         modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
         modelCard.addMetric("jaccard-score", evaluation.jaccardScore());
-        modelCard.saveToFile("src/test/output-json/heterogeneousMultiLabelModelCard.json");
+        modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard("src/test/output-json/heterogeneousMultiLabelModelCard.json");
+        ModelCard modelCardCopy = new ModelCard(output.toPath());
         Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
     }
 

@@ -22,9 +22,8 @@ import org.tribuo.Model;
 import org.tribuo.evaluation.Evaluation;
 import org.tribuo.interop.ExternalModel;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 public class ModelCard {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -43,8 +42,8 @@ public class ModelCard {
         usageDetails = new UsageDetails();
     }
 
-    public ModelCard(String sourceFile) throws IOException {
-        JsonNode modelCardJson = mapper.readTree(Paths.get(sourceFile).toFile());
+    public ModelCard(Path sourceFile) throws IOException {
+        JsonNode modelCardJson = mapper.readTree(sourceFile.toFile());
         modelDetails = new ModelDetails(modelCardJson.get("ModelDetails"));
         trainingDetails = new TrainingDetails(modelCardJson.get("TrainingDetails"));
         testingDetails = new TestingDetails(modelCardJson.get("TestingDetails"));
@@ -80,9 +79,9 @@ public class ModelCard {
         return modelCardObject;
     }
 
-    public void saveToFile(String destinationFile) throws IOException {
+    public void saveToFile(Path destinationFile) throws IOException {
         ObjectNode modelCardObject = toJson();
-        mapper.writeValue(new File(destinationFile), modelCardObject);
+        mapper.writeValue(destinationFile.toFile(), modelCardObject);
     }
 
     @Override
