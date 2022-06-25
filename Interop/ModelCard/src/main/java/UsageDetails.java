@@ -208,10 +208,10 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Command(
-            usage = "<int> Remove out-of-scope use at specified index (1-indexed)."
+            usage = "<int> Remove out-of-scope use at specified index (0-indexed)."
     )
     public String removeOutOfScopeUse(CommandInterpreter ci, int index) {
-        outOfScopeUses.remove(index-1);
+        outOfScopeUses.remove(index);
         return("Removed out-of-scope use at specified index.");
     }
 
@@ -220,7 +220,7 @@ public final class UsageDetails implements CommandGroup {
     )
     public String viewOutOfScopeUse(CommandInterpreter ci) {
         for (int i = 0; i < outOfScopeUses.size(); i++) {
-            System.out.println("\t" + (i+1) + ") "+ outOfScopeUses.get(i));
+            System.out.println("\t" + i + ") "+ outOfScopeUses.get(i));
         }
         return("Displayed all added out-of-scope uses.");
     }
@@ -234,10 +234,10 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Command(
-            usage = "<int> Remove pro-processing step at specified index (1-indexed)."
+            usage = "<int> Remove pro-processing step at specified index (0-indexed)."
     )
     public String removePreProcessingStep(CommandInterpreter ci, int index) {
-        preProcessingSteps.remove(index-1);
+        preProcessingSteps.remove(index);
         return("Removed pre-processing step at specified index.");
     }
 
@@ -246,7 +246,7 @@ public final class UsageDetails implements CommandGroup {
     )
     public String viewPreProcessingSteps(CommandInterpreter ci) {
         for (int i = 0; i < preProcessingSteps.size(); i++) {
-            System.out.println("\t" + (i+1) + ") "+ preProcessingSteps.get(i));
+            System.out.println("\t" + i + ") "+ preProcessingSteps.get(i));
         }
         return("Displayed all added pre-processing steps.");
     }
@@ -260,10 +260,10 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Command(
-            usage = "<int> Remove consideration at specified index (1-indexed)."
+            usage = "<int> Remove consideration at specified index (0-indexed)."
     )
     public String removeConsideration(CommandInterpreter ci, int index) {
-        considerations.remove(index-1);
+        considerations.remove(index);
         return("Removed consideration at specified index.");
     }
 
@@ -272,7 +272,7 @@ public final class UsageDetails implements CommandGroup {
     )
     public String viewConsiderations(CommandInterpreter ci) {
         for (int i = 0; i < considerations.size(); i++) {
-            System.out.println("\t" + (i+1) + ") "+ considerations.get(i));
+            System.out.println("\t" + i + ") "+ considerations.get(i));
         }
         return("Displayed all added considerations.");
     }
@@ -286,10 +286,10 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Command(
-            usage = "<int> Remove factor at specified index (1-indexed)."
+            usage = "<int> Remove factor at specified index (0-indexed)."
     )
     public String removeFactor(CommandInterpreter ci, int index) {
-        factors.remove(index-1);
+        factors.remove(index);
         return("Removed factor at specified index.");
     }
 
@@ -298,7 +298,7 @@ public final class UsageDetails implements CommandGroup {
     )
     public String viewFactors(CommandInterpreter ci) {
         for (int i = 0; i < factors.size(); i++) {
-            System.out.println("\t" + (i+1) + ") "+ factors.get(i));
+            System.out.println("\t" + i + ") "+ factors.get(i));
         }
         return("Displayed all added factors.");
     }
@@ -312,10 +312,10 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Command(
-            usage = "<int> Remove resource at specified index (1-indexed)."
+            usage = "<int> Remove resource at specified index (0-indexed)."
     )
     public String removeResource(CommandInterpreter ci, int index) {
-        resources.remove(index-1);
+        resources.remove(index);
         return("Removed resource at specified index.");
     }
 
@@ -324,7 +324,7 @@ public final class UsageDetails implements CommandGroup {
     )
     public String viewResources(CommandInterpreter ci) {
         for (int i = 0; i < resources.size(); i++) {
-            System.out.println("\t" + (i+1) + ") "+ resources.get(i));
+            System.out.println("\t" + i + ") "+ resources.get(i));
         }
         return("Displayed all added resources.");
     }
