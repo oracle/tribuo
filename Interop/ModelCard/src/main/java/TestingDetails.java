@@ -24,7 +24,7 @@ import org.tribuo.evaluation.Evaluation;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestingDetails {
+public final class TestingDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private final String schemaVersion;
     private final int testingSetSize;

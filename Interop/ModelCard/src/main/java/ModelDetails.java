@@ -25,7 +25,7 @@ import org.tribuo.Model;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ModelDetails {
+public final class ModelDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
     private final String schemaVersion;
     private final String modelType;
