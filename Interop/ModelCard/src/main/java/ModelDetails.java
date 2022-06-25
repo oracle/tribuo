@@ -27,7 +27,7 @@ import java.util.Map;
 
 public final class ModelDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
-    private final String schemaVersion;
+    private static final String schemaVersion = "1.0";
     private final String modelType;
     private final String modelPackage;
     private final String tribuoVersion;
@@ -35,7 +35,6 @@ public final class ModelDetails {
     private final Map<String, Object> configuredParams = new HashMap<>();
 
     public ModelDetails(Model<?> model) {
-        schemaVersion = "1.0";
         modelType = model.getClass().getSimpleName();
         modelPackage = model.getClass().getTypeName();
         tribuoVersion = model.getProvenance().getTribuoVersion();
@@ -48,7 +47,6 @@ public final class ModelDetails {
     }
 
     public ModelDetails(JsonNode modelDetailsJson) throws JsonProcessingException {
-        schemaVersion = modelDetailsJson.get("schema-version").textValue();
         modelType = modelDetailsJson.get("model-type").textValue();
         modelPackage = modelDetailsJson.get("model-package").textValue();
         tribuoVersion = modelDetailsJson.get("tribuo-version").textValue();

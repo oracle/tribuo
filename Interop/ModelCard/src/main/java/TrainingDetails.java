@@ -23,14 +23,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.Model;
 import org.tribuo.ensemble.EnsembleModel;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class TrainingDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
-    private final String schemaVersion;
+    public static final String schemaVersion = "1.0";
     private final String trainingTime;
     private final int trainingSetSize;
     private final int numFeatures;
@@ -39,7 +36,6 @@ public final class TrainingDetails {
     private final Map<String, Long> outputsDistribution = new HashMap<>();
 
     public TrainingDetails(Model<?> model) {
-        schemaVersion = "1.0";
         trainingTime = model.getProvenance().getTrainingTime().toString();
         trainingSetSize = model.getProvenance().getDatasetProvenance().getNumExamples();
 
@@ -71,7 +67,6 @@ public final class TrainingDetails {
     }
 
     public TrainingDetails(JsonNode trainingDetailsJson) throws JsonProcessingException {
-        schemaVersion = trainingDetailsJson.get("schema-version").textValue();
         trainingTime = trainingDetailsJson.get("training-time").textValue();
         trainingSetSize = trainingDetailsJson.get("training-set-size").intValue();
 

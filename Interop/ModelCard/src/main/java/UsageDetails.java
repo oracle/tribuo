@@ -28,13 +28,14 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 public final class UsageDetails implements CommandGroup {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
     private static final Logger logger = Logger.getLogger(UsageDetails.class.getName());
     private final CommandInterpreter shell = new CommandInterpreter();
-    private final String schemaVersion;
+    public static final String schemaVersion = "1.0";
     private String intendedUse;
     private String intendedUsers;
     private final List<String> outOfScopeUses = new ArrayList<>();
@@ -47,7 +48,6 @@ public final class UsageDetails implements CommandGroup {
     private String modelLicense = null;
 
     public UsageDetails() {
-        schemaVersion = "1.0";
         intendedUse = "";
         intendedUsers = "";
         primaryContact = "";
@@ -57,7 +57,6 @@ public final class UsageDetails implements CommandGroup {
     }
 
     public UsageDetails(JsonNode usageDetailsJson) {
-        schemaVersion = usageDetailsJson.get("schema-version").textValue();
         intendedUse = usageDetailsJson.get("intended-use").textValue();
         intendedUsers = usageDetailsJson.get("intended-users").textValue();
 
@@ -375,6 +374,29 @@ public final class UsageDetails implements CommandGroup {
     @Override
     public String toString() {
         return toJson().toPrettyString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UsageDetails that = (UsageDetails) o;
+        return schemaVersion.equals(that.schemaVersion) &&
+                intendedUse.equals(that.intendedUse) &&
+                intendedUsers.equals(that.intendedUsers) &&
+                outOfScopeUses.equals(that.outOfScopeUses) &&
+                preProcessingSteps.equals(that.preProcessingSteps) &&
+                considerations.equals(that.considerations) &&
+                factors.equals(that.factors) &&
+                resources.equals(that.resources) &&
+                primaryContact.equals(that.primaryContact) &&
+                modelCitation.equals(that.modelCitation) &&
+                modelLicense.equals(that.modelLicense);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(schemaVersion, intendedUse, intendedUsers, outOfScopeUses, preProcessingSteps, considerations, factors, resources, primaryContact, modelCitation, modelLicense);
     }
 
     public static void main(String[] args) {
