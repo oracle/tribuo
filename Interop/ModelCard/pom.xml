@@ -40,14 +40,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.13.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.3</version>
+            <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-json</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <!-- test time dependencies -->
         <dependency>
@@ -95,12 +90,6 @@
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-regression-sgd</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-common-xgboost</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
