@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>ModelCard</name>
-    <artifactId>tribuo-model-card</artifactId>
+    <artifactId>tribuo-modelcard</artifactId>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

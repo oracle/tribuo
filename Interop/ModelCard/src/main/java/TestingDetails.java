@@ -26,17 +26,15 @@ import java.util.Map;
 
 public final class TestingDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-    private final String schemaVersion;
+    private static final String schemaVersion = "1.0";
     private final int testingSetSize;
     private final Map<String, Double> metrics = new HashMap<>();
 
     public TestingDetails(Evaluation<?> evaluation) {
-        schemaVersion = "1.0";
         testingSetSize = evaluation.getPredictions().size();
     }
 
     public TestingDetails(JsonNode testingDetailsJson) throws JsonProcessingException {
-        schemaVersion = testingDetailsJson.get("schema-version").textValue();
         testingSetSize = testingDetailsJson.get("testing-set-size").intValue();
         Map<String, Double> parsed = mapper.readValue(testingDetailsJson.get("metrics").toString(), Map.class);
         for (var entry : parsed.keySet()) {
@@ -79,6 +77,5 @@ public final class TestingDetails {
     public String toString() {
         return toJson().toPrettyString();
     }
-
 }
 
