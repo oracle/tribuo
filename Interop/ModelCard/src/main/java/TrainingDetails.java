@@ -23,10 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.Model;
 import org.tribuo.regression.Regressor;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class TrainingDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
@@ -127,5 +124,23 @@ public final class TrainingDetails {
     @Override
     public String toString() {
         return toJson().toPrettyString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TrainingDetails that = (TrainingDetails) o;
+        return trainingSetSize == that.trainingSetSize &&
+                numFeatures == that.numFeatures &&
+                numOutputs == that.numOutputs &&
+                trainingTime.equals(that.trainingTime) &&
+                features.equals(that.features) &&
+                outputsDistribution.equals(that.outputsDistribution);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(trainingTime, trainingSetSize, numFeatures, features, numOutputs, outputsDistribution);
     }
 }

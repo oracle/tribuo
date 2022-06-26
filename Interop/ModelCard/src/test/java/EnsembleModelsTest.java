@@ -106,7 +106,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard(output.toPath());
-        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
+        Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
     @Test
@@ -139,8 +139,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard(output.toPath());
-        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
-
+        Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
     @Test
@@ -168,7 +167,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard(output.toPath());
-        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
+        Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
     @Test
@@ -201,7 +200,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard(output.toPath());
-        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
+        Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
     @Test
@@ -231,7 +230,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard(output.toPath());
-        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
+        Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
     @Test
@@ -266,7 +265,7 @@ public class EnsembleModelsTest {
 
         // read file and create Model Card object
         ModelCard modelCardCopy = new ModelCard(output.toPath());
-        Assertions.assertEquals(modelCard.toString(), modelCardCopy.toString());
+        Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
 }

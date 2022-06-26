@@ -28,11 +28,10 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
+import java.util.Objects;
 
 public final class UsageDetails implements CommandGroup {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
-    private static final Logger logger = Logger.getLogger(UsageDetails.class.getName());
     private final CommandInterpreter shell = new CommandInterpreter();
     public static final String schemaVersion = "1.0";
     private String intendedUse;
@@ -42,9 +41,9 @@ public final class UsageDetails implements CommandGroup {
     private final List<String> considerations = new ArrayList<>();
     private final List<String> factors = new ArrayList<>();
     private final List<String> resources = new ArrayList<>();
-    private String primaryContact = null;
-    private String modelCitation = null;
-    private String modelLicense = null;
+    private String primaryContact;
+    private String modelCitation;
+    private String modelLicense;
 
     public UsageDetails() {
         intendedUse = "";
@@ -373,6 +372,28 @@ public final class UsageDetails implements CommandGroup {
     @Override
     public String toString() {
         return toJson().toPrettyString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UsageDetails that = (UsageDetails) o;
+        return intendedUse.equals(that.intendedUse) &&
+                intendedUsers.equals(that.intendedUsers) &&
+                outOfScopeUses.equals(that.outOfScopeUses) &&
+                preProcessingSteps.equals(that.preProcessingSteps) &&
+                considerations.equals(that.considerations) &&
+                factors.equals(that.factors) &&
+                resources.equals(that.resources) &&
+                primaryContact.equals(that.primaryContact) &&
+                modelCitation.equals(that.modelCitation) &&
+                modelLicense.equals(that.modelLicense);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(intendedUse, intendedUsers, outOfScopeUses, preProcessingSteps, considerations, factors, resources, primaryContact, modelCitation, modelLicense);
     }
 
     public static void main(String[] args) {
