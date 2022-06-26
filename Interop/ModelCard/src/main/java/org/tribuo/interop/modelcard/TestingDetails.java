@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+package org.tribuo.interop.modelcard;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.evaluation.Evaluation;
 
@@ -25,8 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.tribuo.interop.modelcard.ModelCard.mapper;
+
 public final class TestingDetails {
-    private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private static final String schemaVersion = "1.0";
     private final int testingSetSize;
     private final Map<String, Double> metrics = new HashMap<>();

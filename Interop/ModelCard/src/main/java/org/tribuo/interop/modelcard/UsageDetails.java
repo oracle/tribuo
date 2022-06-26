@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+package org.tribuo.interop.modelcard;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.command.Command;
@@ -30,8 +30,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static org.tribuo.interop.modelcard.ModelCard.mapper;
+
 public final class UsageDetails implements CommandGroup {
-    private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
     private final CommandInterpreter shell = new CommandInterpreter();
     public static final String schemaVersion = "1.0";
     private String intendedUse;

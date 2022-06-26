@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package org.tribuo.interop.modelcard;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

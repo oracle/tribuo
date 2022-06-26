@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+package org.tribuo.interop.modelcard;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,7 +30,7 @@ import java.nio.file.Path;
 import java.util.Objects;
 
 public class ModelCard {
-    private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
     private final ModelDetails modelDetails;
     private final TrainingDetails trainingDetails;
     private final TestingDetails testingDetails;

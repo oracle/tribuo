@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+package org.tribuo.interop.modelcard;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.Model;
@@ -25,8 +25,9 @@ import org.tribuo.regression.Regressor;
 
 import java.util.*;
 
+import static org.tribuo.interop.modelcard.ModelCard.mapper;
+
 public final class TrainingDetails {
-    private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
     public static final String schemaVersion = "1.0";
     private final String trainingTime;
     private final int trainingSetSize;
