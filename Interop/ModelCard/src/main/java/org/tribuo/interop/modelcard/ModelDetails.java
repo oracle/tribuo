@@ -72,8 +72,8 @@ public final class ModelDetails {
         return javaVersion;
     }
 
-    public String getConfiguredParams() {
-        return configuredParams.toPrettyString();
+    public JsonNode getConfiguredParams() {
+        return configuredParams;
     }
 
     public ObjectNode toJson() {

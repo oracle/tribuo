@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.evaluation.Evaluation;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -54,7 +55,7 @@ public final class TestingDetails {
     }
 
     public Map<String, Double> getMetrics() {
-        return metrics;
+        return Collections.unmodifiableMap(metrics);
     }
 
     public void addMetric(String metricDescription, Double metricValue) {
