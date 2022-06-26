@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.*;
 import org.tribuo.Model;
 
 import java.util.Map;
@@ -89,32 +90,22 @@ public final class ModelDetails {
             paramsObject.put("className", name);
         }
         for (Map.Entry<?,?> entry : params.entrySet()) {
-            if (entry.getValue() instanceof ConfiguredObjectProvenance prov) {
+            var val = entry.getValue();
+            if (val instanceof ConfiguredObjectProvenance prov) {
                 ObjectNode nestedParam = processNestedParams(prov.getClassName(), prov.getConfiguredParameters());
                 paramsObject.set(entry.getKey().toString(), nestedParam);
-            } else if (entry.getValue() instanceof Map<?, ?> map) {
+            } else if (val instanceof Map<?, ?> map) {
                 ObjectNode nestedParam = processNestedParams(null, map);
                 paramsObject.set(entry.getKey().toString(), nestedParam);
-            } else if (isNumeric(entry.getValue().toString())) {
-                if (entry.getValue().toString().contains(".")) {
-                    paramsObject.put(entry.getKey().toString(), Double.parseDouble(entry.getValue().toString()));
-                } else {
-                    paramsObject.put(entry.getKey().toString(), Integer.parseInt(entry.getValue().toString()));
-                }
+            } else if (val instanceof FloatProvenance || val instanceof DoubleProvenance) {
+                paramsObject.put(entry.getKey().toString(), Float.parseFloat(val.toString()));
+            } else if (val instanceof ByteProvenance || val instanceof ShortProvenance || val instanceof IntProvenance || val instanceof LongProvenance) {
+                paramsObject.put(entry.getKey().toString(), Integer.parseInt(val.toString()));
             } else {
-                paramsObject.put(entry.getKey().toString(), entry.getValue().toString());
+                paramsObject.put(entry.getKey().toString(), val.toString());
             }
         }
         return paramsObject;
-    }
-
-    private boolean isNumeric(String str) {
-        try {
-            double val = Double.parseDouble(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
     }
 
     @Override

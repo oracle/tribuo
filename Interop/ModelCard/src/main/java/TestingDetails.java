@@ -36,9 +36,9 @@ public final class TestingDetails {
 
     public TestingDetails(JsonNode testingDetailsJson) throws JsonProcessingException {
         testingSetSize = testingDetailsJson.get("testing-set-size").intValue();
-        Map<String, Double> parsed = mapper.readValue(testingDetailsJson.get("metrics").toString(), Map.class);
-        for (var entry : parsed.keySet()) {
-            metrics.put(entry, parsed.get(entry));
+        Map<?, ?> parsed = mapper.readValue(testingDetailsJson.get("metrics").toString(), Map.class);
+        for (Map.Entry<?,?> entry : parsed.entrySet()) {
+            metrics.put((String) entry.getKey(), (Double) entry.getValue());
         }
 
     }
@@ -65,8 +65,8 @@ public final class TestingDetails {
         testingDetailsObject.put("testing-set-size", testingSetSize);
 
         ObjectNode testingMetricsObject = mapper.createObjectNode();
-        for (String description : metrics.keySet()) {
-            testingMetricsObject.put(description, metrics.get(description));
+        for (Map.Entry<String, Double> entry : metrics.entrySet()) {
+            testingMetricsObject.put(entry.getKey(), entry.getValue());
         }
         testingDetailsObject.set("metrics", testingMetricsObject);
 
