@@ -377,8 +377,12 @@ public final class UsageDetails implements CommandGroup {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         UsageDetails that = (UsageDetails) o;
         return intendedUse.equals(that.intendedUse) &&
                 intendedUsers.equals(that.intendedUsers) &&
