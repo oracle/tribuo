@@ -88,7 +88,7 @@ public final class TrainingDetails {
     }
 
     public List<String> getFeatures() {
-        return features;
+        return Collections.unmodifiableList(features);
     }
 
     public int getNumOutputs() {
@@ -96,7 +96,7 @@ public final class TrainingDetails {
     }
 
     public Map<String, Long> getOutputsDistribution() {
-        return outputsDistribution;
+        return Collections.unmodifiableMap(outputsDistribution);
     }
 
     public ObjectNode toJson() {

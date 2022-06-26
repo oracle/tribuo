@@ -26,6 +26,7 @@ import com.oracle.labs.mlrg.olcut.command.CommandInterpreter;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -91,23 +92,23 @@ public final class UsageDetails implements CommandGroup {
     }
 
     public List<String> getOutOfScopeUses() {
-        return outOfScopeUses;
+        return Collections.unmodifiableList(outOfScopeUses);
     }
 
     public List<String> getPreProcessingSteps() {
-        return preProcessingSteps;
+        return Collections.unmodifiableList(preProcessingSteps);
     }
 
     public List<String> getConsiderations() {
-        return considerations;
+        return Collections.unmodifiableList(considerations);
     }
 
     public List<String> getFactors() {
-        return factors;
+        return Collections.unmodifiableList(factors);
     }
 
     public List<String> getResources() {
-        return resources;
+        return Collections.unmodifiableList(resources);
     }
 
     public String getPrimaryContact() {
