@@ -118,8 +118,12 @@ public final class ModelDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ModelDetails that = (ModelDetails) o;
         return modelType.equals(that.modelType) &&
                 modelPackage.equals(that.modelPackage) &&

@@ -129,8 +129,12 @@ public final class TrainingDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         TrainingDetails that = (TrainingDetails) o;
         return trainingSetSize == that.trainingSetSize &&
                 numFeatures == that.numFeatures &&
