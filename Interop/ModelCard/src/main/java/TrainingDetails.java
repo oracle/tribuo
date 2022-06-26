@@ -66,9 +66,10 @@ public final class TrainingDetails {
         }
 
         numOutputs = trainingDetailsJson.get("num-outputs").intValue();
-        Map<String, Integer> parsed = mapper.readValue(trainingDetailsJson.get("outputs-distribution").toString(), Map.class);
-        for (var entry : parsed.keySet()) {
-            outputsDistribution.put(entry, parsed.get(entry).longValue());
+        Map<?,?> parsed = mapper.readValue(trainingDetailsJson.get("outputs-distribution").toString(), Map.class);
+        for (Map.Entry<?,?> entry : parsed.entrySet()) {
+            Integer val = (Integer) entry.getValue();
+            outputsDistribution.put((String)entry.getKey(), val.longValue());
         }
     }
 
@@ -115,8 +116,8 @@ public final class TrainingDetails {
 
         datasetDetailsObject.put("num-outputs", numOutputs);
         ObjectNode outputsArr = mapper.createObjectNode();
-        for (String description : outputsDistribution.keySet()) {
-            outputsArr.put(description, outputsDistribution.get(description));
+        for (Map.Entry<String, Long> entry : outputsDistribution.entrySet()) {
+            outputsArr.put(entry.getKey(), entry.getValue());
         }
         datasetDetailsObject.set("outputs-distribution", outputsArr);
 
