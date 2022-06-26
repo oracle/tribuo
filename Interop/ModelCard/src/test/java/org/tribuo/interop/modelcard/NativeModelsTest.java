@@ -53,8 +53,6 @@ import org.tribuo.regression.sgd.objectives.SquaredLoss;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 public class NativeModelsTest {
     @Test
@@ -77,11 +75,9 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("overall-accuracy", evaluation.accuracy());
-        testingMetrics.put("average-precision", evaluation.macroAveragedPrecision());
-
-        ModelCard modelCard = new ModelCard(model, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(model, evaluation);
+        modelCard.addMetric("overall-accuracy", evaluation.accuracy());
+        modelCard.addMetric("average-precision", evaluation.macroAveragedPrecision());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -106,11 +102,9 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("jaccord-score", evaluation.jaccardScore());
-        testingMetrics.put("balanced-error-rate", evaluation.balancedErrorRate());
-
-        ModelCard modelCard = new ModelCard(model, evaluation, testingMetrics);
+        ModelCard modelCard = new ModelCard(model, evaluation);
+        modelCard.addMetric("jaccord-score", evaluation.jaccardScore());
+        modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -137,11 +131,9 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("average-rmse", evaluation.averageRMSE());
-        testingMetrics.put("average-r2", evaluation.averageR2());
-
-        ModelCard modelCard = new ModelCard(model, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(model, evaluation);
+        modelCard.addMetric("average-rmse", evaluation.averageRMSE());
+        modelCard.addMetric("average-r2", evaluation.averageR2());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -163,11 +155,9 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("adjusted-mi", evaluation.adjustedMI());
-        testingMetrics.put("normalized-mi", evaluation.normalizedMI());
-
-        ModelCard modelCard = new ModelCard(model, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(model, evaluation);
+        modelCard.addMetric("adjusted-mi", evaluation.adjustedMI());
+        modelCard.addMetric("normalized-mi", evaluation.normalizedMI());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -193,11 +183,9 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("overall-precision", evaluation.getPrecision());
-        testingMetrics.put("overall-recall", evaluation.getRecall());
-
-        ModelCard modelCard = new ModelCard(model, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(model, evaluation);
+        modelCard.addMetric("overall-precision", evaluation.getPrecision());
+        modelCard.addMetric("overall-recall", evaluation.getRecall());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object

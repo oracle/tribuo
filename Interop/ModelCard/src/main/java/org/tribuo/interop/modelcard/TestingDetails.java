@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.evaluation.Evaluation;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -33,13 +32,8 @@ public final class TestingDetails {
     private final int testingSetSize;
     private final Map<String, Double> metrics = new HashMap<>();
 
-    public TestingDetails(Evaluation<?> evaluation, Map<String, Double> testingMetrics) {
-        testingSetSize = evaluation.getPredictions().size();
-        metrics.putAll(testingMetrics);
-    }
-
     public TestingDetails(Evaluation<?> evaluation) {
-        this(evaluation, Collections.emptyMap());
+        testingSetSize = evaluation.getPredictions().size();
     }
 
     public TestingDetails(JsonNode testingDetailsJson) throws JsonProcessingException {
@@ -60,7 +54,11 @@ public final class TestingDetails {
     }
 
     public Map<String, Double> getMetrics() {
-        return Collections.unmodifiableMap(metrics);
+        return metrics;
+    }
+
+    public void addMetric(String metricDescription, Double metricValue) {
+        metrics.put(metricDescription, metricValue);
     }
 
     public ObjectNode toJson() {
@@ -84,12 +82,8 @@ public final class TestingDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TestingDetails that = (TestingDetails) o;
         return testingSetSize == that.testingSetSize && metrics.equals(that.metrics);
     }

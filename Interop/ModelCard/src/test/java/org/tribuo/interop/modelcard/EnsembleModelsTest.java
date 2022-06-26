@@ -57,8 +57,6 @@ import org.tribuo.regression.sgd.objectives.SquaredLoss;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -104,10 +102,8 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("overall-accuracy", evaluation.accuracy());
-
-        ModelCard modelCard = new ModelCard(ensemble, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        modelCard.addMetric("overall-accuracy", evaluation.accuracy());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -139,10 +135,8 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("overall-accuracy", evaluation.accuracy());
-
-        ModelCard modelCard = new ModelCard(ensemble, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        modelCard.addMetric("overall-accuracy", evaluation.accuracy());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -168,11 +162,9 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("averaged-R2", evaluation.averageR2());
-        testingMetrics.put("averaged-RMSE", evaluation.averageRMSE());
-
-        ModelCard modelCard = new ModelCard(ensemble, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        modelCard.addMetric("averaged-R2", evaluation.averageR2());
+        modelCard.addMetric("averaged-RMSE", evaluation.averageRMSE());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -203,12 +195,9 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-
-        testingMetrics.put("averaged-R2", evaluation.averageR2());
-        testingMetrics.put("averaged-RMSE", evaluation.averageRMSE());
-
-        ModelCard modelCard = new ModelCard(ensemble, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        modelCard.addMetric("averaged-R2", evaluation.averageR2());
+        modelCard.addMetric("averaged-RMSE", evaluation.averageRMSE());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -236,11 +225,9 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("balanced-error-rate", evaluation.balancedErrorRate());
-        testingMetrics.put("jaccard-score", evaluation.jaccardScore());
-
-        ModelCard modelCard = new ModelCard(ensemble, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
+        modelCard.addMetric("jaccard-score", evaluation.jaccardScore());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
@@ -273,11 +260,9 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        Map<String, Double> testingMetrics = new HashMap<>();
-        testingMetrics.put("balanced-error-rate", evaluation.balancedErrorRate());
-        testingMetrics.put("jaccard-score", evaluation.jaccardScore());
-
-        ModelCard modelCard = new ModelCard(ensemble, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
+        modelCard.addMetric("jaccard-score", evaluation.jaccardScore());
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object

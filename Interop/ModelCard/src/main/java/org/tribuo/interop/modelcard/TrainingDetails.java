@@ -88,7 +88,7 @@ public final class TrainingDetails {
     }
 
     public List<String> getFeatures() {
-        return Collections.unmodifiableList(features);
+        return features;
     }
 
     public int getNumOutputs() {
@@ -96,7 +96,7 @@ public final class TrainingDetails {
     }
 
     public Map<String, Long> getOutputsDistribution() {
-        return Collections.unmodifiableMap(outputsDistribution);
+        return outputsDistribution;
     }
 
     public ObjectNode toJson() {
@@ -129,12 +129,8 @@ public final class TrainingDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TrainingDetails that = (TrainingDetails) o;
         return trainingSetSize == that.trainingSetSize &&
                 numFeatures == that.numFeatures &&

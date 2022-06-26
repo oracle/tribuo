@@ -27,8 +27,6 @@ import org.tribuo.interop.ExternalModel;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Objects;
 
 public class ModelCard {
@@ -38,37 +36,21 @@ public class ModelCard {
     private final TestingDetails testingDetails;
     private final UsageDetails usageDetails;
 
-    public ModelCard(Model<?> model, Evaluation<?> evaluation, Map<String, Double> testingMetrics, UsageDetails usage) {
+    public ModelCard(Model<?> model, Evaluation<?> evaluation) {
         if (model instanceof ExternalModel) {
-            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
+            throw new IllegalArgumentException();
         }
         modelDetails = new ModelDetails(model);
         trainingDetails = new TrainingDetails(model);
-        testingDetails = new TestingDetails(evaluation, testingMetrics);
-        usageDetails = usage;
-    }
-
-    public ModelCard(Model<?> model, Evaluation<?> evaluation, UsageDetails usage) {
-        this(model, evaluation, Collections.emptyMap(), usage);
-    }
-
-    public ModelCard(Model<?> model, Evaluation<?> evaluation, Map<String, Double> testingMetrics) {
-        this(model, evaluation, testingMetrics, null);
-    }
-
-    public ModelCard(Model<?> model, Evaluation<?> evaluation) {
-        this(model, evaluation, Collections.emptyMap(), null);
+        testingDetails = new TestingDetails(evaluation);
+        usageDetails = new UsageDetails();
     }
 
     private ModelCard(JsonNode modelCard) throws JsonProcessingException {
         modelDetails = new ModelDetails(modelCard.get("ModelDetails"));
         trainingDetails = new TrainingDetails(modelCard.get("TrainingDetails"));
         testingDetails = new TestingDetails(modelCard.get("TestingDetails"));
-        if (modelCard.get("UsageDetails").isNull()) {
-            usageDetails = null;
-        } else {
-            usageDetails = new UsageDetails(modelCard.get("UsageDetails"));
-        }
+        usageDetails = new UsageDetails(modelCard.get("UsageDetails"));
     }
 
     public static ModelCard deserializeFromJson(Path sourceFile) throws IOException {
@@ -96,16 +78,16 @@ public class ModelCard {
         return usageDetails;
     }
 
+    public void addMetric(String metricDescription, Double metricValue) {
+        testingDetails.addMetric(metricDescription, metricValue);
+    }
+
     public ObjectNode toJson() {
         ObjectNode modelCardObject = mapper.createObjectNode();
         modelCardObject.set("ModelDetails", modelDetails.toJson());
         modelCardObject.set("TrainingDetails", trainingDetails.toJson());
         modelCardObject.set("TestingDetails", testingDetails.toJson());
-        if (usageDetails != null) {
-            modelCardObject.set("UsageDetails", usageDetails.toJson());
-        } else {
-            modelCardObject.putNull("UsageDetails");
-        }
+        modelCardObject.set("UsageDetails", usageDetails.toJson());
         return modelCardObject;
     }
 
@@ -119,7 +101,6 @@ public class ModelCard {
         return toJson().toPrettyString();
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -128,7 +109,7 @@ public class ModelCard {
         return modelDetails.equals(modelCard.modelDetails) &&
                 trainingDetails.equals(modelCard.trainingDetails) &&
                 testingDetails.equals(modelCard.testingDetails) &&
-                Objects.equals(usageDetails, modelCard.usageDetails);
+                usageDetails.equals(modelCard.usageDetails);
     }
 
     @Override

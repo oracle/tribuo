@@ -59,7 +59,7 @@ public class ExternalModelsTest {
         Model<Label> xgbModel = XGBoostExternalModel.createXGBoostModel(labelFactory, xgbFeatMapping, xgbOutMapping, xgbLabelConv, xgbModelPath);
         var xgbEvaluation = labelFactory.getEvaluator().evaluate(xgbModel,evalData);
         try {
-            ModelCard modelCard = new ModelCard(xgbModel, xgbEvaluation, new UsageDetailsBuilder().build());
+            ModelCard modelCard = new ModelCard(xgbModel, xgbEvaluation);
             fail("Exception expected");
         } catch (IllegalArgumentException e) {
             // test passed

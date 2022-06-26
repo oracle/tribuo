@@ -16,14 +16,12 @@
 
 package org.tribuo.interop.modelcard;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.primitives.*;
 import org.tribuo.Model;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,23 +33,22 @@ public final class ModelDetails {
     private final String modelPackage;
     private final String tribuoVersion;
     private final String javaVersion;
-    private final Map<String, Object> configuredParams;
+    private final JsonNode configuredParams;
 
     public ModelDetails(Model<?> model) {
         modelType = model.getClass().getSimpleName();
         modelPackage = model.getClass().getTypeName();
         tribuoVersion = model.getProvenance().getTribuoVersion();
         javaVersion = model.getProvenance().getJavaVersion();
-        configuredParams = ProvenanceUtil.convertToMap(model.getProvenance().getTrainerProvenance());
+        configuredParams = processNestedParams(null, model.getProvenance().getTrainerProvenance().getConfiguredParameters());
     }
 
-    public ModelDetails(JsonNode modelDetailsJson) throws JsonProcessingException {
+    public ModelDetails(JsonNode modelDetailsJson) {
         modelType = modelDetailsJson.get("model-type").textValue();
         modelPackage = modelDetailsJson.get("model-package").textValue();
         tribuoVersion = modelDetailsJson.get("tribuo-version").textValue();
         javaVersion = modelDetailsJson.get("java-version").textValue();
-        TypeReference<Map<String, Object>> typeRef = new TypeReference<>() {};
-        configuredParams = Collections.unmodifiableMap(mapper.readValue(modelDetailsJson.get("configured-parameters").toString(), typeRef));
+        configuredParams = modelDetailsJson.get("configured-parameters");
     }
 
     public String getSchemaVersion() {
@@ -74,8 +71,8 @@ public final class ModelDetails {
         return javaVersion;
     }
 
-    public Map<String, Object> getConfiguredParams() {
-        return Collections.unmodifiableMap(configuredParams);
+    public String getConfiguredParams() {
+        return configuredParams.toPrettyString();
     }
 
     public ObjectNode toJson() {
@@ -85,8 +82,32 @@ public final class ModelDetails {
         modelDetailsObject.put("model-package", modelPackage);
         modelDetailsObject.put("tribuo-version", tribuoVersion);
         modelDetailsObject.put("java-version", javaVersion);
-        modelDetailsObject.set("configured-parameters", mapper.convertValue(configuredParams, ObjectNode.class));
+        modelDetailsObject.set("configured-parameters", configuredParams);
         return modelDetailsObject;
+    }
+
+    private ObjectNode processNestedParams(String name, Map<?,?> params) {
+        ObjectNode paramsObject = mapper.createObjectNode();
+        if (name != null) {
+            paramsObject.put("className", name);
+        }
+        for (Map.Entry<?,?> entry : params.entrySet()) {
+            var val = entry.getValue();
+            if (val instanceof ConfiguredObjectProvenance prov) {
+                ObjectNode nestedParam = processNestedParams(prov.getClassName(), prov.getConfiguredParameters());
+                paramsObject.set(entry.getKey().toString(), nestedParam);
+            } else if (val instanceof Map<?, ?> map) {
+                ObjectNode nestedParam = processNestedParams(null, map);
+                paramsObject.set(entry.getKey().toString(), nestedParam);
+            } else if (val instanceof FloatProvenance || val instanceof DoubleProvenance) {
+                paramsObject.put(entry.getKey().toString(), Float.parseFloat(val.toString()));
+            } else if (val instanceof ByteProvenance || val instanceof ShortProvenance || val instanceof IntProvenance || val instanceof LongProvenance) {
+                paramsObject.put(entry.getKey().toString(), Integer.parseInt(val.toString()));
+            } else {
+                paramsObject.put(entry.getKey().toString(), val.toString());
+            }
+        }
+        return paramsObject;
     }
 
     @Override
@@ -96,18 +117,14 @@ public final class ModelDetails {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ModelDetails that = (ModelDetails) o;
         return modelType.equals(that.modelType) &&
                 modelPackage.equals(that.modelPackage) &&
                 tribuoVersion.equals(that.tribuoVersion) &&
                 javaVersion.equals(that.javaVersion) &&
-                configuredParams.equals(that.configuredParams);
+                configuredParams.asText().equals(that.configuredParams.asText());
     }
 
     @Override
