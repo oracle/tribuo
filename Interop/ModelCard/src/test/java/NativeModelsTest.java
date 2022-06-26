@@ -58,23 +58,22 @@ public class NativeModelsTest {
         var factory = new LabelFactory();
         var csvLoader = new CSVLoader<>(factory);
 
-        var irisHeaders = new String[]{"sepalLength", "sepalWidth", "petalLength", "petalWidth", "species"};
-        var irisSource = csvLoader.loadDataSource(Paths.get("src/test/input-data/bezdekIris.data"),"species", irisHeaders);
-        var splitter = new TrainTestSplitter<>(irisSource,0.7,1L);
+        var dataSource = csvLoader.loadDataSource(Paths.get("src/test/resources/classificationSampleData.csv"), "response");
+        var splitter = new TrainTestSplitter<>(dataSource,0.7,1L);
 
         var trainData = new MutableDataset<>(splitter.getTrain());
         var evalData = new MutableDataset<>(splitter.getTest());
         Trainer<Label> trainer = new LogisticRegressionTrainer();
-        Model<Label> irisModel = trainer.train(trainData);
+        Model<Label> model = trainer.train(trainData);
 
         var evaluator = new LabelEvaluator();
-        LabelEvaluation evaluation = evaluator.evaluate(irisModel, evalData);
+        LabelEvaluation evaluation = evaluator.evaluate(model, evalData);
 
         // create Model Card object and write to file
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(irisModel, evaluation);
+        ModelCard modelCard = new ModelCard(model, evaluation);
         modelCard.addMetric("overall-accuracy", evaluation.accuracy());
         modelCard.addMetric("average-precision", evaluation.macroAveragedPrecision());
         modelCard.saveToFile(output.toPath());
@@ -87,10 +86,9 @@ public class NativeModelsTest {
     @Test
     public void testMultiLabelClassificationModelCard() throws IOException {
         var factory = new MultiLabelFactory();
-        var trainSource = new LibSVMDataSource<>(Paths.get(".","src/test/input-data/yeast_train.svm"),factory);
-        var evalSource = new LibSVMDataSource<>(Paths.get(".","src/test/input-data/yeast_test.svm"),factory,trainSource.isZeroIndexed(),trainSource.getMaxFeatureID());
-        var trainData = new MutableDataset<>(trainSource);
-        var evalData = new MutableDataset<>(evalSource);
+        var dataSource = new LibSVMDataSource<>(Paths.get(".","src/test/resources/multiClassificationSampleData.svm"),factory);
+        var trainData = new MutableDataset<>(dataSource);
+        var evalData = new MutableDataset<>(dataSource);
 
         var trainer = new org.tribuo.multilabel.sgd.linear.LinearSGDTrainer(new BinaryCrossEntropy(),new AdaGrad(0.1,0.1),5,1000,1,Trainer.DEFAULT_SEED);
         var model = trainer.train(trainData);
@@ -115,23 +113,23 @@ public class NativeModelsTest {
     @Test
     public void testRegressionModelCard() throws IOException {
         var factory = new RegressionFactory();
-        var csvLoader = new CSVLoader<>(';', factory);
+        var csvLoader = new CSVLoader<>(',', factory);
 
-        var wineSource = csvLoader.loadDataSource(Paths.get("src/test/input-data/winequality-red.csv"),"quality");
-        var splitter = new TrainTestSplitter<>(wineSource, 0.7f, 0L);
+        var dataSource = csvLoader.loadDataSource(Paths.get("src/test/resources/regressionSampleData.csv"),"response");
+        var splitter = new TrainTestSplitter<>(dataSource, 0.7f, 0L);
         Dataset<Regressor> trainData = new MutableDataset<>(splitter.getTrain());
         Dataset<Regressor> evalData = new MutableDataset<>(splitter.getTest());
 
         var trainer = new LinearSGDTrainer(new SquaredLoss(), SGD.getLinearDecaySGD(0.01), 10, trainData.size()/4, 1, 1L);
-        var wineModel = trainer.train(trainData);
+        var model = trainer.train(trainData);
         var evaluator = new RegressionEvaluator();
-        var evaluation = evaluator.evaluate(wineModel, evalData);
+        var evaluation = evaluator.evaluate(model, evalData);
 
         // create Model Card object and write to file
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(wineModel, evaluation);
+        ModelCard modelCard = new ModelCard(model, evaluation);
         modelCard.addMetric("average-rmse", evaluation.averageRMSE());
         modelCard.addMetric("average-r2", evaluation.averageR2());
         modelCard.saveToFile(output.toPath());
