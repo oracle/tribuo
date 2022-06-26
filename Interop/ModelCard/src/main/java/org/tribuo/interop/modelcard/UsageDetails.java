@@ -351,7 +351,7 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Command(
-            usage = "<filename> Saves UsageDetails to destination file."
+            usage = "<filename> Saves UsageDetails to an existing ModelCard file."
     )
     public String saveUsageDetails(CommandInterpreter ci, File destinationFile) throws IOException {
         ObjectNode modelCardObject = mapper.readValue(destinationFile, ObjectNode.class);
