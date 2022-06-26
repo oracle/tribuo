@@ -23,6 +23,7 @@ import org.tribuo.evaluation.Evaluation;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public final class TestingDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -76,6 +77,19 @@ public final class TestingDetails {
     @Override
     public String toString() {
         return toJson().toPrettyString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TestingDetails that = (TestingDetails) o;
+        return testingSetSize == that.testingSetSize && metrics.equals(that.metrics);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(testingSetSize, metrics);
     }
 }
 

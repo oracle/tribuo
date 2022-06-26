@@ -24,6 +24,7 @@ import org.tribuo.interop.ExternalModel;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class ModelCard {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -87,5 +88,21 @@ public class ModelCard {
     @Override
     public String toString() {
         return toJson().toPrettyString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ModelCard modelCard = (ModelCard) o;
+        return modelDetails.equals(modelCard.modelDetails) &&
+                trainingDetails.equals(modelCard.trainingDetails) &&
+                testingDetails.equals(modelCard.testingDetails) &&
+                usageDetails.equals(modelCard.usageDetails);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(modelDetails, trainingDetails, testingDetails, usageDetails);
     }
 }

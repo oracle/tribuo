@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.*;
 import org.tribuo.Model;
 
 import java.util.Map;
+import java.util.Objects;
 
 public final class ModelDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
@@ -111,5 +112,22 @@ public final class ModelDetails {
     @Override
     public String toString() {
         return toJson().toPrettyString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ModelDetails that = (ModelDetails) o;
+        return modelType.equals(that.modelType) &&
+                modelPackage.equals(that.modelPackage) &&
+                tribuoVersion.equals(that.tribuoVersion) &&
+                javaVersion.equals(that.javaVersion) &&
+                configuredParams.asText().equals(that.configuredParams.asText());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(modelType, modelPackage, tribuoVersion, javaVersion, configuredParams);
     }
 }
