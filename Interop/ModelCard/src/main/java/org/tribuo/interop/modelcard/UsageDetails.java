@@ -25,7 +25,6 @@ import com.oracle.labs.mlrg.olcut.command.CommandInterpreter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -352,14 +351,14 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Command(
-            usage = "<String> Saves UsageDetails to destination file and closes CLI."
+            usage = "<filename> Saves UsageDetails to destination file."
     )
-    public String saveUsageDetails(CommandInterpreter ci, String destinationFile) throws IOException {
-        ObjectNode modelCardObject = (ObjectNode)mapper.readTree(Paths.get(destinationFile).toFile());
+    public String saveUsageDetails(CommandInterpreter ci, File destinationFile) throws IOException {
+        ObjectNode modelCardObject = mapper.readValue(destinationFile, ObjectNode.class);
         ObjectNode usageDetailsObject = toJson();
         modelCardObject.set("UsageDetails", usageDetailsObject);
-        mapper.writeValue(new File(destinationFile), modelCardObject);
-        return "Saved UsageDetails to destination file and closing CLI.";
+        mapper.writeValue(destinationFile, modelCardObject);
+        return "Saved UsageDetails to destination file.";
     }
 
     @Command(

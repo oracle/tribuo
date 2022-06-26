@@ -16,6 +16,7 @@
 
 package org.tribuo.interop.modelcard;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
@@ -43,7 +44,7 @@ public final class ModelDetails {
         configuredParams = processNestedParams(null, model.getProvenance().getTrainerProvenance().getConfiguredParameters());
     }
 
-    public ModelDetails(JsonNode modelDetailsJson) {
+    public ModelDetails(JsonNode modelDetailsJson) throws JsonProcessingException {
         modelType = modelDetailsJson.get("model-type").textValue();
         modelPackage = modelDetailsJson.get("model-package").textValue();
         tribuoVersion = modelDetailsJson.get("tribuo-version").textValue();
