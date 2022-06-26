@@ -105,7 +105,7 @@ public class EnsembleModelsTest {
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard(output.toPath());
+        ModelCard modelCardCopy = ModelCard.deserializeFromJson(output.toPath());
         Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
@@ -138,7 +138,7 @@ public class EnsembleModelsTest {
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard(output.toPath());
+        ModelCard modelCardCopy = ModelCard.deserializeFromJson(output.toPath());
         Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
@@ -166,7 +166,7 @@ public class EnsembleModelsTest {
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard(output.toPath());
+        ModelCard modelCardCopy = ModelCard.deserializeFromJson(output.toPath());
         Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
@@ -199,7 +199,7 @@ public class EnsembleModelsTest {
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard(output.toPath());
+        ModelCard modelCardCopy = ModelCard.deserializeFromJson(output.toPath());
         Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
@@ -229,7 +229,7 @@ public class EnsembleModelsTest {
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard(output.toPath());
+        ModelCard modelCardCopy = ModelCard.deserializeFromJson(output.toPath());
         Assertions.assertEquals(modelCard, modelCardCopy);
     }
 
@@ -264,7 +264,7 @@ public class EnsembleModelsTest {
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
-        ModelCard modelCardCopy = new ModelCard(output.toPath());
+        ModelCard modelCardCopy = ModelCard.deserializeFromJson(output.toPath());
         Assertions.assertEquals(modelCard, modelCardCopy);
     }
 

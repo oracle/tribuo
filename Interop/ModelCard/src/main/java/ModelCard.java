@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -43,12 +44,20 @@ public class ModelCard {
         usageDetails = new UsageDetails();
     }
 
-    public ModelCard(Path sourceFile) throws IOException {
-        JsonNode modelCardJson = mapper.readTree(sourceFile.toFile());
-        modelDetails = new ModelDetails(modelCardJson.get("ModelDetails"));
-        trainingDetails = new TrainingDetails(modelCardJson.get("TrainingDetails"));
-        testingDetails = new TestingDetails(modelCardJson.get("TestingDetails"));
-        usageDetails = new UsageDetails(modelCardJson.get("UsageDetails"));
+    private ModelCard(JsonNode modelCard) throws JsonProcessingException {
+        modelDetails = new ModelDetails(modelCard.get("ModelDetails"));
+        trainingDetails = new TrainingDetails(modelCard.get("TrainingDetails"));
+        testingDetails = new TestingDetails(modelCard.get("TestingDetails"));
+        usageDetails = new UsageDetails(modelCard.get("UsageDetails"));
+    }
+
+    public static ModelCard deserializeFromJson(Path sourceFile) throws IOException {
+        JsonNode modelCard = mapper.readTree(sourceFile.toFile());
+        return new ModelCard(modelCard);
+    }
+
+    public static ModelCard deserializeFromJson(JsonNode modelCard) throws JsonProcessingException {
+        return new ModelCard(modelCard);
     }
 
     public ModelDetails getModelDetails() {
