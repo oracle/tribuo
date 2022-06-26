@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -22,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import org.tribuo.Model;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public final class ModelDetails {
@@ -32,29 +30,22 @@ public final class ModelDetails {
     private final String modelPackage;
     private final String tribuoVersion;
     private final String javaVersion;
-    private final Map<String, Object> configuredParams = new HashMap<>();
+    private final JsonNode configuredParams;
 
     public ModelDetails(Model<?> model) {
         modelType = model.getClass().getSimpleName();
         modelPackage = model.getClass().getTypeName();
         tribuoVersion = model.getProvenance().getTribuoVersion();
         javaVersion = model.getProvenance().getJavaVersion();
-
-        Map<String,?> parameters = model.getProvenance().getTrainerProvenance().getConfiguredParameters();
-        for (String key : parameters.keySet()) {
-            configuredParams.put(key, parameters.get(key));
-        }
+        configuredParams = processNestedParams(null, model.getProvenance().getTrainerProvenance().getConfiguredParameters());
     }
 
-    public ModelDetails(JsonNode modelDetailsJson) throws JsonProcessingException {
+    public ModelDetails(JsonNode modelDetailsJson) {
         modelType = modelDetailsJson.get("model-type").textValue();
         modelPackage = modelDetailsJson.get("model-package").textValue();
         tribuoVersion = modelDetailsJson.get("tribuo-version").textValue();
         javaVersion = modelDetailsJson.get("java-version").textValue();
-        Map<?,?> params = mapper.readValue(modelDetailsJson.get("configured-parameters").toString(), Map.class);
-        for (var key : params.keySet()) {
-            configuredParams.put(key.toString(), params.get(key));
-        }
+        configuredParams = modelDetailsJson.get("configured-parameters");
     }
 
     public String getSchemaVersion() {
@@ -77,8 +68,8 @@ public final class ModelDetails {
         return javaVersion;
     }
 
-    public Map<String, Object> getConfiguredParams() {
-        return configuredParams;
+    public String getConfiguredParams() {
+        return configuredParams.toPrettyString();
     }
 
     public ObjectNode toJson() {
@@ -88,36 +79,33 @@ public final class ModelDetails {
         modelDetailsObject.put("model-package", modelPackage);
         modelDetailsObject.put("tribuo-version", tribuoVersion);
         modelDetailsObject.put("java-version", javaVersion);
-        ObjectNode paramsArr = paramsToJson(null, configuredParams);
-        modelDetailsObject.set("configured-parameters", paramsArr);
+        modelDetailsObject.set("configured-parameters", configuredParams);
         return modelDetailsObject;
     }
 
-    private ObjectNode paramsToJson(String name, Map<?,?> params) {
-        ObjectNode paramsArr = mapper.createObjectNode();
+    private ObjectNode processNestedParams(String name, Map<?,?> params) {
+        ObjectNode paramsObject = mapper.createObjectNode();
         if (name != null) {
-            paramsArr.put("className", name);
+            paramsObject.put("className", name);
         }
-        for (var key : params.keySet()) {
-            if (params.get(key) instanceof ConfiguredObjectProvenance) {
-                ConfiguredObjectProvenance prov = (ConfiguredObjectProvenance) params.get(key);
-                ObjectNode nestedParam = paramsToJson(prov.getClassName(), prov.getConfiguredParameters());
-                paramsArr.set(key.toString(), nestedParam);
-            } else if (params.get(key) instanceof Map) {
-                Map<?,?> map = (Map<?,?>) params.get(key);
-                ObjectNode nestedParam = paramsToJson(null, map);
-                paramsArr.set(key.toString(), nestedParam);
-            } else if (isNumeric(params.get(key).toString())) {
-                if (params.get(key).toString().contains(".")) {
-                    paramsArr.put(key.toString(), Double.parseDouble(params.get(key).toString()));
+        for (Map.Entry<?,?> entry : params.entrySet()) {
+            if (entry.getValue() instanceof ConfiguredObjectProvenance prov) {
+                ObjectNode nestedParam = processNestedParams(prov.getClassName(), prov.getConfiguredParameters());
+                paramsObject.set(entry.getKey().toString(), nestedParam);
+            } else if (entry.getValue() instanceof Map<?, ?> map) {
+                ObjectNode nestedParam = processNestedParams(null, map);
+                paramsObject.set(entry.getKey().toString(), nestedParam);
+            } else if (isNumeric(entry.getValue().toString())) {
+                if (entry.getValue().toString().contains(".")) {
+                    paramsObject.put(entry.getKey().toString(), Double.parseDouble(entry.getValue().toString()));
                 } else {
-                    paramsArr.put(key.toString(), Integer.parseInt(params.get(key).toString()));
+                    paramsObject.put(entry.getKey().toString(), Integer.parseInt(entry.getValue().toString()));
                 }
             } else {
-                paramsArr.put(key.toString(), params.get(key).toString());
+                paramsObject.put(entry.getKey().toString(), entry.getValue().toString());
             }
         }
-        return paramsArr;
+        return paramsObject;
     }
 
     private boolean isNumeric(String str) {
