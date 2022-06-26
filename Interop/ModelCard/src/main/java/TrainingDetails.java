@@ -21,9 +21,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.Model;
-import org.tribuo.ensemble.EnsembleModel;
+import org.tribuo.regression.Regressor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class TrainingDetails {
     private static final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);;
@@ -46,20 +49,7 @@ public final class TrainingDetails {
 
         numOutputs = model.getProvenance().getDatasetProvenance().getNumOutputs();
 
-        boolean includeOutputDist = true;
-        if (model instanceof EnsembleModel) {
-            EnsembleModel<?> ensemble = (EnsembleModel<?>) model;
-            for (var m : ensemble.getModels()) {
-                if (m.getClass().getTypeName().contains("regression")) {
-                    includeOutputDist = false;
-                    break;
-                }
-            }
-        } else if (model.getClass().getTypeName().contains("regression")) {
-            includeOutputDist = false;
-        }
-
-        if (includeOutputDist) {
+        if (!model.validate(Regressor.class)) {
             for (var pair : model.getOutputIDInfo().outputCountsIterable()) {
                 outputsDistribution.put(pair.getA(), pair.getB());
             }
