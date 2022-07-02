@@ -37,6 +37,11 @@ public final class TestingDetails {
         testingSetSize = evaluation.getPredictions().size();
     }
 
+    public TestingDetails(Evaluation<?> evaluation, Map<String, Double> testingMetrics) {
+        testingSetSize = evaluation.getPredictions().size();
+        metrics.putAll(testingMetrics);
+    }
+
     public TestingDetails(JsonNode testingDetailsJson) throws JsonProcessingException {
         testingSetSize = testingDetailsJson.get("testing-set-size").intValue();
         Map<?, ?> parsed = mapper.readValue(testingDetailsJson.get("metrics").toString(), Map.class);
@@ -56,10 +61,6 @@ public final class TestingDetails {
 
     public Map<String, Double> getMetrics() {
         return Collections.unmodifiableMap(metrics);
-    }
-
-    public void addMetric(String metricDescription, Double metricValue) {
-        metrics.put(metricDescription, metricValue);
     }
 
     public ObjectNode toJson() {
