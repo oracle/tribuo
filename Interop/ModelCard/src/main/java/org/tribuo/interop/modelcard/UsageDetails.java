@@ -19,12 +19,7 @@ package org.tribuo.interop.modelcard;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.oracle.labs.mlrg.olcut.command.Command;
-import com.oracle.labs.mlrg.olcut.command.CommandGroup;
-import com.oracle.labs.mlrg.olcut.command.CommandInterpreter;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,45 +27,64 @@ import java.util.Objects;
 
 import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
-public final class UsageDetails implements CommandGroup {
-    private final CommandInterpreter shell = new CommandInterpreter();
+public final class UsageDetails {
     public static final String schemaVersion = "1.0";
-    private String intendedUse;
-    private String intendedUsers;
-    private final List<String> outOfScopeUses = new ArrayList<>();
-    private final List<String> preProcessingSteps = new ArrayList<>();
-    private final List<String> considerations = new ArrayList<>();
-    private final List<String> factors = new ArrayList<>();
-    private final List<String> resources = new ArrayList<>();
-    private String primaryContact;
-    private String modelCitation;
-    private String modelLicense;
+    private final String intendedUse;
+    private final String intendedUsers;
+    private final List<String> outOfScopeUses;
+    private final List<String> preProcessingSteps;
+    private final List<String> considerations;
+    private final List<String> factors;
+    private final List<String> resources;
+    private final String primaryContact;
+    private final String modelCitation;
+    private final String modelLicense;
 
-    public UsageDetails() {
-        intendedUse = "";
-        intendedUsers = "";
-        primaryContact = "";
-        modelCitation = "";
-        modelLicense = "";
-        shell.setPrompt("CLI% ");
+    public UsageDetails(
+            String intendedUse,
+            String intendedUsers,
+            List<String> outOfScopeUses,
+            List<String> preProcessingSteps,
+            List<String> considerations,
+            List<String> factors,
+            List<String> resources,
+            String primaryContact,
+            String modelCitation,
+            String modelLicense)
+    {
+        this.intendedUse = intendedUse;
+        this.intendedUsers = intendedUsers;
+        this.outOfScopeUses = outOfScopeUses;
+        this.preProcessingSteps = preProcessingSteps;
+        this.considerations = considerations;
+        this.factors = factors;
+        this.resources = resources;
+        this.primaryContact = primaryContact;
+        this.modelCitation = modelCitation;
+        this.modelLicense = modelLicense;
     }
 
     public UsageDetails(JsonNode usageDetailsJson) {
         intendedUse = usageDetailsJson.get("intended-use").textValue();
         intendedUsers = usageDetailsJson.get("intended-users").textValue();
 
+        outOfScopeUses = new ArrayList<>();
         for (int i = 0; i < usageDetailsJson.get("out-of-scope-uses").size(); i++) {
             outOfScopeUses.add(usageDetailsJson.get("out-of-scope-uses").get(i).textValue());
         }
+        preProcessingSteps = new ArrayList<>();
         for (int i = 0; i < usageDetailsJson.get("pre-processing-steps").size(); i++) {
             preProcessingSteps.add(usageDetailsJson.get("pre-processing-steps").get(i).textValue());
         }
+        considerations = new ArrayList<>();
         for (int i = 0; i < usageDetailsJson.get("considerations-list").size(); i++) {
             considerations.add(usageDetailsJson.get("considerations-list").get(i).textValue());
         }
+        factors = new ArrayList<>();
         for (int i = 0; i < usageDetailsJson.get("relevant-factors-list").size(); i++) {
             factors.add(usageDetailsJson.get("relevant-factors-list").get(i).textValue());
         }
+        resources = new ArrayList<>();
         for (int i = 0; i < usageDetailsJson.get("resources-list").size(); i++) {
             resources.add(usageDetailsJson.get("resources-list").get(i).textValue());
         }
@@ -123,11 +137,6 @@ public final class UsageDetails implements CommandGroup {
         return modelLicense;
     }
 
-    public void startShell() {
-        shell.add(this);
-        shell.start();
-    }
-
     public ObjectNode toJson() {
         ObjectNode usageDetailsObject = mapper.createObjectNode();
         usageDetailsObject.put("schema-version", schemaVersion);
@@ -172,205 +181,6 @@ public final class UsageDetails implements CommandGroup {
     }
 
     @Override
-    public String getName() {
-        return "UsageDetails";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Commands for specifying UsageDetails for a model.";
-    }
-
-    @Command(
-            usage = "<String> Records intended use of model."
-    )
-    public String intendedUse(CommandInterpreter ci, String use) {
-        intendedUse = use;
-        return("Recorded intended use as " + intendedUse + ".");
-    }
-
-    @Command(
-            usage = "<String> Records intended users of model."
-    )
-    public String intendedUsers(CommandInterpreter ci, String users) {
-        intendedUsers = users;
-        return("Recorded intended users as " + intendedUsers + ".");
-    }
-
-    @Command(
-            usage = "<String> Adds an out-of-scope use to list of out-of-scope uses."
-    )
-    public String addOutOfScopeUse(CommandInterpreter ci, String use) {
-        outOfScopeUses.add(use);
-        return("Added an out-of-scope use to list of out-of-scope uses.");
-    }
-
-    @Command(
-            usage = "<int> Remove out-of-scope use at specified index (0-indexed)."
-    )
-    public String removeOutOfScopeUse(CommandInterpreter ci, int index) {
-        outOfScopeUses.remove(index);
-        return("Removed out-of-scope use at specified index.");
-    }
-
-    @Command(
-            usage = "Displays all added out-of-scope uses."
-    )
-    public String viewOutOfScopeUse(CommandInterpreter ci) {
-        for (int i = 0; i < outOfScopeUses.size(); i++) {
-            System.out.println("\t" + i + ") "+ outOfScopeUses.get(i));
-        }
-        return("Displayed all added out-of-scope uses.");
-    }
-
-    @Command(
-            usage = "<String> Adds pre-processing step to list of steps."
-    )
-    public String addPreProcessingStep(CommandInterpreter ci, String step) {
-        preProcessingSteps.add(step);
-        return("Added pre-processing step to list of steps.");
-    }
-
-    @Command(
-            usage = "<int> Remove pro-processing step at specified index (0-indexed)."
-    )
-    public String removePreProcessingStep(CommandInterpreter ci, int index) {
-        preProcessingSteps.remove(index);
-        return("Removed pre-processing step at specified index.");
-    }
-
-    @Command(
-            usage = "Displays all added pre-processing steps."
-    )
-    public String viewPreProcessingSteps(CommandInterpreter ci) {
-        for (int i = 0; i < preProcessingSteps.size(); i++) {
-            System.out.println("\t" + i + ") "+ preProcessingSteps.get(i));
-        }
-        return("Displayed all added pre-processing steps.");
-    }
-
-    @Command(
-            usage = "<String> Adds consideration to list of considerations."
-    )
-    public String addConsideration(CommandInterpreter ci, String consideration) {
-        considerations.add(consideration);
-        return("Added consideration to list of considerations.");
-    }
-
-    @Command(
-            usage = "<int> Remove consideration at specified index (0-indexed)."
-    )
-    public String removeConsideration(CommandInterpreter ci, int index) {
-        considerations.remove(index);
-        return("Removed consideration at specified index.");
-    }
-
-    @Command(
-            usage = "Displays all added considerations."
-    )
-    public String viewConsiderations(CommandInterpreter ci) {
-        for (int i = 0; i < considerations.size(); i++) {
-            System.out.println("\t" + i + ") "+ considerations.get(i));
-        }
-        return("Displayed all added considerations.");
-    }
-
-    @Command(
-            usage = "<String> Adds relevant factor to list of factors."
-    )
-    public String addFactor(CommandInterpreter ci, String factor) {
-        factors.add(factor);
-        return("Added factor to list of factors.");
-    }
-
-    @Command(
-            usage = "<int> Remove factor at specified index (0-indexed)."
-    )
-    public String removeFactor(CommandInterpreter ci, int index) {
-        factors.remove(index);
-        return("Removed factor at specified index.");
-    }
-
-    @Command(
-            usage = "Displays all added factors."
-    )
-    public String viewFactors(CommandInterpreter ci) {
-        for (int i = 0; i < factors.size(); i++) {
-            System.out.println("\t" + i + ") "+ factors.get(i));
-        }
-        return("Displayed all added factors.");
-    }
-
-    @Command(
-            usage = "<String> Adds resource to list of resources."
-    )
-    public String addResource(CommandInterpreter ci, String resource) {
-        resources.add(resource);
-        return("Added resource to list of resources.");
-    }
-
-    @Command(
-            usage = "<int> Remove resource at specified index (0-indexed)."
-    )
-    public String removeResource(CommandInterpreter ci, int index) {
-        resources.remove(index);
-        return("Removed resource at specified index.");
-    }
-
-    @Command(
-            usage = "Displays all added resources."
-    )
-    public String viewResources(CommandInterpreter ci) {
-        for (int i = 0; i < resources.size(); i++) {
-            System.out.println("\t" + i + ") "+ resources.get(i));
-        }
-        return("Displayed all added resources.");
-    }
-
-    @Command(
-            usage = "<String> Records primary contact in case of questions or comments."
-    )
-    public String primaryContact(CommandInterpreter ci, String contact) {
-        primaryContact = contact;
-        return("Recorded primary contact as " + primaryContact + ".");
-    }
-
-    @Command(
-            usage = "<String> Records model's citation."
-    )
-    public String modelCitation(CommandInterpreter ci, String citation) {
-        modelCitation = citation;
-        return("Recorded model citation as " + modelCitation + ".");
-    }
-
-    @Command(
-            usage = "<String> Records model's license."
-    )
-    public String modelLicense(CommandInterpreter ci, String license) {
-        modelLicense = license;
-        return("Recorded model license as " + modelLicense + ".");
-    }
-
-    @Command(
-            usage = "<filename> Saves UsageDetails to an existing ModelCard file."
-    )
-    public String saveUsageDetails(CommandInterpreter ci, File destinationFile) throws IOException {
-        ObjectNode modelCardObject = mapper.readValue(destinationFile, ObjectNode.class);
-        ObjectNode usageDetailsObject = toJson();
-        modelCardObject.set("UsageDetails", usageDetailsObject);
-        mapper.writeValue(destinationFile, modelCardObject);
-        return "Saved UsageDetails to destination file.";
-    }
-
-    @Command(
-            usage = "Closes shell without saving any recorded content."
-    )
-    public String close(CommandInterpreter ci) {
-        shell.close();
-        return "Closed shell.";
-    }
-
-    @Override
     public String toString() {
         return toJson().toPrettyString();
     }
@@ -399,10 +209,5 @@ public final class UsageDetails implements CommandGroup {
     @Override
     public int hashCode() {
         return Objects.hash(intendedUse, intendedUsers, outOfScopeUses, preProcessingSteps, considerations, factors, resources, primaryContact, modelCitation, modelLicense);
-    }
-
-    public static void main(String[] args) {
-        UsageDetails driver = new UsageDetails();
-        driver.startShell();
     }
 }

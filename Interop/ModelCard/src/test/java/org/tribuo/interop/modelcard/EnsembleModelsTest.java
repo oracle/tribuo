@@ -102,7 +102,7 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        ModelCard modelCard = new ModelCard(ensemble, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("overall-accuracy", evaluation.accuracy());
         modelCard.saveToFile(output.toPath());
 
@@ -135,7 +135,7 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        ModelCard modelCard = new ModelCard(ensemble, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("overall-accuracy", evaluation.accuracy());
         modelCard.saveToFile(output.toPath());
 
@@ -162,7 +162,7 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        ModelCard modelCard = new ModelCard(ensemble, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("averaged-R2", evaluation.averageR2());
         modelCard.addMetric("averaged-RMSE", evaluation.averageRMSE());
         modelCard.saveToFile(output.toPath());
@@ -195,7 +195,7 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        ModelCard modelCard = new ModelCard(ensemble, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("averaged-R2", evaluation.averageR2());
         modelCard.addMetric("averaged-RMSE", evaluation.averageRMSE());
         modelCard.saveToFile(output.toPath());
@@ -225,7 +225,7 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        ModelCard modelCard = new ModelCard(ensemble, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
         modelCard.addMetric("jaccard-score", evaluation.jaccardScore());
         modelCard.saveToFile(output.toPath());
@@ -260,7 +260,7 @@ public class EnsembleModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(ensemble, evaluation);
+        ModelCard modelCard = new ModelCard(ensemble, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
         modelCard.addMetric("jaccard-score", evaluation.jaccardScore());
         modelCard.saveToFile(output.toPath());

@@ -29,7 +29,7 @@ import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
 public class ModelCardCLI implements CommandGroup {
     private final CommandInterpreter shell = new CommandInterpreter();
-    private UsageDetailsBuilder builder = new UsageDetailsBuilder();
+    private final UsageDetailsBuilder builder = new UsageDetailsBuilder();
     private final List<String> outOfScopeUses = new ArrayList<>();
     private final List<String> preProcessingSteps = new ArrayList<>();
     private final List<String> considerations = new ArrayList<>();
@@ -222,60 +222,27 @@ public class ModelCardCLI implements CommandGroup {
         return("Recorded model license as " + license + ".");
     }
 
-    private UsageDetails createUsageDetails() {
+    @Command(
+            usage = "<filename> Saves UsageDetails to an existing ModelCard file and close CLI."
+    )
+    public String saveUsageDetails(CommandInterpreter ci, File destinationFile) throws IOException {
         builder.outOfScopeUses(outOfScopeUses);
         builder.preProcessingSteps(preProcessingSteps);
         builder.considerations(considerations);
         builder.factors(factors);
         builder.resources(resources);
-        return builder.build();
-    }
-
-    @Command(
-            usage = "<filename> Saves UsageDetails to an existing ModelCard file."
-    )
-    public String saveUsageDetails(CommandInterpreter ci, File destinationFile) throws IOException {
-        UsageDetails usageDetails = createUsageDetails();
+        UsageDetails usageDetails = builder.build();
 
         ObjectNode usageDetailsObject = usageDetails.toJson();
         ObjectNode modelCardObject = mapper.readValue(destinationFile, ObjectNode.class);
-        if (!modelCardObject.get("UsageDetails").isNull()) {
+        if (modelCardObject.has("UsageDetails")) {
             throw new IllegalArgumentException("This ModelCard already contains a UsageDetails.");
         }
         modelCardObject.set("UsageDetails", usageDetailsObject);
         mapper.writeValue(destinationFile, modelCardObject);
 
-        return "Saved UsageDetails to destination file.";
-    }
-
-    @Command(
-            usage = "Removes all previously written fields for UsageDetails to write a new UsageDetails."
-    )
-    public String newUsageDetails(CommandInterpreter ci) {
-        builder = new UsageDetailsBuilder();
-        outOfScopeUses.clear();
-        preProcessingSteps.clear();
-        considerations.clear();
-        factors.clear();
-        resources.clear();
-        return "Started a new UsageDetails.";
-    }
-
-    @Command(
-            usage = "Displays current state of UsageDetails."
-    )
-    public String viewUsageDetails(CommandInterpreter ci) {
-        System.out.println(createUsageDetails());
-        return "Displayed current state of UsageDetails.";
-    }
-
-
-    @Command(
-            usage = "Closes CLI without explicitly saving anything recorded."
-    )
-    public String close(CommandInterpreter ci) {
         shell.close();
-        return "Closed ClI.";
+        return "Saved UsageDetails to destination file and closed CLI.";
     }
 
     public static void main(String[] args) {
