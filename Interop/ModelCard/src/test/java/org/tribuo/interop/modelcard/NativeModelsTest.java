@@ -75,7 +75,7 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(model, evaluation);
+        ModelCard modelCard = new ModelCard(model, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("overall-accuracy", evaluation.accuracy());
         modelCard.addMetric("average-precision", evaluation.macroAveragedPrecision());
         modelCard.saveToFile(output.toPath());
@@ -102,7 +102,7 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(model, evaluation);
+        ModelCard modelCard = new ModelCard(model, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("jaccord-score", evaluation.jaccardScore());
         modelCard.addMetric("balanced-error-rate", evaluation.balancedErrorRate());
         modelCard.saveToFile(output.toPath());
@@ -131,7 +131,7 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(model, evaluation);
+        ModelCard modelCard = new ModelCard(model, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("average-rmse", evaluation.averageRMSE());
         modelCard.addMetric("average-r2", evaluation.averageR2());
         modelCard.saveToFile(output.toPath());
@@ -155,7 +155,7 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(model, evaluation);
+        ModelCard modelCard = new ModelCard(model, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("adjusted-mi", evaluation.adjustedMI());
         modelCard.addMetric("normalized-mi", evaluation.normalizedMI());
         modelCard.saveToFile(output.toPath());
@@ -183,7 +183,7 @@ public class NativeModelsTest {
         File output = File.createTempFile("output", "json");
         output.deleteOnExit();
 
-        ModelCard modelCard = new ModelCard(model, evaluation);
+        ModelCard modelCard = new ModelCard(model, evaluation, new UsageDetailsBuilder().build());
         modelCard.addMetric("overall-precision", evaluation.getPrecision());
         modelCard.addMetric("overall-recall", evaluation.getRecall());
         modelCard.saveToFile(output.toPath());

@@ -38,12 +38,22 @@ public class ModelCard {
 
     public ModelCard(Model<?> model, Evaluation<?> evaluation) {
         if (model instanceof ExternalModel) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
         }
         modelDetails = new ModelDetails(model);
         trainingDetails = new TrainingDetails(model);
         testingDetails = new TestingDetails(evaluation);
-        usageDetails = new UsageDetails();
+        usageDetails = null;
+    }
+
+    public ModelCard(Model<?> model, Evaluation<?> evaluation, UsageDetails usage) {
+        if (model instanceof ExternalModel) {
+            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
+        }
+        modelDetails = new ModelDetails(model);
+        trainingDetails = new TrainingDetails(model);
+        testingDetails = new TestingDetails(evaluation);
+        usageDetails = usage;
     }
 
     private ModelCard(JsonNode modelCard) throws JsonProcessingException {
@@ -87,7 +97,9 @@ public class ModelCard {
         modelCardObject.set("ModelDetails", modelDetails.toJson());
         modelCardObject.set("TrainingDetails", trainingDetails.toJson());
         modelCardObject.set("TestingDetails", testingDetails.toJson());
-        modelCardObject.set("UsageDetails", usageDetails.toJson());
+        if (usageDetails != null) {
+            modelCardObject.set("UsageDetails", usageDetails.toJson());
+        }
         return modelCardObject;
     }
 
