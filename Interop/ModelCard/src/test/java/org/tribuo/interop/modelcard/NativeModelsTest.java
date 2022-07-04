@@ -110,7 +110,7 @@ public class NativeModelsTest {
         testingMetrics.put("jaccord-score", evaluation.jaccardScore());
         testingMetrics.put("balanced-error-rate", evaluation.balancedErrorRate());
 
-        ModelCard modelCard = new ModelCard(model, evaluation, testingMetrics, new UsageDetailsBuilder().build());
+        ModelCard modelCard = new ModelCard(model, evaluation, testingMetrics);
         modelCard.saveToFile(output.toPath());
 
         // read file and create Model Card object
