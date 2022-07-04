@@ -81,7 +81,11 @@ public class ModelCard {
         modelDetails = new ModelDetails(modelCard.get("ModelDetails"));
         trainingDetails = new TrainingDetails(modelCard.get("TrainingDetails"));
         testingDetails = new TestingDetails(modelCard.get("TestingDetails"));
-        usageDetails = new UsageDetails(modelCard.get("UsageDetails"));
+        if (modelCard.has("UsageDetails")) {
+            usageDetails = new UsageDetails(modelCard.get("UsageDetails"));
+        } else {
+            usageDetails = null;
+        }
     }
 
     public static ModelCard deserializeFromJson(Path sourceFile) throws IOException {
@@ -130,19 +134,16 @@ public class ModelCard {
         return toJson().toPrettyString();
     }
 
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ModelCard modelCard = (ModelCard) o;
         return modelDetails.equals(modelCard.modelDetails) &&
                 trainingDetails.equals(modelCard.trainingDetails) &&
                 testingDetails.equals(modelCard.testingDetails) &&
-                usageDetails.equals(modelCard.usageDetails);
+                Objects.equals(usageDetails, modelCard.usageDetails);
     }
 
     @Override
