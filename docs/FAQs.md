@@ -36,7 +36,7 @@ other feedback on our GitHub repo. The Tribuo mailing list is
 [here](https://oss.oracle.com/pipermail/tribuo-devel/). We're looking at
 different options for real time chat. Code contributions are accepted under the
 terms of the [Oracle Contributor
-Agreement](https://www.oracle.com/technetwork/community/oca-486395.html).
+Agreement](https://oca.opensource.oracle.com/).
 Contributors must have sign the agreement before their PRs can be reviewed or
 merged.
 
