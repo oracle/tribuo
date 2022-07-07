@@ -64,10 +64,10 @@ public class ModelCard {
         modelDetails = new ModelDetails(modelCard.get("ModelDetails"));
         trainingDetails = new TrainingDetails(modelCard.get("TrainingDetails"));
         testingDetails = new TestingDetails(modelCard.get("TestingDetails"));
-        if (modelCard.has("UsageDetails")) {
-            usageDetails = new UsageDetails(modelCard.get("UsageDetails"));
-        } else {
+        if (modelCard.get("UsageDetails").isNull()) {
             usageDetails = null;
+        } else {
+            usageDetails = new UsageDetails(modelCard.get("UsageDetails"));
         }
     }
 
@@ -103,6 +103,8 @@ public class ModelCard {
         modelCardObject.set("TestingDetails", testingDetails.toJson());
         if (usageDetails != null) {
             modelCardObject.set("UsageDetails", usageDetails.toJson());
+        } else {
+            modelCardObject.putNull("UsageDetails");
         }
         return modelCardObject;
     }

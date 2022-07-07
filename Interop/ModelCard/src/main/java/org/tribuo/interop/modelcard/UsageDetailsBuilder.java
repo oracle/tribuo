@@ -32,6 +32,8 @@ public final class UsageDetailsBuilder {
     private String modelCitation = "";
     private String modelLicense = "";
 
+    public UsageDetailsBuilder() { }
+
     public String getIntendedUse() {
         return intendedUse;
     }
