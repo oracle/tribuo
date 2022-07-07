@@ -33,13 +33,13 @@ public final class TestingDetails {
     private final int testingSetSize;
     private final Map<String, Double> metrics = new HashMap<>();
 
-    public TestingDetails(Evaluation<?> evaluation) {
-        testingSetSize = evaluation.getPredictions().size();
-    }
-
     public TestingDetails(Evaluation<?> evaluation, Map<String, Double> testingMetrics) {
         testingSetSize = evaluation.getPredictions().size();
         metrics.putAll(testingMetrics);
+    }
+
+    public TestingDetails(Evaluation<?> evaluation) {
+        this(evaluation, Collections.emptyMap());
     }
 
     public TestingDetails(JsonNode testingDetailsJson) throws JsonProcessingException {
