@@ -27,6 +27,7 @@ import org.tribuo.interop.ExternalModel;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,36 +38,6 @@ public class ModelCard {
     private final TestingDetails testingDetails;
     private final UsageDetails usageDetails;
 
-    public ModelCard(Model<?> model, Evaluation<?> evaluation) {
-        if (model instanceof ExternalModel) {
-            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
-        }
-        modelDetails = new ModelDetails(model);
-        trainingDetails = new TrainingDetails(model);
-        testingDetails = new TestingDetails(evaluation);
-        usageDetails = null;
-    }
-
-    public ModelCard(Model<?> model, Evaluation<?> evaluation, Map<String, Double> testingMetrics) {
-        if (model instanceof ExternalModel) {
-            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
-        }
-        modelDetails = new ModelDetails(model);
-        trainingDetails = new TrainingDetails(model);
-        testingDetails = new TestingDetails(evaluation, testingMetrics);
-        usageDetails = null;
-    }
-
-    public ModelCard(Model<?> model, Evaluation<?> evaluation, UsageDetails usage) {
-        if (model instanceof ExternalModel) {
-            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
-        }
-        modelDetails = new ModelDetails(model);
-        trainingDetails = new TrainingDetails(model);
-        testingDetails = new TestingDetails(evaluation);
-        usageDetails = usage;
-    }
-
     public ModelCard(Model<?> model, Evaluation<?> evaluation, Map<String, Double> testingMetrics, UsageDetails usage) {
         if (model instanceof ExternalModel) {
             throw new IllegalArgumentException("External models currently not supported by ModelCard.");
@@ -75,6 +46,18 @@ public class ModelCard {
         trainingDetails = new TrainingDetails(model);
         testingDetails = new TestingDetails(evaluation, testingMetrics);
         usageDetails = usage;
+    }
+
+    public ModelCard(Model<?> model, Evaluation<?> evaluation, UsageDetails usage) {
+        this(model, evaluation, Collections.emptyMap(), usage);
+    }
+
+    public ModelCard(Model<?> model, Evaluation<?> evaluation, Map<String, Double> testingMetrics) {
+        this(model, evaluation, testingMetrics, null);
+    }
+
+    public ModelCard(Model<?> model, Evaluation<?> evaluation) {
+        this(model, evaluation, Collections.emptyMap(), null);
     }
 
     private ModelCard(JsonNode modelCard) throws JsonProcessingException {
