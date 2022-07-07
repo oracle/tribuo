@@ -86,7 +86,7 @@ public final class ModelDetails {
         modelDetailsObject.put("tribuo-version", tribuoVersion);
         modelDetailsObject.put("java-version", javaVersion);
         ObjectNode paramsObject = processNestedParams(configuredParams);
-        modelDetailsObject.set("configured-parameters", paramsObject);
+        modelDetailsObject.set("configured-parameters", mapper.convertValue(configuredParams, ObjectNode.class));
         return modelDetailsObject;
     }
 
