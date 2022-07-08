@@ -58,7 +58,7 @@ Regression, Anomaly Detection, TensorFlow, document classification, columnar
 data loading, working with externally trained models, and the configuration
 system, can be found in the [tutorials](tutorials). These use the
 [IJava](https://github.com/SpencerPark/IJava) Jupyter notebook kernel, and work
-with Java 10+, except the reproducibility tutotiral which requires Java 17.  To
+with Java 10+, except the reproducibility tutorial which requires Java 17.  To
 convert the tutorials' code back to Java 8, in most cases simply replace the
 `var` keyword with the appropriate types.
 
