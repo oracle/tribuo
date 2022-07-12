@@ -42,7 +42,7 @@ public final class ModelDetails {
 
     /**
      * Creates an instance of ModelDetails.
-     * @param model The trained model for which a ModelDetails will be built.
+     * @param model The trained {@link Model} for which a ModelDetails will be built.
      */
     public ModelDetails(Model<?> model) {
         modelType = model.getClass().getSimpleName();
@@ -113,7 +113,7 @@ public final class ModelDetails {
      * @return An unmodifiable map of the configured parameters of the ModelDetails object.
      */
     public Map<String, Object> getConfiguredParams() {
-        return configuredParams;
+        return Collections.unmodifiableMap(configuredParams);
     }
 
     /**

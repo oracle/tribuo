@@ -41,7 +41,7 @@ public final class TrainingDetails {
 
     /**
      * Creates an instance of TrainingDetails.
-     * @param model The trained model for which a TrainingDetails will be built.
+     * @param model The trained {@link Model} for which a TrainingDetails will be built.
      */
     public TrainingDetails(Model<?> model) {
         trainingTime = model.getProvenance().getTrainingTime().toString();
