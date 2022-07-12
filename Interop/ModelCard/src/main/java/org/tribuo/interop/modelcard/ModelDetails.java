@@ -85,23 +85,8 @@ public final class ModelDetails {
         modelDetailsObject.put("model-package", modelPackage);
         modelDetailsObject.put("tribuo-version", tribuoVersion);
         modelDetailsObject.put("java-version", javaVersion);
-        ObjectNode paramsObject = processNestedParams(configuredParams);
         modelDetailsObject.set("configured-parameters", mapper.convertValue(configuredParams, ObjectNode.class));
         return modelDetailsObject;
-    }
-
-    private ObjectNode processNestedParams(Map<?,?> params) {
-        ObjectNode paramsObject = mapper.createObjectNode();
-        for (Map.Entry<?,?> entry : params.entrySet()) {
-            var val = entry.getValue();
-            if (val instanceof Map<?, ?> map) {
-                ObjectNode nestedObject = processNestedParams(map);
-                paramsObject.set(entry.getKey().toString(), nestedObject);
-            } else {
-                paramsObject.put(entry.getKey().toString(), entry.getValue().toString());
-            }
-        }
-        return paramsObject;
     }
 
     @Override
