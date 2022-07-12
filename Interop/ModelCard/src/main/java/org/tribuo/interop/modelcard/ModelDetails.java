@@ -42,7 +42,6 @@ public final class ModelDetails {
 
     /**
      * Creates an instance of ModelDetails.
-     * <p>
      * @param model The trained model for which a ModelDetails will be built.
      */
     public ModelDetails(Model<?> model) {

@@ -27,6 +27,9 @@ import java.util.*;
 
 import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
+/**
+ * TrainingDetails section of a {@link ModelCard}.
+ */
 public final class TrainingDetails {
     public static final String schemaVersion = "1.0";
     private final String trainingTime;
@@ -36,6 +39,10 @@ public final class TrainingDetails {
     private final int numOutputs;
     private final Map<String, Long> outputsDistribution = new HashMap<>();
 
+    /**
+     * Creates an instance of TrainingDetails.
+     * @param model The trained model for which a TrainingDetails will be built.
+     */
     public TrainingDetails(Model<?> model) {
         trainingTime = model.getProvenance().getTrainingTime().toString();
         trainingSetSize = model.getProvenance().getDatasetProvenance().getNumExamples();
@@ -54,6 +61,13 @@ public final class TrainingDetails {
         }
     }
 
+    /**
+     * Creates an instance of TrainingDetails.
+     * <p>
+     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     * @param trainingDetailsJson The Json content corresponding to a serialized TrainingDetails that will be used to
+     * recreate a new instance of a TrainingDetails.
+     */
     public TrainingDetails(JsonNode trainingDetailsJson) throws JsonProcessingException {
         trainingTime = trainingDetailsJson.get("training-time").textValue();
         trainingSetSize = trainingDetailsJson.get("training-set-size").intValue();
@@ -71,34 +85,66 @@ public final class TrainingDetails {
         }
     }
 
+    /**
+     * Gets the schema version of the TrainingDetails object.
+     * @return A string specifying the schema version of the TrainingDetails object.
+     */
     public String getSchemaVersion() {
         return schemaVersion;
     }
 
+    /**
+     * Gets the training time of the TrainingDetails object.
+     * @return A string specifying the training time of the TrainingDetails object.
+     */
     public String getTrainingTime() {
         return trainingTime;
     }
 
+    /**
+     * Gets the training set size of the TrainingDetails object.
+     * @return An int specifying the training set size of the TrainingDetails object.
+     */
     public int getTrainingSetSize() {
         return trainingSetSize;
     }
 
+    /**
+     * Gets the number of features in the training set of the TrainingDetails object.
+     * @return An int specifying the number of features of the TrainingDetails object.
+     */
     public int getNumFeatures() {
         return numFeatures;
     }
 
+    /**
+     * Gets the list of features of the TrainingDetails object.
+     * @return An unmodifiable list of the features of the TrainingDetails object.
+     */
     public List<String> getFeatures() {
         return Collections.unmodifiableList(features);
     }
 
+    /**
+     * Gets the number of outputs in the training set of the TrainingDetails object.
+     * @return An int specifying the number of outputs of the TrainingDetails object.
+     */
     public int getNumOutputs() {
         return numOutputs;
     }
 
+    /**
+     * Gets the distribution of the outputs of the TrainingDetails object.
+     * @return An unmodifiable map of the distribution of the outputs for the TrainingDetails object.
+     */
     public Map<String, Long> getOutputsDistribution() {
         return Collections.unmodifiableMap(outputsDistribution);
     }
 
+    /**
+     * Creates a Json object corresponding this TrainingDetails instance.
+     * @return The {@link ObjectNode} corresponding to this TrainingDetails instance.
+     */
     public ObjectNode toJson() {
         ObjectNode datasetDetailsObject = mapper.createObjectNode();
         datasetDetailsObject.put("schema-version", schemaVersion);
