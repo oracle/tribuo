@@ -29,6 +29,9 @@ import java.util.Objects;
 
 import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
+/**
+ * ModelDetails section of a {@link ModelCard}.
+ */
 public final class ModelDetails {
     private static final String schemaVersion = "1.0";
     private final String modelType;
@@ -37,6 +40,11 @@ public final class ModelDetails {
     private final String javaVersion;
     private final Map<String, Object> configuredParams;
 
+    /**
+     * Creates an instance of ModelDetails.
+     * <p>
+     * @param model The trained model for which a ModelDetails will be built.
+     */
     public ModelDetails(Model<?> model) {
         modelType = model.getClass().getSimpleName();
         modelPackage = model.getClass().getTypeName();
@@ -45,6 +53,13 @@ public final class ModelDetails {
         configuredParams = ProvenanceUtil.convertToMap(model.getProvenance().getTrainerProvenance());
     }
 
+    /**
+     * Creates an instance of ModelDetails.
+     * <p>
+     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     * @param modelDetailsJson The Json content corresponding to a serialized ModelDetails that will be used to recreate
+     * a new instance of a ModelDetails.
+     */
     public ModelDetails(JsonNode modelDetailsJson) throws JsonProcessingException {
         modelType = modelDetailsJson.get("model-type").textValue();
         modelPackage = modelDetailsJson.get("model-package").textValue();
@@ -54,30 +69,58 @@ public final class ModelDetails {
         configuredParams = Collections.unmodifiableMap(mapper.readValue(modelDetailsJson.get("configured-parameters").toString(), typeRef));
     }
 
+    /**
+     * Gets the schema version of the ModelDetails object.
+     * @return A string specifying the schema version of the ModelDetails object.
+     */
     public String getSchemaVersion() {
         return schemaVersion;
     }
 
+    /**
+     * Gets the model type of the ModelDetails object.
+     * @return A string specifying the model type of the ModelDetails object.
+     */
     public String getModelType() {
         return modelType;
     }
 
+    /**
+     * Gets the model package of the ModelDetails object.
+     * @return A string specifying the model package of the ModelDetails object.
+     */
     public String getModelPackage() {
         return modelPackage;
     }
 
+    /**
+     * Gets the Tribuo version of the ModelDetails object.
+     * @return A string specifying the Tribuo version of the ModelDetails object.
+     */
     public String getTribuoVersion() {
         return tribuoVersion;
     }
 
+    /**
+     * Gets the Java version of the ModelDetails object.
+     * @return A string specifying the Java version of the ModelDetails object.
+     */
     public String getJavaVersion() {
         return javaVersion;
     }
 
+    /**
+     * Gets the configured parameters of the ModelDetails object.
+     * @return An unmodifiable map of the configured parameters of the ModelDetails object.
+     */
     public Map<String, Object> getConfiguredParams() {
         return configuredParams;
     }
 
+    /**
+     * Creates a Json object corresponding this ModelDetails instance.
+     * @return The {@link ObjectNode} corresponding to this ModelDetails instance.
+     */
     public ObjectNode toJson() {
         ObjectNode modelDetailsObject = mapper.createObjectNode();
         modelDetailsObject.put("schema-version", schemaVersion);
@@ -85,23 +128,8 @@ public final class ModelDetails {
         modelDetailsObject.put("model-package", modelPackage);
         modelDetailsObject.put("tribuo-version", tribuoVersion);
         modelDetailsObject.put("java-version", javaVersion);
-        ObjectNode paramsObject = processNestedParams(configuredParams);
         modelDetailsObject.set("configured-parameters", mapper.convertValue(configuredParams, ObjectNode.class));
         return modelDetailsObject;
-    }
-
-    private ObjectNode processNestedParams(Map<?,?> params) {
-        ObjectNode paramsObject = mapper.createObjectNode();
-        for (Map.Entry<?,?> entry : params.entrySet()) {
-            var val = entry.getValue();
-            if (val instanceof Map<?, ?> map) {
-                ObjectNode nestedObject = processNestedParams(map);
-                paramsObject.set(entry.getKey().toString(), nestedObject);
-            } else {
-                paramsObject.put(entry.getKey().toString(), entry.getValue().toString());
-            }
-        }
-        return paramsObject;
     }
 
     @Override

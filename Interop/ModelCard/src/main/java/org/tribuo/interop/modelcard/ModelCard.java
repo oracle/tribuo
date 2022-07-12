@@ -171,6 +171,7 @@ public class ModelCard {
 
     /**
      * Creates a Json object corresponding this ModelCard instance.
+     * @return The {@link ObjectNode} corresponding to this ModelCard instance.
      */
     public ObjectNode toJson() {
         ObjectNode modelCardObject = mapper.createObjectNode();
