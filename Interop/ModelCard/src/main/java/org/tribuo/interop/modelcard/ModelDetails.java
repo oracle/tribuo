@@ -75,7 +75,7 @@ public final class ModelDetails {
     }
 
     public Map<String, Object> getConfiguredParams() {
-        return configuredParams;
+        return Collections.unmodifiableMap(configuredParams);
     }
 
     public ObjectNode toJson() {
