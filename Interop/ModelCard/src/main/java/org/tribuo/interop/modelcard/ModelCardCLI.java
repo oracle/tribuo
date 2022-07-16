@@ -47,7 +47,7 @@ public class ModelCardCLI implements CommandGroup {
     private final List<String> resources = new ArrayList<>();
 
     /**
-     * Starta the command shell
+     * Starts the command shell.
      */
     public void startShell() {
         shell.setPrompt("CLI% ");
@@ -367,7 +367,7 @@ public class ModelCardCLI implements CommandGroup {
      * Saves a serialized version of the {@link UsageDetails} created by the builder to the destination file.
      * <p>
      * Note that the destination file must already contain a serialized version of a ModelCard.
-     * Throws {@link IOException} if a problem is encountered when processing Json content.
+     * Throws {@link IOException} if a problem is encountered when reading/writing to file.
      * Throws {@link IllegalArgumentException} if the serialized ModelCard stored at the destination file already
      * contains a non-null UsageDetails.
      * @param destinationFile The Json file path corresponding to a serialized ModelCard to which a serialized

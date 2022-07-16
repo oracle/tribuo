@@ -33,6 +33,7 @@ import java.util.Objects;
 
 /**
  * ModelCard feature to allow more transparent model reporting.
+ * Refer to <a href="https://arxiv.org/abs/1810.03993">Model Cards for Model Reporting</a> to read the original paper.
  * <p>
  * At the moment, the ModelCard system only supports models trained within Tribuo and throws an error for
  * all external models.
@@ -64,7 +65,7 @@ public class ModelCard {
     }
 
     /**
-     * Creates an instance of ModelCard.
+     * Creates an instance of ModelCard that does not include any extracted metrics.
      * <p>
      * @param model The trained model for which a model card will be built.
      * @param evaluation An {@link Evaluation} object for the trained model.
@@ -75,7 +76,7 @@ public class ModelCard {
     }
 
     /**
-     * Creates an instance of ModelCard.
+     * Creates an instance of ModelCard that has its {@link UsageDetails} set to null.
      * <p>
      * @param model The trained model for which a model card will be built.
      * @param evaluation An {@link Evaluation} object for the trained model.
@@ -86,7 +87,7 @@ public class ModelCard {
     }
 
     /**
-     * Creates an instance of ModelCard.
+     * Creates an instance of ModelCard that does not include any extracted metrics and has its {@link UsageDetails} set to null.
      * <p>
      * @param model The trained model for which a model card will be built.
      * @param evaluation An {@link Evaluation} object for the trained model.
@@ -162,7 +163,7 @@ public class ModelCard {
     }
 
     /**
-     * Gets the {@link UsageDetails} of the ModelCard object.
+     * Gets the {@link UsageDetails} of the ModelCard object, which may be null.
      * @return The {@link UsageDetails} of the ModelCard object.
      */
     public UsageDetails getUsageDetails() {
