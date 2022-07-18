@@ -15,7 +15,13 @@
  */
 /**
  * ModelCard feature to allow more transparent model reporting.
- * Refer to <a href="https://arxiv.org/abs/1810.03993">Model Cards for Model Reporting</a> to read the original paper.
+ * <p>
+ * See:
+ * <pre>
+ * M. Mitchell et al.
+ * "Model Cards for Model Reporting"
+ * In Conference in Fairness, Accountability, and Transparency, 2019.
+ * </pre>
  * <p>
  * Using the ModelCard package, users can construct a {@link org.tribuo.interop.modelcard.ModelCard} object that partially documents
  * a trained model using Tribuo's built-in provenance. The remainder of the documentation
@@ -25,7 +31,7 @@
  * <p>
  * A serialized ModelCard object with empty strings and lists set as the fields of {@link org.tribuo.interop.modelcard.UsageDetails} may
  * look like the following:
- * <p>
+ * <pre>
  * {
  *   "ModelDetails" : {
  *     "schema-version" : "1.0",
@@ -91,5 +97,6 @@
  *     "model-license" : ""
  *   }
  * }
+ * </pre>
  */
 package org.tribuo.interop.modelcard;
