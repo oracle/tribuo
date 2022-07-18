@@ -16,6 +16,7 @@
 
 package org.tribuo.interop.modelcard;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -27,6 +28,9 @@ import java.util.Objects;
 
 import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
+/**
+ * UsageDetails section of a {@link ModelCard}.
+ */
 public final class UsageDetails {
     public static final String schemaVersion = "1.0";
     private final String intendedUse;
@@ -40,6 +44,19 @@ public final class UsageDetails {
     private final String modelCitation;
     private final String modelLicense;
 
+    /**
+     * Creates an instance of UsageDetails.
+     * @param intendedUse A string specifying the intended use of the trained model.
+     * @param intendedUsers A string specifying the intended users of the trained model.
+     * @param outOfScopeUses The list of out-of-scope uses of the trained model.
+     * @param preProcessingSteps The list of pre-processing steps for the trained model.
+     * @param considerations The list of considerations for the trained model.
+     * @param factors The list of factors to consider for the trained model.
+     * @param resources The list of relevant resources for the trained model.
+     * @param primaryContact A string specifying the primary contact person of the trained model.
+     * @param modelCitation A string specifying the model citation of the trained model.
+     * @param modelLicense A string specifying the model license of the trained model.
+     */
     public UsageDetails(
             String intendedUse,
             String intendedUsers,
@@ -64,6 +81,13 @@ public final class UsageDetails {
         this.modelLicense = modelLicense;
     }
 
+    /**
+     * Creates an instance of UsageDetails.
+     * <p>
+     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     * @param usageDetailsJson The Json content corresponding to a serialized UsageDetails that will be used to
+     * recreate a new instance of a UsageDetails.
+     */
     public UsageDetails(JsonNode usageDetailsJson) {
         intendedUse = usageDetailsJson.get("intended-use").textValue();
         intendedUsers = usageDetailsJson.get("intended-users").textValue();
@@ -93,50 +117,98 @@ public final class UsageDetails {
         modelLicense = usageDetailsJson.get("model-license").textValue();
     }
 
+    /**
+     * Gets the schema version of the UsageDetails object.
+     * @return A string specifying the schema version of the UsageDetails object.
+     */
     public String getSchemaVersion() {
         return schemaVersion;
     }
 
+    /**
+     * Gets the intended use of the UsageDetails object.
+     * @return A string specifying the intended use of the UsageDetails object.
+     */
     public String getIntendedUse() {
         return intendedUse;
     }
 
+    /**
+     * Gets the intended users of the UsageDetails object.
+     * @return A string specifying the intended users of the UsageDetails object.
+     */
     public String getIntendedUsers() {
         return intendedUsers;
     }
 
+    /**
+     * Gets the out-of-scope uses of the UsageDetails object.
+     * @return A list of out-of-scope uses for the UsageDetails object.
+     */
     public List<String> getOutOfScopeUses() {
         return Collections.unmodifiableList(outOfScopeUses);
     }
 
+    /**
+     * Gets the pre-processing steps of the UsageDetails object.
+     * @return A list of pre-processing steps for the UsageDetails object.
+     */
     public List<String> getPreProcessingSteps() {
         return Collections.unmodifiableList(preProcessingSteps);
     }
 
+    /**
+     * Gets the considerations of the UsageDetails object.
+     * @return A list of considerations for the UsageDetails object.
+     */
     public List<String> getConsiderations() {
         return Collections.unmodifiableList(considerations);
     }
 
+    /**
+     * Gets the relevant factors of the UsageDetails object.
+     * @return A list of relevant factors for the UsageDetails object.
+     */
     public List<String> getFactors() {
         return Collections.unmodifiableList(factors);
     }
 
+    /**
+     * Gets the relevant resources of the UsageDetails object.
+     * @return A list of relevant resources for the UsageDetails object.
+     */
     public List<String> getResources() {
         return Collections.unmodifiableList(resources);
     }
 
+    /**
+     * Gets the primary contact person of the UsageDetails object.
+     * @return The primary contact person for the UsageDetails object.
+     */
     public String getPrimaryContact() {
         return primaryContact;
     }
 
+    /**
+     * Gets the model citation of the UsageDetails object.
+     * @return The model citation for the UsageDetails object.
+     */
     public String getModelCitation() {
         return modelCitation;
     }
 
+    /**
+     * Gets the model license of the UsageDetails object.
+     * @return The model license for the UsageDetails object.
+     */
     public String getModelLicense() {
         return modelLicense;
     }
 
+    /**
+     * Creates a Json object corresponding this UsageDetails instance.
+     * @return The {@link ObjectNode} corresponding to this UsageDetails instance.
+     */
     public ObjectNode toJson() {
         ObjectNode usageDetailsObject = mapper.createObjectNode();
         usageDetailsObject.put("schema-version", schemaVersion);

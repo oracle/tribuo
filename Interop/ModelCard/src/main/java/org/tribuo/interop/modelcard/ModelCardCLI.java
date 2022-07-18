@@ -27,8 +27,18 @@ import java.util.List;
 
 import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
+/**
+ * A command line interface for creating and appending UsageDetails to the serialized version of an
+ * existing ModelCard.
+ */
 public class ModelCardCLI implements CommandGroup {
+    /**
+     * The command shell instance.
+     */
     private final CommandInterpreter shell = new CommandInterpreter();
+    /**
+     * The {@link UsageDetailsBuilder} instance.
+     */
     private UsageDetailsBuilder builder = new UsageDetailsBuilder();
     private final List<String> outOfScopeUses = new ArrayList<>();
     private final List<String> preProcessingSteps = new ArrayList<>();
@@ -36,6 +46,9 @@ public class ModelCardCLI implements CommandGroup {
     private final List<String> factors = new ArrayList<>();
     private final List<String> resources = new ArrayList<>();
 
+    /**
+     * Starts the command shell.
+     */
     public void startShell() {
         shell.setPrompt("CLI% ");
         shell.add(this);
@@ -52,6 +65,12 @@ public class ModelCardCLI implements CommandGroup {
         return "CLI for building a UsageDetails for a model card.";
     }
 
+    /**
+     * Records the intended use of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @param use The intended use of model.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Records intended use of model."
     )
@@ -60,6 +79,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Recorded intended use as " + use + ".");
     }
 
+    /**
+     * Records the intended users of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @param users The intended users of model.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Records intended users of model."
     )
@@ -68,6 +93,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Recorded intended users as " + users + ".");
     }
 
+    /**
+     * Adds an out-of-scope use of the model documented by the ModelCard to its list of out-of-scope uses.
+     * @param ci The command shell.
+     * @param use The description of an out-of-scope use of the model.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Adds an out-of-scope use to list of out-of-scope uses."
     )
@@ -76,6 +107,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Added an out-of-scope use to list of out-of-scope uses.");
     }
 
+    /**
+     * Removes an out-of-scope use of the model documented by the ModelCard from its list of out-of-scope uses.
+     * @param ci The command shell.
+     * @param index The index of the out-of-scope use to be removed.
+     * @return A status string.
+     */
     @Command(
             usage = "<int> Remove out-of-scope use at specified index (0-indexed)."
     )
@@ -84,6 +121,11 @@ public class ModelCardCLI implements CommandGroup {
         return("Removed out-of-scope use at specified index.");
     }
 
+    /**
+     * Prints all recorded out-of-scope uses of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(
             usage = "Displays all added out-of-scope uses."
     )
@@ -94,6 +136,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Displayed all added out-of-scope uses.");
     }
 
+    /**
+     * Adds a pre-processing step for the model documented by the ModelCard to its list of pre-processing steps.
+     * @param ci The command shell.
+     * @param step The description of a pre-processing step.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Adds pre-processing step to list of steps."
     )
@@ -102,6 +150,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Added pre-processing step to list of steps.");
     }
 
+    /**
+     * Removes a pre-processing step of the model documented by the ModelCard from its list of pre-processing steps.
+     * @param ci The command shell.
+     * @param index The index of the pre-processing step to be removed.
+     * @return A status string.
+     */
     @Command(
             usage = "<int> Remove pro-processing step at specified index (0-indexed)."
     )
@@ -110,6 +164,11 @@ public class ModelCardCLI implements CommandGroup {
         return("Removed pre-processing step at specified index.");
     }
 
+    /**
+     * Prints all recorded pro-processing of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(
             usage = "Displays all added pre-processing steps."
     )
@@ -120,6 +179,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Displayed all added pre-processing steps.");
     }
 
+    /**
+     * Adds a consideration for the model documented by the ModelCard to its list of considerations.
+     * @param ci The command shell.
+     * @param consideration The description of a consideration.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Adds consideration to list of considerations."
     )
@@ -128,6 +193,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Added consideration to list of considerations.");
     }
 
+    /**
+     * Removes a consideration of the model documented by the ModelCard from its list of considerations.
+     * @param ci The command shell.
+     * @param index The index of the consideration to be removed.
+     * @return A status string.
+     */
     @Command(
             usage = "<int> Remove consideration at specified index (0-indexed)."
     )
@@ -136,6 +207,11 @@ public class ModelCardCLI implements CommandGroup {
         return("Removed consideration at specified index.");
     }
 
+    /**
+     * Prints all recorded considerations of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(
             usage = "Displays all added considerations."
     )
@@ -146,6 +222,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Displayed all added considerations.");
     }
 
+    /**
+     * Adds a factor for the model documented by the ModelCard to its list of factors.
+     * @param ci The command shell.
+     * @param factor The description of a factor.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Adds relevant factor to list of factors."
     )
@@ -154,6 +236,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Added factor to list of factors.");
     }
 
+    /**
+     * Removes a factor of the model documented by the ModelCard from its list of factors.
+     * @param ci The command shell.
+     * @param index The index of the factor to be removed.
+     * @return A status string.
+     */
     @Command(
             usage = "<int> Remove factor at specified index (0-indexed)."
     )
@@ -162,6 +250,11 @@ public class ModelCardCLI implements CommandGroup {
         return("Removed factor at specified index.");
     }
 
+    /**
+     * Prints all recorded factors of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(
             usage = "Displays all added factors."
     )
@@ -172,6 +265,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Displayed all added factors.");
     }
 
+    /**
+     * Adds a resource for the model documented by the ModelCard to its list of resources.
+     * @param ci The command shell.
+     * @param resource The description of a resource.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Adds resource to list of resources."
     )
@@ -180,6 +279,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Added resource to list of resources.");
     }
 
+    /**
+     * Removes a resource of the model documented by the ModelCard from its list of resources.
+     * @param ci The command shell.
+     * @param index The index of the resource to be removed.
+     * @return A status string.
+     */
     @Command(
             usage = "<int> Remove resource at specified index (0-indexed)."
     )
@@ -188,6 +293,11 @@ public class ModelCardCLI implements CommandGroup {
         return("Removed resource at specified index.");
     }
 
+    /**
+     * Prints all recorded resources of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(
             usage = "Displays all added resources."
     )
@@ -198,6 +308,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Displayed all added resources.");
     }
 
+    /**
+     * Records the primary contact person of the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @param contact The primary contact person of the model.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Records primary contact in case of questions or comments."
     )
@@ -206,6 +322,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Recorded primary contact as " + contact + ".");
     }
 
+    /**
+     * Records the citation the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @param citation The citation the model.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Records model's citation."
     )
@@ -214,6 +336,12 @@ public class ModelCardCLI implements CommandGroup {
         return("Recorded model citation as " + citation + ".");
     }
 
+    /**
+     * Records the license the model documented by the ModelCard.
+     * @param ci The command shell.
+     * @param license The license the model.
+     * @return A status string.
+     */
     @Command(
             usage = "<String> Records model's license."
     )
@@ -222,6 +350,10 @@ public class ModelCardCLI implements CommandGroup {
         return("Recorded model license as " + license + ".");
     }
 
+    /**
+     * Creates an instance of {@link UsageDetails} using the fields recorded by the builder.
+     * @return An instance of {@link UsageDetails}.
+     */
     private UsageDetails createUsageDetails() {
         builder.outOfScopeUses(outOfScopeUses);
         builder.preProcessingSteps(preProcessingSteps);
@@ -231,6 +363,17 @@ public class ModelCardCLI implements CommandGroup {
         return builder.build();
     }
 
+    /**
+     * Saves a serialized version of the {@link UsageDetails} created by the builder to the destination file.
+     * <p>
+     * Note that the destination file must already contain a serialized version of a ModelCard.
+     * Throws {@link IOException} if a problem is encountered when reading/writing to file.
+     * Throws {@link IllegalArgumentException} if the serialized ModelCard stored at the destination file already
+     * contains a non-null UsageDetails.
+     * @param destinationFile The Json file path corresponding to a serialized ModelCard to which a serialized
+     * UsageDetails will be appended.
+     * @return A status string.
+     */
     @Command(
             usage = "<filename> Saves UsageDetails to an existing ModelCard file."
     )
@@ -248,6 +391,11 @@ public class ModelCardCLI implements CommandGroup {
         return "Saved UsageDetails to destination file.";
     }
 
+    /**
+     * Creates a new instance of {@link UsageDetailsBuilder} to allow a new {@link UsageDetails} to be written.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(
             usage = "Removes all previously written fields for UsageDetails to write a new UsageDetails."
     )
@@ -261,6 +409,11 @@ public class ModelCardCLI implements CommandGroup {
         return "Started a new UsageDetails.";
     }
 
+    /**
+     * Prints the fields recorded by the user for their {@link UsageDetails} object.
+     * @param ci The command shell.
+     * @return A status string.
+     */
     @Command(
             usage = "Displays current state of UsageDetails."
     )
@@ -270,6 +423,9 @@ public class ModelCardCLI implements CommandGroup {
     }
 
 
+    /**
+     * Closes the command shell
+     */
     @Command(
             usage = "Closes CLI without explicitly saving anything recorded."
     )
@@ -278,6 +434,10 @@ public class ModelCardCLI implements CommandGroup {
         return "Closed ClI.";
     }
 
+    /**
+     * Entry point.
+     * @param args CLI args.
+     */
     public static void main(String[] args) {
         ModelCardCLI driver = new ModelCardCLI();
         driver.startShell();

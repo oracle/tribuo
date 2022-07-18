@@ -28,20 +28,39 @@ import java.util.Objects;
 
 import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
+/**
+ * TestingDetails section of a {@link ModelCard}.
+ */
 public final class TestingDetails {
     private static final String schemaVersion = "1.0";
     private final int testingSetSize;
     private final Map<String, Double> metrics = new HashMap<>();
 
+    /**
+     * Creates an instance of TestingDetails.
+     * @param evaluation The {@link Evaluation} object for which a TestingDetails will be built.
+     * @param testingMetrics The map of metric descriptions and values that will be recorded in the TestingDetails object.
+     */
     public TestingDetails(Evaluation<?> evaluation, Map<String, Double> testingMetrics) {
         testingSetSize = evaluation.getPredictions().size();
         metrics.putAll(testingMetrics);
     }
 
+    /**
+     * Creates an instance of TestingDetails.
+     * @param evaluation The {@link Evaluation} object for which a TestingDetails will be built.
+     */
     public TestingDetails(Evaluation<?> evaluation) {
         this(evaluation, Collections.emptyMap());
     }
 
+    /**
+     * Creates an instance of TestingDetails.
+     * <p>
+     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     * @param testingDetailsJson The Json content corresponding to a serialized TestingDetails that will be used to
+     * recreate a new instance of a TestingDetails.
+     */
     public TestingDetails(JsonNode testingDetailsJson) throws JsonProcessingException {
         testingSetSize = testingDetailsJson.get("testing-set-size").intValue();
         Map<?, ?> parsed = mapper.readValue(testingDetailsJson.get("metrics").toString(), Map.class);
@@ -51,18 +70,34 @@ public final class TestingDetails {
 
     }
 
+    /**
+     * Gets the schema version of the TestingDetails object.
+     * @return A string specifying the schema version of the TestingDetails object.
+     */
     public String getSchemaVersion() {
         return schemaVersion;
     }
 
+    /**
+     * Gets the testing set size of the TestingDetails object.
+     * @return An int specifying the testing set size of the TestingDetails object.
+     */
     public int getTestingSetSize() {
         return testingSetSize;
     }
 
+    /**
+     * Gets the map of metric descriptions and values of the TestingDetails object.
+     * @return An unmodifiable map of the metric descriptions and values of the TestingDetails object.
+     */
     public Map<String, Double> getMetrics() {
         return Collections.unmodifiableMap(metrics);
     }
 
+    /**
+     * Creates a Json object corresponding this TestingDetails instance.
+     * @return The {@link ObjectNode} corresponding to this TestingDetails instance.
+     */
     public ObjectNode toJson() {
         ObjectNode testingDetailsObject = mapper.createObjectNode();
         testingDetailsObject.put("schema-version", schemaVersion);
