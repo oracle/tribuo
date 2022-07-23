@@ -142,4 +142,50 @@ public interface Matrix extends Tensor, Iterable<MatrixTuple> {
      */
     public SGDVector getColumn(int index);
 
+    /**
+     * Interface for matrix factorizations.
+     */
+    public interface Factorization {
+        /**
+         * First dimension of the factorized matrix.
+         * @return First dimension size.
+         */
+        public int dim1();
+
+        /**
+         * Second dimension of the factorized matrix.
+         * @return Second dimension size.
+         */
+        public int dim2();
+
+        /**
+         * Compute the matrix determinant of the factorized matrix.
+         * @return The matrix determinant.
+         */
+        public double determinant();
+
+        /**
+         * Solves a system of linear equations A * b = y, where y is the input vector,
+         * A is the matrix which produced this factorization, and b is the returned value.
+         * @param vector The input vector y.
+         * @return The vector b.
+         */
+        public SGDVector solve(SGDVector vector);
+
+        /**
+         * Solves the system A * X = Y, where Y is the input matrix, and A is the matrix which
+         * produced this factorization.
+         * @param matrix The input matrix Y.
+         * @return The matrix X.
+         */
+        public Matrix solve(Matrix matrix);
+
+        /**
+         * Generates the inverse of the matrix with this factorization.
+         * @return The matrix inverse.
+         */
+        default public Matrix inverse() {
+            return solve(DenseSparseMatrix.createIdentity(dim2()));
+        }
+    }
 }

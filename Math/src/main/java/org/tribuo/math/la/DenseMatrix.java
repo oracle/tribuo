@@ -771,6 +771,9 @@ public class DenseMatrix implements Matrix {
      * @return The row sum.
      */
     public double rowSum(int rowIndex) {
+        if (rowIndex < 0 || rowIndex > dim1) {
+            throw new IllegalArgumentException("Invalid row index, must be [0,"+dim1+"), received " + rowIndex);
+        }
         double sum = 0d;
         for (int i = 0; i < dim2; i++) {
             sum += get(rowIndex,i);
@@ -784,6 +787,9 @@ public class DenseMatrix implements Matrix {
      * @return The column sum.
      */
     public double columnSum(int columnIndex) {
+        if (columnIndex < 0 || columnIndex > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + columnIndex);
+        }
         double sum = 0d;
         for (int i = 0; i < dim1; i++) {
             sum += get(i,columnIndex);
@@ -1380,21 +1386,39 @@ public class DenseMatrix implements Matrix {
      * <p>
      * Mutating the wrapped matrix will cause undefined behaviour in the methods
      * of this class.
+     * <p>
+     * May be refactored into a record in the future.
      */
-    public static final class CholeskyFactorization {
-        /**
-         * The lower triangular factorized matrix.
-         */
-        public final DenseMatrix lMatrix;
+    public static final class CholeskyFactorization implements Matrix.Factorization {
+        private final DenseMatrix lMatrix;
 
         CholeskyFactorization(DenseMatrix lMatrix) {
             this.lMatrix = lMatrix;
         }
 
         /**
+         * The lower triangular factorized matrix.
+         * @return The factorization matrix.
+         */
+        public DenseMatrix lMatrix() {
+            return lMatrix;
+        }
+
+        @Override
+        public int dim1() {
+            return lMatrix.dim1;
+        }
+
+        @Override
+        public int dim2() {
+            return lMatrix.dim2;
+        }
+
+        /**
          * Compute the matrix determinant of the factorized matrix.
          * @return The matrix determinant.
          */
+        @Override
         public double determinant() {
             double det = 0.0;
             for (int i = 0; i < lMatrix.dim1; i++) {
@@ -1409,6 +1433,7 @@ public class DenseMatrix implements Matrix {
          * @param vector The input vector y.
          * @return The vector b.
          */
+        @Override
         public DenseVector solve(SGDVector vector) {
             if (vector.size() != lMatrix.dim1) {
                 throw new IllegalArgumentException("Size mismatch, expected " + lMatrix.dim1 + ", received " + vector.size());
@@ -1443,6 +1468,7 @@ public class DenseMatrix implements Matrix {
          * @param matrix The input matrix B.
          * @return The matrix X.
          */
+        @Override
         public DenseMatrix solve(Matrix matrix) {
             if (matrix.getDimension1Size() != lMatrix.dim1) {
                 throw new IllegalArgumentException("Size mismatch, expected " + lMatrix.dim1 + ", received " + matrix.getDimension1Size());
@@ -1476,14 +1502,6 @@ public class DenseMatrix implements Matrix {
 
             return output;
         }
-
-        /**
-         * Generates the inverse of the matrix with this Cholesky factorization.
-         * @return The matrix inverse.
-         */
-        public DenseMatrix inverse() {
-            return solve(DenseSparseMatrix.createIdentity(lMatrix.dim1));
-        }
     }
 
     /**
@@ -1495,49 +1513,87 @@ public class DenseMatrix implements Matrix {
      * <p>
      * Mutating the wrapped matrices will cause undefined behaviour in the methods
      * of this class.
+     * <p>
+     * May be refactored into a record in the future.
      */
-    public static final class LUFactorization {
-        /**
-         * The lower triangular matrix, with ones on the diagonal.
-         */
-        public final DenseMatrix l;
-        /**
-         * The upper triangular matrix.
-         */
-        public final DenseMatrix u;
-        /**
-         * The row permutations applied to get this factorization.
-         */
-        public final int[] permutationArr;
-        /**
-         * The row permutations stored as a sparse matrix of ones.
-         */
-        public final Matrix permutationMatrix;
-        /**
-         * Is there an odd number of row swaps (used to compute the determinant).
-         */
-        public final boolean oddSwaps;
+    public static final class LUFactorization implements Matrix.Factorization {
+        private final DenseMatrix lower;
+        private final DenseMatrix upper;
+        private final int[] permutationArr;
+        private final Matrix permutationMatrix;
+        private final boolean oddSwaps;
 
-        LUFactorization(DenseMatrix l, DenseMatrix u, int[] permutationArr, boolean oddSwaps) {
-            this.l = l;
-            this.u = u;
+        LUFactorization(DenseMatrix lower, DenseMatrix upper, int[] permutationArr, boolean oddSwaps) {
+            this.lower = lower;
+            this.upper = upper;
             this.permutationArr = permutationArr;
             SparseVector[] vecs = new SparseVector[permutationArr.length];
             for (int i = 0; i < vecs.length; i++) {
-                vecs[i] = new SparseVector(l.dim1,new int[]{permutationArr[i]}, new double[]{1.0});
+                vecs[i] = new SparseVector(lower.dim1,new int[]{permutationArr[i]}, new double[]{1.0});
             }
             this.permutationMatrix = DenseSparseMatrix.createFromSparseVectors(vecs);
             this.oddSwaps = oddSwaps;
         }
 
         /**
+         * The lower triangular matrix, with ones on the diagonal.
+         * @return The lower triangular matrix.
+         */
+        public DenseMatrix lower() {
+            return lower;
+        }
+
+        /**
+         * The upper triangular matrix.
+         * @return The upper triangular matrix.
+         */
+        public DenseMatrix upper() {
+            return upper;
+        }
+
+        /**
+         * The row permutations applied to get this factorization.
+         * @return The permutations.
+         */
+        public int[] permutationArr() {
+            return permutationArr;
+        }
+
+        /**
+         * The row permutations stored as a sparse matrix of ones.
+         * @return A sparse matrix version of the permutations.
+         */
+        public Matrix permutationMatrix() {
+            return permutationMatrix;
+        }
+
+        /**
+         * Is there an odd number of row swaps (used to compute the determinant).
+         * @return True if there is an odd number of swaps.
+         */
+        public boolean oddSwaps() {
+            return oddSwaps;
+        }
+
+        @Override
+        public int dim1() {
+            return permutationArr.length;
+        }
+
+        @Override
+        public int dim2() {
+            return permutationArr.length;
+        }
+
+        /**
          * Compute the matrix determinant of the factorized matrix.
          * @return The matrix determinant.
          */
+        @Override
         public double determinant() {
             double det = 0.0;
-            for (int i = 0; i < u.dim1; i++) {
-                det *= u.values[i][i];
+            for (int i = 0; i < upper.dim1; i++) {
+                det *= upper.values[i][i];
             }
             if (oddSwaps) {
                 return -det;
@@ -1552,9 +1608,10 @@ public class DenseMatrix implements Matrix {
          * @param vector The input vector y.
          * @return The vector b.
          */
+        @Override
         public DenseVector solve(SGDVector vector) {
-            if (vector.size() != l.dim1) {
-                throw new IllegalArgumentException("Size mismatch, expected " + l.dim1 + ", received " + vector.size());
+            if (vector.size() != lower.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lower.dim1 + ", received " + vector.size());
             }
             // Apply permutation to input
             final double[] vectorArr = vector.toArray();
@@ -1564,16 +1621,16 @@ public class DenseMatrix implements Matrix {
 
                 // Solve L * Y = b
                 for (int k = 0; k < i; k++) {
-                    output[i] -= l.values[i][k] * output[k];
+                    output[i] -= lower.values[i][k] * output[k];
                 }
             }
 
             // Solve U * X = Y
             for (int i = permutationArr.length-1; i >= 0; i--) {
                 for (int k = i + 1; k < permutationArr.length; k++) {
-                    output[i] -= u.values[i][k] * output[k];
+                    output[i] -= upper.values[i][k] * output[k];
                 }
-                output[i] /= u.values[i][i];
+                output[i] /= upper.values[i][i];
             }
 
             return new DenseVector(output);
@@ -1585,13 +1642,14 @@ public class DenseMatrix implements Matrix {
          * @param matrix The input matrix Y.
          * @return The matrix X.
          */
+        @Override
         public DenseMatrix solve(Matrix matrix) {
-            if (matrix.getDimension1Size() != l.dim1) {
-                throw new IllegalArgumentException("Size mismatch, expected " + l.dim1 + ", received " + matrix.getDimension1Size());
+            if (matrix.getDimension1Size() != lower.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lower.dim1 + ", received " + matrix.getDimension1Size());
             }
-            final int outputDim1 = l.dim1;
+            final int outputDim1 = lower.dim1;
             final int outputDim2 = matrix.getDimension2Size();
-            final double[][] output = new double[l.dim1][];
+            final double[][] output = new double[lower.dim1][];
 
             // Apply permutation and copy over
             for (int i = 0; i < outputDim1; i++) {
@@ -1605,7 +1663,7 @@ public class DenseMatrix implements Matrix {
             for (int i = 0; i < outputDim1; i++) {
                 for (int j = i + 1; j < outputDim1; j++) {
                     for (int k = 0; k < outputDim2; k++) {
-                        output[j][k] -= output[i][k] * l.values[j][i];
+                        output[j][k] -= output[i][k] * lower.values[j][i];
                     }
                 }
             }
@@ -1614,24 +1672,16 @@ public class DenseMatrix implements Matrix {
             for (int i = outputDim1 - 1; i >= 0; i--) {
                 // scale by diagonal
                 for (int j = 0; j < outputDim2; j++) {
-                    output[i][j] /= u.values[i][i];
+                    output[i][j] /= upper.values[i][i];
                 }
                 for (int j = 0; j < i; j++) {
                     for (int k = 0; k < outputDim2; k++) {
-                        output[j][k] -= output[i][k] * u.values[j][i];
+                        output[j][k] -= output[i][k] * upper.values[j][i];
                     }
                 }
             }
 
             return new DenseMatrix(output);
-        }
-
-        /**
-         * Generates the inverse of the matrix with this LU factorization.
-         * @return The matrix inverse.
-         */
-        public DenseMatrix inverse() {
-            return solve(DenseSparseMatrix.createIdentity(permutationArr.length));
         }
     }
 
@@ -1642,31 +1692,18 @@ public class DenseMatrix implements Matrix {
      * Mutating these fields will cause undefined behaviour.
      * <p>
      * Also has fields representing the tridiagonal form used as an intermediate step in the eigen decomposition.
+     * <p>
+     * May be refactored into a record in the future.
      */
-    public static final class EigenDecomposition {
+    public static final class EigenDecomposition implements Matrix.Factorization {
         // Eigen decomposition fields
-        /**
-         * The vector of eigenvalues, in descending order.
-         */
-        public final DenseVector eigenvalues;
-        /**
-         * The eigenvectors for each eigenvalue, stored in the columns of the matrix.
-         */
-        public final DenseMatrix eigenvectors;
+        private final DenseVector eigenvalues;
+        private final DenseMatrix eigenvectors;
 
         // Tridiagonal form fields
-        /**
-         * The diagonal vector.
-         */
-        public final DenseVector diagonal;
-        /**
-         * The off diagonal vector, with the first element set to zero.
-         */
-        public final DenseVector offDiagonal;
-        /**
-         * The Householder matrix produced during the tridiagonalisation.
-         */
-        public final DenseMatrix householderMatrix;
+        private final DenseVector diagonal;
+        private final DenseVector offDiagonal;
+        private final DenseMatrix householderMatrix;
 
         EigenDecomposition(DenseVector eigenvalues, DenseMatrix eigenvectors, DenseVector diagonal, DenseVector offDiagonal, DenseMatrix householderMatrix) {
             this.eigenvalues = eigenvalues;
@@ -1677,11 +1714,62 @@ public class DenseMatrix implements Matrix {
         }
 
         /**
+         * The vector of eigenvalues, in descending order.
+         * @return The eigenvalues.
+         */
+        public DenseVector eigenvalues() {
+            return eigenvalues;
+        }
+
+        /**
+         * The eigenvectors for each eigenvalue, stored in the columns of the matrix.
+         * @return A matrix containing the eigenvalues as columns.
+         */
+        public DenseMatrix eigenvectors() {
+            return eigenvectors;
+        }
+
+        /**
+         * The diagonal vector of the tridiagonal form.
+         * @return The diagonal vector.
+         */
+        public DenseVector diagonal() {
+            return diagonal;
+        }
+
+        /**
+         * The off diagonal vector, with the first element set to zero.
+         * @return The off diagonal vector.
+         */
+        public DenseVector offDiagonal() {
+            return offDiagonal;
+        }
+
+        /**
+         * The Householder matrix produced during the tridiagonalisation.
+         * @return The Householder matrix.
+         */
+        public DenseMatrix householderMatrix() {
+            return householderMatrix;
+        }
+
+        @Override
+        public int dim1() {
+            return eigenvalues.size();
+        }
+
+        @Override
+        public int dim2() {
+            return eigenvalues.size();
+        }
+
+        /**
          * Computes the determinant of the matrix which was decomposed.
          * <p>
          * This is the product of the eigenvalues.
          * @return The determinant.
          */
+        @Override
         public double determinant() {
             return eigenvalues.reduce(1.0,DoubleUnaryOperator.identity(), (a,b) -> a*b);
         }
@@ -1720,6 +1808,7 @@ public class DenseMatrix implements Matrix {
          * @param vector The input vector y.
          * @return The vector b.
          */
+        @Override
         public DenseVector solve(SGDVector vector) {
             if (vector.size() != eigenvectors.dim1) {
                 throw new IllegalArgumentException("Size mismatch, expected " + eigenvectors.dim1 + ", received " + vector.size());
@@ -1742,6 +1831,7 @@ public class DenseMatrix implements Matrix {
          * @param matrix The input matrix Y.
          * @return The matrix X.
          */
+        @Override
         public DenseMatrix solve(Matrix matrix) {
             if (matrix.getDimension1Size() != eigenvectors.dim1) {
                 throw new IllegalArgumentException("Size mismatch, expected " + eigenvectors.dim1 + ", received " + matrix.getDimension1Size());
@@ -1762,14 +1852,6 @@ public class DenseMatrix implements Matrix {
             }
 
             return new DenseMatrix(output);
-        }
-
-        /**
-         * Generates the inverse of the matrix with this eigen decomposition.
-         * @return The matrix inverse.
-         */
-        public DenseMatrix inverse() {
-            return solve(DenseSparseMatrix.createIdentity(eigenvalues.size()));
         }
     }
 }

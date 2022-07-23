@@ -318,7 +318,7 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
     static Pair<DenseVector,DenseMatrix> ordinaryLeastSquares(DenseMatrix M, DenseVector target) {
         Optional<DenseMatrix.LUFactorization> lu = M.matrixMultiply(M,true,false).luFactorization();
         if (lu.isPresent()) {
-            DenseMatrix inv = lu.get().inverse();
+            DenseMatrix inv = (DenseMatrix) lu.get().inverse();
             return new Pair<>(inv.matrixMultiply(M,false,true).leftMultiply(target),inv);
         } else {
             // Matrix is not invertible, there is nothing we can do

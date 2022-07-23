@@ -102,9 +102,9 @@ public final class MultivariateNormalDistribution {
         if (eigenDecomposition) {
             Optional<DenseMatrix.EigenDecomposition> factorization = this.covariance.eigenDecomposition();
             if (factorization.isPresent() && factorization.get().positiveEigenvalues()) {
-                DenseVector eigenvalues = factorization.get().eigenvalues;
+                DenseVector eigenvalues = factorization.get().eigenvalues();
                 // rows are eigenvectors
-                DenseMatrix eigenvectors = new DenseMatrix(factorization.get().eigenvectors);
+                DenseMatrix eigenvectors = new DenseMatrix(factorization.get().eigenvectors());
                 // scale eigenvectors by sqrt of eigenvalues
                 eigenvalues.foreachInPlace(Math::sqrt);
                 DenseSparseMatrix diagonal = DenseSparseMatrix.createDiagonal(eigenvalues);;
@@ -115,7 +115,7 @@ public final class MultivariateNormalDistribution {
         } else {
             Optional<DenseMatrix.CholeskyFactorization> factorization = this.covariance.choleskyFactorization();
             if (factorization.isPresent()) {
-                this.samplingCovariance = factorization.get().lMatrix;
+                this.samplingCovariance = factorization.get().lMatrix();
             } else {
                 throw new IllegalArgumentException("Covariance matrix is not positive definite.");
             }

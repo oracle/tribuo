@@ -1455,24 +1455,14 @@ public class DenseMatrixTest {
 
         // check pre-computed output
         DenseMatrix.CholeskyFactorization chol = cholOpt.get();
-        assertEquals(generateCholOutput(),chol.lMatrix);
+        assertEquals(generateCholOutput(),chol.lMatrix());
 
         // check factorization
-        Matrix computedSymmetric = chol.lMatrix.matrixMultiply(chol.lMatrix,false,true);
+        Matrix computedSymmetric = chol.lMatrix().matrixMultiply(chol.lMatrix(),false,true);
         assertEquals(symmetric,computedSymmetric);
 
-        // check solve vector method
-        DenseVector y = new DenseVector(new double[]{5, 6, 34});
-        DenseVector b = chol.solve(y);
-        assertEquals(symmetric.rightMultiply(b), y);
-
-        // check inverse method
-        DenseMatrix inv = chol.inverse();
-        double[][] identityArr = identityArr(3);
-        DenseMatrix outputMatrix = symmetric.matrixMultiply(inv);
-        for (int i = 0; i < identityArr.length; i++) {
-            assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), 1e-13);
-        }
+        // test factorization
+        testFactorization(symmetric, chol, 1e-13);
     }
 
     @Test
@@ -1484,27 +1474,17 @@ public class DenseMatrixTest {
 
         // check pre-computed output
         DenseMatrix.LUFactorization output = generateLUOutput();
-        assertEquals(output.l,luOpt.get().l);
-        assertEquals(output.u,luOpt.get().u);
-        assertArrayEquals(output.permutationArr,luOpt.get().permutationArr);
-        assertEquals(output.oddSwaps,luOpt.get().oddSwaps);
+        assertEquals(output.lower(),luOpt.get().lower());
+        assertEquals(output.upper(),luOpt.get().upper());
+        assertArrayEquals(output.permutationArr(),luOpt.get().permutationArr());
+        assertEquals(output.oddSwaps(),luOpt.get().oddSwaps());
 
         // check factorization
-        Matrix computedSymmetric = lu.l.matrixMultiply(lu.u);
-        assertEquals(lu.permutationMatrix.matrixMultiply(symmetric),computedSymmetric);
+        Matrix computedSymmetric = lu.lower().matrixMultiply(lu.upper());
+        assertEquals(lu.permutationMatrix().matrixMultiply(symmetric),computedSymmetric);
 
-        // check solve vector method
-        DenseVector y = new DenseVector(new double[]{5, 6, 34});
-        DenseVector b = lu.solve(y);
-        assertEquals(symmetric.rightMultiply(b), y);
-
-        // check inverse method
-        DenseMatrix inv = lu.inverse();
-        double[][] identityArr = identityArr(3);
-        DenseMatrix outputMatrix = symmetric.matrixMultiply(inv);
-        for (int i = 0; i < identityArr.length; i++) {
-            assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), 1e-13);
-        }
+        // test factorization
+        testFactorization(symmetric, lu, 1e-13);
     }
 
     @Test
@@ -1516,7 +1496,7 @@ public class DenseMatrixTest {
         DenseMatrix.EigenDecomposition eig = eigOpt.get();
 
         // check factorization
-        Matrix computed = eig.eigenvectors.matrixMultiply(DenseSparseMatrix.createDiagonal(eig.eigenvalues)).matrixMultiply(eig.eigenvectors,false,true);
+        Matrix computed = eig.eigenvectors().matrixMultiply(DenseSparseMatrix.createDiagonal(eig.eigenvalues())).matrixMultiply(eig.eigenvectors(),false,true);
         for (int i =0 ; i < symmetric.dim1; i++) {
             assertArrayEquals(symmetric.getRow(i).toArray(), computed.getRow(i).toArray(), 1e-12);
         }
@@ -1524,25 +1504,30 @@ public class DenseMatrixTest {
         // check decomposition
         for (int i = 0; i < symmetric.dim1; i++) {
             // assert A.x = \lambda.x
-            double eigenValue = eig.eigenvalues.get(i);
+            double eigenValue = eig.eigenvalues().get(i);
             DenseVector eigenVector = eig.getEigenVector(i);
             double[] output = symmetric.leftMultiply(eigenVector).toArray();
             double[] expected = eigenVector.scale(eigenValue).toArray();
             assertArrayEquals(expected,output,1e-12);
         }
 
+        // test factorization
+        testFactorization(symmetric, eig, 1e-10);
+    }
+
+    private static void testFactorization(DenseMatrix matrix, Matrix.Factorization factorization, double tolerance) {
         // check solve vector method
         DenseVector y = new DenseVector(new double[]{5, 6, 34});
-        DenseVector b = eig.solve(y);
-        DenseVector output = symmetric.rightMultiply(b);
-        assertArrayEquals(y.toArray(), output.toArray(), 1e-10);
+        SGDVector b = factorization.solve(y);
+        DenseVector output = matrix.rightMultiply(b);
+        assertArrayEquals(y.toArray(), output.toArray(), tolerance);
 
         // check inverse method
-        DenseMatrix inv = eig.inverse();
+        Matrix inv = factorization.inverse();
         double[][] identityArr = identityArr(3);
-        DenseMatrix outputMatrix = symmetric.matrixMultiply(inv);
+        DenseMatrix outputMatrix = matrix.matrixMultiply(inv);
         for (int i = 0; i < identityArr.length; i++) {
-            assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), 1e-12);
+            assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), tolerance);
         }
     }
 }

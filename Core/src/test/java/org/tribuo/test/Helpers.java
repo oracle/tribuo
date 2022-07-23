@@ -186,6 +186,16 @@ public final class Helpers {
         }
     }
 
+    /**
+     * Compares two top feature lists according to the specified tolerances returning true when the lists have the
+     * same elements and the difference between the scores is within the tolerance.
+     * <p>
+     * Mostly used when refactoring implementations to compare the new and old one.
+     * @param first The first feature list.
+     * @param second The second feature list.
+     * @param tolerance The tolerance for the scores.
+     * @return True if the feature lists are equal.
+     */
     public static boolean topFeaturesEqual(Map<String, List<Pair<String,Double>>> first, Map<String, List<Pair<String,Double>>> second, double tolerance)  {
         if (first.size() == second.size() && first.keySet().containsAll(second.keySet())) {
             // keys the same, now check lists
