@@ -1451,6 +1451,7 @@ public class DenseMatrixTest {
     @Test
     public void choleskyTest() {
         DenseMatrix symmetric = generateSymmetric();
+        assertTrue(symmetric.isSymmetric());
         Optional<DenseMatrix.CholeskyFactorization> cholOpt = symmetric.choleskyFactorization();
         assertTrue(cholOpt.isPresent());
 
@@ -1470,6 +1471,7 @@ public class DenseMatrixTest {
     @Test
     public void choleskyTest2() {
         DenseMatrix a = generateCholeskyTestMatrix();
+        assertTrue(a.isSymmetric());
         Optional<DenseMatrix.CholeskyFactorization> cholOpt = a.choleskyFactorization();
         assertTrue(cholOpt.isPresent());
 
@@ -1480,26 +1482,31 @@ public class DenseMatrixTest {
         // check factorization
         assertEquals(a,c.matrixMultiply(c,false,true));
 
-        a = generateSymmetricRandom(5, new Random(42));
+        a = generateSymmetricPositiveDefinite(5, new Random(1234));
+        assertTrue(a.isSymmetric());
+        assertTrue(a.isSquare());
         c = a.choleskyFactorization().get().lMatrix();
         assertEquals(a, c.matrixMultiply(c, false, true));
 
-        a = generateSymmetricRandom(20, new Random(42));
+        a = generateSymmetricPositiveDefinite(20, new Random(42));
+        assertTrue(a.isSymmetric());
         c = a.choleskyFactorization().get().lMatrix();
         assertEquals(a, c.matrixMultiply(c, false, true));
 
     }
 
-    public static DenseMatrix generateSymmetricRandom(int n, Random rng) {
+
+    //another library used this trick to make sure the matrix is positive definite
+    public static DenseMatrix generateSymmetricPositiveDefinite(int n, Random rng) {
         double[][] values = new double[n][n];
         for(int i=0; i<n; i++) {
-            for(int j=i; j<n; j++) {
-                double value = rng.nextDouble();
-                values[i][j] = value;
-                values[j][i] = value;
+            for(int j=0; j<n; j++) {
+                values[i][j] = rng.nextDouble();
             }
+            values[i][i] = 20*(0.1+values[i][i]);
         }
-        return new DenseMatrix(values);
+        DenseMatrix m = new DenseMatrix(values);
+        return m.matrixMultiply(m, true, false);
     }
 
     public static DenseMatrix generateSquareRandom(int n, Random rng) {
@@ -1563,6 +1570,7 @@ public class DenseMatrixTest {
 
         //lets try a couple of non-symmetrical matrices
         DenseMatrix a = generateSquareRandom(10, new Random(42));
+        assertFalse(a.isSymmetric());
         luOpt = a.luFactorization();
         assertTrue(luOpt.isPresent());
         lu = luOpt.get();
@@ -1571,6 +1579,7 @@ public class DenseMatrixTest {
         assertEquals(lu.permutationMatrix().matrixMultiply(a),computed);
 
         a = generateSquareRandom(20, new Random(42));
+        assertFalse(a.isSymmetric());
         luOpt = a.luFactorization();
         assertTrue(luOpt.isPresent());
         lu = luOpt.get();
