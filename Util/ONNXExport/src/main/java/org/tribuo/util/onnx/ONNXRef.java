@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 /**
  * An abstract reference that represents both a node in an ONNX computation graph and a container for a specific ONNX
  * proto object that denotes that node. In its role as the former it provides a fluent interface for applying
- * {@link ONNXOperators} to {@link ONNXRef} instances. ONNXRef instances are ultimately created by an {@link ONNXContext}
+ * {@link ONNXOperator}s to {@link ONNXRef} instances. ONNXRef instances are ultimately created by an {@link ONNXContext}
  * instance, and ONNXRefs created by different instances of ONNXContext are incompatible. All ONNX proto objects
  * produced by calling {@code apply} methods on ONNXRefs are added to a {@link ai.onnx.proto.OnnxMl.GraphProto} field
  * in their governing ONNXContext. Instances of ONNXRef have a backreference to the ONNXContext that created them and
@@ -79,16 +79,16 @@ public abstract class ONNXRef<T extends GeneratedMessageV3> {
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, List, Map)}, using this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, List, Map)}, using this ONNXRef
      * as the first argument to {@code inputs}, with {@code otherInputs} append as subsequent arguments. The other
      * arguments behave as in the analogous method on ONNXContext.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param otherInputs A list of {@link ONNXRef}s created by this instance of ONNXContext.
      * @param outputs A list of names that the output nodes of {@code op} should take.
-     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperators#build(ONNXContext, String, String, Map)}.
+     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperator#build(ONNXContext, String, String, Map)}.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public List<ONNXNode> apply(ONNXOperators op, List<ONNXRef<?>> otherInputs, List<String> outputs, Map<String, Object> attributes) {
+    public List<ONNXNode> apply(ONNXOperator op, List<ONNXRef<?>> otherInputs, List<String> outputs, Map<String, Object> attributes) {
         List<ONNXRef<?>> allInputs = new ArrayList<>();
         allInputs.add(this);
         allInputs.addAll(otherInputs);
@@ -96,109 +96,109 @@ public abstract class ONNXRef<T extends GeneratedMessageV3> {
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, List, Map)}, using this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, List, Map)}, using this ONNXRef
      * as the argument to {@code inputs}. The other arguments behave as in the analogous method on ONNXContext.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param outputs A list of names that the output nodes of {@code op} should take.
-     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperators#build(ONNXContext, String, String, Map)}.
+     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperator#build(ONNXContext, String, String, Map)}.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public List<ONNXNode> apply(ONNXOperators op, List<String> outputs, Map<String, Object> attributes) {
+    public List<ONNXNode> apply(ONNXOperator op, List<String> outputs, Map<String, Object> attributes) {
         return context.operation(op, Collections.singletonList(this), outputs, attributes);
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String)}, using this ONNXRef
-     * as the argument to {@code inputs}. Output names are generated based on the {@link ONNXOperators#opName} and the
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String)}, using this ONNXRef
+     * as the argument to {@code inputs}. Output names are generated based on the {@link ONNXOperator#getOpName} and the
      * name of the input nodes.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op) {
-        return context.operation(op, Collections.singletonList(this), getBaseName() + "_" + op.opName, Collections.emptyMap());
+    public ONNXNode apply(ONNXOperator op) {
+        return context.operation(op, Collections.singletonList(this), getBaseName() + "_" + op.getOpName(), Collections.emptyMap());
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String)}, using this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String)}, using this ONNXRef
      * as the argument to {@code inputs}.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param outputName A name that the output node of {@code op} will take.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op, String outputName) {
+    public ONNXNode apply(ONNXOperator op, String outputName) {
         return context.operation(op, Collections.singletonList(this), outputName, Collections.emptyMap());
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String, Map)}, using this ONNXRef
-     * as the argument to {@code inputs}. Output names are generated based on the {@link ONNXOperators#opName} and the
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String, Map)}, using this ONNXRef
+     * as the argument to {@code inputs}. Output names are generated based on the {@link ONNXOperator#getOpName} and the
      * name of the input nodes.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
-     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperators#build(ONNXContext, String, String, Map)}.
+     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperator#build(ONNXContext, String, String, Map)}.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op, Map<String, Object> attributes) {
-        return context.operation(op, Collections.singletonList(this), getBaseName() + "_" + op.opName, attributes);
+    public ONNXNode apply(ONNXOperator op, Map<String, Object> attributes) {
+        return context.operation(op, Collections.singletonList(this), getBaseName() + "_" + op.getOpName(), attributes);
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String, Map)}, passing this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String, Map)}, passing this ONNXRef
      * and {@code other} as a length 2 list to {@code inputs}. The other arguments behave as in the analogous method on
-     * ONNXContext. Output names are generated based on the {@link ONNXOperators#opName} and the name of the input nodes.
+     * ONNXContext. Output names are generated based on the {@link ONNXOperator#getOpName} and the name of the input nodes.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param other A second input argument to {@code op}
-     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperators#build(ONNXContext, String, String, Map)}.
+     * @param attributes A map of attributes of the operation, passed to {@link ONNXOperator#build(ONNXContext, String, String, Map)}.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op, ONNXRef<?> other, Map<String, Object> attributes) {
-        return context.operation(op, Arrays.asList(this, other), getBaseName() + "_" + op.opName + "_" + other.getBaseName(), attributes);
+    public ONNXNode apply(ONNXOperator op, ONNXRef<?> other, Map<String, Object> attributes) {
+        return context.operation(op, Arrays.asList(this, other), getBaseName() + "_" + op.getOpName() + "_" + other.getBaseName(), attributes);
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String)}, passing this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String)}, passing this ONNXRef
      * and {@code other} as a length 2 list to {@code inputs}.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param other A second input argument to {@code op}
      * @param outputName A name that the output node of {@code op} will take.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op, ONNXRef<?> other, String outputName) {
+    public ONNXNode apply(ONNXOperator op, ONNXRef<?> other, String outputName) {
         return context.operation(op, Arrays.asList(this, other), outputName, Collections.emptyMap());
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String, Map)}, passing this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String, Map)}, passing this ONNXRef
      * and {@code other} as a length 2 list to {@code inputs}. Output names are generated based on the
-     * {@link ONNXOperators#opName} and the name of the input nodes.
+     * {@link ONNXOperator#getOpName} and the name of the input nodes.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param other A second input argument to {@code op}
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op, ONNXRef<?> other) {
-        return context.operation(op, Arrays.asList(this, other), getBaseName() + "_" + op.opName + "_" + other.getBaseName(), Collections.emptyMap());
+    public ONNXNode apply(ONNXOperator op, ONNXRef<?> other) {
+        return context.operation(op, Arrays.asList(this, other), getBaseName() + "_" + op.getOpName() + "_" + other.getBaseName(), Collections.emptyMap());
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String, Map)}, using this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String, Map)}, using this ONNXRef
      * as the first argument to {@code inputs}, with {@code otherInputs} append as subsequent arguments. Output names
-     * are generated based on the {@link ONNXOperators#opName} and the name of the input nodes.
+     * are generated based on the {@link ONNXOperator#getOpName} and the name of the input nodes.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param others List of ONNXRefs supplied as inputs to {@code op} after this ONNXRef.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op, List<ONNXRef<?>> others) {
+    public ONNXNode apply(ONNXOperator op, List<ONNXRef<?>> others) {
         return apply(op, others, Collections.singletonList(getBaseName() + "_" + others.stream().map(ONNXRef::getBaseName).collect(Collectors.joining("_"))), Collections.emptyMap()).get(0);
     }
 
     /**
-     * Convenience method that calls {@link ONNXContext#operation(ONNXOperators, List, String, Map)}, using this ONNXRef
+     * Convenience method that calls {@link ONNXContext#operation(ONNXOperator, List, String, Map)}, using this ONNXRef
      * as the argument to {@code inputs}, with {@code otherInputs} append as subsequent arguments.
      * @param op An ONNXOperator to add to the graph, taking {@code inputs} as input.
      * @param others List of ONNXRefs supplied as inputs to {@code op} after this ONNXRef.
      * @param outputName The name for the constructed node.
      * @return a list of {@link ONNXNode}s that are the output nodes of {@code op}.
      */
-    public ONNXNode apply(ONNXOperators op, List<ONNXRef<?>> others, String outputName) {
+    public ONNXNode apply(ONNXOperator op, List<ONNXRef<?>> others, String outputName) {
         return apply(op, others, Collections.singletonList(outputName), Collections.emptyMap()).get(0);
     }
 

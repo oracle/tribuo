@@ -29,9 +29,11 @@ import java.util.Set;
 import static org.tribuo.util.onnx.ONNXAttribute.VARIADIC_INPUT;
 
 /**
- * The supported ONNX operators.
+ * ONNX Opset 13, and ONNX-ML version 1.
+ * <p>
+ * In a future version of Tribuo this class will be split into two enums, one for ONNX opset 13 and one for ONNX-ML v1.
  */
-public enum ONNXOperators {
+public enum ONNXOperators implements ONNXOperator {
     /**
      * Identity.
      */
@@ -408,141 +410,44 @@ public enum ONNXOperators {
         this.domain = domain;
     }
 
-    /**
-     * Builds this node based on the supplied inputs and output.
-     * Throws {@link IllegalArgumentException} if this operator takes more than a single input or output.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param input The name of the input.
-     * @param output The name of the output.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String input, String output) {
-        return build(context,new String[]{input},new String[]{output},Collections.emptyMap());
+    @Override
+    public String getOpName() {
+        return opName;
     }
 
-    /**
-     * Builds this node based on the supplied inputs and output.
-     * Throws {@link IllegalArgumentException} if this operator takes more than a single input or output.
-     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param input The names of the input.
-     * @param output The name of the output.
-     * @param attributeValues The attribute names and values.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String input, String output, Map<String,Object> attributeValues) {
-        return build(context,new String[]{input},new String[]{output},attributeValues);
+    @Override
+    public int getNumInputs() {
+        return numInputs;
     }
 
-    /**
-     * Builds this node based on the supplied inputs and output.
-     * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param inputs The names of the inputs.
-     * @param output The name of the output.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String output) {
-        return build(context,inputs,new String[]{output},Collections.emptyMap());
+    @Override
+    public int getNumOptionalInputs() {
+        return numOptionalInputs;
     }
 
-    /**
-     * Builds this node based on the supplied inputs and output.
-     * Throws {@link IllegalArgumentException} if the number of inputs, outputs or attributes is wrong.
-     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param inputs The names of the inputs.
-     * @param output The name of the output.
-     * @param attributeValues The attribute names and values.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String output, Map<String,Object> attributeValues) {
-        return build(context,inputs,new String[]{output},attributeValues);
+    @Override
+    public int getNumOutputs() {
+        return numOutputs;
     }
 
-    /**
-     * Builds this node based on the supplied input and outputs.
-     * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param input The name of the input.
-     * @param outputs The names of the outputs.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String input, String[] outputs) {
-        return build(context,new String[]{input},outputs,Collections.emptyMap());
+    @Override
+    public Map<String,ONNXAttribute> getAttributes() {
+        return attributes;
     }
 
-    /**
-     * Builds this node based on the supplied input and outputs.
-     * Throws {@link IllegalArgumentException} if the number of inputs, outputs or attributes is wrong.
-     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param input The name of the input.
-     * @param outputs The names of the outputs.
-     * @param attributeValues The attribute names and values.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String input, String[] outputs, Map<String,Object> attributeValues) {
-        return build(context,new String[]{input},outputs,attributeValues);
+    @Override
+    public Set<String> getMandatoryAttributeNames() {
+        return mandatoryAttributeNames;
     }
 
-    /**
-     * Builds this node based on the supplied inputs and outputs.
-     * Throws {@link IllegalArgumentException} if the number of inputs or outputs is wrong.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param inputs The names of the inputs.
-     * @param outputs The names of the outputs.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String[] outputs) {
-        return build(context,inputs,outputs,Collections.emptyMap());
+    @Override
+    public int getOpVersion() {
+        return getOpsetVersion();
     }
 
-    /**
-     * Builds this node based on the supplied inputs and outputs.
-     * Throws {@link IllegalArgumentException} if the number of inputs, outputs or attributes is wrong.
-     * May throw {@link UnsupportedOperationException} if the attribute type is not supported.
-     * @param context The onnx context used to ensure this node has a unique name.
-     * @param inputs The names of the inputs.
-     * @param outputs The names of the outputs.
-     * @param attributeValues The attribute names and values.
-     * @return The NodeProto.
-     */
-    public OnnxMl.NodeProto build(ONNXContext context, String[] inputs, String[] outputs, Map<String,Object> attributeValues) {
-        if ((numInputs != VARIADIC_INPUT) && ((inputs.length < numInputs) || (inputs.length > numInputs + numOptionalInputs))) {
-            throw new IllegalArgumentException("Expected " + numInputs + " inputs, with " + numOptionalInputs + " optional inputs, but received " + inputs.length);
-        } else if ((numInputs == VARIADIC_INPUT) && (inputs.length == 0)) {
-            throw new IllegalArgumentException("Expected at least one input for variadic input, received zero");
-        }
-        if (outputs.length != numOutputs) {
-            throw new IllegalArgumentException("Expected " + numOutputs + " outputs, but received " + outputs.length);
-        }
-        if (attributeValues.size() > attributes.size()) {
-            throw new IllegalArgumentException("Found more attributes than expected, received " + attributeValues.size() + ", expected at most " + attributes.size());
-        }
-        if (!attributes.keySet().containsAll(attributeValues.keySet())) {
-            throw new IllegalArgumentException("Unexpected attribute found, received " + attributeValues.keySet() + ", expected values from " + attributes.keySet());
-        }
-        if (!attributeValues.keySet().containsAll(mandatoryAttributeNames)) {
-            throw new IllegalArgumentException("Expected to find all mandatory attributes, received " + attributeValues.keySet() + ", expected " + mandatoryAttributeNames);
-        }
-        OnnxMl.NodeProto.Builder nodeBuilder = OnnxMl.NodeProto.newBuilder();
-        for (String i : inputs) {
-            nodeBuilder.addInput(i);
-        }
-        for (String o : outputs) {
-            nodeBuilder.addOutput(o);
-        }
-        nodeBuilder.setName(context.generateUniqueName(opName));
-        nodeBuilder.setOpType(opName);
-        if (domain != null) {
-            nodeBuilder.setDomain(domain);
-        }
-        for (Map.Entry<String,Object> e : attributeValues.entrySet()) {
-            ONNXAttribute attr = attributes.get(e.getKey());
-            nodeBuilder.addAttribute(attr.build(e.getValue()));
-        }
-        return nodeBuilder.build();
+    @Override
+    public String getOpDomain() {
+        return domain;
     }
 
     /**

@@ -223,7 +223,6 @@ public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDMo
         // Make feature pow
         ONNXNode inputSquared = input.apply(ONNXOperators.POW, twoConst);
 
-
         List<ONNXNode> embeddingOutputs = new ArrayList<>();
         for(int i = 0; i < outputIDInfo.size(); i++) {
 
