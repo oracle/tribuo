@@ -19,6 +19,7 @@ package org.tribuo.math.la;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1475,6 +1476,80 @@ public class DenseMatrixTest {
         }
     }
 
+    
+    @Test
+    public void choleskyTest2() {
+        DenseMatrix a = generateCholeskyTestMatrix();
+        Optional<DenseMatrix.CholeskyFactorization> cholOpt = a.choleskyFactorization();
+        assertTrue(cholOpt.isPresent());
+
+        DenseMatrix c = cholOpt.get().lMatrix;
+        
+        assertEquals(generateCholeskyTestMatrixOutput(),c);
+
+        // check factorization
+        assertEquals(a,c.matrixMultiply(c,false,true));
+
+        a = generateSymmetricRandom(5, new Random(42));
+        c = a.choleskyFactorization().get().lMatrix;
+        assertEquals(a, c.matrixMultiply(c, false, true));
+
+        a = generateSymmetricRandom(20, new Random(42));
+        c = a.choleskyFactorization().get().lMatrix;
+        assertEquals(a, c.matrixMultiply(c, false, true));
+
+    }
+
+    public static DenseMatrix generateSymmetricRandom(int n, Random rng) {
+        double[][] values = new double[n][n];
+        for(int i=0; i<n; i++) {
+            for(int j=i; j<n; j++) {
+                double value = rng.nextDouble();
+                values[i][j] = value;
+                values[j][i] = value;
+            }
+        }
+        return new DenseMatrix(values);
+    }
+
+    public static DenseMatrix generateSquareRandom(int n, Random rng) {
+        double[][] values = new double[n][n];
+        for(int i=0; i<n; i++) {
+            for(int j=0; j<n; j++) {
+                values[i][j] = rng.nextDouble();
+            }
+        }
+        return new DenseMatrix(values);
+    }
+
+    public static DenseMatrix generateCholeskyTestMatrix() {
+        double[][] values = new double[3][3];
+        values[0][0] = 8;
+        values[0][1] = 2;
+        values[0][2] = 3;
+        values[1][0] = 2;
+        values[1][1] = 9;
+        values[1][2] = 3;
+        values[2][0] = 3;
+        values[2][1] = 3;
+        values[2][2] = 6;
+        return new DenseMatrix(values);
+    }
+
+    public static DenseMatrix generateCholeskyTestMatrixOutput() {
+        double[][] values = new double[3][3];
+        values[0][0] = 2.828427124746190;
+        values[0][1] = 0;
+        values[0][2] = 0;
+        values[1][0] = 0.707106781186548;
+        values[1][1] = 2.915475947422650;
+        values[1][2] = 0;
+        values[2][0] = 1.060660171779821;
+        values[2][1] = 0.771743633141290;
+        values[2][2] = 2.068673914541845;
+        return new DenseMatrix(values);
+    }
+
     @Test
     public void luTest() {
         DenseMatrix symmetric = generateSymmetric();
@@ -1505,6 +1580,34 @@ public class DenseMatrixTest {
         for (int i = 0; i < identityArr.length; i++) {
             assertArrayEquals(identityArr[i], outputMatrix.getRow(i).toArray(), 1e-13);
         }
+
+        //lets try a couple of non-symmetrical matrices
+        DenseMatrix a = generateSquareRandom(10, new Random(42));
+        luOpt = a.luFactorization();
+        assertTrue(luOpt.isPresent());
+        lu = luOpt.get();
+        lu = a.luFactorization().get();
+        Matrix computed = lu.l.matrixMultiply(lu.u);
+        assertEquals(lu.permutationMatrix.matrixMultiply(a),computed);
+
+        a = generateSquareRandom(20, new Random(42));
+        luOpt = a.luFactorization();
+        assertTrue(luOpt.isPresent());
+        lu = luOpt.get();
+        lu = a.luFactorization().get();
+        computed = lu.l.matrixMultiply(lu.u);
+        assertEquals(lu.permutationMatrix.matrixMultiply(a),computed);
+
+        //an example computed with another library
+        a = new DenseMatrix(new double[][] {new double[] {0.44670904, 0.44742455, 0.45204733},
+                                            new double[] {0.71710816, 0.14136726, 0.18301841},
+                                            new double[] {0.40983909, 0.07235836, 0.95855327}});
+        b = new DenseVector(new double[] {0.63392567, 0.93362273, 0.86074978});
+        DenseMatrix.LUFactorization lu_a = a.luFactorization().get();
+        DenseVector x2 = lu_a.solve(b);
+        assertEquals(new DenseVector(new double[] {1.2466263014829564,-0.2127572718468386,0.38102040828578143}), x2);
+        
+        
     }
 
     @Test
