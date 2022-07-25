@@ -21,6 +21,7 @@ import ai.onnx.proto.OnnxMl;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import static org.tribuo.util.onnx.ONNXAttribute.VARIADIC_INPUT;
 
@@ -190,23 +191,24 @@ public interface ONNXOperator {
         Map<String, ONNXAttribute> attributes = getAttributes();
         Set<String> mandatoryAttributeNames = getMandatoryAttributeNames();
 
+        String opStatus = String.format("Building op %s:%s(%d(+%d)) -> %d", domain, opName, numInputs, numOptionalInputs, numOutputs);
+
         if ((numInputs != VARIADIC_INPUT) && ((inputs.length < numInputs) || (inputs.length > numInputs + numOptionalInputs))) {
-            throw new IllegalArgumentException("Expected " + numInputs + " inputs, with " + numOptionalInputs + " optional inputs, but received " + inputs.length);
+            throw new IllegalArgumentException(opStatus + ". Expected " + numInputs + " inputs, with " + numOptionalInputs + " optional inputs, but received " + inputs.length);
         } else if ((numInputs == VARIADIC_INPUT) && (inputs.length == 0)) {
-            throw new IllegalArgumentException("Expected at least one input for variadic input, received zero");
+            throw new IllegalArgumentException(opStatus + ". Expected at least one input for variadic input, received zero");
         }
         if (outputs.length != numOutputs) {
-            throw new IllegalArgumentException("Expected " + numOutputs + " outputs, but received " + outputs.length);
-        }
-        if (attributeValues.size() > attributes.size()) {
-            throw new IllegalArgumentException("Found more attributes than expected, received " + attributeValues.size() + ", expected at most " + attributes.size());
+            throw new IllegalArgumentException(opStatus + ". Expected " + numOutputs + " outputs, but received " + outputs.length);
         }
         if (!attributes.keySet().containsAll(attributeValues.keySet())) {
-            throw new IllegalArgumentException("Unexpected attribute found, received " + attributeValues.keySet() + ", expected values from " + attributes.keySet());
+            throw new IllegalArgumentException(opStatus + ". Unexpected attribute found, received " + attributeValues.keySet() + ", expected values from " + attributes.keySet());
         }
         if (!attributeValues.keySet().containsAll(mandatoryAttributeNames)) {
-            throw new IllegalArgumentException("Expected to find all mandatory attributes, received " + attributeValues.keySet() + ", expected " + mandatoryAttributeNames);
+            throw new IllegalArgumentException(opStatus + ". Expected to find all mandatory attributes, received " + attributeValues.keySet() + ", expected " + mandatoryAttributeNames);
         }
+
+        Logger.getLogger("org.tribuo.util.onnx.ONNXOperator").fine(opStatus);
         OnnxMl.NodeProto.Builder nodeBuilder = OnnxMl.NodeProto.newBuilder();
         for (String i : inputs) {
             nodeBuilder.addInput(i);
