@@ -16,6 +16,7 @@
 
 package org.tribuo;
 
+import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.provenance.FeatureSetProvenance;
 
 import java.util.Collections;
@@ -26,7 +27,7 @@ import java.util.List;
  * <p>
  * Uses record style accessors as it may be refactored into a record one day.
  */
-public final class SelectedFeatureSet {
+public final class SelectedFeatureSet implements Provenancable<FeatureSetProvenance> {
 
     private final List<String> featureNames;
 
@@ -73,6 +74,11 @@ public final class SelectedFeatureSet {
      * @return The feature set provenance.
      */
     public FeatureSetProvenance provenance() {
+        return provenance;
+    }
+
+    @Override
+    public FeatureSetProvenance getProvenance() {
         return provenance;
     }
 
