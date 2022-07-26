@@ -23,3 +23,4 @@ The tutorials cover:
 - [Training and deploying TensorFlow models](tensorflow-tribuo-v4.ipynb)
 - [ONNX export and deployment](onnx-export-tribuo-v4.ipynb)
 - [Model reproducibility](reproducibility-tribuo-v4.ipynb)
+- [Documenting Tribuo Models with Model Cards](modelcard-tribuo-v4.ipynb)

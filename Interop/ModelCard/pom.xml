@@ -147,7 +147,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>org.tribuo.modelcard</Automatic-Module-Name>
+                            <Automatic-Module-Name>org.tribuo.interop.modelcard</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
