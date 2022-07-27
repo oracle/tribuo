@@ -13,30 +13,7 @@ def printMatrixAsJavaDoubles(nda: ndarray):
 '''
 This code can be useful to generate expected values for generating expected values for eigendecomposition. Here are the steps:
 1) Generate a DenseMatrix using whatever method/mechanism you choose
-2) Print out the DenseMatrix using the method printMatrixPythonFriendly as defined below:
-
-    public String printMatrixPythonFriendly() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("[");
-        for (int i = 0; i < this.dim1; i++) {
-            sb.append("[");
-            for (int j = 0; j < this.dim2; j++) {
-                if (this.get(i, j) < 0.0) {
-                    sb.append(String.format("%.15f", this.get(i, j)));
-                } else {
-                    sb.append(String.format(" %.15f", this.get(i, j)));
-                }
-                sb.append(",");
-            }
-            sb.deleteCharAt(sb.length() - 1);
-            sb.append("],\n");
-        }
-        sb.deleteCharAt(sb.length() - 1);
-        sb.deleteCharAt(sb.length() - 1);
-        sb.append("]");
-        return sb.toString();
-    }
-
+2) Print out the DenseMatrix using org.tribuo.math.la.DenseMatrixTest.printMatrixPythonFriendly(DenseMatrix)
 3) The above will print out a python-friendly matrix defined as arrays which you can paste into the code below.
 4) Run the code below.  It will print out Java-friendly eigenvalues and eigenvectors which you can use in your unit test.
 '''
