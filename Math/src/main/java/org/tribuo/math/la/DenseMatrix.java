@@ -1254,6 +1254,28 @@ public class DenseMatrix implements Matrix {
         return buffer.toString();
     }
 
+    public String printMatrixPythonFriendly() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < this.dim1; i++) {
+            sb.append("[");
+            for (int j = 0; j < this.dim2; j++) {
+                if (this.get(i, j) < 0.0) {
+                    sb.append(String.format("%.15f", this.get(i, j)));
+                } else {
+                    sb.append(String.format(" %.15f", this.get(i, j)));
+                }
+                sb.append(",");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            sb.append("],\n");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append("]");
+        return sb.toString();
+    }
+
     @Override
     public MatrixIterator iterator() {
         return new DenseMatrixIterator(this);
