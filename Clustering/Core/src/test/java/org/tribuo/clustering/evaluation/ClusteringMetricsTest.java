@@ -11,6 +11,18 @@ import org.tribuo.util.infotheory.InformationTheory;
 
 public class ClusteringMetricsTest {
 
+    /*
+     * import numpy as np
+     * from sklearn.metrics import adjusted_mutual_info_score
+     * score = adjusted_mutual_info_score([0,0,1,1], [1,0,1,1])
+     *
+     * a = np.random.randint(0,2,500)
+     * #see printArrayAsJavaDoubles in /tribuo-math/src/test/resources/eigendecomposition-test.py
+     * print(printArrayAsJavaDoubles(a))
+     * b = np.random.randint(0,2,500)
+     * print(printArrayAsJavaDoubles(b))
+     * score = adjusted_mutual_info_score(a, b)
+     */
     @Test
     void testAdjustedMI() throws Exception {
         double logBase = InformationTheory.LOG_BASE; 
