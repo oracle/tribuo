@@ -26,6 +26,8 @@ import org.tribuo.provenance.FeatureSelectorProvenance;
  */
 public interface FeatureSelector<T extends Output<T>> extends Configurable, Provenancable<FeatureSelectorProvenance> {
 
+    public static final int SELECT_ALL = -1;
+
     /**
      * Does this feature selection algorithm return an ordered feature set?
      * @return True if the set is ordered.
