@@ -75,19 +75,17 @@ public enum ClusteringMetrics {
         double trueEntropy = InformationTheory.entropy(trueIDs);
         double expectedMI = InformationTheory.expectedMI(trueIDs, predictedIDs);
 
-//        double minEntropy = Math.min(predEntropy, trueEntropy);
-//        return (mi - expectedMI) / (minEntropy - expectedMI);
-
-        double normalizer = (trueEntropy + predEntropy) / 2;
-        double denominator = normalizer - expectedMI;
-
+        double minEntropy = Math.min(predEntropy, trueEntropy);
+        double denominator = minEntropy - expectedMI;
+        
         if(denominator < 0) {
             denominator = Math.min(denominator, -2.220446049250313e-16);
         }else {
             denominator = Math.max(denominator, 2.220446049250313e-16);
         }
 
-        return (mi - expectedMI) / denominator;
+
+        return (mi - expectedMI) / (denominator);
     }
 
     /**
