@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.tribuo.util.infotheory;
 
 import org.junit.jupiter.api.Test;
@@ -5,7 +21,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import static org.tribuo.util.infotheory.Gamma.gamma;
-
 
 public class GammaTest {
 
@@ -41,6 +56,5 @@ public class GammaTest {
         assertEquals(0.0, gamma(-199.55885272585897), 1e-8);
         assertEquals(Double.POSITIVE_INFINITY, gamma(404.5418705074535));
         assertEquals(Double.NaN, gamma(-2));
-        
     }
 }

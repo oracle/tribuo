@@ -1692,7 +1692,6 @@ public class DenseMatrixTest {
         assertEigenvectorsEquals(new DenseMatrix(values), eig.eigenvectors());
     }
 
-
     /**
      * if you generate the expected values using another library, the eigenvectors (i.e. the columns)
      * may have the opposite sign as what is produced by DenseMatrix.  So, we will negate a column if

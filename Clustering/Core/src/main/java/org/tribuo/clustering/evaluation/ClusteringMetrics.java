@@ -78,9 +78,9 @@ public enum ClusteringMetrics {
         double minEntropy = Math.min(predEntropy, trueEntropy);
         double denominator = minEntropy - expectedMI;
         
-        if(denominator < 0) {
+        if (denominator < 0) {
             denominator = Math.min(denominator, -2.220446049250313e-16);
-        }else {
+        } else {
             denominator = Math.max(denominator, 2.220446049250313e-16);
         }
 
