@@ -1531,6 +1531,7 @@ public class DenseMatrixTest {
         return new DenseMatrix(values);
     }
 
+
     @Test
     public void luTest() {
         DenseMatrix symmetric = generateSymmetric();
