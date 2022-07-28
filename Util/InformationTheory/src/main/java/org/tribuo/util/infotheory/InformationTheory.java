@@ -577,7 +577,7 @@ public final class InformationTheory {
                 long threshold = fVal + sVal - count;
                 long start = threshold > 1 ? threshold : 1;
 
-                for (long nij = start; nij < minCount; nij++) {
+                for (long nij = start; nij <= minCount; nij++) {
                     double acc = ((double) nij) / count;
                     acc *= Math.log(((double) (count * nij)) / (fVal * sVal));
                     //numerator
