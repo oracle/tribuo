@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.tribuo.math.la;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,12 @@ public class DenseSparseMatrix implements Matrix {
     private final int dim2;
     private final int[] shape;
 
+    /**
+     * Constructs a DenseSparseMatrix from the supplied vector array.
+     * <p>
+     * Does not copy the values, used internally by the la package.
+     * @param values The sparse vectors.
+     */
     DenseSparseMatrix(SparseVector[] values) {
         this.values = values;
         this.dim1 = values.length;
@@ -93,9 +100,7 @@ public class DenseSparseMatrix implements Matrix {
         this.values = new SparseVector[dim1];
         this.shape = new int[]{dim1,dim2};
         SparseVector emptyVector = new SparseVector(dim2);
-        for (int i = 0; i < values.length; i++) {
-            values[i] = emptyVector;
-        }
+        Arrays.fill(values, emptyVector);
     }
 
     /**
@@ -107,6 +112,33 @@ public class DenseSparseMatrix implements Matrix {
         SparseVector[] newValues = new SparseVector[values.length];
         for (int i = 0; i < values.length; i++) {
             newValues[i] = values[i].copy();
+        }
+        return new DenseSparseMatrix(newValues);
+    }
+
+    /**
+     * Creates an identity matrix of the specified size.
+     * @param dimension The matrix dimension.
+     * @return The identity matrix.
+     */
+    public static DenseSparseMatrix createIdentity(int dimension) {
+        SparseVector[] newValues = new SparseVector[dimension];
+        for (int i = 0; i < dimension; i++) {
+            newValues[i] = new SparseVector(dimension, new int[]{i}, new double[]{1.0});
+        }
+        return new DenseSparseMatrix(newValues);
+    }
+
+    /**
+     * Creates a diagonal matrix using the supplied values.
+     * @param diagonal The values along the diagonal.
+     * @return A diagonal matrix.
+     */
+    public static DenseSparseMatrix createDiagonal(SGDVector diagonal) {
+        int dimension = diagonal.size();
+        SparseVector[] newValues = new SparseVector[dimension];
+        for (int i = 0; i < dimension; i++) {
+            newValues[i] = new SparseVector(dimension, new int[]{i}, new double[]{diagonal.get(i)});
         }
         return new DenseSparseMatrix(newValues);
     }
@@ -260,7 +292,41 @@ public class DenseSparseMatrix implements Matrix {
 
     @Override
     public SparseVector getRow(int i) {
+        if (i < 0 || i > dim1) {
+            throw new IllegalArgumentException("Invalid row index, must be [0,"+dim1+"), received " + i);
+        }
         return values[i];
+    }
+
+    /**
+     * Gets a copy of the column.
+     * <p>
+     * This function is O(dim1 * log(dim2)) as it requires searching each vector for the column index.
+     * @param i The column index.
+     * @return A copy of the column as a sparse vector.
+     */
+    @Override
+    public SparseVector getColumn(int i) {
+        if (i < 0 || i > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + i);
+        }
+        List<Integer> indexList = new ArrayList<>();
+        List<Double> valueList = new ArrayList<>();
+        for (int j = 0; j < dim1; j++) {
+            double tmp = values[j].get(i);
+            if (tmp != 0) {
+                indexList.add(j);
+                valueList.add(tmp);
+            }
+        }
+
+        int[] indicesArr = new int[valueList.size()];
+        double[] valuesArr = new double[valueList.size()];
+        for (int j = 0; j < valueList.size(); j++) {
+            indicesArr[j] = indexList.get(j);
+            valuesArr[j] = valueList.get(j);
+        }
+        return new SparseVector(dim1, indicesArr, valuesArr);
     }
 
     @Override
@@ -524,7 +590,7 @@ public class DenseSparseMatrix implements Matrix {
         private Iterator<VectorTuple> itr;
         private VectorTuple vecTuple;
 
-        public DenseSparseMatrixIterator(DenseSparseMatrix matrix) {
+        DenseSparseMatrixIterator(DenseSparseMatrix matrix) {
             this.matrix = matrix;
             this.tuple = new MatrixTuple();
             this.i = 0;

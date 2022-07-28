@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
-import org.apache.commons.math3.distribution.MultivariateNormalDistribution;
-import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.tribuo.ConfigurableDataSource;
-import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.OutputFactory;
@@ -33,6 +30,7 @@ import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.math.distributions.MultivariateNormalDistribution;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 import org.tribuo.provenance.DataSourceProvenance;
 import org.tribuo.util.Util;
@@ -235,26 +233,26 @@ public final class GaussianClusterDataSource implements ConfigurableDataSource<C
         double[] mixingCDF = Util.generateCDF(mixingDistribution);
         String[] featureNames = Arrays.copyOf(allFeatureNames, firstMean.length);
         Random rng = new Random(seed);
-        MultivariateNormalDistribution first = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                firstMean, reshapeAndValidate(firstVariance, "firstVariance")
+        MultivariateNormalDistribution first = new MultivariateNormalDistribution(
+                firstMean, reshapeAndValidate(firstVariance, "firstVariance"), rng.nextInt(), true
         );
-        MultivariateNormalDistribution second = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                secondMean, reshapeAndValidate(secondVariance, "secondVariance")
+        MultivariateNormalDistribution second = new MultivariateNormalDistribution(
+                secondMean, reshapeAndValidate(secondVariance, "secondVariance"), rng.nextInt(), true
         );
-        MultivariateNormalDistribution third = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                thirdMean, reshapeAndValidate(thirdVariance, "thirdVariance")
+        MultivariateNormalDistribution third = new MultivariateNormalDistribution(
+                thirdMean, reshapeAndValidate(thirdVariance, "thirdVariance"), rng.nextInt(), true
         );
-        MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                fourthMean, reshapeAndValidate(fourthVariance, "fourthVariance")
+        MultivariateNormalDistribution fourth = new MultivariateNormalDistribution(
+                fourthMean, reshapeAndValidate(fourthVariance, "fourthVariance"), rng.nextInt(), true
         );
-        MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(new JDKRandomGenerator(rng.nextInt()),
-                fifthMean, reshapeAndValidate(fifthVariance, "fifthVariance")
+        MultivariateNormalDistribution fifth = new MultivariateNormalDistribution(
+                fifthMean, reshapeAndValidate(fifthVariance, "fifthVariance"), rng.nextInt(), true
         );
         MultivariateNormalDistribution[] Gaussians = new MultivariateNormalDistribution[]{first, second, third, fourth, fifth};
         List<Example<ClusterID>> examples = new ArrayList<>(numSamples);
         for (int i = 0; i < numSamples; i++) {
             int centroid = Util.sampleFromCDF(mixingCDF, rng);
-            double[] sample = Gaussians[centroid].sample();
+            double[] sample = Gaussians[centroid].sampleArray();
             examples.add(new ArrayExample<>(new ClusterID(centroid), featureNames, sample));
         }
         this.examples = Collections.unmodifiableList(examples);

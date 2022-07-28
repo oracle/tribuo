@@ -21,12 +21,14 @@ import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.util.MeanVarianceAccumulator;
 import org.tribuo.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.BiFunction;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.ToDoubleBiFunction;
@@ -182,6 +184,8 @@ public class DenseVector implements SGDVector {
 
     /**
      * Performs a reduction from left to right of this vector.
+     * <p>
+     * The first argument to the reducer is the transformed element, the second is the state.
      * @param initialValue The initial value.
      * @param op The element wise operation to apply before reducing.
      * @param reduction The reduction operation (should be commutative).
@@ -193,6 +197,24 @@ public class DenseVector implements SGDVector {
         for (int i = 0; i < elements.length; i++) {
             double transformed = op.applyAsDouble(get(i));
             output = reduction.applyAsDouble(transformed,output);
+        }
+        return output;
+    }
+
+    /**
+     * Performs a reduction from left to right of this vector.
+     * <p>
+     * The first argument to the reducer is the transformed vector element, the second is the state.
+     * @param initialValue The initial value.
+     * @param op The element wise operation to apply before reducing.
+     * @param reduction The reduction operation (should be commutative).
+     * @return The reduced value.
+     */
+    public <T> T reduce(T initialValue, DoubleUnaryOperator op, BiFunction<Double, T, T> reduction) {
+        T output = initialValue;
+        for (int i = 0; i < elements.length; i++) {
+            double transformed = op.applyAsDouble(get(i));
+            output = reduction.apply(transformed, output);
         }
         return output;
     }
@@ -667,6 +689,20 @@ public class DenseVector implements SGDVector {
         } else {
             throw new IllegalArgumentException("Unknown vector subclass " + other.getClass().getCanonicalName() + " for input");
         }
+    }
+
+    /**
+     * Compute the mean and variance of this vector.
+     * @return The mean and variance.
+     */
+    public MeanVarianceAccumulator meanVariance() {
+        MeanVarianceAccumulator acc = new MeanVarianceAccumulator();
+
+        for (int i = 0; i < elements.length; i++) {
+            acc.observe(get(i));
+        }
+
+        return acc;
     }
 
     private static class DenseVectorIterator implements VectorIterator {

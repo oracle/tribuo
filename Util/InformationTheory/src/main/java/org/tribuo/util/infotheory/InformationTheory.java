@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.tribuo.util.infotheory.impl.PairDistribution;
 import org.tribuo.util.infotheory.impl.Row;
 import org.tribuo.util.infotheory.impl.RowList;
 import org.tribuo.util.infotheory.impl.TripleDistribution;
-import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 
 import java.util.HashMap;
 import java.util.List;
@@ -136,10 +135,25 @@ public final class InformationTheory {
             tuple = innerConditionalMI(first,second,conditionList);
         }
         double gMetric = 2 * second.size() * tuple.score;
-        ChiSquaredDistribution dist = new ChiSquaredDistribution(tuple.stateCount);
-        double prob = dist.cumulativeProbability(gMetric);
-        GTestStatistics test = new GTestStatistics(gMetric,tuple.stateCount,prob);
-        return test;
+        double prob = computeChiSquaredProbability(tuple.stateCount, gMetric);
+        return new GTestStatistics(gMetric,tuple.stateCount,prob);
+    }
+
+    /**
+     * Computes the cumulative probability of the input value under a Chi-Squared distribution
+     * with the specified degrees of Freedom.
+     * @param degreesOfFreedom The degrees of freedom in the distribution.
+     * @param value The observed value.
+     * @return The cumulative probability of the observed value.
+     */
+    private static double computeChiSquaredProbability(int degreesOfFreedom, double value) {
+        if (value <= 0) {
+            return 0.0;
+        } else {
+            int shape = degreesOfFreedom / 2;
+            int scale = 2;
+            return Gamma.regularizedGammaP(shape, value / scale, 1e-14, Integer.MAX_VALUE);
+        }
     }
 
     /**
@@ -536,6 +550,53 @@ public final class InformationTheory {
      */
     public static double calculateEntropy(DoubleStream vector) {
         return vector.map((p) -> (- p * Math.log(p) / LOG_BASE)).sum();
+    }
+
+    /**
+     * Compute the expected mutual information assuming randomized inputs.
+     *
+     * @param first The first vector.
+     * @param second The second vector.
+     * @return The expected mutual information under a hypergeometric distribution.
+     */
+    public static <T> double expectedMI(List<T> first, List<T> second) {
+        PairDistribution<T,T> pd = PairDistribution.constructFromLists(first,second);
+
+        Map<T, MutableLong> firstCount = pd.firstCount;
+        Map<T,MutableLong> secondCount = pd.secondCount;
+        long count = pd.count;
+
+        double output = 0.0;
+
+        for (Entry<T,MutableLong> f : firstCount.entrySet()) {
+            for (Entry<T,MutableLong> s : secondCount.entrySet()) {
+                long fVal = f.getValue().longValue();
+                long sVal = s.getValue().longValue();
+                long minCount = Math.min(fVal, sVal);
+
+                long threshold = fVal + sVal - count;
+                long start = threshold > 1 ? threshold : 1;
+
+                for (long nij = start; nij <= minCount; nij++) {
+                    double acc = ((double) nij) / count;
+                    acc *= Math.log(((double) (count * nij)) / (fVal * sVal));
+                    //numerator
+                    double logSpace = Gamma.logGamma(fVal + 1);
+                    logSpace += Gamma.logGamma(sVal + 1);
+                    logSpace += Gamma.logGamma(count - fVal + 1);
+                    logSpace += Gamma.logGamma(count - sVal + 1);
+                    //denominator
+                    logSpace -= Gamma.logGamma(count + 1);
+                    logSpace -= Gamma.logGamma(nij + 1);
+                    logSpace -= Gamma.logGamma(fVal - nij + 1);
+                    logSpace -= Gamma.logGamma(sVal - nij + 1);
+                    logSpace -= Gamma.logGamma(count - fVal - sVal + nij + 1);
+                    acc *= Math.exp(logSpace);
+                    output += acc;
+                }
+            }
+        }
+        return output;
     }
 
     /**

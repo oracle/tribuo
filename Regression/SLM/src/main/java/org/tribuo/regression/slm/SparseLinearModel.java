@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,9 +66,15 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
 
     private SparseVector[] weights;
     private final DenseVector featureMeans;
+    /**
+     * Note this variable is called a variance, but it actually stores the l2 norm of the centered feature column.
+     */
     private final DenseVector featureVariance;
     private final boolean bias;
     private double[] yMean;
+    /**
+     * Note this variable is called a variance, but it actually stores the l2 norm of the centered output.
+     */
     private double[] yVariance;
 
     // Used to signal if the model has been rewritten to fix the issue with ElasticNet models in 4.0 and 4.1.0.
@@ -76,13 +82,13 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
 
     SparseLinearModel(String name, String[] dimensionNames, ModelProvenance description,
                       ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
-                      SparseVector[] weights, DenseVector featureMeans, DenseVector featureVariance, double[] yMean, double[] yVariance, boolean bias) {
+                      SparseVector[] weights, DenseVector featureMeans, DenseVector featureNorms, double[] yMean, double[] yNorms, boolean bias) {
         super(name, dimensionNames, description, featureIDMap, labelIDMap, generateActiveFeatures(dimensionNames, featureIDMap, weights));
         this.weights = weights;
         this.featureMeans = featureMeans;
-        this.featureVariance = featureVariance;
+        this.featureVariance = featureNorms;
         this.bias = bias;
-        this.yVariance = yVariance;
+        this.yVariance = yNorms;
         this.yMean = yMean;
         this.enet41MappingFix = true;
     }

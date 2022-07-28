@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,28 @@
 
 package org.tribuo.math.la;
 
+import com.oracle.labs.mlrg.olcut.util.SortUtil;
 import org.tribuo.math.util.VectorNormalizer;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.DoubleUnaryOperator;
+import java.util.logging.Logger;
 
 /**
  * A dense matrix, backed by a primitive array.
  */
 public class DenseMatrix implements Matrix {
     private static final long serialVersionUID = 1L;
+    private static final Logger logger = Logger.getLogger(DenseMatrix.class.getName());
+
+    /**
+     * Tolerance for non-zero diagonal values in the factorizations.
+     */
+    public static final double FACTORIZATION_TOLERANCE = 1e-14;
 
     private static final double DELTA = 1e-10;
 
@@ -78,8 +88,16 @@ public class DenseMatrix implements Matrix {
         this.dim1 = other.getDimension1Size();
         this.dim2 = other.getDimension2Size();
         this.values = new double[dim1][dim2];
-        for (MatrixTuple t : other) {
-            this.values[t.i][t.j] = t.value;
+        if (other instanceof DenseMatrix) {
+            for (int i = 0; i < dim1; i++) {
+                for (int j = 0; j < dim2; j++) {
+                    this.values[i][j] = other.get(i,j);
+                }
+            }
+        } else {
+            for (MatrixTuple t : other) {
+                this.values[t.i][t.j] = t.value;
+            }
         }
         this.shape = new int[]{dim1,dim2};
         this.numElements = dim1*dim2;
@@ -116,6 +134,30 @@ public class DenseMatrix implements Matrix {
             }
             newValues[i] = Arrays.copyOf(values[i],values[i].length);
         }
+        return new DenseMatrix(newValues);
+    }
+
+    /**
+     * Constructs a new DenseMatrix copying the values from the supplied vectors.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the supplied vectors are ragged (i.e., are not all the same size).
+     * @param vectors The vectors to coalesce.
+     * @return A new dense matrix.
+     */
+    public static DenseMatrix createDenseMatrix(SGDVector[] vectors) {
+        if (vectors == null || vectors.length == 0) {
+            throw new IllegalArgumentException("Invalid vector array.");
+        }
+        double[][] newValues = new double[vectors.length][];
+
+        int size = vectors[0].size();
+        for (int i = 0; i < vectors.length; i++) {
+            if (vectors[i].size() != size) {
+                throw new IllegalArgumentException("Expected size " + size + " but found size " + vectors[i].size() + " at index " + i);
+            }
+            newValues[i] = vectors[i].toArray();
+        }
+
         return new DenseMatrix(newValues);
     }
 
@@ -184,7 +226,7 @@ public class DenseMatrix implements Matrix {
         double[] outputValues = new double[dim2];
 
         for (int i = 0; i < elements.length; i++) {
-            outputValues[i] = values[elements[i]][i];
+            outputValues[i] = get(elements[i],i);
         }
 
         return new DenseVector(outputValues);
@@ -202,7 +244,7 @@ public class DenseMatrix implements Matrix {
         double[] outputValues = new double[dim1];
 
         for (int i = 0; i < elements.length; i++) {
-            outputValues[i] = values[i][elements[i]];
+            outputValues[i] = get(i,elements[i]);
         }
 
         return new DenseVector(outputValues);
@@ -246,7 +288,7 @@ public class DenseMatrix implements Matrix {
     @Override
     public int hashCode() {
         int result = Objects.hash(dim1, dim2, numElements);
-        result = 31 * result + Arrays.hashCode(values);
+        result = 31 * result + Arrays.deepHashCode(values);
         result = 31 * result + Arrays.hashCode(getShape());
         return result;
     }
@@ -281,7 +323,7 @@ public class DenseMatrix implements Matrix {
                 // If it's sparse we iterate the tuples
                 for (VectorTuple tuple : input) {
                     for (int i = 0; i < output.length; i++) {
-                        output[i] += values[i][tuple.index] * tuple.value;
+                        output[i] += get(i,tuple.index) * tuple.value;
                     }
                 }
             }
@@ -307,7 +349,7 @@ public class DenseMatrix implements Matrix {
                 // If it's sparse we iterate the tuples
                 for (VectorTuple tuple : input) {
                     for (int i = 0; i < output.length; i++) {
-                        output[i] += values[tuple.index][i] * tuple.value;
+                        output[i] += get(tuple.index,i) * tuple.value;
                     }
                 }
             }
@@ -501,7 +543,7 @@ public class DenseMatrix implements Matrix {
         for (int i = 0; i < dim1; i++) {
             double tmp = 0.0;
             for (int j = 0; j < dim2; j++) {
-                tmp += values[i][j];
+                tmp += get(i,j);
             }
             rowSum[i] = tmp;
         }
@@ -676,6 +718,9 @@ public class DenseMatrix implements Matrix {
 
     @Override
     public DenseVector getRow(int i) {
+        if (i < 0 || i > dim1) {
+            throw new IllegalArgumentException("Invalid row index, must be [0,"+dim1+"), received " + i);
+        }
         return new DenseVector(values[i]);
     }
 
@@ -684,12 +729,40 @@ public class DenseMatrix implements Matrix {
      * @param index The column index.
      * @return A copy of the column.
      */
+    @Override
     public DenseVector getColumn(int index) {
+        if (index < 0 || index > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + index);
+        }
         double[] output = new double[dim1];
         for (int i = 0; i < dim1; i++) {
-            output[i] = values[i][index];
+            output[i] = get(i,index);
         }
         return new DenseVector(output);
+    }
+
+    /**
+     * Sets the column to the supplied vector value.
+     * @param index The column to set.
+     * @param vector The vector to write.
+     */
+    public void setColumn(int index, SGDVector vector) {
+        if (index < 0 || index > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + index);
+        }
+        if (vector.size() == dim1) {
+            if (vector instanceof DenseVector) {
+                for (int i = 0; i < dim1; i++) {
+                    values[i][index] = vector.get(i);
+                }
+            } else {
+                for (VectorTuple t : vector) {
+                    values[t.index][index] = t.value;
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("Vector size mismatch, expected " + dim1 + " found " + vector.size());
+        }
     }
 
     /**
@@ -698,10 +771,12 @@ public class DenseMatrix implements Matrix {
      * @return The row sum.
      */
     public double rowSum(int rowIndex) {
-        double[] row = values[rowIndex];
+        if (rowIndex < 0 || rowIndex > dim1) {
+            throw new IllegalArgumentException("Invalid row index, must be [0,"+dim1+"), received " + rowIndex);
+        }
         double sum = 0d;
-        for (int i = 0; i < row.length; i++) {
-            sum += row[i];
+        for (int i = 0; i < dim2; i++) {
+            sum += get(rowIndex,i);
         }
         return sum;
     }
@@ -712,9 +787,12 @@ public class DenseMatrix implements Matrix {
      * @return The column sum.
      */
     public double columnSum(int columnIndex) {
+        if (columnIndex < 0 || columnIndex > dim2) {
+            throw new IllegalArgumentException("Invalid column index, must be [0,"+dim2+"), received " + columnIndex);
+        }
         double sum = 0d;
         for (int i = 0; i < dim1; i++) {
-            sum += values[i][columnIndex];
+            sum += get(i,columnIndex);
         }
         return sum;
     }
@@ -729,6 +807,422 @@ public class DenseMatrix implements Matrix {
             }
         }
         return Math.sqrt(output);
+    }
+
+    /**
+     * Returns a copy of this matrix as a 2d array.
+     * @return A copy of this matrix.
+     */
+    public double[][] toArray() {
+        double[][] copy = new double[dim1][];
+        for (int i = 0; i < dim1; i++) {
+            copy[i] = Arrays.copyOf(values[i],dim2);
+        }
+        return copy;
+    }
+
+    /**
+     * Is this a square matrix?
+     * @return True if the matrix is square.
+     */
+    public boolean isSquare() {
+        return dim1 == dim2;
+    }
+
+    /**
+     * Returns true if this matrix is square and symmetric.
+     * @return True if the matrix is symmetric.
+     */
+    public boolean isSymmetric() {
+        if (!isSquare()) {
+            return false;
+        } else {
+            for (int i = 0; i < dim1; i++) {
+                for (int j = i + 1; j < dim1; j++) {
+                    if (Double.compare(get(i,j),get(j,i)) != 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * Computes the Cholesky factorization of a positive definite matrix.
+     * <p>
+     * If the matrix is not symmetric or positive definite then it returns an empty optional.
+     * @return The Cholesky factorization or an empty optional.
+     */
+    public Optional<CholeskyFactorization> choleskyFactorization() {
+        if (!isSymmetric()) {
+            logger.fine("Returning empty optional as matrix is not symmetric");
+            return Optional.empty();
+        } else {
+            // Copy the matrix first
+            DenseMatrix chol = new DenseMatrix(this);
+            double[][] cholMatrix = chol.values;
+
+            // Compute factorization
+            for (int i = 0; i < dim1; i++) {
+                for (int j = i; j < dim1; j++) {
+                    double sum = cholMatrix[i][j];
+                    for (int k = i - 1; k >= 0; k--) {
+                        sum -= cholMatrix[i][k] * cholMatrix[j][k];
+                    }
+                    if (i == j) {
+                        if (sum <= FACTORIZATION_TOLERANCE) {
+                            // Matrix is not positive definite as it has a negative diagonal element.
+                            logger.fine("Returning empty optional as matrix is not positive definite");
+                            return Optional.empty();
+                        } else {
+                            cholMatrix[i][i] = Math.sqrt(sum);
+                        }
+                    } else {
+                        cholMatrix[j][i] = sum / cholMatrix[i][i];
+                    }
+                }
+            }
+
+            // Zero out the upper triangle
+            for (int i = 0; i < dim1; i++) {
+                for (int j = 0; j < i; j++) {
+                    cholMatrix[j][i] = 0.0;
+                }
+            }
+
+            return Optional.of(new CholeskyFactorization(chol));
+        }
+    }
+
+    /**
+     * Computes the LU factorization of a square matrix.
+     * <p>
+     * If the matrix is singular or not square it returns an empty optional.
+     * @return The LU factorization or an empty optional.
+     */
+    public Optional<LUFactorization> luFactorization() {
+        if (!isSquare()) {
+            logger.fine("Returning empty optional as matrix is not square");
+            return Optional.empty();
+        } else {
+            // Copy the matrix first & init variables
+            DenseMatrix lu = new DenseMatrix(this);
+            double[][] luMatrix = lu.values;
+            int[] permutation = new int[dim1];
+            boolean oddSwaps = false;
+            for (int i = 0; i < dim1; i++) {
+                permutation[i] = i;
+            }
+
+            // Decompose matrix
+            for (int i = 0; i < dim1; i++) {
+                double max = 0.0;
+                int maxIdx = i;
+
+                // Find max element
+                for (int k = i; k < dim1; k++) {
+                    double cur = Math.abs(luMatrix[k][i]);
+                    if (cur > max) {
+                        max = cur;
+                        maxIdx = k;
+                    }
+                }
+
+                if (max < FACTORIZATION_TOLERANCE) {
+                    // zero diagonal element, matrix is singular
+                    logger.fine("Returning empty optional as matrix is singular");
+                    return Optional.empty();
+                }
+
+                // Pivot matrix if necessary
+                if (maxIdx != i) {
+                    // Update permutation array
+                    int tmpIdx = permutation[maxIdx];
+                    permutation[maxIdx] = permutation[i];
+                    permutation[i] = tmpIdx;
+                    oddSwaps = !oddSwaps;
+
+                    // Swap rows
+                    double[] tmpRow = luMatrix[maxIdx];
+                    luMatrix[maxIdx] = luMatrix[i];
+                    luMatrix[i] = tmpRow;
+                }
+
+                // Eliminate row
+                for (int j = i + 1; j < dim1; j++) {
+                    // Rescale lower triangle
+                    luMatrix[j][i] /= luMatrix[i][i];
+
+                    for (int k = i + 1; k < dim1; k++) {
+                        luMatrix[j][k] -= luMatrix[j][i] * luMatrix[i][k];
+                    }
+                }
+            }
+
+            // Split into two matrices
+            DenseMatrix l = new DenseMatrix(lu);
+            DenseMatrix u = new DenseMatrix(lu);
+
+            // Zero lower triangle of u
+            for (int i = 0; i < dim1; i++) {
+                Arrays.fill(u.values[i],0,i,0.0);
+            }
+
+            // Zero upper triangle of l and set diagonal to 1.
+            for (int i = 0; i < dim1; i++) {
+                for (int j = 0; j <= i; j++) {
+                    if (i == j) {
+                        l.values[i][j] = 1.0;
+                    } else {
+                        l.values[j][i] = 0.0;
+                    }
+                }
+            }
+
+            return Optional.of(new LUFactorization(l,u,permutation,oddSwaps));
+        }
+    }
+
+    /**
+     * Eigen decomposition of a symmetric matrix.
+     * <p>
+     * Non-symmetric matrices return an empty Optional as they may have complex eigenvalues, and
+     * any matrix which exceeds the default number of QL iterations in the decomposition also
+     * returns an empty Optional.
+     * @return The eigen decomposition of a symmetric matrix, or an empty optional if it's not symmetric.
+     */
+    public Optional<EigenDecomposition> eigenDecomposition() {
+        if (!isSymmetric()) {
+            logger.fine("Returning empty optional as matrix is not symmetric");
+            return Optional.empty();
+        } else {
+            // Copy the matrix first & init variables
+            DenseMatrix transform = new DenseMatrix(this);
+            double[][] transformValues = transform.values;
+
+            // arrays for holding the tridiagonal form.
+            double[] diagonal = new double[dim1];
+            double[] offDiagonal = new double[dim1]; // first element is zero
+
+            // First tridiagonalize the matrix via a Householder reduction
+
+            // Copy last row into diagonal
+            System.arraycopy(transformValues[dim1 - 1], 0, diagonal, 0, dim1);
+
+            // Iterate up the matrix, reducing it
+            for (int i = dim1-1; i > 0; i--) {
+                // Accumulate scale along current diagonal
+                double scale = 0.0;
+                for (int k = 0; k < i; k++) {
+                    scale += Math.abs(diagonal[k]);
+                }
+
+                double diagElement = 0.0;
+                if (scale == 0.0) {
+                    offDiagonal[i] = 0.0; // if scale is zero then diagonal[0...i-1] = 0
+                    for (int j = 0; j < i; j++) {
+                        // copy in new row
+                        diagonal[j] = transformValues[i-1][j];
+                        // zero row & column
+                        transformValues[i][j] = 0.0;
+                        transformValues[j][i] = 0.0;
+                    }
+                } else {
+                    // Generate Householder vector
+                    for (int k = 0; k < i; k++) {
+                        final double tmp = diagonal[k] / scale;
+                        diagElement += tmp * tmp;
+                        diagonal[k] = tmp;
+                        offDiagonal[k] = 0;
+                    }
+                    final double nextDiag = diagonal[i-1];
+                    final double offDiag = nextDiag >= 0 ? -Math.sqrt(diagElement) : Math.sqrt(diagElement);
+
+                    offDiagonal[i] = scale * offDiag;
+                    diagElement -= offDiag * nextDiag;
+                    diagonal[i-1] = nextDiag - offDiag;
+
+                    // Transform the remaining vectors
+                    for (int j = 0; j < i; j++) {
+                        final double transDiag = diagonal[j];
+                        // Write back to matrix
+                        transformValues[j][i] = transDiag;
+                        double transOffDiag = offDiagonal[j] + transformValues[j][j] * transDiag;
+
+                        // Sum remaining column and update off diagonals
+                        for (int k = j + 1; k < i; k++) {
+                            double tmp = transformValues[k][j];
+                            transOffDiag += tmp * diagonal[k];
+                            offDiagonal[k] += tmp * transDiag;
+                        }
+                        offDiagonal[j] = transOffDiag;
+                    }
+
+                    double scaledElementSum = 0.0;
+                    for (int j = 0; j < i; j++) {
+                        final double tmp = offDiagonal[j] / diagElement;
+                        offDiagonal[j] = tmp;
+                        scaledElementSum += tmp * diagonal[j];
+                    }
+                    final double offDiagScalingFactor = scaledElementSum / (diagElement + diagElement);
+                    for (int j = 0; j < i; j++) {
+                        offDiagonal[j] -= offDiagScalingFactor * diagonal[j];
+                    }
+
+                    for (int j = 0; j < i; j++) {
+                        final double tmpDiag = diagonal[j];
+                        final double tmpOffDiag = offDiagonal[j];
+                        for (int k = j; k < i; k++) {
+                            transformValues[k][j] -= (tmpDiag * offDiagonal[k]) + (tmpOffDiag * diagonal[k]);
+                        }
+                        diagonal[j] = transformValues[i-1][j];
+                        transformValues[i][j] = 0.0;
+                    }
+                }
+                diagonal[i] = diagElement;
+            }
+
+            // Finish transformation to tridiagonal
+            int dimMinusOne = dim1-1;
+            for (int i = 0; i < dimMinusOne; i++) {
+                transformValues[dimMinusOne][i] = transformValues[i][i];
+                transformValues[i][i] = 1.0;
+                final int nextIdx = i + 1;
+                final double nextDiag = diagonal[nextIdx];
+                if (nextDiag != 0.0) {
+                    // Recompute diagonal and rescale matrix
+                    for (int k = 0; k < nextIdx; k++) {
+                        diagonal[k] = transformValues[k][nextIdx] / nextDiag;
+                    }
+                    for (int j = 0; j < nextIdx; j++) {
+                        double scaleAccumulator = 0.0;
+                        for (int k = 0; k < nextIdx; k++) {
+                            scaleAccumulator += transformValues[k][nextIdx] * transformValues[k][j];
+                        }
+                        for (int k = 0; k < nextIdx; k++) {
+                            transformValues[k][j] -= scaleAccumulator * diagonal[k];
+                        }
+                    }
+                    // Zero lower column
+                    for (int j = 0; j < nextIdx; j++) {
+                        transformValues[j][nextIdx] = 0.0;
+                    }
+                }
+            }
+            for (int j = 0; j < dim1; j++) {
+                diagonal[j] = transformValues[dimMinusOne][j];
+                transformValues[dimMinusOne][j] = 0.0;
+            }
+            transformValues[dimMinusOne][dimMinusOne] = 1.0;
+            offDiagonal[0] = 0.0;
+
+            // Copy to dense vector/matrix for storage in the returned object as we're going to mutate these arrays
+            DenseVector diagVector = DenseVector.createDenseVector(diagonal);
+            DenseVector offDiagVector = DenseVector.createDenseVector(offDiagonal);
+            DenseMatrix householderMatrix = new DenseMatrix(transform);
+
+            // Then compute eigen vectors & values using an iterated tridiagonal QL algorithm
+
+            // Setup constants
+            final int maxItr = 35; // Maximum number of QL iterations before giving up and returning empty optional.
+            final double eps = Double.longBitsToDouble(4372995238176751616L); // Math.pow(2,-52)
+
+            // Copy off diagonal up for ease of use
+            System.arraycopy(offDiagonal, 1, offDiagonal, 0, dimMinusOne);
+            offDiagonal[dimMinusOne] = 0.0;
+
+            double diagAccum = 0.0;
+            double largestDiagSum = 0.0;
+            for (int i = 0; i < dim1; i++) {
+                largestDiagSum = Math.max(largestDiagSum, Math.abs(diagonal[i]) + Math.abs(offDiagonal[i]));
+                final double testVal = largestDiagSum*eps;
+                // Find small value to partition the matrix
+                int idx = i;
+                while (idx < dim1) {
+                    if (Math.abs(offDiagonal[idx]) <= testVal) {
+                        break;
+                    }
+                    idx++;
+                }
+
+                // if we didn't break out of the loop the diagonal value is an eigenvalue
+                // otherwise perform QL iterations
+                if (idx > i) {
+                    int iter = 0;
+                    do {
+                        if (iter > maxItr) {
+                            // Exceeded QL iteration count;
+                            logger.fine("Exceeded QL iteration count in eigenDecomposition");
+                            return Optional.empty();
+                        } else {
+                            iter++;
+                        }
+
+                        // Compute shift
+                        final double curDiag = diagonal[i];
+                        final double shift = (diagonal[i+1] - curDiag) / (2 * offDiagonal[i]);
+                        final double shiftLength = shift < 0 ? -Math.hypot(shift, 1.0) : Math.hypot(shift, 1.0);
+                        diagonal[i] = offDiagonal[i] / (shift + shiftLength);
+                        diagonal[i+1] = offDiagonal[i] * (shift + shiftLength);
+
+                        final double nextDiag = diagonal[i+1];
+                        final double diagShift = curDiag - diagonal[i];
+                        for (int j = i + 2; j < dim1; j++) {
+                            diagonal[j] -= diagShift;
+                        }
+                        diagAccum += diagShift;
+
+                        // Compute implicit QL
+                        double partitionDiag = diagonal[idx];
+                        final double oldOffDiag = offDiagonal[i+1];
+                        double c = 1.0, c2 = 1.0, c3 = 1.0;
+                        double s = 0.0, prevS = 0.0;
+                        for (int j = idx-1; j >= i; j--) {
+                            c3 = c2;
+                            c2 = c;
+                            prevS = s;
+                            final double scaledOffDiag = c * offDiagonal[j];
+                            final double scaledDiag = c * partitionDiag;
+                            final double dist = Math.hypot(partitionDiag, offDiagonal[j]);
+                            offDiagonal[j+1] = s * dist;
+                            s = offDiagonal[j] / dist;
+                            c = partitionDiag / dist;
+                            partitionDiag = (c * diagonal[j]) - (s * scaledOffDiag);
+                            diagonal[j+1] = scaledDiag + s * ((c * scaledOffDiag) + (s * diagonal[j]));
+
+                            // Update eigenvectors
+                            for (int k = 0; k < dim1; k++) {
+                                final double[] row = transformValues[k];
+                                final double tmp = row[j+1];
+                                row[j+1] = (s * row[j]) + (c * tmp);
+                                row[j] = (c * row[j]) - (s * tmp);
+                            }
+                        }
+                        partitionDiag = -s * prevS * c3 * oldOffDiag * offDiagonal[i] / nextDiag;
+                        offDiagonal[i] = s * partitionDiag;
+                        diagonal[i] = c * partitionDiag;
+                    } while (Math.abs(offDiagonal[i]) > testVal);
+                }
+
+                diagonal[i] += diagAccum;
+                offDiagonal[i] = 0.0;
+            }
+
+            // Sort eigenvalues and eigenvectors
+            int[] indices = SortUtil.argsort(diagonal, false);
+            double[] eigenValues = new double[dim1];
+            double[][] eigenVectors = new double[dim1][dim1];
+
+            for (int i = 0; i < indices.length; i++) {
+                eigenValues[i] = diagonal[indices[i]];
+                for (int j = 0; j < dim1; j++) {
+                    eigenVectors[j][i] = transformValues[j][indices[i]];
+                }
+            }
+
+            return Optional.of(new EigenDecomposition(new DenseVector(eigenValues),new DenseMatrix(eigenVectors),diagVector,offDiagVector,householderMatrix));
+        }
     }
 
     @Override
@@ -776,17 +1270,69 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
-     * Returns the dense vector containing each column sum.
+     * Returns a dense vector containing each column sum.
      * @return The column sums.
      */
     public DenseVector columnSum() {
         double[] columnSum = new double[dim2];
         for (int i = 0; i < dim1; i++) {
             for (int j = 0; j < dim2; j++) {
-                columnSum[j] += values[i][j];
+                columnSum[j] += get(i,j);
             }
         }
         return new DenseVector(columnSum);
+    }
+
+    /**
+     * Returns a new DenseMatrix containing a copy of the selected columns.
+     * <p>
+     * Throws {@link IllegalArgumentException} if any column index is invalid or the array is null/empty.
+     * @param columnIndices The column indices
+     * @return The submatrix comprising the selected columns.
+     */
+    public DenseMatrix selectColumns(int[] columnIndices) {
+        if (columnIndices == null || columnIndices.length == 0) {
+            throw new IllegalArgumentException("Invalid column indices.");
+        }
+        DenseMatrix returnVal = new DenseMatrix(dim1,columnIndices.length);
+
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < columnIndices.length; j++) {
+                int curIdx = columnIndices[j];
+                if (curIdx < 0 || curIdx >= dim2) {
+                    throw new IllegalArgumentException("Invalid column index, expected [0, " + dim2 +"), found " + curIdx);
+                }
+                returnVal.values[i][j] = get(i,curIdx);
+            }
+        }
+
+        return returnVal;
+    }
+
+    /**
+     * Returns a new DenseMatrix containing a copy of the selected columns.
+     * <p>
+     * Throws {@link IllegalArgumentException} if any column index is invalid or the list is null/empty.
+     * @param columnIndices The column indices
+     * @return The submatrix comprising the selected columns.
+     */
+    public DenseMatrix selectColumns(List<Integer> columnIndices) {
+        if (columnIndices == null || columnIndices.isEmpty()) {
+            throw new IllegalArgumentException("Invalid column indices.");
+        }
+        DenseMatrix returnVal = new DenseMatrix(dim1,columnIndices.size());
+
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < columnIndices.size(); j++) {
+                int curIdx = columnIndices.get(j);
+                if (curIdx < 0 || curIdx >= dim2) {
+                    throw new IllegalArgumentException("Invalid column index, expected [0, " + dim2 +"), found " + curIdx);
+                }
+                returnVal.values[i][j] = get(i,curIdx);
+            }
+        }
+
+        return returnVal;
     }
 
     private class DenseMatrixIterator implements MatrixIterator {
@@ -795,7 +1341,7 @@ public class DenseMatrix implements Matrix {
         private int i;
         private int j;
 
-        public DenseMatrixIterator(DenseMatrix matrix) {
+        DenseMatrixIterator(DenseMatrix matrix) {
             this.matrix = matrix;
             this.tuple = new MatrixTuple();
             this.i = 0;
@@ -831,4 +1377,481 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * The output of a successful Cholesky factorization.
+     * <p>
+     * Essentially wraps a {@link DenseMatrix}, but has additional
+     * operations which allow more efficient implementations when the
+     * matrix is known to be the result of a Cholesky factorization.
+     * <p>
+     * Mutating the wrapped matrix will cause undefined behaviour in the methods
+     * of this class.
+     * <p>
+     * May be refactored into a record in the future.
+     */
+    public static final class CholeskyFactorization implements Matrix.Factorization {
+        private final DenseMatrix lMatrix;
+
+        CholeskyFactorization(DenseMatrix lMatrix) {
+            this.lMatrix = lMatrix;
+        }
+
+        /**
+         * The lower triangular factorized matrix.
+         * @return The factorization matrix.
+         */
+        public DenseMatrix lMatrix() {
+            return lMatrix;
+        }
+
+        @Override
+        public int dim1() {
+            return lMatrix.dim1;
+        }
+
+        @Override
+        public int dim2() {
+            return lMatrix.dim2;
+        }
+
+        /**
+         * Compute the matrix determinant of the factorized matrix.
+         * @return The matrix determinant.
+         */
+        @Override
+        public double determinant() {
+            double det = 0.0;
+            for (int i = 0; i < lMatrix.dim1; i++) {
+                det *= lMatrix.values[i][i] * lMatrix.values[i][i];
+            }
+            return det;
+        }
+
+        /**
+         * Solves a system of linear equations A * b = y, where y is the input vector,
+         * A is the matrix which produced this Cholesky factorization, and b is the returned value.
+         * @param vector The input vector y.
+         * @return The vector b.
+         */
+        @Override
+        public DenseVector solve(SGDVector vector) {
+            if (vector.size() != lMatrix.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lMatrix.dim1 + ", received " + vector.size());
+            }
+            final double[] vectorArr = vector.toArray();
+            final double[] output = new double[lMatrix.dim1];
+
+            // Solve matrix . y = vector
+            for (int i = 0; i < lMatrix.dim1; i++) {
+                double sum = vectorArr[i];
+                for (int j = i-1; j >= 0; j--) {
+                    sum -= lMatrix.values[i][j] * output[j];
+                }
+                output[i] = sum / lMatrix.values[i][i];
+            }
+
+            // Solve matrix^T . output = y
+            for (int i = lMatrix.dim1-1; i >= 0; i--) {
+                double sum = output[i];
+                for (int j = i+1; j < lMatrix.dim1; j++) {
+                    sum -= lMatrix.values[j][i] * output[j];
+                }
+                output[i] = sum / lMatrix.values[i][i];
+            }
+
+            return new DenseVector(output);
+        }
+
+        /**
+         * Solves the system A * X = B, where B is the input matrix, and A is the matrix which
+         * produced this Cholesky factorization.
+         * @param matrix The input matrix B.
+         * @return The matrix X.
+         */
+        @Override
+        public DenseMatrix solve(Matrix matrix) {
+            if (matrix.getDimension1Size() != lMatrix.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lMatrix.dim1 + ", received " + matrix.getDimension1Size());
+            }
+            final int outputDim1 = lMatrix.dim1;
+            final int outputDim2 = matrix.getDimension2Size();
+            final DenseMatrix output = new DenseMatrix(matrix);
+            final double[][] outputArr = output.values;
+
+            // Solve L.Y = B
+            for (int i = 0; i < outputDim1; i++) {
+                for (int j = 0; j < outputDim2; j++) {
+                    for (int k = 0; k < i; k++) {
+                        outputArr[i][j] -= outputArr[k][j] * lMatrix.values[i][k];
+                    }
+                    // scale by diagonal
+                    outputArr[i][j] /= lMatrix.values[i][i];
+                }
+            }
+
+            // Solve L^T.X = Y
+            for (int i = outputDim1 - 1; i >= 0; i--) {
+                for (int j = 0; j < outputDim2; j++) {
+                    for (int k = i + 1; k < outputDim2; k++) {
+                        outputArr[i][j] -= outputArr[k][j] * lMatrix.values[k][i];
+                    }
+                    // scale by diagonal
+                    outputArr[i][j] /= lMatrix.values[i][i];
+                }
+            }
+
+            return output;
+        }
+    }
+
+    /**
+     * The output of a successful LU factorization.
+     * <p>
+     * Essentially wraps a pair of {@link DenseMatrix}, but has additional
+     * operations which allow more efficient implementations when the
+     * matrices are known to be the result of a LU factorization.
+     * <p>
+     * Mutating the wrapped matrices will cause undefined behaviour in the methods
+     * of this class.
+     * <p>
+     * May be refactored into a record in the future.
+     */
+    public static final class LUFactorization implements Matrix.Factorization {
+        private final DenseMatrix lower;
+        private final DenseMatrix upper;
+        private final int[] permutationArr;
+        private final Matrix permutationMatrix;
+        private final boolean oddSwaps;
+
+        LUFactorization(DenseMatrix lower, DenseMatrix upper, int[] permutationArr, boolean oddSwaps) {
+            this.lower = lower;
+            this.upper = upper;
+            this.permutationArr = permutationArr;
+            SparseVector[] vecs = new SparseVector[permutationArr.length];
+            for (int i = 0; i < vecs.length; i++) {
+                vecs[i] = new SparseVector(lower.dim1,new int[]{permutationArr[i]}, new double[]{1.0});
+            }
+            this.permutationMatrix = DenseSparseMatrix.createFromSparseVectors(vecs);
+            this.oddSwaps = oddSwaps;
+        }
+
+        /**
+         * The lower triangular matrix, with ones on the diagonal.
+         * @return The lower triangular matrix.
+         */
+        public DenseMatrix lower() {
+            return lower;
+        }
+
+        /**
+         * The upper triangular matrix.
+         * @return The upper triangular matrix.
+         */
+        public DenseMatrix upper() {
+            return upper;
+        }
+
+        /**
+         * The row permutations applied to get this factorization.
+         * @return The permutations.
+         */
+        public int[] permutationArr() {
+            return permutationArr;
+        }
+
+        /**
+         * The row permutations stored as a sparse matrix of ones.
+         * @return A sparse matrix version of the permutations.
+         */
+        public Matrix permutationMatrix() {
+            return permutationMatrix;
+        }
+
+        /**
+         * Is there an odd number of row swaps (used to compute the determinant).
+         * @return True if there is an odd number of swaps.
+         */
+        public boolean oddSwaps() {
+            return oddSwaps;
+        }
+
+        @Override
+        public int dim1() {
+            return permutationArr.length;
+        }
+
+        @Override
+        public int dim2() {
+            return permutationArr.length;
+        }
+
+        /**
+         * Compute the matrix determinant of the factorized matrix.
+         * @return The matrix determinant.
+         */
+        @Override
+        public double determinant() {
+            double det = 0.0;
+            for (int i = 0; i < upper.dim1; i++) {
+                det *= upper.values[i][i];
+            }
+            if (oddSwaps) {
+                return -det;
+            } else {
+                return det;
+            }
+        }
+
+        /**
+         * Solves a system of linear equations A * b = y, where y is the input vector,
+         * A is the matrix which produced this LU factorization, and b is the returned value.
+         * @param vector The input vector y.
+         * @return The vector b.
+         */
+        @Override
+        public DenseVector solve(SGDVector vector) {
+            if (vector.size() != lower.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lower.dim1 + ", received " + vector.size());
+            }
+            // Apply permutation to input
+            final double[] vectorArr = vector.toArray();
+            final double[] output = new double[vectorArr.length];
+            for (int i = 0; i < permutationArr.length; i++) {
+                output[i] = vectorArr[permutationArr[i]];
+
+                // Solve L * Y = b
+                for (int k = 0; k < i; k++) {
+                    output[i] -= lower.values[i][k] * output[k];
+                }
+            }
+
+            // Solve U * X = Y
+            for (int i = permutationArr.length-1; i >= 0; i--) {
+                for (int k = i + 1; k < permutationArr.length; k++) {
+                    output[i] -= upper.values[i][k] * output[k];
+                }
+                output[i] /= upper.values[i][i];
+            }
+
+            return new DenseVector(output);
+        }
+
+        /**
+         * Solves the system A * X = Y, where Y is the input matrix, and A is the matrix which
+         * produced this LU factorization.
+         * @param matrix The input matrix Y.
+         * @return The matrix X.
+         */
+        @Override
+        public DenseMatrix solve(Matrix matrix) {
+            if (matrix.getDimension1Size() != lower.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + lower.dim1 + ", received " + matrix.getDimension1Size());
+            }
+            final int outputDim1 = lower.dim1;
+            final int outputDim2 = matrix.getDimension2Size();
+            final double[][] output = new double[lower.dim1][];
+
+            // Apply permutation and copy over
+            for (int i = 0; i < outputDim1; i++) {
+                int permutedIdx = permutationArr[i];
+                for (int j = 0; j < outputDim2; j++) {
+                    output[i] = matrix.getRow(permutedIdx).toArray();
+                }
+            }
+
+            // Solve LY = B
+            for (int i = 0; i < outputDim1; i++) {
+                for (int j = i + 1; j < outputDim1; j++) {
+                    for (int k = 0; k < outputDim2; k++) {
+                        output[j][k] -= output[i][k] * lower.values[j][i];
+                    }
+                }
+            }
+
+            // Solve UX = Y
+            for (int i = outputDim1 - 1; i >= 0; i--) {
+                // scale by diagonal
+                for (int j = 0; j < outputDim2; j++) {
+                    output[i][j] /= upper.values[i][i];
+                }
+                for (int j = 0; j < i; j++) {
+                    for (int k = 0; k < outputDim2; k++) {
+                        output[j][k] -= output[i][k] * upper.values[j][i];
+                    }
+                }
+            }
+
+            return new DenseMatrix(output);
+        }
+    }
+
+    /**
+     * The output of a successful eigen decomposition.
+     * <p>
+     * Wraps a dense vector containing the eigenvalues and a dense matrix containing the eigenvectors as columns.
+     * Mutating these fields will cause undefined behaviour.
+     * <p>
+     * Also has fields representing the tridiagonal form used as an intermediate step in the eigen decomposition.
+     * <p>
+     * May be refactored into a record in the future.
+     */
+    public static final class EigenDecomposition implements Matrix.Factorization {
+        // Eigen decomposition fields
+        private final DenseVector eigenvalues;
+        private final DenseMatrix eigenvectors;
+
+        // Tridiagonal form fields
+        private final DenseVector diagonal;
+        private final DenseVector offDiagonal;
+        private final DenseMatrix householderMatrix;
+
+        EigenDecomposition(DenseVector eigenvalues, DenseMatrix eigenvectors, DenseVector diagonal, DenseVector offDiagonal, DenseMatrix householderMatrix) {
+            this.eigenvalues = eigenvalues;
+            this.eigenvectors = eigenvectors;
+            this.diagonal = diagonal;
+            this.offDiagonal = offDiagonal;
+            this.householderMatrix = householderMatrix;
+        }
+
+        /**
+         * The vector of eigenvalues, in descending order.
+         * @return The eigenvalues.
+         */
+        public DenseVector eigenvalues() {
+            return eigenvalues;
+        }
+
+        /**
+         * The eigenvectors for each eigenvalue, stored in the columns of the matrix.
+         * @return A matrix containing the eigenvalues as columns.
+         */
+        public DenseMatrix eigenvectors() {
+            return eigenvectors;
+        }
+
+        /**
+         * The diagonal vector of the tridiagonal form.
+         * @return The diagonal vector.
+         */
+        public DenseVector diagonal() {
+            return diagonal;
+        }
+
+        /**
+         * The off diagonal vector, with the first element set to zero.
+         * @return The off diagonal vector.
+         */
+        public DenseVector offDiagonal() {
+            return offDiagonal;
+        }
+
+        /**
+         * The Householder matrix produced during the tridiagonalisation.
+         * @return The Householder matrix.
+         */
+        public DenseMatrix householderMatrix() {
+            return householderMatrix;
+        }
+
+        @Override
+        public int dim1() {
+            return eigenvalues.size();
+        }
+
+        @Override
+        public int dim2() {
+            return eigenvalues.size();
+        }
+
+        /**
+         * Computes the determinant of the matrix which was decomposed.
+         * <p>
+         * This is the product of the eigenvalues.
+         * @return The determinant.
+         */
+        @Override
+        public double determinant() {
+            return eigenvalues.reduce(1.0,DoubleUnaryOperator.identity(), (a,b) -> a*b);
+        }
+
+        /**
+         * Returns true if all the eigenvalues are positive.
+         * @return True if the eigenvalues are positive.
+         */
+        public boolean positiveEigenvalues() {
+            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
+        }
+
+        /**
+         * Returns true if all the eigenvalues are non-zero.
+         * @return True if the eigenvalues are non-zero (i.e. the matrix is not singular).
+         */
+        public boolean nonSingular() {
+            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value != 0.0);
+        }
+
+        /**
+         * Returns the dense vector representing the i'th eigenvector.
+         * @param i The index.
+         * @return The i'th eigenvector.
+         */
+        public DenseVector getEigenVector(int i) {
+            if (i < 0 || i > eigenvectors.dim1) {
+                throw new IllegalArgumentException("Invalid index, must be [0," + eigenvectors.dim1 + "), found " + i);
+            }
+            return eigenvectors.getColumn(i);
+        }
+
+        /**
+         * Solves a system of linear equations A * b = y, where y is the input vector,
+         * A is the matrix which produced this eigen decomposition, and b is the returned value.
+         * @param vector The input vector y.
+         * @return The vector b.
+         */
+        @Override
+        public DenseVector solve(SGDVector vector) {
+            if (vector.size() != eigenvectors.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + eigenvectors.dim1 + ", received " + vector.size());
+            }
+            final double[] output = new double[vector.size()];
+            for (int i = 0; i < output.length; i++) {
+                DenseVector eigenVector = getEigenVector(i);
+                double value = vector.dot(eigenVector) / eigenvalues.get(i);
+                for (int j = 0; j < output.length; j++) {
+                    output[j] += value * eigenVector.get(j);
+                }
+            }
+
+            return new DenseVector(output);
+        }
+
+        /**
+         * Solves the system A * X = Y, where Y is the input matrix, and A is the matrix which
+         * produced this eigen decomposition.
+         * @param matrix The input matrix Y.
+         * @return The matrix X.
+         */
+        @Override
+        public DenseMatrix solve(Matrix matrix) {
+            if (matrix.getDimension1Size() != eigenvectors.dim1) {
+                throw new IllegalArgumentException("Size mismatch, expected " + eigenvectors.dim1 + ", received " + matrix.getDimension1Size());
+            }
+            final int outputDim1 = eigenvalues.size();
+            final int outputDim2 = matrix.getDimension2Size();
+            final double[][] output = new double[outputDim1][outputDim2];
+
+            for (int k = 0; k < outputDim2; k++) {
+                SGDVector column = matrix.getColumn(k);
+                for (int i = 0; i < outputDim1; i++) {
+                    DenseVector eigen = getEigenVector(i);
+                    double value = eigen.dot(column) / eigenvalues.get(i);
+                    for (int j = 0; j < output.length; j++) {
+                        output[j][k] += value * eigen.get(j);
+                    }
+                }
+            }
+
+            return new DenseMatrix(output);
+        }
+    }
 }

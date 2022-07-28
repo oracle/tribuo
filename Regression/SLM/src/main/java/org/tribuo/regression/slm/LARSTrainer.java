@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.tribuo.regression.slm;
 
-import org.apache.commons.math3.linear.RealVector;
+import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseMatrix;
+import org.tribuo.math.la.DenseVector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,32 +55,33 @@ public class LARSTrainer extends SLMTrainer {
     }
 
     @Override
-    protected RealVector newWeights(SLMState state) {
+    protected DenseVector newWeights(SLMState state) {
         if (state.last) {
             return super.newWeights(state);
         }
 
-        RealVector deltapi =  SLMTrainer.ordinaryLeastSquares(state.xpi,state.r);
+        Pair<DenseVector, DenseMatrix> deltapi =  SLMTrainer.ordinaryLeastSquares(state.xpi,state.r);
 
         if (deltapi == null) {
             return null;
         }
 
-        RealVector delta = state.unpack(deltapi);
+        DenseVector delta = state.unpack(deltapi.getA());
+        DenseMatrix xpiInv = deltapi.getB();
 
         // Computing gamma
         List<Double> candidates = new ArrayList<>();
 
-        double AA = SLMTrainer.sumInverted(state.xpi);
+        double AA = xpiInv.rowSum().sum();
         double CC = state.C;
 
-        RealVector wa = SLMTrainer.getwa(state.xpi,AA);
-        RealVector ar = SLMTrainer.getA(state.X, state.xpi,wa);
+        DenseVector wa = SLMTrainer.getWA(xpiInv,AA);
+        DenseVector ar = SLMTrainer.getA(state.X, state.xpi, wa);
 
         for (int i = 0; i < state.numFeatures; ++i) {
             if (!state.activeSet.contains(i)) {
-                double c = state.corr.getEntry(i);
-                double a = ar.getEntry(i);
+                double c = state.corr.get(i);
+                double a = ar.get(i);
 
                 double v1 = (CC - c) / (AA - a);
                 double v2 = (CC + c) / (AA + a);
@@ -94,7 +97,9 @@ public class LARSTrainer extends SLMTrainer {
 
         double gamma = Collections.min(candidates);
 
-        return state.beta.add(delta.mapMultiplyToSelf(gamma));
+        delta.scaleInPlace(gamma);
+
+        return state.beta.add(delta);
     }
 
     @Override

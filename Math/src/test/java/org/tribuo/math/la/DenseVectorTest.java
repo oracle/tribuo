@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.tribuo.math.la;
 
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Example;
@@ -25,10 +24,14 @@ import org.tribuo.impl.ArrayExample;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
+import org.tribuo.util.MeanVarianceAccumulator;
 
+import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the DenseVector class.
@@ -134,6 +137,56 @@ public class DenseVectorTest {
         assertEquals(c.sum(Math::exp),c.reduce(0, Math::exp, Double::sum));
     }
 
+    @Test
+    public void testReductionBiFunction() {
+        DenseVector a = generateVectorA();
+        DenseVector b = generateVectorB();
+        DenseVector c = generateVectorC();
+
+        BiFunction<Double, Double, Double> max = Double::max;
+        BiFunction<Double, Double, Double> min = Double::min;
+        BiFunction<Double, Double, Double> sum = Double::sum;
+        
+        assertEquals(a.maxValue(),a.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), max));
+        assertEquals(b.maxValue(),b.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), max));
+        assertEquals(c.maxValue(),c.reduce(Double.MIN_VALUE, DoubleUnaryOperator.identity(), max));
+
+        assertEquals(a.minValue(),a.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), min));
+        assertEquals(b.minValue(),b.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), min));
+        assertEquals(c.minValue(),c.reduce(Double.MAX_VALUE, DoubleUnaryOperator.identity(), min));
+
+        assertEquals(a.sum(),a.reduce(0.0, DoubleUnaryOperator.identity(), sum));
+        assertEquals(b.sum(),b.reduce(0.0, DoubleUnaryOperator.identity(), sum));
+        assertEquals(c.sum(),c.reduce(0.0, DoubleUnaryOperator.identity(), sum));
+
+        assertEquals(a.sum(i -> i * i),a.reduce(0.0, i -> i * i, sum));
+        assertEquals(b.sum(Math::abs),b.reduce(0.0, Math::abs, sum));
+        assertEquals(c.sum(Math::exp),c.reduce(0.0, Math::exp, sum));
+        
+        
+        
+        DenseVector d = new DenseVector(new double[] {-1.0, 1.0, -2.0, 2.0});
+        assertFalse(d.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0));
+        DenseVector e = new DenseVector(new double[] {0.0, 1.0, 0.0, 2.0});
+        assertFalse(e.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0));
+        DenseVector f = new DenseVector(new double[] {0.1, 1.0, 0.2, 2.0});
+        assertTrue(f.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0));
+         
+    }
+
+    
+    @Test
+    public void testMeanVariance() {
+        DenseVector d = new DenseVector(new double[] {1, -2, 3, -4, 5, -5, 4, -3, 2, -1});
+        MeanVarianceAccumulator mva = d.meanVariance();
+        Assertions.assertEquals(12.222222222, mva.getVariance(), 0.000001);
+        Assertions.assertEquals(3.4960294939, mva.getStdDev(), 0.000001);
+        Assertions.assertEquals(0.0,mva.getMean(), 0.000001);
+        Assertions.assertEquals(5,mva.getMax(), 0.000001);
+        Assertions.assertEquals(-5,mva.getMin(), 0.000001);
+    }
+    
+    
     @Test
     public void size() {
         DenseVector s = generateVectorA();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
  * Provides a linear algebra system used for numerical operations in Tribuo.
  * <p>
  * There are Dense and Sparse vectors and Matrices, along with a DenseSparseMatrix which is
- * a dense array of sparse row vectors.
- * </p>
+ * a dense array of sparse row vectors. The dense matrix provides various factorization methods
+ * in addition to matrix-vector operations.
  * <p>
  * It's a single threaded implementation in pure Java. We're looking at ways of improving the speed
  * using new technologies coming in future releases of Java.
- * </p>
  */
 package org.tribuo.math.la;
