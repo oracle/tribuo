@@ -20,6 +20,7 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.evaluation.metrics.MetricTarget;
 import org.tribuo.util.infotheory.InformationTheory;
 
+import java.util.List;
 import java.util.function.BiFunction;
 
 /**
@@ -65,14 +66,28 @@ public enum ClusteringMetrics {
      * @return The adjusted normalized mutual information.
      */
     public static double adjustedMI(ClusteringMetric.Context context) {
-        double mi = InformationTheory.mi(context.getPredictedIDs(), context.getTrueIDs());
-        double predEntropy = InformationTheory.entropy(context.getPredictedIDs());
-        double trueEntropy = InformationTheory.entropy(context.getTrueIDs());
-        double expectedMI = InformationTheory.expectedMI(context.getPredictedIDs(), context.getTrueIDs());
+        return adjustedMI(context.getPredictedIDs(), context.getTrueIDs());
+    }
 
-        double minEntropy = Math.min(predEntropy, trueEntropy);
+    public static double adjustedMI(List<Integer> predictedIDs, List<Integer> trueIDs) {
+        double mi = InformationTheory.mi(predictedIDs, trueIDs);
+        double predEntropy = InformationTheory.entropy(predictedIDs);
+        double trueEntropy = InformationTheory.entropy(trueIDs);
+        double expectedMI = InformationTheory.expectedMI(trueIDs, predictedIDs);
 
-        return (mi - expectedMI) / (minEntropy - expectedMI);
+//        double minEntropy = Math.min(predEntropy, trueEntropy);
+//        return (mi - expectedMI) / (minEntropy - expectedMI);
+
+        double normalizer = (trueEntropy + predEntropy) / 2;
+        double denominator = normalizer - expectedMI;
+
+        if(denominator < 0) {
+            denominator = Math.min(denominator, -2.220446049250313e-16);
+        }else {
+            denominator = Math.max(denominator, 2.220446049250313e-16);
+        }
+
+        return (mi - expectedMI) / denominator;
     }
 
     /**
