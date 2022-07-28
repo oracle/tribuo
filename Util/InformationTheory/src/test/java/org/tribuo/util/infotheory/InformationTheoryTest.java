@@ -9,6 +9,18 @@ import org.junit.jupiter.api.Test;
 
 public class InformationTheoryTest {
 
+    /*
+     * import numpy as np
+     * from sklearn.metrics import mutual_info_score
+     * a = np.random.randint(0,5,100)
+     * #print(printArrayAsJavaDoubles(a))
+     * b = np.random.randint(0,5,100)
+     * #print(printArrayAsJavaDoubles(b))
+     * mi = mutual_info_score(a, b)
+     * print(f"mi.ln={mi}")
+     * mi /= np.log(2.0)
+     * print(f"mi.log2={mi}")
+     */ 
     @Test
     public void testMi() {
         List<Integer> a = Arrays.asList(0, 3, 2, 3, 4, 4, 4, 1, 3, 3, 4, 3, 2, 3, 2, 4, 2, 2, 1, 4, 1, 2, 0, 4, 4, 4, 3, 3, 2, 2, 0, 4, 0, 1, 3, 0, 4, 0, 0, 4, 0, 0, 2, 2, 2, 2, 0, 3, 0, 2, 2, 3, 1, 0, 1, 0, 3, 4, 4, 4, 0, 1, 1, 3, 3, 1, 3, 4, 0, 3, 4, 1, 0, 3, 2, 2, 2, 1, 1, 2, 3, 2, 1, 3, 0, 4, 4, 0, 4, 0, 2, 1, 4, 0, 3, 0, 1, 1, 1, 0);
@@ -16,6 +28,15 @@ public class InformationTheoryTest {
         assertEquals(0.15688780624148022, InformationTheory.mi(a,b),1e-13);
     }
 
+    /*
+     * import numpy as np
+     * from scipy.stats import entropy
+     * a = np.random.randint(0,5,100)
+     * #print(printArrayAsJavaDoubles(a))
+     * hist = np.histogram(a, bins=5, density=False)[0]
+     * a_probs = hist / len(a)
+     * print(f"a entropy={entropy(a_probs, base=2)}")
+     */
     @Test
     void testEntropy() throws Exception {
         List<Integer> a = Arrays.asList(0, 3, 2, 3, 4, 4, 4, 1, 3, 3, 4, 3, 2, 3, 2, 4, 2, 2, 1, 4, 1, 2, 0, 4, 4, 4, 3, 3, 2, 2, 0, 4, 0, 1, 3, 0, 4, 0, 0, 4, 0, 0, 2, 2, 2, 2, 0, 3, 0, 2, 2, 3, 1, 0, 1, 0, 3, 4, 4, 4, 0, 1, 1, 3, 3, 1, 3, 4, 0, 3, 4, 1, 0, 3, 2, 2, 2, 1, 1, 2, 3, 2, 1, 3, 0, 4, 4, 0, 4, 0, 2, 1, 4, 0, 3, 0, 1, 1, 1, 0);
