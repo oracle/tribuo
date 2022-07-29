@@ -27,6 +27,12 @@ import org.tribuo.classification.Label;
  */
 interface FSMatrix {
 
+    /**
+     * Builds an FSMatrix after binning the features into the specified number of bins.
+     * @param dataset The dataset to use.
+     * @param numBins The number of bins to use for the features.
+     * @return An FSMatrix for computing information theoretic values.
+     */
     static FSMatrix buildMatrix(Dataset<Label> dataset, int numBins) {
 
     }
