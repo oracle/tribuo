@@ -18,7 +18,6 @@ package org.tribuo.classification.fs;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
-import com.oracle.labs.mlrg.olcut.util.SortUtil;
 import org.tribuo.Dataset;
 import org.tribuo.FeatureSelector;
 import org.tribuo.ImmutableFeatureMap;
@@ -29,20 +28,27 @@ import org.tribuo.provenance.FeatureSetProvenance;
 import org.tribuo.provenance.impl.FeatureSelectorProvenanceImpl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 /**
- * Selects features according to their mutual information with the class label (aka Mutual Information Maximisation).
+ * Selects features according to the Conditional Mutual Information Maximisation algorithm.
  * <p>
  * Uses equal width binning for the feature values.
  * <p>
  * See:
  * <pre>
- * Brown G, Pocock A, Zhao M-J, Lujan M.
- * "Conditional Likelihood Maximisation: A Unifying Framework for Information Theoretic Feature Selection"
- * Journal of Machine Learning Research (JMLR), 2012, <a href="https://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf">PDF</a>.
+ * Fleuret F.
+ * "Fast Binary Feature Selection with Conditional Mutual Information"
+ * Journal of Machine Learning Research (JMLR), 2004, <a href="https://www.jmlr.org/papers/volume5/fleuret04a/fleuret04a.pdf">PDF</a>.
  * </pre>
  */
-public final class MIM implements FeatureSelector<Label> {
+public final class CMIM implements FeatureSelector<Label> {
+    private static final Logger logger = Logger.getLogger(CMIM.class.getName());
 
     @Config(mandatory = true, description = "Number of bins to use when discretising continuous features.")
     private int numBins;
@@ -50,31 +56,26 @@ public final class MIM implements FeatureSelector<Label> {
     @Config(description = "Number of features to select, defaults to ranking all features.")
     private int k = SELECT_ALL;
 
+    @Config(description = "Number of computation threads to use.")
+    private int numThreads = 1;
+
     /**
      * For OLCUT.
      */
-    private MIM() {}
+    private CMIM() { }
 
     /**
-     * Constructs a MIM feature selector that ranks all the features.
-     * <p>
-     * Continuous features are binned into {@code numBins} equal width bins.
-     * @param numBins The number of bins, must be greater than 1.
-     */
-    public MIM(int numBins) {
-        this(numBins,SELECT_ALL);
-    }
-
-    /**
-     * Constructs a MIM feature selector that ranks the top {@code k} features.
+     * Constructs a CMIM feature selector that ranks the top {@code k} features.
      * <p>
      * Continuous features are binned into {@code numBins} equal width bins.
      * @param numBins The number of bins, must be greater than 1.
      * @param k The number of features to rank.
+     * @param numThreads The number of computation threads to use.
      */
-    public MIM(int numBins, int k) {
-        this.numBins = numBins;
+    public CMIM(int k, int numBins, int numThreads) {
         this.k = k;
+        this.numBins = numBins;
+        this.numThreads = numThreads;
         if ((k != SELECT_ALL) && (k < 1)) {
             throw new IllegalArgumentException("k must be -1 to select all features, or a positive number, found " + k);
         }
@@ -104,21 +105,71 @@ public final class MIM implements FeatureSelector<Label> {
     @Override
     public SelectedFeatureSet select(Dataset<Label> dataset) {
         FSMatrix data = FSMatrix.buildMatrix(dataset,numBins);
-
         ImmutableFeatureMap fmap = data.getFeatureMap();
-
         int max = k == -1 ? fmap.size() : Math.min(k,fmap.size());
+        int numFeatures = fmap.size();
 
-        double[] mi = data.miList();
+        boolean[] unselectedFeatures = new boolean[numFeatures];
+        Arrays.fill(unselectedFeatures, true);
+        int[] selectedFeatures = new int[max];
+        double[] selectedScores = new double[max];
 
-        int[] sortOrder = SortUtil.argsort(mi,false);
+        double[] miCache;
+        int[] idxCache = new int[numFeatures];
+
+        if (numThreads > 1) {
+            ForkJoinPool fjp = new ForkJoinPool(numThreads);
+            try {
+                miCache = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().mapToDouble(data::mi).toArray()).get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+            fjp.shutdown();
+        } else {
+            miCache = IntStream.range(0, numFeatures).mapToDouble(data::mi).toArray();
+        }
+
+        int curIdx = -1;
+        double curVal = -1.0;
+        for (int i = 0; i < numFeatures; i++) {
+            if (miCache[i] > curVal) {
+                curIdx = i;
+                curVal = miCache[i];
+            }
+        }
+
+        selectedFeatures[0] = curIdx;
+        selectedScores[0] = curVal;
+        logger.log(Level.INFO,"Itr 0: selected feature " + curIdx + ", score = " + selectedScores[0]);
+
+        //
+        // Select features in max CMIM order using fast algorithm
+        for (int i = 1; i < k; i++) {
+            double curMaxVal = -1.0;
+            int curMaxIdx = -1;
+            for (int j = 0; j < numFeatures; j++) {
+                while ((miCache[j] > curMaxVal) && (idxCache[j] < i)) {
+                    double newVal = data.cmi(j, selectedFeatures[idxCache[j]]);
+                    if (newVal < miCache[j]) {
+                        miCache[j] = newVal;
+                    }
+                    idxCache[j]++;
+                }
+                if (miCache[j] > curMaxVal) {
+                    curMaxVal = miCache[j];
+                    curMaxIdx = j;
+                }
+            }
+            selectedFeatures[i] = curMaxIdx;
+            selectedScores[i] = curMaxVal;
+            logger.log(Level.INFO,"Itr " + i + ": selected feature " + curMaxIdx + ", score = " + curMaxVal);
+        }
 
         ArrayList<String> names = new ArrayList<>();
         ArrayList<Double> scores = new ArrayList<>();
         for (int i = 0; i < max; i++) {
-            int id = sortOrder[i];
-            names.add(fmap.get(id).getName());
-            scores.add(mi[id]);
+            names.add(fmap.get(selectedFeatures[i]).getName());
+            scores.add(selectedScores[i]);
         }
 
         FeatureSetProvenance provenance = new FeatureSetProvenance(SelectedFeatureSet.class.getName(),dataset.getProvenance(),getProvenance());
