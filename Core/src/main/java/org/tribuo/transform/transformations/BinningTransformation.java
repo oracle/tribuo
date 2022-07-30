@@ -443,7 +443,7 @@ public final class BinningTransformation implements Transformation {
     }
 
     @ProtoSerializableClass(version = BinningTransformer.CURRENT_VERSION, serializedDataClass = BinningTransformerProto.class)
-    static final class BinningTransformer implements Transformer {
+    public static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
 
         /**
@@ -458,12 +458,20 @@ public final class BinningTransformation implements Transformation {
         @ProtoSerializableField
         private final double[] values;
 
-        BinningTransformer(BinningType type, double[] bins, double[] values) {
+        public BinningTransformer(BinningType type, double[] bins, double[] values) {
             if (bins == null || bins.length == 0) {
                 throw new IllegalArgumentException("Invalid bin array");
             }
             if (values == null || values.length == 0) {
                 throw new IllegalArgumentException("Invalid value array");
+            }
+            double prev = bins[0];
+            for (int i = 1; i < bins.length; i++) {
+                double next = bins[i];
+                if (prev > next) {
+                    throw new IllegalArgumentException("Invalid bin array, values are not increasing.");
+                }
+                prev = next;
             }
             this.type = type;
             this.bins = bins;
@@ -531,6 +539,5 @@ public final class BinningTransformation implements Transformation {
         public TransformerProto serialize() {
             return ProtoUtil.serialize(this);
         }
-
     }
 }

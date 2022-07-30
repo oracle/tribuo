@@ -34,7 +34,7 @@ interface FSMatrix {
      * @return An FSMatrix for computing information theoretic values.
      */
     static FSMatrix buildMatrix(Dataset<Label> dataset, int numBins) {
-
+        return DenseFSMatrix.equalWidthBins(dataset, numBins);
     }
 
     /**

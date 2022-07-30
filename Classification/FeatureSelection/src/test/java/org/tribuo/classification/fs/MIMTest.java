@@ -16,6 +16,7 @@
 
 package org.tribuo.classification.fs;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
@@ -24,14 +25,23 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
+import org.tribuo.util.infotheory.InformationTheory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MIMTest {
+
+    @BeforeAll
+    public static void setup() {
+        Logger logger = Logger.getLogger(InformationTheory.class.getName());
+        logger.setLevel(Level.WARNING);
+    }
 
     @Test
     public void mimTest() {
@@ -76,7 +86,8 @@ public class MIMTest {
         assertEquals(5,names.size());
         assertEquals(5,scores.size());
 
-        assertEquals(Arrays.asList("E","C","B","D","A"),featureNames);
+        assertEquals(Arrays.asList("E","B","C","D","A"),sfs.featureNames());
+        assertEquals(Arrays.asList(1.0, 0.1887218755408671, 0.1887218755408671, 0.0487949406953985, 0.0),sfs.featureScores());
     }
 
 }
