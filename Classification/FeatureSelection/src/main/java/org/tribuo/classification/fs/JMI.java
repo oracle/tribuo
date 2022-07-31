@@ -55,7 +55,7 @@ import java.util.stream.IntStream;
  * Journal of Machine Learning Research (JMLR), 2012, <a href="https://www.jmlr.org/papers/volume13/brown12a/brown12a.pdf">PDF</a>.
  * </pre>
  */
-public class JMI implements FeatureSelector<Label> {
+public final class JMI implements FeatureSelector<Label> {
     private static final Logger logger = Logger.getLogger(JMI.class.getName());
 
     @Config(mandatory = true, description = "Number of bins to use when discretising continuous features.")
@@ -119,8 +119,8 @@ public class JMI implements FeatureSelector<Label> {
 
         boolean[] unselectedFeatures = new boolean[numFeatures];
         Arrays.fill(unselectedFeatures, true);
-        int[] selectedFeatures = new int[k];
-        double[] selectedScores = new double[k];
+        int[] selectedFeatures = new int[max];
+        double[] selectedScores = new double[max];
 
         ForkJoinPool fjp = null;
 
@@ -148,9 +148,9 @@ public class JMI implements FeatureSelector<Label> {
 
         //
         // Select features in max JMI order
-        for (int i = 1; i < k; i++) {
+        for (int i = 1; i < max; i++) {
             if (numThreads > 1) {
-                int prevIdx = selectedFeatures[i-1];
+                final int prevIdx = selectedFeatures[i-1];
                 try {
                     updates = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().mapToDouble(j -> unselectedFeatures[j] ? data.jmi(j, prevIdx) : 0.0).toArray()).get();
                     for (int j = 0; j < jmiScore.length; j++) {

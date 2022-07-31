@@ -18,6 +18,7 @@ package org.tribuo.classification.fs;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.SelectedFeatureSet;
@@ -29,6 +30,7 @@ import org.tribuo.util.infotheory.InformationTheory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.SplittableRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,6 +43,59 @@ public class MIMTest {
     public static void setup() {
         Logger logger = Logger.getLogger(InformationTheory.class.getName());
         logger.setLevel(Level.WARNING);
+    }
+
+    public static Dataset<Label> createDataset() {
+        SplittableRandom rng = new SplittableRandom(1);
+        LabelFactory lblFactory = new LabelFactory();
+
+        Label one = new Label("ONE");
+        Label two = new Label("TWO");
+        Label three = new Label("THREE");
+
+        int numSamples = 1000;
+
+        MutableDataset<Label> dataset = new MutableDataset<>(new SimpleDataSourceProvenance("Test",lblFactory),lblFactory);
+
+        // relevant features start with R, irrelevant with I
+        String[] featureNames = new String[]{
+                "R1","R2","R3","R4","R5","R6","R7","R8","R9","R10",
+                "I1","I2","I3","I4","I5","I6","I7","I8","I9","I10",
+        };
+        for (int i = 0; i < numSamples; i++) {
+            double lbl = rng.nextDouble();
+            Label cur;
+            int lblScalar;
+            if (lbl < 0.3) {
+                cur = one;
+                lblScalar = 1;
+            } else if (lbl < 0.6) {
+                cur = two;
+                lblScalar = 2;
+            } else {
+                cur = three;
+                lblScalar = 3;
+            }
+            double[] featureValues = new double[20];
+            featureValues[0] = rng.nextDouble(lblScalar);
+            featureValues[1] = rng.nextDouble(lblScalar*lblScalar);
+            featureValues[2] = cur == one ? rng.nextDouble(10) : rng.nextDouble();
+            featureValues[3] = cur == two ? rng.nextDouble(10) : rng.nextDouble();
+            featureValues[4] = cur == three ? rng.nextDouble(10) : rng.nextDouble();
+            featureValues[5] = lblScalar + rng.nextDouble(3);
+            featureValues[6] = lblScalar - rng.nextDouble(3);
+            double randomness = rng.nextDouble();
+            featureValues[7] = (lblScalar * randomness) + rng.nextDouble(2);
+            featureValues[8] = (lblScalar * randomness) - rng.nextDouble();
+            featureValues[9] = randomness + (lblScalar / 3);
+            for (int j = 10; j < featureValues.length; j++) {
+                featureValues[j] = rng.nextInt(j);
+            }
+
+            dataset.add(new ArrayExample<>(cur,featureNames,featureValues));
+        }
+
+        return dataset;
     }
 
     @Test

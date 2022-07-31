@@ -49,7 +49,7 @@ import java.util.stream.IntStream;
  * IEEE Transactions on Pattern Analysis and Machine Intelligence (IEEE PAMI), 2005.
  * </pre>
  */
-public class mRMR implements FeatureSelector<Label> {
+public final class mRMR implements FeatureSelector<Label> {
     private static final Logger logger = Logger.getLogger(mRMR.class.getName());
 
     @Config(mandatory = true, description = "Number of bins to use when discretising continuous features.")
@@ -113,8 +113,8 @@ public class mRMR implements FeatureSelector<Label> {
 
         boolean[] unselectedFeatures = new boolean[numFeatures];
         Arrays.fill(unselectedFeatures, true);
-        int[] selectedFeatures = new int[k];
-        double[] selectedScores = new double[k];
+        int[] selectedFeatures = new int[max];
+        double[] selectedScores = new double[max];
 
         double[] redundancyCache = new double[numFeatures];
         double[] miCache;
@@ -150,7 +150,7 @@ public class mRMR implements FeatureSelector<Label> {
         Pair<Integer,Double> maxPair;
         //
         // Select features in max mRMR order
-        for (int i = 1; i < k; i++) {
+        for (int i = 1; i < max; i++) {
             if (numThreads > 1) {
                 final int prevIdx = selectedFeatures[i-1];
                 final int curI = i;

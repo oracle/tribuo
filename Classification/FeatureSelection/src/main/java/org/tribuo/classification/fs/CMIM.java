@@ -140,28 +140,32 @@ public final class CMIM implements FeatureSelector<Label> {
 
         selectedFeatures[0] = curIdx;
         selectedScores[0] = curVal;
+        unselectedFeatures[curIdx] = false;
         logger.log(Level.INFO,"Itr 0: selected feature " + curIdx + ", score = " + selectedScores[0]);
 
         //
         // Select features in max CMIM order using fast algorithm
-        for (int i = 1; i < k; i++) {
+        for (int i = 1; i < max; i++) {
             double curMaxVal = -1.0;
             int curMaxIdx = -1;
             for (int j = 0; j < numFeatures; j++) {
-                while ((miCache[j] > curMaxVal) && (idxCache[j] < i)) {
-                    double newVal = data.cmi(j, selectedFeatures[idxCache[j]]);
-                    if (newVal < miCache[j]) {
-                        miCache[j] = newVal;
+                if (unselectedFeatures[j]) {
+                    while ((miCache[j] > curMaxVal) && (idxCache[j] < i)) {
+                        double newVal = data.cmi(j, selectedFeatures[idxCache[j]]);
+                        if (newVal < miCache[j]) {
+                            miCache[j] = newVal;
+                        }
+                        idxCache[j]++;
                     }
-                    idxCache[j]++;
-                }
-                if (miCache[j] > curMaxVal) {
-                    curMaxVal = miCache[j];
-                    curMaxIdx = j;
+                    if (miCache[j] > curMaxVal) {
+                        curMaxVal = miCache[j];
+                        curMaxIdx = j;
+                    }
                 }
             }
             selectedFeatures[i] = curMaxIdx;
             selectedScores[i] = curMaxVal;
+            unselectedFeatures[curMaxIdx] = false;
             logger.log(Level.INFO,"Itr " + i + ": selected feature " + curMaxIdx + ", score = " + curMaxVal);
         }
 
