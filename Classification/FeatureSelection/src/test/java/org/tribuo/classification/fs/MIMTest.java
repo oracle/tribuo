@@ -82,11 +82,11 @@ public class MIMTest {
             featureValues[2] = cur == one ? rng.nextDouble(10) : rng.nextDouble();
             featureValues[3] = cur == two ? rng.nextDouble(10) : rng.nextDouble();
             featureValues[4] = cur == three ? rng.nextDouble(10) : rng.nextDouble();
-            featureValues[5] = lblScalar + rng.nextDouble(3);
-            featureValues[6] = lblScalar - rng.nextDouble(3);
+            featureValues[5] = lblScalar == 1 ? -rng.nextDouble(3) : lblScalar;
+            featureValues[6] = lblScalar == 2 ? rng.nextDouble(5) : lblScalar;
+            featureValues[7] = lblScalar == 3 ? rng.nextDouble(4) : lblScalar;
             double randomness = rng.nextDouble();
-            featureValues[7] = (lblScalar * randomness) + rng.nextDouble(2);
-            featureValues[8] = (lblScalar * randomness) - rng.nextDouble();
+            featureValues[8] = (lblScalar * randomness) + rng.nextDouble(2);
             featureValues[9] = randomness + (lblScalar / 3);
             for (int j = 10; j < featureValues.length; j++) {
                 featureValues[j] = rng.nextInt(j);

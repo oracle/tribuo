@@ -26,6 +26,7 @@ import org.tribuo.RealIDInfo;
 import org.tribuo.VariableIDInfo;
 import org.tribuo.classification.Label;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.transform.Transformer;
 import org.tribuo.transform.transformations.BinningTransformation;
 import org.tribuo.util.infotheory.InformationTheory;
 import org.tribuo.util.infotheory.impl.CachedPair;
@@ -156,7 +157,7 @@ final class DenseFSMatrix implements FSMatrix {
         int[][] features = new int[numFeatures][numExamples];
         int[] labels = new int[numExamples];
 
-        BinningTransformation.BinningTransformer[] transformers = new BinningTransformation.BinningTransformer[numFeatures];
+        Transformer[] transformers = new Transformer[numFeatures];
         for (int i = 0; i < numFeatures; i++) {
             VariableIDInfo info = fmap.get(i);
             transformers[i] = makeBinningTransformer(info,numExamples,numBins);
@@ -182,7 +183,7 @@ final class DenseFSMatrix implements FSMatrix {
      * @param numBins The number of bins.
      * @return The binning transformer.
      */
-    private static BinningTransformation.BinningTransformer makeBinningTransformer(VariableIDInfo info, int numExamples, int numBins) {
+    private static Transformer makeBinningTransformer(VariableIDInfo info, int numExamples, int numBins) {
         int count = info.getCount();
         double min = Double.POSITIVE_INFINITY, max = Double.NEGATIVE_INFINITY;
 

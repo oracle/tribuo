@@ -140,7 +140,7 @@ public final class JMI implements FeatureSelector<Label> {
         selectedFeatures[0] = selectedIdx;
         unselectedFeatures[selectedIdx] = false;
         selectedScores[0] = maxPair.getB();
-        logger.log(Level.INFO,"Itr 0: selected feature " + selectedIdx + ", score = " + selectedScores[0]);
+        logger.log(Level.INFO,"Itr 0: selected feature " + fmap.get(selectedIdx).getName() + ", score = " + selectedScores[0]);
 
         double[] jmiScore = new double[numFeatures];
 
@@ -180,7 +180,7 @@ public final class JMI implements FeatureSelector<Label> {
             unselectedFeatures[maxIdx] = false;
             selectedScores[i] = maxPair.getB() / i;
 
-            logger.log(Level.INFO,"Itr " + i + ": selected feature " + maxIdx + ", score = " + maxPair.getB() + ", average score = " + selectedScores[i]);
+            logger.log(Level.INFO,"Itr " + i + ": selected feature " + fmap.get(maxIdx).getName() + ", score = " + maxPair.getB() + ", average score = " + selectedScores[i]);
         }
 
         if (fjp != null) {

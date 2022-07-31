@@ -141,7 +141,7 @@ public final class CMIM implements FeatureSelector<Label> {
         selectedFeatures[0] = curIdx;
         selectedScores[0] = curVal;
         unselectedFeatures[curIdx] = false;
-        logger.log(Level.INFO,"Itr 0: selected feature " + curIdx + ", score = " + selectedScores[0]);
+        logger.log(Level.INFO,"Itr 0: selected feature " + fmap.get(curIdx).getName() + ", score = " + selectedScores[0]);
 
         //
         // Select features in max CMIM order using fast algorithm
@@ -166,7 +166,7 @@ public final class CMIM implements FeatureSelector<Label> {
             selectedFeatures[i] = curMaxIdx;
             selectedScores[i] = curMaxVal;
             unselectedFeatures[curMaxIdx] = false;
-            logger.log(Level.INFO,"Itr " + i + ": selected feature " + curMaxIdx + ", score = " + curMaxVal);
+            logger.log(Level.INFO,"Itr " + i + ": selected feature " + fmap.get(curMaxIdx).getName() + ", score = " + curMaxVal);
         }
 
         ArrayList<String> names = new ArrayList<>();

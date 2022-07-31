@@ -144,7 +144,7 @@ public final class mRMR implements FeatureSelector<Label> {
         selectedFeatures[0] = curIdx;
         unselectedFeatures[curIdx] = false;
         selectedScores[0] = curVal;
-        logger.log(Level.INFO,"Itr 0: selected feature " + curIdx + ", score = " + selectedScores[0]);
+        logger.log(Level.INFO,"Itr 0: selected feature " + fmap.get(curIdx).getName() + ", score = " + selectedScores[0]);
 
         double[] updates;
         Pair<Integer,Double> maxPair;
@@ -184,7 +184,7 @@ public final class mRMR implements FeatureSelector<Label> {
             unselectedFeatures[maxIdx] = false;
             selectedScores[i] = maxPair.getB() / i;
 
-            logger.log(Level.INFO,"Itr " + i + ": selected feature " + maxIdx + ", score = " + maxPair.getB() + ", average score = " + selectedScores[i]);
+            logger.log(Level.INFO,"Itr " + i + ": selected feature " + fmap.get(maxIdx).getName() + ", score = " + maxPair.getB() + ", average score = " + selectedScores[i]);
         }
 
         if (fjp != null) {
