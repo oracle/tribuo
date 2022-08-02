@@ -144,15 +144,13 @@ public final class JMI implements FeatureSelector<Label> {
 
         double[] jmiScore = new double[numFeatures];
 
-        double[] updates;
-
         //
         // Select features in max JMI order
         for (int i = 1; i < max; i++) {
             if (numThreads > 1) {
                 final int prevIdx = selectedFeatures[i-1];
                 try {
-                    updates = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().mapToDouble(j -> unselectedFeatures[j] ? data.jmi(j, prevIdx) : 0.0).toArray()).get();
+                    double[] updates = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().mapToDouble(j -> unselectedFeatures[j] ? data.jmi(j, prevIdx) : 0.0).toArray()).get();
                     for (int j = 0; j < jmiScore.length; j++) {
                         jmiScore[j] += updates[j];
                     }

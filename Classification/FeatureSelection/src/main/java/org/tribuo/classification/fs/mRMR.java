@@ -146,16 +146,15 @@ public final class mRMR implements FeatureSelector<Label> {
         selectedScores[0] = curVal;
         logger.log(Level.INFO,"Itr 0: selected feature " + fmap.get(curIdx).getName() + ", score = " + selectedScores[0]);
 
-        double[] updates;
-        Pair<Integer,Double> maxPair;
         //
         // Select features in max mRMR order
         for (int i = 1; i < max; i++) {
+            Pair<Integer,Double> maxPair;
             if (numThreads > 1) {
                 final int prevIdx = selectedFeatures[i-1];
                 final int curI = i;
                 try {
-                    updates = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().mapToDouble(j -> unselectedFeatures[j] ? data.mi(j, prevIdx) : 0.0).toArray()).get();
+                    double[] updates = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().mapToDouble(j -> unselectedFeatures[j] ? data.mi(j, prevIdx) : 0.0).toArray()).get();
                     for (int j = 0; j < redundancyCache.length; j++) {
                         redundancyCache[j] += updates[j];
                     }

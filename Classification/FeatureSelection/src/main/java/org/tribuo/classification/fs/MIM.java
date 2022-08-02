@@ -69,10 +69,10 @@ public final class MIM implements FeatureSelector<Label> {
      * Constructs a MIM feature selector that ranks the top {@code k} features.
      * <p>
      * Continuous features are binned into {@code numBins} equal width bins.
-     * @param numBins The number of bins, must be greater than 1.
      * @param k The number of features to rank.
+     * @param numBins The number of bins, must be greater than 1.
      */
-    public MIM(int numBins, int k) {
+    public MIM(int k, int numBins) {
         this.numBins = numBins;
         this.k = k;
         if ((k != SELECT_ALL) && (k < 1)) {
