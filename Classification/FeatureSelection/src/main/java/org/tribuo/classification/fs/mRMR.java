@@ -181,7 +181,7 @@ public final class mRMR implements FeatureSelector<Label> {
             int maxIdx = maxPair.getA();
             selectedFeatures[i] = maxIdx;
             unselectedFeatures[maxIdx] = false;
-            selectedScores[i] = maxPair.getB() / i;
+            selectedScores[i] = maxPair.getB();
 
             logger.log(Level.INFO,"Itr " + i + ": selected feature " + fmap.get(maxIdx).getName() + ", score = " + maxPair.getB() + ", average score = " + selectedScores[i]);
         }

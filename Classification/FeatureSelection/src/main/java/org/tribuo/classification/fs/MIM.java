@@ -62,7 +62,7 @@ public final class MIM implements FeatureSelector<Label> {
      * @param numBins The number of bins, must be greater than 1.
      */
     public MIM(int numBins) {
-        this(numBins,SELECT_ALL);
+        this(SELECT_ALL, numBins);
     }
 
     /**
