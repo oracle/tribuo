@@ -17,6 +17,7 @@
 package org.tribuo;
 
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import java.io.Serializable;
 import org.tribuo.provenance.FeatureSetProvenance;
 
 import java.util.Collections;
@@ -27,7 +28,8 @@ import java.util.List;
  * <p>
  * Uses record style accessors as it may be refactored into a record one day.
  */
-public final class SelectedFeatureSet implements Provenancable<FeatureSetProvenance> {
+public final class SelectedFeatureSet implements Provenancable<FeatureSetProvenance>, Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final List<String> featureNames;
 
