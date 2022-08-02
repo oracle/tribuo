@@ -91,4 +91,13 @@ public final class SelectedFeatureSet implements Provenancable<FeatureSetProvena
     public boolean isOrdered() {
         return isOrdered;
     }
+
+    @Override
+    public String toString() {
+        return "SelectedFeatureSet{" +
+            "featureNames=" + featureNames +
+            ", featureScores=" + featureScores +
+            ", isOrdered=" + isOrdered +
+            '}';
+    }
 }
