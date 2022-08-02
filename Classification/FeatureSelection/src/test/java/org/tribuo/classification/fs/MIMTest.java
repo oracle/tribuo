@@ -43,6 +43,8 @@ public class MIMTest {
     public static void setup() {
         Logger logger = Logger.getLogger(InformationTheory.class.getName());
         logger.setLevel(Level.WARNING);
+        logger = Logger.getLogger(MIM.class.getName());
+        logger.setLevel(Level.WARNING);
     }
 
     public static Dataset<Label> createDataset() {

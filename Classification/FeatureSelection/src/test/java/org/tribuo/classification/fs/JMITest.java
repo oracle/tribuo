@@ -35,6 +35,8 @@ public class JMITest {
     public static void setup() {
         Logger logger = Logger.getLogger(InformationTheory.class.getName());
         logger.setLevel(Level.WARNING);
+        logger = Logger.getLogger(JMI.class.getName());
+        logger.setLevel(Level.WARNING);
     }
 
     @Test

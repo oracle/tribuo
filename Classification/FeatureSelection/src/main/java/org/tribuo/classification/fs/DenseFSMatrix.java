@@ -126,7 +126,7 @@ final class DenseFSMatrix implements FSMatrix {
             MutableLong l = map.computeIfAbsent(p, k -> new MutableLong());
             l.increment();
         }
-        return InformationTheory.jointMI(TripleDistribution.constructFromMap(map));
+        return InformationTheory.conditionalMI(TripleDistribution.constructFromMap(map));
     }
 
     @Override
@@ -138,7 +138,7 @@ final class DenseFSMatrix implements FSMatrix {
             MutableLong l = map.computeIfAbsent(p, k -> new MutableLong());
             l.increment();
         }
-        return InformationTheory.jointMI(TripleDistribution.constructFromMap(map));
+        return InformationTheory.conditionalMI(TripleDistribution.constructFromMap(map));
     }
 
     /**

@@ -35,6 +35,8 @@ public class mRMRTest {
     public static void setup() {
         Logger logger = Logger.getLogger(InformationTheory.class.getName());
         logger.setLevel(Level.WARNING);
+        logger = Logger.getLogger(mRMR.class.getName());
+        logger.setLevel(Level.WARNING);
     }
 
     @Test
