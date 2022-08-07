@@ -16,7 +16,13 @@
 
 package org.tribuo.anomaly;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
+import org.tribuo.anomaly.protos.EventProto;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputProto;
 
 import java.util.Objects;
 
@@ -67,8 +73,10 @@ public final class Event implements Output<Event> {
         }
     }
 
+    @ProtoSerializableField
     private final EventType type;
 
+    @ProtoSerializableField
     private final double score;
 
     /**
@@ -87,6 +95,41 @@ public final class Event implements Output<Event> {
      */
     public Event(EventType type) {
         this(type,DEFAULT_SCORE);
+    }
+
+    private Event(int type, double score) {
+        EventType[] values = EventType.values();
+        EventType eventEnum = null;
+        for (EventType t : values) {
+            if (t.getID() == type) {
+                eventEnum = t;
+            }
+        }
+        if (eventEnum == null) {
+            throw new IllegalStateException("Invalid EventType enum value, found " + type);
+        }
+        this.type = eventEnum;
+        this.score = score;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static Event deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        EventProto proto = message.unpack(EventProto.class);
+        Event info = new Event(proto.getEvent().getNumber(),proto.getScore());
+        return info;
+    }
+
+    @Override
+    public OutputProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**

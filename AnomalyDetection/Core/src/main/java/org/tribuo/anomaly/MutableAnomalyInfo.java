@@ -16,7 +16,10 @@
 
 package org.tribuo.anomaly;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.MutableOutputInfo;
+import org.tribuo.anomaly.protos.AnomalyInfoProto;
 
 /**
  * An {@link MutableOutputInfo} object for {@link Event}s.
@@ -38,6 +41,24 @@ public final class MutableAnomalyInfo extends AnomalyInfo implements MutableOutp
 
     MutableAnomalyInfo(AnomalyInfo info) {
         super(info);
+    }
+
+    private MutableAnomalyInfo(int expectedCount, int anomalyCount, int unknownCount) {
+        super(expectedCount,anomalyCount,unknownCount);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MutableAnomalyInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        AnomalyInfoProto proto = message.unpack(AnomalyInfoProto.class);
+        return new MutableAnomalyInfo(proto.getExpectedCount(),proto.getAnomalyCount(),proto.getUnknownCount());
     }
 
     @Override

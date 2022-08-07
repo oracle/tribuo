@@ -16,9 +16,12 @@
 
 package org.tribuo.anomaly;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.anomaly.Event.EventType;
+import org.tribuo.anomaly.protos.AnomalyInfoProto;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,6 +41,24 @@ public final class ImmutableAnomalyInfo extends AnomalyInfo implements Immutable
 
     ImmutableAnomalyInfo(AnomalyInfo info) {
         super(info);
+    }
+
+    private ImmutableAnomalyInfo(int expectedCount, int anomalyCount, int unknownCount) {
+        super(expectedCount,anomalyCount,unknownCount);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImmutableAnomalyInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        AnomalyInfoProto proto = message.unpack(AnomalyInfoProto.class);
+        return new ImmutableAnomalyInfo(proto.getExpectedCount(),proto.getAnomalyCount(),proto.getUnknownCount());
     }
 
     @Override
