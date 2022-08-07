@@ -20,6 +20,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
 import org.tribuo.anomaly.protos.EventProto;
+import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputProto;
@@ -34,6 +35,7 @@ import java.util.Objects;
  * an {@link EventType#ANOMALOUS} at training time. It's noted in the documentation if they
  * do support training from anomalous and expected data.
  */
+@ProtoSerializableClass(serializedDataClass=EventProto.class, version=0)
 public final class Event implements Output<Event> {
     private static final long serialVersionUID = 1L;
 

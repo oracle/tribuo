@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -82,7 +83,7 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
      * @param anomalyCount The observed number of anomalous events.
      * @param unknownCount The observed number of unknown events.
      */
-    protected AnomalyInfo(int expectedCount, int anomalyCount, int unknownCount) {
+    protected AnomalyInfo(long expectedCount, long anomalyCount, int unknownCount) {
         if (expectedCount < 0) {
             throw new IllegalStateException("Invalid expectedCount, found " + expectedCount);
         }
@@ -193,6 +194,19 @@ public abstract class AnomalyInfo implements OutputInfo<Event>  {
 
     @Override
     public abstract AnomalyInfo copy();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AnomalyInfo that = (AnomalyInfo) o;
+        return expectedCount == that.expectedCount && anomalyCount == that.anomalyCount && unknownCount == that.unknownCount;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(expectedCount, anomalyCount, unknownCount);
+    }
 
     private static Set<Event> makeDomain() {
         HashSet<Event> set = new HashSet<>();

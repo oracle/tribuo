@@ -47,7 +47,7 @@ message EventProto {
 AnomalyInfoProto
  */
 message AnomalyInfoProto {
-  int32 expectedCount = 1;
-  int32 anomalyCount = 2;
+  int64 expectedCount = 1;
+  int64 anomalyCount = 2;
   int32 unknownCount = 3;
 }

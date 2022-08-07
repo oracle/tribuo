@@ -20,6 +20,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.anomaly.protos.AnomalyInfoProto;
+import org.tribuo.protos.ProtoSerializableClass;
 
 /**
  * An {@link MutableOutputInfo} object for {@link Event}s.
@@ -32,6 +33,7 @@ import org.tribuo.anomaly.protos.AnomalyInfoProto;
  * Anomaly detection has a fixed domain, so it will throw {@link IllegalArgumentException}
  * if you somehow modify the {@link Event.EventType} enum to add a new value.
  */
+@ProtoSerializableClass(serializedDataClass=AnomalyInfoProto.class, version=0)
 public final class MutableAnomalyInfo extends AnomalyInfo implements MutableOutputInfo<Event> {
     private static final long serialVersionUID = 1L;
 
@@ -43,7 +45,7 @@ public final class MutableAnomalyInfo extends AnomalyInfo implements MutableOutp
         super(info);
     }
 
-    private MutableAnomalyInfo(int expectedCount, int anomalyCount, int unknownCount) {
+    private MutableAnomalyInfo(long expectedCount, long anomalyCount, int unknownCount) {
         super(expectedCount,anomalyCount,unknownCount);
     }
 

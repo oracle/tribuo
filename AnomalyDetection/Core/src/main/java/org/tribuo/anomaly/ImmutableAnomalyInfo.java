@@ -22,6 +22,8 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.anomaly.Event.EventType;
 import org.tribuo.anomaly.protos.AnomalyInfoProto;
+import org.tribuo.anomaly.protos.EventProto;
+import org.tribuo.protos.ProtoSerializableClass;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -34,6 +36,7 @@ import java.util.logging.Logger;
  * <p>
  * The ids are predefined for {@link Event} in the Event class itself.
  */
+@ProtoSerializableClass(serializedDataClass=AnomalyInfoProto.class, version=0)
 public final class ImmutableAnomalyInfo extends AnomalyInfo implements ImmutableOutputInfo<Event> {
     private static final long serialVersionUID = 1L;
 
@@ -43,7 +46,7 @@ public final class ImmutableAnomalyInfo extends AnomalyInfo implements Immutable
         super(info);
     }
 
-    private ImmutableAnomalyInfo(int expectedCount, int anomalyCount, int unknownCount) {
+    private ImmutableAnomalyInfo(long expectedCount, long anomalyCount, int unknownCount) {
         super(expectedCount,anomalyCount,unknownCount);
     }
 
