@@ -17,8 +17,12 @@
 package org.tribuo.anomaly;
 
 import org.junit.jupiter.api.Test;
+import org.tribuo.Output;
+import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.protos.core.OutputFactoryProto;
+import org.tribuo.protos.core.OutputProto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.anomaly.AnomalyFactory.ANOMALOUS_EVENT;
@@ -26,6 +30,21 @@ import static org.tribuo.anomaly.AnomalyFactory.EXPECTED_EVENT;
 import static org.tribuo.anomaly.AnomalyFactory.UNKNOWN_EVENT;
 
 public class SerializationTest {
+
+    @Test
+    public void eventSerializationTest() {
+        OutputProto oneSer = ANOMALOUS_EVENT.serialize();
+        Event oneDeser = (Event) Output.deserialize(oneSer);
+        assertEquals(ANOMALOUS_EVENT,oneDeser);
+    }
+
+    @Test
+    public void factorySerializationTest() {
+        OutputFactory<Event> anomalyFactory = new AnomalyFactory();
+        OutputFactoryProto factorySer = anomalyFactory.serialize();
+        OutputFactory<?> factoryDeser = OutputFactory.deserialize(factorySer);
+        assertEquals(anomalyFactory,factoryDeser);
+    }
 
     @Test
     public void infoSerializationTest() {

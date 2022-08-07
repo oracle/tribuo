@@ -31,7 +31,7 @@ import "tribuo-core.proto";
 import "olcut_proto.proto";
 
 /*
-MockOutput proto
+Event proto
  */
 message EventProto {
   enum EventType {

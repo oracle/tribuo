@@ -20,9 +20,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
 import org.tribuo.anomaly.protos.EventProto;
-import org.tribuo.protos.ProtoSerializableClass;
-import org.tribuo.protos.ProtoSerializableField;
-import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputProto;
 
 import java.util.Objects;
@@ -35,7 +32,6 @@ import java.util.Objects;
  * an {@link EventType#ANOMALOUS} at training time. It's noted in the documentation if they
  * do support training from anomalous and expected data.
  */
-@ProtoSerializableClass(serializedDataClass=EventProto.class, version=0)
 public final class Event implements Output<Event> {
     private static final long serialVersionUID = 1L;
 
@@ -75,10 +71,8 @@ public final class Event implements Output<Event> {
         }
     }
 
-    @ProtoSerializableField
     private final EventType type;
 
-    @ProtoSerializableField
     private final double score;
 
     /**
@@ -125,13 +119,24 @@ public final class Event implements Output<Event> {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }
         EventProto proto = message.unpack(EventProto.class);
-        Event info = new Event(proto.getEvent().getNumber(),proto.getScore());
-        return info;
+        Event event = new Event(proto.getEvent().getNumber(),proto.getScore());
+        return event;
     }
 
     @Override
     public OutputProto serialize() {
-        return ProtoUtil.serialize(this);
+        OutputProto.Builder builder = OutputProto.newBuilder();
+
+        builder.setClassName(Event.class.getName());
+        builder.setVersion(0);
+
+        EventProto.Builder eventBuilder = EventProto.newBuilder();
+        eventBuilder.setEventValue(type.value);
+        eventBuilder.setScore(score);
+
+        builder.setSerializedData(Any.pack(eventBuilder.build()));
+
+        return builder.build();
     }
 
     /**

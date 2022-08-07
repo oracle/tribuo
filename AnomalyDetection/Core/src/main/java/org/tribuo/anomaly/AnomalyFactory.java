@@ -17,6 +17,7 @@
 package org.tribuo.anomaly;
 
 import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
@@ -68,7 +69,7 @@ public final class AnomalyFactory implements OutputFactory<Event> {
         if (version < 0 || version > 0) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }
-        if (message != null) {
+        if (message.getValue() != ByteString.EMPTY) {
             throw new IllegalArgumentException("Invalid proto");
         }
         return new AnomalyFactory();
@@ -118,6 +119,16 @@ public final class AnomalyFactory implements OutputFactory<Event> {
     @Override
     public Evaluator<Event, AnomalyEvaluation> getEvaluator() {
         return evaluator;
+    }
+
+    @Override
+    public int hashCode() {
+        return "AnomalyFactory".hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof AnomalyFactory;
     }
 
     /**
