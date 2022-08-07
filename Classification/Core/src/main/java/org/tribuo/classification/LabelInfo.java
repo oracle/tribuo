@@ -22,12 +22,15 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoSerializableKeysValuesField;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -39,10 +42,12 @@ public abstract class LabelInfo implements OutputInfo<Label> {
     /**
      * The occurrence counts of each label.
      */
+    @ProtoSerializableKeysValuesField(keysName="label",valuesName="count")
     protected final Map<String,MutableLong> labelCounts;
     /**
      * The number of unknown labels this LabelInfo has seen.
      */
+    @ProtoSerializableField
     protected int unknownCount = 0;
     /**
      * The label domain.
@@ -65,6 +70,27 @@ public abstract class LabelInfo implements OutputInfo<Label> {
         labelCounts = MutableNumber.copyMap(other.labelCounts);
         labels = new HashMap<>();
         labels.putAll(other.labels);
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param counts Counts map.
+     * @param unknownCount Unknown count.
+     */
+    LabelInfo(Map<String,MutableLong> counts, int unknownCount) {
+        if (unknownCount < 0) {
+            throw new IllegalArgumentException("Unknown count must be non-negative, found " + unknownCount);
+        }
+        this.unknownCount = unknownCount;
+        labelCounts = new HashMap<>();
+        labels = new HashMap<>();
+        for (Map.Entry<String,MutableLong> e : counts.entrySet()) {
+            if (e.getValue().longValue() < 1) {
+                throw new IllegalArgumentException("Count for " + e.getKey() + " must be positive but found " + e.getValue().longValue());
+            }
+            labelCounts.put(e.getKey(),e.getValue().copy());
+            labels.put(e.getKey(), new Label(e.getKey()));
+        }
     }
 
     @Override

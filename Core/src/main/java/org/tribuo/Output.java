@@ -17,6 +17,8 @@
 package org.tribuo;
 
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputProto;
 
 import java.io.Serializable;
@@ -57,4 +59,13 @@ public interface Output<T extends Output<T>> extends ProtoSerializable<OutputPro
      * @return True if the other instance has value equality to this instance. False otherwise.
      */
     public boolean fullEquals(T other);
+
+    /**
+     * Deserializes a {@link OutputProto} into a {@link Output} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized Output.
+     */
+    public static Output<?> deserialize(OutputProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }
