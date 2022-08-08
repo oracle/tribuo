@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,14 @@
 
 package org.tribuo.regression;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.core.OutputProto;
+import org.tribuo.regression.protos.RegressorProto;
 import org.tribuo.util.Util;
 
 import java.util.Arrays;
@@ -148,6 +152,53 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
         this.names = new String[]{name};
         this.values = new double[]{value};
         this.variances = new double[]{variance};
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static Regressor deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        RegressorProto proto = message.unpack(RegressorProto.class);
+        if ((proto.getNameCount() != proto.getValueCount()) || (proto.getNameCount() != proto.getVarianceCount())) {
+            throw new IllegalArgumentException("Invalid protobuf, expected the same number of names, values and " +
+                    "variances, found " + proto.getNameCount() + " names, " + proto.getValueCount() + " values and "
+                    + proto.getVarianceCount() + " variances");
+        }
+        String[] names = new String[proto.getNameCount()];
+        double[] values = new double[proto.getNameCount()];
+        double[] variances = new double[proto.getNameCount()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = proto.getName(i);
+            values[i] = proto.getValue(i);
+            variances[i] = proto.getVariance(i);
+        }
+        Regressor r = new Regressor(names,values,variances);
+        return r;
+    }
+
+    @Override
+    public OutputProto serialize() {
+        OutputProto.Builder outputBuilder = OutputProto.newBuilder();
+
+        outputBuilder.setClassName(Regressor.class.getName());
+        outputBuilder.setVersion(0);
+
+        RegressorProto.Builder data = RegressorProto.newBuilder();
+        for (int i = 0; i < names.length; i++) {
+            data.addName(names[i]);
+            data.addValue(values[i]);
+            data.addVariance(variances[i]);
+        }
+
+        outputBuilder.setSerializedData(Any.pack(data.build()));
+
+        return outputBuilder.build();
     }
 
     /**

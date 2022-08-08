@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo Regression core types.
+ */
+package tribuo.regression;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.regression.protos";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+// Import OLCUT's provenance proto
+import "olcut_proto.proto";
+
+/*
+Regressor proto
+ */
+message RegressorProto {
+  repeated string name = 1;
+  repeated double value = 2;
+  repeated double variance = 3;
+}
+
+/*
+RegressionFactory proto
+ */
+message RegressionFactoryProto {
+  string splitChar = 1;
+}
+
+/*
+MutableRegressionInfoProto
+ */
+message MutableRegressionInfoProto {
+  repeated string label = 1;
+  repeated int64 count = 2;
+  repeated double max = 3;
+  repeated double min = 4;
+  repeated double mean = 5;
+  repeated double sumSquares = 6;
+  int32 unknownCount = 7;
+  int64 overallCount = 8;
+}
+
+/*
+ImmutableRegressionInfoProto
+ */
+message ImmutableRegressionInfoProto {
+  repeated string label = 1;
+  repeated int64 count = 2;
+  repeated int32 id = 3;
+  repeated double max = 4;
+  repeated double min = 5;
+  repeated double mean = 6;
+  repeated double sumSquares = 7;
+  int32 unknownCount = 8;
+  int64 overallCount = 9;
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,18 @@
 
 package org.tribuo.regression;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import org.tribuo.MutableOutputInfo;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.regression.protos.MutableRegressionInfoProto;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 /**
  * A {@link MutableOutputInfo} for {@link Regressor}s. All observed Regressors must
@@ -39,6 +46,83 @@ public class MutableRegressionInfo extends RegressionInfo implements MutableOutp
      */
     public MutableRegressionInfo(RegressionInfo info) {
         super(info);
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param countMap The dimension observation counts.
+     * @param maxMap The max values per dimension.
+     * @param minMap The min values per dimension.
+     * @param meanMap The mean values per dimension.
+     * @param sumSquaresMap The sum of squares per dimension.
+     * @param unknownCount The number of unknowns observed.
+     * @param overallCount The total number of things observed.
+     */
+    private MutableRegressionInfo(Map<String,MutableLong> countMap, Map<String,MutableDouble> maxMap, Map<String,MutableDouble> minMap, Map<String,MutableDouble> meanMap, Map<String,MutableDouble> sumSquaresMap, int unknownCount, long overallCount) {
+        super(countMap,maxMap,minMap,meanMap,sumSquaresMap,unknownCount,overallCount);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MutableRegressionInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        MutableRegressionInfoProto proto = message.unpack(MutableRegressionInfoProto.class);
+        if ((proto.getLabelCount() != proto.getMaxCount()) || (proto.getLabelCount() != proto.getMinCount())
+                || (proto.getLabelCount() != proto.getMeanCount()) || (proto.getLabelCount() != proto.getSumSquaresCount())
+                || (proto.getLabelCount() != proto.getCountCount())) {
+            throw new IllegalArgumentException("Invalid protobuf, expected the same number of dimension names, maxes," +
+                    " mins, means, sumSquares and counts, found " + proto.getLabelCount() + " names, "
+                    + proto.getMaxCount() + " maxes, " + proto.getMinCount() + " mins, " + proto.getMeanCount() + " means, "
+                    + proto.getSumSquaresCount() + " sumSquares, and " + proto.getCountCount() + " counts.");
+        }
+        Map<String,MutableDouble> maxMap = new LinkedHashMap<>();
+        Map<String,MutableDouble> minMap = new LinkedHashMap<>();
+        Map<String,MutableDouble> meanMap = new LinkedHashMap<>();
+        Map<String,MutableDouble> sumSquaresMap = new LinkedHashMap<>();
+        Map<String,MutableLong> countMap = new TreeMap<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            String lbl = proto.getLabel(i);
+            long cnt = proto.getCount(i);
+            MutableLong old = countMap.put(lbl,new MutableLong(cnt));
+            if (old != null) {
+                throw new IllegalArgumentException("Invalid protobuf, two mappings for " + lbl);
+            }
+            maxMap.put(lbl,new MutableDouble(proto.getMax(i)));
+            minMap.put(lbl,new MutableDouble(proto.getMin(i)));
+            meanMap.put(lbl,new MutableDouble(proto.getMean(i)));
+            sumSquaresMap.put(lbl,new MutableDouble(proto.getSumSquares(i)));
+        }
+        return new MutableRegressionInfo(countMap,maxMap,minMap,meanMap,sumSquaresMap,proto.getUnknownCount(),proto.getOverallCount());
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        OutputDomainProto.Builder outputBuilder = OutputDomainProto.newBuilder();
+
+        outputBuilder.setClassName(MutableRegressionInfo.class.getName());
+        outputBuilder.setVersion(0);
+
+        MutableRegressionInfoProto.Builder data = MutableRegressionInfoProto.newBuilder();
+        for (Map.Entry<String, MutableLong> e : countMap.entrySet()) {
+            data.addLabel(e.getKey());
+            data.addCount(e.getValue().longValue());
+            data.addMax(maxMap.get(e.getKey()).doubleValue());
+            data.addMin(minMap.get(e.getKey()).doubleValue());
+            data.addMean(meanMap.get(e.getKey()).doubleValue());
+            data.addSumSquares(sumSquaresMap.get(e.getKey()).doubleValue());
+        }
+        data.setUnknownCount(unknownCount);
+        data.setOverallCount(overallCount);
+
+        outputBuilder.setSerializedData(Any.pack(data.build()));
+
+        return outputBuilder.build();
     }
 
     @Override
@@ -122,5 +206,42 @@ public class MutableRegressionInfo extends RegressionInfo implements MutableOutp
     @Override
     public String toReadableString() {
         return toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MutableRegressionInfo that = (MutableRegressionInfo) o;
+        if (unknownCount == that.unknownCount && overallCount == that.overallCount) {
+            for (Map.Entry<String,MutableLong> e : countMap.entrySet()) {
+                MutableLong other = that.countMap.get(e.getKey());
+                if (other == null || (other.longValue() != e.getValue().longValue())) {
+                    return false;
+                } else {
+                    // mapping exists, check max, min, mean, sumSquares
+                    if (!checkMutableDouble(maxMap.get(e.getKey()), that.maxMap.get(e.getKey()))) {
+                        return false;
+                    }
+                    if (!checkMutableDouble(minMap.get(e.getKey()), that.minMap.get(e.getKey()))) {
+                        return false;
+                    }
+                    if (!checkMutableDouble(meanMap.get(e.getKey()), that.meanMap.get(e.getKey()))) {
+                        return false;
+                    }
+                    if (!checkMutableDouble(sumSquaresMap.get(e.getKey()), that.sumSquaresMap.get(e.getKey()))) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(countMap, maxMap, minMap, meanMap, sumSquaresMap, unknownCount, overallCount);
     }
 }
