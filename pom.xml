@@ -56,7 +56,7 @@
 
         <!-- 3rd party other dependencies -->
         <junit.version>5.7.1</junit.version>
-        <opencsv.version>5.4</opencsv.version>
+        <opencsv.version>5.6</opencsv.version>
         <protobuf.version>3.19.4</protobuf.version>
 
         <!-- Other properties -->
