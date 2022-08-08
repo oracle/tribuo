@@ -93,7 +93,7 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
         this.inputName = inputName;
         this.featureTransformer = featureTransformer;
         this.outputTransformer = outputTransformer;
-        this.env = OrtEnvironment.getEnvironment("tribuo-" + name);
+        this.env = OrtEnvironment.getEnvironment();
         this.session = env.createSession(modelArray, options);
     }
 
@@ -109,7 +109,7 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
         this.inputName = inputName;
         this.featureTransformer = featureTransformer;
         this.outputTransformer = outputTransformer;
-        this.env = OrtEnvironment.getEnvironment("tribuo-" + name);
+        this.env = OrtEnvironment.getEnvironment();
         this.session = env.createSession(modelArray, options);
     }
 
@@ -234,11 +234,7 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
             options.close();
         }
         if (env != null) {
-            try {
-                env.close();
-            } catch (OrtException e) {
-                logger.log(Level.SEVERE, "Exception thrown when closing environment", e);
-            }
+            env.close();
         }
     }
 
