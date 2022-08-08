@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,22 @@
 
 package org.tribuo.multilabel;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
+import org.tribuo.classification.ImmutableLabelInfo;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.protos.ImmutableLabelInfoProto;
+import org.tribuo.classification.protos.LabelProto;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.multilabel.protos.MultiLabelProto;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.protos.core.OutputProto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,6 +128,54 @@ public class MultiLabel implements Classifiable<MultiLabel> {
         this.score = Double.NaN;
         this.labels = Collections.singleton(label);
         this.labelStrings = Collections.singleton(label.getLabel());
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MultiLabel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        MultiLabelProto proto = message.unpack(MultiLabelProto.class);
+        if (proto.getLabelCount() != proto.getLblScoreCount()) {
+            throw new IllegalArgumentException("Invalid protobuf, must have equal counts of labels and scores, labels " + proto.getLabelCount() + ", scores " + proto.getLblScoreCount());
+        }
+        Set<String> strings = new HashSet<>();
+        Set<Label> lblSet = new HashSet<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            String lbl = proto.getLabel(i);
+            if (strings.contains(lbl)) {
+                throw new IllegalArgumentException("Invalid protobuf, multiple entries for label '" + lbl + "'");
+            } else {
+                strings.add(lbl);
+                double score = proto.getLblScore(i);
+                lblSet.add(new Label(lbl,score));
+            }
+        }
+        return new MultiLabel(lblSet,proto.getOverallScore());
+    }
+
+    @Override
+    public OutputProto serialize() {
+        OutputProto.Builder outputBuilder = OutputProto.newBuilder();
+
+        outputBuilder.setClassName(MultiLabel.class.getName());
+        outputBuilder.setVersion(0);
+
+        MultiLabelProto.Builder data = MultiLabelProto.newBuilder();
+        data.setOverallScore(score);
+        for (Label l : labels) {
+            data.addLabel(l.getLabel());
+            data.addLblScore(l.getScore());
+        }
+
+        outputBuilder.setSerializedData(Any.pack(data.build()));
+
+        return outputBuilder.build();
     }
 
     /**
