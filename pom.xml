@@ -404,7 +404,6 @@
             <id>arm</id>
             <properties>
                 <skipXGBoostTests>true</skipXGBoostTests>
-                <skipONNXTests>true</skipONNXTests>
                 <skipTFTests>true</skipTFTests>
             </properties>
         </profile>
