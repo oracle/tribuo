@@ -22,11 +22,16 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoSerializableKeysValuesField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputDomainProto;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -35,7 +40,9 @@ import java.util.Set;
 public abstract class ClusteringInfo implements OutputInfo<ClusterID> {
     private static final long serialVersionUID = 1L;
 
+    @ProtoSerializableKeysValuesField(keysName = "id", valuesName = "count")
     protected final Map<Integer,MutableLong> clusterCounts;
+    @ProtoSerializableField
     protected int unknownCount = 0;
 
     ClusteringInfo() {
@@ -44,6 +51,28 @@ public abstract class ClusteringInfo implements OutputInfo<ClusterID> {
 
     ClusteringInfo(ClusteringInfo other) {
         clusterCounts = MutableNumber.copyMap(other.clusterCounts);
+    }
+
+    ClusteringInfo(Map<Integer,MutableLong> clusterCounts, int unknownCount) {
+        if (unknownCount < 0) {
+            throw new IllegalStateException("unknownCount must be non-negative, found " + unknownCount);
+        }
+        this.unknownCount = unknownCount;
+        this.clusterCounts = new HashMap<>();
+        for (Map.Entry<Integer,MutableLong> e : clusterCounts.entrySet()) {
+            if (e.getValue().longValue() < 1) {
+                throw new IllegalArgumentException("Count for " + e.getKey() + " must be positive but found " + e.getValue().longValue());
+            }
+            if (e.getKey() < 0) {
+                throw new IllegalArgumentException("Id " + e.getKey() + " is invalid, all ids must be non-negative");
+            }
+            this.clusterCounts.put(e.getKey(),e.getValue());
+        }
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override
@@ -115,5 +144,28 @@ public abstract class ClusteringInfo implements OutputInfo<ClusterID> {
     @Override
     public String toString() {
         return toReadableString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || !(o instanceof ClusteringInfo)) return false;
+        ClusteringInfo clusterInfo = (ClusteringInfo) o;
+        if (unknownCount == clusterInfo.unknownCount && clusterCounts.size() == clusterInfo.clusterCounts.size()) {
+            for (Map.Entry<Integer,MutableLong> e : clusterCounts.entrySet()) {
+                MutableLong other = clusterInfo.clusterCounts.get(e.getKey());
+                if (other == null || (other.longValue() != e.getValue().longValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(clusterCounts, unknownCount);
     }
 }

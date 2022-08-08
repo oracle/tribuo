@@ -93,7 +93,6 @@ public final class Label implements Classifiable<Label> {
         return ProtoUtil.serialize(this);
     }
 
-
     /**
      * Get a real valued score for this label.
      * <p>
