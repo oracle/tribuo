@@ -16,29 +16,43 @@
 
 package org.tribuo.math.neighbour.bruteforce;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
+import org.tribuo.math.protos.BruteForceFactoryProto;
+import org.tribuo.math.protos.NeighbourFactoryProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 
 /**
  * A factory which creates brute-force nearest neighbour query objects.
  */
+@ProtoSerializableClass(version = NeighboursBruteForceFactory.CURRENT_VERSION, serializedDataClass = BruteForceFactoryProto.class)
 public final class NeighboursBruteForceFactory implements NeighboursQueryFactory {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     @Config(description = "The distance function to use.")
+    @ProtoSerializableField
     private DistanceType distanceType = DistanceType.L2;
 
     @Config(description = "The number of threads to use for training.")
+    @ProtoSerializableField
     private int numThreads = 1;
 
     /**
      * for olcut.
      */
-    private NeighboursBruteForceFactory() {
-    }
+    private NeighboursBruteForceFactory() {}
 
     /**
      * Constructs a brute-force nearest neighbor query factory object using the supplied parameters.
@@ -49,6 +63,26 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
         this.distanceType = distanceType;
         this.numThreads = numThreads;
         postConfig();
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static NeighboursBruteForceFactory deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        BruteForceFactoryProto queryProto = message.unpack(BruteForceFactoryProto.class);
+        return new NeighboursBruteForceFactory(DistanceType.valueOf(queryProto.getDistanceType()),
+                queryProto.getNumThreads());
+    }
+
+    @Override
+    public NeighbourFactoryProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**

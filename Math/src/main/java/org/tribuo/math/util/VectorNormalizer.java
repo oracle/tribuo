@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.math.util;
 
+import org.tribuo.math.protos.NormalizerProto;
+import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXNode;
 
@@ -25,7 +27,7 @@ import java.util.logging.Logger;
 /**
  * A functional interface that generates a normalized version of a double array.
  */
-public interface VectorNormalizer extends Serializable {
+public interface VectorNormalizer extends ProtoSerializable<NormalizerProto>, Serializable {
 
     /**
      * Normalizes the input array in some fashion specified by the class.
