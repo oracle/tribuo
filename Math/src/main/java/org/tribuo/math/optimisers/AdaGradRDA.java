@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.math.optimisers;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -30,7 +33,13 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorIterator;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.math.protos.AdaGradRDADenseTensorProto;
+import org.tribuo.math.protos.DenseTensorProto;
+import org.tribuo.math.protos.TensorProto;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 import java.util.logging.Logger;
@@ -205,7 +214,7 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
         private final double[] gradSquares;
         private int iteration;
 
-        public AdaGradRDAVector(DenseVector v, double learningRate, double epsilon, double l1, double l2) {
+        AdaGradRDAVector(DenseVector v, double learningRate, double epsilon, double l1, double l2) {
             super(v);
             this.learningRate = learningRate;
             this.epsilon = epsilon;
@@ -215,14 +224,88 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
             this.iteration = 0;
         }
 
-        private AdaGradRDAVector(double[] values, double learningRate, double epsilon, double l1, double l2, double[] gradSquares, int iteration) {
-            super(values);
+        /**
+         * Deserialization constructor.
+         * @param v Value vector.
+         * @param learningRate The AdaGrad learning rate.
+         * @param epsilon The epsilon for numerical stability.
+         * @param l1 The l1 penalty.
+         * @param l2 The l2 penalty.
+         * @param gradSquares The squared gradients.
+         * @param iteration The iteration counter.
+         */
+        private AdaGradRDAVector(double[] v, double learningRate, double epsilon, double l1, double l2, double[] gradSquares, int iteration) {
+            super(v);
             this.learningRate = learningRate;
             this.epsilon = epsilon;
             this.l1 = l1;
             this.l2 = l2;
             this.gradSquares = gradSquares;
+            if (gradSquares.length != v.length) {
+                throw new IllegalArgumentException("Invalid AdaGradRDAVector, value vector is a different shape to gradient vector, value [" + v.length + "], gradient [" + gradSquares.length +"]");
+            }
+            for (int i = 0; i < gradSquares.length; i++) {
+                if (gradSquares[i] < 0) {
+                    throw new IllegalArgumentException("Invalid AdaGradRDAVector, squared gradient is negative at index [" + i + "] = " + gradSquares[i]);
+                }
+            }
             this.iteration = iteration;
+            if (iteration < 0) {
+                throw new IllegalArgumentException("Invalid AdaGradRDAVector, iteration must be non-negative, found " + iteration);
+            }
+        }
+
+        /**
+         * Deserialization factory.
+         * @param version The serialized object version.
+         * @param className The class name.
+         * @param message The serialized data.
+         */
+        public static AdaGradRDAVector deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+            if (version < 0 || version > CURRENT_VERSION) {
+                throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+            }
+            AdaGradRDADenseTensorProto proto = message.unpack(AdaGradRDADenseTensorProto.class);
+            DenseVector data = DenseVector.unpackProto(proto.getData());
+            DoubleBuffer buffer = proto.getGradNorms().asReadOnlyByteBuffer().asDoubleBuffer();
+            if (buffer.remaining() != data.size()) {
+                throw new IllegalArgumentException("Invalid proto, claimed " + data.size() + ", but only had " + buffer.remaining() + " values");
+            }
+            double[] values = new double[data.size()];
+            buffer.get(values);
+            return new AdaGradRDAVector(data.toArray(), proto.getLearningRate(), proto.getEpsilon(), proto.getL1(),
+                    proto.getL2(), values, proto.getIteration());
+        }
+
+        @Override
+        public TensorProto serialize() {
+            TensorProto.Builder builder = TensorProto.newBuilder();
+
+            builder.setVersion(CURRENT_VERSION);
+            builder.setClassName(AdaGradRDAMatrix.class.getName());
+
+            AdaGradRDADenseTensorProto.Builder adagradBuilder = AdaGradRDADenseTensorProto.newBuilder();
+            DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
+            dataBuilder.addDimensions(size());
+            ByteBuffer buffer = ByteBuffer.allocate(elements.length * 8).order(ByteOrder.LITTLE_ENDIAN);
+            DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+            doubleBuffer.put(elements);
+            doubleBuffer.rewind();
+            dataBuilder.setValues(ByteString.copyFrom(buffer));
+            adagradBuilder.setData(dataBuilder.build());
+            adagradBuilder.setLearningRate(learningRate);
+            adagradBuilder.setEpsilon(epsilon);
+            adagradBuilder.setL1(l1);
+            adagradBuilder.setL2(l2);
+            buffer = ByteBuffer.allocate(gradSquares.length * 8).order(ByteOrder.LITTLE_ENDIAN);
+            doubleBuffer = buffer.asDoubleBuffer();
+            doubleBuffer.put(gradSquares);
+            doubleBuffer.rewind();
+            adagradBuilder.setGradNorms(ByteString.copyFrom(buffer));
+            adagradBuilder.setIteration(iteration);
+            builder.setSerializedData(Any.pack(adagradBuilder.build()));
+
+            return builder.build();
         }
 
         @Override
@@ -375,7 +458,7 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
         private final double[][] gradSquares;
         private int iteration;
 
-        public AdaGradRDAMatrix(DenseMatrix v, double learningRate, double epsilon, double l1, double l2) {
+        AdaGradRDAMatrix(DenseMatrix v, double learningRate, double epsilon, double l1, double l2) {
             super(v);
             this.learningRate = learningRate;
             this.epsilon = epsilon;
@@ -383,6 +466,102 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
             this.l2 = l2;
             this.gradSquares = new double[v.getDimension1Size()][v.getDimension2Size()];
             this.iteration = 0;
+        }
+
+        /**
+         * Deserialization constructor.
+         * @param v Value matrix.
+         * @param learningRate The AdaGrad learning rate.
+         * @param epsilon The epsilon for numerical stability.
+         * @param l1 The l1 penalty.
+         * @param l2 The l2 penalty.
+         * @param gradSquares The squared gradients.
+         * @param iteration The iteration counter.
+         */
+        private AdaGradRDAMatrix(DenseMatrix v, double learningRate, double epsilon, double l1, double l2, double[][] gradSquares, int iteration) {
+            super(v);
+            this.learningRate = learningRate;
+            this.epsilon = epsilon;
+            this.l1 = l1;
+            this.l2 = l2;
+            this.gradSquares = gradSquares;
+            if (gradSquares.length != dim1 || gradSquares[0].length != dim2) {
+                throw new IllegalArgumentException("Invalid AdaGradRDAMatrix, value matrix is a different shape to gradient matrix, value [" + dim1 + ", " + dim2 + "], gradient [" + gradSquares.length + ", " + gradSquares[0].length +"]");
+            }
+            for (int i = 0; i < gradSquares.length; i++) {
+                if (gradSquares[i].length != dim2) {
+                    throw new IllegalArgumentException("Invalid AdaGradRDAMatrix, gradient matrix is ragged, expected " + dim2 + ", found " + gradSquares[i].length + " at index " + i);
+                }
+                for (int j = 0; j < gradSquares[i].length; j++) {
+                    if (gradSquares[i][j] < 0) {
+                        throw new IllegalArgumentException("Invalid AdaGradRDAMatrix, squared gradient is negative at index [" + i + ", " + j + "] = " + gradSquares[i][j]);
+                    }
+                }
+            }
+            this.iteration = iteration;
+            if (iteration < 0) {
+                throw new IllegalArgumentException("Invalid AdaGradRDAMatrix, iteration must be non-negative, found " + iteration);
+            }
+        }
+
+        /**
+         * Deserialization factory.
+         * @param version The serialized object version.
+         * @param className The class name.
+         * @param message The serialized data.
+         */
+        public static AdaGradRDAMatrix deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+            if (version < 0 || version > CURRENT_VERSION) {
+                throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+            }
+            AdaGradRDADenseTensorProto proto = message.unpack(AdaGradRDADenseTensorProto.class);
+            DenseMatrix data = DenseMatrix.unpackProto(proto.getData());
+            DoubleBuffer buffer = proto.getGradNorms().asReadOnlyByteBuffer().asDoubleBuffer();
+            if (buffer.remaining() != data.getDimension1Size() * data.getDimension2Size()) {
+                throw new IllegalArgumentException("Invalid proto, claimed " + data.getDimension1Size()*data.getDimension2Size() + ", but only had " + buffer.remaining() + " values");
+            }
+            double[][] values = new double[data.getDimension1Size()][data.getDimension2Size()];
+            for (int i = 0; i < values.length; i++) {
+                buffer.get(values[i]);
+            }
+            return new AdaGradRDAMatrix(data, proto.getLearningRate(), proto.getEpsilon(), proto.getL1(),
+                    proto.getL2(), values, proto.getIteration());
+        }
+
+        @Override
+        public TensorProto serialize() {
+            TensorProto.Builder builder = TensorProto.newBuilder();
+
+            builder.setVersion(CURRENT_VERSION);
+            builder.setClassName(AdaGradRDAMatrix.class.getName());
+
+            AdaGradRDADenseTensorProto.Builder adagradBuilder = AdaGradRDADenseTensorProto.newBuilder();
+            DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
+            dataBuilder.addDimensions(dim1);
+            dataBuilder.addDimensions(dim2);
+            ByteBuffer buffer = ByteBuffer.allocate(dim1 * dim2 * 8).order(ByteOrder.LITTLE_ENDIAN);
+            DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+            for (int i = 0; i < values.length; i ++) {
+                doubleBuffer.put(values[i]);
+            }
+            doubleBuffer.rewind();
+            dataBuilder.setValues(ByteString.copyFrom(buffer));
+            adagradBuilder.setData(dataBuilder.build());
+            adagradBuilder.setLearningRate(learningRate);
+            adagradBuilder.setEpsilon(epsilon);
+            adagradBuilder.setL1(l1);
+            adagradBuilder.setL2(l2);
+            buffer = ByteBuffer.allocate(dim1 * dim2 * 8).order(ByteOrder.LITTLE_ENDIAN);
+            doubleBuffer = buffer.asDoubleBuffer();
+            for (int i = 0; i < gradSquares.length; i ++) {
+                doubleBuffer.put(gradSquares[i]);
+            }
+            doubleBuffer.rewind();
+            adagradBuilder.setGradNorms(ByteString.copyFrom(buffer));
+            adagradBuilder.setIteration(iteration);
+            builder.setSerializedData(Any.pack(adagradBuilder.build()));
+
+            return builder.build();
         }
 
         @Override

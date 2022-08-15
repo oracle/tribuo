@@ -152,6 +152,15 @@ public class DenseVector implements SGDVector {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         DenseTensorProto proto = message.unpack(DenseTensorProto.class);
+        return unpackProto(proto);
+    }
+
+    /**
+     * Unpacks a {@link DenseTensorProto} into a {@link DenseVector}.
+     * @param proto The proto to unpack.
+     * @return The dense vector.
+     */
+    protected static DenseVector unpackProto(DenseTensorProto proto) {
         List<Integer> shapeList = proto.getDimensionsList();
         int[] shape = Util.toPrimitiveInt(shapeList);
         if (shape.length != 1) {
