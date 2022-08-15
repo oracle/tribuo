@@ -29,6 +29,8 @@ import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 
+import java.util.Objects;
+
 /**
  * A Radial Basis Function (RBF) kernel, exp(-gamma*|u-v|^2).
  */
@@ -90,5 +92,18 @@ public class RBF implements Kernel {
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"Kernel");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RBF rbf = (RBF) o;
+        return Double.compare(rbf.gamma, gamma) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(gamma);
     }
 }

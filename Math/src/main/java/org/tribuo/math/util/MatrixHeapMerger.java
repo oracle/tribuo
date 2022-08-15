@@ -165,4 +165,20 @@ public class MatrixHeapMerger implements Merger {
 
         return HeapMerger.merge(Arrays.asList(inputs),inputs[0].size(),new int[maxLength],new double[maxLength]);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        } else if (o == null || getClass() != o.getClass()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 }

@@ -28,6 +28,8 @@ import org.tribuo.math.protos.SigmoidKernelProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 
+import java.util.Objects;
+
 /**
  * A sigmoid kernel, tanh(gamma*u.dot(v) + intercept).
  */
@@ -93,5 +95,18 @@ public class Sigmoid implements Kernel {
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"Kernel");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Sigmoid sigmoid = (Sigmoid) o;
+        return Double.compare(sigmoid.gamma, gamma) == 0 && Double.compare(sigmoid.intercept, intercept) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(gamma, intercept);
     }
 }

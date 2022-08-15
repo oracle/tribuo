@@ -81,4 +81,14 @@ public class Linear implements Kernel {
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"Kernel");
     }
+
+    @Override
+    public boolean equals(Object o) {
+        return o.getClass().equals(Linear.class);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
 }

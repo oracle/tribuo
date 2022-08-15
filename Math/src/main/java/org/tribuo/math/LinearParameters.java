@@ -38,6 +38,8 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ImmutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
+import java.util.Objects;
+
 /**
  * A {@link Parameters} for producing linear models.
  */
@@ -196,5 +198,18 @@ public class LinearParameters implements FeedForwardParameters {
     @Override
     public LinearParameters copy() {
         return new LinearParameters(weightMatrix.copy());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LinearParameters that = (LinearParameters) o;
+        return weightMatrix.equals(that.weightMatrix);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(weightMatrix);
     }
 }

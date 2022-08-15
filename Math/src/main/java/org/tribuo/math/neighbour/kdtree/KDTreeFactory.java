@@ -31,6 +31,8 @@ import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 
+import java.util.Objects;
+
 /**
  * A factory which creates k-d tree nearest neighbour query objects.
  */
@@ -114,5 +116,18 @@ public class KDTreeFactory implements NeighboursQueryFactory {
         if (numThreads <= 0) {
             throw new PropertyException("numThreads", "The number of threads must be a number greater than 0.");
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        KDTreeFactory that = (KDTreeFactory) o;
+        return numThreads == that.numThreads && distanceType == that.distanceType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(distanceType, numThreads);
     }
 }

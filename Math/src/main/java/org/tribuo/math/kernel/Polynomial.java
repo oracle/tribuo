@@ -28,6 +28,8 @@ import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 
+import java.util.Objects;
+
 /**
  * A polynomial kernel, (gamma*u.dot(v) + intercept)^degree.
  */
@@ -101,5 +103,18 @@ public class Polynomial implements Kernel {
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"Kernel");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Polynomial that = (Polynomial) o;
+        return Double.compare(that.gamma, gamma) == 0 && Double.compare(that.intercept, intercept) == 0 && Double.compare(that.degree, degree) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(gamma, intercept, degree);
     }
 }
