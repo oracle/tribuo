@@ -16,9 +16,18 @@
 
 package org.tribuo.math.la;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
+import org.tribuo.math.protos.DenseTensorProto;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.util.Util;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -26,6 +35,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.DoubleUnaryOperator;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A dense matrix, backed by a primitive array.
@@ -33,6 +43,11 @@ import java.util.logging.Logger;
 public class DenseMatrix implements Matrix {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(DenseMatrix.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Tolerance for non-zero diagonal values in the factorizations.
@@ -159,6 +174,60 @@ public class DenseMatrix implements Matrix {
         }
 
         return new DenseMatrix(newValues);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static DenseMatrix deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        DenseTensorProto proto = message.unpack(DenseTensorProto.class);
+        List<Integer> shapeList = proto.getDimensionsList();
+        int[] shape = Util.toPrimitiveInt(shapeList);
+        if (shape.length != 2) {
+            throw new IllegalArgumentException("Invalid proto, expected a matrix, found shape " + Arrays.toString(shape));
+        }
+        for (int i = 0; i < shape.length; i++) {
+            if (shape[i] < 1) {
+                throw new IllegalArgumentException("Invalid proto, shape must be positive, found " + shape[i] + " at position " + i);
+            }
+        }
+        int numElements = Util.product(shape);
+        DoubleBuffer buffer = proto.getValues().asReadOnlyByteBuffer().asDoubleBuffer();
+        if (buffer.remaining() != numElements) {
+            throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + buffer.remaining() + " values");
+        }
+        double[][] values = new double[shape[0]][shape[1]];
+        for (int i = 0; i < values.length; i++) {
+            buffer.get(values[i]);
+        }
+        return new DenseMatrix(values);
+    }
+
+    @Override
+    public TensorProto serialize() {
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(DenseMatrix.class.getName());
+
+        DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
+        dataBuilder.addAllDimensions(Arrays.stream(shape).boxed().collect(Collectors.toList()));
+        ByteBuffer buffer = ByteBuffer.allocate(numElements * 8).order(ByteOrder.LITTLE_ENDIAN);
+        DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+        for (int i = 0; i < values.length; i ++) {
+            doubleBuffer.put(values[i]);
+        }
+        doubleBuffer.rewind();
+        dataBuilder.setValues(ByteString.copyFrom(buffer));
+        builder.setSerializedData(Any.pack(dataBuilder.build()));
+
+        return builder.build();
     }
 
     @Override

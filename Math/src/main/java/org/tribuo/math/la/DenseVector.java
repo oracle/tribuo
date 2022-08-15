@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,43 @@
 
 package org.tribuo.math.la;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.math.protos.DenseTensorProto;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.util.MeanVarianceAccumulator;
 import org.tribuo.util.Util;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.ToDoubleBiFunction;
+import java.util.stream.Collectors;
 
 /**
  * A dense vector, backed by a double array.
  */
 public class DenseVector implements SGDVector {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final int[] shape;
     protected final double[] elements;
@@ -124,6 +139,54 @@ public class DenseVector implements SGDVector {
             values[numFeatures-1] = 1.0;
         }
         return new DenseVector(values);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static DenseVector deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        DenseTensorProto proto = message.unpack(DenseTensorProto.class);
+        List<Integer> shapeList = proto.getDimensionsList();
+        int[] shape = Util.toPrimitiveInt(shapeList);
+        if (shape.length != 1) {
+            throw new IllegalArgumentException("Invalid proto, expected a vector, found shape " + Arrays.toString(shape));
+        }
+        if (shape[0] < 1) {
+            throw new IllegalArgumentException("Invalid proto, shape must be positive, found " + shape[0] + " at position 0");
+        }
+        int numElements = Util.product(shape);
+        DoubleBuffer buffer = proto.getValues().asReadOnlyByteBuffer().asDoubleBuffer();
+        if (buffer.remaining() != numElements) {
+            throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + buffer.remaining() + " values");
+        }
+        double[] values = new double[shape[0]];
+        buffer.get(values);
+        return new DenseVector(values);
+    }
+
+    @Override
+    public TensorProto serialize() {
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(DenseVector.class.getName());
+
+        DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
+        dataBuilder.addAllDimensions(Arrays.stream(shape).boxed().collect(Collectors.toList()));
+        ByteBuffer buffer = ByteBuffer.allocate(elements.length * 8).order(ByteOrder.LITTLE_ENDIAN);
+        DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+        doubleBuffer.put(elements);
+        doubleBuffer.rewind();
+        dataBuilder.setValues(ByteString.copyFrom(buffer));
+        builder.setSerializedData(Any.pack(dataBuilder.build()));
+
+        return builder.build();
     }
 
     /**

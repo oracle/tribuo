@@ -1297,4 +1297,17 @@ public final class Util {
             input[i] = (input[i] - mean) / variance;
         }
     }
+
+    /**
+     * Computes the product of this array.
+     * @param array The input array.
+     * @return The product of the array.
+     */
+    public static int product(int[] array) {
+        int output = 1;
+        for (int i = 0; i < array.length; i++) {
+            output *= array[i];
+        }
+        return output;
+    }
 }
