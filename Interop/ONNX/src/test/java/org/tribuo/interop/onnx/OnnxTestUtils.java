@@ -36,6 +36,7 @@ import org.tribuo.regression.Regressor;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -75,7 +76,8 @@ public class OnnxTestUtils {
         }
 
         String arch = System.getProperty("os.arch");
-        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64") || (arch.equalsIgnoreCase("aarch64") && (os.contains("mac") || os.contains("nux")))) {
             // Initialise the OrtEnvironment to load the native library
             // (as OrtSession.SessionOptions doesn't trigger the static initializer).
             OrtEnvironment env = OrtEnvironment.getEnvironment();
@@ -141,7 +143,8 @@ public class OnnxTestUtils {
         }
 
         String arch = System.getProperty("os.arch");
-        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64") || (arch.equalsIgnoreCase("aarch64") && (os.contains("mac") || os.contains("nux")))) {
             // Initialise the OrtEnvironment to load the native library
             // (as OrtSession.SessionOptions doesn't trigger the static initializer).
             OrtEnvironment env = OrtEnvironment.getEnvironment();
@@ -206,7 +209,8 @@ public class OnnxTestUtils {
         }
 
         String arch = System.getProperty("os.arch");
-        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64")) {
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+        if (arch.equalsIgnoreCase("amd64") || arch.equalsIgnoreCase("x86_64") || (arch.equalsIgnoreCase("aarch64") && (os.contains("mac") || os.contains("nux")))) {
             // Initialise the OrtEnvironment to load the native library
             // (as OrtSession.SessionOptions doesn't trigger the static initializer).
             OrtEnvironment env = OrtEnvironment.getEnvironment();
