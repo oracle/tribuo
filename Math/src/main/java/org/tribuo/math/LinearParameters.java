@@ -99,7 +99,7 @@ public class LinearParameters implements FeedForwardParameters {
         if (tensor instanceof DenseMatrix) {
             return new LinearParameters((DenseMatrix)tensor);
         } else {
-            throw new IllegalStateException("Invalid protobuf, found a sparse tensor when expecting a dense one.");
+            throw new IllegalStateException("Invalid protobuf, found a " + tensor.getClass().getSimpleName() + " when expecting a dense matrix.");
         }
     }
 
