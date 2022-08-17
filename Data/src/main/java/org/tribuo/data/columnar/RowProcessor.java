@@ -193,7 +193,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * Constructs a RowProcessor using the supplied responseProcessor to extract the response variable,
      * and the supplied fieldProcessorMap to control which fields are parsed and how they are parsed.
      * <p>
-     * In addition this processor can instantiate field processors which match the regexes supplied in
+     * In addition, this processor can instantiate field processors which match the regexes supplied in
      * the regexMappingProcessors. If a regex matches a field which already has a fieldProcessor assigned to
      * it, it throws an IllegalArgumentException.
      * <p>
@@ -201,7 +201,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * These processors can be used to insert conjunction features which are triggered when
      * multiple features appear, or to filter out unnecessary features.
      * <p>
-     * Additionally this processor can extract a weight from each row and insert it into the example, along
+     * Additionally, this processor can extract a weight from each row and insert it into the example, along
      * with more general metadata fields (e.g., the row number, date stamps). The weightExtractor can be null,
      * and if so the weights are left unset.
      * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
@@ -517,7 +517,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * Caveat Implementor! This method contains the logic of {@link org.tribuo.data.columnar.RowProcessor#expandRegexMapping}
-     * without any of the checks that ensure the RowProcessor is in a valid state. This can be used in a subclass to expand a regex mapping
+     * without any of the checks that ensure the RowProcessor is in a valid state. This can be overriden in a subclass to expand a regex mapping
      * several times for a single instance of RowProcessor. The caller is responsible for ensuring that fieldNames are not duplicated
      * within or between calls.
      * @param fieldNames The list of field names - should contain only previously unseen field names.
@@ -573,4 +573,138 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         return new ConfiguredObjectProvenanceImpl(this,"RowProcessor");
     }
 
+    /**
+     * Builder for {@link RowProcessor}
+     * @param <T>
+     */
+    public static class Builder<T extends Output<T>> {
+
+        private List<FieldExtractor<?>> metadataExtractors;
+        private FieldExtractor<Float> weightExtractor;
+        private Map<String, FieldProcessor> regexMappingProcessors;
+        private Set<FeatureProcessor> featureProcessors;
+        private boolean replaceNewLinesWithSpaces = true;
+
+        public Builder() {
+        }
+
+        /**
+         * If true, replaces newlines in fields with spaces before passing them to {@link FieldProcessor}s.
+         * <p>
+         * Defaults to true, some FieldProcessors may behave unexpectedly if this is false.
+         * @param replaceNewLinesWithSpaces
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> setReplaceNewLinesWithSpaces(boolean replaceNewLinesWithSpaces) {
+            this.replaceNewLinesWithSpaces = replaceNewLinesWithSpaces;
+            return this;
+        }
+
+        /**
+         * If set, the constructed {@link RowProcessor} will add the extracted floats into the {@link Example#setWeight(float)}s.
+         * Otherwise, all examples will be equally weighted.
+         * @param weightExtractor FieldExtractor to generate example-wise weights
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> setWeightExtractor(FieldExtractor<Float> weightExtractor) {
+            this.weightExtractor = weightExtractor;
+            return this;
+        }
+
+        /**
+         * If set, the supplied {@link FieldExtractor}s will be run for each example, populating {@link Example#getMetadata()}.
+         * If two FieldExtractors in this list share the same {@link FieldExtractor#getMetadataName()}, {@link Builder#build(List, ResponseProcessor)}
+         * will throw a {@link PropertyException}.
+         * <p>
+         * <strong>N.B.</strong> this method overrides all existing values for metadata extractors, to non-destructively add
+         * use {@link #addMetadataExtractor(FieldExtractor)}.
+         * @param metadataExtractors List of metadata extractors to use
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> setMetadataExtractors(List<FieldExtractor<?>> metadataExtractors) {
+            this.metadataExtractors = metadataExtractors;
+            return this;
+        }
+
+        /**
+         * Add a single metadata extractor to the builder. See {@link #setMetadataExtractors(List)} for more detail.
+         * @param metadataExtractor The extractor to add.
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> addMetadataExtractor(FieldExtractor<?> metadataExtractor) {
+            if(metadataExtractors == null) {
+                metadataExtractors = new ArrayList<>();
+            }
+            metadataExtractors.add(metadataExtractor);
+            return this;
+        }
+
+        /**
+         * The {@link FeatureProcessor}s to apply to each extracted feature list.
+         * <p>
+         * <strong>N.B.</strong> this method overrides all existing values for feature processors, to non-destructively add
+         * use {@link #addFeatureProcessor(FeatureProcessor)}.
+         * @param featureProcessors the processors to add.
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> setFeatureProcessors(Set<FeatureProcessor> featureProcessors) {
+            this.featureProcessors = featureProcessors;
+            return this;
+        }
+
+        /**
+         * Add a single feature processor to the builder. See {@link #setFeatureProcessors(Set)} for more detail.
+         * @param featureProcessor the processor to add.
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> addFeatureProcessor(FeatureProcessor featureProcessor) {
+            if(featureProcessors == null) {
+                featureProcessors = new HashSet<>();
+            }
+            featureProcessors.add(featureProcessor);
+            return this;
+        }
+
+        /**
+         * A map from strings (interpreted as regular expressions by {@link Pattern#compile(String)}) to
+         * {@link FieldProcessor}s such that if a field name matches a regular expression, the corresponding FieldProcessor
+         * is used to process it.
+         * <p>
+         * <strong>N.B.</strong> this method overrides all existing values for regex mapping, to non-destructively add
+         * use {@link #addRegexMappingProcessor(String, FieldProcessor)}.
+         * @param regexMappingProcessors The map from regex strings to FieldProcessors.
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> setRegexMappingProcessors(Map<String, FieldProcessor> regexMappingProcessors) {
+            this.regexMappingProcessors = regexMappingProcessors;
+            return this;
+        }
+
+        /**
+         * Add a single regex FieldProcessor mapping to the builder. For more detail see {@link #setRegexMappingProcessors(Map)}.
+         * @return A copy of this builder with updated state
+         */
+        public Builder<T> addRegexMappingProcessor(String regex, FieldProcessor fieldProcessor) {
+            if(regexMappingProcessors==null) {
+                regexMappingProcessors = new HashMap<>();
+            }
+            regexMappingProcessors.put(regex, fieldProcessor);
+            return this;
+        }
+
+        /**
+         * Construct the {@link RowProcessor} represented by this builder's state. Throws {@link PropertyException}
+         * if the state is invalid.
+         * @param fieldProcessors Thd field processors to use.
+         * @param responseProcessor The response processor to use.
+         * @return
+         */
+        public RowProcessor<T> build(List<FieldProcessor> fieldProcessors, ResponseProcessor<T> responseProcessor) {
+            Map<String, FieldProcessor> fieldProcessorMap = new HashMap<>();
+            for(FieldProcessor fieldProcessor: fieldProcessors) {
+                fieldProcessorMap.put(fieldProcessor.getFieldName(), fieldProcessor);
+            }
+            return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, replaceNewLinesWithSpaces);
+        }
+    }
 }
