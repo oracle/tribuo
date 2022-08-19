@@ -182,11 +182,11 @@ public class DenseSparseMatrix implements Matrix {
             }
         }
         int numElements = proto.getNumNonZero();
-        IntBuffer indicesBuffer = proto.getValues().asReadOnlyByteBuffer().asIntBuffer();
+        IntBuffer indicesBuffer = proto.getIndices().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
         if (indicesBuffer.remaining() != numElements * 2) {
             throw new IllegalArgumentException("Invalid proto, claimed " + (numElements * 2) + ", but only had " + indicesBuffer.remaining() + " indices");
         }
-        DoubleBuffer valuesBuffer = proto.getValues().asReadOnlyByteBuffer().asDoubleBuffer();
+        DoubleBuffer valuesBuffer = proto.getValues().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
         if (valuesBuffer.remaining() != numElements) {
             throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + valuesBuffer.remaining() + " values");
         }

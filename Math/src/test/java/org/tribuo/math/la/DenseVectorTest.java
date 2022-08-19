@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
@@ -290,6 +291,14 @@ public class DenseVectorTest {
         assertEquals(bSubC, b.subtract(c), "B - C");
         assertEquals(cSubA, c.subtract(a), "C - A");
         assertEquals(cSubB, c.subtract(b), "C - B");
+    }
+
+    @Test
+    public void serializationTest() {
+        DenseVector a = generateVectorA();
+        TensorProto proto = a.serialize();
+        Tensor deser = Tensor.deserialize(proto);
+        assertEquals(a,deser);
     }
 
     @Test

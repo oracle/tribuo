@@ -207,7 +207,7 @@ public class DenseMatrix implements Matrix {
             }
         }
         int numElements = Util.product(shape);
-        DoubleBuffer buffer = proto.getValues().asReadOnlyByteBuffer().asDoubleBuffer();
+        DoubleBuffer buffer = proto.getValues().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
         if (buffer.remaining() != numElements) {
             throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + buffer.remaining() + " values");
         }

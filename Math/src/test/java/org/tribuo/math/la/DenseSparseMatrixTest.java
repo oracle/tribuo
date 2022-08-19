@@ -17,6 +17,7 @@
 package org.tribuo.math.la;
 
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.protos.TensorProto;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,6 +48,14 @@ public class DenseSparseMatrixTest {
         assertEquals(0, column.get(0));
         assertEquals(Math.E, column.get(1));
         assertEquals(0, column.get(2));
+    }
+
+    @Test
+    public void serializationTest() {
+        DenseSparseMatrix a = DenseSparseMatrix.createDiagonal(new DenseVector(new double[]{1,2,3,4,5,6}));
+        TensorProto proto = a.serialize();
+        Tensor deser = Tensor.deserialize(proto);
+        assertEquals(a,deser);
     }
 
     public static void assertMatrixEquals(Matrix expected, Matrix actual) {

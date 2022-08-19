@@ -25,6 +25,7 @@ import org.tribuo.MutableDataset;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
@@ -727,6 +728,14 @@ public class SparseVectorTest {
         }
 
         return Util.toPrimitiveInt(intersectIndices);
+    }
+
+    @Test
+    public void serializationTest() {
+        SparseVector a = generateVectorA();
+        TensorProto proto = a.serialize();
+        Tensor deser = Tensor.deserialize(proto);
+        assertEquals(a,deser);
     }
 
     private static Example<MockOutput> generateExample(String[] names, double[] values) {

@@ -18,6 +18,7 @@ package org.tribuo.math.la;
 
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -148,4 +149,15 @@ public interface Tensor extends ProtoSerializable<TensorProto>, Serializable {
      * @return The euclidean norm.
      */
     public double twoNorm();
+
+    /**
+     * Deserialize a tensor proto into a Tensor.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the proto is invalid.
+     * @param proto The proto to deserialize.
+     * @return The tensor.
+     */
+    public static Tensor deserialize(TensorProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }

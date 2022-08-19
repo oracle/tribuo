@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.protos.TensorProto;
 
 /**
  * Matrices used -
@@ -1439,6 +1440,14 @@ public class DenseMatrixTest {
         matrixMatrixOutput = c.matrixMultiply(oneDimMatrix).getColumn(0);
         matrixVectorOutput = c.leftMultiply(vector);
         assertEquals(matrixMatrixOutput,matrixVectorOutput);
+    }
+
+    @Test
+    public void serializationTest() {
+        DenseMatrix a = generateA();
+        TensorProto proto = a.serialize();
+        Tensor deser = Tensor.deserialize(proto);
+        assertEquals(a,deser);
     }
 
     @Test

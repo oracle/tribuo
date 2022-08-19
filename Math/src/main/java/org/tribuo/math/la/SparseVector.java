@@ -285,13 +285,13 @@ public class SparseVector implements SGDVector {
             throw new IllegalArgumentException("Invalid proto, shape must be positive, found " + shape[0] + " at position 0");
         }
         int numElements = proto.getNumNonZero();
-        IntBuffer indicesBuffer = proto.getValues().asReadOnlyByteBuffer().asIntBuffer();
+        IntBuffer indicesBuffer = proto.getIndices().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
         if (indicesBuffer.remaining() != numElements) {
             throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + indicesBuffer.remaining() + " indices");
         }
         int[] indices = new int[numElements];
         indicesBuffer.get(indices);
-        DoubleBuffer valuesBuffer = proto.getValues().asReadOnlyByteBuffer().asDoubleBuffer();
+        DoubleBuffer valuesBuffer = proto.getValues().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
         if (valuesBuffer.remaining() != numElements) {
             throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + valuesBuffer.remaining() + " values");
         }
