@@ -59,33 +59,33 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     private static final Logger logger = Logger.getLogger(RowProcessor.class.getName());
 
-    private static final String FEATURE_NAME_REGEX = "["+ColumnarFeature.JOINER+FieldProcessor.NAMESPACE+"]";
+    private static final String FEATURE_NAME_REGEX = "[" + ColumnarFeature.JOINER + FieldProcessor.NAMESPACE + "]";
 
     private static final Pattern FEATURE_NAME_PATTERN = Pattern.compile(FEATURE_NAME_REGEX);
 
-    @Config(description="Extractors for the example metadata.")
+    @Config(description = "Extractors for the example metadata.")
     private List<FieldExtractor<?>> metadataExtractors = Collections.emptyList();
 
-    @Config(description="Extractor for the example weight.")
+    @Config(description = "Extractor for the example weight.")
     protected FieldExtractor<Float> weightExtractor = null;
 
-    @Config(mandatory = true,description="Processor which extracts the response.")
+    @Config(mandatory = true, description = "Processor which extracts the response.")
     protected ResponseProcessor<T> responseProcessor;
 
-    @Config(mandatory = true,description="The list of field processors to use.")
+    @Config(mandatory = true, description = "The list of field processors to use.")
     private List<FieldProcessor> fieldProcessorList;
 
     // fieldProcessorList is unpacked into this map to make the config files less complex.
     // fieldProcessorMap is the store of record for field processors.
-    protected Map<String,FieldProcessor> fieldProcessorMap;
+    protected Map<String, FieldProcessor> fieldProcessorMap;
 
-    @Config(description="A set of feature processors to apply after extraction.")
+    @Config(description = "A set of feature processors to apply after extraction.")
     private Set<FeatureProcessor> featureProcessors = new HashSet<>();
 
-    @Config(description="A map from a regex to field processors to apply to fields matching the regex.")
-    protected Map<String,FieldProcessor> regexMappingProcessors = new HashMap<>();
+    @Config(description = "A map from a regex to field processors to apply to fields matching the regex.")
+    protected Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
 
-    @Config(description="Replace newlines with spaces in values before passing them to field processors.")
+    @Config(description = "Replace newlines with spaces in values before passing them to field processors.")
     protected boolean replaceNewlinesWithSpaces = true;
 
     protected boolean configured;
@@ -96,11 +96,12 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * <p>
      * This processor does not generate any additional metadata for the examples, nor does it set the
      * weight value on generated examples.
+     *
      * @param responseProcessor The response processor to use.
      * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
      */
-    public RowProcessor(ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap) {
-        this(Collections.emptyList(),null,responseProcessor,fieldProcessorMap,Collections.emptySet());
+    public RowProcessor(ResponseProcessor<T> responseProcessor, Map<String, FieldProcessor> fieldProcessorMap) {
+        this(Collections.emptyList(), null, responseProcessor, fieldProcessorMap, Collections.emptySet());
     }
 
     /**
@@ -113,12 +114,13 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * <p>
      * This processor does not generate any additional metadata for the examples, nor does it set the
      * weight value on generated examples.
+     *
      * @param responseProcessor The response processor to use.
      * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
      * @param featureProcessors The feature processors to run on each extracted feature list.
      */
-    public RowProcessor(ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap, Set<FeatureProcessor> featureProcessors) {
-        this(Collections.emptyList(),null,responseProcessor,fieldProcessorMap,featureProcessors);
+    public RowProcessor(ResponseProcessor<T> responseProcessor, Map<String, FieldProcessor> fieldProcessorMap, Set<FeatureProcessor> featureProcessors) {
+        this(Collections.emptyList(), null, responseProcessor, fieldProcessorMap, featureProcessors);
     }
 
     /**
@@ -127,13 +129,16 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * <p>
      * Additionally this processor can extract and populate metadata fields on the generated examples
      * (e.g., the row number, date stamps).
+     *
      * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
      *                           the same metadata name then the constructor throws a PropertyException.
-     * @param responseProcessor The response processor to use.
-     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     * @param responseProcessor  The response processor to use.
+     * @param fieldProcessorMap  The keys are the field names and the values are the field processors to apply to those fields.
+     * @deprecated Prefer {@link Builder} to many-argument constructors
      */
-    public RowProcessor(List<FieldExtractor<?>> metadataExtractors, ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap) {
-        this(metadataExtractors,null,responseProcessor,fieldProcessorMap,Collections.emptySet());
+    @Deprecated
+    public RowProcessor(List<FieldExtractor<?>> metadataExtractors, ResponseProcessor<T> responseProcessor, Map<String, FieldProcessor> fieldProcessorMap) {
+        this(metadataExtractors, null, responseProcessor, fieldProcessorMap, Collections.emptySet());
     }
 
     /**
@@ -147,17 +152,20 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * Additionally this processor can extract a weight from each row and insert it into the example, along
      * with more general metadata fields (e.g., the row number, date stamps). The weightExtractor can be null,
      * and if so the weights are left unset.
+     *
      * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
      *                           the same metadata name then the constructor throws a PropertyException.
-     * @param weightExtractor The weight extractor, if null the weights are left unset at their default.
-     * @param responseProcessor The response processor to use.
-     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
-     * @param featureProcessors The feature processors to run on each extracted feature list.
+     * @param weightExtractor    The weight extractor, if null the weights are left unset at their default.
+     * @param responseProcessor  The response processor to use.
+     * @param fieldProcessorMap  The keys are the field names and the values are the field processors to apply to those fields.
+     * @param featureProcessors  The feature processors to run on each extracted feature list.
+     * @deprecated Prefer {@link Builder} to many-argument constructors
      */
+    @Deprecated
     public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
-                        ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
+                        ResponseProcessor<T> responseProcessor, Map<String, FieldProcessor> fieldProcessorMap,
                         Set<FeatureProcessor> featureProcessors) {
-        this(metadataExtractors,weightExtractor,responseProcessor,fieldProcessorMap,Collections.emptyMap(),featureProcessors, true);
+        this(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, Collections.emptyMap(), featureProcessors, true);
     }
 
     /**
@@ -175,17 +183,20 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * Additionally this processor can extract a weight from each row and insert it into the example, along
      * with more general metadata fields (e.g., the row number, date stamps). The weightExtractor can be null,
      * and if so the weights are left unset.
-     * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
-     *                           the same metadata name then the constructor throws a PropertyException.
-     * @param weightExtractor The weight extractor, if null the weights are left unset at their default.
-     * @param responseProcessor The response processor to use.
-     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
+     *
+     * @param metadataExtractors     The metadata extractors to run per example. If two metadata extractors emit
+     *                               the same metadata name then the constructor throws a PropertyException.
+     * @param weightExtractor        The weight extractor, if null the weights are left unset at their default.
+     * @param responseProcessor      The response processor to use.
+     * @param fieldProcessorMap      The keys are the field names and the values are the field processors to apply to those fields.
      * @param regexMappingProcessors A set of field processors which can be instantiated if the regexes match the field names.
-     * @param featureProcessors The feature processors to run on each extracted feature list.
+     * @param featureProcessors      The feature processors to run on each extracted feature list.
+     * @deprecated Prefer {@link Builder} to many-argument constructors
      */
+    @Deprecated
     public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
-        ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
-        Map<String,FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors) {
+                        ResponseProcessor<T> responseProcessor, Map<String, FieldProcessor> fieldProcessorMap,
+                        Map<String, FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors) {
         this(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, true);
     }
 
@@ -204,18 +215,21 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * Additionally, this processor can extract a weight from each row and insert it into the example, along
      * with more general metadata fields (e.g., the row number, date stamps). The weightExtractor can be null,
      * and if so the weights are left unset.
-     * @param metadataExtractors The metadata extractors to run per example. If two metadata extractors emit
-     *                           the same metadata name then the constructor throws a PropertyException.
-     * @param weightExtractor The weight extractor, if null the weights are left unset at their default.
-     * @param responseProcessor The response processor to use.
-     * @param fieldProcessorMap The keys are the field names and the values are the field processors to apply to those fields.
-     * @param regexMappingProcessors A set of field processors which can be instantiated if the regexes match the field names.
-     * @param featureProcessors The feature processors to run on each extracted feature list.
+     *
+     * @param metadataExtractors        The metadata extractors to run per example. If two metadata extractors emit
+     *                                  the same metadata name then the constructor throws a PropertyException.
+     * @param weightExtractor           The weight extractor, if null the weights are left unset at their default.
+     * @param responseProcessor         The response processor to use.
+     * @param fieldProcessorMap         The keys are the field names and the values are the field processors to apply to those fields.
+     * @param regexMappingProcessors    A set of field processors which can be instantiated if the regexes match the field names.
+     * @param featureProcessors         The feature processors to run on each extracted feature list.
      * @param replaceNewlinesWithSpaces Replace newlines with spaces in values before passing them to field processors.
+     * @deprecated Prefer {@link Builder} to many-argument constructors
      */
+    @Deprecated
     public RowProcessor(List<FieldExtractor<?>> metadataExtractors, FieldExtractor<Float> weightExtractor,
-                        ResponseProcessor<T> responseProcessor, Map<String,FieldProcessor> fieldProcessorMap,
-                        Map<String,FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors,
+                        ResponseProcessor<T> responseProcessor, Map<String, FieldProcessor> fieldProcessorMap,
+                        Map<String, FieldProcessor> regexMappingProcessors, Set<FeatureProcessor> featureProcessors,
                         boolean replaceNewlinesWithSpaces) {
         this.metadataExtractors = metadataExtractors.isEmpty() ? Collections.emptyList() : new ArrayList<>(metadataExtractors);
         this.weightExtractor = weightExtractor;
@@ -230,7 +244,8 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     /**
      * For olcut.
      */
-    protected RowProcessor() {}
+    protected RowProcessor() {
+    }
 
     /**
      * Used by the OLCUT configuration system, and should not be called by external code.
@@ -248,7 +263,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         for (FieldExtractor<?> extractor : metadataExtractors) {
             String newMetadataName = extractor.getMetadataName();
             if (metadataNames.contains(newMetadataName)) {
-                throw new PropertyException("","metadataExtractors",
+                throw new PropertyException("", "metadataExtractors",
                         "Two metadata extractors found referencing the same metadata name '" + newMetadataName + "'");
             } else {
                 metadataNames.add(newMetadataName);
@@ -258,6 +273,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * Returns the response processor this RowProcessor uses.
+     *
      * @return The response processor.
      */
     public ResponseProcessor<T> getResponseProcessor() {
@@ -266,14 +282,16 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * Returns the map of {@link FieldProcessor}s this RowProcessor uses.
+     *
      * @return The field processors.
      */
-    public Map<String,FieldProcessor> getFieldProcessors() {
+    public Map<String, FieldProcessor> getFieldProcessors() {
         return Collections.unmodifiableMap(fieldProcessorMap);
     }
 
     /**
      * Returns the set of {@link FeatureProcessor}s this RowProcessor uses.
+     *
      * @return The feature processors.
      */
     public Set<FeatureProcessor> getFeatureProcessors() {
@@ -284,7 +302,8 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * Generate an {@link Example} from the supplied row. Returns an empty Optional if
      * there are no features, or the response is required but it was not found. The latter case is
      * used at training time.
-     * @param row The row to process.
+     *
+     * @param row            The row to process.
      * @param outputRequired If an Output must be found in the row to return an Example.
      * @return An Optional containing an Example if the row was valid, an empty Optional otherwise.
      */
@@ -306,11 +325,11 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         } else {
             T label = labelOpt.orElse(responseProcessor.getOutputFactory().getUnknownOutput());
 
-            Map<String,Object> metadata = generateMetadata(row);
+            Map<String, Object> metadata = generateMetadata(row);
 
             Example<T> example;
             if (weightExtractor == null) {
-                example = new ArrayExample<>(label,metadata);
+                example = new ArrayExample<>(label, metadata);
             } else {
                 example = new ArrayExample<>(label,
                         weightExtractor.extract(row).orElse(Example.DEFAULT_WEIGHT),
@@ -326,43 +345,46 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * there are no features, or the response is required but it was not found.
      * <p>
      * Supplies -1 as the example index, used in cases where the index isn't meaningful.
-     * @param row The row to process.
+     *
+     * @param row            The row to process.
      * @param outputRequired If an Output must be found in the row to return an Example.
      * @return An Optional containing an Example if the row was valid, an empty Optional otherwise.
      */
-    public Optional<Example<T>> generateExample(Map<String,String> row, boolean outputRequired) {
-        return generateExample(-1,row,outputRequired);
+    public Optional<Example<T>> generateExample(Map<String, String> row, boolean outputRequired) {
+        return generateExample(-1, row, outputRequired);
     }
 
     /**
      * Generate an {@link Example} from the supplied row. Returns an empty Optional if
      * there are no features, or the response is required but it was not found. The latter case is
      * used at training time.
-     * @param idx The index for use in the example metadata if desired.
-     * @param row The row to process.
+     *
+     * @param idx            The index for use in the example metadata if desired.
+     * @param row            The row to process.
      * @param outputRequired If an Output must be found in the row to return an Example.
      * @return An Optional containing an Example if the row was valid, an empty Optional otherwise.
      */
-    public Optional<Example<T>> generateExample(long idx, Map<String,String> row, boolean outputRequired) {
+    public Optional<Example<T>> generateExample(long idx, Map<String, String> row, boolean outputRequired) {
         return generateExample(new ColumnarIterator.Row(idx, new ArrayList<>(row.keySet()), row), outputRequired);
     }
 
     /**
      * Generates the example metadata from the supplied row and index.
+     *
      * @param row The row to process.
      * @return A (possibly empty) map containing the metadata.
      */
-    public Map<String,Object> generateMetadata(ColumnarIterator.Row row) {
+    public Map<String, Object> generateMetadata(ColumnarIterator.Row row) {
         if (metadataExtractors.isEmpty()) {
             return Collections.emptyMap();
         } else {
-            Map<String,Object> metadataMap = new HashMap<>();
+            Map<String, Object> metadataMap = new HashMap<>();
             long idx = row.getIndex();
 
             for (FieldExtractor<?> field : metadataExtractors) {
                 String metadataName = field.getMetadataName();
                 Optional<?> extractedValue = field.extract(row);
-                if(extractedValue.isPresent()) {
+                if (extractedValue.isPresent()) {
                     metadataMap.put(metadataName, extractedValue.get());
                 } else {
                     logger.warning("Failed to extract field with name " + metadataName + " from index " + idx);
@@ -375,16 +397,17 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * Generates the features from the supplied row.
+     *
      * @param row The row to process.
      * @return A (possibly empty) list of {@link ColumnarFeature}s.
      */
-    public List<ColumnarFeature> generateFeatures(Map<String,String> row) {
+    public List<ColumnarFeature> generateFeatures(Map<String, String> row) {
         if (!configured) {
             throw new IllegalStateException("expandRegexMapping not called, yet there are entries in regexMappingProcessors which have not been bound to a field name.");
         }
         List<ColumnarFeature> features = new ArrayList<>();
 
-        for (Map.Entry<String,FieldProcessor> e : fieldProcessorMap.entrySet()) {
+        for (Map.Entry<String, FieldProcessor> e : fieldProcessorMap.entrySet()) {
             String value = row.get(e.getKey());
             if (value != null) {
                 if (replaceNewlinesWithSpaces) {
@@ -404,6 +427,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * The set of column names this will use for the feature processing.
+     *
      * @return The set of column names it processes.
      */
     public Set<String> getColumnNames() {
@@ -412,6 +436,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * Returns a description of the row processor and it's fields.
+     *
      * @return A String description of the RowProcessor.
      */
     public String getDescription() {
@@ -440,9 +465,10 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     /**
      * Returns the metadata keys and value types that are extracted
      * by this RowProcessor.
+     *
      * @return The metadata keys and value types.
      */
-    public Map<String,Class<?>> getMetadataTypes() {
+    public Map<String, Class<?>> getMetadataTypes() {
         if (metadataExtractors.isEmpty()) {
             return Collections.emptyMap();
         } else {
@@ -458,6 +484,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     /**
      * Returns true if the regexes have been expanded into field processors.
+     *
      * @return True if the RowProcessor has seen the set of input fields.
      */
     public boolean isConfigured() {
@@ -469,6 +496,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * against the {@link ImmutableFeatureMap} contained in the supplied {@link Model}.
      * Throws an IllegalArgumentException if any regexes overlap with
      * themselves, or with the currently defined set of fieldProcessorMap.
+     *
      * @param model The model to use to expand the regexes.
      */
     public void expandRegexMapping(Model<T> model) {
@@ -479,13 +507,14 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * Uses similar logic to {@link org.tribuo.transform.TransformationMap#validateTransformations} to check the regexes
      * against the supplied feature map. Throws an IllegalArgumentException if any regexes overlap with
      * themselves, or with the currently defined set of fieldProcessorMap.
+     *
      * @param featureMap The feature map to use to expand the regexes.
      */
     public void expandRegexMapping(ImmutableFeatureMap featureMap) {
         ArrayList<String> fieldNames = new ArrayList<>(featureMap.size());
 
         for (VariableInfo v : featureMap) {
-            String[] split = FEATURE_NAME_PATTERN.split(v.getName(),1);
+            String[] split = FEATURE_NAME_PATTERN.split(v.getName(), 1);
             String fieldName = split[0];
             fieldNames.add(fieldName);
         }
@@ -498,6 +527,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * against the supplied list of field names. Throws an IllegalArgumentException if any regexes overlap with
      * themselves, or with the currently defined set of fieldProcessorMap or if there are unmatched regexes after
      * processing.
+     *
      * @param fieldNames The list of field names.
      */
     public void expandRegexMapping(Collection<String> fieldNames) {
@@ -520,13 +550,14 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      * without any of the checks that ensure the RowProcessor is in a valid state. This can be overriden in a subclass to expand a regex mapping
      * several times for a single instance of RowProcessor. The caller is responsible for ensuring that fieldNames are not duplicated
      * within or between calls.
+     *
      * @param fieldNames The list of field names - should contain only previously unseen field names.
      * @return the set of regexes that were matched by fieldNames.
      */
     protected Set<String> partialExpandRegexMapping(Collection<String> fieldNames) {
         HashSet<String> regexesMatchingFieldNames = new HashSet<>();
         // Loop over all regexes
-        for (Map.Entry<String,FieldProcessor> e : regexMappingProcessors.entrySet()) {
+        for (Map.Entry<String, FieldProcessor> e : regexMappingProcessors.entrySet()) {
             Pattern p = Pattern.compile(e.getKey());
             // Loop over all field names
             for (String s : fieldNames) {
@@ -535,7 +566,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
                     // If it matches, add the field to the fieldProcessorMap map and the fieldProcessorList (for the provenance).
                     FieldProcessor newProcessor = e.getValue().copy(s);
                     fieldProcessorList.add(newProcessor);
-                    FieldProcessor f = fieldProcessorMap.put(s,newProcessor);
+                    FieldProcessor f = fieldProcessorMap.put(s, newProcessor);
 
 
                     if (f != null) {
@@ -550,8 +581,9 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     }
 
     /**
+     * @return a RowProcessor instance with clean state and the same configuration as this row processor.
      * @deprecated In a future release this API will change, in the meantime this is the correct way to get a row
-     *   processor with clean state.
+     * processor with clean state.
      * <p>
      * When using regexMappingProcessors, RowProcessor is stateful in a way that can sometimes make it fail the second
      * time it is used. Concretely:
@@ -561,7 +593,6 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      *     Dataset ds2 = new MutableDataset(new CSVDataSource(csvfile2, rp)); // this may fail due to state in rp
      * </pre>
      * This method returns a RowProcessor with clean state and the same configuration as this row processor.
-     * @return a RowProcessor instance with clean state and the same configuration as this row processor.
      */
     @Deprecated
     public RowProcessor<T> copy() {
@@ -570,11 +601,12 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
     @Override
     public ConfiguredObjectProvenance getProvenance() {
-        return new ConfiguredObjectProvenanceImpl(this,"RowProcessor");
+        return new ConfiguredObjectProvenanceImpl(this, "RowProcessor");
     }
 
     /**
-     * Builder for {@link RowProcessor}
+     * Builder for {@link RowProcessor}.
+     *
      * @param <T>
      */
     public static class Builder<T extends Output<T>> {
@@ -586,12 +618,16 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         private boolean replaceNewLinesWithSpaces = true;
 
         public Builder() {
+            metadataExtractors = new ArrayList<>();
+            featureProcessors = new HashSet<>();
+            regexMappingProcessors = new HashMap<>();
         }
 
         /**
          * If true, replaces newlines in fields with spaces before passing them to {@link FieldProcessor}s.
          * <p>
          * Defaults to true, some FieldProcessors may behave unexpectedly if this is false.
+         *
          * @param replaceNewLinesWithSpaces
          * @return A copy of this builder with updated state
          */
@@ -603,6 +639,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         /**
          * If set, the constructed {@link RowProcessor} will add the extracted floats into the {@link Example#setWeight(float)}s.
          * Otherwise, all examples will be equally weighted.
+         *
          * @param weightExtractor FieldExtractor to generate example-wise weights
          * @return A copy of this builder with updated state
          */
@@ -618,6 +655,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
          * <p>
          * <strong>N.B.</strong> this method overrides all existing values for metadata extractors, to non-destructively add
          * use {@link #addMetadataExtractor(FieldExtractor)}.
+         *
          * @param metadataExtractors List of metadata extractors to use
          * @return A copy of this builder with updated state
          */
@@ -628,13 +666,11 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
         /**
          * Add a single metadata extractor to the builder. See {@link #setMetadataExtractors(List)} for more detail.
+         *
          * @param metadataExtractor The extractor to add.
          * @return A copy of this builder with updated state
          */
         public Builder<T> addMetadataExtractor(FieldExtractor<?> metadataExtractor) {
-            if(metadataExtractors == null) {
-                metadataExtractors = new ArrayList<>();
-            }
             metadataExtractors.add(metadataExtractor);
             return this;
         }
@@ -644,6 +680,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
          * <p>
          * <strong>N.B.</strong> this method overrides all existing values for feature processors, to non-destructively add
          * use {@link #addFeatureProcessor(FeatureProcessor)}.
+         *
          * @param featureProcessors the processors to add.
          * @return A copy of this builder with updated state
          */
@@ -654,13 +691,11 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
         /**
          * Add a single feature processor to the builder. See {@link #setFeatureProcessors(Set)} for more detail.
+         *
          * @param featureProcessor the processor to add.
          * @return A copy of this builder with updated state
          */
         public Builder<T> addFeatureProcessor(FeatureProcessor featureProcessor) {
-            if(featureProcessors == null) {
-                featureProcessors = new HashSet<>();
-            }
             featureProcessors.add(featureProcessor);
             return this;
         }
@@ -672,6 +707,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
          * <p>
          * <strong>N.B.</strong> this method overrides all existing values for regex mapping, to non-destructively add
          * use {@link #addRegexMappingProcessor(String, FieldProcessor)}.
+         *
          * @param regexMappingProcessors The map from regex strings to FieldProcessors.
          * @return A copy of this builder with updated state
          */
@@ -682,12 +718,10 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
         /**
          * Add a single regex FieldProcessor mapping to the builder. For more detail see {@link #setRegexMappingProcessors(Map)}.
+         *
          * @return A copy of this builder with updated state
          */
         public Builder<T> addRegexMappingProcessor(String regex, FieldProcessor fieldProcessor) {
-            if(regexMappingProcessors==null) {
-                regexMappingProcessors = new HashMap<>();
-            }
             regexMappingProcessors.put(regex, fieldProcessor);
             return this;
         }
@@ -695,13 +729,14 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         /**
          * Construct the {@link RowProcessor} represented by this builder's state. Throws {@link PropertyException}
          * if the state is invalid.
-         * @param fieldProcessors Thd field processors to use.
+         *
+         * @param fieldProcessors   Thd field processors to use.
          * @param responseProcessor The response processor to use.
-         * @return
+         * @return The RowProcessor represented by the builder's state
          */
         public RowProcessor<T> build(List<FieldProcessor> fieldProcessors, ResponseProcessor<T> responseProcessor) {
             Map<String, FieldProcessor> fieldProcessorMap = new HashMap<>();
-            for(FieldProcessor fieldProcessor: fieldProcessors) {
+            for (FieldProcessor fieldProcessor : fieldProcessors) {
                 fieldProcessorMap.put(fieldProcessor.getFieldName(), fieldProcessor);
             }
             return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, replaceNewLinesWithSpaces);
