@@ -26,6 +26,7 @@ import org.tribuo.math.protos.KernelProto;
 import org.tribuo.math.protos.RBFKernelProto;
 import org.tribuo.math.protos.SigmoidKernelProto;
 import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 
 import java.util.Objects;
@@ -43,9 +44,11 @@ public class Sigmoid implements Kernel {
     public static final int CURRENT_VERSION = 0;
 
     @Config(mandatory = true,description="Coefficient to multiply the dot product by.")
+    @ProtoSerializableField
     private double gamma;
 
     @Config(mandatory = true,description="Scalar intercept to add to the dot product.")
+    @ProtoSerializableField
     private double intercept;
 
     /**

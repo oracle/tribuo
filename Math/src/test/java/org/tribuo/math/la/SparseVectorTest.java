@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.math.la;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import org.tribuo.CategoricalIDInfo;
 import org.tribuo.CategoricalInfo;
 import org.tribuo.Example;
@@ -25,6 +27,7 @@ import org.tribuo.MutableDataset;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
+import org.tribuo.math.protos.SparseTensorProto;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
@@ -32,13 +35,19 @@ import org.tribuo.test.MockOutputFactory;
 import org.tribuo.util.Util;
 import org.junit.jupiter.api.Test;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.function.DoubleUnaryOperator;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests for the SparseVector class.
@@ -735,7 +744,85 @@ public class SparseVectorTest {
         SparseVector a = generateVectorA();
         TensorProto proto = a.serialize();
         Tensor deser = Tensor.deserialize(proto);
-        assertEquals(a,deser);
+        assertEquals(a, deser);
+
+        SparseVector empty = new SparseVector(10, new int[0], new double[0]);
+        proto = empty.serialize();
+        deser = Tensor.deserialize(proto);
+        assertEquals(empty, deser);
+
+        SparseVector full = new SparseVector(10, new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, 5);
+        proto = full.serialize();
+        deser = Tensor.deserialize(proto);
+        assertEquals(full, deser);
+
+    }
+
+    @Test
+    public void serializationValidationTest() {
+        TensorProto negSize = makeMalformedProto(-1, 2, new int[]{0,1}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(negSize);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto negNonZero = makeMalformedProto(5, -1, new int[]{0,3}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(negNonZero);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto nonZeroMismatch = makeMalformedProto(5, 3, new int[]{0,3}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(nonZeroMismatch);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto invalidIndices = makeMalformedProto(5, 3, new int[]{0,-1}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(invalidIndices);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto valueIndicesMismatch = makeMalformedProto(5, 3, new int[]{0,3}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(valueIndicesMismatch);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+    }
+
+    private static TensorProto makeMalformedProto(int size, int numNonZero, int[] indices, double[] values) {
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(0);
+        builder.setClassName(SparseVector.class.getName());
+
+        SparseTensorProto.Builder dataBuilder = SparseTensorProto.newBuilder();
+        dataBuilder.addDimensions(size);
+        ByteBuffer indicesBuffer = ByteBuffer.allocate(indices.length * 4).order(ByteOrder.LITTLE_ENDIAN);
+        IntBuffer intBuffer = indicesBuffer.asIntBuffer();
+        intBuffer.put(indices);
+        intBuffer.rewind();
+        ByteBuffer valuesBuffer = ByteBuffer.allocate(values.length * 8).order(ByteOrder.LITTLE_ENDIAN);
+        DoubleBuffer doubleBuffer = valuesBuffer.asDoubleBuffer();
+        doubleBuffer.put(values);
+        doubleBuffer.rewind();
+        dataBuilder.setIndices(ByteString.copyFrom(indicesBuffer));
+        dataBuilder.setValues(ByteString.copyFrom(valuesBuffer));
+        dataBuilder.setNumNonZero(numNonZero);
+        builder.setSerializedData(Any.pack(dataBuilder.build()));
+
+        return builder.build();
     }
 
     private static Example<MockOutput> generateExample(String[] names, double[] values) {
