@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,6 +73,21 @@ public abstract class RegressionInfo implements OutputInfo<Regressor> {
         this.sumSquaresMap = MutableNumber.copyMap(other.sumSquaresMap);
         this.countMap = MutableNumber.copyMap(other.countMap);
         this.overallCount = other.overallCount;
+    }
+
+    RegressionInfo(Map<String,MutableLong> countMap, Map<String,MutableDouble> maxMap, Map<String,MutableDouble> minMap, Map<String,MutableDouble> meanMap, Map<String,MutableDouble> sumSquaresMap, int unknownCount, long overallCount) {
+        this.countMap = MutableNumber.copyMap(countMap);
+        for (Map.Entry<String,MutableLong> e : this.countMap.entrySet()) {
+            if (e.getValue().longValue() < 1) {
+                throw new IllegalArgumentException("Invalid count found for dimension name '" + e.getKey() + "', expected positive value found " + e.getValue());
+            }
+        }
+        this.maxMap = MutableNumber.copyMap(maxMap);
+        this.minMap = MutableNumber.copyMap(minMap);
+        this.meanMap = MutableNumber.copyMap(meanMap);
+        this.sumSquaresMap = MutableNumber.copyMap(sumSquaresMap);
+        this.unknownCount = unknownCount;
+        this.overallCount = overallCount;
     }
 
     @Override
@@ -167,5 +182,11 @@ public abstract class RegressionInfo implements OutputInfo<Regressor> {
         }
 
         return list;
+    }
+
+    static boolean checkMutableDouble(MutableDouble boxA, MutableDouble boxB) {
+        double a = boxA.doubleValue();
+        double b = boxB.doubleValue();
+        return Double.compare(a,b) == 0;
     }
 }

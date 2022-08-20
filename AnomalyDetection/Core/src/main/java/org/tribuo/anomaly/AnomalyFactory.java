@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.anomaly;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
@@ -24,6 +26,7 @@ import org.tribuo.anomaly.Event.EventType;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluation;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluator;
 import org.tribuo.evaluation.Evaluator;
+import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
 import java.util.Map;
@@ -50,6 +53,32 @@ public final class AnomalyFactory implements OutputFactory<Event> {
     public static final Event ANOMALOUS_EVENT = new Event(EventType.ANOMALOUS);
 
     private static final AnomalyEvaluator evaluator = new AnomalyEvaluator();
+
+    /**
+     * Create an AnomalyFactory.
+     */
+    public AnomalyFactory() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static AnomalyFactory deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new AnomalyFactory();
+    }
+
+    @Override
+    public OutputFactoryProto serialize() {
+        return OutputFactoryProto.newBuilder().setVersion(0).setClassName(AnomalyFactory.class.getName()).build();
+    }
 
     @Override
     public <V> Event generateOutput(V label) {
@@ -92,6 +121,20 @@ public final class AnomalyFactory implements OutputFactory<Event> {
         return evaluator;
     }
 
+    @Override
+    public int hashCode() {
+        return "AnomalyFactory".hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof AnomalyFactory;
+    }
+
+    /**
+     * Generate provenance for this anomaly factory.
+     * @return The provenance.
+     */
     @Override
     public OutputFactoryProvenance getProvenance() {
         return new AnomalyFactoryProvenance();

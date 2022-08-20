@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,15 @@
 
 package org.tribuo.clustering;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Model;
 import org.tribuo.Output;
+import org.tribuo.clustering.protos.ClusterIDProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputProto;
 
 import java.util.Objects;
 
@@ -31,6 +38,7 @@ import java.util.Objects;
  * The id is {@link ClusterID#UNASSIGNED} if the output is not assigned to a
  * cluster (e.g., before the {@link Model} has been trained).
  */
+@ProtoSerializableClass(serializedDataClass = ClusterIDProto.class, version = 0)
 public class ClusterID implements Output<ClusterID> {
     private static final long serialVersionUID = 1L;
 
@@ -39,8 +47,10 @@ public class ClusterID implements Output<ClusterID> {
      */
     public static final int UNASSIGNED = -1;
 
+    @ProtoSerializableField
     private final int id;
 
+    @ProtoSerializableField
     private final double score;
 
     /**
@@ -59,6 +69,26 @@ public class ClusterID implements Output<ClusterID> {
     public ClusterID(int id, double score) {
         this.id = id;
         this.score = score;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ClusterID deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        ClusterIDProto proto = message.unpack(ClusterIDProto.class);
+        ClusterID lbl = new ClusterID(proto.getId(),proto.getScore());
+        return lbl;
+    }
+
+    @Override
+    public OutputProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**

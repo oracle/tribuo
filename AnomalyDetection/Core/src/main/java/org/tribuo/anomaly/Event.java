@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.tribuo.anomaly;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
+import org.tribuo.anomaly.protos.EventProto;
+import org.tribuo.protos.core.OutputProto;
 
 import java.util.Objects;
 
@@ -87,6 +91,52 @@ public final class Event implements Output<Event> {
      */
     public Event(EventType type) {
         this(type,DEFAULT_SCORE);
+    }
+
+    private Event(int type, double score) {
+        EventType[] values = EventType.values();
+        EventType eventEnum = null;
+        for (EventType t : values) {
+            if (t.getID() == type) {
+                eventEnum = t;
+            }
+        }
+        if (eventEnum == null) {
+            throw new IllegalStateException("Invalid EventType enum value, found " + type);
+        }
+        this.type = eventEnum;
+        this.score = score;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static Event deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        EventProto proto = message.unpack(EventProto.class);
+        Event event = new Event(proto.getEvent().getNumber(),proto.getScore());
+        return event;
+    }
+
+    @Override
+    public OutputProto serialize() {
+        OutputProto.Builder builder = OutputProto.newBuilder();
+
+        builder.setClassName(Event.class.getName());
+        builder.setVersion(0);
+
+        EventProto.Builder eventBuilder = EventProto.newBuilder();
+        eventBuilder.setEventValue(type.value);
+        eventBuilder.setScore(score);
+
+        builder.setSerializedData(Any.pack(eventBuilder.build()));
+
+        return builder.build();
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,11 @@
  */
 
 package org.tribuo;
+
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.protos.core.OutputProto;
 
 import java.io.Serializable;
 
@@ -32,7 +37,7 @@ import java.io.Serializable;
  * Equals and hashcode are defined to only look at the strings stored in an Output, not any score
  * values. For equality that takes into account the scores, use {@link Output#fullEquals}.
  */
-public interface Output<T extends Output<T>> extends Serializable {
+public interface Output<T extends Output<T>> extends ProtoSerializable<OutputProto>, Serializable {
 
     /**
      * Deep copy of the output up to it's immutable state.
@@ -54,4 +59,13 @@ public interface Output<T extends Output<T>> extends Serializable {
      * @return True if the other instance has value equality to this instance. False otherwise.
      */
     public boolean fullEquals(T other);
+
+    /**
+     * Deserializes a {@link OutputProto} into a {@link Output} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized Output.
+     */
+    public static Output<?> deserialize(OutputProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }

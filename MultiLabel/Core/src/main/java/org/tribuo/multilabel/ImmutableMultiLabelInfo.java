@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 
 package org.tribuo.multilabel;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.classification.ImmutableLabelInfo;
+import org.tribuo.classification.protos.ImmutableLabelInfoProto;
+import org.tribuo.multilabel.protos.ImmutableMultiLabelInfoProto;
+import org.tribuo.protos.core.OutputDomainProto;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -90,6 +96,74 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
         }
 
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param labelCounts Counts map.
+     * @param mapping Label id mapping.
+     * @param unknownCount Unknown count.
+     * @param totalCount Total count.
+     */
+    private ImmutableMultiLabelInfo(Map<String,MutableLong> labelCounts, Map<String, Integer> mapping, int unknownCount, int totalCount) {
+        super(labelCounts,unknownCount,totalCount);
+        this.idLabelMap = new HashMap<>();
+        this.labelIDMap = new HashMap<>();
+        for (Map.Entry<String,Integer> e : mapping.entrySet()) {
+            this.idLabelMap.put(e.getValue(),e.getKey());
+            this.labelIDMap.put(e.getKey(),e.getValue());
+        }
+        this.domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImmutableMultiLabelInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        ImmutableMultiLabelInfoProto proto = message.unpack(ImmutableMultiLabelInfoProto.class);
+        if ((proto.getLabelCount() != proto.getCountCount()) || (proto.getLabelCount() != proto.getIdCount())) {
+            throw new IllegalArgumentException("Invalid protobuf, different numbers of labels, ids and counts, labels " + proto.getLabelCount() + ", ids " + proto.getIdCount() + ", counts " + proto.getCountCount());
+        }
+        Map<String,MutableLong> labelCounts = new HashMap<>();
+        Map<String,Integer> labelIDMap = new HashMap<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            String lbl = proto.getLabel(i);
+            long cnt = proto.getCount(i);
+            int id = proto.getId(i);
+            MutableLong old = labelCounts.put(lbl,new MutableLong(cnt));
+            if (old != null) {
+                throw new IllegalArgumentException("Invalid protobuf, two mappings for " + lbl);
+            }
+            labelIDMap.put(lbl,id);
+        }
+        return new ImmutableMultiLabelInfo(labelCounts,labelIDMap,proto.getUnknownCount(),proto.getTotalCount());
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        OutputDomainProto.Builder domainBuilder = OutputDomainProto.newBuilder();
+
+        domainBuilder.setClassName(ImmutableMultiLabelInfo.class.getName());
+        domainBuilder.setVersion(0);
+
+        ImmutableMultiLabelInfoProto.Builder data = ImmutableMultiLabelInfoProto.newBuilder();
+        data.setUnknownCount(unknownCount);
+        data.setTotalCount(totalCount);
+        for (Map.Entry<String, MutableLong> e : labelCounts.entrySet()) {
+            data.addLabel(e.getKey());
+            data.addCount(e.getValue().longValue());
+            data.addId(labelIDMap.get(e.getKey()));
+        }
+
+        domainBuilder.setSerializedData(Any.pack(data.build()));
+
+        return domainBuilder.build();
     }
 
     @Override

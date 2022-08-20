@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.test;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
@@ -23,6 +25,7 @@ import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputFactory;
 import org.tribuo.evaluation.Evaluation;
 import org.tribuo.evaluation.Evaluator;
+import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
 import java.util.ArrayList;
@@ -39,6 +42,27 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
     public static final MockMultiOutput UNKNOWN_MULTILABEL = new MockMultiOutput("unk");
 
     public MockMultiOutputFactory() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MockMultiOutputFactory deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        if (message != null) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new MockMultiOutputFactory();
+    }
+
+    @Override
+    public OutputFactoryProto serialize() {
+        return OutputFactoryProto.newBuilder().setVersion(0).setClassName(MockMultiOutputFactory.class.getName()).build();
+    }
 
     @Override
     public <V> MockMultiOutput generateOutput(V label) {
@@ -60,7 +84,7 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
 
     @Override
     public MutableOutputInfo<MockMultiOutput> generateInfo() {
-        return new MutableMockMultiOutputInfo();
+        return new MockMultiOutputInfo();
     }
 
     @Override

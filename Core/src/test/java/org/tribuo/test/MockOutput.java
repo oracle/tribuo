@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,52 @@
 
 package org.tribuo.test;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
+import org.tribuo.RealInfo;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputProto;
+import org.tribuo.protos.core.RealInfoProto;
+import org.tribuo.protos.core.VariableInfoProto;
+import org.tribuo.test.protos.MockOutputProto;
 
 import java.util.Objects;
 
 /**
  * An Output for use in tests which is very similar to Label.
  */
+@ProtoSerializableClass(serializedDataClass=MockOutputProto.class, version=0)
 public class MockOutput implements Output<MockOutput> {
     private static final long serialVersionUID = 1L;
 
+    @ProtoSerializableField
     public final String label;
 
     public MockOutput(String label) {
         this.label = label;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MockOutput deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        MockOutputProto proto = message.unpack(MockOutputProto.class);
+        MockOutput info = new MockOutput(proto.getLabel());
+        return info;
+    }
+
+    @Override
+    public OutputProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

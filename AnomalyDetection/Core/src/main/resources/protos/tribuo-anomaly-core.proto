@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo Anomaly Detection core types.
+ */
+package tribuo.anomaly;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.anomaly.protos";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+// Import OLCUT's provenance proto
+import "olcut_proto.proto";
+
+/*
+Event proto
+ */
+message EventProto {
+  enum EventType {
+    EXPECTED = 0;
+    ANOMALOUS = 1;
+    UNKNOWN = -1;
+  }
+  EventType event = 1;
+  double score = 2;
+}
+
+/*
+AnomalyInfoProto
+ */
+message AnomalyInfoProto {
+  int64 expectedCount = 1;
+  int64 anomalyCount = 2;
+  int32 unknownCount = 3;
+}

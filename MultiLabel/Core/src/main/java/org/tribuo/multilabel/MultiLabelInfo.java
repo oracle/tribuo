@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputInfo;
 import org.tribuo.classification.Label;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoSerializableKeysValuesField;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -38,10 +41,13 @@ import java.util.Set;
 public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
     private static final long serialVersionUID = 1L;
 
+    @ProtoSerializableKeysValuesField(keysName="label",valuesName="count")
     protected final Map<String,MutableLong> labelCounts;
+    @ProtoSerializableField
     protected int unknownCount = 0;
     protected transient Map<String,MultiLabel> labels;
 
+    @ProtoSerializableField
     protected int totalCount = 0;
 
     /**
@@ -60,6 +66,32 @@ public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
         labelCounts = MutableNumber.copyMap(other.labelCounts);
         labels = new HashMap<>(other.labels);
         totalCount = other.totalCount;
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param counts Counts map.
+     * @param unknownCount Unknown count.
+     * @param totalCount Total count.
+     */
+    MultiLabelInfo(Map<String,MutableLong> counts, int unknownCount, int totalCount) {
+        if (unknownCount < 0) {
+            throw new IllegalArgumentException("Unknown count must be non-negative, found " + unknownCount);
+        }
+        if (totalCount < 0) {
+            throw new IllegalArgumentException("Total count must be non-negative, found " + totalCount);
+        }
+        this.unknownCount = unknownCount;
+        this.totalCount = totalCount;
+        labelCounts = new HashMap<>();
+        labels = new HashMap<>();
+        for (Map.Entry<String,MutableLong> e : counts.entrySet()) {
+            if (e.getValue().longValue() < 1) {
+                throw new IllegalArgumentException("Count for " + e.getKey() + " must be positive but found " + e.getValue().longValue());
+            }
+            labelCounts.put(e.getKey(),e.getValue().copy());
+            labels.put(e.getKey(), new MultiLabel(e.getKey()));
+        }
     }
 
     @Override
@@ -146,9 +178,17 @@ public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MultiLabelInfo that = (MultiLabelInfo) o;
-        return unknownCount == that.unknownCount &&
-                totalCount == that.totalCount &&
-                labelCounts.equals(that.labelCounts);
+        if (unknownCount == that.unknownCount && totalCount == that.totalCount) {
+            for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
+                MutableLong other = that.labelCounts.get(e.getKey());
+                if (other == null || (other.longValue() != e.getValue().longValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override

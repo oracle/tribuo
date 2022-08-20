@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.regression;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.CharProvenance;
@@ -24,9 +26,11 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputFactory;
 import org.tribuo.evaluation.Evaluator;
+import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
+import org.tribuo.regression.protos.RegressionFactoryProto;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,6 +97,40 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
     @Override
     public void postConfig() {
         this.provenance = new RegressionFactoryProvenance(splitChar);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static RegressionFactory deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        RegressionFactoryProto proto = message.unpack(RegressionFactoryProto.class);
+        String split = proto.getSplitChar();
+        if (split.length() != 1) {
+            throw new IllegalArgumentException("Invalid protobuf, splitChar must be a single character, found '" + split + "'");
+        }
+
+        return new RegressionFactory(split.charAt(0));
+    }
+
+    @Override
+    public OutputFactoryProto serialize() {
+        OutputFactoryProto.Builder outputBuilder = OutputFactoryProto.newBuilder();
+
+        outputBuilder.setClassName(RegressionFactory.class.getName());
+        outputBuilder.setVersion(0);
+
+        RegressionFactoryProto.Builder data = RegressionFactoryProto.newBuilder();
+        data.setSplitChar(""+splitChar);
+
+        outputBuilder.setSerializedData(Any.pack(data.build()));
+
+        return outputBuilder.build();
     }
 
     /**
@@ -166,12 +204,12 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
 
     @Override
     public int hashCode() {
-        return "RegressionFactory".hashCode();
+        return "RegressionFactory".hashCode() ^ Character.hashCode(splitChar);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof RegressionFactory;
+        return obj instanceof RegressionFactory && splitChar == ((RegressionFactory) obj).splitChar;
     }
 
     @Override

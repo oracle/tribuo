@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,24 @@
 
 package org.tribuo.multilabel;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import org.tribuo.MutableOutputInfo;
+import org.tribuo.classification.MutableLabelInfo;
+import org.tribuo.classification.protos.MutableLabelInfoProto;
+import org.tribuo.multilabel.protos.MutableMultiLabelInfoProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputDomainProto;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A MutableOutputInfo for working with multi-label tasks.
  */
+@ProtoSerializableClass(serializedDataClass=MutableMultiLabelInfoProto.class, version=0)
 public class MutableMultiLabelInfo extends MultiLabelInfo implements MutableOutputInfo<MultiLabel> {
     private static final long serialVersionUID = 1L;
 
@@ -41,6 +51,47 @@ public class MutableMultiLabelInfo extends MultiLabelInfo implements MutableOutp
      */
     public MutableMultiLabelInfo(MultiLabelInfo info) {
         super(info);
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param counts Counts map.
+     * @param unknownCount Unknown count.
+     * @param totalCount Total count.
+     */
+    private MutableMultiLabelInfo(Map<String, MutableLong> counts, int unknownCount, int totalCount) {
+        super(counts,unknownCount,totalCount);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MutableMultiLabelInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        MutableMultiLabelInfoProto proto = message.unpack(MutableMultiLabelInfoProto.class);
+        if (proto.getLabelCount() != proto.getCountCount()) {
+            throw new IllegalArgumentException("Invalid protobuf, different numbers of labels and counts, labels " + proto.getLabelCount() + ", counts " + proto.getCountCount());
+        }
+        Map<String,MutableLong> labelCounts = new HashMap<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            String lbl = proto.getLabel(i);
+            long cnt = proto.getCount(i);
+            MutableLong old = labelCounts.put(lbl,new MutableLong(cnt));
+            if (old != null) {
+                throw new IllegalArgumentException("Invalid protobuf, two mappings for " + lbl);
+            }
+        }
+        return new MutableMultiLabelInfo(labelCounts,proto.getUnknownCount(),proto.getTotalCount());
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**

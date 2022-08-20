@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.multilabel;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
@@ -26,6 +28,7 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.evaluation.Evaluator;
 import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
 import org.tribuo.multilabel.evaluation.MultiLabelEvaluator;
+import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
 import java.util.ArrayList;
@@ -53,6 +56,27 @@ public final class MultiLabelFactory implements OutputFactory<MultiLabel> {
      * Construct a MultiLabelFactory.
      */
     public MultiLabelFactory() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MultiLabelFactory deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new MultiLabelFactory();
+    }
+
+    @Override
+    public OutputFactoryProto serialize() {
+        return OutputFactoryProto.newBuilder().setVersion(0).setClassName(MultiLabelFactory.class.getName()).build();
+    }
 
     /**
      * Parses the MultiLabel value either by toStringing the input and calling {@link MultiLabel#parseString}

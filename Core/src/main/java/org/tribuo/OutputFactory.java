@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,11 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.evaluation.Evaluation;
 import org.tribuo.evaluation.Evaluator;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.protos.core.OutputFactoryProto;
+import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
 import java.io.Serializable;
@@ -34,7 +39,7 @@ import java.util.Map;
  * <p>
  * Must be {@link Configurable} so it can be loaded from an olcut config file.
  */
-public interface OutputFactory<T extends Output<T>> extends Configurable, Provenancable<OutputFactoryProvenance>, Serializable {
+public interface OutputFactory<T extends Output<T>> extends Configurable, ProtoSerializable<OutputFactoryProto>, Provenancable<OutputFactoryProvenance>, Serializable {
 
     /**
      * Parses the {@code V} and generates the appropriate {@link Output} value.
@@ -99,6 +104,15 @@ public interface OutputFactory<T extends Output<T>> extends Configurable, Proven
         }
 
         return outputs;
+    }
+
+    /**
+     * Deserializes a {@link OutputFactoryProto} into a {@link OutputFactory} subclass.
+     * @param proto The proto to deserialize.
+     * @return The deserialized OutputFactory.
+     */
+    public static OutputFactory<?> deserialize(OutputFactoryProto proto) {
+        return ProtoUtil.deserialize(proto);
     }
 
     /**
