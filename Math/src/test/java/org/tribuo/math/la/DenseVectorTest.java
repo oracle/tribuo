@@ -16,23 +16,32 @@
 
 package org.tribuo.math.la;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.math.protos.DenseTensorProto;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
 import org.tribuo.util.MeanVarianceAccumulator;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Tests for the DenseVector class.
@@ -299,6 +308,49 @@ public class DenseVectorTest {
         TensorProto proto = a.serialize();
         Tensor deser = Tensor.deserialize(proto);
         assertEquals(a,deser);
+    }
+
+    @Test
+    public void serializationValidationTest() {
+        TensorProto invalidShape = makeMalformedProto(new int[]{-1}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(invalidShape);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+        invalidShape = makeMalformedProto(new int[]{3,4}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(invalidShape);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+        TensorProto elementMismatch = makeMalformedProto(new int[]{5}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(elementMismatch);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+    }
+
+    private static TensorProto makeMalformedProto(int[] shape, double[] elements) {
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(0);
+        builder.setClassName(DenseVector.class.getName());
+
+        DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
+        dataBuilder.addAllDimensions(Arrays.stream(shape).boxed().collect(Collectors.toList()));
+        ByteBuffer buffer = ByteBuffer.allocate(elements.length * 8).order(ByteOrder.LITTLE_ENDIAN);
+        DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+        doubleBuffer.put(elements);
+        doubleBuffer.rewind();
+        dataBuilder.setValues(ByteString.copyFrom(buffer));
+        builder.setSerializedData(Any.pack(dataBuilder.build()));
+
+        return builder.build();
     }
 
     @Test

@@ -21,6 +21,7 @@ import org.tribuo.math.protos.TensorProto;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.tribuo.test.Helpers.testProtoSerialization;
 
 public class DenseSparseMatrixTest {
 
@@ -53,9 +54,28 @@ public class DenseSparseMatrixTest {
     @Test
     public void serializationTest() {
         DenseSparseMatrix a = DenseSparseMatrix.createDiagonal(new DenseVector(new double[]{1,2,3,4,5,6}));
-        TensorProto proto = a.serialize();
-        Tensor deser = Tensor.deserialize(proto);
-        assertEquals(a,deser);
+        testProtoSerialization(a);
+
+        SparseVector[] vectors = new SparseVector[3];
+        vectors[0] = new SparseVector(5, new int[]{1}, new double[]{3});
+        vectors[1] = new SparseVector(5, new int[0], new double[0]);
+        vectors[2] = new SparseVector(5, new int[]{4}, new double[]{3});
+        DenseSparseMatrix missingRow = DenseSparseMatrix.createFromSparseVectors(vectors);
+        testProtoSerialization(missingRow);
+
+        vectors = new SparseVector[3];
+        vectors[0] = new SparseVector(5, new int[]{1}, new double[]{3});
+        vectors[1] = new SparseVector(5, new int[]{4}, new double[]{3});
+        vectors[2] = new SparseVector(5, new int[0], new double[0]);
+        missingRow = DenseSparseMatrix.createFromSparseVectors(vectors);
+        testProtoSerialization(missingRow);
+
+        vectors = new SparseVector[3];
+        vectors[0] = new SparseVector(5, new int[0], new double[0]);
+        vectors[1] = new SparseVector(5, new int[]{1}, new double[]{3});
+        vectors[2] = new SparseVector(5, new int[]{4}, new double[]{3});
+        missingRow = DenseSparseMatrix.createFromSparseVectors(vectors);
+        testProtoSerialization(missingRow);
     }
 
     public static void assertMatrixEquals(Matrix expected, Matrix actual) {
