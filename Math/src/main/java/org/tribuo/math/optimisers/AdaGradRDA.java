@@ -282,7 +282,7 @@ public class AdaGradRDA implements StochasticGradientOptimiser {
             TensorProto.Builder builder = TensorProto.newBuilder();
 
             builder.setVersion(CURRENT_VERSION);
-            builder.setClassName(AdaGradRDAMatrix.class.getName());
+            builder.setClassName(AdaGradRDAVector.class.getName());
 
             AdaGradRDADenseTensorProto.Builder adagradBuilder = AdaGradRDADenseTensorProto.newBuilder();
             DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
