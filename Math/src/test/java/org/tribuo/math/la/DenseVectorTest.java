@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class DenseVectorTest {
 
-    private static DenseVector generateVectorA() {
+    public static DenseVector generateVectorA() {
         //int[] indices = new int[]{0,1,4,5,8};
         double[] values = new double[]{1.0,2.0,0.0,0.0,3.0,4.0,0.0,0.0,5.0,0.0};
         return DenseVector.createDenseVector(values);
@@ -312,21 +312,22 @@ public class DenseVectorTest {
 
     @Test
     public void serializationValidationTest() {
-        TensorProto invalidShape = makeMalformedProto(new int[]{-1}, new double[1]);
+        String className = DenseVector.class.getName();
+        TensorProto invalidShape = makeMalformedProto(className, new int[]{-1}, new double[1]);
         try {
             Tensor deser = Tensor.deserialize(invalidShape);
             fail("Should have thrown ISE");
         } catch (IllegalStateException e) {
             //pass
         }
-        invalidShape = makeMalformedProto(new int[]{3,4}, new double[1]);
+        invalidShape = makeMalformedProto(className, new int[]{3,4}, new double[1]);
         try {
             Tensor deser = Tensor.deserialize(invalidShape);
             fail("Should have thrown ISE");
         } catch (IllegalStateException e) {
             //pass
         }
-        TensorProto elementMismatch = makeMalformedProto(new int[]{5}, new double[1]);
+        TensorProto elementMismatch = makeMalformedProto(className, new int[]{5}, new double[1]);
         try {
             Tensor deser = Tensor.deserialize(elementMismatch);
             fail("Should have thrown ISE");
@@ -335,11 +336,11 @@ public class DenseVectorTest {
         }
     }
 
-    private static TensorProto makeMalformedProto(int[] shape, double[] elements) {
+    static TensorProto makeMalformedProto(String className, int[] shape, double[] elements) {
         TensorProto.Builder builder = TensorProto.newBuilder();
 
         builder.setVersion(0);
-        builder.setClassName(DenseVector.class.getName());
+        builder.setClassName(className);
 
         DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
         dataBuilder.addAllDimensions(Arrays.stream(shape).boxed().collect(Collectors.toList()));

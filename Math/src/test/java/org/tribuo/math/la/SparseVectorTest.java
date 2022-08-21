@@ -760,7 +760,8 @@ public class SparseVectorTest {
 
     @Test
     public void serializationValidationTest() {
-        TensorProto negSize = makeMalformedProto(-1, 2, new int[]{0,1}, new double[2]);
+        String className = SparseVector.class.getName();
+        TensorProto negSize = makeMalformedSparseProto(className,new int[]{-1}, 2, new int[]{0,1}, new double[2]);
         try {
             Tensor deser = Tensor.deserialize(negSize);
             fail("Should have thrown ISE");
@@ -768,7 +769,7 @@ public class SparseVectorTest {
             //pass
         }
 
-        TensorProto negNonZero = makeMalformedProto(5, -1, new int[]{0,3}, new double[2]);
+        TensorProto negNonZero = makeMalformedSparseProto(className,new int[]{5}, -1, new int[]{0,3}, new double[2]);
         try {
             Tensor deser = Tensor.deserialize(negNonZero);
             fail("Should have thrown ISE");
@@ -776,7 +777,7 @@ public class SparseVectorTest {
             //pass
         }
 
-        TensorProto nonZeroMismatch = makeMalformedProto(5, 3, new int[]{0,3}, new double[2]);
+        TensorProto nonZeroMismatch = makeMalformedSparseProto(className,new int[]{5}, 3, new int[]{0,3}, new double[2]);
         try {
             Tensor deser = Tensor.deserialize(nonZeroMismatch);
             fail("Should have thrown ISE");
@@ -784,7 +785,7 @@ public class SparseVectorTest {
             //pass
         }
 
-        TensorProto invalidIndices = makeMalformedProto(5, 3, new int[]{0,-1}, new double[2]);
+        TensorProto invalidIndices = makeMalformedSparseProto(className, new int[]{5}, 2, new int[]{0,-1}, new double[2]);
         try {
             Tensor deser = Tensor.deserialize(invalidIndices);
             fail("Should have thrown ISE");
@@ -792,23 +793,31 @@ public class SparseVectorTest {
             //pass
         }
 
-        TensorProto valueIndicesMismatch = makeMalformedProto(5, 3, new int[]{0,3}, new double[1]);
+        TensorProto valueIndicesMismatch = makeMalformedSparseProto(className, new int[]{5}, 2, new int[]{0,3}, new double[1]);
         try {
             Tensor deser = Tensor.deserialize(valueIndicesMismatch);
             fail("Should have thrown ISE");
         } catch (IllegalStateException e) {
             //pass
         }
+
+        TensorProto matrix = makeMalformedSparseProto(className, new int[]{5,5}, 2, new int[]{0,0,3,2}, new double[]{1,2});
+        try {
+            Tensor deser = Tensor.deserialize(matrix);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
     }
 
-    private static TensorProto makeMalformedProto(int size, int numNonZero, int[] indices, double[] values) {
+    static TensorProto makeMalformedSparseProto(String className, int[] size, int numNonZero, int[] indices, double[] values) {
         TensorProto.Builder builder = TensorProto.newBuilder();
 
         builder.setVersion(0);
-        builder.setClassName(SparseVector.class.getName());
+        builder.setClassName(className);
 
         SparseTensorProto.Builder dataBuilder = SparseTensorProto.newBuilder();
-        dataBuilder.addDimensions(size);
+        dataBuilder.addAllDimensions(Arrays.stream(size).boxed().collect(Collectors.toList()));
         ByteBuffer indicesBuffer = ByteBuffer.allocate(indices.length * 4).order(ByteOrder.LITTLE_ENDIAN);
         IntBuffer intBuffer = indicesBuffer.asIntBuffer();
         intBuffer.put(indices);

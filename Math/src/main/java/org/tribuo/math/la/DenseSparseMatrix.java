@@ -199,7 +199,7 @@ public class DenseSparseMatrix implements Matrix {
             int curJ = indicesBuffer.get();
             double curValue = valuesBuffer.get();
             while (curI != rowCounter) {
-                vectors[rowCounter] = new SparseVector(shape[1],Util.toPrimitiveInt(indices),Util.toPrimitiveDouble(values));
+                vectors[rowCounter] = SparseVector.createAndValidate(shape[1],Util.toPrimitiveInt(indices),Util.toPrimitiveDouble(values));
                 indices.clear();
                 values.clear();
                 rowCounter++;
@@ -207,7 +207,7 @@ public class DenseSparseMatrix implements Matrix {
             indices.add(curJ);
             values.add(curValue);
         }
-        vectors[rowCounter] = new SparseVector(shape[1],Util.toPrimitiveInt(indices),Util.toPrimitiveDouble(values));
+        vectors[rowCounter] = SparseVector.createAndValidate(shape[1],Util.toPrimitiveInt(indices),Util.toPrimitiveDouble(values));
         indices.clear();
         values.clear();
         rowCounter++;

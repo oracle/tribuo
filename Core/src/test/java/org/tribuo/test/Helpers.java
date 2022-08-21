@@ -115,10 +115,11 @@ public final class Helpers {
         assertEquals(unmarshalledProvenance,inputProvenance);
     }
 
-    public static <U extends Message, T extends ProtoSerializable<U>> void testProtoSerialization(T obj) {
+    public static <U extends Message, T extends ProtoSerializable<U>> T testProtoSerialization(T obj) {
         U proto = obj.serialize();
         T deser = ProtoUtil.deserialize(proto);
         assertEquals(obj,deser);
+        return deser;
     }
 
     public static <T extends Output<T>> void testModelSerialization(Model<T> model, Class<T> outputClazz) {

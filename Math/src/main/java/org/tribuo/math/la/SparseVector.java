@@ -266,6 +266,36 @@ public class SparseVector implements SGDVector {
     }
 
     /**
+     * Deserialization factory used by {@link DenseSparseMatrix}.
+     * <p>
+     * Checks that the indices are sorted, monotonic and in the range [0, {@code dimension}). If they aren't then
+     * it throws {@link IllegalArgumentException}.
+     * @param dimension The dimension of the vector.
+     * @param indices The indices.
+     * @param values The values.
+     * @return A sparse vector.
+     */
+    static SparseVector createAndValidate(int dimension, int[] indices, double[] values) {
+        if (dimension < 1) {
+            throw new IllegalArgumentException("Invalid proto, dimension must be positive, found " + dimension);
+        }
+        if (indices.length != values.length) {
+            throw new IllegalArgumentException("Invalid proto, mismatch between number of indices and values. indices.length = " + indices.length + ", values.length = " + values.length);
+        }
+        int prev = -1;
+        for (int i = 0; i < indices.length; i++) {
+            int cur = indices[i];
+            if (cur <= prev) {
+                throw new IllegalArgumentException("Invalid proto, indices are not non-negative and monotonic, indices = " + Arrays.toString(indices));
+            } else if (cur >= dimension) {
+                throw new IllegalArgumentException("Invalid proto, an index is larger than the shape, indices = " + Arrays.toString(indices));
+            }
+            prev = cur;
+        }
+        return new SparseVector(dimension,indices,values);
+    }
+
+    /**
      * Deserialization factory.
      * @param version The serialized object version.
      * @param className The class name.
@@ -297,7 +327,7 @@ public class SparseVector implements SGDVector {
         }
         double[] values = new double[numElements];
         valuesBuffer.get(values);
-        return new SparseVector(shape[0],indices,values);
+        return SparseVector.createAndValidate(shape[0],indices,values);
     }
 
     @Override
