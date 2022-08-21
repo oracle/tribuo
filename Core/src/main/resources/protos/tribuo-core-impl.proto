@@ -34,7 +34,7 @@ import "olcut_proto.proto";
 HashedFeatureMap proto
  */
 message HashedFeatureMapProto {
-  HasherProto hasher = 1;
+  tribuo.core.HasherProto hasher = 1;
   repeated VariableInfoProto info = 2;
 }
 
@@ -42,7 +42,7 @@ message HashedFeatureMapProto {
 ImmutableFeatureMap proto
  */
 message ImmutableFeatureMapProto {
-  repeated VariableInfoProto info = 1;
+  repeated tribuo.core.VariableInfoProto info = 1;
 }
 
 /*
@@ -50,7 +50,7 @@ MutableFeatureMap proto
  */
 message MutableFeatureMapProto {
   bool convert_high_cardinality = 1;
-  repeated VariableInfoProto info = 2;
+  repeated tribuo.core.VariableInfoProto info = 2;
 }
 
 /*
@@ -161,4 +161,27 @@ message BinningTransformerProto {
   string binning_type = 1;
   repeated double bins = 2;
   repeated double values = 3;
+}
+
+/*
+Example proto shared by ListExample and ArrayExample
+ */
+message ExampleDataProto {
+  tribuo.core.OutputProto output = 1;
+  repeated string feature_name = 2;
+  repeated double feature_value = 3;
+  map<string,string> metadata = 4;
+  float weight = 5;
+}
+
+/*
+Prediction impl proto
+ */
+message PredictionImplProto{
+  tribuo.core.ExampleProto example = 3;
+  tribuo.core.OutputProto output = 4;
+  bool probability = 5;
+  int32 num_used = 6;
+  int32 example_size = 7;
+  map<string,tribuo.core.OutputProto> output_scores = 8;
 }
