@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,21 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoSerializableMapField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputProto;
+import org.tribuo.protos.core.PredictionImplProto;
+import org.tribuo.protos.core.PredictionProto;
 
 /**
  * A prediction made by a {@link Model}.
@@ -30,37 +41,49 @@ import java.util.Map;
  * If possible it also contains the number of features that were used to make a prediction,
  * and how many features originally existed in the {@link Example}.
  */
-public class Prediction<T extends Output<T>> implements Serializable {
+@ProtoSerializableClass(version = Prediction.CURRENT_VERSION, serializedDataClass = PredictionImplProto.class)
+public class Prediction<T extends Output<T>> implements ProtoSerializable<PredictionProto>, Serializable {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * The current protobuf serialization version of this class.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * The example which was used to generate this prediction.
      */
+    @ProtoSerializableField
     private final Example<T> example;
 
     /**
-     * The output assigned by a classifier.
+     * The output assigned by a model.
      */
+    @ProtoSerializableField
     private final T output;
 
     /**
      * Does outputScores contain probabilities or scores?
      */
+    @ProtoSerializableField
     private final boolean probability;
 
     /**
      * How many features were used by the model.
      */
+    @ProtoSerializableField
     private final int numUsed;
 
     /**
      * How many features were set in the example.
      */
+    @ProtoSerializableField
     private final int exampleSize;
 
     /**
      * A map from output name to output object, which contains the score.
      */
+    @ProtoSerializableMapField()
     private final Map<String,T> outputScores;
 
     /**
@@ -114,9 +137,45 @@ public class Prediction<T extends Output<T>> implements Serializable {
     }
 
     /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"rawtypes","unchecked"}) // types are checked via getClass to ensure that the example, output and scores are all the same class.
+    public static Prediction<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        PredictionImplProto proto = message.unpack(PredictionImplProto.class);
+        int numUsed = proto.getNumUsed();
+        if (numUsed < 0) {
+            throw new IllegalStateException("Invalid protobuf, used a negative number of features");
+        }
+        int exampleSize = proto.getExampleSize();
+        if (exampleSize < 0) {
+            throw new IllegalStateException("Invalid protobuf, found a negative example size");
+        }
+        Example<?> example = ProtoUtil.deserialize(proto.getExample());
+        Output<?> output = ProtoUtil.deserialize(proto.getOutput());
+        if (!output.getClass().equals(example.getOutput().getClass())) {
+            throw new IllegalStateException("Invalid protobuf, example and output types do not match, example = " + example.getOutput().getClass() + ", output = " + output.getClass());
+        }
+        Map map = new HashMap();
+        for (Map.Entry<String, OutputProto> e : proto.getOutputScoresMap().entrySet()) {
+            Output<?> tmpOutput = ProtoUtil.deserialize(e.getValue());
+            if (!tmpOutput.getClass().equals(output.getClass())) {
+                throw new IllegalStateException("Invalid protobuf, output scores not all the same type, found " + tmpOutput.getClass() + ", expected " + output.getClass());
+            }
+            map.put(e.getKey(), tmpOutput);
+        }
+        return new Prediction(output, map, numUsed, exampleSize, example, proto.getProbability());
+    }
+
+    /**
      * Returns the predicted output.
      * @return The predicted output.
-     */
+    */
     public T getOutput() {
         return output;
     }
@@ -199,5 +258,10 @@ public class Prediction<T extends Output<T>> implements Serializable {
             }
         }
         return true;
+    }
+
+    @Override
+    public PredictionProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 }

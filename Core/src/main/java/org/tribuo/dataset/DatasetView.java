@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -342,7 +342,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
         return valid;
     }
 
-    private static class ViewIterator<T extends Output<T>> implements Iterator<Example<T>> {
+    private static final class ViewIterator<T extends Output<T>> implements Iterator<Example<T>> {
 
         private int counter = 0;
         private final DatasetView<T> dataset;
@@ -421,7 +421,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
         /**
          * Generates the indices from this DatasetViewProvenance
          * by rerunning the bootstrap sample.
-         *
+         * <p>
          * Note these indices are invalid if the view is a weighted sample, or
          * not sampled.
          * @return The bootstrap indices.

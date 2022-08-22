@@ -175,6 +175,25 @@ message ExampleDataProto {
 }
 
 /*
+BinaryFeaturesExample proto
+ */
+message BinaryFeaturesExampleProto {
+  tribuo.core.OutputProto output = 1;
+  repeated string feature_name = 2;
+  map<string, string> metadata = 3;
+  float weight = 4;
+}
+
+message IndexedArrayExampleProto {
+  tribuo.core.OutputProto output = 1;
+  repeated string feature_name = 2;
+  repeated int32 feature_idx = 3;
+  repeated double feature_value = 4;
+  map<string,string> metadata = 5;
+  float weight = 6;
+}
+
+/*
 Prediction impl proto
  */
 message PredictionImplProto{
