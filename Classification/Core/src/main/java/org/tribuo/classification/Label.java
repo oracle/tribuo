@@ -16,6 +16,14 @@
 
 package org.tribuo.classification;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.classification.protos.LabelProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputProto;
+
 /**
  * An immutable multi-class classification label.
  * <p>
@@ -26,6 +34,7 @@ package org.tribuo.classification;
  * Label equality and hashCode is defined solely on the String
  * label, it does not take into account the score.
  */
+@ProtoSerializableClass(serializedDataClass=LabelProto.class, version=0)
 public final class Label implements Classifiable<Label> {
     private static final long serialVersionUID = 1L;
 
@@ -37,11 +46,13 @@ public final class Label implements Classifiable<Label> {
     /**
      * The name of the label.
      */
+    @ProtoSerializableField
     protected final String label;
 
     /**
      * The score of the label.
      */
+    @ProtoSerializableField
     protected final double score;
 
     /**
@@ -60,6 +71,26 @@ public final class Label implements Classifiable<Label> {
      */
     public Label(String label) {
         this(label,Double.NaN);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static Label deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        LabelProto proto = message.unpack(LabelProto.class);
+        Label lbl = new Label(proto.getLabel(),proto.getScore());
+        return lbl;
+    }
+
+    @Override
+    public OutputProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**

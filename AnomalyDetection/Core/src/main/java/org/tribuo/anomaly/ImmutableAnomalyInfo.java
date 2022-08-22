@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,14 @@
 
 package org.tribuo.anomaly;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.anomaly.Event.EventType;
+import org.tribuo.anomaly.protos.AnomalyInfoProto;
+import org.tribuo.anomaly.protos.EventProto;
+import org.tribuo.protos.ProtoSerializableClass;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -31,6 +36,7 @@ import java.util.logging.Logger;
  * <p>
  * The ids are predefined for {@link Event} in the Event class itself.
  */
+@ProtoSerializableClass(serializedDataClass=AnomalyInfoProto.class, version=0)
 public final class ImmutableAnomalyInfo extends AnomalyInfo implements ImmutableOutputInfo<Event> {
     private static final long serialVersionUID = 1L;
 
@@ -38,6 +44,24 @@ public final class ImmutableAnomalyInfo extends AnomalyInfo implements Immutable
 
     ImmutableAnomalyInfo(AnomalyInfo info) {
         super(info);
+    }
+
+    private ImmutableAnomalyInfo(long expectedCount, long anomalyCount, int unknownCount) {
+        super(expectedCount,anomalyCount,unknownCount);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImmutableAnomalyInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        AnomalyInfoProto proto = message.unpack(AnomalyInfoProto.class);
+        return new ImmutableAnomalyInfo(proto.getExpectedCount(),proto.getAnomalyCount(),proto.getUnknownCount());
     }
 
     @Override

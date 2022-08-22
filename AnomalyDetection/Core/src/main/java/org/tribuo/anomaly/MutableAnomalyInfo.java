@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package org.tribuo.anomaly;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.MutableOutputInfo;
+import org.tribuo.anomaly.protos.AnomalyInfoProto;
+import org.tribuo.protos.ProtoSerializableClass;
 
 /**
  * An {@link MutableOutputInfo} object for {@link Event}s.
@@ -29,6 +33,7 @@ import org.tribuo.MutableOutputInfo;
  * Anomaly detection has a fixed domain, so it will throw {@link IllegalArgumentException}
  * if you somehow modify the {@link Event.EventType} enum to add a new value.
  */
+@ProtoSerializableClass(serializedDataClass=AnomalyInfoProto.class, version=0)
 public final class MutableAnomalyInfo extends AnomalyInfo implements MutableOutputInfo<Event> {
     private static final long serialVersionUID = 1L;
 
@@ -38,6 +43,24 @@ public final class MutableAnomalyInfo extends AnomalyInfo implements MutableOutp
 
     MutableAnomalyInfo(AnomalyInfo info) {
         super(info);
+    }
+
+    private MutableAnomalyInfo(long expectedCount, long anomalyCount, int unknownCount) {
+        super(expectedCount,anomalyCount,unknownCount);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MutableAnomalyInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        AnomalyInfoProto proto = message.unpack(AnomalyInfoProto.class);
+        return new MutableAnomalyInfo(proto.getExpectedCount(),proto.getAnomalyCount(),proto.getUnknownCount());
     }
 
     @Override

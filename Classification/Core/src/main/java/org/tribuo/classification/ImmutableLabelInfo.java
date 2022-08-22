@@ -16,9 +16,15 @@
 
 package org.tribuo.classification;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.classification.protos.ImmutableLabelInfoProto;
+import org.tribuo.classification.protos.MutableLabelInfoProto;
+import org.tribuo.protos.ProtoSerializableMapValuesField;
+import org.tribuo.protos.core.OutputDomainProto;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -26,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,6 +89,72 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             labelIDMap.put(e.getKey().label,e.getValue());
         }
         domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param labelCounts Counts map.
+     * @param mapping Label id mapping.
+     * @param unknownCount Unknown count.
+     */
+    private ImmutableLabelInfo(Map<String,MutableLong> labelCounts, Map<String, Integer> mapping, int unknownCount) {
+        super(labelCounts,unknownCount);
+        this.idLabelMap = new HashMap<>();
+        this.labelIDMap = new HashMap<>();
+        for (Map.Entry<String,Integer> e : mapping.entrySet()) {
+            this.idLabelMap.put(e.getValue(),e.getKey());
+            this.labelIDMap.put(e.getKey(),e.getValue());
+        }
+        this.domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImmutableLabelInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        ImmutableLabelInfoProto proto = message.unpack(ImmutableLabelInfoProto.class);
+        if ((proto.getLabelCount() != proto.getCountCount()) || (proto.getLabelCount() != proto.getIdCount())) {
+            throw new IllegalArgumentException("Invalid protobuf, different numbers of labels, ids and counts, labels " + proto.getLabelCount() + ", ids " + proto.getIdCount() + ", counts " + proto.getCountCount());
+        }
+        Map<String,MutableLong> labelCounts = new HashMap<>();
+        Map<String,Integer> labelIDMap = new HashMap<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            String lbl = proto.getLabel(i);
+            long cnt = proto.getCount(i);
+            int id = proto.getId(i);
+            MutableLong old = labelCounts.put(lbl,new MutableLong(cnt));
+            if (old != null) {
+                throw new IllegalArgumentException("Invalid protobuf, two mappings for " + lbl);
+            }
+            labelIDMap.put(lbl,id);
+        }
+        return new ImmutableLabelInfo(labelCounts,labelIDMap,proto.getUnknownCount());
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        OutputDomainProto.Builder domainBuilder = OutputDomainProto.newBuilder();
+
+        domainBuilder.setClassName(ImmutableLabelInfo.class.getName());
+        domainBuilder.setVersion(0);
+
+        ImmutableLabelInfoProto.Builder data = ImmutableLabelInfoProto.newBuilder();
+        data.setUnknownCount(unknownCount);
+        for (Map.Entry<String, MutableLong> e : labelCounts.entrySet()) {
+            data.addLabel(e.getKey());
+            data.addCount(e.getValue().longValue());
+            data.addId(labelIDMap.get(e.getKey()));
+        }
+
+        domainBuilder.setSerializedData(Any.pack(data.build()));
+
+        return domainBuilder.build();
     }
 
     /**
@@ -161,6 +234,29 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
     @Override
     public String toString() {
         return toReadableString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ImmutableLabelInfo labelInfo = (ImmutableLabelInfo) o;
+        if (unknownCount == labelInfo.unknownCount && idLabelMap.equals(labelInfo.idLabelMap) && labelCounts.size() == labelInfo.labelCounts.size()) {
+            for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
+                MutableLong other = labelInfo.labelCounts.get(e.getKey());
+                if (other == null || (other.longValue() != e.getValue().longValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idLabelMap,labelCounts,unknownCount);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,15 @@
 
 package org.tribuo.regression;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.regression.protos.ImmutableRegressionInfoProto;
+import org.tribuo.regression.protos.MutableRegressionInfoProto;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,6 +34,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -134,6 +140,95 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
         }
         domain = calculateDomain(minMap);
         computeStatisticArrays();
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param countMap The dimension observation counts.
+     * @param labelIDMap The dimension indices.
+     * @param maxMap The max values per dimension.
+     * @param minMap The min values per dimension.
+     * @param meanMap The mean values per dimension.
+     * @param sumSquaresMap The sum of squares per dimension.
+     * @param unknownCount The number of unknowns observed.
+     * @param overallCount The total number of things observed.
+     */
+    private ImmutableRegressionInfo(Map<String,MutableLong> countMap, Map<String,Integer> labelIDMap, Map<String,MutableDouble> maxMap, Map<String,MutableDouble> minMap, Map<String,MutableDouble> meanMap, Map<String,MutableDouble> sumSquaresMap, int unknownCount, long overallCount) {
+        super(countMap,maxMap,minMap,meanMap,sumSquaresMap,unknownCount,overallCount);
+        this.labelIDMap = new LinkedHashMap<>(labelIDMap);
+        this.idLabelMap = new LinkedHashMap<>();
+        for (Map.Entry<String,Integer> e : this.labelIDMap.entrySet()) {
+            idLabelMap.put(e.getValue(),e.getKey());
+        }
+        this.domain = calculateDomain(this.minMap);
+        computeStatisticArrays();
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImmutableRegressionInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        ImmutableRegressionInfoProto proto = message.unpack(ImmutableRegressionInfoProto.class);
+        if ((proto.getLabelCount() != proto.getMaxCount()) || (proto.getLabelCount() != proto.getMinCount())
+                || (proto.getLabelCount() != proto.getMeanCount()) || (proto.getLabelCount() != proto.getSumSquaresCount())
+                || (proto.getLabelCount() != proto.getCountCount()) || (proto.getLabelCount() != proto.getIdCount())) {
+            throw new IllegalArgumentException("Invalid protobuf, expected the same number of dimension names, maxes," +
+                    " mins, means, sumSquares, counts and ids found " + proto.getLabelCount() + " names, "
+                    + proto.getMaxCount() + " maxes, " + proto.getMinCount() + " mins, " + proto.getMeanCount() + " means, "
+                    + proto.getSumSquaresCount() + " sumSquares, " + proto.getCountCount() + " counts, and "
+                    + proto.getIdCount() + "ids.");
+        }
+        Map<String,Integer> labelIDMap = new LinkedHashMap<>();
+        Map<String,MutableDouble> maxMap = new LinkedHashMap<>();
+        Map<String,MutableDouble> minMap = new LinkedHashMap<>();
+        Map<String,MutableDouble> meanMap = new LinkedHashMap<>();
+        Map<String,MutableDouble> sumSquaresMap = new LinkedHashMap<>();
+        Map<String,MutableLong> countMap = new TreeMap<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            String lbl = proto.getLabel(i);
+            long cnt = proto.getCount(i);
+            MutableLong old = countMap.put(lbl,new MutableLong(cnt));
+            if (old != null) {
+                throw new IllegalArgumentException("Invalid protobuf, two mappings for " + lbl);
+            }
+            labelIDMap.put(lbl,proto.getId(i));
+            maxMap.put(lbl,new MutableDouble(proto.getMax(i)));
+            minMap.put(lbl,new MutableDouble(proto.getMin(i)));
+            meanMap.put(lbl,new MutableDouble(proto.getMean(i)));
+            sumSquaresMap.put(lbl,new MutableDouble(proto.getSumSquares(i)));
+        }
+        return new ImmutableRegressionInfo(countMap,labelIDMap,maxMap,minMap,meanMap,sumSquaresMap,proto.getUnknownCount(),proto.getOverallCount());
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        OutputDomainProto.Builder outputBuilder = OutputDomainProto.newBuilder();
+
+        outputBuilder.setClassName(ImmutableRegressionInfo.class.getName());
+        outputBuilder.setVersion(0);
+
+        ImmutableRegressionInfoProto.Builder data = ImmutableRegressionInfoProto.newBuilder();
+        for (Map.Entry<String, MutableLong> e : countMap.entrySet()) {
+            data.addLabel(e.getKey());
+            data.addCount(e.getValue().longValue());
+            data.addId(labelIDMap.get(e.getKey()));
+            data.addMax(maxMap.get(e.getKey()).doubleValue());
+            data.addMin(minMap.get(e.getKey()).doubleValue());
+            data.addMean(meanMap.get(e.getKey()).doubleValue());
+            data.addSumSquares(sumSquaresMap.get(e.getKey()).doubleValue());
+        }
+        data.setUnknownCount(unknownCount);
+        data.setOverallCount(overallCount);
+
+        outputBuilder.setSerializedData(Any.pack(data.build()));
+
+        return outputBuilder.build();
     }
 
     /**
@@ -327,6 +422,43 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
     @Override
     public String toReadableString() {
         return toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ImmutableRegressionInfo that = (ImmutableRegressionInfo) o;
+        if (unknownCount == that.unknownCount && overallCount == that.overallCount && labelIDMap.equals(that.labelIDMap)) {
+            for (Map.Entry<String,MutableLong> e : countMap.entrySet()) {
+                MutableLong other = that.countMap.get(e.getKey());
+                if (other == null || (other.longValue() != e.getValue().longValue())) {
+                    return false;
+                } else {
+                    // mapping exists, check max, min, mean, sumSquares
+                    if (!checkMutableDouble(maxMap.get(e.getKey()), that.maxMap.get(e.getKey()))) {
+                        return false;
+                    }
+                    if (!checkMutableDouble(minMap.get(e.getKey()), that.minMap.get(e.getKey()))) {
+                        return false;
+                    }
+                    if (!checkMutableDouble(meanMap.get(e.getKey()), that.meanMap.get(e.getKey()))) {
+                        return false;
+                    }
+                    if (!checkMutableDouble(sumSquaresMap.get(e.getKey()), that.sumSquaresMap.get(e.getKey()))) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(countMap, labelIDMap, maxMap, minMap, meanMap, sumSquaresMap, unknownCount, overallCount);
     }
 
     @Override

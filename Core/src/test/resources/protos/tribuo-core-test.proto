@@ -1,0 +1,78 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo core types and interfaces.
+ */
+package tribuo.core;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.test.protos";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+// Import OLCUT's provenance proto
+import "olcut_proto.proto";
+
+/*
+CountTransformer proto
+ */
+message TestCountTransformerProto {
+  int32 count = 1;
+  int32 sparseCount = 2;
+  repeated double countMapKeys = 3;
+  repeated int64 countMapValues = 4;
+}
+
+/*
+MockOutput proto
+ */
+message MockOutputProto {
+  string label = 1;
+}
+
+/*
+MockMultiOutput proto
+ */
+message MockMultiOutputProto {
+  repeated string label = 1;
+  double score = 2;
+}
+
+/*
+MockOutputInfoProto
+ */
+message MockOutputInfoProto {
+  repeated string label = 1;
+  repeated int64 counts = 2;
+  repeated int32 id = 3;
+  int32 unknownCount = 4;
+  int32 labelCounter = 5;
+}
+
+/*
+MockMultiOutputInfoProto
+ */
+message MockMultiOutputInfoProto {
+  repeated string label = 1;
+  repeated int64 counts = 2;
+  repeated int32 id = 3;
+  int32 unknownCount = 4;
+  int32 labelCounter = 5;
+}

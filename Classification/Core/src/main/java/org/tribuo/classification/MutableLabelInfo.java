@@ -16,15 +16,26 @@
 
 package org.tribuo.classification;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import org.tribuo.MutableDataset;
 import org.tribuo.MutableOutputInfo;
+import org.tribuo.classification.protos.MutableLabelInfoProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.protos.core.OutputProto;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * A mutable {@link LabelInfo}. Can record new observations of Labels, incrementing the
  * appropriate counts.
  */
+@ProtoSerializableClass(serializedDataClass=MutableLabelInfoProto.class, version=0)
 public class MutableLabelInfo extends LabelInfo implements MutableOutputInfo<Label> {
     private static final long serialVersionUID = 1L;
 
@@ -38,6 +49,46 @@ public class MutableLabelInfo extends LabelInfo implements MutableOutputInfo<Lab
      */
     public MutableLabelInfo(LabelInfo info) {
         super(info);
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param counts Counts map.
+     * @param unknownCount Unknown count.
+     */
+    private MutableLabelInfo(Map<String, MutableLong> counts, int unknownCount) {
+        super(counts,unknownCount);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MutableLabelInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > 0) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
+        }
+        MutableLabelInfoProto proto = message.unpack(MutableLabelInfoProto.class);
+        if (proto.getLabelCount() != proto.getCountCount()) {
+            throw new IllegalArgumentException("Invalid protobuf, different numbers of labels and counts, labels " + proto.getLabelCount() + ", counts " + proto.getCountCount());
+        }
+        Map<String,MutableLong> labelCounts = new HashMap<>();
+        for (int i = 0; i < proto.getLabelCount(); i++) {
+            String lbl = proto.getLabel(i);
+            long cnt = proto.getCount(i);
+            MutableLong old = labelCounts.put(lbl,new MutableLong(cnt));
+            if (old != null) {
+                throw new IllegalArgumentException("Invalid protobuf, two mappings for " + lbl);
+            }
+        }
+        return new MutableLabelInfo(labelCounts,proto.getUnknownCount());
+    }
+
+    @Override
+    public OutputDomainProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override
@@ -81,5 +132,28 @@ public class MutableLabelInfo extends LabelInfo implements MutableOutputInfo<Lab
     @Override
     public String toString() {
         return toReadableString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MutableLabelInfo labelInfo = (MutableLabelInfo) o;
+        if (unknownCount == labelInfo.unknownCount && labelCounts.size() == labelInfo.labelCounts.size()) {
+            for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
+                MutableLong other = labelInfo.labelCounts.get(e.getKey());
+                if (other == null || (other.longValue() != e.getValue().longValue())) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(labelCounts, unknownCount);
     }
 }
