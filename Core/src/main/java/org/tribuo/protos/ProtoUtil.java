@@ -37,6 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -100,11 +101,18 @@ public final class ProtoUtil {
         try {
             @SuppressWarnings("unchecked")
             Class<PROTO_SERIALIZABLE> protoSerializableClass = (Class<PROTO_SERIALIZABLE>) Class.forName(targetClassName);
+            if (!ProtoSerializable.class.isAssignableFrom(protoSerializableClass)) {
+                throw new IllegalStateException("Class " + targetClassName + " does not implement ProtoSerializable");
+            }
 
             fieldDescriptor = serialized.getDescriptorForType().findFieldByName("serialized_data");
             Any serializedData = (Any) serialized.getField(fieldDescriptor);
 
             Method method = protoSerializableClass.getDeclaredMethod(ProtoSerializable.DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
+            Class<?> deserializationReturnType = method.getReturnType();
+            if (!ProtoSerializable.class.isAssignableFrom(deserializationReturnType)) {
+                throw new IllegalStateException("Method " + protoSerializableClass + "." + ProtoSerializable.DESERIALIZATION_METHOD_NAME + " does not return an instance of " + protoSerializableClass);
+            }
             method.setAccessible(true);
             @SuppressWarnings("unchecked")
             PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) method.invoke(null, version, targetClassName, serializedData);
@@ -121,6 +129,14 @@ public final class ProtoUtil {
         }
     }
 
+    /**
+     * Serializes a {@link ProtoSerializable} class which has the appropriate {@link ProtoSerializableClass} annotations.
+     * @param protoSerializable The object to serialize.
+     * @return The protobuf representation of the input object.
+     * @param <SERIALIZED_CLASS> The protobuf class.
+     * @param <SERIALIZED_DATA> The serialized data class inside the protobuf.
+     * @param <PROTO_SERIALIZABLE> The class of the proto serializable object.
+     */
     @SuppressWarnings("unchecked")
     public static <SERIALIZED_CLASS extends Message, SERIALIZED_DATA extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED_CLASS>> SERIALIZED_CLASS serialize(PROTO_SERIALIZABLE protoSerializable) {
         try {
@@ -390,6 +406,12 @@ public final class ProtoUtil {
                 + serializedDataBuilderClass.getName());
     }
 
+    /**
+     * Generate the method name for the type from the protobuf.
+     * @param prefix The prefix, usually "addAll", "set", "put" etc.
+     * @param name The field name.
+     * @return The method name.
+     */
     public static String generateMethodName(String prefix, String name) {
         StringBuilder sb = new StringBuilder();
         sb.append(prefix);

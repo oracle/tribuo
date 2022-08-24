@@ -16,15 +16,25 @@
 
 package org.tribuo.multilabel.baseline;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.CategoricalInfo;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
+import org.tribuo.Output;
 import org.tribuo.classification.Label;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.multilabel.protos.BinaryExampleProto;
+import org.tribuo.multilabel.protos.MultiLabelProto;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.CategoricalInfoProto;
+import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.util.Merger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
@@ -35,6 +45,11 @@ import java.util.logging.Logger;
  */
 class BinaryExample extends Example<Label> {
     private static final Logger logger = Logger.getLogger(BinaryExample.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final Example<MultiLabel> innerExample;
 
@@ -59,13 +74,47 @@ class BinaryExample extends Example<Label> {
      * has a single Label inside.
      * @param innerExample The example to wrap.
      * @param newLabel The new Label.
+     * @param weight The example weight.
      * @param additionalFeatures The extra features.
      */
-    private BinaryExample(Example<MultiLabel> innerExample, Label newLabel, List<Feature> additionalFeatures) {
+    private BinaryExample(Example<MultiLabel> innerExample, Label newLabel, float weight, List<Feature> additionalFeatures) {
         super(newLabel);
+        this.weight = weight;
         this.innerExample = innerExample;
         this.binaryLabel = newLabel;
         this.additionalFeatures.addAll(additionalFeatures);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings("unchecked") // guarded by an instanceof check on the output type.
+    public static BinaryExample deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        BinaryExampleProto proto = message.unpack(BinaryExampleProto.class);
+        Example<?> innerExample = ProtoUtil.deserialize(proto.getInnerExample());
+        if (!(innerExample.getOutput() instanceof MultiLabel)) {
+            throw new IllegalStateException("Invalid protobuf, inner example did not contain a MultiLabel.");
+        }
+        Output<?> output = ProtoUtil.deserialize(proto.getLabel());
+        if (!(output instanceof Label)) {
+            throw new IllegalStateException("Invalid protobuf, binary label is not a Label");
+        }
+        List<String> names = proto.getFeatureNameList();
+        List<Double> values = proto.getFeatureValueList();
+        if (names.size() != values.size()) {
+            throw new IllegalStateException("Invalid protobuf, names and values don't match. names.size() = " + names.size() + ", values.size() = " + values.size());
+        }
+        List<Feature> features = new ArrayList<>(names.size());
+        for (int i = 0; i < names.size(); i++) {
+            features.add(new Feature(names.get(i),values.get(i)));
+        }
+        return new BinaryExample((Example<MultiLabel>)innerExample,(Label) output,proto.getWeight(),features);
     }
 
     @Override
@@ -128,12 +177,17 @@ class BinaryExample extends Example<Label> {
 
     @Override
     public Example<Label> copy() {
-        return new BinaryExample(innerExample, binaryLabel, additionalFeatures);
+        return new BinaryExample(innerExample, binaryLabel, weight, additionalFeatures);
     }
 
     @Override
     public void set(Feature feature) {
         logger.warning("Attempting to mutate a feature to an immutable BinaryExample");
+    }
+
+    @Override
+    public synchronized void setMetadataValue(String key, Object value) {
+        logger.warning("Attempting to add metadata to an immutable BinaryExample");
     }
 
     @Override
@@ -150,5 +204,25 @@ class BinaryExample extends Example<Label> {
     @Override
     public void canonicalize(FeatureMap featureMap) {
         logger.finer("Canonicalize is a no-op on BinaryExample.");
+    }
+
+    @Override
+    public ExampleProto serialize() {
+        ExampleProto.Builder builder = ExampleProto.newBuilder();
+
+        builder.setClassName(BinaryExample.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+        BinaryExampleProto.Builder exampleBuilder = BinaryExampleProto.newBuilder();
+        exampleBuilder.setInnerExample(innerExample.serialize());
+        exampleBuilder.setWeight(weight);
+        exampleBuilder.setLabel(binaryLabel.serialize());
+        for (Feature f : additionalFeatures) {
+            exampleBuilder.addFeatureName(f.getName());
+            exampleBuilder.addFeatureValue(f.getValue());
+        }
+
+        builder.setSerializedData(Any.pack(exampleBuilder.build()));
+
+        return builder.build();
     }
 }

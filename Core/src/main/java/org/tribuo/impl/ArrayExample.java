@@ -16,12 +16,18 @@
 
 package org.tribuo.impl;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableInfo;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.BinaryFeaturesExampleProto;
+import org.tribuo.protos.core.ExampleDataProto;
+import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.util.Merger;
@@ -47,6 +53,11 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ArrayExample.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Default initial size of the backing arrays.
@@ -204,6 +215,48 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
             featureValues[size] = f.getValue();
             size++;
         }
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param output The output.
+     * @param weight The weight.
+     * @param featureNames The feature names.
+     * @param featureValues The feature values.
+     * @param metadata The metadata map.
+     */
+    private ArrayExample(T output, float weight, String[] featureNames, double[] featureValues, Map<String, String> metadata) {
+        super(output,weight);
+        this.featureNames = Arrays.copyOf(featureNames,featureNames.length);
+        this.featureValues = Arrays.copyOf(featureValues,featureValues.length);
+        this.size = featureNames.length;
+        for (Map.Entry<String, String> e : metadata.entrySet()) {
+            setMetadataValue(e.getKey(), e.getValue());
+        }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static <T extends Output<T>> ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ExampleDataProto proto = message.unpack(ExampleDataProto.class);
+        if (proto.getFeatureNameCount() != proto.getFeatureValueCount()) {
+            throw new IllegalStateException("Invalid protobuf, different numbers of feature names and values, found " + proto.getFeatureNameCount() + " names and " + proto.getFeatureValueCount() + " values.");
+        }
+        T output = ProtoUtil.deserialize(proto.getOutput());
+        String[] featureNames = new String[proto.getFeatureNameCount()];
+        double[] featureValues = new double[proto.getFeatureValueCount()];
+        for (int i = 0; i < proto.getFeatureNameCount(); i++) {
+            featureNames[i] = proto.getFeatureName(i);
+            featureValues[i] = proto.getFeatureValue(i);
+        }
+        return new ArrayExample<>(output,proto.getWeight(),featureNames,featureValues,proto.getMetadataMap());
     }
 
     /**
@@ -600,5 +653,32 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
                 featureNames[i] = vi.getName();
             }
         }
+    }
+
+    @Override
+    public ExampleProto serialize() {
+        ExampleProto.Builder builder = ExampleProto.newBuilder();
+
+        builder.setClassName(ArrayExample.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+        ExampleDataProto.Builder exampleBuilder = ExampleDataProto.newBuilder();
+        exampleBuilder.setWeight(weight);
+        exampleBuilder.setOutput(output.serialize());
+        for (int i = 0; i < size; i++) {
+            exampleBuilder.addFeatureName(featureNames[i]);
+            exampleBuilder.addFeatureValue(featureValues[i]);
+        }
+        if (metadata != null) {
+            for (Map.Entry<String, Object> e : metadata.entrySet()) {
+                if (!(e.getValue() instanceof String)) {
+                    logger.warning("Serializing non-string metadata for key '" + e.getKey() + "' of type " + e.getValue().getClass());
+                }
+                exampleBuilder.putMetadata(e.getKey(), e.getValue().toString());
+            }
+        }
+
+        builder.setSerializedData(Any.pack(exampleBuilder.build()));
+
+        return builder.build();
     }
 }

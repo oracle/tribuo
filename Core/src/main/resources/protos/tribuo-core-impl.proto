@@ -184,13 +184,17 @@ message BinaryFeaturesExampleProto {
   float weight = 4;
 }
 
+/*
+ IndexedArrayExample proto
+ */
 message IndexedArrayExampleProto {
   tribuo.core.OutputProto output = 1;
-  repeated string feature_name = 2;
-  repeated int32 feature_idx = 3;
-  repeated double feature_value = 4;
-  map<string,string> metadata = 5;
-  float weight = 6;
+  int32 output_idx = 2;
+  repeated string feature_name = 3;
+  repeated int32 feature_idx = 4;
+  repeated double feature_value = 5;
+  map<string,string> metadata = 6;
+  float weight = 7;
 }
 
 /*
