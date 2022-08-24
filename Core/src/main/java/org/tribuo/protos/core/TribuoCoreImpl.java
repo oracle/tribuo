@@ -85,10 +85,45 @@ public final class TribuoCoreImpl {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_core_BinningTransformerProto_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
-    internal_static_tribuo_core_TestCountTransformerProto_descriptor;
+    internal_static_tribuo_core_ExampleDataProto_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
-      internal_static_tribuo_core_TestCountTransformerProto_fieldAccessorTable;
+      internal_static_tribuo_core_ExampleDataProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_ExampleDataProto_MetadataEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_ExampleDataProto_MetadataEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_BinaryFeaturesExampleProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_BinaryFeaturesExampleProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_BinaryFeaturesExampleProto_MetadataEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_BinaryFeaturesExampleProto_MetadataEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_IndexedArrayExampleProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_IndexedArrayExampleProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_PredictionImplProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_PredictionImplProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_PredictionImplProto_OutputScoresEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_PredictionImplProto_OutputScoresEntry_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -132,11 +167,35 @@ public final class TribuoCoreImpl {
       "argetMin\030\003 \001(\001\022\021\n\ttargetMax\030\004 \001(\001\",\n\023IDF" +
       "TransformerProto\022\n\n\002df\030\001 \001(\001\022\t\n\001N\030\002 \001(\001\"" +
       "M\n\027BinningTransformerProto\022\024\n\014binning_ty" +
-      "pe\030\001 \001(\t\022\014\n\004bins\030\002 \003(\001\022\016\n\006values\030\003 \003(\001\"m" +
-      "\n\031TestCountTransformerProto\022\r\n\005count\030\001 \001" +
-      "(\005\022\023\n\013sparseCount\030\002 \001(\005\022\024\n\014countMapKeys\030" +
-      "\003 \003(\001\022\026\n\016countMapValues\030\004 \003(\003B\032\n\026org.tri" +
-      "buo.protos.coreP\001b\006proto3"
+      "pe\030\001 \001(\t\022\014\n\004bins\030\002 \003(\001\022\016\n\006values\030\003 \003(\001\"\351" +
+      "\001\n\020ExampleDataProto\022(\n\006output\030\001 \001(\0132\030.tr" +
+      "ibuo.core.OutputProto\022\024\n\014feature_name\030\002 " +
+      "\003(\t\022\025\n\rfeature_value\030\003 \003(\001\022=\n\010metadata\030\004" +
+      " \003(\0132+.tribuo.core.ExampleDataProto.Meta" +
+      "dataEntry\022\016\n\006weight\030\005 \001(\002\032/\n\rMetadataEnt" +
+      "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\346\001\n\032B" +
+      "inaryFeaturesExampleProto\022(\n\006output\030\001 \001(" +
+      "\0132\030.tribuo.core.OutputProto\022\024\n\014feature_n" +
+      "ame\030\002 \003(\t\022G\n\010metadata\030\003 \003(\01325.tribuo.cor" +
+      "e.BinaryFeaturesExampleProto.MetadataEnt" +
+      "ry\022\016\n\006weight\030\004 \001(\002\032/\n\rMetadataEntry\022\013\n\003k" +
+      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\216\002\n\030IndexedA" +
+      "rrayExampleProto\022(\n\006output\030\001 \001(\0132\030.tribu" +
+      "o.core.OutputProto\022\024\n\014feature_name\030\002 \003(\t" +
+      "\022\023\n\013feature_idx\030\003 \003(\005\022\025\n\rfeature_value\030\004" +
+      " \003(\001\022E\n\010metadata\030\005 \003(\01323.tribuo.core.Ind" +
+      "exedArrayExampleProto.MetadataEntry\022\016\n\006w" +
+      "eight\030\006 \001(\002\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(" +
+      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\302\002\n\023PredictionImplP" +
+      "roto\022*\n\007example\030\003 \001(\0132\031.tribuo.core.Exam" +
+      "pleProto\022(\n\006output\030\004 \001(\0132\030.tribuo.core.O" +
+      "utputProto\022\023\n\013probability\030\005 \001(\010\022\020\n\010num_u" +
+      "sed\030\006 \001(\005\022\024\n\014example_size\030\007 \001(\005\022I\n\routpu" +
+      "t_scores\030\010 \003(\01322.tribuo.core.PredictionI" +
+      "mplProto.OutputScoresEntry\032M\n\021OutputScor" +
+      "esEntry\022\013\n\003key\030\001 \001(\t\022\'\n\005value\030\002 \001(\0132\030.tr" +
+      "ibuo.core.OutputProto:\0028\001B\032\n\026org.tribuo." +
+      "protos.coreP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -228,12 +287,54 @@ public final class TribuoCoreImpl {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_BinningTransformerProto_descriptor,
         new java.lang.String[] { "BinningType", "Bins", "Values", });
-    internal_static_tribuo_core_TestCountTransformerProto_descriptor =
+    internal_static_tribuo_core_ExampleDataProto_descriptor =
       getDescriptor().getMessageTypes().get(14);
-    internal_static_tribuo_core_TestCountTransformerProto_fieldAccessorTable = new
+    internal_static_tribuo_core_ExampleDataProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
-        internal_static_tribuo_core_TestCountTransformerProto_descriptor,
-        new java.lang.String[] { "Count", "SparseCount", "CountMapKeys", "CountMapValues", });
+        internal_static_tribuo_core_ExampleDataProto_descriptor,
+        new java.lang.String[] { "Output", "FeatureName", "FeatureValue", "Metadata", "Weight", });
+    internal_static_tribuo_core_ExampleDataProto_MetadataEntry_descriptor =
+      internal_static_tribuo_core_ExampleDataProto_descriptor.getNestedTypes().get(0);
+    internal_static_tribuo_core_ExampleDataProto_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_ExampleDataProto_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_tribuo_core_BinaryFeaturesExampleProto_descriptor =
+      getDescriptor().getMessageTypes().get(15);
+    internal_static_tribuo_core_BinaryFeaturesExampleProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_BinaryFeaturesExampleProto_descriptor,
+        new java.lang.String[] { "Output", "FeatureName", "Metadata", "Weight", });
+    internal_static_tribuo_core_BinaryFeaturesExampleProto_MetadataEntry_descriptor =
+      internal_static_tribuo_core_BinaryFeaturesExampleProto_descriptor.getNestedTypes().get(0);
+    internal_static_tribuo_core_BinaryFeaturesExampleProto_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_BinaryFeaturesExampleProto_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_tribuo_core_IndexedArrayExampleProto_descriptor =
+      getDescriptor().getMessageTypes().get(16);
+    internal_static_tribuo_core_IndexedArrayExampleProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_IndexedArrayExampleProto_descriptor,
+        new java.lang.String[] { "Output", "FeatureName", "FeatureIdx", "FeatureValue", "Metadata", "Weight", });
+    internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_descriptor =
+      internal_static_tribuo_core_IndexedArrayExampleProto_descriptor.getNestedTypes().get(0);
+    internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_tribuo_core_PredictionImplProto_descriptor =
+      getDescriptor().getMessageTypes().get(17);
+    internal_static_tribuo_core_PredictionImplProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_PredictionImplProto_descriptor,
+        new java.lang.String[] { "Example", "Output", "Probability", "NumUsed", "ExampleSize", "OutputScores", });
+    internal_static_tribuo_core_PredictionImplProto_OutputScoresEntry_descriptor =
+      internal_static_tribuo_core_PredictionImplProto_descriptor.getNestedTypes().get(0);
+    internal_static_tribuo_core_PredictionImplProto_OutputScoresEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_PredictionImplProto_OutputScoresEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
     com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor();
   }

@@ -3,118 +3,67 @@
 
 package org.tribuo.protos.core;
 
-public interface ModelDataProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.ModelDataProto)
+public interface DatasetDataProtoOrBuilder extends
+    // @@protoc_insertion_point(interface_extends:tribuo.core.DatasetDataProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <pre>
-   *The model name
-   * </pre>
-   *
-   * <code>string name = 1;</code>
-   * @return The name.
-   */
-  java.lang.String getName();
-  /**
-   * <pre>
-   *The model name
-   * </pre>
-   *
-   * <code>string name = 1;</code>
-   * @return The bytes for name.
-   */
-  com.google.protobuf.ByteString
-      getNameBytes();
-
-  /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 2;</code>
+   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
    * @return Whether the provenance field is set.
    */
   boolean hasProvenance();
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 2;</code>
+   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
    * @return The provenance.
    */
   com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance();
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 2;</code>
+   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
    */
   com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder();
 
   /**
-   * <pre>
-   *Does the model generate probabilities
-   * </pre>
-   *
-   * <code>bool generate_probabilities = 3;</code>
-   * @return The generateProbabilities.
-   */
-  boolean getGenerateProbabilities();
-
-  /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
    * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
    * @return Whether the featureDomain field is set.
    */
   boolean hasFeatureDomain();
   /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
    * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
    * @return The featureDomain.
    */
   org.tribuo.protos.core.FeatureDomainProto getFeatureDomain();
   /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
    * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
    */
   org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder();
 
   /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
    * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
    * @return Whether the outputDomain field is set.
    */
   boolean hasOutputDomain();
   /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
    * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
    * @return The outputDomain.
    */
   org.tribuo.protos.core.OutputDomainProto getOutputDomain();
   /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
    * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
    */
   org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder();
+
+  /**
+   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
+   * @return Whether the transformProvenance field is set.
+   */
+  boolean hasTransformProvenance();
+  /**
+   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
+   * @return The transformProvenance.
+   */
+  com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto getTransformProvenance();
+  /**
+   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
+   */
+  com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder getTransformProvenanceOrBuilder();
 }

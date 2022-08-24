@@ -5,7 +5,7 @@ package org.tribuo.protos.core;
 
 /**
  * <pre>
- *Example proto
+ *Example redirect proto
  * </pre>
  *
  * Protobuf type {@code tribuo.core.ExampleProto}
@@ -21,8 +21,6 @@ private static final long serialVersionUID = 0L;
   }
   private ExampleProto() {
     className_ = "";
-    featureName_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    featureValue_ = emptyDoubleList();
   }
 
   @java.lang.Override
@@ -45,7 +43,6 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
-    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -68,59 +65,16 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            org.tribuo.protos.core.OutputProto.Builder subBuilder = null;
-            if (output_ != null) {
-              subBuilder = output_.toBuilder();
+            com.google.protobuf.Any.Builder subBuilder = null;
+            if (serializedData_ != null) {
+              subBuilder = serializedData_.toBuilder();
             }
-            output_ = input.readMessage(org.tribuo.protos.core.OutputProto.parser(), extensionRegistry);
+            serializedData_ = input.readMessage(com.google.protobuf.Any.parser(), extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(output_);
-              output_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(serializedData_);
+              serializedData_ = subBuilder.buildPartial();
             }
 
-            break;
-          }
-          case 34: {
-            java.lang.String s = input.readStringRequireUtf8();
-            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              featureName_ = new com.google.protobuf.LazyStringArrayList();
-              mutable_bitField0_ |= 0x00000001;
-            }
-            featureName_.add(s);
-            break;
-          }
-          case 41: {
-            if (!((mutable_bitField0_ & 0x00000002) != 0)) {
-              featureValue_ = newDoubleList();
-              mutable_bitField0_ |= 0x00000002;
-            }
-            featureValue_.addDouble(input.readDouble());
-            break;
-          }
-          case 42: {
-            int length = input.readRawVarint32();
-            int limit = input.pushLimit(length);
-            if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
-              featureValue_ = newDoubleList();
-              mutable_bitField0_ |= 0x00000002;
-            }
-            while (input.getBytesUntilLimit() > 0) {
-              featureValue_.addDouble(input.readDouble());
-            }
-            input.popLimit(limit);
-            break;
-          }
-          case 50: {
-            if (!((mutable_bitField0_ & 0x00000004) != 0)) {
-              metadata_ = com.google.protobuf.MapField.newMapField(
-                  MetadataDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000004;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-            metadata__ = input.readMessage(
-                MetadataDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            metadata_.getMutableMap().put(
-                metadata__.getKey(), metadata__.getValue());
             break;
           }
           default: {
@@ -134,18 +88,10 @@ private static final long serialVersionUID = 0L;
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
       throw e.setUnfinishedMessage(this);
-    } catch (com.google.protobuf.UninitializedMessageException e) {
-      throw e.asInvalidProtocolBufferException().setUnfinishedMessage(this);
     } catch (java.io.IOException e) {
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) != 0)) {
-        featureName_ = featureName_.getUnmodifiableView();
-      }
-      if (((mutable_bitField0_ & 0x00000002) != 0)) {
-        featureValue_.makeImmutable(); // C
-      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -155,18 +101,6 @@ private static final long serialVersionUID = 0L;
     return org.tribuo.protos.core.TribuoCore.internal_static_tribuo_core_ExampleProto_descriptor;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  @java.lang.Override
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 6:
-        return internalGetMetadata();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
-    }
-  }
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
@@ -224,174 +158,30 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int OUTPUT_FIELD_NUMBER = 3;
-  private org.tribuo.protos.core.OutputProto output_;
+  public static final int SERIALIZED_DATA_FIELD_NUMBER = 3;
+  private com.google.protobuf.Any serializedData_;
   /**
-   * <code>.tribuo.core.OutputProto output = 3;</code>
-   * @return Whether the output field is set.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return Whether the serializedData field is set.
    */
   @java.lang.Override
-  public boolean hasOutput() {
-    return output_ != null;
+  public boolean hasSerializedData() {
+    return serializedData_ != null;
   }
   /**
-   * <code>.tribuo.core.OutputProto output = 3;</code>
-   * @return The output.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return The serializedData.
    */
   @java.lang.Override
-  public org.tribuo.protos.core.OutputProto getOutput() {
-    return output_ == null ? org.tribuo.protos.core.OutputProto.getDefaultInstance() : output_;
+  public com.google.protobuf.Any getSerializedData() {
+    return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
   }
   /**
-   * <code>.tribuo.core.OutputProto output = 3;</code>
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
    */
   @java.lang.Override
-  public org.tribuo.protos.core.OutputProtoOrBuilder getOutputOrBuilder() {
-    return getOutput();
-  }
-
-  public static final int FEATURE_NAME_FIELD_NUMBER = 4;
-  private com.google.protobuf.LazyStringList featureName_;
-  /**
-   * <code>repeated string feature_name = 4;</code>
-   * @return A list containing the featureName.
-   */
-  public com.google.protobuf.ProtocolStringList
-      getFeatureNameList() {
-    return featureName_;
-  }
-  /**
-   * <code>repeated string feature_name = 4;</code>
-   * @return The count of featureName.
-   */
-  public int getFeatureNameCount() {
-    return featureName_.size();
-  }
-  /**
-   * <code>repeated string feature_name = 4;</code>
-   * @param index The index of the element to return.
-   * @return The featureName at the given index.
-   */
-  public java.lang.String getFeatureName(int index) {
-    return featureName_.get(index);
-  }
-  /**
-   * <code>repeated string feature_name = 4;</code>
-   * @param index The index of the value to return.
-   * @return The bytes of the featureName at the given index.
-   */
-  public com.google.protobuf.ByteString
-      getFeatureNameBytes(int index) {
-    return featureName_.getByteString(index);
-  }
-
-  public static final int FEATURE_VALUE_FIELD_NUMBER = 5;
-  private com.google.protobuf.Internal.DoubleList featureValue_;
-  /**
-   * <code>repeated double feature_value = 5;</code>
-   * @return A list containing the featureValue.
-   */
-  @java.lang.Override
-  public java.util.List<java.lang.Double>
-      getFeatureValueList() {
-    return featureValue_;
-  }
-  /**
-   * <code>repeated double feature_value = 5;</code>
-   * @return The count of featureValue.
-   */
-  public int getFeatureValueCount() {
-    return featureValue_.size();
-  }
-  /**
-   * <code>repeated double feature_value = 5;</code>
-   * @param index The index of the element to return.
-   * @return The featureValue at the given index.
-   */
-  public double getFeatureValue(int index) {
-    return featureValue_.getDouble(index);
-  }
-  private int featureValueMemoizedSerializedSize = -1;
-
-  public static final int METADATA_FIELD_NUMBER = 6;
-  private static final class MetadataDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, java.lang.String> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, java.lang.String>newDefaultInstance(
-                org.tribuo.protos.core.TribuoCore.internal_static_tribuo_core_ExampleProto_MetadataEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "");
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, java.lang.String> metadata_;
-  private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-  internalGetMetadata() {
-    if (metadata_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          MetadataDefaultEntryHolder.defaultEntry);
-    }
-    return metadata_;
-  }
-
-  public int getMetadataCount() {
-    return internalGetMetadata().getMap().size();
-  }
-  /**
-   * <code>map&lt;string, string&gt; metadata = 6;</code>
-   */
-
-  @java.lang.Override
-  public boolean containsMetadata(
-      java.lang.String key) {
-    if (key == null) { throw new NullPointerException("map key"); }
-    return internalGetMetadata().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getMetadataMap()} instead.
-   */
-  @java.lang.Override
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
-    return getMetadataMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; metadata = 6;</code>
-   */
-  @java.lang.Override
-
-  public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
-    return internalGetMetadata().getMap();
-  }
-  /**
-   * <code>map&lt;string, string&gt; metadata = 6;</code>
-   */
-  @java.lang.Override
-
-  public java.lang.String getMetadataOrDefault(
-      java.lang.String key,
-      java.lang.String defaultValue) {
-    if (key == null) { throw new NullPointerException("map key"); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetMetadata().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, string&gt; metadata = 6;</code>
-   */
-  @java.lang.Override
-
-  public java.lang.String getMetadataOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new NullPointerException("map key"); }
-    java.util.Map<java.lang.String, java.lang.String> map =
-        internalGetMetadata().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
+  public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+    return getSerializedData();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -408,32 +198,15 @@ private static final long serialVersionUID = 0L;
   @java.lang.Override
   public void writeTo(com.google.protobuf.CodedOutputStream output)
                       throws java.io.IOException {
-    getSerializedSize();
     if (version_ != 0) {
       output.writeInt32(1, version_);
     }
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, className_);
     }
-    if (output_ != null) {
-      output.writeMessage(3, getOutput());
+    if (serializedData_ != null) {
+      output.writeMessage(3, getSerializedData());
     }
-    for (int i = 0; i < featureName_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, featureName_.getRaw(i));
-    }
-    if (getFeatureValueList().size() > 0) {
-      output.writeUInt32NoTag(42);
-      output.writeUInt32NoTag(featureValueMemoizedSerializedSize);
-    }
-    for (int i = 0; i < featureValue_.size(); i++) {
-      output.writeDoubleNoTag(featureValue_.getDouble(i));
-    }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetMetadata(),
-        MetadataDefaultEntryHolder.defaultEntry,
-        6);
     unknownFields.writeTo(output);
   }
 
@@ -450,38 +223,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, className_);
     }
-    if (output_ != null) {
+    if (serializedData_ != null) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getOutput());
-    }
-    {
-      int dataSize = 0;
-      for (int i = 0; i < featureName_.size(); i++) {
-        dataSize += computeStringSizeNoTag(featureName_.getRaw(i));
-      }
-      size += dataSize;
-      size += 1 * getFeatureNameList().size();
-    }
-    {
-      int dataSize = 0;
-      dataSize = 8 * getFeatureValueList().size();
-      size += dataSize;
-      if (!getFeatureValueList().isEmpty()) {
-        size += 1;
-        size += com.google.protobuf.CodedOutputStream
-            .computeInt32SizeNoTag(dataSize);
-      }
-      featureValueMemoizedSerializedSize = dataSize;
-    }
-    for (java.util.Map.Entry<java.lang.String, java.lang.String> entry
-         : internalGetMetadata().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, java.lang.String>
-      metadata__ = MetadataDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, metadata__);
+        .computeMessageSize(3, getSerializedData());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -502,17 +246,11 @@ private static final long serialVersionUID = 0L;
         != other.getVersion()) return false;
     if (!getClassName()
         .equals(other.getClassName())) return false;
-    if (hasOutput() != other.hasOutput()) return false;
-    if (hasOutput()) {
-      if (!getOutput()
-          .equals(other.getOutput())) return false;
+    if (hasSerializedData() != other.hasSerializedData()) return false;
+    if (hasSerializedData()) {
+      if (!getSerializedData()
+          .equals(other.getSerializedData())) return false;
     }
-    if (!getFeatureNameList()
-        .equals(other.getFeatureNameList())) return false;
-    if (!getFeatureValueList()
-        .equals(other.getFeatureValueList())) return false;
-    if (!internalGetMetadata().equals(
-        other.internalGetMetadata())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -528,21 +266,9 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getVersion();
     hash = (37 * hash) + CLASS_NAME_FIELD_NUMBER;
     hash = (53 * hash) + getClassName().hashCode();
-    if (hasOutput()) {
-      hash = (37 * hash) + OUTPUT_FIELD_NUMBER;
-      hash = (53 * hash) + getOutput().hashCode();
-    }
-    if (getFeatureNameCount() > 0) {
-      hash = (37 * hash) + FEATURE_NAME_FIELD_NUMBER;
-      hash = (53 * hash) + getFeatureNameList().hashCode();
-    }
-    if (getFeatureValueCount() > 0) {
-      hash = (37 * hash) + FEATURE_VALUE_FIELD_NUMBER;
-      hash = (53 * hash) + getFeatureValueList().hashCode();
-    }
-    if (!internalGetMetadata().getMap().isEmpty()) {
-      hash = (37 * hash) + METADATA_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetMetadata().hashCode();
+    if (hasSerializedData()) {
+      hash = (37 * hash) + SERIALIZED_DATA_FIELD_NUMBER;
+      hash = (53 * hash) + getSerializedData().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -641,7 +367,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *Example proto
+   *Example redirect proto
    * </pre>
    *
    * Protobuf type {@code tribuo.core.ExampleProto}
@@ -655,28 +381,6 @@ private static final long serialVersionUID = 0L;
       return org.tribuo.protos.core.TribuoCore.internal_static_tribuo_core_ExampleProto_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 6:
-          return internalGetMetadata();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 6:
-          return internalGetMutableMetadata();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -707,17 +411,12 @@ private static final long serialVersionUID = 0L;
 
       className_ = "";
 
-      if (outputBuilder_ == null) {
-        output_ = null;
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
       } else {
-        output_ = null;
-        outputBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
-      featureName_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000001);
-      featureValue_ = emptyDoubleList();
-      bitField0_ = (bitField0_ & ~0x00000002);
-      internalGetMutableMetadata().clear();
       return this;
     }
 
@@ -744,26 +443,13 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public org.tribuo.protos.core.ExampleProto buildPartial() {
       org.tribuo.protos.core.ExampleProto result = new org.tribuo.protos.core.ExampleProto(this);
-      int from_bitField0_ = bitField0_;
       result.version_ = version_;
       result.className_ = className_;
-      if (outputBuilder_ == null) {
-        result.output_ = output_;
+      if (serializedDataBuilder_ == null) {
+        result.serializedData_ = serializedData_;
       } else {
-        result.output_ = outputBuilder_.build();
+        result.serializedData_ = serializedDataBuilder_.build();
       }
-      if (((bitField0_ & 0x00000001) != 0)) {
-        featureName_ = featureName_.getUnmodifiableView();
-        bitField0_ = (bitField0_ & ~0x00000001);
-      }
-      result.featureName_ = featureName_;
-      if (((bitField0_ & 0x00000002) != 0)) {
-        featureValue_.makeImmutable();
-        bitField0_ = (bitField0_ & ~0x00000002);
-      }
-      result.featureValue_ = featureValue_;
-      result.metadata_ = internalGetMetadata();
-      result.metadata_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -819,31 +505,9 @@ private static final long serialVersionUID = 0L;
         className_ = other.className_;
         onChanged();
       }
-      if (other.hasOutput()) {
-        mergeOutput(other.getOutput());
+      if (other.hasSerializedData()) {
+        mergeSerializedData(other.getSerializedData());
       }
-      if (!other.featureName_.isEmpty()) {
-        if (featureName_.isEmpty()) {
-          featureName_ = other.featureName_;
-          bitField0_ = (bitField0_ & ~0x00000001);
-        } else {
-          ensureFeatureNameIsMutable();
-          featureName_.addAll(other.featureName_);
-        }
-        onChanged();
-      }
-      if (!other.featureValue_.isEmpty()) {
-        if (featureValue_.isEmpty()) {
-          featureValue_ = other.featureValue_;
-          bitField0_ = (bitField0_ & ~0x00000002);
-        } else {
-          ensureFeatureValueIsMutable();
-          featureValue_.addAll(other.featureValue_);
-        }
-        onChanged();
-      }
-      internalGetMutableMetadata().mergeFrom(
-          other.internalGetMetadata());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -872,7 +536,6 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
-    private int bitField0_;
 
     private int version_ ;
     /**
@@ -981,443 +644,123 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private org.tribuo.protos.core.OutputProto output_;
+    private com.google.protobuf.Any serializedData_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputProto, org.tribuo.protos.core.OutputProto.Builder, org.tribuo.protos.core.OutputProtoOrBuilder> outputBuilder_;
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> serializedDataBuilder_;
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
-     * @return Whether the output field is set.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return Whether the serializedData field is set.
      */
-    public boolean hasOutput() {
-      return outputBuilder_ != null || output_ != null;
+    public boolean hasSerializedData() {
+      return serializedDataBuilder_ != null || serializedData_ != null;
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
-     * @return The output.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return The serializedData.
      */
-    public org.tribuo.protos.core.OutputProto getOutput() {
-      if (outputBuilder_ == null) {
-        return output_ == null ? org.tribuo.protos.core.OutputProto.getDefaultInstance() : output_;
+    public com.google.protobuf.Any getSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       } else {
-        return outputBuilder_.getMessage();
+        return serializedDataBuilder_.getMessage();
       }
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setOutput(org.tribuo.protos.core.OutputProto value) {
-      if (outputBuilder_ == null) {
+    public Builder setSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        output_ = value;
+        serializedData_ = value;
         onChanged();
       } else {
-        outputBuilder_.setMessage(value);
+        serializedDataBuilder_.setMessage(value);
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setOutput(
-        org.tribuo.protos.core.OutputProto.Builder builderForValue) {
-      if (outputBuilder_ == null) {
-        output_ = builderForValue.build();
+    public Builder setSerializedData(
+        com.google.protobuf.Any.Builder builderForValue) {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = builderForValue.build();
         onChanged();
       } else {
-        outputBuilder_.setMessage(builderForValue.build());
+        serializedDataBuilder_.setMessage(builderForValue.build());
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder mergeOutput(org.tribuo.protos.core.OutputProto value) {
-      if (outputBuilder_ == null) {
-        if (output_ != null) {
-          output_ =
-            org.tribuo.protos.core.OutputProto.newBuilder(output_).mergeFrom(value).buildPartial();
+    public Builder mergeSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
+        if (serializedData_ != null) {
+          serializedData_ =
+            com.google.protobuf.Any.newBuilder(serializedData_).mergeFrom(value).buildPartial();
         } else {
-          output_ = value;
+          serializedData_ = value;
         }
         onChanged();
       } else {
-        outputBuilder_.mergeFrom(value);
+        serializedDataBuilder_.mergeFrom(value);
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder clearOutput() {
-      if (outputBuilder_ == null) {
-        output_ = null;
+    public Builder clearSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
         onChanged();
       } else {
-        output_ = null;
-        outputBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public org.tribuo.protos.core.OutputProto.Builder getOutputBuilder() {
+    public com.google.protobuf.Any.Builder getSerializedDataBuilder() {
       
       onChanged();
-      return getOutputFieldBuilder().getBuilder();
+      return getSerializedDataFieldBuilder().getBuilder();
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public org.tribuo.protos.core.OutputProtoOrBuilder getOutputOrBuilder() {
-      if (outputBuilder_ != null) {
-        return outputBuilder_.getMessageOrBuilder();
+    public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+      if (serializedDataBuilder_ != null) {
+        return serializedDataBuilder_.getMessageOrBuilder();
       } else {
-        return output_ == null ?
-            org.tribuo.protos.core.OutputProto.getDefaultInstance() : output_;
+        return serializedData_ == null ?
+            com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       }
     }
     /**
-     * <code>.tribuo.core.OutputProto output = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputProto, org.tribuo.protos.core.OutputProto.Builder, org.tribuo.protos.core.OutputProtoOrBuilder> 
-        getOutputFieldBuilder() {
-      if (outputBuilder_ == null) {
-        outputBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.OutputProto, org.tribuo.protos.core.OutputProto.Builder, org.tribuo.protos.core.OutputProtoOrBuilder>(
-                getOutput(),
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+        getSerializedDataFieldBuilder() {
+      if (serializedDataBuilder_ == null) {
+        serializedDataBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                getSerializedData(),
                 getParentForChildren(),
                 isClean());
-        output_ = null;
+        serializedData_ = null;
       }
-      return outputBuilder_;
-    }
-
-    private com.google.protobuf.LazyStringList featureName_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-    private void ensureFeatureNameIsMutable() {
-      if (!((bitField0_ & 0x00000001) != 0)) {
-        featureName_ = new com.google.protobuf.LazyStringArrayList(featureName_);
-        bitField0_ |= 0x00000001;
-       }
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @return A list containing the featureName.
-     */
-    public com.google.protobuf.ProtocolStringList
-        getFeatureNameList() {
-      return featureName_.getUnmodifiableView();
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @return The count of featureName.
-     */
-    public int getFeatureNameCount() {
-      return featureName_.size();
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @param index The index of the element to return.
-     * @return The featureName at the given index.
-     */
-    public java.lang.String getFeatureName(int index) {
-      return featureName_.get(index);
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @param index The index of the value to return.
-     * @return The bytes of the featureName at the given index.
-     */
-    public com.google.protobuf.ByteString
-        getFeatureNameBytes(int index) {
-      return featureName_.getByteString(index);
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @param index The index to set the value at.
-     * @param value The featureName to set.
-     * @return This builder for chaining.
-     */
-    public Builder setFeatureName(
-        int index, java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureFeatureNameIsMutable();
-      featureName_.set(index, value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @param value The featureName to add.
-     * @return This builder for chaining.
-     */
-    public Builder addFeatureName(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  ensureFeatureNameIsMutable();
-      featureName_.add(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @param values The featureName to add.
-     * @return This builder for chaining.
-     */
-    public Builder addAllFeatureName(
-        java.lang.Iterable<java.lang.String> values) {
-      ensureFeatureNameIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, featureName_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearFeatureName() {
-      featureName_ = com.google.protobuf.LazyStringArrayList.EMPTY;
-      bitField0_ = (bitField0_ & ~0x00000001);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated string feature_name = 4;</code>
-     * @param value The bytes of the featureName to add.
-     * @return This builder for chaining.
-     */
-    public Builder addFeatureNameBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      ensureFeatureNameIsMutable();
-      featureName_.add(value);
-      onChanged();
-      return this;
-    }
-
-    private com.google.protobuf.Internal.DoubleList featureValue_ = emptyDoubleList();
-    private void ensureFeatureValueIsMutable() {
-      if (!((bitField0_ & 0x00000002) != 0)) {
-        featureValue_ = mutableCopy(featureValue_);
-        bitField0_ |= 0x00000002;
-       }
-    }
-    /**
-     * <code>repeated double feature_value = 5;</code>
-     * @return A list containing the featureValue.
-     */
-    public java.util.List<java.lang.Double>
-        getFeatureValueList() {
-      return ((bitField0_ & 0x00000002) != 0) ?
-               java.util.Collections.unmodifiableList(featureValue_) : featureValue_;
-    }
-    /**
-     * <code>repeated double feature_value = 5;</code>
-     * @return The count of featureValue.
-     */
-    public int getFeatureValueCount() {
-      return featureValue_.size();
-    }
-    /**
-     * <code>repeated double feature_value = 5;</code>
-     * @param index The index of the element to return.
-     * @return The featureValue at the given index.
-     */
-    public double getFeatureValue(int index) {
-      return featureValue_.getDouble(index);
-    }
-    /**
-     * <code>repeated double feature_value = 5;</code>
-     * @param index The index to set the value at.
-     * @param value The featureValue to set.
-     * @return This builder for chaining.
-     */
-    public Builder setFeatureValue(
-        int index, double value) {
-      ensureFeatureValueIsMutable();
-      featureValue_.setDouble(index, value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated double feature_value = 5;</code>
-     * @param value The featureValue to add.
-     * @return This builder for chaining.
-     */
-    public Builder addFeatureValue(double value) {
-      ensureFeatureValueIsMutable();
-      featureValue_.addDouble(value);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated double feature_value = 5;</code>
-     * @param values The featureValue to add.
-     * @return This builder for chaining.
-     */
-    public Builder addAllFeatureValue(
-        java.lang.Iterable<? extends java.lang.Double> values) {
-      ensureFeatureValueIsMutable();
-      com.google.protobuf.AbstractMessageLite.Builder.addAll(
-          values, featureValue_);
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>repeated double feature_value = 5;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearFeatureValue() {
-      featureValue_ = emptyDoubleList();
-      bitField0_ = (bitField0_ & ~0x00000002);
-      onChanged();
-      return this;
-    }
-
-    private com.google.protobuf.MapField<
-        java.lang.String, java.lang.String> metadata_;
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetMetadata() {
-      if (metadata_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            MetadataDefaultEntryHolder.defaultEntry);
-      }
-      return metadata_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, java.lang.String>
-    internalGetMutableMetadata() {
-      onChanged();;
-      if (metadata_ == null) {
-        metadata_ = com.google.protobuf.MapField.newMapField(
-            MetadataDefaultEntryHolder.defaultEntry);
-      }
-      if (!metadata_.isMutable()) {
-        metadata_ = metadata_.copy();
-      }
-      return metadata_;
-    }
-
-    public int getMetadataCount() {
-      return internalGetMetadata().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, string&gt; metadata = 6;</code>
-     */
-
-    @java.lang.Override
-    public boolean containsMetadata(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetMetadata().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getMetadataMap()} instead.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String> getMetadata() {
-      return getMetadataMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; metadata = 6;</code>
-     */
-    @java.lang.Override
-
-    public java.util.Map<java.lang.String, java.lang.String> getMetadataMap() {
-      return internalGetMetadata().getMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; metadata = 6;</code>
-     */
-    @java.lang.Override
-
-    public java.lang.String getMetadataOrDefault(
-        java.lang.String key,
-        java.lang.String defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetMetadata().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, string&gt; metadata = 6;</code>
-     */
-    @java.lang.Override
-
-    public java.lang.String getMetadataOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, java.lang.String> map =
-          internalGetMetadata().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearMetadata() {
-      internalGetMutableMetadata().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, string&gt; metadata = 6;</code>
-     */
-
-    public Builder removeMetadata(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      internalGetMutableMetadata().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, java.lang.String>
-    getMutableMetadata() {
-      return internalGetMutableMetadata().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, string&gt; metadata = 6;</code>
-     */
-    public Builder putMetadata(
-        java.lang.String key,
-        java.lang.String value) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      if (value == null) {
-  throw new NullPointerException("map value");
-}
-
-      internalGetMutableMetadata().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <code>map&lt;string, string&gt; metadata = 6;</code>
-     */
-
-    public Builder putAllMetadata(
-        java.util.Map<java.lang.String, java.lang.String> values) {
-      internalGetMutableMetadata().getMutableMap()
-          .putAll(values);
-      return this;
+      return serializedDataBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(
