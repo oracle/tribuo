@@ -16,6 +16,7 @@
 
 package org.tribuo.test;
 
+import com.google.protobuf.Message;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
@@ -33,8 +34,11 @@ import org.tribuo.Model;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.Output;
 import org.tribuo.impl.ListExample;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.sequence.SequenceModel;
 
+import java.awt.image.Kernel;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -48,6 +52,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test helpers
@@ -106,7 +112,14 @@ public final class Helpers {
     public static void testProvenanceMarshalling(ObjectProvenance inputProvenance) {
         List<ObjectMarshalledProvenance> provenanceList = ProvenanceUtil.marshalProvenance(inputProvenance);
         ObjectProvenance unmarshalledProvenance = ProvenanceUtil.unmarshalProvenance(provenanceList);
-        Assertions.assertEquals(unmarshalledProvenance,inputProvenance);
+        assertEquals(unmarshalledProvenance,inputProvenance);
+    }
+
+    public static <U extends Message, T extends ProtoSerializable<U>> T testProtoSerialization(T obj) {
+        U proto = obj.serialize();
+        T deser = ProtoUtil.deserialize(proto);
+        assertEquals(obj,deser);
+        return deser;
     }
 
     public static <T extends Output<T>> void testModelSerialization(Model<T> model, Class<T> outputClazz) {
@@ -129,7 +142,7 @@ public final class Helpers {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(modelSer)))) {
             Model<?> deserializedModel = (Model<?>) ois.readObject();
             // check provenance is equal
-            Assertions.assertEquals(model.getProvenance(), deserializedModel.getProvenance());
+            assertEquals(model.getProvenance(), deserializedModel.getProvenance());
             // validate that the model is still of the right type
             Assertions.assertTrue(deserializedModel.validate(outputClazz));
             if (deserializedModel instanceof AutoCloseable) {
@@ -166,7 +179,7 @@ public final class Helpers {
         try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(modelSer)))) {
             SequenceModel<?> deserializedModel = (SequenceModel<?>) ois.readObject();
             // check provenance is equal
-            Assertions.assertEquals(model.getProvenance(), deserializedModel.getProvenance());
+            assertEquals(model.getProvenance(), deserializedModel.getProvenance());
             // validate that the model is still of the right type
             Assertions.assertTrue(deserializedModel.validate(outputClazz));
             if (deserializedModel instanceof AutoCloseable) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,12 @@
 
 package org.tribuo.common.sgd;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.common.sgd.protos.FMParametersProto;
 import org.tribuo.math.FeedForwardParameters;
+import org.tribuo.math.LinearParameters;
 import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
@@ -27,10 +31,15 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.math.protos.LinearParametersProto;
+import org.tribuo.math.protos.ParametersProto;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.SplittableRandom;
@@ -40,6 +49,11 @@ import java.util.SplittableRandom;
  */
 public final class FMParameters implements FeedForwardParameters {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private static final Merger merger = new HeapMerger();
 
@@ -83,6 +97,69 @@ public final class FMParameters implements FeedForwardParameters {
         this.biasVector = (DenseVector) weights[0];
         this.weightMatrix = (DenseMatrix) weights[1];
         this.numFactors = numFactors;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static FMParameters deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        FMParametersProto proto = message.unpack(FMParametersProto.class);
+        int numFactors = proto.getNumFactors();
+        List<TensorProto> tensorProtoList = proto.getWeightsList();
+        Tensor[] tensors = new Tensor[tensorProtoList.size()];
+        for (int i = 0; i < tensors.length; i++) {
+            tensors[i] = ProtoUtil.deserialize(tensorProtoList.get(i));
+        }
+        if (tensors[0] instanceof DenseVector) {
+            int numOutputs = ((DenseVector) tensors[0]).size();
+            if ((numOutputs + 2) == tensors.length) {
+                if (tensors[1] instanceof DenseMatrix) {
+                    DenseMatrix weightMatrix = (DenseMatrix) tensors[1];
+                    int numFeatures = weightMatrix.getDimension2Size();
+                    if (weightMatrix.getDimension1Size() == numOutputs) {
+                        for (int i = 2; i < tensors.length; i++) {
+                            if (tensors[i] instanceof DenseMatrix) {
+                                DenseMatrix dm = (DenseMatrix) tensors[i];
+                                if ((dm.getDimension1Size() != numFactors) || (dm.getDimension2Size() != numFeatures)) {
+                                    throw new IllegalArgumentException("Invalid protobuf, expected factor matrix of shape [" + numFactors + ", " + numFeatures + "], found " + Arrays.toString(dm.getShape()));
+                                }
+                            }
+                        }
+                        return new FMParameters(tensors, numFactors);
+                    } else {
+                        throw new IllegalArgumentException("Invalid protobuf, expected weight matrix of shape [" + numOutputs + "," + numFeatures + "], found " + Arrays.toString(weightMatrix.getShape()));
+                    }
+                } else {
+                    throw new IllegalArgumentException("Invalid protobuf, expected DenseMatrix, found " + tensors[1].getClass());
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid protobuf, expected " + (numOutputs + 2) + " weight tensors, found " + tensors.length);
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid protobuf, expected bias vector found " + tensors[0].getClass());
+        }
+    }
+
+    @Override
+    public ParametersProto serialize() {
+        ParametersProto.Builder builder = ParametersProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(FMParameters.class.getName());
+        FMParametersProto.Builder fmParamsBuilder = FMParametersProto.newBuilder();
+        fmParamsBuilder.setNumFactors(numFactors);
+        for (int i = 0; i < weights.length; i++) {
+            fmParamsBuilder.addWeights(weights[i].serialize());
+        }
+        builder.setSerializedData(Any.pack(fmParamsBuilder.build()));
+
+        return builder.build();
     }
 
     /**

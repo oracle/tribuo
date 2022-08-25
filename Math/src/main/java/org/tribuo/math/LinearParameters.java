@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,48 @@
 
 package org.tribuo.math;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.VariableIDInfo;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
+import org.tribuo.math.protos.LinearParametersProto;
+import org.tribuo.math.protos.ParametersProto;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ImmutableFeatureMapProto;
+import org.tribuo.protos.core.VariableInfoProto;
+
+import java.util.Objects;
 
 /**
  * A {@link Parameters} for producing linear models.
  */
+@ProtoSerializableClass(version = LinearParameters.CURRENT_VERSION, serializedDataClass = LinearParametersProto.class)
 public class LinearParameters implements FeedForwardParameters {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private static final Merger merger = new HeapMerger();
 
     // Last row in this DenseMatrix is the bias, added by
     // calling SparseVector.createSparseVector(example,featureInfo,true);
     private Tensor[] weights;
+    @ProtoSerializableField
     private DenseMatrix weightMatrix;
 
     /**
@@ -60,6 +81,31 @@ public class LinearParameters implements FeedForwardParameters {
         this.weightMatrix = weightMatrix;
         this.weights = new Tensor[1];
         weights[0] = weightMatrix;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LinearParameters deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        LinearParametersProto proto = message.unpack(LinearParametersProto.class);
+        TensorProto tensorProto = proto.getWeightMatrix();
+        Tensor tensor = ProtoUtil.deserialize(tensorProto);
+        if (tensor instanceof DenseMatrix) {
+            return new LinearParameters((DenseMatrix)tensor);
+        } else {
+            throw new IllegalStateException("Invalid protobuf, found a " + tensor.getClass().getSimpleName() + " when expecting a dense matrix.");
+        }
+    }
+
+    @Override
+    public ParametersProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     /**
@@ -152,5 +198,18 @@ public class LinearParameters implements FeedForwardParameters {
     @Override
     public LinearParameters copy() {
         return new LinearParameters(weightMatrix.copy());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LinearParameters that = (LinearParameters) o;
+        return weightMatrix.equals(that.weightMatrix);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(weightMatrix);
     }
 }

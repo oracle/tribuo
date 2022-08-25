@@ -22,10 +22,13 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForce;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
+import org.tribuo.math.protos.NeighbourFactoryProto;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -94,7 +97,16 @@ public class TestNeighborsBruteForce {
         NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
     }
 
-    @Test void testInvalidKDTreeFactory() {
+    @Test
+    public void testInvalidKDTreeFactory() {
         assertThrows(PropertyException.class, () -> new NeighboursBruteForceFactory(DistanceType.L1, 0) );
+    }
+
+    @Test
+    public void serializationTest() {
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
+        NeighbourFactoryProto proto = factory.serialize();
+        NeighboursQueryFactory deser = ProtoUtil.deserialize(proto);
+        assertEquals(factory,deser);
     }
 }

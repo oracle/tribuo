@@ -20,11 +20,14 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.tribuo.math.la.DenseVectorTest.makeMalformedProto;
 
 import java.util.Optional;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.protos.TensorProto;
 
 /**
  * Matrices used -
@@ -1439,6 +1442,40 @@ public class DenseMatrixTest {
         matrixMatrixOutput = c.matrixMultiply(oneDimMatrix).getColumn(0);
         matrixVectorOutput = c.leftMultiply(vector);
         assertEquals(matrixMatrixOutput,matrixVectorOutput);
+    }
+
+    @Test
+    public void serializationTest() {
+        DenseMatrix a = generateA();
+        TensorProto proto = a.serialize();
+        Tensor deser = Tensor.deserialize(proto);
+        assertEquals(a,deser);
+    }
+
+    @Test
+    public void serializationValidationTest() {
+        String className = DenseMatrix.class.getName();
+        TensorProto invalidShape = makeMalformedProto(className, new int[]{-1}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(invalidShape);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+        invalidShape = makeMalformedProto(className, new int[]{3}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(invalidShape);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+        TensorProto elementMismatch = makeMalformedProto(className, new int[]{5,4}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(elementMismatch);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
     }
 
     @Test

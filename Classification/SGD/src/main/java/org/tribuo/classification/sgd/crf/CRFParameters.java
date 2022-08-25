@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,12 @@
 
 package org.tribuo.classification.sgd.crf;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.classification.sgd.protos.CRFParametersProto;
+import org.tribuo.common.sgd.FMParameters;
+import org.tribuo.common.sgd.protos.FMParametersProto;
 import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
@@ -25,8 +30,11 @@ import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
+import org.tribuo.math.protos.ParametersProto;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,6 +46,11 @@ import java.util.List;
  */
 public class CRFParameters implements Parameters, Serializable {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final int numLabels;
     private final int numFeatures;
@@ -63,6 +76,76 @@ public class CRFParameters implements Parameters, Serializable {
         weights[2] = labelLabelWeights;
         this.numLabels = numLabels;
         this.numFeatures = numFeatures;
+    }
+
+    private CRFParameters(DenseVector biases, DenseMatrix featureLabelWeights, DenseMatrix labelLabelWeights) {
+        this.weights = new Tensor[3];
+        weights[0] = biases;
+        weights[1] = featureLabelWeights;
+        weights[2] = labelLabelWeights;
+        this.numLabels = biases.size();
+        this.numFeatures = featureLabelWeights.getDimension2Size();
+        this.biases = biases;
+        this.featureLabelWeights = featureLabelWeights;
+        this.labelLabelWeights = labelLabelWeights;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static CRFParameters deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        CRFParametersProto proto = message.unpack(CRFParametersProto.class);
+        int numLabels = proto.getNumLabels();
+        int numFeatures = proto.getNumFeatures();
+        Tensor biasTensor = ProtoUtil.deserialize(proto.getBiases());
+        Tensor featureLabelTensor = ProtoUtil.deserialize(proto.getFeatureLabelWeights());
+        Tensor labelLabelTensor = ProtoUtil.deserialize(proto.getLabelLabelWeights());
+        if (!(biasTensor instanceof DenseVector)) {
+            throw new IllegalArgumentException("Invalid protobuf, expected bias vector, found " + biasTensor.getClass().getSimpleName());
+        } else if (((DenseVector)biasTensor).size() != numLabels) {
+            throw new IllegalArgumentException("Invalid protobuf, expected bias vector with " + numLabels + " elements, but found " + ((DenseVector)biasTensor).size());
+        }
+
+        if (!(featureLabelTensor instanceof DenseMatrix)) {
+            throw new IllegalArgumentException("Invalid protobuf, expected feature/label matrix, found " + featureLabelTensor.getClass().getSimpleName());
+        }
+        DenseMatrix featureLabelMatrix = (DenseMatrix) featureLabelTensor;
+        if ((featureLabelMatrix.getDimension1Size() != numLabels) || (featureLabelMatrix.getDimension2Size() != numFeatures)) {
+            throw new IllegalArgumentException("Invalid protobuf, expected feature/label matrix of size [" + numLabels + ", " + numFeatures + "], found " + Arrays.toString(featureLabelMatrix.getShape()));
+        }
+
+        if (!(labelLabelTensor instanceof DenseMatrix)) {
+            throw new IllegalArgumentException("Invalid protobuf, expected label/label matrix, found " + labelLabelTensor.getClass().getSimpleName());
+        }
+        DenseMatrix labelLabelMatrix = (DenseMatrix) labelLabelTensor;
+        if ((labelLabelMatrix.getDimension1Size() != numLabels) || (labelLabelMatrix.getDimension2Size() != numLabels)) {
+            throw new IllegalArgumentException("Invalid protobuf, expected label/label matrix of size [" + numLabels + ", " + numLabels + "], found " + Arrays.toString(labelLabelMatrix.getShape()));
+        }
+
+        return new CRFParameters((DenseVector) biasTensor, featureLabelMatrix, labelLabelMatrix);
+    }
+
+    @Override
+    public ParametersProto serialize() {
+        ParametersProto.Builder builder = ParametersProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(CRFParameters.class.getName());
+        CRFParametersProto.Builder crfParamsBuilder = CRFParametersProto.newBuilder();
+        crfParamsBuilder.setNumFeatures(numFeatures);
+        crfParamsBuilder.setNumLabels(numLabels);
+        crfParamsBuilder.setBiases(biases.serialize());
+        crfParamsBuilder.setFeatureLabelWeights(featureLabelWeights.serialize());
+        crfParamsBuilder.setLabelLabelWeights(labelLabelWeights.serialize());
+        builder.setSerializedData(Any.pack(crfParamsBuilder.build()));
+
+        return builder.build();
     }
 
     /**

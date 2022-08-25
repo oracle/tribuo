@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.tribuo.math.util;
 
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.protos.MergerProto;
+import org.tribuo.protos.ProtoSerializable;
 
 import java.io.Serializable;
 
@@ -28,7 +30,7 @@ import java.io.Serializable;
  * <p>
  * Merging is done by summation.
  */
-public interface Merger extends Serializable {
+public interface Merger extends ProtoSerializable<MergerProto>, Serializable {
 
     /**
      * Merges an array of DenseSparseMatrix into a single DenseSparseMatrix.

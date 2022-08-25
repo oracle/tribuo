@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,24 @@
 
 package org.tribuo.math.la;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.math.protos.SparseTensorProto;
+import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.util.IntDoublePair;
 import org.tribuo.util.Util;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,6 +58,11 @@ import java.util.stream.Collectors;
  */
 public class SparseVector implements SGDVector {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final int[] shape;
     protected final int[] indices;
@@ -249,6 +263,96 @@ public class SparseVector implements SGDVector {
             }
             return new SparseVector(dimension, indices, values);
         }
+    }
+
+    /**
+     * Deserialization factory used by {@link DenseSparseMatrix}.
+     * <p>
+     * Checks that the indices are sorted, monotonic and in the range [0, {@code dimension}). If they aren't then
+     * it throws {@link IllegalArgumentException}.
+     * @param dimension The dimension of the vector.
+     * @param indices The indices.
+     * @param values The values.
+     * @return A sparse vector.
+     */
+    static SparseVector createAndValidate(int dimension, int[] indices, double[] values) {
+        if (dimension < 1) {
+            throw new IllegalArgumentException("Invalid proto, dimension must be positive, found " + dimension);
+        }
+        if (indices.length != values.length) {
+            throw new IllegalArgumentException("Invalid proto, mismatch between number of indices and values. indices.length = " + indices.length + ", values.length = " + values.length);
+        }
+        int prev = -1;
+        for (int i = 0; i < indices.length; i++) {
+            int cur = indices[i];
+            if (cur <= prev) {
+                throw new IllegalArgumentException("Invalid proto, indices are not non-negative and monotonic, indices = " + Arrays.toString(indices));
+            } else if (cur >= dimension) {
+                throw new IllegalArgumentException("Invalid proto, an index is larger than the shape, indices = " + Arrays.toString(indices));
+            }
+            prev = cur;
+        }
+        return new SparseVector(dimension,indices,values);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static SparseVector deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        SparseTensorProto proto = message.unpack(SparseTensorProto.class);
+        List<Integer> shapeList = proto.getDimensionsList();
+        int[] shape = Util.toPrimitiveInt(shapeList);
+        if (shape.length != 1) {
+            throw new IllegalArgumentException("Invalid proto, expected a vector, found shape " + Arrays.toString(shape));
+        }
+        if (shape[0] < 1) {
+            throw new IllegalArgumentException("Invalid proto, shape must be positive, found " + shape[0] + " at position 0");
+        }
+        int numElements = proto.getNumNonZero();
+        IntBuffer indicesBuffer = proto.getIndices().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+        if (indicesBuffer.remaining() != numElements) {
+            throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + indicesBuffer.remaining() + " indices");
+        }
+        int[] indices = new int[numElements];
+        indicesBuffer.get(indices);
+        DoubleBuffer valuesBuffer = proto.getValues().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
+        if (valuesBuffer.remaining() != numElements) {
+            throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + valuesBuffer.remaining() + " values");
+        }
+        double[] values = new double[numElements];
+        valuesBuffer.get(values);
+        return SparseVector.createAndValidate(shape[0],indices,values);
+    }
+
+    @Override
+    public TensorProto serialize() {
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(SparseVector.class.getName());
+
+        SparseTensorProto.Builder dataBuilder = SparseTensorProto.newBuilder();
+        dataBuilder.addAllDimensions(Arrays.stream(shape).boxed().collect(Collectors.toList()));
+        ByteBuffer indicesBuffer = ByteBuffer.allocate(indices.length * 4).order(ByteOrder.LITTLE_ENDIAN);
+        IntBuffer intBuffer = indicesBuffer.asIntBuffer();
+        intBuffer.put(indices);
+        intBuffer.rewind();
+        ByteBuffer valuesBuffer = ByteBuffer.allocate(values.length * 8).order(ByteOrder.LITTLE_ENDIAN);
+        DoubleBuffer doubleBuffer = valuesBuffer.asDoubleBuffer();
+        doubleBuffer.put(values);
+        doubleBuffer.rewind();
+        dataBuilder.setIndices(ByteString.copyFrom(indicesBuffer));
+        dataBuilder.setValues(ByteString.copyFrom(valuesBuffer));
+        dataBuilder.setNumNonZero(values.length);
+        builder.setSerializedData(Any.pack(dataBuilder.build()));
+
+        return builder.build();
     }
 
     @Override
