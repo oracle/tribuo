@@ -22,6 +22,8 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.core.EnsembleCombinerProto;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXRef;
 
@@ -32,7 +34,7 @@ import java.util.logging.Logger;
 /**
  * An interface for combining predictions. Implementations should be final and immutable.
  */
-public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface EnsembleCombiner<T extends Output<T>> extends Configurable, ProtoSerializable<EnsembleCombinerProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Combine the predictions.

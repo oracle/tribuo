@@ -159,6 +159,7 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
      * @param className The class name.
      * @param message The serialized data.
      */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks.
     public static <T extends Output<T>> ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
