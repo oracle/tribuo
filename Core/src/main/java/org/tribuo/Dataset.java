@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package org.tribuo;
 
+import com.oracle.labs.mlrg.olcut.config.protobuf.ProtoProvenanceSerialization;
+import com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import org.tribuo.protos.core.DatasetDataProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformStatistics;
@@ -37,6 +42,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.SplittableRandom;
@@ -384,6 +390,27 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
     }
 
     /**
+     * Constructs the data carrier for serialization.
+     * @param featureMap The feature domain.
+     * @param outputInfo The output domain.
+     * @return The serialization data carrier.
+     */
+    protected DatasetDataCarrier<T> createDataCarrier(FeatureMap featureMap, OutputInfo<T> outputInfo) {
+        return createDataCarrier(featureMap,outputInfo,Collections.emptyList());
+    }
+
+    /**
+     * Constructs the data carrier for serialization.
+     * @param featureMap The feature domain.
+     * @param outputInfo The output domain.
+     * @param transformationProvenances The transformation provenances, must be non-null, but can be empty.
+     * @return The serialization data carrier.
+     */
+    protected DatasetDataCarrier<T> createDataCarrier(FeatureMap featureMap, OutputInfo<T> outputInfo, List<ObjectProvenance> transformationProvenances) {
+        return new DatasetDataCarrier<>(sourceProvenance,featureMap,outputInfo,outputFactory,transformationProvenances);
+    }
+
+    /**
      * Validates that this Dataset does in fact contain the supplied output type.
      * <p>
      * As the output type is erased at runtime, deserialising a Dataset is an unchecked
@@ -442,6 +469,162 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
             Example<T> e = data.getExample(indices[index]);
             index++;
             return e;
+        }
+    }
+
+    /**
+     * Serialization carrier for common fields in Dataset.
+     * <p>
+     * Likely to be a record one day.
+     */
+    protected static final class DatasetDataCarrier<T extends Output<T>> {
+        private static final ProtoProvenanceSerialization PROVENANCE_SERIALIZER = new ProtoProvenanceSerialization(false);
+
+        /**
+         * The data provenance.
+         */
+        private final DataProvenance provenance;
+
+        /**
+         * The features this dataset contains.
+         */
+        private final FeatureMap featureDomain;
+
+        /**
+         * The outputs this dataset contains.
+         */
+        private final OutputInfo<T> outputDomain;
+
+        /**
+         * The transformation provenances.
+         */
+        private final List<ObjectProvenance> transformProvenances;
+
+        /**
+         * The output factory.
+         */
+        private final OutputFactory<T> outputFactory;
+
+        /**
+         * Constructs a new DatasetDataCarrier.
+         * <p>
+         * Will be the canonical constructor for the record form.
+         * @param provenance The data provenance.
+         * @param featureDomain The feature domain.
+         * @param outputDomain The output domain.
+         * @param outputFactory The output factory.
+         * @param transformProvenances The transform provenances.
+         */
+        DatasetDataCarrier(DataProvenance provenance, FeatureMap featureDomain, OutputInfo<T> outputDomain, OutputFactory<T> outputFactory, List<ObjectProvenance> transformProvenances) {
+            this.provenance = provenance;
+            this.featureDomain = featureDomain;
+            this.outputDomain = outputDomain;
+            this.outputFactory = outputFactory;
+            this.transformProvenances = Collections.unmodifiableList(transformProvenances);
+        }
+
+        /**
+         * Deserializes a {@link DatasetDataProto} into a {@link DatasetDataCarrier}.
+         * @param proto The proto to deserialize.
+         * @return The model data.
+         */
+        @SuppressWarnings({"unchecked", "rawtypes"}) // guarded by a getClass check
+        public static DatasetDataCarrier<?> deserialize(DatasetDataProto proto) {
+            DataProvenance provenance = (DatasetProvenance) ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(proto.getProvenance()));
+            FeatureMap featureDomain = FeatureMap.deserialize(proto.getFeatureDomain());
+            OutputInfo outputDomain = OutputInfo.deserialize(proto.getOutputDomain());
+            OutputFactory outputFactory = OutputFactory.deserialize(proto.getOutputFactory());
+            if (outputDomain.getDomain().iterator().next().getClass() != outputFactory.getUnknownOutput().getClass()) {
+                throw new IllegalStateException("Invalid protobuf, output domain and output factory use different outputs, output domain " + outputDomain.getClass() + ", output factory " + outputFactory.getClass());
+            }
+            List<ObjectProvenance> transformProvenances = new ArrayList<>();
+            for (RootProvenanceProto p : proto.getTransformProvenanceList()) {
+                ObjectProvenance prov = ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(p));
+                transformProvenances.add(prov);
+            }
+            return new DatasetDataCarrier<>(provenance,featureDomain,outputDomain,outputFactory,transformProvenances);
+        }
+
+        /**
+         * Serializes this object to a protobuf.
+         * @return The protobuf representation.
+         */
+        public DatasetDataProto serialize() {
+            DatasetDataProto.Builder builder = DatasetDataProto.newBuilder();
+
+            builder.setFeatureDomain(featureDomain.serialize());
+            builder.setOutputDomain(outputDomain.serialize());
+            builder.setOutputFactory(outputFactory.serialize());
+            builder.setProvenance(PROVENANCE_SERIALIZER.serializeToProto(ProvenanceUtil.marshalProvenance(provenance)));
+            for (ObjectProvenance o : transformProvenances) {
+                builder.addTransformProvenance(PROVENANCE_SERIALIZER.serializeToProto(ProvenanceUtil.marshalProvenance(o)));
+            }
+
+            return builder.build();
+        }
+
+        /**
+         * Get the dataset provenance.
+         * @return The dataset provenance.
+         */
+        public DataProvenance provenance() {
+            return provenance;
+        }
+
+        /**
+         * Get the feature domain.
+         * @return The feature domain.
+         */
+        public FeatureMap featureDomain() {
+            return featureDomain;
+        }
+
+        /**
+         * Get the output domain.
+         * @return The output domain.
+         */
+        public OutputInfo<T> outputDomain() {
+            return outputDomain;
+        }
+
+        /**
+         * Get the transform provenances.
+         * @return The transform provenances.
+         */
+        public List<ObjectProvenance> transformProvenances() {
+            return transformProvenances;
+        }
+
+        /**
+         * Get the output factory.
+         * @return The output factory.
+         */
+        public OutputFactory<T> outputFactory() {
+            return outputFactory;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DatasetDataCarrier<?> that = (DatasetDataCarrier<?>) o;
+            return provenance.equals(that.provenance) && featureDomain.equals(that.featureDomain) && outputDomain.equals(that.outputDomain) && transformProvenances.equals(that.transformProvenances) && outputFactory.equals(that.outputFactory);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(provenance, featureDomain, outputDomain, transformProvenances, outputFactory);
+        }
+
+        @Override
+        public String toString() {
+            return "DatasetDataCarrier{" +
+                    "provenance=" + provenance +
+                    ", featureDomain=" + featureDomain +
+                    ", outputDomain=" + outputDomain +
+                    ", transformProvenances=" + transformProvenances +
+                    ", outputFactory=" + outputFactory +
+                    '}';
         }
     }
 }

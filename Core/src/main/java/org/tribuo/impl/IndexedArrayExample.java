@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.ExampleDataProto;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.IndexedArrayExampleProto;
 import org.tribuo.util.Merger;

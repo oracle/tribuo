@@ -8,62 +8,86 @@ public interface DatasetDataProtoOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+   * <code>.olcut.RootProvenanceProto provenance = 1;</code>
    * @return Whether the provenance field is set.
    */
   boolean hasProvenance();
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+   * <code>.olcut.RootProvenanceProto provenance = 1;</code>
    * @return The provenance.
    */
   com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance();
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+   * <code>.olcut.RootProvenanceProto provenance = 1;</code>
    */
   com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder();
 
   /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 2;</code>
    * @return Whether the featureDomain field is set.
    */
   boolean hasFeatureDomain();
   /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 2;</code>
    * @return The featureDomain.
    */
   org.tribuo.protos.core.FeatureDomainProto getFeatureDomain();
   /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 2;</code>
    */
   org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder();
 
   /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
+   * <code>.tribuo.core.OutputDomainProto output_domain = 3;</code>
    * @return Whether the outputDomain field is set.
    */
   boolean hasOutputDomain();
   /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
+   * <code>.tribuo.core.OutputDomainProto output_domain = 3;</code>
    * @return The outputDomain.
    */
   org.tribuo.protos.core.OutputDomainProto getOutputDomain();
   /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
+   * <code>.tribuo.core.OutputDomainProto output_domain = 3;</code>
    */
   org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder();
 
   /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   * @return Whether the transformProvenance field is set.
+   * <code>repeated .olcut.RootProvenanceProto transform_provenance = 4;</code>
    */
-  boolean hasTransformProvenance();
+  java.util.List<com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto> 
+      getTransformProvenanceList();
   /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   * @return The transformProvenance.
+   * <code>repeated .olcut.RootProvenanceProto transform_provenance = 4;</code>
    */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto getTransformProvenance();
+  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getTransformProvenance(int index);
   /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
+   * <code>repeated .olcut.RootProvenanceProto transform_provenance = 4;</code>
    */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder getTransformProvenanceOrBuilder();
+  int getTransformProvenanceCount();
+  /**
+   * <code>repeated .olcut.RootProvenanceProto transform_provenance = 4;</code>
+   */
+  java.util.List<? extends com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder> 
+      getTransformProvenanceOrBuilderList();
+  /**
+   * <code>repeated .olcut.RootProvenanceProto transform_provenance = 4;</code>
+   */
+  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getTransformProvenanceOrBuilder(
+      int index);
+
+  /**
+   * <code>.tribuo.core.OutputFactoryProto output_factory = 5;</code>
+   * @return Whether the outputFactory field is set.
+   */
+  boolean hasOutputFactory();
+  /**
+   * <code>.tribuo.core.OutputFactoryProto output_factory = 5;</code>
+   * @return The outputFactory.
+   */
+  org.tribuo.protos.core.OutputFactoryProto getOutputFactory();
+  /**
+   * <code>.tribuo.core.OutputFactoryProto output_factory = 5;</code>
+   */
+  org.tribuo.protos.core.OutputFactoryProtoOrBuilder getOutputFactoryOrBuilder();
 }

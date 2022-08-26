@@ -132,10 +132,11 @@ message DatasetProto {
 Dataset info proto
  */
 message DatasetDataProto {
-  olcut.RootProvenanceProto provenance = 3;
-  FeatureDomainProto feature_domain = 4;
-  OutputDomainProto output_domain = 5;
-  olcut.ListProvenanceProto transform_provenance = 7;
+  olcut.RootProvenanceProto provenance = 1;
+  FeatureDomainProto feature_domain = 2;
+  OutputDomainProto output_domain = 3;
+  repeated olcut.RootProvenanceProto transform_provenance = 4;
+  OutputFactoryProto output_factory = 5;
 }
 
 /*
