@@ -16,12 +16,20 @@
 
 package org.tribuo.impl;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
 import org.tribuo.Example;
 import org.tribuo.Feature;
+import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
+import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ExampleDataProto;
+import org.tribuo.protos.core.ExampleProto;
+import org.tribuo.protos.core.IndexedArrayExampleProto;
 import org.tribuo.util.Merger;
 
 import java.util.ArrayList;
@@ -34,6 +42,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PriorityQueue;
+import java.util.logging.Logger;
 
 /**
  * A version of ArrayExample which also has the id numbers.
@@ -46,6 +55,13 @@ import java.util.PriorityQueue;
  */
 public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
     private static final long serialVersionUID = 1L;
+
+    private static final Logger logger = Logger.getLogger(IndexedArrayExample.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Feature id numbers from the internal featureMap.
@@ -108,6 +124,81 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
         featureNames = newNames;
         featureIDs = newIDs;
         featureValues = newValues;
+    }
+
+    /**
+     * Deserialization constructor.
+     * <p>
+     * Validation is performed in the deserialization factory.
+     * @param output The output.
+     * @param outputID The output id.
+     * @param weight The weight.
+     * @param featureNames The feature names.
+     * @param featureIDs The feature IDs.
+     * @param featureValues The feature values.
+     * @param metadata The metadata map.
+     * @param featureDomain The feature domain.
+     * @param outputDomain The output domain.
+     */
+    private IndexedArrayExample(T output, int outputID, float weight, String[] featureNames, int[] featureIDs, double[] featureValues, Map<String, String> metadata, ImmutableFeatureMap featureDomain, ImmutableOutputInfo<T> outputDomain) {
+        super(output,weight);
+        this.outputID = outputID;
+        this.featureNames = Arrays.copyOf(featureNames,featureNames.length);
+        this.featureIDs = Arrays.copyOf(featureIDs,featureIDs.length);
+        this.featureValues = Arrays.copyOf(featureValues,featureValues.length);
+        this.size = featureNames.length;
+        for (Map.Entry<String, String> e : metadata.entrySet()) {
+            setMetadataValue(e.getKey(), e.getValue());
+        }
+        this.featureMap = featureDomain;
+        this.outputMap = outputDomain;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static <T extends Output<T>> ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        IndexedArrayExampleProto proto = message.unpack(IndexedArrayExampleProto.class);
+        if ((proto.getFeatureNameCount() != proto.getFeatureValueCount()) || (proto.getFeatureNameCount() != proto.getFeatureIdxCount())) {
+            throw new IllegalStateException("Invalid protobuf, different numbers of feature names, ids and values, found " + proto.getFeatureNameCount() + " names, " + proto.getFeatureIdxCount() + " ids, and " + proto.getFeatureValueCount() + " values.");
+        }
+        T output = ProtoUtil.deserialize(proto.getOutput());
+        int outputID = proto.getOutputIdx();
+
+        FeatureMap fmap = ProtoUtil.deserialize(proto.getFeatureDomain());
+        if (!(fmap instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature domain was not ImmutableFeatureMap, found " + fmap.getClass());
+        }
+        ImmutableFeatureMap featureDomain = (ImmutableFeatureMap) fmap;
+        OutputInfo<?> outputMap = ProtoUtil.deserialize(proto.getOutputDomain());
+        if (!(outputMap instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output domain was not ImmutableOutputInfo, found " + outputMap.getClass());
+        }
+        ImmutableOutputInfo outputDomain = (ImmutableOutputInfo<?>) outputMap;
+        if (output.getClass() != outputDomain.getDomain().iterator().next().getClass()) {
+            throw new IllegalStateException("Invalid protobuf, output type did not match domain type, output " + output.getClass() + ", output domain " + outputDomain.getClass());
+        } else if (outputID != outputDomain.getID(output)) {
+            throw new IllegalStateException("Invalid protobuf, output id did not match the id from the domain, found " + outputID + ", expected " + outputDomain.getID(output));
+        }
+
+        String[] featureNames = new String[proto.getFeatureNameCount()];
+        int[] featureIDs = new int[proto.getFeatureIdxCount()];
+        double[] featureValues = new double[proto.getFeatureValueCount()];
+        for (int i = 0; i < proto.getFeatureNameCount(); i++) {
+            featureNames[i] = proto.getFeatureName(i);
+            featureIDs[i] = proto.getFeatureIdx(i);
+            if (featureIDs[i] != featureDomain.getID(featureNames[i])) {
+                throw new IllegalStateException("Invalid protobuf, feature id did not match the id from the domain, found " + featureIDs[i] + ", expected " + featureDomain.getID(featureNames[i]));
+            }
+            featureValues[i] = proto.getFeatureValue(i);
+        }
+        return new IndexedArrayExample<>(output,outputID,proto.getWeight(),featureNames,featureIDs,featureValues,proto.getMetadataMap(),featureDomain,outputDomain);
     }
 
     @Override
@@ -331,6 +422,34 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
      */
     public Iterable<FeatureTuple> idIterator() {
         return ArrayIndexedExampleIterator::new;
+    }
+
+    @Override
+    public ExampleProto serialize() {
+        ExampleProto.Builder builder = ExampleProto.newBuilder();
+
+        builder.setClassName(IndexedArrayExample.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+        IndexedArrayExampleProto.Builder exampleBuilder = IndexedArrayExampleProto.newBuilder();
+        exampleBuilder.setWeight(weight);
+        exampleBuilder.setOutput(output.serialize());
+        for (int i = 0; i < size; i++) {
+            exampleBuilder.addFeatureName(featureNames[i]);
+            exampleBuilder.addFeatureIdx(featureIDs[i]);
+            exampleBuilder.addFeatureValue(featureValues[i]);
+        }
+        if (metadata != null) {
+            for (Map.Entry<String, Object> e : metadata.entrySet()) {
+                if (!(e.getValue() instanceof String)) {
+                    logger.warning("Serializing non-string metadata for key '" + e.getKey() + "' of type " + e.getValue().getClass());
+                }
+                exampleBuilder.putMetadata(e.getKey(), e.getValue().toString());
+            }
+        }
+
+        builder.setSerializedData(Any.pack(exampleBuilder.build()));
+
+        return builder.build();
     }
 
     /**

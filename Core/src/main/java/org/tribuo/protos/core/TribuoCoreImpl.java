@@ -179,23 +179,26 @@ public final class TribuoCoreImpl {
       "ame\030\002 \003(\t\022G\n\010metadata\030\003 \003(\01325.tribuo.cor" +
       "e.BinaryFeaturesExampleProto.MetadataEnt" +
       "ry\022\016\n\006weight\030\004 \001(\002\032/\n\rMetadataEntry\022\013\n\003k" +
-      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\216\002\n\030IndexedA" +
+      "ey\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\222\003\n\030IndexedA" +
       "rrayExampleProto\022(\n\006output\030\001 \001(\0132\030.tribu" +
-      "o.core.OutputProto\022\024\n\014feature_name\030\002 \003(\t" +
-      "\022\023\n\013feature_idx\030\003 \003(\005\022\025\n\rfeature_value\030\004" +
-      " \003(\001\022E\n\010metadata\030\005 \003(\01323.tribuo.core.Ind" +
-      "exedArrayExampleProto.MetadataEntry\022\016\n\006w" +
-      "eight\030\006 \001(\002\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(" +
-      "\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\302\002\n\023PredictionImplP" +
-      "roto\022*\n\007example\030\003 \001(\0132\031.tribuo.core.Exam" +
-      "pleProto\022(\n\006output\030\004 \001(\0132\030.tribuo.core.O" +
-      "utputProto\022\023\n\013probability\030\005 \001(\010\022\020\n\010num_u" +
-      "sed\030\006 \001(\005\022\024\n\014example_size\030\007 \001(\005\022I\n\routpu" +
-      "t_scores\030\010 \003(\01322.tribuo.core.PredictionI" +
-      "mplProto.OutputScoresEntry\032M\n\021OutputScor" +
-      "esEntry\022\013\n\003key\030\001 \001(\t\022\'\n\005value\030\002 \001(\0132\030.tr" +
-      "ibuo.core.OutputProto:\0028\001B\032\n\026org.tribuo." +
-      "protos.coreP\001b\006proto3"
+      "o.core.OutputProto\022\022\n\noutput_idx\030\002 \001(\005\022\024" +
+      "\n\014feature_name\030\003 \003(\t\022\023\n\013feature_idx\030\004 \003(" +
+      "\005\022\025\n\rfeature_value\030\005 \003(\001\022E\n\010metadata\030\006 \003" +
+      "(\01323.tribuo.core.IndexedArrayExampleProt" +
+      "o.MetadataEntry\022\016\n\006weight\030\007 \001(\002\0227\n\016featu" +
+      "re_domain\030\010 \001(\0132\037.tribuo.core.FeatureDom" +
+      "ainProto\0225\n\routput_domain\030\t \001(\0132\036.tribuo" +
+      ".core.OutputDomainProto\032/\n\rMetadataEntry" +
+      "\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\302\002\n\023Pre" +
+      "dictionImplProto\022*\n\007example\030\003 \001(\0132\031.trib" +
+      "uo.core.ExampleProto\022(\n\006output\030\004 \001(\0132\030.t" +
+      "ribuo.core.OutputProto\022\023\n\013probability\030\005 " +
+      "\001(\010\022\020\n\010num_used\030\006 \001(\005\022\024\n\014example_size\030\007 " +
+      "\001(\005\022I\n\routput_scores\030\010 \003(\01322.tribuo.core" +
+      ".PredictionImplProto.OutputScoresEntry\032M" +
+      "\n\021OutputScoresEntry\022\013\n\003key\030\001 \001(\t\022\'\n\005valu" +
+      "e\030\002 \001(\0132\030.tribuo.core.OutputProto:\0028\001B\032\n" +
+      "\026org.tribuo.protos.coreP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -316,7 +319,7 @@ public final class TribuoCoreImpl {
     internal_static_tribuo_core_IndexedArrayExampleProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_IndexedArrayExampleProto_descriptor,
-        new java.lang.String[] { "Output", "FeatureName", "FeatureIdx", "FeatureValue", "Metadata", "Weight", });
+        new java.lang.String[] { "Output", "OutputIdx", "FeatureName", "FeatureIdx", "FeatureValue", "Metadata", "Weight", "FeatureDomain", "OutputDomain", });
     internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_descriptor =
       internal_static_tribuo_core_IndexedArrayExampleProto_descriptor.getNestedTypes().get(0);
     internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_fieldAccessorTable = new

@@ -23,24 +23,30 @@ public interface IndexedArrayExampleProtoOrBuilder extends
   org.tribuo.protos.core.OutputProtoOrBuilder getOutputOrBuilder();
 
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>int32 output_idx = 2;</code>
+   * @return The outputIdx.
+   */
+  int getOutputIdx();
+
+  /**
+   * <code>repeated string feature_name = 3;</code>
    * @return A list containing the featureName.
    */
   java.util.List<java.lang.String>
       getFeatureNameList();
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>repeated string feature_name = 3;</code>
    * @return The count of featureName.
    */
   int getFeatureNameCount();
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>repeated string feature_name = 3;</code>
    * @param index The index of the element to return.
    * @return The featureName at the given index.
    */
   java.lang.String getFeatureName(int index);
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>repeated string feature_name = 3;</code>
    * @param index The index of the value to return.
    * @return The bytes of the featureName at the given index.
    */
@@ -48,45 +54,45 @@ public interface IndexedArrayExampleProtoOrBuilder extends
       getFeatureNameBytes(int index);
 
   /**
-   * <code>repeated int32 feature_idx = 3;</code>
+   * <code>repeated int32 feature_idx = 4;</code>
    * @return A list containing the featureIdx.
    */
   java.util.List<java.lang.Integer> getFeatureIdxList();
   /**
-   * <code>repeated int32 feature_idx = 3;</code>
+   * <code>repeated int32 feature_idx = 4;</code>
    * @return The count of featureIdx.
    */
   int getFeatureIdxCount();
   /**
-   * <code>repeated int32 feature_idx = 3;</code>
+   * <code>repeated int32 feature_idx = 4;</code>
    * @param index The index of the element to return.
    * @return The featureIdx at the given index.
    */
   int getFeatureIdx(int index);
 
   /**
-   * <code>repeated double feature_value = 4;</code>
+   * <code>repeated double feature_value = 5;</code>
    * @return A list containing the featureValue.
    */
   java.util.List<java.lang.Double> getFeatureValueList();
   /**
-   * <code>repeated double feature_value = 4;</code>
+   * <code>repeated double feature_value = 5;</code>
    * @return The count of featureValue.
    */
   int getFeatureValueCount();
   /**
-   * <code>repeated double feature_value = 4;</code>
+   * <code>repeated double feature_value = 5;</code>
    * @param index The index of the element to return.
    * @return The featureValue at the given index.
    */
   double getFeatureValue(int index);
 
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
   int getMetadataCount();
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
   boolean containsMetadata(
       java.lang.String key);
@@ -97,27 +103,57 @@ public interface IndexedArrayExampleProtoOrBuilder extends
   java.util.Map<java.lang.String, java.lang.String>
   getMetadata();
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
   java.util.Map<java.lang.String, java.lang.String>
   getMetadataMap();
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
 
   java.lang.String getMetadataOrDefault(
       java.lang.String key,
       java.lang.String defaultValue);
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
 
   java.lang.String getMetadataOrThrow(
       java.lang.String key);
 
   /**
-   * <code>float weight = 6;</code>
+   * <code>float weight = 7;</code>
    * @return The weight.
    */
   float getWeight();
+
+  /**
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+   * @return Whether the featureDomain field is set.
+   */
+  boolean hasFeatureDomain();
+  /**
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+   * @return The featureDomain.
+   */
+  org.tribuo.protos.core.FeatureDomainProto getFeatureDomain();
+  /**
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+   */
+  org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder();
+
+  /**
+   * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+   * @return Whether the outputDomain field is set.
+   */
+  boolean hasOutputDomain();
+  /**
+   * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+   * @return The outputDomain.
+   */
+  org.tribuo.protos.core.OutputDomainProto getOutputDomain();
+  /**
+   * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+   */
+  org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder();
 }

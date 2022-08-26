@@ -4,6 +4,10 @@
 package org.tribuo.protos.core;
 
 /**
+ * <pre>
+ *IndexedArrayExample proto
+ * </pre>
+ *
  * Protobuf type {@code tribuo.core.IndexedArrayExampleProto}
  */
 public final class IndexedArrayExampleProto extends
@@ -65,7 +69,12 @@ private static final long serialVersionUID = 0L;
 
             break;
           }
-          case 18: {
+          case 16: {
+
+            outputIdx_ = input.readInt32();
+            break;
+          }
+          case 26: {
             java.lang.String s = input.readStringRequireUtf8();
             if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               featureName_ = new com.google.protobuf.LazyStringArrayList();
@@ -74,7 +83,7 @@ private static final long serialVersionUID = 0L;
             featureName_.add(s);
             break;
           }
-          case 24: {
+          case 32: {
             if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               featureIdx_ = newIntList();
               mutable_bitField0_ |= 0x00000002;
@@ -82,7 +91,7 @@ private static final long serialVersionUID = 0L;
             featureIdx_.addInt(input.readInt32());
             break;
           }
-          case 26: {
+          case 34: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
@@ -95,7 +104,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 33: {
+          case 41: {
             if (!((mutable_bitField0_ & 0x00000004) != 0)) {
               featureValue_ = newDoubleList();
               mutable_bitField0_ |= 0x00000004;
@@ -103,7 +112,7 @@ private static final long serialVersionUID = 0L;
             featureValue_.addDouble(input.readDouble());
             break;
           }
-          case 34: {
+          case 42: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000004) != 0) && input.getBytesUntilLimit() > 0) {
@@ -116,7 +125,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 42: {
+          case 50: {
             if (!((mutable_bitField0_ & 0x00000008) != 0)) {
               metadata_ = com.google.protobuf.MapField.newMapField(
                   MetadataDefaultEntryHolder.defaultEntry);
@@ -129,9 +138,35 @@ private static final long serialVersionUID = 0L;
                 metadata__.getKey(), metadata__.getValue());
             break;
           }
-          case 53: {
+          case 61: {
 
             weight_ = input.readFloat();
+            break;
+          }
+          case 66: {
+            org.tribuo.protos.core.FeatureDomainProto.Builder subBuilder = null;
+            if (featureDomain_ != null) {
+              subBuilder = featureDomain_.toBuilder();
+            }
+            featureDomain_ = input.readMessage(org.tribuo.protos.core.FeatureDomainProto.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(featureDomain_);
+              featureDomain_ = subBuilder.buildPartial();
+            }
+
+            break;
+          }
+          case 74: {
+            org.tribuo.protos.core.OutputDomainProto.Builder subBuilder = null;
+            if (outputDomain_ != null) {
+              subBuilder = outputDomain_.toBuilder();
+            }
+            outputDomain_ = input.readMessage(org.tribuo.protos.core.OutputDomainProto.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(outputDomain_);
+              outputDomain_ = subBuilder.buildPartial();
+            }
+
             break;
           }
           default: {
@@ -172,7 +207,7 @@ private static final long serialVersionUID = 0L;
   protected com.google.protobuf.MapField internalGetMapField(
       int number) {
     switch (number) {
-      case 5:
+      case 6:
         return internalGetMetadata();
       default:
         throw new RuntimeException(
@@ -213,10 +248,21 @@ private static final long serialVersionUID = 0L;
     return getOutput();
   }
 
-  public static final int FEATURE_NAME_FIELD_NUMBER = 2;
+  public static final int OUTPUT_IDX_FIELD_NUMBER = 2;
+  private int outputIdx_;
+  /**
+   * <code>int32 output_idx = 2;</code>
+   * @return The outputIdx.
+   */
+  @java.lang.Override
+  public int getOutputIdx() {
+    return outputIdx_;
+  }
+
+  public static final int FEATURE_NAME_FIELD_NUMBER = 3;
   private com.google.protobuf.LazyStringList featureName_;
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>repeated string feature_name = 3;</code>
    * @return A list containing the featureName.
    */
   public com.google.protobuf.ProtocolStringList
@@ -224,14 +270,14 @@ private static final long serialVersionUID = 0L;
     return featureName_;
   }
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>repeated string feature_name = 3;</code>
    * @return The count of featureName.
    */
   public int getFeatureNameCount() {
     return featureName_.size();
   }
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>repeated string feature_name = 3;</code>
    * @param index The index of the element to return.
    * @return The featureName at the given index.
    */
@@ -239,7 +285,7 @@ private static final long serialVersionUID = 0L;
     return featureName_.get(index);
   }
   /**
-   * <code>repeated string feature_name = 2;</code>
+   * <code>repeated string feature_name = 3;</code>
    * @param index The index of the value to return.
    * @return The bytes of the featureName at the given index.
    */
@@ -248,10 +294,10 @@ private static final long serialVersionUID = 0L;
     return featureName_.getByteString(index);
   }
 
-  public static final int FEATURE_IDX_FIELD_NUMBER = 3;
+  public static final int FEATURE_IDX_FIELD_NUMBER = 4;
   private com.google.protobuf.Internal.IntList featureIdx_;
   /**
-   * <code>repeated int32 feature_idx = 3;</code>
+   * <code>repeated int32 feature_idx = 4;</code>
    * @return A list containing the featureIdx.
    */
   @java.lang.Override
@@ -260,14 +306,14 @@ private static final long serialVersionUID = 0L;
     return featureIdx_;
   }
   /**
-   * <code>repeated int32 feature_idx = 3;</code>
+   * <code>repeated int32 feature_idx = 4;</code>
    * @return The count of featureIdx.
    */
   public int getFeatureIdxCount() {
     return featureIdx_.size();
   }
   /**
-   * <code>repeated int32 feature_idx = 3;</code>
+   * <code>repeated int32 feature_idx = 4;</code>
    * @param index The index of the element to return.
    * @return The featureIdx at the given index.
    */
@@ -276,10 +322,10 @@ private static final long serialVersionUID = 0L;
   }
   private int featureIdxMemoizedSerializedSize = -1;
 
-  public static final int FEATURE_VALUE_FIELD_NUMBER = 4;
+  public static final int FEATURE_VALUE_FIELD_NUMBER = 5;
   private com.google.protobuf.Internal.DoubleList featureValue_;
   /**
-   * <code>repeated double feature_value = 4;</code>
+   * <code>repeated double feature_value = 5;</code>
    * @return A list containing the featureValue.
    */
   @java.lang.Override
@@ -288,14 +334,14 @@ private static final long serialVersionUID = 0L;
     return featureValue_;
   }
   /**
-   * <code>repeated double feature_value = 4;</code>
+   * <code>repeated double feature_value = 5;</code>
    * @return The count of featureValue.
    */
   public int getFeatureValueCount() {
     return featureValue_.size();
   }
   /**
-   * <code>repeated double feature_value = 4;</code>
+   * <code>repeated double feature_value = 5;</code>
    * @param index The index of the element to return.
    * @return The featureValue at the given index.
    */
@@ -304,7 +350,7 @@ private static final long serialVersionUID = 0L;
   }
   private int featureValueMemoizedSerializedSize = -1;
 
-  public static final int METADATA_FIELD_NUMBER = 5;
+  public static final int METADATA_FIELD_NUMBER = 6;
   private static final class MetadataDefaultEntryHolder {
     static final com.google.protobuf.MapEntry<
         java.lang.String, java.lang.String> defaultEntry =
@@ -331,7 +377,7 @@ private static final long serialVersionUID = 0L;
     return internalGetMetadata().getMap().size();
   }
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
 
   @java.lang.Override
@@ -349,7 +395,7 @@ private static final long serialVersionUID = 0L;
     return getMetadataMap();
   }
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
   @java.lang.Override
 
@@ -357,7 +403,7 @@ private static final long serialVersionUID = 0L;
     return internalGetMetadata().getMap();
   }
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
   @java.lang.Override
 
@@ -370,7 +416,7 @@ private static final long serialVersionUID = 0L;
     return map.containsKey(key) ? map.get(key) : defaultValue;
   }
   /**
-   * <code>map&lt;string, string&gt; metadata = 5;</code>
+   * <code>map&lt;string, string&gt; metadata = 6;</code>
    */
   @java.lang.Override
 
@@ -385,15 +431,67 @@ private static final long serialVersionUID = 0L;
     return map.get(key);
   }
 
-  public static final int WEIGHT_FIELD_NUMBER = 6;
+  public static final int WEIGHT_FIELD_NUMBER = 7;
   private float weight_;
   /**
-   * <code>float weight = 6;</code>
+   * <code>float weight = 7;</code>
    * @return The weight.
    */
   @java.lang.Override
   public float getWeight() {
     return weight_;
+  }
+
+  public static final int FEATURE_DOMAIN_FIELD_NUMBER = 8;
+  private org.tribuo.protos.core.FeatureDomainProto featureDomain_;
+  /**
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+   * @return Whether the featureDomain field is set.
+   */
+  @java.lang.Override
+  public boolean hasFeatureDomain() {
+    return featureDomain_ != null;
+  }
+  /**
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+   * @return The featureDomain.
+   */
+  @java.lang.Override
+  public org.tribuo.protos.core.FeatureDomainProto getFeatureDomain() {
+    return featureDomain_ == null ? org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
+  }
+  /**
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+   */
+  @java.lang.Override
+  public org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder() {
+    return getFeatureDomain();
+  }
+
+  public static final int OUTPUT_DOMAIN_FIELD_NUMBER = 9;
+  private org.tribuo.protos.core.OutputDomainProto outputDomain_;
+  /**
+   * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+   * @return Whether the outputDomain field is set.
+   */
+  @java.lang.Override
+  public boolean hasOutputDomain() {
+    return outputDomain_ != null;
+  }
+  /**
+   * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+   * @return The outputDomain.
+   */
+  @java.lang.Override
+  public org.tribuo.protos.core.OutputDomainProto getOutputDomain() {
+    return outputDomain_ == null ? org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
+  }
+  /**
+   * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+   */
+  @java.lang.Override
+  public org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder() {
+    return getOutputDomain();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -414,18 +512,21 @@ private static final long serialVersionUID = 0L;
     if (output_ != null) {
       output.writeMessage(1, getOutput());
     }
+    if (outputIdx_ != 0) {
+      output.writeInt32(2, outputIdx_);
+    }
     for (int i = 0; i < featureName_.size(); i++) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, featureName_.getRaw(i));
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 3, featureName_.getRaw(i));
     }
     if (getFeatureIdxList().size() > 0) {
-      output.writeUInt32NoTag(26);
+      output.writeUInt32NoTag(34);
       output.writeUInt32NoTag(featureIdxMemoizedSerializedSize);
     }
     for (int i = 0; i < featureIdx_.size(); i++) {
       output.writeInt32NoTag(featureIdx_.getInt(i));
     }
     if (getFeatureValueList().size() > 0) {
-      output.writeUInt32NoTag(34);
+      output.writeUInt32NoTag(42);
       output.writeUInt32NoTag(featureValueMemoizedSerializedSize);
     }
     for (int i = 0; i < featureValue_.size(); i++) {
@@ -436,9 +537,15 @@ private static final long serialVersionUID = 0L;
         output,
         internalGetMetadata(),
         MetadataDefaultEntryHolder.defaultEntry,
-        5);
+        6);
     if (java.lang.Float.floatToRawIntBits(weight_) != 0) {
-      output.writeFloat(6, weight_);
+      output.writeFloat(7, weight_);
+    }
+    if (featureDomain_ != null) {
+      output.writeMessage(8, getFeatureDomain());
+    }
+    if (outputDomain_ != null) {
+      output.writeMessage(9, getOutputDomain());
     }
     unknownFields.writeTo(output);
   }
@@ -452,6 +559,10 @@ private static final long serialVersionUID = 0L;
     if (output_ != null) {
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(1, getOutput());
+    }
+    if (outputIdx_ != 0) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeInt32Size(2, outputIdx_);
     }
     {
       int dataSize = 0;
@@ -494,11 +605,19 @@ private static final long serialVersionUID = 0L;
           .setValue(entry.getValue())
           .build();
       size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(5, metadata__);
+          .computeMessageSize(6, metadata__);
     }
     if (java.lang.Float.floatToRawIntBits(weight_) != 0) {
       size += com.google.protobuf.CodedOutputStream
-        .computeFloatSize(6, weight_);
+        .computeFloatSize(7, weight_);
+    }
+    if (featureDomain_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(8, getFeatureDomain());
+    }
+    if (outputDomain_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(9, getOutputDomain());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -520,6 +639,8 @@ private static final long serialVersionUID = 0L;
       if (!getOutput()
           .equals(other.getOutput())) return false;
     }
+    if (getOutputIdx()
+        != other.getOutputIdx()) return false;
     if (!getFeatureNameList()
         .equals(other.getFeatureNameList())) return false;
     if (!getFeatureIdxList()
@@ -531,6 +652,16 @@ private static final long serialVersionUID = 0L;
     if (java.lang.Float.floatToIntBits(getWeight())
         != java.lang.Float.floatToIntBits(
             other.getWeight())) return false;
+    if (hasFeatureDomain() != other.hasFeatureDomain()) return false;
+    if (hasFeatureDomain()) {
+      if (!getFeatureDomain()
+          .equals(other.getFeatureDomain())) return false;
+    }
+    if (hasOutputDomain() != other.hasOutputDomain()) return false;
+    if (hasOutputDomain()) {
+      if (!getOutputDomain()
+          .equals(other.getOutputDomain())) return false;
+    }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -546,6 +677,8 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + OUTPUT_FIELD_NUMBER;
       hash = (53 * hash) + getOutput().hashCode();
     }
+    hash = (37 * hash) + OUTPUT_IDX_FIELD_NUMBER;
+    hash = (53 * hash) + getOutputIdx();
     if (getFeatureNameCount() > 0) {
       hash = (37 * hash) + FEATURE_NAME_FIELD_NUMBER;
       hash = (53 * hash) + getFeatureNameList().hashCode();
@@ -565,6 +698,14 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + WEIGHT_FIELD_NUMBER;
     hash = (53 * hash) + java.lang.Float.floatToIntBits(
         getWeight());
+    if (hasFeatureDomain()) {
+      hash = (37 * hash) + FEATURE_DOMAIN_FIELD_NUMBER;
+      hash = (53 * hash) + getFeatureDomain().hashCode();
+    }
+    if (hasOutputDomain()) {
+      hash = (37 * hash) + OUTPUT_DOMAIN_FIELD_NUMBER;
+      hash = (53 * hash) + getOutputDomain().hashCode();
+    }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -661,6 +802,10 @@ private static final long serialVersionUID = 0L;
     return builder;
   }
   /**
+   * <pre>
+   *IndexedArrayExample proto
+   * </pre>
+   *
    * Protobuf type {@code tribuo.core.IndexedArrayExampleProto}
    */
   public static final class Builder extends
@@ -676,7 +821,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMapField(
         int number) {
       switch (number) {
-        case 5:
+        case 6:
           return internalGetMetadata();
         default:
           throw new RuntimeException(
@@ -687,7 +832,7 @@ private static final long serialVersionUID = 0L;
     protected com.google.protobuf.MapField internalGetMutableMapField(
         int number) {
       switch (number) {
-        case 5:
+        case 6:
           return internalGetMutableMetadata();
         default:
           throw new RuntimeException(
@@ -726,6 +871,8 @@ private static final long serialVersionUID = 0L;
         output_ = null;
         outputBuilder_ = null;
       }
+      outputIdx_ = 0;
+
       featureName_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       bitField0_ = (bitField0_ & ~0x00000001);
       featureIdx_ = emptyIntList();
@@ -735,6 +882,18 @@ private static final long serialVersionUID = 0L;
       internalGetMutableMetadata().clear();
       weight_ = 0F;
 
+      if (featureDomainBuilder_ == null) {
+        featureDomain_ = null;
+      } else {
+        featureDomain_ = null;
+        featureDomainBuilder_ = null;
+      }
+      if (outputDomainBuilder_ == null) {
+        outputDomain_ = null;
+      } else {
+        outputDomain_ = null;
+        outputDomainBuilder_ = null;
+      }
       return this;
     }
 
@@ -767,6 +926,7 @@ private static final long serialVersionUID = 0L;
       } else {
         result.output_ = outputBuilder_.build();
       }
+      result.outputIdx_ = outputIdx_;
       if (((bitField0_ & 0x00000001) != 0)) {
         featureName_ = featureName_.getUnmodifiableView();
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -785,6 +945,16 @@ private static final long serialVersionUID = 0L;
       result.metadata_ = internalGetMetadata();
       result.metadata_.makeImmutable();
       result.weight_ = weight_;
+      if (featureDomainBuilder_ == null) {
+        result.featureDomain_ = featureDomain_;
+      } else {
+        result.featureDomain_ = featureDomainBuilder_.build();
+      }
+      if (outputDomainBuilder_ == null) {
+        result.outputDomain_ = outputDomain_;
+      } else {
+        result.outputDomain_ = outputDomainBuilder_.build();
+      }
       onBuilt();
       return result;
     }
@@ -836,6 +1006,9 @@ private static final long serialVersionUID = 0L;
       if (other.hasOutput()) {
         mergeOutput(other.getOutput());
       }
+      if (other.getOutputIdx() != 0) {
+        setOutputIdx(other.getOutputIdx());
+      }
       if (!other.featureName_.isEmpty()) {
         if (featureName_.isEmpty()) {
           featureName_ = other.featureName_;
@@ -870,6 +1043,12 @@ private static final long serialVersionUID = 0L;
           other.internalGetMetadata());
       if (other.getWeight() != 0F) {
         setWeight(other.getWeight());
+      }
+      if (other.hasFeatureDomain()) {
+        mergeFeatureDomain(other.getFeatureDomain());
+      }
+      if (other.hasOutputDomain()) {
+        mergeOutputDomain(other.getOutputDomain());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -1020,6 +1199,37 @@ private static final long serialVersionUID = 0L;
       return outputBuilder_;
     }
 
+    private int outputIdx_ ;
+    /**
+     * <code>int32 output_idx = 2;</code>
+     * @return The outputIdx.
+     */
+    @java.lang.Override
+    public int getOutputIdx() {
+      return outputIdx_;
+    }
+    /**
+     * <code>int32 output_idx = 2;</code>
+     * @param value The outputIdx to set.
+     * @return This builder for chaining.
+     */
+    public Builder setOutputIdx(int value) {
+      
+      outputIdx_ = value;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>int32 output_idx = 2;</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearOutputIdx() {
+      
+      outputIdx_ = 0;
+      onChanged();
+      return this;
+    }
+
     private com.google.protobuf.LazyStringList featureName_ = com.google.protobuf.LazyStringArrayList.EMPTY;
     private void ensureFeatureNameIsMutable() {
       if (!((bitField0_ & 0x00000001) != 0)) {
@@ -1028,7 +1238,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @return A list containing the featureName.
      */
     public com.google.protobuf.ProtocolStringList
@@ -1036,14 +1246,14 @@ private static final long serialVersionUID = 0L;
       return featureName_.getUnmodifiableView();
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @return The count of featureName.
      */
     public int getFeatureNameCount() {
       return featureName_.size();
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @param index The index of the element to return.
      * @return The featureName at the given index.
      */
@@ -1051,7 +1261,7 @@ private static final long serialVersionUID = 0L;
       return featureName_.get(index);
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @param index The index of the value to return.
      * @return The bytes of the featureName at the given index.
      */
@@ -1060,7 +1270,7 @@ private static final long serialVersionUID = 0L;
       return featureName_.getByteString(index);
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @param index The index to set the value at.
      * @param value The featureName to set.
      * @return This builder for chaining.
@@ -1076,7 +1286,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @param value The featureName to add.
      * @return This builder for chaining.
      */
@@ -1091,7 +1301,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @param values The featureName to add.
      * @return This builder for chaining.
      */
@@ -1104,7 +1314,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @return This builder for chaining.
      */
     public Builder clearFeatureName() {
@@ -1114,7 +1324,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated string feature_name = 2;</code>
+     * <code>repeated string feature_name = 3;</code>
      * @param value The bytes of the featureName to add.
      * @return This builder for chaining.
      */
@@ -1138,7 +1348,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated int32 feature_idx = 3;</code>
+     * <code>repeated int32 feature_idx = 4;</code>
      * @return A list containing the featureIdx.
      */
     public java.util.List<java.lang.Integer>
@@ -1147,14 +1357,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(featureIdx_) : featureIdx_;
     }
     /**
-     * <code>repeated int32 feature_idx = 3;</code>
+     * <code>repeated int32 feature_idx = 4;</code>
      * @return The count of featureIdx.
      */
     public int getFeatureIdxCount() {
       return featureIdx_.size();
     }
     /**
-     * <code>repeated int32 feature_idx = 3;</code>
+     * <code>repeated int32 feature_idx = 4;</code>
      * @param index The index of the element to return.
      * @return The featureIdx at the given index.
      */
@@ -1162,7 +1372,7 @@ private static final long serialVersionUID = 0L;
       return featureIdx_.getInt(index);
     }
     /**
-     * <code>repeated int32 feature_idx = 3;</code>
+     * <code>repeated int32 feature_idx = 4;</code>
      * @param index The index to set the value at.
      * @param value The featureIdx to set.
      * @return This builder for chaining.
@@ -1175,7 +1385,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 feature_idx = 3;</code>
+     * <code>repeated int32 feature_idx = 4;</code>
      * @param value The featureIdx to add.
      * @return This builder for chaining.
      */
@@ -1186,7 +1396,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 feature_idx = 3;</code>
+     * <code>repeated int32 feature_idx = 4;</code>
      * @param values The featureIdx to add.
      * @return This builder for chaining.
      */
@@ -1199,7 +1409,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 feature_idx = 3;</code>
+     * <code>repeated int32 feature_idx = 4;</code>
      * @return This builder for chaining.
      */
     public Builder clearFeatureIdx() {
@@ -1217,7 +1427,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated double feature_value = 4;</code>
+     * <code>repeated double feature_value = 5;</code>
      * @return A list containing the featureValue.
      */
     public java.util.List<java.lang.Double>
@@ -1226,14 +1436,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(featureValue_) : featureValue_;
     }
     /**
-     * <code>repeated double feature_value = 4;</code>
+     * <code>repeated double feature_value = 5;</code>
      * @return The count of featureValue.
      */
     public int getFeatureValueCount() {
       return featureValue_.size();
     }
     /**
-     * <code>repeated double feature_value = 4;</code>
+     * <code>repeated double feature_value = 5;</code>
      * @param index The index of the element to return.
      * @return The featureValue at the given index.
      */
@@ -1241,7 +1451,7 @@ private static final long serialVersionUID = 0L;
       return featureValue_.getDouble(index);
     }
     /**
-     * <code>repeated double feature_value = 4;</code>
+     * <code>repeated double feature_value = 5;</code>
      * @param index The index to set the value at.
      * @param value The featureValue to set.
      * @return This builder for chaining.
@@ -1254,7 +1464,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double feature_value = 4;</code>
+     * <code>repeated double feature_value = 5;</code>
      * @param value The featureValue to add.
      * @return This builder for chaining.
      */
@@ -1265,7 +1475,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double feature_value = 4;</code>
+     * <code>repeated double feature_value = 5;</code>
      * @param values The featureValue to add.
      * @return This builder for chaining.
      */
@@ -1278,7 +1488,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double feature_value = 4;</code>
+     * <code>repeated double feature_value = 5;</code>
      * @return This builder for chaining.
      */
     public Builder clearFeatureValue() {
@@ -1315,7 +1525,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMetadata().getMap().size();
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 6;</code>
      */
 
     @java.lang.Override
@@ -1333,7 +1543,7 @@ private static final long serialVersionUID = 0L;
       return getMetadataMap();
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 6;</code>
      */
     @java.lang.Override
 
@@ -1341,7 +1551,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMetadata().getMap();
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 6;</code>
      */
     @java.lang.Override
 
@@ -1354,7 +1564,7 @@ private static final long serialVersionUID = 0L;
       return map.containsKey(key) ? map.get(key) : defaultValue;
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 6;</code>
      */
     @java.lang.Override
 
@@ -1375,7 +1585,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 6;</code>
      */
 
     public Builder removeMetadata(
@@ -1394,7 +1604,7 @@ private static final long serialVersionUID = 0L;
       return internalGetMutableMetadata().getMutableMap();
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 6;</code>
      */
     public Builder putMetadata(
         java.lang.String key,
@@ -1409,7 +1619,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>map&lt;string, string&gt; metadata = 5;</code>
+     * <code>map&lt;string, string&gt; metadata = 6;</code>
      */
 
     public Builder putAllMetadata(
@@ -1421,7 +1631,7 @@ private static final long serialVersionUID = 0L;
 
     private float weight_ ;
     /**
-     * <code>float weight = 6;</code>
+     * <code>float weight = 7;</code>
      * @return The weight.
      */
     @java.lang.Override
@@ -1429,7 +1639,7 @@ private static final long serialVersionUID = 0L;
       return weight_;
     }
     /**
-     * <code>float weight = 6;</code>
+     * <code>float weight = 7;</code>
      * @param value The weight to set.
      * @return This builder for chaining.
      */
@@ -1440,7 +1650,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>float weight = 6;</code>
+     * <code>float weight = 7;</code>
      * @return This builder for chaining.
      */
     public Builder clearWeight() {
@@ -1448,6 +1658,244 @@ private static final long serialVersionUID = 0L;
       weight_ = 0F;
       onChanged();
       return this;
+    }
+
+    private org.tribuo.protos.core.FeatureDomainProto featureDomain_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder> featureDomainBuilder_;
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     * @return Whether the featureDomain field is set.
+     */
+    public boolean hasFeatureDomain() {
+      return featureDomainBuilder_ != null || featureDomain_ != null;
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     * @return The featureDomain.
+     */
+    public org.tribuo.protos.core.FeatureDomainProto getFeatureDomain() {
+      if (featureDomainBuilder_ == null) {
+        return featureDomain_ == null ? org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
+      } else {
+        return featureDomainBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     */
+    public Builder setFeatureDomain(org.tribuo.protos.core.FeatureDomainProto value) {
+      if (featureDomainBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        featureDomain_ = value;
+        onChanged();
+      } else {
+        featureDomainBuilder_.setMessage(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     */
+    public Builder setFeatureDomain(
+        org.tribuo.protos.core.FeatureDomainProto.Builder builderForValue) {
+      if (featureDomainBuilder_ == null) {
+        featureDomain_ = builderForValue.build();
+        onChanged();
+      } else {
+        featureDomainBuilder_.setMessage(builderForValue.build());
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     */
+    public Builder mergeFeatureDomain(org.tribuo.protos.core.FeatureDomainProto value) {
+      if (featureDomainBuilder_ == null) {
+        if (featureDomain_ != null) {
+          featureDomain_ =
+            org.tribuo.protos.core.FeatureDomainProto.newBuilder(featureDomain_).mergeFrom(value).buildPartial();
+        } else {
+          featureDomain_ = value;
+        }
+        onChanged();
+      } else {
+        featureDomainBuilder_.mergeFrom(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     */
+    public Builder clearFeatureDomain() {
+      if (featureDomainBuilder_ == null) {
+        featureDomain_ = null;
+        onChanged();
+      } else {
+        featureDomain_ = null;
+        featureDomainBuilder_ = null;
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     */
+    public org.tribuo.protos.core.FeatureDomainProto.Builder getFeatureDomainBuilder() {
+      
+      onChanged();
+      return getFeatureDomainFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     */
+    public org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder() {
+      if (featureDomainBuilder_ != null) {
+        return featureDomainBuilder_.getMessageOrBuilder();
+      } else {
+        return featureDomain_ == null ?
+            org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
+      }
+    }
+    /**
+     * <code>.tribuo.core.FeatureDomainProto feature_domain = 8;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder> 
+        getFeatureDomainFieldBuilder() {
+      if (featureDomainBuilder_ == null) {
+        featureDomainBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder>(
+                getFeatureDomain(),
+                getParentForChildren(),
+                isClean());
+        featureDomain_ = null;
+      }
+      return featureDomainBuilder_;
+    }
+
+    private org.tribuo.protos.core.OutputDomainProto outputDomain_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder> outputDomainBuilder_;
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     * @return Whether the outputDomain field is set.
+     */
+    public boolean hasOutputDomain() {
+      return outputDomainBuilder_ != null || outputDomain_ != null;
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     * @return The outputDomain.
+     */
+    public org.tribuo.protos.core.OutputDomainProto getOutputDomain() {
+      if (outputDomainBuilder_ == null) {
+        return outputDomain_ == null ? org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
+      } else {
+        return outputDomainBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     */
+    public Builder setOutputDomain(org.tribuo.protos.core.OutputDomainProto value) {
+      if (outputDomainBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        outputDomain_ = value;
+        onChanged();
+      } else {
+        outputDomainBuilder_.setMessage(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     */
+    public Builder setOutputDomain(
+        org.tribuo.protos.core.OutputDomainProto.Builder builderForValue) {
+      if (outputDomainBuilder_ == null) {
+        outputDomain_ = builderForValue.build();
+        onChanged();
+      } else {
+        outputDomainBuilder_.setMessage(builderForValue.build());
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     */
+    public Builder mergeOutputDomain(org.tribuo.protos.core.OutputDomainProto value) {
+      if (outputDomainBuilder_ == null) {
+        if (outputDomain_ != null) {
+          outputDomain_ =
+            org.tribuo.protos.core.OutputDomainProto.newBuilder(outputDomain_).mergeFrom(value).buildPartial();
+        } else {
+          outputDomain_ = value;
+        }
+        onChanged();
+      } else {
+        outputDomainBuilder_.mergeFrom(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     */
+    public Builder clearOutputDomain() {
+      if (outputDomainBuilder_ == null) {
+        outputDomain_ = null;
+        onChanged();
+      } else {
+        outputDomain_ = null;
+        outputDomainBuilder_ = null;
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     */
+    public org.tribuo.protos.core.OutputDomainProto.Builder getOutputDomainBuilder() {
+      
+      onChanged();
+      return getOutputDomainFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     */
+    public org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder() {
+      if (outputDomainBuilder_ != null) {
+        return outputDomainBuilder_.getMessageOrBuilder();
+      } else {
+        return outputDomain_ == null ?
+            org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
+      }
+    }
+    /**
+     * <code>.tribuo.core.OutputDomainProto output_domain = 9;</code>
+     */
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder> 
+        getOutputDomainFieldBuilder() {
+      if (outputDomainBuilder_ == null) {
+        outputDomainBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder>(
+                getOutputDomain(),
+                getParentForChildren(),
+                isClean());
+        outputDomain_ = null;
+      }
+      return outputDomainBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(
