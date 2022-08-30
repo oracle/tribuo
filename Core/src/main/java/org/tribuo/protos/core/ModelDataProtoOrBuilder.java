@@ -117,4 +117,24 @@ public interface ModelDataProtoOrBuilder extends
    * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
    */
   org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder();
+
+  /**
+   * <pre>
+   *Tribuo version
+   * </pre>
+   *
+   * <code>string tribuo_version = 6;</code>
+   * @return The tribuoVersion.
+   */
+  java.lang.String getTribuoVersion();
+  /**
+   * <pre>
+   *Tribuo version
+   * </pre>
+   *
+   * <code>string tribuo_version = 6;</code>
+   * @return The bytes for tribuoVersion.
+   */
+  com.google.protobuf.ByteString
+      getTribuoVersionBytes();
 }

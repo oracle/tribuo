@@ -117,62 +117,63 @@ public final class TribuoCore {
       "/protobuf/any.proto\032\021olcut_proto.proto\"`" +
       "\n\nModelProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_n" +
       "ame\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.goo" +
-      "gle.protobuf.Any\"\336\001\n\016ModelDataProto\022\014\n\004n" +
+      "gle.protobuf.Any\"\366\001\n\016ModelDataProto\022\014\n\004n" +
       "ame\030\001 \001(\t\022.\n\nprovenance\030\002 \001(\0132\032.olcut.Ro" +
       "otProvenanceProto\022\036\n\026generate_probabilit" +
       "ies\030\003 \001(\010\0227\n\016feature_domain\030\004 \001(\0132\037.trib" +
       "uo.core.FeatureDomainProto\0225\n\routput_dom" +
       "ain\030\005 \001(\0132\036.tribuo.core.OutputDomainProt" +
-      "o\"h\n\022OutputFactoryProto\022\017\n\007version\030\001 \001(\005" +
-      "\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_data\030" +
-      "\003 \001(\0132\024.google.protobuf.Any\"h\n\022FeatureDo" +
-      "mainProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name" +
-      "\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.google" +
-      ".protobuf.Any\"g\n\021VariableInfoProto\022\017\n\007ve" +
-      "rsion\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017seria" +
-      "lized_data\030\003 \001(\0132\024.google.protobuf.Any\"g" +
-      "\n\021OutputDomainProto\022\017\n\007version\030\001 \001(\005\022\022\n\n" +
-      "class_name\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(" +
-      "\0132\024.google.protobuf.Any\"a\n\013OutputProto\022\017" +
-      "\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017s" +
-      "erialized_data\030\003 \001(\0132\024.google.protobuf.A" +
-      "ny\"b\n\014ExampleProto\022\017\n\007version\030\001 \001(\005\022\022\n\nc" +
+      "o\022\026\n\016tribuo_version\030\006 \001(\t\"h\n\022OutputFacto" +
+      "ryProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002" +
+      " \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.google.p" +
+      "rotobuf.Any\"h\n\022FeatureDomainProto\022\017\n\007ver" +
+      "sion\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serial" +
+      "ized_data\030\003 \001(\0132\024.google.protobuf.Any\"g\n" +
+      "\021VariableInfoProto\022\017\n\007version\030\001 \001(\005\022\022\n\nc" +
       "lass_name\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\013" +
-      "2\024.google.protobuf.Any\"b\n\014DatasetProto\022\017" +
-      "\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017s" +
-      "erialized_data\030\003 \001(\0132\024.google.protobuf.A" +
-      "ny\"\245\002\n\020DatasetDataProto\022.\n\nprovenance\030\001 " +
-      "\001(\0132\032.olcut.RootProvenanceProto\0227\n\016featu" +
-      "re_domain\030\002 \001(\0132\037.tribuo.core.FeatureDom" +
-      "ainProto\0225\n\routput_domain\030\003 \001(\0132\036.tribuo" +
-      ".core.OutputDomainProto\0228\n\024transform_pro" +
-      "venance\030\004 \003(\0132\032.olcut.RootProvenanceProt" +
-      "o\0227\n\016output_factory\030\005 \001(\0132\037.tribuo.core." +
-      "OutputFactoryProto\"e\n\017PredictionProto\022\017\n" +
-      "\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017se" +
-      "rialized_data\030\003 \001(\0132\024.google.protobuf.An" +
-      "y\"k\n\025EnsembleCombinerProto\022\017\n\007version\030\001 " +
-      "\001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_da" +
-      "ta\030\003 \001(\0132\024.google.protobuf.Any\"f\n\020Transf" +
-      "ormerProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_nam" +
-      "e\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.googl" +
-      "e.protobuf.Any\"J\n\024TransformerListProto\0222" +
-      "\n\013transformer\030\001 \003(\0132\035.tribuo.core.Transf" +
-      "ormerProto\"\300\002\n\023TransformerMapProto\022\017\n\007ve" +
-      "rsion\030\001 \001(\005\022H\n\014transformers\030\002 \003(\01322.trib" +
-      "uo.core.TransformerMapProto.Transformers" +
-      "Entry\0225\n\021datasetProvenance\030\003 \001(\0132\032.olcut" +
-      ".RootProvenanceProto\022?\n\033transformationMa" +
-      "pProvenance\030\004 \001(\0132\032.olcut.RootProvenance" +
-      "Proto\032V\n\021TransformersEntry\022\013\n\003key\030\001 \001(\t\022" +
-      "0\n\005value\030\002 \001(\0132!.tribuo.core.Transformer" +
-      "ListProto:\0028\001\"a\n\013HasherProto\022\017\n\007version\030" +
-      "\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_" +
-      "data\030\003 \001(\0132\024.google.protobuf.Any\"o\n\021Mean" +
-      "VarianceProto\022\017\n\007version\030\001 \001(\005\022\013\n\003max\030\002 " +
-      "\001(\001\022\013\n\003min\030\003 \001(\001\022\014\n\004mean\030\004 \001(\001\022\022\n\nsumSqu" +
-      "ares\030\005 \001(\001\022\r\n\005count\030\006 \001(\003B\032\n\026org.tribuo." +
-      "protos.coreP\001b\006proto3"
+      "2\024.google.protobuf.Any\"g\n\021OutputDomainPr" +
+      "oto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t" +
+      "\022-\n\017serialized_data\030\003 \001(\0132\024.google.proto" +
+      "buf.Any\"a\n\013OutputProto\022\017\n\007version\030\001 \001(\005\022" +
+      "\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_data\030\003" +
+      " \001(\0132\024.google.protobuf.Any\"b\n\014ExamplePro" +
+      "to\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022" +
+      "-\n\017serialized_data\030\003 \001(\0132\024.google.protob" +
+      "uf.Any\"b\n\014DatasetProto\022\017\n\007version\030\001 \001(\005\022" +
+      "\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_data\030\003" +
+      " \001(\0132\024.google.protobuf.Any\"\275\002\n\020DatasetDa" +
+      "taProto\022.\n\nprovenance\030\001 \001(\0132\032.olcut.Root" +
+      "ProvenanceProto\0227\n\016feature_domain\030\002 \001(\0132" +
+      "\037.tribuo.core.FeatureDomainProto\0225\n\routp" +
+      "ut_domain\030\003 \001(\0132\036.tribuo.core.OutputDoma" +
+      "inProto\0228\n\024transform_provenance\030\004 \003(\0132\032." +
+      "olcut.RootProvenanceProto\0227\n\016output_fact" +
+      "ory\030\005 \001(\0132\037.tribuo.core.OutputFactoryPro" +
+      "to\022\026\n\016tribuo_version\030\006 \001(\t\"e\n\017Prediction" +
+      "Proto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001" +
+      "(\t\022-\n\017serialized_data\030\003 \001(\0132\024.google.pro" +
+      "tobuf.Any\"k\n\025EnsembleCombinerProto\022\017\n\007ve" +
+      "rsion\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017seria" +
+      "lized_data\030\003 \001(\0132\024.google.protobuf.Any\"f" +
+      "\n\020TransformerProto\022\017\n\007version\030\001 \001(\005\022\022\n\nc" +
+      "lass_name\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\013" +
+      "2\024.google.protobuf.Any\"J\n\024TransformerLis" +
+      "tProto\0222\n\013transformer\030\001 \003(\0132\035.tribuo.cor" +
+      "e.TransformerProto\"\300\002\n\023TransformerMapPro" +
+      "to\022\017\n\007version\030\001 \001(\005\022H\n\014transformers\030\002 \003(" +
+      "\01322.tribuo.core.TransformerMapProto.Tran" +
+      "sformersEntry\0225\n\021datasetProvenance\030\003 \001(\013" +
+      "2\032.olcut.RootProvenanceProto\022?\n\033transfor" +
+      "mationMapProvenance\030\004 \001(\0132\032.olcut.RootPr" +
+      "ovenanceProto\032V\n\021TransformersEntry\022\013\n\003ke" +
+      "y\030\001 \001(\t\0220\n\005value\030\002 \001(\0132!.tribuo.core.Tra" +
+      "nsformerListProto:\0028\001\"a\n\013HasherProto\022\017\n\007" +
+      "version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017ser" +
+      "ialized_data\030\003 \001(\0132\024.google.protobuf.Any" +
+      "\"o\n\021MeanVarianceProto\022\017\n\007version\030\001 \001(\005\022\013" +
+      "\n\003max\030\002 \001(\001\022\013\n\003min\030\003 \001(\001\022\014\n\004mean\030\004 \001(\001\022\022" +
+      "\n\nsumSquares\030\005 \001(\001\022\r\n\005count\030\006 \001(\003B\032\n\026org" +
+      ".tribuo.protos.coreP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -191,7 +192,7 @@ public final class TribuoCore {
     internal_static_tribuo_core_ModelDataProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_ModelDataProto_descriptor,
-        new java.lang.String[] { "Name", "Provenance", "GenerateProbabilities", "FeatureDomain", "OutputDomain", });
+        new java.lang.String[] { "Name", "Provenance", "GenerateProbabilities", "FeatureDomain", "OutputDomain", "TribuoVersion", });
     internal_static_tribuo_core_OutputFactoryProto_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_tribuo_core_OutputFactoryProto_fieldAccessorTable = new
@@ -239,7 +240,7 @@ public final class TribuoCore {
     internal_static_tribuo_core_DatasetDataProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_DatasetDataProto_descriptor,
-        new java.lang.String[] { "Provenance", "FeatureDomain", "OutputDomain", "TransformProvenance", "OutputFactory", });
+        new java.lang.String[] { "Provenance", "FeatureDomain", "OutputDomain", "TransformProvenance", "OutputFactory", "TribuoVersion", });
     internal_static_tribuo_core_PredictionProto_descriptor =
       getDescriptor().getMessageTypes().get(10);
     internal_static_tribuo_core_PredictionProto_fieldAccessorTable = new

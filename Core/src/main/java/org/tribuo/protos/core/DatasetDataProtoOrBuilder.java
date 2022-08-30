@@ -90,4 +90,16 @@ public interface DatasetDataProtoOrBuilder extends
    * <code>.tribuo.core.OutputFactoryProto output_factory = 5;</code>
    */
   org.tribuo.protos.core.OutputFactoryProtoOrBuilder getOutputFactoryOrBuilder();
+
+  /**
+   * <code>string tribuo_version = 6;</code>
+   * @return The tribuoVersion.
+   */
+  java.lang.String getTribuoVersion();
+  /**
+   * <code>string tribuo_version = 6;</code>
+   * @return The bytes for tribuoVersion.
+   */
+  com.google.protobuf.ByteString
+      getTribuoVersionBytes();
 }
