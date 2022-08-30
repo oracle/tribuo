@@ -22,7 +22,10 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.DatasetDataProto;
+import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformStatistics;
@@ -56,7 +59,8 @@ import java.util.regex.Pattern;
  * Subclass {@link MutableDataset} rather than this class.
  * @param <T> the type of the features in the data set.
  */
-public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T>>, Provenancable<DatasetProvenance>, Serializable {
+public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T>>, ProtoSerializable<DatasetProto>,
+    Provenancable<DatasetProvenance>, Serializable {
     private static final long serialVersionUID = 2L;
 
     private static final Logger logger = Logger.getLogger(Dataset.class.getName());
@@ -82,6 +86,11 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
     protected final OutputFactory<T> outputFactory;
 
     /**
+     * The Tribuo version which originally created this dataset
+     */
+    protected final String tribuoVersion;
+
+    /**
      * The indices of the shuffled order.
      */
     protected int[] indices = null;
@@ -92,8 +101,19 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * @param outputFactory The output factory.
      */
     protected Dataset(DataProvenance provenance, OutputFactory<T> outputFactory) {
+        this(provenance, outputFactory, Tribuo.VERSION);
+    }
+
+    /**
+     * Creates a dataset.
+     * @param provenance A description of the data, including preprocessing steps.
+     * @param outputFactory The output factory.
+     * @param tribuoVersion The Tribuo version.
+     */
+    protected Dataset(DataProvenance provenance, OutputFactory<T> outputFactory, String tribuoVersion) {
         this.sourceProvenance = provenance;
         this.outputFactory = outputFactory;
+        this.tribuoVersion = tribuoVersion;
     }
 
     /**
@@ -102,6 +122,15 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      */
     protected Dataset(DataSource<T> dataSource) {
         this(dataSource.getProvenance(),dataSource.getOutputFactory());
+    }
+
+    /**
+     * Deserializes a dataset proto into a dataset.
+     * @param datasetProto The proto to deserialize.
+     * @return The dataset.
+     */
+    public static Dataset<?> deserialize(DatasetProto datasetProto) {
+        return ProtoUtil.deserialize(datasetProto);
     }
 
     /**
@@ -407,7 +436,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * @return The serialization data carrier.
      */
     protected DatasetDataCarrier<T> createDataCarrier(FeatureMap featureMap, OutputInfo<T> outputInfo, List<ObjectProvenance> transformationProvenances) {
-        return new DatasetDataCarrier<>(sourceProvenance,featureMap,outputInfo,outputFactory,transformationProvenances);
+        return new DatasetDataCarrier<>(sourceProvenance,featureMap,outputInfo,outputFactory,transformationProvenances,Tribuo.VERSION);
     }
 
     /**
@@ -506,6 +535,11 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         private final OutputFactory<T> outputFactory;
 
         /**
+         * The Tribuo version string.
+         */
+        private final String tribuoVersion;
+
+        /**
          * Constructs a new DatasetDataCarrier.
          * <p>
          * Will be the canonical constructor for the record form.
@@ -514,13 +548,15 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
          * @param outputDomain The output domain.
          * @param outputFactory The output factory.
          * @param transformProvenances The transform provenances.
+         * @param tribuoVersion The Tribuo version string.
          */
-        DatasetDataCarrier(DataProvenance provenance, FeatureMap featureDomain, OutputInfo<T> outputDomain, OutputFactory<T> outputFactory, List<ObjectProvenance> transformProvenances) {
+        DatasetDataCarrier(DataProvenance provenance, FeatureMap featureDomain, OutputInfo<T> outputDomain, OutputFactory<T> outputFactory, List<ObjectProvenance> transformProvenances, String tribuoVersion) {
             this.provenance = provenance;
             this.featureDomain = featureDomain;
             this.outputDomain = outputDomain;
             this.outputFactory = outputFactory;
             this.transformProvenances = Collections.unmodifiableList(transformProvenances);
+            this.tribuoVersion = tribuoVersion;
         }
 
         /**
@@ -542,7 +578,8 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
                 ObjectProvenance prov = ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(p));
                 transformProvenances.add(prov);
             }
-            return new DatasetDataCarrier<>(provenance,featureDomain,outputDomain,outputFactory,transformProvenances);
+            String tribuoVersion = proto.getTribuoVersion();
+            return new DatasetDataCarrier<>(provenance,featureDomain,outputDomain,outputFactory,transformProvenances,tribuoVersion);
         }
 
         /**
@@ -559,6 +596,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
             for (ObjectProvenance o : transformProvenances) {
                 builder.addTransformProvenance(PROVENANCE_SERIALIZER.serializeToProto(ProvenanceUtil.marshalProvenance(o)));
             }
+            builder.setTribuoVersion(tribuoVersion);
 
             return builder.build();
         }
@@ -603,17 +641,25 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
             return outputFactory;
         }
 
+        /**
+         * Gets the Tribuo version string.
+         * @return The Tribuo version string.
+         */
+        public String tribuoVersion() {
+            return tribuoVersion;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             DatasetDataCarrier<?> that = (DatasetDataCarrier<?>) o;
-            return provenance.equals(that.provenance) && featureDomain.equals(that.featureDomain) && outputDomain.equals(that.outputDomain) && transformProvenances.equals(that.transformProvenances) && outputFactory.equals(that.outputFactory);
+            return provenance.equals(that.provenance) && featureDomain.equals(that.featureDomain) && outputDomain.equals(that.outputDomain) && transformProvenances.equals(that.transformProvenances) && outputFactory.equals(that.outputFactory) && tribuoVersion.equals(that.tribuoVersion);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(provenance, featureDomain, outputDomain, transformProvenances, outputFactory);
+            return Objects.hash(provenance, featureDomain, outputDomain, transformProvenances, outputFactory, tribuoVersion);
         }
 
         @Override
@@ -624,6 +670,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
                     ", outputDomain=" + outputDomain +
                     ", transformProvenances=" + transformProvenances +
                     ", outputFactory=" + outputFactory +
+                    ", tribuoVersion=" + tribuoVersion +
                     '}';
         }
     }

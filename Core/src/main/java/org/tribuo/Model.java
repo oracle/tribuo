@@ -305,7 +305,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
      * Casts the model to the specified output type, assuming it is valid.
      * If it's not valid, throws {@link ClassCastException}.
      * <p>
-     * This method is intended for use on a deserialized model to restore it's
+     * This method is intended for use on a deserialized model to restore its
      * generic type in a safe way.
      * @param outputType The output type to cast to.
      * @param <U> The output type.
@@ -326,7 +326,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
      * @return The serialization data carrier.
      */
     protected ModelDataCarrier<T> createDataCarrier() {
-        return new ModelDataCarrier<>(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities);
+        return new ModelDataCarrier<>(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities,Tribuo.VERSION);
     }
 
     /**
@@ -363,6 +363,11 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
         private final boolean generatesProbabilities;
 
         /**
+         * The Tribuo version string.
+         */
+        private final String tribuoVersion;
+
+        /**
          * Constructs a new ModelDataCarrier.
          * <p>
          * Will be the canonical constructor for the record form.
@@ -371,13 +376,15 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
          * @param featureDomain The feature domain.
          * @param outputDomain The output domain.
          * @param generatesProbabilities Does this model generate probabilities?
+         * @param tribuoVersion The Tribuo version string.
          */
-        ModelDataCarrier(String name, ModelProvenance provenance, ImmutableFeatureMap featureDomain, ImmutableOutputInfo<T> outputDomain, boolean generatesProbabilities) {
+        ModelDataCarrier(String name, ModelProvenance provenance, ImmutableFeatureMap featureDomain, ImmutableOutputInfo<T> outputDomain, boolean generatesProbabilities, String tribuoVersion) {
             this.name = name;
             this.provenance = provenance;
             this.featureDomain = featureDomain;
             this.outputDomain = outputDomain;
             this.generatesProbabilities = generatesProbabilities;
+            this.tribuoVersion = tribuoVersion;
         }
 
         /**
@@ -421,6 +428,14 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
         }
 
         /**
+         * Gets the Tribuo version string.
+         * @return The Tribuo version string.
+         */
+        public String tribuoVersion() {
+            return tribuoVersion;
+        }
+
+        /**
          * Deserializes a {@link ModelDataProto} into a {@link ModelDataCarrier}.
          * @param proto The proto to deserialize.
          * @return The model data.
@@ -429,7 +444,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
             ModelProvenance provenance = (ModelProvenance) ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(proto.getProvenance()));
             ImmutableFeatureMap featureDomain = (ImmutableFeatureMap) FeatureMap.deserialize(proto.getFeatureDomain());
             ImmutableOutputInfo<?> outputDomain = (ImmutableOutputInfo<?>) OutputInfo.deserialize(proto.getOutputDomain());
-            return new ModelDataCarrier<>(proto.getName(),provenance,featureDomain,outputDomain,proto.getGenerateProbabilities());
+            return new ModelDataCarrier<>(proto.getName(),provenance,featureDomain,outputDomain,proto.getGenerateProbabilities(),proto.getTribuoVersion());
         }
 
         /**
@@ -444,6 +459,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
             builder.setFeatureDomain(featureDomain.serialize());
             builder.setOutputDomain(outputDomain.serialize());
             builder.setProvenance(PROVENANCE_SERIALIZER.serializeToProto(ProvenanceUtil.marshalProvenance(provenance)));
+            builder.setTribuoVersion(tribuoVersion);
 
             return builder.build();
         }
@@ -459,13 +475,13 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
             ModelDataCarrier<?> that = (ModelDataCarrier<?>) o;
             return generatesProbabilities == that.generatesProbabilities && name.equals(that.name)
                 && provenance.equals(that.provenance) && featureDomain.equals(that.featureDomain)
-                && outputDomain.equals(that.outputDomain);
+                && outputDomain.equals(that.outputDomain) && tribuoVersion.equals(that.tribuoVersion);
         }
 
         @Override
         public int hashCode() {
             return Objects.hash(name, provenance, featureDomain, outputDomain,
-                generatesProbabilities);
+                generatesProbabilities, tribuoVersion);
         }
 
         @Override
@@ -476,6 +492,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
                 ", featureDomain=" + featureDomain +
                 ", outputDomain=" + outputDomain +
                 ", generatesProbabilities=" + generatesProbabilities +
+                ", tribuoVersion=" + tribuoVersion +
                 '}';
         }
     }

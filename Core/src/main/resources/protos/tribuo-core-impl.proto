@@ -27,9 +27,6 @@ option java_package = "org.tribuo.protos.core";
 // Import Tribuo's core protos
 import "tribuo-core.proto";
 
-// Import OLCUT's provenance proto
-import "olcut_proto.proto";
-
 /*
 HashedFeatureMap proto
  */
@@ -209,4 +206,50 @@ message PredictionImplProto{
   int32 num_used = 6;
   int32 example_size = 7;
   map<string,tribuo.core.OutputProto> output_scores = 8;
+}
+
+/*
+MutableDataset proto
+ */
+message MutableDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.ExampleProto examples = 2;
+  bool dense = 3;
+}
+
+/*
+ImmutableDataset proto
+ */
+message ImmutableDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.ExampleProto examples = 2;
+  bool drop_invalid_examples = 3;
+}
+
+/*
+DatasetView proto
+ */
+message DatasetViewProto {
+  tribuo.core.DatasetProto inner_dataset = 1;
+  tribuo.core.FeatureDomainProto feature_domain = 2;
+  tribuo.core.OutputDomainProto output_domain = 3;
+  int32 size = 4;
+  repeated int32 indices = 5;
+  int64 seed = 6;
+  string tag = 7;
+  bool sampled = 8;
+  bool weighted = 9;
+  bool store_indices = 10;
+}
+
+/*
+MinimumCardinalityDataset proto
+ */
+message MinimumCardinalityDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.ExampleProto examples = 2;
+  bool drop_invalid_examples = 3;
+  int32 min_cardinality = 4;
+  int32 num_examples_removed = 5;
+  repeated string removed = 6;
 }

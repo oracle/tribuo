@@ -63,6 +63,10 @@ message ModelDataProto {
   Model output domain
    */
   OutputDomainProto output_domain = 5;
+  /*
+  Tribuo version
+   */
+  string tribuo_version = 6;
 }
 
 /*
@@ -137,6 +141,7 @@ message DatasetDataProto {
   OutputDomainProto output_domain = 3;
   repeated olcut.RootProvenanceProto transform_provenance = 4;
   OutputFactoryProto output_factory = 5;
+  string tribuo_version = 6;
 }
 
 /*
