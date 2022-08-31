@@ -436,7 +436,8 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * @return The serialization data carrier.
      */
     protected DatasetDataCarrier<T> createDataCarrier(FeatureMap featureMap, OutputInfo<T> outputInfo, List<ObjectProvenance> transformationProvenances) {
-        return new DatasetDataCarrier<>(sourceProvenance,featureMap,outputInfo,outputFactory,transformationProvenances,Tribuo.VERSION);
+        String version = tribuoVersion == null ? Tribuo.VERSION : tribuoVersion;
+        return new DatasetDataCarrier<>(sourceProvenance,featureMap,outputInfo,outputFactory,transformationProvenances,version);
     }
 
     /**
