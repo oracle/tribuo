@@ -197,9 +197,17 @@ message IndexedArrayExampleProto {
 }
 
 /*
+SequenceExample impl proto
+ */
+message SequenceExampleImplProto {
+  repeated tribuo.core.ExampleProto examples = 1;
+  float weight = 2;
+}
+
+/*
 Prediction impl proto
  */
-message PredictionImplProto{
+message PredictionImplProto {
   tribuo.core.ExampleProto example = 3;
   tribuo.core.OutputProto output = 4;
   bool probability = 5;
@@ -249,6 +257,34 @@ message MinimumCardinalityDatasetProto {
   tribuo.core.DatasetDataProto metadata = 1;
   repeated tribuo.core.ExampleProto examples = 2;
   bool drop_invalid_examples = 3;
+  int32 min_cardinality = 4;
+  int32 num_examples_removed = 5;
+  repeated string removed = 6;
+}
+
+/*
+MutableSequenceDataset proto
+ */
+message MutableSequenceDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.SequenceExampleProto examples = 2;
+  bool dense = 3;
+}
+
+/*
+ImmutableSequenceDataset proto
+ */
+message ImmutableSequenceDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.SequenceExampleProto examples = 2;
+}
+
+/*
+MinimumCardinalitySequenceDataset proto
+ */
+message MinimumCardinalitySequenceDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.SequenceExampleProto examples = 2;
   int32 min_cardinality = 4;
   int32 num_examples_removed = 5;
   repeated string removed = 6;

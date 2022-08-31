@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,8 @@
  * <p>
  * It contains two base implementations of {@link org.tribuo.Example}, one using
  * primitive arrays and one using a {@link java.util.List} of {@link org.tribuo.Feature} objects.
- * The array implementation should be preferred for performance reasons until Feature becomes a value type. There are
- * two subclasses of {@link org.tribuo.impl.ArrayExample}, one which provides an example name, and
- * the other stores the feature indices. The latter is a performance optimisation and should not be used without
- * proper consideration.
+ * The array implementation should be preferred for performance reasons until Feature becomes a value type. There is
+ * a subclass of {@link org.tribuo.impl.ArrayExample} which stores the feature indices. This is a performance
+ * optimisation and should not be used without proper consideration.
  */
 package org.tribuo.impl;

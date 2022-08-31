@@ -133,6 +133,24 @@ message DatasetProto {
 }
 
 /*
+SequenceExample redirect proto
+ */
+message SequenceExampleProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+SequenceDataset redirect proto
+ */
+message SequenceDatasetProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
 Dataset info proto
  */
 message DatasetDataProto {

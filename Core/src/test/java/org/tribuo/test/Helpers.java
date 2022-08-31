@@ -38,6 +38,8 @@ import org.tribuo.impl.ListExample;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceModel;
 
 import java.io.BufferedInputStream;
@@ -93,6 +95,34 @@ public final class Helpers {
     }
 
     /**
+     * Checks for equality between two sequence datasets.
+     * <p>
+     * Equality is defined as all examples are equal, in the same order, the output factories are the same and the
+     * feature & output domains are equal. Provenance is not compared, nor are other properties of the sequence dataset.
+     * @param first The first dataset.
+     * @param second The second dataset.
+     * @return True if the datasets are equal.
+     * @param <T> The output type.
+     */
+    public static <T extends Output<T>> boolean sequenceDatasetEquals(SequenceDataset<T> first, SequenceDataset<T> second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        for (int i = 0; i < first.size(); i++) {
+            if (!first.getExample(i).equals(second.getExample(i))) {
+                return false;
+            }
+        }
+        if (!first.getOutputFactory().equals(second.getOutputFactory())) {
+            return false;
+        }
+        if (!first.getFeatureMap().equals(second.getFeatureMap())) {
+            return false;
+        }
+        return first.getOutputInfo().equals(second.getOutputInfo());
+    }
+
+    /**
      * Checks for equality between two datasets.
      * <p>
      * Equality is defined as all examples are equal, in the same order, the output factories are the same and the
@@ -143,6 +173,16 @@ public final class Helpers {
         List<ObjectMarshalledProvenance> provenanceList = ProvenanceUtil.marshalProvenance(inputProvenance);
         ObjectProvenance unmarshalledProvenance = ProvenanceUtil.unmarshalProvenance(provenanceList);
         assertEquals(unmarshalledProvenance,inputProvenance);
+    }
+
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public static <T extends Output<T>> SequenceDataset<T> testSequenceDatasetSerialization(SequenceDataset<T> dataset) {
+        SequenceDatasetProto proto = dataset.serialize();
+        SequenceDataset deser = ProtoUtil.deserialize(proto);
+        assertEquals(dataset.getClass(),deser.getClass());
+        assertFalse(dataset == deser);
+        assertTrue(sequenceDatasetEquals(dataset, deser));
+        return deser;
     }
 
     @SuppressWarnings({"unchecked","rawtypes"})

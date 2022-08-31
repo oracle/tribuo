@@ -115,6 +115,11 @@ public final class TribuoCoreImpl {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_SequenceExampleImplProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_SequenceExampleImplProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tribuo_core_PredictionImplProto_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -144,6 +149,21 @@ public final class TribuoCoreImpl {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_core_MinimumCardinalityDatasetProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_MutableSequenceDatasetProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_MutableSequenceDatasetProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_ImmutableSequenceDatasetProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_ImmutableSequenceDatasetProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_MinimumCardinalitySequenceDatasetProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_MinimumCardinalitySequenceDatasetProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -209,36 +229,51 @@ public final class TribuoCoreImpl {
       "ribuo.core.FeatureDomainProto\0225\n\routput_" +
       "domain\030\t \001(\0132\036.tribuo.core.OutputDomainP" +
       "roto\032/\n\rMetadataEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va" +
-      "lue\030\002 \001(\t:\0028\001\"\302\002\n\023PredictionImplProto\022*\n" +
-      "\007example\030\003 \001(\0132\031.tribuo.core.ExampleProt" +
-      "o\022(\n\006output\030\004 \001(\0132\030.tribuo.core.OutputPr" +
-      "oto\022\023\n\013probability\030\005 \001(\010\022\020\n\010num_used\030\006 \001" +
-      "(\005\022\024\n\014example_size\030\007 \001(\005\022I\n\routput_score" +
-      "s\030\010 \003(\01322.tribuo.core.PredictionImplProt" +
-      "o.OutputScoresEntry\032M\n\021OutputScoresEntry" +
-      "\022\013\n\003key\030\001 \001(\t\022\'\n\005value\030\002 \001(\0132\030.tribuo.co" +
-      "re.OutputProto:\0028\001\"\202\001\n\023MutableDatasetPro" +
-      "to\022/\n\010metadata\030\001 \001(\0132\035.tribuo.core.Datas" +
-      "etDataProto\022+\n\010examples\030\002 \003(\0132\031.tribuo.c" +
-      "ore.ExampleProto\022\r\n\005dense\030\003 \001(\010\"\224\001\n\025Immu" +
-      "tableDatasetProto\022/\n\010metadata\030\001 \001(\0132\035.tr" +
-      "ibuo.core.DatasetDataProto\022+\n\010examples\030\002" +
-      " \003(\0132\031.tribuo.core.ExampleProto\022\035\n\025drop_" +
-      "invalid_examples\030\003 \001(\010\"\250\002\n\020DatasetViewPr" +
-      "oto\0220\n\rinner_dataset\030\001 \001(\0132\031.tribuo.core" +
-      ".DatasetProto\0227\n\016feature_domain\030\002 \001(\0132\037." +
-      "tribuo.core.FeatureDomainProto\0225\n\routput" +
-      "_domain\030\003 \001(\0132\036.tribuo.core.OutputDomain" +
-      "Proto\022\014\n\004size\030\004 \001(\005\022\017\n\007indices\030\005 \003(\005\022\014\n\004" +
-      "seed\030\006 \001(\003\022\013\n\003tag\030\007 \001(\t\022\017\n\007sampled\030\010 \001(\010" +
-      "\022\020\n\010weighted\030\t \001(\010\022\025\n\rstore_indices\030\n \001(" +
-      "\010\"\345\001\n\036MinimumCardinalityDatasetProto\022/\n\010" +
-      "metadata\030\001 \001(\0132\035.tribuo.core.DatasetData" +
-      "Proto\022+\n\010examples\030\002 \003(\0132\031.tribuo.core.Ex" +
-      "ampleProto\022\035\n\025drop_invalid_examples\030\003 \001(" +
-      "\010\022\027\n\017min_cardinality\030\004 \001(\005\022\034\n\024num_exampl" +
-      "es_removed\030\005 \001(\005\022\017\n\007removed\030\006 \003(\tB\032\n\026org" +
-      ".tribuo.protos.coreP\001b\006proto3"
+      "lue\030\002 \001(\t:\0028\001\"W\n\030SequenceExampleImplProt" +
+      "o\022+\n\010examples\030\001 \003(\0132\031.tribuo.core.Exampl" +
+      "eProto\022\016\n\006weight\030\002 \001(\002\"\302\002\n\023PredictionImp" +
+      "lProto\022*\n\007example\030\003 \001(\0132\031.tribuo.core.Ex" +
+      "ampleProto\022(\n\006output\030\004 \001(\0132\030.tribuo.core" +
+      ".OutputProto\022\023\n\013probability\030\005 \001(\010\022\020\n\010num" +
+      "_used\030\006 \001(\005\022\024\n\014example_size\030\007 \001(\005\022I\n\rout" +
+      "put_scores\030\010 \003(\01322.tribuo.core.Predictio" +
+      "nImplProto.OutputScoresEntry\032M\n\021OutputSc" +
+      "oresEntry\022\013\n\003key\030\001 \001(\t\022\'\n\005value\030\002 \001(\0132\030." +
+      "tribuo.core.OutputProto:\0028\001\"\202\001\n\023MutableD" +
+      "atasetProto\022/\n\010metadata\030\001 \001(\0132\035.tribuo.c" +
+      "ore.DatasetDataProto\022+\n\010examples\030\002 \003(\0132\031" +
+      ".tribuo.core.ExampleProto\022\r\n\005dense\030\003 \001(\010" +
+      "\"\224\001\n\025ImmutableDatasetProto\022/\n\010metadata\030\001" +
+      " \001(\0132\035.tribuo.core.DatasetDataProto\022+\n\010e" +
+      "xamples\030\002 \003(\0132\031.tribuo.core.ExampleProto" +
+      "\022\035\n\025drop_invalid_examples\030\003 \001(\010\"\250\002\n\020Data" +
+      "setViewProto\0220\n\rinner_dataset\030\001 \001(\0132\031.tr" +
+      "ibuo.core.DatasetProto\0227\n\016feature_domain" +
+      "\030\002 \001(\0132\037.tribuo.core.FeatureDomainProto\022" +
+      "5\n\routput_domain\030\003 \001(\0132\036.tribuo.core.Out" +
+      "putDomainProto\022\014\n\004size\030\004 \001(\005\022\017\n\007indices\030" +
+      "\005 \003(\005\022\014\n\004seed\030\006 \001(\003\022\013\n\003tag\030\007 \001(\t\022\017\n\007samp" +
+      "led\030\010 \001(\010\022\020\n\010weighted\030\t \001(\010\022\025\n\rstore_ind" +
+      "ices\030\n \001(\010\"\345\001\n\036MinimumCardinalityDataset" +
+      "Proto\022/\n\010metadata\030\001 \001(\0132\035.tribuo.core.Da" +
+      "tasetDataProto\022+\n\010examples\030\002 \003(\0132\031.tribu" +
+      "o.core.ExampleProto\022\035\n\025drop_invalid_exam" +
+      "ples\030\003 \001(\010\022\027\n\017min_cardinality\030\004 \001(\005\022\034\n\024n" +
+      "um_examples_removed\030\005 \001(\005\022\017\n\007removed\030\006 \003" +
+      "(\t\"\222\001\n\033MutableSequenceDatasetProto\022/\n\010me" +
+      "tadata\030\001 \001(\0132\035.tribuo.core.DatasetDataPr" +
+      "oto\0223\n\010examples\030\002 \003(\0132!.tribuo.core.Sequ" +
+      "enceExampleProto\022\r\n\005dense\030\003 \001(\010\"\205\001\n\035Immu" +
+      "tableSequenceDatasetProto\022/\n\010metadata\030\001 " +
+      "\001(\0132\035.tribuo.core.DatasetDataProto\0223\n\010ex" +
+      "amples\030\002 \003(\0132!.tribuo.core.SequenceExamp" +
+      "leProto\"\326\001\n&MinimumCardinalitySequenceDa" +
+      "tasetProto\022/\n\010metadata\030\001 \001(\0132\035.tribuo.co" +
+      "re.DatasetDataProto\0223\n\010examples\030\002 \003(\0132!." +
+      "tribuo.core.SequenceExampleProto\022\027\n\017min_" +
+      "cardinality\030\004 \001(\005\022\034\n\024num_examples_remove" +
+      "d\030\005 \001(\005\022\017\n\007removed\030\006 \003(\tB\032\n\026org.tribuo.p" +
+      "rotos.coreP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -365,8 +400,14 @@ public final class TribuoCoreImpl {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_IndexedArrayExampleProto_MetadataEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
-    internal_static_tribuo_core_PredictionImplProto_descriptor =
+    internal_static_tribuo_core_SequenceExampleImplProto_descriptor =
       getDescriptor().getMessageTypes().get(17);
+    internal_static_tribuo_core_SequenceExampleImplProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_SequenceExampleImplProto_descriptor,
+        new java.lang.String[] { "Examples", "Weight", });
+    internal_static_tribuo_core_PredictionImplProto_descriptor =
+      getDescriptor().getMessageTypes().get(18);
     internal_static_tribuo_core_PredictionImplProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_PredictionImplProto_descriptor,
@@ -378,29 +419,47 @@ public final class TribuoCoreImpl {
         internal_static_tribuo_core_PredictionImplProto_OutputScoresEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_tribuo_core_MutableDatasetProto_descriptor =
-      getDescriptor().getMessageTypes().get(18);
+      getDescriptor().getMessageTypes().get(19);
     internal_static_tribuo_core_MutableDatasetProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_MutableDatasetProto_descriptor,
         new java.lang.String[] { "Metadata", "Examples", "Dense", });
     internal_static_tribuo_core_ImmutableDatasetProto_descriptor =
-      getDescriptor().getMessageTypes().get(19);
+      getDescriptor().getMessageTypes().get(20);
     internal_static_tribuo_core_ImmutableDatasetProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_ImmutableDatasetProto_descriptor,
         new java.lang.String[] { "Metadata", "Examples", "DropInvalidExamples", });
     internal_static_tribuo_core_DatasetViewProto_descriptor =
-      getDescriptor().getMessageTypes().get(20);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_tribuo_core_DatasetViewProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_DatasetViewProto_descriptor,
         new java.lang.String[] { "InnerDataset", "FeatureDomain", "OutputDomain", "Size", "Indices", "Seed", "Tag", "Sampled", "Weighted", "StoreIndices", });
     internal_static_tribuo_core_MinimumCardinalityDatasetProto_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_tribuo_core_MinimumCardinalityDatasetProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_MinimumCardinalityDatasetProto_descriptor,
         new java.lang.String[] { "Metadata", "Examples", "DropInvalidExamples", "MinCardinality", "NumExamplesRemoved", "Removed", });
+    internal_static_tribuo_core_MutableSequenceDatasetProto_descriptor =
+      getDescriptor().getMessageTypes().get(23);
+    internal_static_tribuo_core_MutableSequenceDatasetProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_MutableSequenceDatasetProto_descriptor,
+        new java.lang.String[] { "Metadata", "Examples", "Dense", });
+    internal_static_tribuo_core_ImmutableSequenceDatasetProto_descriptor =
+      getDescriptor().getMessageTypes().get(24);
+    internal_static_tribuo_core_ImmutableSequenceDatasetProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_ImmutableSequenceDatasetProto_descriptor,
+        new java.lang.String[] { "Metadata", "Examples", });
+    internal_static_tribuo_core_MinimumCardinalitySequenceDatasetProto_descriptor =
+      getDescriptor().getMessageTypes().get(25);
+    internal_static_tribuo_core_MinimumCardinalitySequenceDatasetProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_MinimumCardinalitySequenceDatasetProto_descriptor,
+        new java.lang.String[] { "Metadata", "Examples", "MinCardinality", "NumExamplesRemoved", "Removed", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
   }
 

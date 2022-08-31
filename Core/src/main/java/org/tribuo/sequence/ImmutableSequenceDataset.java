@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.sequence;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -26,6 +28,10 @@ import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
 import org.tribuo.VariableInfo;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.core.ImmutableSequenceDatasetProto;
+import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.util.Merger;
@@ -42,6 +48,11 @@ import java.util.Set;
  */
 public class ImmutableSequenceDataset<T extends Output<T>> extends SequenceDataset<T> implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * A map from labels to IDs for the labels found in this dataset.
@@ -124,6 +135,62 @@ public class ImmutableSequenceDataset<T extends Output<T>> extends SequenceDatas
         super(sourceProvenance,null);
         this.featureIDMap = featureIDMap;
         this.outputIDInfo = outputIDInfo;
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param provenance The source provenance.
+     * @param factory The output factory.
+     * @param tribuoVersion The tribuo version.
+     * @param fmap The feature id map.
+     * @param outputInfo The output id info.
+     * @param examples The examples.
+     */
+    protected ImmutableSequenceDataset(DataProvenance provenance, OutputFactory<T> factory, String tribuoVersion, ImmutableFeatureMap fmap, ImmutableOutputInfo<T> outputInfo, List<SequenceExample<T>> examples) {
+        super(provenance,factory,tribuoVersion);
+        this.featureIDMap = fmap;
+        this.outputIDInfo = outputInfo;
+        this.data.addAll(examples);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static ImmutableSequenceDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ImmutableSequenceDatasetProto proto = message.unpack(ImmutableSequenceDatasetProto.class);
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
+        FeatureMap fmap = carrier.featureDomain();
+        List<SequenceExample<?>> examples = new ArrayList<>();
+        for (SequenceExampleProto e : proto.getExamplesList()) {
+            SequenceExample<?> seq = SequenceExample.deserialize(e);
+            for (Example<?> example : seq) {
+                if (example.getOutput().getClass().equals(outputClass)) {
+                    for (Feature f : example) {
+                        if (fmap.get(f.getName()) == null) {
+                            throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                        }
+                    }
+                } else {
+                    throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
+                }
+            }
+            examples.add(seq);
+        }
+        if (!(fmap instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
+        }
+        if (!(carrier.outputDomain() instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
+        }
+        return new ImmutableSequenceDataset(carrier.provenance(), carrier.outputFactory(), carrier.tribuoVersion(), (ImmutableFeatureMap) fmap, (ImmutableOutputInfo) carrier.outputDomain(), examples);
     }
 
     /**
@@ -220,6 +287,24 @@ public class ImmutableSequenceDataset<T extends Output<T>> extends SequenceDatas
     @Override
     public String toString(){
         return "ImmutableSequenceDataset(source="+ sourceProvenance.toString()+")";
+    }
+
+    @Override
+    public SequenceDatasetProto serialize() {
+        ImmutableSequenceDatasetProto.Builder datasetBuilder = ImmutableSequenceDatasetProto.newBuilder();
+
+        datasetBuilder.setMetadata(createDataCarrier(featureIDMap,outputIDInfo).serialize());
+        for (SequenceExample<T> e : data) {
+            datasetBuilder.addExamples(e.serialize());
+        }
+
+        SequenceDatasetProto.Builder builder = SequenceDatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(ImmutableSequenceDataset.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 
     @Override

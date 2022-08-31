@@ -20,6 +20,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.MutableDatasetProto;

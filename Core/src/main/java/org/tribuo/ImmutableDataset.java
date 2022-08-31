@@ -21,6 +21,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.hash.Hasher;
+import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.ImmutableDatasetProto;

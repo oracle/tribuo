@@ -284,6 +284,9 @@ public final class ProtoUtil {
             return ((MutableDouble) obj).doubleValue();
         } else if (obj.getClass().isEnum()) {
             return ((Enum<?>) obj).name();
+        } else if (obj instanceof List) {
+            List<?> list = (List<?>) obj;
+            return list.stream().map(ProtoUtil::convert).collect(Collectors.toList());
         } else if (obj instanceof int[]) {
             int[] t = (int[]) obj;
             return Arrays.stream(t).boxed().collect(Collectors.toList());
