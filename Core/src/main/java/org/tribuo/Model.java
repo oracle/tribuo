@@ -326,7 +326,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
      * @return The serialization data carrier.
      */
     protected ModelDataCarrier<T> createDataCarrier() {
-        return new ModelDataCarrier<>(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities,Tribuo.VERSION);
+        return new ModelDataCarrier<>(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities,provenance.getTribuoVersion());
     }
 
     /**
