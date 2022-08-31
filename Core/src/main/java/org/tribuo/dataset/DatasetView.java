@@ -36,7 +36,6 @@ import org.tribuo.ImmutableDataset;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
-import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.DatasetViewProto;
@@ -266,7 +265,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
      * @return A dataset view containing a bootstrap sample of the supplied dataset.
      */
     public static <T extends Output<T>> DatasetView<T> createBootstrapView(Dataset<T> dataset, int size, long seed, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> outputIDs) {
-        int[] bootstrapIndices = Util.generateBootstrapIndices(size, new SplittableRandom(seed));
+        int[] bootstrapIndices = Util.generateBootstrapIndices(size, dataset.size(), new SplittableRandom(seed));
         return new DatasetView<>(dataset, bootstrapIndices, seed, featureIDs, outputIDs, false);
     }
 
@@ -400,6 +399,14 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
     }
 
     /**
+     * The tag associated with this dataset, if it exists.
+     * @return The dataset tag.
+     */
+    public String getTag() {
+        return tag;
+    }
+
+    /**
      * Returns a copy of the indices used in this view.
      * @return The indices.
      */
@@ -413,8 +420,8 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
 
         datasetBuilder.setInnerDataset(innerDataset.serialize());
         datasetBuilder.setSize(size);
-        for (int i = 0; i < indices.length; i++) {
-            datasetBuilder.addIndices(indices[i]);
+        for (int i = 0; i < exampleIndices.length; i++) {
+            datasetBuilder.addIndices(exampleIndices[i]);
         }
         datasetBuilder.setSeed(seed);
         datasetBuilder.setTag(tag);

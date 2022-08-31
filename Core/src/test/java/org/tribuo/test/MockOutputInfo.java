@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,7 +60,7 @@ public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableO
     }
 
     private MockOutputInfo(MockOutputInfo other) {
-        labelCounts = new HashMap<>(other.labelCounter);
+        labelCounts = new HashMap<>(other.labelCounts);
         labelCounter = other.labelCounter;
         unknownCount = other.unknownCount;
         labels = new HashMap<>(other.labels);
@@ -128,7 +129,7 @@ public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableO
         OutputDomainProto.Builder outputBuilder = OutputDomainProto.newBuilder();
 
         outputBuilder.setVersion(0);
-        outputBuilder.setClassName(this.getClass().getName());
+        outputBuilder.setClassName(MockOutputInfo.class.getName());
         outputBuilder.setSerializedData(Any.pack(protoBuilder.build()));
 
         return outputBuilder.build();
@@ -235,6 +236,25 @@ public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableO
     public boolean domainAndIDEquals(ImmutableOutputInfo<MockOutput> other) {
         MockOutputInfo otherInfo = (MockOutputInfo) other;
         return otherInfo.idLabelMap.equals(idLabelMap);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MockOutputInfo pairs = (MockOutputInfo) o;
+        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
+            MutableLong other = pairs.labelCounts.get(e.getKey());
+            if (other == null || (other.longValue() != e.getValue().longValue())) {
+                return false;
+            }
+        }
+        return unknownCount == pairs.unknownCount && labelCounter == pairs.labelCounter && labels.equals(pairs.labels) && idLabelMap.equals(pairs.idLabelMap) && labelIDMap.equals(pairs.labelIDMap);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(unknownCount, labelCounter, labels, idLabelMap, labelIDMap);
     }
 
     @Override

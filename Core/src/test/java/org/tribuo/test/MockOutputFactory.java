@@ -17,6 +17,7 @@
 package org.tribuo.test;
 
 import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.ImmutableOutputInfo;
@@ -48,7 +49,7 @@ public class MockOutputFactory implements OutputFactory<MockOutput> {
         if (version < 0 || version > 0) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }
-        if (message != null) {
+        if (message.getValue() != ByteString.EMPTY) {
             throw new IllegalArgumentException("Invalid proto");
         }
         return new MockOutputFactory();

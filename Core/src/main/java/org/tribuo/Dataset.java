@@ -566,7 +566,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
          */
         @SuppressWarnings({"unchecked", "rawtypes"}) // guarded by a getClass check
         public static DatasetDataCarrier<?> deserialize(DatasetDataProto proto) {
-            DataProvenance provenance = (DatasetProvenance) ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(proto.getProvenance()));
+            DataProvenance provenance = (DataProvenance) ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(proto.getProvenance()));
             FeatureMap featureDomain = FeatureMap.deserialize(proto.getFeatureDomain());
             OutputInfo outputDomain = OutputInfo.deserialize(proto.getOutputDomain());
             OutputFactory outputFactory = OutputFactory.deserialize(proto.getOutputFactory());
