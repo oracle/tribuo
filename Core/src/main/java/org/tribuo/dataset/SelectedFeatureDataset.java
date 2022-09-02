@@ -16,6 +16,8 @@
 
 package org.tribuo.dataset;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
@@ -27,13 +29,18 @@ import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.Output;
-import org.tribuo.OutputInfo;
+import org.tribuo.OutputFactory;
 import org.tribuo.SelectedFeatureSet;
-import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.ExampleProto;
+import org.tribuo.protos.core.SelectedFeatureDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.FeatureSetProvenance;
@@ -41,6 +48,7 @@ import org.tribuo.provenance.FeatureSetProvenance;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -60,13 +68,18 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
 
     private static final Logger logger = Logger.getLogger(SelectedFeatureDataset.class.getName());
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final int k;
 
     private final SelectedFeatureSet featureSet;
 
     private final Set<String> selectedFeatures;
 
-    private int numExamplesRemoved = 0;
+    private final int numExamplesRemoved;
 
     /**
      * Constructs a selected feature dataset using all the features in the supplied feature set.
@@ -89,7 +102,7 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
         this.k = k;
 
         // Validate feature set & k
-        Set<String> tmpFeatures = new HashSet<>();
+        Set<String> tmpFeatures = new LinkedHashSet<>();
         if (k == 0 || featureSet.featureNames().size() == 0) {
             throw new IllegalArgumentException("Tried to select zero features.");
         } else if (k != -1 && !featureSet.isOrdered()) {
@@ -116,6 +129,7 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
             throw new IllegalArgumentException("The selected feature set had no overlap with the supplied dataset.");
         }
 
+        int tmpNumExamplesRemoved = 0;
         // Generate feature subset examples, dropping any empty examples
         MutableFeatureMap featureMap = new MutableFeatureMap();
         MutableOutputInfo<T> outputInfo = dataset.getOutputFactory().generateInfo();
@@ -141,17 +155,88 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
                 data.add(copy);
                 outputInfo.observe(ex.getOutput());
             } else {
-                numExamplesRemoved++;
+                tmpNumExamplesRemoved++;
             }
         }
+        numExamplesRemoved = tmpNumExamplesRemoved;
 
         // Rebuild feature and output maps
         this.featureIDMap = new ImmutableFeatureMap(featureMap);
         this.outputIDInfo = outputInfo.generateImmutableOutputInfo();
 
-        if(numExamplesRemoved > 0) {
-            logger.info(String.format("filtered out %d examples because it had zero features after the selected feature set was applied.", numExamplesRemoved));
+        if (numExamplesRemoved > 0) {
+            logger.info(String.format("filtered out %d examples because they had zero features after the selected feature set was applied.", numExamplesRemoved));
         }
+    }
+
+    private SelectedFeatureDataset(DataProvenance provenance, OutputFactory<T> factory, String tribuoVersion,
+                                   ImmutableFeatureMap fmap, ImmutableOutputInfo<T> outputInfo,
+                                   List<Example<T>> examples, int k, SelectedFeatureSet featureSet,
+                                   Set<String> selectedFeatures, int numExamplesRemoved) {
+        super(provenance,factory,tribuoVersion,fmap,outputInfo,examples,false);
+        this.k = k;
+        this.selectedFeatures = Collections.unmodifiableSet(selectedFeatures);
+        this.featureSet = featureSet;
+        this.numExamplesRemoved = numExamplesRemoved;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static SelectedFeatureDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        SelectedFeatureDatasetProto proto = message.unpack(SelectedFeatureDatasetProto.class);
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
+        FeatureMap fmap = carrier.featureDomain();
+        List<Example<?>> examples = new ArrayList<>();
+        for (ExampleProto e : proto.getExamplesList()) {
+            Example<?> example = Example.deserialize(e);
+            if (example.getOutput().getClass().equals(outputClass)) {
+                for (Feature f : example) {
+                    if (fmap.get(f.getName()) == null) {
+                        throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                    }
+                }
+                examples.add(example);
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
+            }
+        }
+        if (!(fmap instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
+        }
+        if (!(carrier.outputDomain() instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
+        }
+        int k = proto.getK();
+        if ((k < 1) && (k != -1)) {
+            throw new IllegalStateException("Invalid protobuf, k must be positive or -1, found " + k);
+        }
+        int numRemoved = proto.getNumExamplesRemoved();
+        if (numRemoved < 0) {
+            throw new IllegalStateException("Invalid protobuf, number of examples removed must be non-negative, found " + numRemoved);
+        }
+        SelectedFeatureSet featureSet = ProtoUtil.deserialize(proto.getFeatureSet());
+        List<String> featureList = proto.getSelectedFeaturesList();
+        Set<String> selectedFeatures = new LinkedHashSet<>(featureList);
+        if (selectedFeatures.size() != featureList.size()) {
+            throw new IllegalStateException("Invalid protobuf, selected features contained duplicates, features = " + featureList);
+        }
+        for (String s : selectedFeatures) {
+            if (fmap.get(s) == null) {
+                throw new IllegalStateException("Invalid protobuf, some selected features were not found in the feature domain.");
+            }
+        }
+        return new SelectedFeatureDataset(carrier.provenance(), carrier.outputFactory(), carrier.tribuoVersion(),
+                (ImmutableFeatureMap) fmap, (ImmutableOutputInfo) carrier.outputDomain(), examples,
+                k, featureSet, selectedFeatures, numRemoved);
     }
 
     /**
@@ -191,6 +276,28 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
     @Override
     public DatasetProvenance getProvenance() {
         return new SelectedFeatureDatasetProvenance(this);
+    }
+
+    @Override
+    public DatasetProto serialize() {
+        SelectedFeatureDatasetProto.Builder datasetBuilder = SelectedFeatureDatasetProto.newBuilder();
+
+        datasetBuilder.setMetadata(createDataCarrier(featureIDMap,outputIDInfo).serialize());
+        for (Example<T> e : data) {
+            datasetBuilder.addExamples(e.serialize());
+        }
+        datasetBuilder.setNumExamplesRemoved(numExamplesRemoved);
+        datasetBuilder.setK(k);
+        datasetBuilder.setFeatureSet(featureSet.serialize());
+        datasetBuilder.addAllSelectedFeatures(selectedFeatures);
+
+        DatasetProto.Builder builder = DatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(SelectedFeatureDataset.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 
     /**

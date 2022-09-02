@@ -16,27 +16,49 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import java.io.Serializable;
+
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.FeatureSetProto;
+import org.tribuo.protos.core.SelectedFeatureSetProto;
 import org.tribuo.provenance.FeatureSetProvenance;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A record-like class for a selected feature set.
  * <p>
  * Uses record style accessors as it may be refactored into a record one day.
  */
-public final class SelectedFeatureSet implements Provenancable<FeatureSetProvenance>, Serializable {
+@ProtoSerializableClass(serializedDataClass = SelectedFeatureSetProto.class, version = SelectedFeatureSet.CURRENT_VERSION)
+public final class SelectedFeatureSet implements ProtoSerializable<FeatureSetProto>, Provenancable<FeatureSetProvenance>, Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    @ProtoSerializableField
     private final List<String> featureNames;
 
+    @ProtoSerializableField
     private final List<Double> featureScores;
 
+    @ProtoSerializableField
     private final FeatureSetProvenance provenance;
 
+    @ProtoSerializableField(name="ordered")
     private final boolean isOrdered;
 
     /**
@@ -51,6 +73,29 @@ public final class SelectedFeatureSet implements Provenancable<FeatureSetProvena
         this.featureScores = Collections.unmodifiableList(featureScores);
         this.isOrdered = isOrdered;
         this.provenance = provenance;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static SelectedFeatureSet deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        SelectedFeatureSetProto proto = message.unpack(SelectedFeatureSetProto.class);
+        if (proto.getFeatureNamesCount() != proto.getFeatureScoresCount()) {
+            throw new IllegalStateException("Invalid protobuf, mismatch between the number of features and the number of scores, found " + proto.getFeatureNamesCount() + " features and " + proto.getFeatureScoresCount() + " scores");
+        }
+        ObjectProvenance prov = ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(proto.getProvenance()));
+        if (!(prov instanceof FeatureSetProvenance)) {
+            throw new IllegalStateException("Invalid protobuf, provenance was not a FeatureSetProvenance, found " + prov.getClass());
+        }
+        FeatureSetProvenance fsProv = (FeatureSetProvenance) prov;
+        return new SelectedFeatureSet(proto.getFeatureNamesList(),proto.getFeatureScoresList(),proto.getOrdered(),fsProv);
     }
 
     /**
@@ -90,6 +135,24 @@ public final class SelectedFeatureSet implements Provenancable<FeatureSetProvena
      */
     public boolean isOrdered() {
         return isOrdered;
+    }
+
+    @Override
+    public FeatureSetProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SelectedFeatureSet that = (SelectedFeatureSet) o;
+        return isOrdered == that.isOrdered && featureNames.equals(that.featureNames) && featureScores.equals(that.featureScores) && provenance.equals(that.provenance);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(featureNames, featureScores, provenance, isOrdered);
     }
 
     @Override

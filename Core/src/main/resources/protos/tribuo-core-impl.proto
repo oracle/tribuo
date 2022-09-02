@@ -24,6 +24,9 @@ package tribuo.core;
 option java_multiple_files = true;
 option java_package = "org.tribuo.protos.core";
 
+// Import OLCUT's provenance proto
+import "olcut_proto.proto";
+
 // Import Tribuo's core protos
 import "tribuo-core.proto";
 
@@ -299,3 +302,26 @@ message WeightedEnsembleModelProto {
   repeated float weights = 3;
   tribuo.core.EnsembleCombinerProto combiner = 4;
 }
+
+/*
+SelectedFeatureSet proto
+ */
+message SelectedFeatureSetProto {
+  repeated string feature_names = 1;
+  repeated double feature_scores = 2;
+  olcut.RootProvenanceProto provenance = 3;
+  bool ordered = 4;
+}
+
+/*
+SelectedFeatureDataset proto
+ */
+message SelectedFeatureDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.ExampleProto examples = 2;
+  int32 k = 3;
+  tribuo.core.FeatureSetProto feature_set = 4;
+  repeated string selected_features = 5;
+  int32 num_examples_removed = 6;
+}
+

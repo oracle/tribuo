@@ -235,3 +235,12 @@ message MeanVarianceProto {
   double sumSquares = 5;
   int64 count = 6;
 }
+
+/*
+Feature set redirection proto
+ */
+message FeatureSetProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}

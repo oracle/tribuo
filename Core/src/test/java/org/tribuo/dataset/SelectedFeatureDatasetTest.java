@@ -81,6 +81,8 @@ public class SelectedFeatureDatasetTest {
 
         SelectedFeatureSet sfs = f.select(data);
 
+        Helpers.testProtoSerialization(sfs);
+
         SelectedFeatureDataset<MockOutput> selected = new SelectedFeatureDataset<>(data,sfs);
 
         assertEquals(3, selected.getNumExamplesRemoved());
@@ -93,6 +95,9 @@ public class SelectedFeatureDatasetTest {
         assertEquals(3,ifm.get("E").getCount());
 
         Helpers.testProvenanceMarshalling(selected.getProvenance());
+
+        SelectedFeatureDataset<MockOutput> deser = (SelectedFeatureDataset<MockOutput>) Helpers.testDatasetSerialization(selected);
+        assertEquals(sfs, deser.getFeatureSet());
     }
 
 }
