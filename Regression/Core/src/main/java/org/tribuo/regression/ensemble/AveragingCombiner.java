@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package org.tribuo.regression.ensemble;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.protos.core.EnsembleCombinerProto;
 import org.tribuo.regression.Regressor;
 import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXInitializer;
@@ -43,9 +46,39 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     private static final long serialVersionUID = 1L;
 
     /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    /**
      * Constructs an averaging combiner.
      */
     public AveragingCombiner() {}
+
+    /**
+     * Deserialization factory.
+     *
+     * @param version   The serialized object version.
+     * @param className The class name.
+     * @param message   The serialized data.
+     */
+    public static AveragingCombiner deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new AveragingCombiner();
+    }
+
+    @Override
+    public EnsembleCombinerProto serialize() {
+        EnsembleCombinerProto.Builder combinerProto = EnsembleCombinerProto.newBuilder();
+        combinerProto.setClassName(this.getClass().getName());
+        combinerProto.setVersion(CURRENT_VERSION);
+        return combinerProto.build();
+    }
 
     @Override
     public Prediction<Regressor> combine(ImmutableOutputInfo<Regressor> outputInfo, List<Prediction<Regressor>> predictions) {
@@ -173,5 +206,15 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
         // Take the mean
         return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))
                 .apply(ONNXOperators.DIV, weightSum);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof AveragingCombiner;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
     }
 }

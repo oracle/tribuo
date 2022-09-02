@@ -37,11 +37,9 @@ public interface TransformerMapProtoOrBuilder extends
    * <code>map&lt;string, .tribuo.core.TransformerListProto&gt; transformers = 2;</code>
    */
 
-  /* nullable */
-org.tribuo.protos.core.TransformerListProto getTransformersOrDefault(
+  org.tribuo.protos.core.TransformerListProto getTransformersOrDefault(
       java.lang.String key,
-      /* nullable */
-org.tribuo.protos.core.TransformerListProto defaultValue);
+      org.tribuo.protos.core.TransformerListProto defaultValue);
   /**
    * <code>map&lt;string, .tribuo.core.TransformerListProto&gt; transformers = 2;</code>
    */

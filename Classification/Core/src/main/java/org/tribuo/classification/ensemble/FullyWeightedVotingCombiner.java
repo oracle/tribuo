@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.classification.ensemble;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Example;
@@ -23,6 +25,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.protos.core.EnsembleCombinerProto;
 import org.tribuo.util.onnx.ONNXInitializer;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXOperators;
@@ -44,9 +47,39 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
     private static final long serialVersionUID = 1L;
 
     /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    /**
      * Constructs a weighted voting combiner.
      */
     public FullyWeightedVotingCombiner() {}
+
+    /**
+     * Deserialization factory.
+     *
+     * @param version   The serialized object version.
+     * @param className The class name.
+     * @param message   The serialized data.
+     */
+    public static FullyWeightedVotingCombiner deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new FullyWeightedVotingCombiner();
+    }
+
+    @Override
+    public EnsembleCombinerProto serialize() {
+        EnsembleCombinerProto.Builder combinerProto = EnsembleCombinerProto.newBuilder();
+        combinerProto.setClassName(this.getClass().getName());
+        combinerProto.setVersion(CURRENT_VERSION);
+        return combinerProto.build();
+    }
 
     @Override
     public Prediction<Label> combine(ImmutableOutputInfo<Label> outputInfo, List<Prediction<Label>> predictions) {
@@ -68,11 +101,11 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
 
         double maxScore = Double.NEGATIVE_INFINITY;
         Label maxLabel = null;
-        Map<String,Label> predictionMap = new LinkedHashMap<>();
+        Map<String, Label> predictionMap = new LinkedHashMap<>();
         for (int i = 0; i < score.length; i++) {
             String name = outputInfo.getOutput(i).getLabel();
-            Label label = new Label(name,score[i]/sum);
-            predictionMap.put(name,label);
+            Label label = new Label(name, score[i] / sum);
+            predictionMap.put(name, label);
             if (label.getScore() > maxScore) {
                 maxScore = label.getScore();
                 maxLabel = label;
@@ -81,13 +114,13 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
 
         Example<Label> example = predictions.get(0).getExample();
 
-        return new Prediction<>(maxLabel,predictionMap,numUsed,example,true);
+        return new Prediction<>(maxLabel, predictionMap, numUsed, example, true);
     }
 
     @Override
     public Prediction<Label> combine(ImmutableOutputInfo<Label> outputInfo, List<Prediction<Label>> predictions, float[] weights) {
         if (predictions.size() != weights.length) {
-            throw new IllegalArgumentException("predictions and weights must be the same length. predictions.size()="+predictions.size()+", weights.length="+weights.length);
+            throw new IllegalArgumentException("predictions and weights must be the same length. predictions.size()=" + predictions.size() + ", weights.length=" + weights.length);
         }
         int numUsed = 0;
         double sum = 0.0;
@@ -106,11 +139,11 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
 
         double maxScore = Double.NEGATIVE_INFINITY;
         Label maxLabel = null;
-        Map<String,Label> predictionMap = new LinkedHashMap<>();
+        Map<String, Label> predictionMap = new LinkedHashMap<>();
         for (int i = 0; i < score.length; i++) {
             String name = outputInfo.getOutput(i).getLabel();
-            Label label = new Label(name,score[i]/sum);
-            predictionMap.put(name,label);
+            Label label = new Label(name, score[i] / sum);
+            predictionMap.put(name, label);
             if (label.getScore() > maxScore) {
                 maxScore = label.getScore();
                 maxLabel = label;
@@ -119,7 +152,7 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
 
         Example<Label> example = predictions.get(0).getExample();
 
-        return new Prediction<>(maxLabel,predictionMap,numUsed,example,true);
+        return new Prediction<>(maxLabel, predictionMap, numUsed, example, true);
     }
 
     @Override
@@ -129,22 +162,23 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
 
     @Override
     public ConfiguredObjectProvenance getProvenance() {
-        return new ConfiguredObjectProvenanceImpl(this,"EnsembleCombiner");
+        return new ConfiguredObjectProvenanceImpl(this, "EnsembleCombiner");
     }
 
     /**
      * Exports this voting combiner to ONNX.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
+     *
      * @param input the node to be ensembled according to this implementation.
      * @return The leaf node of the voting operation.
      */
     @Override
     public ONNXNode exportCombiner(ONNXNode input) {
         // Take the mean over the maxed predictions
-        Map<String,Object> attributes = new HashMap<>();
-        attributes.put("axes",new int[]{2});
-        attributes.put("keepdims",0);
+        Map<String, Object> attributes = new HashMap<>();
+        attributes.put("axes", new int[]{2});
+        attributes.put("keepdims", 0);
         return input.apply(ONNXOperators.REDUCE_MEAN, attributes);
     }
 
@@ -152,7 +186,8 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
      * Exports this voting combiner to ONNX.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
-     * @param input the node to be ensembled according to this implementation.
+     *
+     * @param input  the node to be ensembled according to this implementation.
      * @param weight The node of weights for ensembling.
      * @return The leaf node of the voting operation.
      */
@@ -174,5 +209,15 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
         ONNXInitializer sumAxes = input.onnxContext().array("sum_across_ensemble_axes", new long[]{2});
         return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))
                 .apply(ONNXOperators.DIV, weightSum);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof FullyWeightedVotingCombiner;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
     }
 }

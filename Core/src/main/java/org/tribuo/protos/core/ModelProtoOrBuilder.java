@@ -8,150 +8,35 @@ public interface ModelProtoOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <pre>
-   *Version number of the model proto
-   * </pre>
-   *
    * <code>int32 version = 1;</code>
    * @return The version.
    */
   int getVersion();
 
   /**
-   * <pre>
-   *The model name
-   * </pre>
-   *
-   * <code>string name = 2;</code>
-   * @return The name.
+   * <code>string class_name = 2;</code>
+   * @return The className.
    */
-  java.lang.String getName();
+  java.lang.String getClassName();
   /**
-   * <pre>
-   *The model name
-   * </pre>
-   *
-   * <code>string name = 2;</code>
-   * @return The bytes for name.
+   * <code>string class_name = 2;</code>
+   * @return The bytes for className.
    */
   com.google.protobuf.ByteString
-      getNameBytes();
+      getClassNameBytes();
 
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return Whether the provenance field is set.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return Whether the serializedData field is set.
    */
-  boolean hasProvenance();
+  boolean hasSerializedData();
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return The provenance.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return The serializedData.
    */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance();
+  com.google.protobuf.Any getSerializedData();
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
    */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder();
-
-  /**
-   * <pre>
-   *Does the model generate probabilities
-   * </pre>
-   *
-   * <code>bool generate_probabilities = 4;</code>
-   * @return The generateProbabilities.
-   */
-  boolean getGenerateProbabilities();
-
-  /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-   * @return Whether the featureDomain field is set.
-   */
-  boolean hasFeatureDomain();
-  /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-   * @return The featureDomain.
-   */
-  org.tribuo.protos.core.FeatureDomainProto getFeatureDomain();
-  /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-   */
-  org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder();
-
-  /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
-   * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-   * @return Whether the outputDomain field is set.
-   */
-  boolean hasOutputDomain();
-  /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
-   * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-   * @return The outputDomain.
-   */
-  org.tribuo.protos.core.OutputDomainProto getOutputDomain();
-  /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
-   * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-   */
-  org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder();
-
-  /**
-   * <pre>
-   *Model data
-   * </pre>
-   *
-   * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-   * @return Whether the modelData field is set.
-   */
-  boolean hasModelData();
-  /**
-   * <pre>
-   *Model data
-   * </pre>
-   *
-   * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-   * @return The modelData.
-   */
-  org.tribuo.protos.core.ModelDataProto getModelData();
-  /**
-   * <pre>
-   *Model data
-   * </pre>
-   *
-   * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-   */
-  org.tribuo.protos.core.ModelDataProtoOrBuilder getModelDataOrBuilder();
+  com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder();
 }

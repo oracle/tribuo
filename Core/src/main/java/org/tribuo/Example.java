@@ -17,6 +17,9 @@
 package org.tribuo;
 
 import org.tribuo.hash.HashedFeatureMap;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.util.Merger;
@@ -41,10 +44,13 @@ import java.util.Optional;
  * Examples have metadata associated with them, stored as a map from a String key, to
  * an Object value. This metadata is append only for any given example, and the metadata
  * values should be immutable (as they will be referenced rather than copied when an
- * example is copied).
+ * example is copied). Values with are not {@link Serializable} will cause exceptions if
+ * the example is serialized. Note protobuf serialization only supports string values, and will
+ * coerce all values to strings before serialization. In a future release metadata will only
+ * support {@link String} values.
  * @param <T> The type of output that this example contains.
  */
-public abstract class Example<T extends Output<T>> implements Iterable<Feature>, Serializable {
+public abstract class Example<T extends Output<T>> implements Iterable<Feature>, ProtoSerializable<ExampleProto>, Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -353,4 +359,13 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
      * @param featureMap The feature map containing canonical feature names.
      */
     public abstract void canonicalize(FeatureMap featureMap);
+
+    /**
+     * Deserializes an example proto into an example.
+     * @param proto The proto to deserialize.
+     * @return The deserialized example.
+     */
+    public static Example<?> deserialize(ExampleProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }

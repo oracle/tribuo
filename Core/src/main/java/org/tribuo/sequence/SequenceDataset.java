@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,10 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
+import org.tribuo.Tribuo;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.core.SequenceDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
@@ -44,7 +48,7 @@ import java.util.logging.Logger;
  *
  * @param <T> the type of the outputs in the data set.
  */
-public abstract class SequenceDataset<T extends Output<T>> implements Iterable<SequenceExample<T>>, Provenancable<DatasetProvenance>, Serializable {
+public abstract class SequenceDataset<T extends Output<T>> implements Iterable<SequenceExample<T>>, ProtoSerializable<SequenceDatasetProto>, Provenancable<DatasetProvenance>, Serializable {
     private static final Logger logger = Logger.getLogger(SequenceDataset.class.getName());
     private static final long serialVersionUID = 2L;
 
@@ -59,13 +63,23 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
     protected final List<SequenceExample<T>> data = new ArrayList<>();
 
     /**
+     * The version of Tribuo which created this dataset.
+     */
+    protected final String tribuoVersion;
+
+    /**
      * The provenance of the data source, extracted on construction.
      */
     protected final DataProvenance sourceProvenance;
 
     protected SequenceDataset(DataProvenance sourceProvenance, OutputFactory<T> outputFactory) {
+        this(sourceProvenance, outputFactory, Tribuo.VERSION);
+    }
+
+    protected SequenceDataset(DataProvenance sourceProvenance, OutputFactory<T> outputFactory, String tribuoVersion) {
         this.sourceProvenance = sourceProvenance;
         this.outputFactory = outputFactory;
+        this.tribuoVersion = tribuoVersion;
     }
 
     /**
@@ -171,6 +185,17 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
     @Override
     public String toString() {
         return "SequenceDataset(source=" + sourceProvenance.toString() + ")";
+    }
+
+    /**
+     * Constructs the data carrier for serialization.
+     * @param featureMap The feature domain.
+     * @param outputInfo The output domain.
+     * @return The serialization data carrier.
+     */
+    protected DatasetDataCarrier<T> createDataCarrier(FeatureMap featureMap, OutputInfo<T> outputInfo) {
+        String version = tribuoVersion == null ? Tribuo.VERSION : tribuoVersion;
+        return new DatasetDataCarrier<>(sourceProvenance,featureMap,outputInfo,outputFactory,Collections.emptyList(),version);
     }
 
     private static class FlatDataset<T extends Output<T>> extends ImmutableDataset<T> {

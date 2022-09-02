@@ -5,7 +5,7 @@ package org.tribuo.protos.core;
 
 /**
  * <pre>
- *Dataset proto
+ *Dataset redirect proto
  * </pre>
  *
  * Protobuf type {@code tribuo.core.DatasetProto}
@@ -21,7 +21,6 @@ private static final long serialVersionUID = 0L;
   }
   private DatasetProto() {
     className_ = "";
-    examples_ = java.util.Collections.emptyList();
   }
 
   @java.lang.Override
@@ -44,7 +43,6 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
-    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -67,62 +65,14 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder subBuilder = null;
-            if (provenance_ != null) {
-              subBuilder = provenance_.toBuilder();
+            com.google.protobuf.Any.Builder subBuilder = null;
+            if (serializedData_ != null) {
+              subBuilder = serializedData_.toBuilder();
             }
-            provenance_ = input.readMessage(com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.parser(), extensionRegistry);
+            serializedData_ = input.readMessage(com.google.protobuf.Any.parser(), extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(provenance_);
-              provenance_ = subBuilder.buildPartial();
-            }
-
-            break;
-          }
-          case 34: {
-            org.tribuo.protos.core.FeatureDomainProto.Builder subBuilder = null;
-            if (featureDomain_ != null) {
-              subBuilder = featureDomain_.toBuilder();
-            }
-            featureDomain_ = input.readMessage(org.tribuo.protos.core.FeatureDomainProto.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(featureDomain_);
-              featureDomain_ = subBuilder.buildPartial();
-            }
-
-            break;
-          }
-          case 42: {
-            org.tribuo.protos.core.OutputDomainProto.Builder subBuilder = null;
-            if (outputDomain_ != null) {
-              subBuilder = outputDomain_.toBuilder();
-            }
-            outputDomain_ = input.readMessage(org.tribuo.protos.core.OutputDomainProto.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(outputDomain_);
-              outputDomain_ = subBuilder.buildPartial();
-            }
-
-            break;
-          }
-          case 50: {
-            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              examples_ = new java.util.ArrayList<org.tribuo.protos.core.ExampleProto>();
-              mutable_bitField0_ |= 0x00000001;
-            }
-            examples_.add(
-                input.readMessage(org.tribuo.protos.core.ExampleProto.parser(), extensionRegistry));
-            break;
-          }
-          case 58: {
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.Builder subBuilder = null;
-            if (transformProvenance_ != null) {
-              subBuilder = transformProvenance_.toBuilder();
-            }
-            transformProvenance_ = input.readMessage(com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(transformProvenance_);
-              transformProvenance_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(serializedData_);
+              serializedData_ = subBuilder.buildPartial();
             }
 
             break;
@@ -138,15 +88,10 @@ private static final long serialVersionUID = 0L;
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
       throw e.setUnfinishedMessage(this);
-    } catch (com.google.protobuf.UninitializedMessageException e) {
-      throw e.asInvalidProtocolBufferException().setUnfinishedMessage(this);
     } catch (java.io.IOException e) {
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
     } finally {
-      if (((mutable_bitField0_ & 0x00000001) != 0)) {
-        examples_ = java.util.Collections.unmodifiableList(examples_);
-      }
       this.unknownFields = unknownFields.build();
       makeExtensionsImmutable();
     }
@@ -213,148 +158,30 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int PROVENANCE_FIELD_NUMBER = 3;
-  private com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto provenance_;
+  public static final int SERIALIZED_DATA_FIELD_NUMBER = 3;
+  private com.google.protobuf.Any serializedData_;
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return Whether the provenance field is set.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return Whether the serializedData field is set.
    */
   @java.lang.Override
-  public boolean hasProvenance() {
-    return provenance_ != null;
+  public boolean hasSerializedData() {
+    return serializedData_ != null;
   }
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return The provenance.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return The serializedData.
    */
   @java.lang.Override
-  public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance() {
-    return provenance_ == null ? com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.getDefaultInstance() : provenance_;
+  public com.google.protobuf.Any getSerializedData() {
+    return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
   }
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
    */
   @java.lang.Override
-  public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder() {
-    return getProvenance();
-  }
-
-  public static final int FEATURE_DOMAIN_FIELD_NUMBER = 4;
-  private org.tribuo.protos.core.FeatureDomainProto featureDomain_;
-  /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-   * @return Whether the featureDomain field is set.
-   */
-  @java.lang.Override
-  public boolean hasFeatureDomain() {
-    return featureDomain_ != null;
-  }
-  /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-   * @return The featureDomain.
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.FeatureDomainProto getFeatureDomain() {
-    return featureDomain_ == null ? org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
-  }
-  /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder() {
-    return getFeatureDomain();
-  }
-
-  public static final int OUTPUT_DOMAIN_FIELD_NUMBER = 5;
-  private org.tribuo.protos.core.OutputDomainProto outputDomain_;
-  /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-   * @return Whether the outputDomain field is set.
-   */
-  @java.lang.Override
-  public boolean hasOutputDomain() {
-    return outputDomain_ != null;
-  }
-  /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-   * @return The outputDomain.
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.OutputDomainProto getOutputDomain() {
-    return outputDomain_ == null ? org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
-  }
-  /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder() {
-    return getOutputDomain();
-  }
-
-  public static final int EXAMPLES_FIELD_NUMBER = 6;
-  private java.util.List<org.tribuo.protos.core.ExampleProto> examples_;
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  @java.lang.Override
-  public java.util.List<org.tribuo.protos.core.ExampleProto> getExamplesList() {
-    return examples_;
-  }
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  @java.lang.Override
-  public java.util.List<? extends org.tribuo.protos.core.ExampleProtoOrBuilder> 
-      getExamplesOrBuilderList() {
-    return examples_;
-  }
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  @java.lang.Override
-  public int getExamplesCount() {
-    return examples_.size();
-  }
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.ExampleProto getExamples(int index) {
-    return examples_.get(index);
-  }
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.ExampleProtoOrBuilder getExamplesOrBuilder(
-      int index) {
-    return examples_.get(index);
-  }
-
-  public static final int TRANSFORM_PROVENANCE_FIELD_NUMBER = 7;
-  private com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto transformProvenance_;
-  /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   * @return Whether the transformProvenance field is set.
-   */
-  @java.lang.Override
-  public boolean hasTransformProvenance() {
-    return transformProvenance_ != null;
-  }
-  /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   * @return The transformProvenance.
-   */
-  @java.lang.Override
-  public com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto getTransformProvenance() {
-    return transformProvenance_ == null ? com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.getDefaultInstance() : transformProvenance_;
-  }
-  /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   */
-  @java.lang.Override
-  public com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder getTransformProvenanceOrBuilder() {
-    return getTransformProvenance();
+  public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+    return getSerializedData();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -377,20 +204,8 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, className_);
     }
-    if (provenance_ != null) {
-      output.writeMessage(3, getProvenance());
-    }
-    if (featureDomain_ != null) {
-      output.writeMessage(4, getFeatureDomain());
-    }
-    if (outputDomain_ != null) {
-      output.writeMessage(5, getOutputDomain());
-    }
-    for (int i = 0; i < examples_.size(); i++) {
-      output.writeMessage(6, examples_.get(i));
-    }
-    if (transformProvenance_ != null) {
-      output.writeMessage(7, getTransformProvenance());
+    if (serializedData_ != null) {
+      output.writeMessage(3, getSerializedData());
     }
     unknownFields.writeTo(output);
   }
@@ -408,25 +223,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, className_);
     }
-    if (provenance_ != null) {
+    if (serializedData_ != null) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getProvenance());
-    }
-    if (featureDomain_ != null) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(4, getFeatureDomain());
-    }
-    if (outputDomain_ != null) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(5, getOutputDomain());
-    }
-    for (int i = 0; i < examples_.size(); i++) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(6, examples_.get(i));
-    }
-    if (transformProvenance_ != null) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(7, getTransformProvenance());
+        .computeMessageSize(3, getSerializedData());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -447,27 +246,10 @@ private static final long serialVersionUID = 0L;
         != other.getVersion()) return false;
     if (!getClassName()
         .equals(other.getClassName())) return false;
-    if (hasProvenance() != other.hasProvenance()) return false;
-    if (hasProvenance()) {
-      if (!getProvenance()
-          .equals(other.getProvenance())) return false;
-    }
-    if (hasFeatureDomain() != other.hasFeatureDomain()) return false;
-    if (hasFeatureDomain()) {
-      if (!getFeatureDomain()
-          .equals(other.getFeatureDomain())) return false;
-    }
-    if (hasOutputDomain() != other.hasOutputDomain()) return false;
-    if (hasOutputDomain()) {
-      if (!getOutputDomain()
-          .equals(other.getOutputDomain())) return false;
-    }
-    if (!getExamplesList()
-        .equals(other.getExamplesList())) return false;
-    if (hasTransformProvenance() != other.hasTransformProvenance()) return false;
-    if (hasTransformProvenance()) {
-      if (!getTransformProvenance()
-          .equals(other.getTransformProvenance())) return false;
+    if (hasSerializedData() != other.hasSerializedData()) return false;
+    if (hasSerializedData()) {
+      if (!getSerializedData()
+          .equals(other.getSerializedData())) return false;
     }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
@@ -484,25 +266,9 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getVersion();
     hash = (37 * hash) + CLASS_NAME_FIELD_NUMBER;
     hash = (53 * hash) + getClassName().hashCode();
-    if (hasProvenance()) {
-      hash = (37 * hash) + PROVENANCE_FIELD_NUMBER;
-      hash = (53 * hash) + getProvenance().hashCode();
-    }
-    if (hasFeatureDomain()) {
-      hash = (37 * hash) + FEATURE_DOMAIN_FIELD_NUMBER;
-      hash = (53 * hash) + getFeatureDomain().hashCode();
-    }
-    if (hasOutputDomain()) {
-      hash = (37 * hash) + OUTPUT_DOMAIN_FIELD_NUMBER;
-      hash = (53 * hash) + getOutputDomain().hashCode();
-    }
-    if (getExamplesCount() > 0) {
-      hash = (37 * hash) + EXAMPLES_FIELD_NUMBER;
-      hash = (53 * hash) + getExamplesList().hashCode();
-    }
-    if (hasTransformProvenance()) {
-      hash = (37 * hash) + TRANSFORM_PROVENANCE_FIELD_NUMBER;
-      hash = (53 * hash) + getTransformProvenance().hashCode();
+    if (hasSerializedData()) {
+      hash = (37 * hash) + SERIALIZED_DATA_FIELD_NUMBER;
+      hash = (53 * hash) + getSerializedData().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -601,7 +367,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *Dataset proto
+   *Dataset redirect proto
    * </pre>
    *
    * Protobuf type {@code tribuo.core.DatasetProto}
@@ -636,7 +402,6 @@ private static final long serialVersionUID = 0L;
     private void maybeForceBuilderInitialization() {
       if (com.google.protobuf.GeneratedMessageV3
               .alwaysUseFieldBuilders) {
-        getExamplesFieldBuilder();
       }
     }
     @java.lang.Override
@@ -646,35 +411,11 @@ private static final long serialVersionUID = 0L;
 
       className_ = "";
 
-      if (provenanceBuilder_ == null) {
-        provenance_ = null;
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
       } else {
-        provenance_ = null;
-        provenanceBuilder_ = null;
-      }
-      if (featureDomainBuilder_ == null) {
-        featureDomain_ = null;
-      } else {
-        featureDomain_ = null;
-        featureDomainBuilder_ = null;
-      }
-      if (outputDomainBuilder_ == null) {
-        outputDomain_ = null;
-      } else {
-        outputDomain_ = null;
-        outputDomainBuilder_ = null;
-      }
-      if (examplesBuilder_ == null) {
-        examples_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-      } else {
-        examplesBuilder_.clear();
-      }
-      if (transformProvenanceBuilder_ == null) {
-        transformProvenance_ = null;
-      } else {
-        transformProvenance_ = null;
-        transformProvenanceBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
       return this;
     }
@@ -702,37 +443,12 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public org.tribuo.protos.core.DatasetProto buildPartial() {
       org.tribuo.protos.core.DatasetProto result = new org.tribuo.protos.core.DatasetProto(this);
-      int from_bitField0_ = bitField0_;
       result.version_ = version_;
       result.className_ = className_;
-      if (provenanceBuilder_ == null) {
-        result.provenance_ = provenance_;
+      if (serializedDataBuilder_ == null) {
+        result.serializedData_ = serializedData_;
       } else {
-        result.provenance_ = provenanceBuilder_.build();
-      }
-      if (featureDomainBuilder_ == null) {
-        result.featureDomain_ = featureDomain_;
-      } else {
-        result.featureDomain_ = featureDomainBuilder_.build();
-      }
-      if (outputDomainBuilder_ == null) {
-        result.outputDomain_ = outputDomain_;
-      } else {
-        result.outputDomain_ = outputDomainBuilder_.build();
-      }
-      if (examplesBuilder_ == null) {
-        if (((bitField0_ & 0x00000001) != 0)) {
-          examples_ = java.util.Collections.unmodifiableList(examples_);
-          bitField0_ = (bitField0_ & ~0x00000001);
-        }
-        result.examples_ = examples_;
-      } else {
-        result.examples_ = examplesBuilder_.build();
-      }
-      if (transformProvenanceBuilder_ == null) {
-        result.transformProvenance_ = transformProvenance_;
-      } else {
-        result.transformProvenance_ = transformProvenanceBuilder_.build();
+        result.serializedData_ = serializedDataBuilder_.build();
       }
       onBuilt();
       return result;
@@ -789,43 +505,8 @@ private static final long serialVersionUID = 0L;
         className_ = other.className_;
         onChanged();
       }
-      if (other.hasProvenance()) {
-        mergeProvenance(other.getProvenance());
-      }
-      if (other.hasFeatureDomain()) {
-        mergeFeatureDomain(other.getFeatureDomain());
-      }
-      if (other.hasOutputDomain()) {
-        mergeOutputDomain(other.getOutputDomain());
-      }
-      if (examplesBuilder_ == null) {
-        if (!other.examples_.isEmpty()) {
-          if (examples_.isEmpty()) {
-            examples_ = other.examples_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-          } else {
-            ensureExamplesIsMutable();
-            examples_.addAll(other.examples_);
-          }
-          onChanged();
-        }
-      } else {
-        if (!other.examples_.isEmpty()) {
-          if (examplesBuilder_.isEmpty()) {
-            examplesBuilder_.dispose();
-            examplesBuilder_ = null;
-            examples_ = other.examples_;
-            bitField0_ = (bitField0_ & ~0x00000001);
-            examplesBuilder_ = 
-              com.google.protobuf.GeneratedMessageV3.alwaysUseFieldBuilders ?
-                 getExamplesFieldBuilder() : null;
-          } else {
-            examplesBuilder_.addAllMessages(other.examples_);
-          }
-        }
-      }
-      if (other.hasTransformProvenance()) {
-        mergeTransformProvenance(other.getTransformProvenance());
+      if (other.hasSerializedData()) {
+        mergeSerializedData(other.getSerializedData());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -855,7 +536,6 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
-    private int bitField0_;
 
     private int version_ ;
     /**
@@ -964,720 +644,123 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto provenance_;
+    private com.google.protobuf.Any serializedData_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder> provenanceBuilder_;
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> serializedDataBuilder_;
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-     * @return Whether the provenance field is set.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return Whether the serializedData field is set.
      */
-    public boolean hasProvenance() {
-      return provenanceBuilder_ != null || provenance_ != null;
+    public boolean hasSerializedData() {
+      return serializedDataBuilder_ != null || serializedData_ != null;
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-     * @return The provenance.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return The serializedData.
      */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance() {
-      if (provenanceBuilder_ == null) {
-        return provenance_ == null ? com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.getDefaultInstance() : provenance_;
+    public com.google.protobuf.Any getSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       } else {
-        return provenanceBuilder_.getMessage();
+        return serializedDataBuilder_.getMessage();
       }
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setProvenance(com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto value) {
-      if (provenanceBuilder_ == null) {
+    public Builder setSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        provenance_ = value;
+        serializedData_ = value;
         onChanged();
       } else {
-        provenanceBuilder_.setMessage(value);
+        serializedDataBuilder_.setMessage(value);
       }
 
       return this;
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setProvenance(
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder builderForValue) {
-      if (provenanceBuilder_ == null) {
-        provenance_ = builderForValue.build();
+    public Builder setSerializedData(
+        com.google.protobuf.Any.Builder builderForValue) {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = builderForValue.build();
         onChanged();
       } else {
-        provenanceBuilder_.setMessage(builderForValue.build());
+        serializedDataBuilder_.setMessage(builderForValue.build());
       }
 
       return this;
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder mergeProvenance(com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto value) {
-      if (provenanceBuilder_ == null) {
-        if (provenance_ != null) {
-          provenance_ =
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.newBuilder(provenance_).mergeFrom(value).buildPartial();
+    public Builder mergeSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
+        if (serializedData_ != null) {
+          serializedData_ =
+            com.google.protobuf.Any.newBuilder(serializedData_).mergeFrom(value).buildPartial();
         } else {
-          provenance_ = value;
+          serializedData_ = value;
         }
         onChanged();
       } else {
-        provenanceBuilder_.mergeFrom(value);
+        serializedDataBuilder_.mergeFrom(value);
       }
 
       return this;
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder clearProvenance() {
-      if (provenanceBuilder_ == null) {
-        provenance_ = null;
+    public Builder clearSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
         onChanged();
       } else {
-        provenance_ = null;
-        provenanceBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
 
       return this;
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder getProvenanceBuilder() {
+    public com.google.protobuf.Any.Builder getSerializedDataBuilder() {
       
       onChanged();
-      return getProvenanceFieldBuilder().getBuilder();
+      return getSerializedDataFieldBuilder().getBuilder();
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder() {
-      if (provenanceBuilder_ != null) {
-        return provenanceBuilder_.getMessageOrBuilder();
+    public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+      if (serializedDataBuilder_ != null) {
+        return serializedDataBuilder_.getMessageOrBuilder();
       } else {
-        return provenance_ == null ?
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.getDefaultInstance() : provenance_;
+        return serializedData_ == null ?
+            com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       }
     }
     /**
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder> 
-        getProvenanceFieldBuilder() {
-      if (provenanceBuilder_ == null) {
-        provenanceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder>(
-                getProvenance(),
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+        getSerializedDataFieldBuilder() {
+      if (serializedDataBuilder_ == null) {
+        serializedDataBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                getSerializedData(),
                 getParentForChildren(),
                 isClean());
-        provenance_ = null;
+        serializedData_ = null;
       }
-      return provenanceBuilder_;
-    }
-
-    private org.tribuo.protos.core.FeatureDomainProto featureDomain_;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder> featureDomainBuilder_;
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     * @return Whether the featureDomain field is set.
-     */
-    public boolean hasFeatureDomain() {
-      return featureDomainBuilder_ != null || featureDomain_ != null;
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     * @return The featureDomain.
-     */
-    public org.tribuo.protos.core.FeatureDomainProto getFeatureDomain() {
-      if (featureDomainBuilder_ == null) {
-        return featureDomain_ == null ? org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
-      } else {
-        return featureDomainBuilder_.getMessage();
-      }
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     */
-    public Builder setFeatureDomain(org.tribuo.protos.core.FeatureDomainProto value) {
-      if (featureDomainBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        featureDomain_ = value;
-        onChanged();
-      } else {
-        featureDomainBuilder_.setMessage(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     */
-    public Builder setFeatureDomain(
-        org.tribuo.protos.core.FeatureDomainProto.Builder builderForValue) {
-      if (featureDomainBuilder_ == null) {
-        featureDomain_ = builderForValue.build();
-        onChanged();
-      } else {
-        featureDomainBuilder_.setMessage(builderForValue.build());
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     */
-    public Builder mergeFeatureDomain(org.tribuo.protos.core.FeatureDomainProto value) {
-      if (featureDomainBuilder_ == null) {
-        if (featureDomain_ != null) {
-          featureDomain_ =
-            org.tribuo.protos.core.FeatureDomainProto.newBuilder(featureDomain_).mergeFrom(value).buildPartial();
-        } else {
-          featureDomain_ = value;
-        }
-        onChanged();
-      } else {
-        featureDomainBuilder_.mergeFrom(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     */
-    public Builder clearFeatureDomain() {
-      if (featureDomainBuilder_ == null) {
-        featureDomain_ = null;
-        onChanged();
-      } else {
-        featureDomain_ = null;
-        featureDomainBuilder_ = null;
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     */
-    public org.tribuo.protos.core.FeatureDomainProto.Builder getFeatureDomainBuilder() {
-      
-      onChanged();
-      return getFeatureDomainFieldBuilder().getBuilder();
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     */
-    public org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder() {
-      if (featureDomainBuilder_ != null) {
-        return featureDomainBuilder_.getMessageOrBuilder();
-      } else {
-        return featureDomain_ == null ?
-            org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
-      }
-    }
-    /**
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder> 
-        getFeatureDomainFieldBuilder() {
-      if (featureDomainBuilder_ == null) {
-        featureDomainBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder>(
-                getFeatureDomain(),
-                getParentForChildren(),
-                isClean());
-        featureDomain_ = null;
-      }
-      return featureDomainBuilder_;
-    }
-
-    private org.tribuo.protos.core.OutputDomainProto outputDomain_;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder> outputDomainBuilder_;
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     * @return Whether the outputDomain field is set.
-     */
-    public boolean hasOutputDomain() {
-      return outputDomainBuilder_ != null || outputDomain_ != null;
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     * @return The outputDomain.
-     */
-    public org.tribuo.protos.core.OutputDomainProto getOutputDomain() {
-      if (outputDomainBuilder_ == null) {
-        return outputDomain_ == null ? org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
-      } else {
-        return outputDomainBuilder_.getMessage();
-      }
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     */
-    public Builder setOutputDomain(org.tribuo.protos.core.OutputDomainProto value) {
-      if (outputDomainBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        outputDomain_ = value;
-        onChanged();
-      } else {
-        outputDomainBuilder_.setMessage(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     */
-    public Builder setOutputDomain(
-        org.tribuo.protos.core.OutputDomainProto.Builder builderForValue) {
-      if (outputDomainBuilder_ == null) {
-        outputDomain_ = builderForValue.build();
-        onChanged();
-      } else {
-        outputDomainBuilder_.setMessage(builderForValue.build());
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     */
-    public Builder mergeOutputDomain(org.tribuo.protos.core.OutputDomainProto value) {
-      if (outputDomainBuilder_ == null) {
-        if (outputDomain_ != null) {
-          outputDomain_ =
-            org.tribuo.protos.core.OutputDomainProto.newBuilder(outputDomain_).mergeFrom(value).buildPartial();
-        } else {
-          outputDomain_ = value;
-        }
-        onChanged();
-      } else {
-        outputDomainBuilder_.mergeFrom(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     */
-    public Builder clearOutputDomain() {
-      if (outputDomainBuilder_ == null) {
-        outputDomain_ = null;
-        onChanged();
-      } else {
-        outputDomain_ = null;
-        outputDomainBuilder_ = null;
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     */
-    public org.tribuo.protos.core.OutputDomainProto.Builder getOutputDomainBuilder() {
-      
-      onChanged();
-      return getOutputDomainFieldBuilder().getBuilder();
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     */
-    public org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder() {
-      if (outputDomainBuilder_ != null) {
-        return outputDomainBuilder_.getMessageOrBuilder();
-      } else {
-        return outputDomain_ == null ?
-            org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
-      }
-    }
-    /**
-     * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder> 
-        getOutputDomainFieldBuilder() {
-      if (outputDomainBuilder_ == null) {
-        outputDomainBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder>(
-                getOutputDomain(),
-                getParentForChildren(),
-                isClean());
-        outputDomain_ = null;
-      }
-      return outputDomainBuilder_;
-    }
-
-    private java.util.List<org.tribuo.protos.core.ExampleProto> examples_ =
-      java.util.Collections.emptyList();
-    private void ensureExamplesIsMutable() {
-      if (!((bitField0_ & 0x00000001) != 0)) {
-        examples_ = new java.util.ArrayList<org.tribuo.protos.core.ExampleProto>(examples_);
-        bitField0_ |= 0x00000001;
-       }
-    }
-
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        org.tribuo.protos.core.ExampleProto, org.tribuo.protos.core.ExampleProto.Builder, org.tribuo.protos.core.ExampleProtoOrBuilder> examplesBuilder_;
-
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public java.util.List<org.tribuo.protos.core.ExampleProto> getExamplesList() {
-      if (examplesBuilder_ == null) {
-        return java.util.Collections.unmodifiableList(examples_);
-      } else {
-        return examplesBuilder_.getMessageList();
-      }
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public int getExamplesCount() {
-      if (examplesBuilder_ == null) {
-        return examples_.size();
-      } else {
-        return examplesBuilder_.getCount();
-      }
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public org.tribuo.protos.core.ExampleProto getExamples(int index) {
-      if (examplesBuilder_ == null) {
-        return examples_.get(index);
-      } else {
-        return examplesBuilder_.getMessage(index);
-      }
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder setExamples(
-        int index, org.tribuo.protos.core.ExampleProto value) {
-      if (examplesBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureExamplesIsMutable();
-        examples_.set(index, value);
-        onChanged();
-      } else {
-        examplesBuilder_.setMessage(index, value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder setExamples(
-        int index, org.tribuo.protos.core.ExampleProto.Builder builderForValue) {
-      if (examplesBuilder_ == null) {
-        ensureExamplesIsMutable();
-        examples_.set(index, builderForValue.build());
-        onChanged();
-      } else {
-        examplesBuilder_.setMessage(index, builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder addExamples(org.tribuo.protos.core.ExampleProto value) {
-      if (examplesBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureExamplesIsMutable();
-        examples_.add(value);
-        onChanged();
-      } else {
-        examplesBuilder_.addMessage(value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder addExamples(
-        int index, org.tribuo.protos.core.ExampleProto value) {
-      if (examplesBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        ensureExamplesIsMutable();
-        examples_.add(index, value);
-        onChanged();
-      } else {
-        examplesBuilder_.addMessage(index, value);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder addExamples(
-        org.tribuo.protos.core.ExampleProto.Builder builderForValue) {
-      if (examplesBuilder_ == null) {
-        ensureExamplesIsMutable();
-        examples_.add(builderForValue.build());
-        onChanged();
-      } else {
-        examplesBuilder_.addMessage(builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder addExamples(
-        int index, org.tribuo.protos.core.ExampleProto.Builder builderForValue) {
-      if (examplesBuilder_ == null) {
-        ensureExamplesIsMutable();
-        examples_.add(index, builderForValue.build());
-        onChanged();
-      } else {
-        examplesBuilder_.addMessage(index, builderForValue.build());
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder addAllExamples(
-        java.lang.Iterable<? extends org.tribuo.protos.core.ExampleProto> values) {
-      if (examplesBuilder_ == null) {
-        ensureExamplesIsMutable();
-        com.google.protobuf.AbstractMessageLite.Builder.addAll(
-            values, examples_);
-        onChanged();
-      } else {
-        examplesBuilder_.addAllMessages(values);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder clearExamples() {
-      if (examplesBuilder_ == null) {
-        examples_ = java.util.Collections.emptyList();
-        bitField0_ = (bitField0_ & ~0x00000001);
-        onChanged();
-      } else {
-        examplesBuilder_.clear();
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public Builder removeExamples(int index) {
-      if (examplesBuilder_ == null) {
-        ensureExamplesIsMutable();
-        examples_.remove(index);
-        onChanged();
-      } else {
-        examplesBuilder_.remove(index);
-      }
-      return this;
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public org.tribuo.protos.core.ExampleProto.Builder getExamplesBuilder(
-        int index) {
-      return getExamplesFieldBuilder().getBuilder(index);
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public org.tribuo.protos.core.ExampleProtoOrBuilder getExamplesOrBuilder(
-        int index) {
-      if (examplesBuilder_ == null) {
-        return examples_.get(index);  } else {
-        return examplesBuilder_.getMessageOrBuilder(index);
-      }
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public java.util.List<? extends org.tribuo.protos.core.ExampleProtoOrBuilder> 
-         getExamplesOrBuilderList() {
-      if (examplesBuilder_ != null) {
-        return examplesBuilder_.getMessageOrBuilderList();
-      } else {
-        return java.util.Collections.unmodifiableList(examples_);
-      }
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public org.tribuo.protos.core.ExampleProto.Builder addExamplesBuilder() {
-      return getExamplesFieldBuilder().addBuilder(
-          org.tribuo.protos.core.ExampleProto.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public org.tribuo.protos.core.ExampleProto.Builder addExamplesBuilder(
-        int index) {
-      return getExamplesFieldBuilder().addBuilder(
-          index, org.tribuo.protos.core.ExampleProto.getDefaultInstance());
-    }
-    /**
-     * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-     */
-    public java.util.List<org.tribuo.protos.core.ExampleProto.Builder> 
-         getExamplesBuilderList() {
-      return getExamplesFieldBuilder().getBuilderList();
-    }
-    private com.google.protobuf.RepeatedFieldBuilderV3<
-        org.tribuo.protos.core.ExampleProto, org.tribuo.protos.core.ExampleProto.Builder, org.tribuo.protos.core.ExampleProtoOrBuilder> 
-        getExamplesFieldBuilder() {
-      if (examplesBuilder_ == null) {
-        examplesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-            org.tribuo.protos.core.ExampleProto, org.tribuo.protos.core.ExampleProto.Builder, org.tribuo.protos.core.ExampleProtoOrBuilder>(
-                examples_,
-                ((bitField0_ & 0x00000001) != 0),
-                getParentForChildren(),
-                isClean());
-        examples_ = null;
-      }
-      return examplesBuilder_;
-    }
-
-    private com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto transformProvenance_;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder> transformProvenanceBuilder_;
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     * @return Whether the transformProvenance field is set.
-     */
-    public boolean hasTransformProvenance() {
-      return transformProvenanceBuilder_ != null || transformProvenance_ != null;
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     * @return The transformProvenance.
-     */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto getTransformProvenance() {
-      if (transformProvenanceBuilder_ == null) {
-        return transformProvenance_ == null ? com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.getDefaultInstance() : transformProvenance_;
-      } else {
-        return transformProvenanceBuilder_.getMessage();
-      }
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     */
-    public Builder setTransformProvenance(com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto value) {
-      if (transformProvenanceBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        transformProvenance_ = value;
-        onChanged();
-      } else {
-        transformProvenanceBuilder_.setMessage(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     */
-    public Builder setTransformProvenance(
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.Builder builderForValue) {
-      if (transformProvenanceBuilder_ == null) {
-        transformProvenance_ = builderForValue.build();
-        onChanged();
-      } else {
-        transformProvenanceBuilder_.setMessage(builderForValue.build());
-      }
-
-      return this;
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     */
-    public Builder mergeTransformProvenance(com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto value) {
-      if (transformProvenanceBuilder_ == null) {
-        if (transformProvenance_ != null) {
-          transformProvenance_ =
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.newBuilder(transformProvenance_).mergeFrom(value).buildPartial();
-        } else {
-          transformProvenance_ = value;
-        }
-        onChanged();
-      } else {
-        transformProvenanceBuilder_.mergeFrom(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     */
-    public Builder clearTransformProvenance() {
-      if (transformProvenanceBuilder_ == null) {
-        transformProvenance_ = null;
-        onChanged();
-      } else {
-        transformProvenance_ = null;
-        transformProvenanceBuilder_ = null;
-      }
-
-      return this;
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.Builder getTransformProvenanceBuilder() {
-      
-      onChanged();
-      return getTransformProvenanceFieldBuilder().getBuilder();
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder getTransformProvenanceOrBuilder() {
-      if (transformProvenanceBuilder_ != null) {
-        return transformProvenanceBuilder_.getMessageOrBuilder();
-      } else {
-        return transformProvenance_ == null ?
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.getDefaultInstance() : transformProvenance_;
-      }
-    }
-    /**
-     * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder> 
-        getTransformProvenanceFieldBuilder() {
-      if (transformProvenanceBuilder_ == null) {
-        transformProvenanceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder>(
-                getTransformProvenance(),
-                getParentForChildren(),
-                isClean());
-        transformProvenance_ = null;
-      }
-      return transformProvenanceBuilder_;
+      return serializedDataBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

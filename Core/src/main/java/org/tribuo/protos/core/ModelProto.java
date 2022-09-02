@@ -5,7 +5,7 @@ package org.tribuo.protos.core;
 
 /**
  * <pre>
- *Base model protobuf. Contains the core model fields, along with an Any containing model specific information.
+ *Model redirect proto
  * </pre>
  *
  * Protobuf type {@code tribuo.core.ModelProto}
@@ -20,7 +20,7 @@ private static final long serialVersionUID = 0L;
     super(builder);
   }
   private ModelProto() {
-    name_ = "";
+    className_ = "";
   }
 
   @java.lang.Override
@@ -61,62 +61,18 @@ private static final long serialVersionUID = 0L;
           case 18: {
             java.lang.String s = input.readStringRequireUtf8();
 
-            name_ = s;
+            className_ = s;
             break;
           }
           case 26: {
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder subBuilder = null;
-            if (provenance_ != null) {
-              subBuilder = provenance_.toBuilder();
+            com.google.protobuf.Any.Builder subBuilder = null;
+            if (serializedData_ != null) {
+              subBuilder = serializedData_.toBuilder();
             }
-            provenance_ = input.readMessage(com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.parser(), extensionRegistry);
+            serializedData_ = input.readMessage(com.google.protobuf.Any.parser(), extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(provenance_);
-              provenance_ = subBuilder.buildPartial();
-            }
-
-            break;
-          }
-          case 32: {
-
-            generateProbabilities_ = input.readBool();
-            break;
-          }
-          case 42: {
-            org.tribuo.protos.core.FeatureDomainProto.Builder subBuilder = null;
-            if (featureDomain_ != null) {
-              subBuilder = featureDomain_.toBuilder();
-            }
-            featureDomain_ = input.readMessage(org.tribuo.protos.core.FeatureDomainProto.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(featureDomain_);
-              featureDomain_ = subBuilder.buildPartial();
-            }
-
-            break;
-          }
-          case 50: {
-            org.tribuo.protos.core.OutputDomainProto.Builder subBuilder = null;
-            if (outputDomain_ != null) {
-              subBuilder = outputDomain_.toBuilder();
-            }
-            outputDomain_ = input.readMessage(org.tribuo.protos.core.OutputDomainProto.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(outputDomain_);
-              outputDomain_ = subBuilder.buildPartial();
-            }
-
-            break;
-          }
-          case 58: {
-            org.tribuo.protos.core.ModelDataProto.Builder subBuilder = null;
-            if (modelData_ != null) {
-              subBuilder = modelData_.toBuilder();
-            }
-            modelData_ = input.readMessage(org.tribuo.protos.core.ModelDataProto.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(modelData_);
-              modelData_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(serializedData_);
+              serializedData_ = subBuilder.buildPartial();
             }
 
             break;
@@ -132,8 +88,6 @@ private static final long serialVersionUID = 0L;
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
       throw e.setUnfinishedMessage(this);
-    } catch (com.google.protobuf.UninitializedMessageException e) {
-      throw e.asInvalidProtocolBufferException().setUnfinishedMessage(this);
     } catch (java.io.IOException e) {
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
@@ -158,10 +112,6 @@ private static final long serialVersionUID = 0L;
   public static final int VERSION_FIELD_NUMBER = 1;
   private int version_;
   /**
-   * <pre>
-   *Version number of the model proto
-   * </pre>
-   *
    * <code>int32 version = 1;</code>
    * @return The version.
    */
@@ -170,217 +120,68 @@ private static final long serialVersionUID = 0L;
     return version_;
   }
 
-  public static final int NAME_FIELD_NUMBER = 2;
-  private volatile java.lang.Object name_;
+  public static final int CLASS_NAME_FIELD_NUMBER = 2;
+  private volatile java.lang.Object className_;
   /**
-   * <pre>
-   *The model name
-   * </pre>
-   *
-   * <code>string name = 2;</code>
-   * @return The name.
+   * <code>string class_name = 2;</code>
+   * @return The className.
    */
   @java.lang.Override
-  public java.lang.String getName() {
-    java.lang.Object ref = name_;
+  public java.lang.String getClassName() {
+    java.lang.Object ref = className_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
       com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
-      name_ = s;
+      className_ = s;
       return s;
     }
   }
   /**
-   * <pre>
-   *The model name
-   * </pre>
-   *
-   * <code>string name = 2;</code>
-   * @return The bytes for name.
+   * <code>string class_name = 2;</code>
+   * @return The bytes for className.
    */
   @java.lang.Override
   public com.google.protobuf.ByteString
-      getNameBytes() {
-    java.lang.Object ref = name_;
+      getClassNameBytes() {
+    java.lang.Object ref = className_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      name_ = b;
+      className_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
     }
   }
 
-  public static final int PROVENANCE_FIELD_NUMBER = 3;
-  private com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto provenance_;
+  public static final int SERIALIZED_DATA_FIELD_NUMBER = 3;
+  private com.google.protobuf.Any serializedData_;
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return Whether the provenance field is set.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return Whether the serializedData field is set.
    */
   @java.lang.Override
-  public boolean hasProvenance() {
-    return provenance_ != null;
+  public boolean hasSerializedData() {
+    return serializedData_ != null;
   }
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return The provenance.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return The serializedData.
    */
   @java.lang.Override
-  public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance() {
-    return provenance_ == null ? com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.getDefaultInstance() : provenance_;
+  public com.google.protobuf.Any getSerializedData() {
+    return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
   }
   /**
-   * <pre>
-   *The model provenance
-   * </pre>
-   *
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
    */
   @java.lang.Override
-  public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder() {
-    return getProvenance();
-  }
-
-  public static final int GENERATE_PROBABILITIES_FIELD_NUMBER = 4;
-  private boolean generateProbabilities_;
-  /**
-   * <pre>
-   *Does the model generate probabilities
-   * </pre>
-   *
-   * <code>bool generate_probabilities = 4;</code>
-   * @return The generateProbabilities.
-   */
-  @java.lang.Override
-  public boolean getGenerateProbabilities() {
-    return generateProbabilities_;
-  }
-
-  public static final int FEATURE_DOMAIN_FIELD_NUMBER = 5;
-  private org.tribuo.protos.core.FeatureDomainProto featureDomain_;
-  /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-   * @return Whether the featureDomain field is set.
-   */
-  @java.lang.Override
-  public boolean hasFeatureDomain() {
-    return featureDomain_ != null;
-  }
-  /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-   * @return The featureDomain.
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.FeatureDomainProto getFeatureDomain() {
-    return featureDomain_ == null ? org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
-  }
-  /**
-   * <pre>
-   *Model feature domain
-   * </pre>
-   *
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder() {
-    return getFeatureDomain();
-  }
-
-  public static final int OUTPUT_DOMAIN_FIELD_NUMBER = 6;
-  private org.tribuo.protos.core.OutputDomainProto outputDomain_;
-  /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
-   * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-   * @return Whether the outputDomain field is set.
-   */
-  @java.lang.Override
-  public boolean hasOutputDomain() {
-    return outputDomain_ != null;
-  }
-  /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
-   * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-   * @return The outputDomain.
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.OutputDomainProto getOutputDomain() {
-    return outputDomain_ == null ? org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
-  }
-  /**
-   * <pre>
-   *Model output domain
-   * </pre>
-   *
-   * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder() {
-    return getOutputDomain();
-  }
-
-  public static final int MODEL_DATA_FIELD_NUMBER = 7;
-  private org.tribuo.protos.core.ModelDataProto modelData_;
-  /**
-   * <pre>
-   *Model data
-   * </pre>
-   *
-   * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-   * @return Whether the modelData field is set.
-   */
-  @java.lang.Override
-  public boolean hasModelData() {
-    return modelData_ != null;
-  }
-  /**
-   * <pre>
-   *Model data
-   * </pre>
-   *
-   * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-   * @return The modelData.
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.ModelDataProto getModelData() {
-    return modelData_ == null ? org.tribuo.protos.core.ModelDataProto.getDefaultInstance() : modelData_;
-  }
-  /**
-   * <pre>
-   *Model data
-   * </pre>
-   *
-   * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.ModelDataProtoOrBuilder getModelDataOrBuilder() {
-    return getModelData();
+  public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+    return getSerializedData();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -400,23 +201,11 @@ private static final long serialVersionUID = 0L;
     if (version_ != 0) {
       output.writeInt32(1, version_);
     }
-    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(name_)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, name_);
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 2, className_);
     }
-    if (provenance_ != null) {
-      output.writeMessage(3, getProvenance());
-    }
-    if (generateProbabilities_ != false) {
-      output.writeBool(4, generateProbabilities_);
-    }
-    if (featureDomain_ != null) {
-      output.writeMessage(5, getFeatureDomain());
-    }
-    if (outputDomain_ != null) {
-      output.writeMessage(6, getOutputDomain());
-    }
-    if (modelData_ != null) {
-      output.writeMessage(7, getModelData());
+    if (serializedData_ != null) {
+      output.writeMessage(3, getSerializedData());
     }
     unknownFields.writeTo(output);
   }
@@ -431,28 +220,12 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(1, version_);
     }
-    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(name_)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, name_);
+    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, className_);
     }
-    if (provenance_ != null) {
+    if (serializedData_ != null) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getProvenance());
-    }
-    if (generateProbabilities_ != false) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(4, generateProbabilities_);
-    }
-    if (featureDomain_ != null) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(5, getFeatureDomain());
-    }
-    if (outputDomain_ != null) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(6, getOutputDomain());
-    }
-    if (modelData_ != null) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(7, getModelData());
+        .computeMessageSize(3, getSerializedData());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -471,29 +244,12 @@ private static final long serialVersionUID = 0L;
 
     if (getVersion()
         != other.getVersion()) return false;
-    if (!getName()
-        .equals(other.getName())) return false;
-    if (hasProvenance() != other.hasProvenance()) return false;
-    if (hasProvenance()) {
-      if (!getProvenance()
-          .equals(other.getProvenance())) return false;
-    }
-    if (getGenerateProbabilities()
-        != other.getGenerateProbabilities()) return false;
-    if (hasFeatureDomain() != other.hasFeatureDomain()) return false;
-    if (hasFeatureDomain()) {
-      if (!getFeatureDomain()
-          .equals(other.getFeatureDomain())) return false;
-    }
-    if (hasOutputDomain() != other.hasOutputDomain()) return false;
-    if (hasOutputDomain()) {
-      if (!getOutputDomain()
-          .equals(other.getOutputDomain())) return false;
-    }
-    if (hasModelData() != other.hasModelData()) return false;
-    if (hasModelData()) {
-      if (!getModelData()
-          .equals(other.getModelData())) return false;
+    if (!getClassName()
+        .equals(other.getClassName())) return false;
+    if (hasSerializedData() != other.hasSerializedData()) return false;
+    if (hasSerializedData()) {
+      if (!getSerializedData()
+          .equals(other.getSerializedData())) return false;
     }
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
@@ -508,26 +264,11 @@ private static final long serialVersionUID = 0L;
     hash = (19 * hash) + getDescriptor().hashCode();
     hash = (37 * hash) + VERSION_FIELD_NUMBER;
     hash = (53 * hash) + getVersion();
-    hash = (37 * hash) + NAME_FIELD_NUMBER;
-    hash = (53 * hash) + getName().hashCode();
-    if (hasProvenance()) {
-      hash = (37 * hash) + PROVENANCE_FIELD_NUMBER;
-      hash = (53 * hash) + getProvenance().hashCode();
-    }
-    hash = (37 * hash) + GENERATE_PROBABILITIES_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-        getGenerateProbabilities());
-    if (hasFeatureDomain()) {
-      hash = (37 * hash) + FEATURE_DOMAIN_FIELD_NUMBER;
-      hash = (53 * hash) + getFeatureDomain().hashCode();
-    }
-    if (hasOutputDomain()) {
-      hash = (37 * hash) + OUTPUT_DOMAIN_FIELD_NUMBER;
-      hash = (53 * hash) + getOutputDomain().hashCode();
-    }
-    if (hasModelData()) {
-      hash = (37 * hash) + MODEL_DATA_FIELD_NUMBER;
-      hash = (53 * hash) + getModelData().hashCode();
+    hash = (37 * hash) + CLASS_NAME_FIELD_NUMBER;
+    hash = (53 * hash) + getClassName().hashCode();
+    if (hasSerializedData()) {
+      hash = (37 * hash) + SERIALIZED_DATA_FIELD_NUMBER;
+      hash = (53 * hash) + getSerializedData().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -626,7 +367,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *Base model protobuf. Contains the core model fields, along with an Any containing model specific information.
+   *Model redirect proto
    * </pre>
    *
    * Protobuf type {@code tribuo.core.ModelProto}
@@ -668,33 +409,13 @@ private static final long serialVersionUID = 0L;
       super.clear();
       version_ = 0;
 
-      name_ = "";
+      className_ = "";
 
-      if (provenanceBuilder_ == null) {
-        provenance_ = null;
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
       } else {
-        provenance_ = null;
-        provenanceBuilder_ = null;
-      }
-      generateProbabilities_ = false;
-
-      if (featureDomainBuilder_ == null) {
-        featureDomain_ = null;
-      } else {
-        featureDomain_ = null;
-        featureDomainBuilder_ = null;
-      }
-      if (outputDomainBuilder_ == null) {
-        outputDomain_ = null;
-      } else {
-        outputDomain_ = null;
-        outputDomainBuilder_ = null;
-      }
-      if (modelDataBuilder_ == null) {
-        modelData_ = null;
-      } else {
-        modelData_ = null;
-        modelDataBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
       return this;
     }
@@ -723,27 +444,11 @@ private static final long serialVersionUID = 0L;
     public org.tribuo.protos.core.ModelProto buildPartial() {
       org.tribuo.protos.core.ModelProto result = new org.tribuo.protos.core.ModelProto(this);
       result.version_ = version_;
-      result.name_ = name_;
-      if (provenanceBuilder_ == null) {
-        result.provenance_ = provenance_;
+      result.className_ = className_;
+      if (serializedDataBuilder_ == null) {
+        result.serializedData_ = serializedData_;
       } else {
-        result.provenance_ = provenanceBuilder_.build();
-      }
-      result.generateProbabilities_ = generateProbabilities_;
-      if (featureDomainBuilder_ == null) {
-        result.featureDomain_ = featureDomain_;
-      } else {
-        result.featureDomain_ = featureDomainBuilder_.build();
-      }
-      if (outputDomainBuilder_ == null) {
-        result.outputDomain_ = outputDomain_;
-      } else {
-        result.outputDomain_ = outputDomainBuilder_.build();
-      }
-      if (modelDataBuilder_ == null) {
-        result.modelData_ = modelData_;
-      } else {
-        result.modelData_ = modelDataBuilder_.build();
+        result.serializedData_ = serializedDataBuilder_.build();
       }
       onBuilt();
       return result;
@@ -796,24 +501,12 @@ private static final long serialVersionUID = 0L;
       if (other.getVersion() != 0) {
         setVersion(other.getVersion());
       }
-      if (!other.getName().isEmpty()) {
-        name_ = other.name_;
+      if (!other.getClassName().isEmpty()) {
+        className_ = other.className_;
         onChanged();
       }
-      if (other.hasProvenance()) {
-        mergeProvenance(other.getProvenance());
-      }
-      if (other.getGenerateProbabilities() != false) {
-        setGenerateProbabilities(other.getGenerateProbabilities());
-      }
-      if (other.hasFeatureDomain()) {
-        mergeFeatureDomain(other.getFeatureDomain());
-      }
-      if (other.hasOutputDomain()) {
-        mergeOutputDomain(other.getOutputDomain());
-      }
-      if (other.hasModelData()) {
-        mergeModelData(other.getModelData());
+      if (other.hasSerializedData()) {
+        mergeSerializedData(other.getSerializedData());
       }
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
@@ -846,10 +539,6 @@ private static final long serialVersionUID = 0L;
 
     private int version_ ;
     /**
-     * <pre>
-     *Version number of the model proto
-     * </pre>
-     *
      * <code>int32 version = 1;</code>
      * @return The version.
      */
@@ -858,10 +547,6 @@ private static final long serialVersionUID = 0L;
       return version_;
     }
     /**
-     * <pre>
-     *Version number of the model proto
-     * </pre>
-     *
      * <code>int32 version = 1;</code>
      * @param value The version to set.
      * @return This builder for chaining.
@@ -873,10 +558,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <pre>
-     *Version number of the model proto
-     * </pre>
-     *
      * <code>int32 version = 1;</code>
      * @return This builder for chaining.
      */
@@ -887,763 +568,199 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object name_ = "";
+    private java.lang.Object className_ = "";
     /**
-     * <pre>
-     *The model name
-     * </pre>
-     *
-     * <code>string name = 2;</code>
-     * @return The name.
+     * <code>string class_name = 2;</code>
+     * @return The className.
      */
-    public java.lang.String getName() {
-      java.lang.Object ref = name_;
+    public java.lang.String getClassName() {
+      java.lang.Object ref = className_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        name_ = s;
+        className_ = s;
         return s;
       } else {
         return (java.lang.String) ref;
       }
     }
     /**
-     * <pre>
-     *The model name
-     * </pre>
-     *
-     * <code>string name = 2;</code>
-     * @return The bytes for name.
+     * <code>string class_name = 2;</code>
+     * @return The bytes for className.
      */
     public com.google.protobuf.ByteString
-        getNameBytes() {
-      java.lang.Object ref = name_;
+        getClassNameBytes() {
+      java.lang.Object ref = className_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        name_ = b;
+        className_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <pre>
-     *The model name
-     * </pre>
-     *
-     * <code>string name = 2;</code>
-     * @param value The name to set.
+     * <code>string class_name = 2;</code>
+     * @param value The className to set.
      * @return This builder for chaining.
      */
-    public Builder setName(
+    public Builder setClassName(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   
-      name_ = value;
+      className_ = value;
       onChanged();
       return this;
     }
     /**
-     * <pre>
-     *The model name
-     * </pre>
-     *
-     * <code>string name = 2;</code>
+     * <code>string class_name = 2;</code>
      * @return This builder for chaining.
      */
-    public Builder clearName() {
+    public Builder clearClassName() {
       
-      name_ = getDefaultInstance().getName();
+      className_ = getDefaultInstance().getClassName();
       onChanged();
       return this;
     }
     /**
-     * <pre>
-     *The model name
-     * </pre>
-     *
-     * <code>string name = 2;</code>
-     * @param value The bytes for name to set.
+     * <code>string class_name = 2;</code>
+     * @param value The bytes for className to set.
      * @return This builder for chaining.
      */
-    public Builder setNameBytes(
+    public Builder setClassNameBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
       
-      name_ = value;
+      className_ = value;
       onChanged();
       return this;
     }
 
-    private com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto provenance_;
+    private com.google.protobuf.Any serializedData_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder> provenanceBuilder_;
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> serializedDataBuilder_;
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-     * @return Whether the provenance field is set.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return Whether the serializedData field is set.
      */
-    public boolean hasProvenance() {
-      return provenanceBuilder_ != null || provenance_ != null;
+    public boolean hasSerializedData() {
+      return serializedDataBuilder_ != null || serializedData_ != null;
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-     * @return The provenance.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return The serializedData.
      */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance() {
-      if (provenanceBuilder_ == null) {
-        return provenance_ == null ? com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.getDefaultInstance() : provenance_;
+    public com.google.protobuf.Any getSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       } else {
-        return provenanceBuilder_.getMessage();
+        return serializedDataBuilder_.getMessage();
       }
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setProvenance(com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto value) {
-      if (provenanceBuilder_ == null) {
+    public Builder setSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        provenance_ = value;
+        serializedData_ = value;
         onChanged();
       } else {
-        provenanceBuilder_.setMessage(value);
+        serializedDataBuilder_.setMessage(value);
       }
 
       return this;
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setProvenance(
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder builderForValue) {
-      if (provenanceBuilder_ == null) {
-        provenance_ = builderForValue.build();
+    public Builder setSerializedData(
+        com.google.protobuf.Any.Builder builderForValue) {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = builderForValue.build();
         onChanged();
       } else {
-        provenanceBuilder_.setMessage(builderForValue.build());
+        serializedDataBuilder_.setMessage(builderForValue.build());
       }
 
       return this;
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder mergeProvenance(com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto value) {
-      if (provenanceBuilder_ == null) {
-        if (provenance_ != null) {
-          provenance_ =
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.newBuilder(provenance_).mergeFrom(value).buildPartial();
+    public Builder mergeSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
+        if (serializedData_ != null) {
+          serializedData_ =
+            com.google.protobuf.Any.newBuilder(serializedData_).mergeFrom(value).buildPartial();
         } else {
-          provenance_ = value;
+          serializedData_ = value;
         }
         onChanged();
       } else {
-        provenanceBuilder_.mergeFrom(value);
+        serializedDataBuilder_.mergeFrom(value);
       }
 
       return this;
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder clearProvenance() {
-      if (provenanceBuilder_ == null) {
-        provenance_ = null;
+    public Builder clearSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
         onChanged();
       } else {
-        provenance_ = null;
-        provenanceBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
 
       return this;
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder getProvenanceBuilder() {
+    public com.google.protobuf.Any.Builder getSerializedDataBuilder() {
       
       onChanged();
-      return getProvenanceFieldBuilder().getBuilder();
+      return getSerializedDataFieldBuilder().getBuilder();
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder() {
-      if (provenanceBuilder_ != null) {
-        return provenanceBuilder_.getMessageOrBuilder();
+    public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+      if (serializedDataBuilder_ != null) {
+        return serializedDataBuilder_.getMessageOrBuilder();
       } else {
-        return provenance_ == null ?
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.getDefaultInstance() : provenance_;
+        return serializedData_ == null ?
+            com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       }
     }
     /**
-     * <pre>
-     *The model provenance
-     * </pre>
-     *
-     * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder> 
-        getProvenanceFieldBuilder() {
-      if (provenanceBuilder_ == null) {
-        provenanceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto.Builder, com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder>(
-                getProvenance(),
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+        getSerializedDataFieldBuilder() {
+      if (serializedDataBuilder_ == null) {
+        serializedDataBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                getSerializedData(),
                 getParentForChildren(),
                 isClean());
-        provenance_ = null;
+        serializedData_ = null;
       }
-      return provenanceBuilder_;
-    }
-
-    private boolean generateProbabilities_ ;
-    /**
-     * <pre>
-     *Does the model generate probabilities
-     * </pre>
-     *
-     * <code>bool generate_probabilities = 4;</code>
-     * @return The generateProbabilities.
-     */
-    @java.lang.Override
-    public boolean getGenerateProbabilities() {
-      return generateProbabilities_;
-    }
-    /**
-     * <pre>
-     *Does the model generate probabilities
-     * </pre>
-     *
-     * <code>bool generate_probabilities = 4;</code>
-     * @param value The generateProbabilities to set.
-     * @return This builder for chaining.
-     */
-    public Builder setGenerateProbabilities(boolean value) {
-      
-      generateProbabilities_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <pre>
-     *Does the model generate probabilities
-     * </pre>
-     *
-     * <code>bool generate_probabilities = 4;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearGenerateProbabilities() {
-      
-      generateProbabilities_ = false;
-      onChanged();
-      return this;
-    }
-
-    private org.tribuo.protos.core.FeatureDomainProto featureDomain_;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder> featureDomainBuilder_;
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     * @return Whether the featureDomain field is set.
-     */
-    public boolean hasFeatureDomain() {
-      return featureDomainBuilder_ != null || featureDomain_ != null;
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     * @return The featureDomain.
-     */
-    public org.tribuo.protos.core.FeatureDomainProto getFeatureDomain() {
-      if (featureDomainBuilder_ == null) {
-        return featureDomain_ == null ? org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
-      } else {
-        return featureDomainBuilder_.getMessage();
-      }
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     */
-    public Builder setFeatureDomain(org.tribuo.protos.core.FeatureDomainProto value) {
-      if (featureDomainBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        featureDomain_ = value;
-        onChanged();
-      } else {
-        featureDomainBuilder_.setMessage(value);
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     */
-    public Builder setFeatureDomain(
-        org.tribuo.protos.core.FeatureDomainProto.Builder builderForValue) {
-      if (featureDomainBuilder_ == null) {
-        featureDomain_ = builderForValue.build();
-        onChanged();
-      } else {
-        featureDomainBuilder_.setMessage(builderForValue.build());
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     */
-    public Builder mergeFeatureDomain(org.tribuo.protos.core.FeatureDomainProto value) {
-      if (featureDomainBuilder_ == null) {
-        if (featureDomain_ != null) {
-          featureDomain_ =
-            org.tribuo.protos.core.FeatureDomainProto.newBuilder(featureDomain_).mergeFrom(value).buildPartial();
-        } else {
-          featureDomain_ = value;
-        }
-        onChanged();
-      } else {
-        featureDomainBuilder_.mergeFrom(value);
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     */
-    public Builder clearFeatureDomain() {
-      if (featureDomainBuilder_ == null) {
-        featureDomain_ = null;
-        onChanged();
-      } else {
-        featureDomain_ = null;
-        featureDomainBuilder_ = null;
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     */
-    public org.tribuo.protos.core.FeatureDomainProto.Builder getFeatureDomainBuilder() {
-      
-      onChanged();
-      return getFeatureDomainFieldBuilder().getBuilder();
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     */
-    public org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder() {
-      if (featureDomainBuilder_ != null) {
-        return featureDomainBuilder_.getMessageOrBuilder();
-      } else {
-        return featureDomain_ == null ?
-            org.tribuo.protos.core.FeatureDomainProto.getDefaultInstance() : featureDomain_;
-      }
-    }
-    /**
-     * <pre>
-     *Model feature domain
-     * </pre>
-     *
-     * <code>.tribuo.core.FeatureDomainProto feature_domain = 5;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder> 
-        getFeatureDomainFieldBuilder() {
-      if (featureDomainBuilder_ == null) {
-        featureDomainBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.FeatureDomainProto, org.tribuo.protos.core.FeatureDomainProto.Builder, org.tribuo.protos.core.FeatureDomainProtoOrBuilder>(
-                getFeatureDomain(),
-                getParentForChildren(),
-                isClean());
-        featureDomain_ = null;
-      }
-      return featureDomainBuilder_;
-    }
-
-    private org.tribuo.protos.core.OutputDomainProto outputDomain_;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder> outputDomainBuilder_;
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     * @return Whether the outputDomain field is set.
-     */
-    public boolean hasOutputDomain() {
-      return outputDomainBuilder_ != null || outputDomain_ != null;
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     * @return The outputDomain.
-     */
-    public org.tribuo.protos.core.OutputDomainProto getOutputDomain() {
-      if (outputDomainBuilder_ == null) {
-        return outputDomain_ == null ? org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
-      } else {
-        return outputDomainBuilder_.getMessage();
-      }
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     */
-    public Builder setOutputDomain(org.tribuo.protos.core.OutputDomainProto value) {
-      if (outputDomainBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        outputDomain_ = value;
-        onChanged();
-      } else {
-        outputDomainBuilder_.setMessage(value);
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     */
-    public Builder setOutputDomain(
-        org.tribuo.protos.core.OutputDomainProto.Builder builderForValue) {
-      if (outputDomainBuilder_ == null) {
-        outputDomain_ = builderForValue.build();
-        onChanged();
-      } else {
-        outputDomainBuilder_.setMessage(builderForValue.build());
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     */
-    public Builder mergeOutputDomain(org.tribuo.protos.core.OutputDomainProto value) {
-      if (outputDomainBuilder_ == null) {
-        if (outputDomain_ != null) {
-          outputDomain_ =
-            org.tribuo.protos.core.OutputDomainProto.newBuilder(outputDomain_).mergeFrom(value).buildPartial();
-        } else {
-          outputDomain_ = value;
-        }
-        onChanged();
-      } else {
-        outputDomainBuilder_.mergeFrom(value);
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     */
-    public Builder clearOutputDomain() {
-      if (outputDomainBuilder_ == null) {
-        outputDomain_ = null;
-        onChanged();
-      } else {
-        outputDomain_ = null;
-        outputDomainBuilder_ = null;
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     */
-    public org.tribuo.protos.core.OutputDomainProto.Builder getOutputDomainBuilder() {
-      
-      onChanged();
-      return getOutputDomainFieldBuilder().getBuilder();
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     */
-    public org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder() {
-      if (outputDomainBuilder_ != null) {
-        return outputDomainBuilder_.getMessageOrBuilder();
-      } else {
-        return outputDomain_ == null ?
-            org.tribuo.protos.core.OutputDomainProto.getDefaultInstance() : outputDomain_;
-      }
-    }
-    /**
-     * <pre>
-     *Model output domain
-     * </pre>
-     *
-     * <code>.tribuo.core.OutputDomainProto output_domain = 6;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder> 
-        getOutputDomainFieldBuilder() {
-      if (outputDomainBuilder_ == null) {
-        outputDomainBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.OutputDomainProto, org.tribuo.protos.core.OutputDomainProto.Builder, org.tribuo.protos.core.OutputDomainProtoOrBuilder>(
-                getOutputDomain(),
-                getParentForChildren(),
-                isClean());
-        outputDomain_ = null;
-      }
-      return outputDomainBuilder_;
-    }
-
-    private org.tribuo.protos.core.ModelDataProto modelData_;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.ModelDataProto, org.tribuo.protos.core.ModelDataProto.Builder, org.tribuo.protos.core.ModelDataProtoOrBuilder> modelDataBuilder_;
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     * @return Whether the modelData field is set.
-     */
-    public boolean hasModelData() {
-      return modelDataBuilder_ != null || modelData_ != null;
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     * @return The modelData.
-     */
-    public org.tribuo.protos.core.ModelDataProto getModelData() {
-      if (modelDataBuilder_ == null) {
-        return modelData_ == null ? org.tribuo.protos.core.ModelDataProto.getDefaultInstance() : modelData_;
-      } else {
-        return modelDataBuilder_.getMessage();
-      }
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     */
-    public Builder setModelData(org.tribuo.protos.core.ModelDataProto value) {
-      if (modelDataBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        modelData_ = value;
-        onChanged();
-      } else {
-        modelDataBuilder_.setMessage(value);
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     */
-    public Builder setModelData(
-        org.tribuo.protos.core.ModelDataProto.Builder builderForValue) {
-      if (modelDataBuilder_ == null) {
-        modelData_ = builderForValue.build();
-        onChanged();
-      } else {
-        modelDataBuilder_.setMessage(builderForValue.build());
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     */
-    public Builder mergeModelData(org.tribuo.protos.core.ModelDataProto value) {
-      if (modelDataBuilder_ == null) {
-        if (modelData_ != null) {
-          modelData_ =
-            org.tribuo.protos.core.ModelDataProto.newBuilder(modelData_).mergeFrom(value).buildPartial();
-        } else {
-          modelData_ = value;
-        }
-        onChanged();
-      } else {
-        modelDataBuilder_.mergeFrom(value);
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     */
-    public Builder clearModelData() {
-      if (modelDataBuilder_ == null) {
-        modelData_ = null;
-        onChanged();
-      } else {
-        modelData_ = null;
-        modelDataBuilder_ = null;
-      }
-
-      return this;
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     */
-    public org.tribuo.protos.core.ModelDataProto.Builder getModelDataBuilder() {
-      
-      onChanged();
-      return getModelDataFieldBuilder().getBuilder();
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     */
-    public org.tribuo.protos.core.ModelDataProtoOrBuilder getModelDataOrBuilder() {
-      if (modelDataBuilder_ != null) {
-        return modelDataBuilder_.getMessageOrBuilder();
-      } else {
-        return modelData_ == null ?
-            org.tribuo.protos.core.ModelDataProto.getDefaultInstance() : modelData_;
-      }
-    }
-    /**
-     * <pre>
-     *Model data
-     * </pre>
-     *
-     * <code>.tribuo.core.ModelDataProto model_data = 7;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.ModelDataProto, org.tribuo.protos.core.ModelDataProto.Builder, org.tribuo.protos.core.ModelDataProtoOrBuilder> 
-        getModelDataFieldBuilder() {
-      if (modelDataBuilder_ == null) {
-        modelDataBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.ModelDataProto, org.tribuo.protos.core.ModelDataProto.Builder, org.tribuo.protos.core.ModelDataProtoOrBuilder>(
-                getModelData(),
-                getParentForChildren(),
-                isClean());
-        modelData_ = null;
-      }
-      return modelDataBuilder_;
+      return serializedDataBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

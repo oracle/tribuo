@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.dataset;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
@@ -28,10 +30,15 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
+import org.tribuo.OutputInfo;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.DatasetViewProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.util.Util;
 
@@ -55,8 +62,13 @@ import java.util.function.Predicate;
 public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final Dataset<T> innerDataset;
-    
+
     private final int size;
 
     private final int[] exampleIndices;
@@ -133,6 +145,75 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
     }
 
     /**
+     * Deserialization constructor.
+     * @param dataset The dataset to create the view over.
+     * @param exampleIndices The indices to use.
+     * @param seed The seed for the RNG.
+     * @param tag The dataset view tag.
+     * @param featureIDs The feature IDs to use.
+     * @param outputIDs The output IDs to use.
+     * @param sampled Is it sampled?
+     * @param weighted Is it a weighted sample?
+     * @param storeIndices Should the indices be stored in the provenance?
+     */
+    private DatasetView(Dataset<T> dataset, int[] exampleIndices, long seed, String tag, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> outputIDs, boolean sampled, boolean weighted, boolean storeIndices) {
+        super(dataset.getProvenance(),dataset.getOutputFactory(),featureIDs,outputIDs);
+        this.innerDataset = dataset;
+        this.size = exampleIndices.length;
+        this.exampleIndices = exampleIndices;
+        this.tag = tag;
+        this.seed = seed;
+        this.sampled = sampled;
+        this.weighted = weighted;
+        this.storeIndices = storeIndices;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static DatasetView<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        DatasetViewProto proto = message.unpack(DatasetViewProto.class);
+        Dataset<?> inner = Dataset.deserialize(proto.getInnerDataset());
+        Class<?> outputClass = inner.getOutputFactory().getUnknownOutput().getClass();
+        OutputInfo<?> outputDomain = OutputInfo.deserialize(proto.getOutputDomain());
+        Set<?> domain = outputDomain.getDomain();
+        for (Object o : domain) {
+            if (!o.getClass().equals(outputClass)) {
+                throw new IllegalStateException("Invalid protobuf, output domains do not match, expected " + outputClass + " found " + o.getClass());
+            }
+        }
+        FeatureMap featureDomain = FeatureMap.deserialize(proto.getFeatureDomain());
+        int[] indices = Util.toPrimitiveInt(proto.getIndicesList());
+        if (!validateIndices(inner.size(),indices)) {
+            throw new IllegalStateException("Invalid protobuf, indices are not all inside the range of the inner dataset");
+        }
+        for (int i = 0; i < indices.length; i++) {
+            Example<?> example = inner.getExample(indices[i]);
+            for (Feature f : example) {
+                if (featureDomain.get(f.getName()) == null) {
+                    throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                }
+            }
+        }
+        if (!(featureDomain instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
+        }
+        if (!(outputDomain instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
+        }
+        return new DatasetView(inner, indices, proto.getSeed(), proto.getTag(),
+            (ImmutableFeatureMap) featureDomain, (ImmutableOutputInfo) outputDomain, proto.getSampled(),
+            proto.getWeighted(), proto.getStoreIndices());
+    }
+
+    /**
      * Creates a view from the supplied dataset, using the specified predicate to
      * test if each example should be in this view.
      * @param dataset The dataset to create a view over.
@@ -184,7 +265,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
      * @return A dataset view containing a bootstrap sample of the supplied dataset.
      */
     public static <T extends Output<T>> DatasetView<T> createBootstrapView(Dataset<T> dataset, int size, long seed, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> outputIDs) {
-        int[] bootstrapIndices = Util.generateBootstrapIndices(size, new SplittableRandom(seed));
+        int[] bootstrapIndices = Util.generateBootstrapIndices(size, dataset.size(), new SplittableRandom(seed));
         return new DatasetView<>(dataset, bootstrapIndices, seed, featureIDs, outputIDs, false);
     }
 
@@ -318,11 +399,45 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
     }
 
     /**
-     * Returns a copy of the indicies used in this view.
+     * The tag associated with this dataset, if it exists.
+     * @return The dataset tag.
+     */
+    public String getTag() {
+        return tag;
+    }
+
+    /**
+     * Returns a copy of the indices used in this view.
      * @return The indices.
      */
     public int[] getExampleIndices() {
         return Arrays.copyOf(exampleIndices,exampleIndices.length);
+    }
+
+    @Override
+    public DatasetProto serialize() {
+        DatasetViewProto.Builder datasetBuilder = DatasetViewProto.newBuilder();
+
+        datasetBuilder.setInnerDataset(innerDataset.serialize());
+        datasetBuilder.setSize(size);
+        for (int i = 0; i < exampleIndices.length; i++) {
+            datasetBuilder.addIndices(exampleIndices[i]);
+        }
+        datasetBuilder.setSeed(seed);
+        datasetBuilder.setTag(tag);
+        datasetBuilder.setSampled(sampled);
+        datasetBuilder.setWeighted(weighted);
+        datasetBuilder.setStoreIndices(storeIndices);
+        datasetBuilder.setFeatureDomain(featureIDMap.serialize());
+        datasetBuilder.setOutputDomain(outputIDInfo.serialize());
+
+        DatasetProto.Builder builder = DatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(DatasetView.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 
     /**
@@ -342,7 +457,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
         return valid;
     }
 
-    private static class ViewIterator<T extends Output<T>> implements Iterator<Example<T>> {
+    private static final class ViewIterator<T extends Output<T>> implements Iterator<Example<T>> {
 
         private int counter = 0;
         private final DatasetView<T> dataset;
@@ -421,7 +536,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
         /**
          * Generates the indices from this DatasetViewProvenance
          * by rerunning the bootstrap sample.
-         *
+         * <p>
          * Note these indices are invalid if the view is a weighted sample, or
          * not sampled.
          * @return The bootstrap indices.

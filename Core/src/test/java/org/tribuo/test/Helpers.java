@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Assertions;
+import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
@@ -36,9 +37,11 @@ import org.tribuo.Output;
 import org.tribuo.impl.ListExample;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceModel;
 
-import java.awt.image.Kernel;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -54,6 +57,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test helpers
@@ -90,6 +95,62 @@ public final class Helpers {
     }
 
     /**
+     * Checks for equality between two sequence datasets.
+     * <p>
+     * Equality is defined as all examples are equal, in the same order, the output factories are the same and the
+     * feature & output domains are equal. Provenance is not compared, nor are other properties of the sequence dataset.
+     * @param first The first dataset.
+     * @param second The second dataset.
+     * @return True if the datasets are equal.
+     * @param <T> The output type.
+     */
+    public static <T extends Output<T>> boolean sequenceDatasetEquals(SequenceDataset<T> first, SequenceDataset<T> second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        for (int i = 0; i < first.size(); i++) {
+            if (!first.getExample(i).equals(second.getExample(i))) {
+                return false;
+            }
+        }
+        if (!first.getOutputFactory().equals(second.getOutputFactory())) {
+            return false;
+        }
+        if (!first.getFeatureMap().equals(second.getFeatureMap())) {
+            return false;
+        }
+        return first.getOutputInfo().equals(second.getOutputInfo());
+    }
+
+    /**
+     * Checks for equality between two datasets.
+     * <p>
+     * Equality is defined as all examples are equal, in the same order, the output factories are the same and the
+     * feature & output domains are equal. Provenance is not compared, nor are other properties of the dataset.
+     * @param first The first dataset.
+     * @param second The second dataset.
+     * @return True if the datasets are equal.
+     * @param <T> The output type.
+     */
+    public static <T extends Output<T>> boolean datasetEquals(Dataset<T> first, Dataset<T> second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        for (int i = 0; i < first.size(); i++) {
+            if (!first.getExample(i).equals(second.getExample(i))) {
+                return false;
+            }
+        }
+        if (!first.getOutputFactory().equals(second.getOutputFactory())) {
+            return false;
+        }
+        if (!first.getFeatureMap().equals(second.getFeatureMap())) {
+            return false;
+        }
+        return first.getOutputInfo().equals(second.getOutputInfo());
+    }
+
+    /**
      * Takes an object that is both {@link Provenancable} and {@link Configurable} and tests whether the configuration
      * and provenance representations are the same using {@link ConfigurationData#structuralEquals(List, List, String, String)}.
      * @param itm The object whose equality is to be tested
@@ -105,14 +166,33 @@ public final class Helpers {
 
         List<ConfigurationData> provenData = ProvenanceUtil.extractConfiguration(itm.getProvenance());
 
-        Assertions.assertTrue(ConfigurationData.structuralEquals(configData, provenData, name, provenData.get(0).getName()));
+        assertTrue(ConfigurationData.structuralEquals(configData, provenData, name, provenData.get(0).getName()));
     }
-
 
     public static void testProvenanceMarshalling(ObjectProvenance inputProvenance) {
         List<ObjectMarshalledProvenance> provenanceList = ProvenanceUtil.marshalProvenance(inputProvenance);
         ObjectProvenance unmarshalledProvenance = ProvenanceUtil.unmarshalProvenance(provenanceList);
         assertEquals(unmarshalledProvenance,inputProvenance);
+    }
+
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public static <T extends Output<T>> SequenceDataset<T> testSequenceDatasetSerialization(SequenceDataset<T> dataset) {
+        SequenceDatasetProto proto = dataset.serialize();
+        SequenceDataset deser = ProtoUtil.deserialize(proto);
+        assertEquals(dataset.getClass(),deser.getClass());
+        assertFalse(dataset == deser);
+        assertTrue(sequenceDatasetEquals(dataset, deser));
+        return deser;
+    }
+
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public static <T extends Output<T>> Dataset<T> testDatasetSerialization(Dataset<T> dataset) {
+        DatasetProto proto = dataset.serialize();
+        Dataset deser = ProtoUtil.deserialize(proto);
+        assertEquals(dataset.getClass(),deser.getClass());
+        assertFalse(dataset == deser);
+        assertTrue(datasetEquals(dataset, deser));
+        return deser;
     }
 
     public static <U extends Message, T extends ProtoSerializable<U>> T testProtoSerialization(T obj) {
@@ -144,7 +224,7 @@ public final class Helpers {
             // check provenance is equal
             assertEquals(model.getProvenance(), deserializedModel.getProvenance());
             // validate that the model is still of the right type
-            Assertions.assertTrue(deserializedModel.validate(outputClazz));
+            assertTrue(deserializedModel.validate(outputClazz));
             if (deserializedModel instanceof AutoCloseable) {
                 try {
                     ((AutoCloseable) deserializedModel).close();
@@ -181,7 +261,7 @@ public final class Helpers {
             // check provenance is equal
             assertEquals(model.getProvenance(), deserializedModel.getProvenance());
             // validate that the model is still of the right type
-            Assertions.assertTrue(deserializedModel.validate(outputClazz));
+            assertTrue(deserializedModel.validate(outputClazz));
             if (deserializedModel instanceof AutoCloseable) {
                 try {
                     ((AutoCloseable) deserializedModel).close();

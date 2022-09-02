@@ -32,7 +32,7 @@
  * Maps may be serialized in multiple ways, as protobuf does not support the full set of
  * map type parameters that Java does. The variants are:
  * <ul>
- *     <li>Using the standard {@link org.tribuo.protos.ProtoSerializableField} annotation directly serializes the map as a protobuf map</li>
+ *     <li>{@link org.tribuo.protos.ProtoSerializableMapField} annotation directly serializes the map as a protobuf map</li>
  *     <li>{@link org.tribuo.protos.ProtoSerializableKeysValuesField} serializes the map as two repeated fields for the keys and values</li>
  *     <li>{@link org.tribuo.protos.ProtoSerializableMapValuesField} serializes just the values from the map</li>
  * </ul>

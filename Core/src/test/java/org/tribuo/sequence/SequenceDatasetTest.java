@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.impl.ListExample;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
+import org.tribuo.test.Helpers;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
@@ -85,6 +86,10 @@ public class SequenceDatasetTest {
         // One as non-sparse zeros are ignored
         assertEquals(1, infoMap.get("f4").getCount());
         assertEquals(1, infoMap.get("f5").getCount());
+        MutableSequenceDataset<MockOutput> deser = (MutableSequenceDataset<MockOutput>) Helpers.testSequenceDatasetSerialization(dataset);
+
+        ImmutableSequenceDataset<MockOutput> imm = ImmutableSequenceDataset.copyDataset(dataset);
+        Helpers.testSequenceDatasetSerialization(imm);
 
         SequenceDataset<MockOutput> prunedDataset = new MinimumCardinalitySequenceDataset<>(dataset, 2);
         infoMap = prunedDataset.getFeatureIDMap();
@@ -185,6 +190,8 @@ public class SequenceDatasetTest {
         assertNull(infoMap.get("f6"));
         assertNull(infoMap.get("f7"));
         assertEquals(2, minimumCardinalityDataset.size());
+        MinimumCardinalitySequenceDataset<MockOutput> deser = (MinimumCardinalitySequenceDataset<MockOutput>) Helpers.testSequenceDatasetSerialization(minimumCardinalityDataset);
+        assertEquals(minimumCardinalityDataset.getMinCardinality(), deser.getMinCardinality());
     }
 
     @Test
@@ -246,9 +253,11 @@ public class SequenceDatasetTest {
         SequenceExample<MockOutput> denseExample = new SequenceExample<>(Arrays.asList(first,second,third));
 
         dataset.add(denseExample);
+        MutableSequenceDataset<MockOutput> deser = (MutableSequenceDataset<MockOutput>) Helpers.testSequenceDatasetSerialization(dataset);
 
         // This example is dense
         assertTrue(dataset.isDense());
+        assertTrue(deser.isDense());
 
         first = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1});
         second = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1});
@@ -257,9 +266,11 @@ public class SequenceDatasetTest {
         SequenceExample<MockOutput> newDenseExample = new SequenceExample<>(Arrays.asList(first,second,third));
 
         dataset.add(newDenseExample);
+        deser = (MutableSequenceDataset<MockOutput>) Helpers.testSequenceDatasetSerialization(dataset);
 
         // This example is dense, but it makes the previous one not dense as it adds a new feature
         assertFalse(dataset.isDense());
+        assertFalse(deser.isDense());
 
         // flush out the previous test
         dataset.clear();
@@ -294,6 +305,7 @@ public class SequenceDatasetTest {
         dataset.densify();
 
         assertTrue(dataset.isDense());
+        Helpers.testSequenceDatasetSerialization(dataset);
     }
 
     private ListExample<MockOutput> createExample(String outputLabel, String... featureNames) {

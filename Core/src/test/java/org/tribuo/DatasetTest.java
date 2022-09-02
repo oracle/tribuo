@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,15 +22,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.tribuo.test.Helpers.mkExample;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.dataset.DatasetView;
 import org.tribuo.dataset.MinimumCardinalityDataset;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
+import org.tribuo.test.Helpers;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
@@ -88,13 +92,15 @@ public class DatasetTest {
         assertEquals(1, infoMap.get("f4").getCount());
         assertEquals(1, infoMap.get("f5").getCount());
 
-        Dataset<MockOutput> prunedDataset = new MinimumCardinalityDataset<>(dataset, 2);
+        MinimumCardinalityDataset<MockOutput> prunedDataset = new MinimumCardinalityDataset<>(dataset, 2);
         infoMap = prunedDataset.getFeatureIDMap();
         assertEquals(4, infoMap.get("f1").getCount());
         assertNull(infoMap.get("f2"));
         assertEquals(2, infoMap.get("f3").getCount());
         assertNull(infoMap.get("f4"));
         assertNull(infoMap.get("f5"));
+        MinimumCardinalityDataset<MockOutput> deser = (MinimumCardinalityDataset<MockOutput>) Helpers.testDatasetSerialization(prunedDataset);
+        assertEquals(prunedDataset.getMinCardinality(), deser.getMinCardinality());
         
         ex2 = prunedDataset.getExample(1);
         Feature f1 = ex2.lookup("f1");
@@ -119,6 +125,36 @@ public class DatasetTest {
         assertNull(infoMap.get("f3"));
         assertNull(infoMap.get("f4"));
         assertNull(infoMap.get("f5"));
+        Helpers.testDatasetSerialization(prunedDataset);
+    }
+
+    @Test
+    public void testImmutable() {
+        MockOutputFactory mockFactory = new MockOutputFactory();
+        MockDataSourceProvenance mockProvenance = new MockDataSourceProvenance();
+        MockOutput mockOutput = new MockOutput("test");
+
+        List<Example<MockOutput>> examples = new ArrayList<>();
+        examples.add(new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{1,1,1}));
+        examples.add(new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1}));
+        examples.add(new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{3,3,3}));
+        examples.add(new ArrayExample<>(mockOutput,new String[]{"b","c"},new double[]{1,1}));
+
+        MutableDataset<MockOutput> dataset = new MutableDataset<>(examples, mockProvenance, mockFactory);
+
+        ImmutableDataset<MockOutput> imm = ImmutableDataset.copyDataset(dataset);
+
+        Helpers.testDatasetSerialization(imm);
+
+        DatasetView<MockOutput> view = DatasetView.createView(dataset, e -> {
+            for (Feature f : e) { if (f.getName().equals("d")) { return true; } } return false;
+        }, "d");
+
+        DatasetView<MockOutput> deser = (DatasetView<MockOutput>) Helpers.testDatasetSerialization(view);
+        assertEquals("d", deser.getTag());
+
+        view = DatasetView.createBootstrapView(imm, 10, 12345);
+        deser = (DatasetView<MockOutput>) Helpers.testDatasetSerialization(view);
     }
 
     @Test
@@ -138,14 +174,18 @@ public class DatasetTest {
         ArrayExample<MockOutput> fourth = new ArrayExample<>(mockOutput,new String[]{"b","c"},new double[]{1,1});
 
         dataset.add(first);
+        MutableDataset<MockOutput> deser = (MutableDataset<MockOutput>) Helpers.testDatasetSerialization(dataset);
 
         // This example is dense
         assertTrue(dataset.isDense());
+        assertTrue(deser.isDense());
 
         dataset.add(second);
+        deser = (MutableDataset<MockOutput>) Helpers.testDatasetSerialization(dataset);
 
         // This example is dense, but it makes the previous one not dense as it adds a new feature
         assertFalse(dataset.isDense());
+        assertFalse(deser.isDense());
 
         // flush out the previous test
         dataset.clear();
@@ -187,5 +227,7 @@ public class DatasetTest {
         for (Example<MockOutput> e : dataset) {
             assertEquals(5,e.size());
         }
+
+        Helpers.testDatasetSerialization(dataset);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.ExampleProto;
+import org.tribuo.protos.core.MutableDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformerMap;
@@ -41,6 +47,11 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
     private static final Logger logger = Logger.getLogger(MutableDataset.class.getName());
     
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Information about the outputs in this dataset.
@@ -96,6 +107,52 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
      */
     public MutableDataset(DataSource<T> dataSource) {
         this(dataSource,dataSource.getProvenance(),dataSource.getOutputFactory());
+    }
+
+    private MutableDataset(DataProvenance provenance, OutputFactory<T> factory, String tribuoVersion, MutableFeatureMap fmap, MutableOutputInfo<T> outputInfo, List<Example<T>> examples, boolean dense) {
+        super(provenance,factory,tribuoVersion);
+        this.featureMap = fmap;
+        this.outputMap = outputInfo;
+        this.data.addAll(examples);
+        this.dense = dense;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static MutableDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MutableDatasetProto proto = message.unpack(MutableDatasetProto.class);
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
+        FeatureMap fmap = carrier.featureDomain();
+        List<Example<?>> examples = new ArrayList<>();
+        for (ExampleProto e : proto.getExamplesList()) {
+            Example<?> example = Example.deserialize(e);
+            if (example.getOutput().getClass().equals(outputClass)) {
+                for (Feature f : example) {
+                   if (fmap.get(f.getName()) == null) {
+                       throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                   }
+                }
+                examples.add(example);
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
+            }
+        }
+        if (!(fmap instanceof MutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not mutable");
+        }
+        if (!(carrier.outputDomain() instanceof MutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not mutable");
+        }
+        return new MutableDataset(carrier.provenance(), carrier.outputFactory(), carrier.tribuoVersion(), (MutableFeatureMap) fmap, (MutableOutputInfo) carrier.outputDomain(), examples, proto.getDense());
     }
 
     /**
@@ -274,6 +331,25 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
     @Override
     public DatasetProvenance getProvenance() {
         return new DatasetProvenance(sourceProvenance, new ListProvenance<>(transformProvenances), this);
+    }
+
+    @Override
+    public DatasetProto serialize() {
+        MutableDatasetProto.Builder datasetBuilder = MutableDatasetProto.newBuilder();
+
+        datasetBuilder.setDense(dense);
+        datasetBuilder.setMetadata(createDataCarrier(featureMap,outputMap,transformProvenances).serialize());
+        for (Example<T> e : data) {
+            datasetBuilder.addExamples(e.serialize());
+        }
+
+        DatasetProto.Builder builder = DatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(MutableDataset.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 
     /**

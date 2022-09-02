@@ -32,11 +32,16 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableInfo;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.BinaryFeaturesExampleProto;
+import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.util.Merger;
 
@@ -61,6 +66,11 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(BinaryFeaturesExample.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Default initial size of the backing arrays.
@@ -203,6 +213,40 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
             featureNames[size] = f.getName();
             size++;
         }
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param output The output.
+     * @param weight The weight.
+     * @param featureNames The names of the binary features.
+     * @param metadata The metadata map.
+     */
+    private BinaryFeaturesExample(T output, float weight, List<String> featureNames, Map<String, String> metadata) {
+        super(output,weight);
+        this.featureNames = new String[featureNames.size()];
+        this.size = featureNames.size();
+        for (int i = 0; i < featureNames.size(); i++) {
+            this.featureNames[i] = featureNames.get(i);
+        }
+        for (Map.Entry<String, String> e : metadata.entrySet()) {
+            setMetadataValue(e.getKey(), e.getValue());
+        }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static <T extends Output<T>> BinaryFeaturesExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        BinaryFeaturesExampleProto proto = message.unpack(BinaryFeaturesExampleProto.class);
+        T output = ProtoUtil.deserialize(proto.getOutput());
+        return new BinaryFeaturesExample<>(output,proto.getWeight(),proto.getFeatureNameList(),proto.getMetadataMap());
     }
 
     /**
@@ -509,6 +553,32 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
             result = 31 * result + featureNames[i].hashCode();
         }
         return result;
+    }
+
+    @Override
+    public ExampleProto serialize() {
+        ExampleProto.Builder builder = ExampleProto.newBuilder();
+
+        builder.setClassName(BinaryFeaturesExample.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+        BinaryFeaturesExampleProto.Builder exampleBuilder = BinaryFeaturesExampleProto.newBuilder();
+        exampleBuilder.setWeight(weight);
+        exampleBuilder.setOutput(output.serialize());
+        for (int i = 0; i < size; i++) {
+            exampleBuilder.addFeatureName(featureNames[i]);
+        }
+        if (metadata != null) {
+            for (Map.Entry<String, Object> e : metadata.entrySet()) {
+                if (!(e.getValue() instanceof String)) {
+                    logger.warning("Serializing non-string metadata for key '" + e.getKey() + "' of type " + e.getValue().getClass());
+                }
+                exampleBuilder.putMetadata(e.getKey(), e.getValue().toString());
+            }
+        }
+
+        builder.setSerializedData(Any.pack(exampleBuilder.build()));
+
+        return builder.build();
     }
 
     class BinaryFeaturesExampleIterator implements Iterator<Feature> {

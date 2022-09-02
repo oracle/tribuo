@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.tribuo.test.Helpers.testProtoSerialization;
 
 /**
  *
@@ -54,24 +55,28 @@ public class ExampleTest {
         example.densify(Arrays.asList(featureNames));
         expected = new ArrayExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
 
         // Already dense
         example = new ArrayExample<>(output, featureNames, new double[]{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0});
         example.densify(Arrays.asList(featureNames));
         expected = new ArrayExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
 
         // No edges
         example = new ArrayExample<>(output, new String[]{"F1","F3","F5","F6","F8"}, new double[]{1.0,1.0,1.0,1.0,1.0});
         example.densify(Arrays.asList(featureNames));
         expected = new ArrayExample<>(new MockOutput("UNK"), featureNames, new double[]{0.0,1.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
 
         // Only edges
         example = new ArrayExample<>(output, new String[]{"F0","F1","F8","F9"}, new double[]{1.0,1.0,1.0,1.0});
         example.densify(Arrays.asList(featureNames));
         expected = new ArrayExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
     }
 
     @Test
@@ -84,24 +89,28 @@ public class ExampleTest {
         example.densify(Arrays.asList(featureNames));
         expected = new ListExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
 
         // Already dense
         example = new ListExample<>(output, featureNames, new double[]{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0});
         example.densify(Arrays.asList(featureNames));
         expected = new ListExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
 
         // No edges
         example = new ListExample<>(output, new String[]{"F1","F3","F5","F6","F8"}, new double[]{1.0,1.0,1.0,1.0,1.0});
         example.densify(Arrays.asList(featureNames));
         expected = new ListExample<>(new MockOutput("UNK"), featureNames, new double[]{0.0,1.0,0.0,1.0,0.0,1.0,1.0,0.0,1.0,0.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
 
         // Only edges
         example = new ListExample<>(output, new String[]{"F0","F1","F8","F9"}, new double[]{1.0,1.0,1.0,1.0});
         example.densify(Arrays.asList(featureNames));
         expected = new ListExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0});
         checkDenseExample(expected,example);
+        testProtoSerialization(example);
     }
 
     @Test
@@ -116,6 +125,7 @@ public class ExampleTest {
         example = new ArrayExample<>(output,names,values);
         example.removeFeatures(Collections.singletonList(new Feature("E",1.0)));
         assertEquals(4,example.size());
+        testProtoSerialization(example);
 
         example = new ArrayExample<>(output,names,values);
         featureList = new ArrayList<>();
@@ -127,6 +137,7 @@ public class ExampleTest {
         assertEquals("A",example.lookup("A").name);
         assertEquals("B",example.lookup("B").name);
         assertEquals("E",example.lookup("E").name);
+        testProtoSerialization(example);
 
         example = new ArrayExample<>(output,names,values);
         featureList = new ArrayList<>();
@@ -149,6 +160,7 @@ public class ExampleTest {
         assertEquals(4,example.size());
         assertEquals("A",example.lookup("A").name);
         assertEquals("C",example.lookup("C").name);
+        testProtoSerialization(example);
     }
 
     public static void checkDenseExample(Example<MockOutput> expected, Example<MockOutput> actual) {
@@ -320,6 +332,7 @@ public class ExampleTest {
         Example<MockOutput> test = new BinaryFeaturesExample<>(output);
         // Empty examples are invalid.
         assertFalse(test.validateExample());
+        testProtoSerialization(test);
 
         test.add(new Feature("test",1.0));
         test.add(new Feature("test",1.0));
@@ -331,7 +344,8 @@ public class ExampleTest {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> test.transform(null));
         
         test.add(new Feature("test-2",1.0));
-        
+        testProtoSerialization(test);
+
         Example<MockOutput> test2 = test.copy();
         test2.add(new Feature("test-2",1.0));
         test2.reduceByName(Merger.max());
@@ -366,7 +380,8 @@ public class ExampleTest {
         copy.setMetadataValue("Strawberries","Red");
         assertEquals(3,copy.getMetadata().size());
         assertEquals(2,test.getMetadata().size());
-        
+        testProtoSerialization(test);
+
         Feature lookup = test.lookup("test-2");
         assertEquals("test-2", lookup.name);
         assertEquals(1.0, lookup.value);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,6 +246,27 @@ public final class Util {
         int[] array = new int[size];
         for (int i = 0; i < size; i++) {
             array[i] = rng.nextInt(size);
+        }
+        return array;
+    }
+
+    /**
+     * Draws a bootstrap sample of indices.
+     * @param size Size of the sample to generate.
+     * @param range The range of the sample.
+     * @param rng The RNG to use.
+     * @return A bootstrap sample.
+     */
+    public static int[] generateBootstrapIndices(int size, int range, SplittableRandom rng) {
+        if (size < 1) {
+            throw new IllegalArgumentException("Invalid size, must be positive");
+        }
+        if (range < 1) {
+            throw new IllegalArgumentException("Invalid range, must be positive");
+        }
+        int[] array = new int[size];
+        for (int i = 0; i < size; i++) {
+            array[i] = rng.nextInt(range);
         }
         return array;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.sequence;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
@@ -24,28 +26,44 @@ import org.tribuo.OutputFactory;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.BinaryFeaturesExample;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ExampleProto;
+import org.tribuo.protos.core.SequenceExampleImplProto;
+import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.util.Merger;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
  * A sequence of examples, used for sequence classification.
  */
-public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>>, Serializable {
+@ProtoSerializableClass(serializedDataClass = SequenceExampleImplProto.class, version = SequenceExample.CURRENT_VERSION)
+public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>>, ProtoSerializable<SequenceExampleProto>, Serializable {
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(SequenceExample.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * The default sequence example weight.
      */
     public static final float DEFAULT_WEIGHT = 1.0f;
 
+    @ProtoSerializableField
     private final List<Example<T>> examples;
+    @ProtoSerializableField
     private float weight = 1.0f;
 
     /**
@@ -162,6 +180,43 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
             examples.add(example.copy());
         }
         this.weight = other.weight;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks
+    public static <T extends Output<T>> SequenceExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        SequenceExampleImplProto proto = message.unpack(SequenceExampleImplProto.class);
+        List<Example<?>> examples = new ArrayList<>();
+        for (ExampleProto p : proto.getExamplesList()) {
+            examples.add(Example.deserialize(p));
+        }
+        if (examples.size() > 0) {
+            Class<? extends Output> first = examples.get(0).getOutput().getClass();
+            for (int i = 1; i < examples.size(); i++) {
+                Class<? extends Output> other = examples.get(i).getOutput().getClass();
+                if (!first.equals(other)) {
+                    throw new IllegalStateException("Invalid protobuf, examples have different output types, expected " + first + ", found " + other + " at index " + i);
+                }
+            }
+        }
+        return new SequenceExample(examples, proto.getWeight());
+    }
+
+    /**
+     * Deserialization shortcut, used to firm up the types.
+     * @param e The proto to deserialize.
+     * @return The sequence example.
+     */
+    public static SequenceExample<?> deserialize(SequenceExampleProto e) {
+        return ProtoUtil.deserialize(e);
     }
 
     /**
@@ -304,11 +359,29 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
         }
     }
 
+    @Override
+    public SequenceExampleProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SequenceExample<?> that = (SequenceExample<?>) o;
+        return Float.compare(that.weight, weight) == 0 && examples.equals(that.examples);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(examples, weight);
+    }
+
     /**
      * Creates a SequenceExample using {@link OutputFactory#getUnknownOutput()} as the output for each
      * sequence element.
      * <p>
-     * Note: this method is used to create SequenceExamples at prediction time where there is no
+     * Note: this method is used to create SequenceExamples at prediction time when there is no
      * ground truth {@link Output}.
      * @param features The features for each sequence element.
      * @param outputFactory The output factory to use.

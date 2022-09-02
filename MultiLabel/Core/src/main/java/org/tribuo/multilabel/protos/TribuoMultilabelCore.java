@@ -29,6 +29,11 @@ public final class TribuoMultilabelCore {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_multilabel_ImmutableMultiLabelInfoProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_multilabel_BinaryExampleProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_multilabel_BinaryExampleProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -47,8 +52,12 @@ public final class TribuoMultilabelCore {
       "\001(\005\022\022\n\ntotalCount\030\004 \001(\005\"r\n\034ImmutableMult" +
       "iLabelInfoProto\022\r\n\005label\030\001 \003(\t\022\r\n\005count\030" +
       "\002 \003(\003\022\n\n\002id\030\003 \003(\005\022\024\n\014unknownCount\030\004 \001(\005\022" +
-      "\022\n\ntotalCount\030\005 \001(\005B \n\034org.tribuo.multil" +
-      "abel.protosP\001b\006proto3"
+      "\022\n\ntotalCount\030\005 \001(\005\"\254\001\n\022BinaryExamplePro" +
+      "to\0220\n\rinner_example\030\001 \001(\0132\031.tribuo.core." +
+      "ExampleProto\022\'\n\005label\030\002 \001(\0132\030.tribuo.cor" +
+      "e.OutputProto\022\016\n\006weight\030\003 \001(\002\022\024\n\014feature" +
+      "_name\030\004 \003(\t\022\025\n\rfeature_value\030\005 \003(\001B \n\034or" +
+      "g.tribuo.multilabel.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -74,6 +83,12 @@ public final class TribuoMultilabelCore {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_multilabel_ImmutableMultiLabelInfoProto_descriptor,
         new java.lang.String[] { "Label", "Count", "Id", "UnknownCount", "TotalCount", });
+    internal_static_tribuo_multilabel_BinaryExampleProto_descriptor =
+      getDescriptor().getMessageTypes().get(3);
+    internal_static_tribuo_multilabel_BinaryExampleProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_multilabel_BinaryExampleProto_descriptor,
+        new java.lang.String[] { "InnerExample", "Label", "Weight", "FeatureName", "FeatureValue", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
     com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor();
   }
