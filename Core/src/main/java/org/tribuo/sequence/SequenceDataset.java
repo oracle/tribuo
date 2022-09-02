@@ -19,6 +19,7 @@ package org.tribuo.sequence;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
+import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.ImmutableFeatureMap;
@@ -30,6 +31,7 @@ import org.tribuo.Tribuo;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
@@ -211,5 +213,24 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
         }
     }
 
+    protected static List<SequenceExample<?>> deserializeExamples(java.util.List<org.tribuo.protos.core.SequenceExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
+        List<SequenceExample<?>> examples = new ArrayList<>();
+        for (SequenceExampleProto e : examplesList) {
+            SequenceExample<?> seq = SequenceExample.deserialize(e);
+            for (Example<?> example : seq) {
+                if (example.getOutput().getClass().equals(outputClass)) {
+                    for (Feature f : example) {
+                        if (fmap.get(f.getName()) == null) {
+                            throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                        }
+                    }
+                } else {
+                    throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
+                }
+            }
+            examples.add(seq);
+        }
+        return examples;
+    }
 }
 

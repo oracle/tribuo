@@ -182,22 +182,7 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
         DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
         Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
         FeatureMap fmap = carrier.featureDomain();
-        List<SequenceExample<?>> examples = new ArrayList<>();
-        for (SequenceExampleProto e : proto.getExamplesList()) {
-            SequenceExample<?> seq = SequenceExample.deserialize(e);
-            for (Example<?> example : seq) {
-                if (example.getOutput().getClass().equals(outputClass)) {
-                    for (Feature f : example) {
-                        if (fmap.get(f.getName()) == null) {
-                            throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
-                        }
-                    }
-                } else {
-                    throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
-                }
-            }
-            examples.add(seq);
-        }
+        List<SequenceExample<?>> examples = deserializeExamples(proto.getExamplesList(), outputClass, fmap);
         if (!(fmap instanceof ImmutableFeatureMap)) {
             throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
         }
