@@ -22,11 +22,9 @@ import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.DatasetProto;
-import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.MutableDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
-import org.tribuo.sequence.SequenceExample;
 import org.tribuo.transform.TransformerMap;
 
 import java.util.ArrayList;

@@ -24,10 +24,8 @@ import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.ExampleProto;
-import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
-import org.tribuo.sequence.SequenceExample;
 import org.tribuo.transform.TransformStatistics;
 import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationMap;
@@ -501,7 +499,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         }
     }
 
-    protected static List<Example<?>> deserializeExamples(java.util.List<org.tribuo.protos.core.ExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
+    protected static List<Example<?>> deserializeExamples(List<ExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
         List<Example<?>> examples = new ArrayList<>();
         for (ExampleProto e : examplesList) {
             Example<?> example = Example.deserialize(e);

@@ -213,7 +213,7 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
         }
     }
 
-    protected static List<SequenceExample<?>> deserializeExamples(java.util.List<org.tribuo.protos.core.SequenceExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
+    protected static List<SequenceExample<?>> deserializeExamples(List<SequenceExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
         List<SequenceExample<?>> examples = new ArrayList<>();
         for (SequenceExampleProto e : examplesList) {
             SequenceExample<?> seq = SequenceExample.deserialize(e);
