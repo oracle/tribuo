@@ -23,6 +23,7 @@ import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformStatistics;
@@ -498,5 +499,22 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         }
     }
 
+    protected static List<Example<?>> deserializeExamples(List<ExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
+        List<Example<?>> examples = new ArrayList<>();
+        for (ExampleProto e : examplesList) {
+            Example<?> example = Example.deserialize(e);
+            if (example.getOutput().getClass().equals(outputClass)) {
+                for (Feature f : example) {
+                   if (fmap.get(f.getName()) == null) {
+                       throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                   }
+                }
+                examples.add(example);
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
+            }
+        }
+        return examples;
+    }
 }
 
