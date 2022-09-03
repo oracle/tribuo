@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface RBFKernelProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.RBFKernelProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.RBFKernelProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

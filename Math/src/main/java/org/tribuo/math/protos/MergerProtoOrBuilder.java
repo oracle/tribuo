@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface MergerProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.MergerProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.MergerProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

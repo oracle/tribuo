@@ -10,11 +10,11 @@ package org.tribuo.math.protos;
  *endian double precision floats.
  * </pre>
  *
- * Protobuf type {@code tribuo.core.AdaGradRDADenseTensorProto}
+ * Protobuf type {@code tribuo.math.impl.AdaGradRDADenseTensorProto}
  */
 public final class AdaGradRDADenseTensorProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.AdaGradRDADenseTensorProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.impl.AdaGradRDADenseTensorProto)
     AdaGradRDADenseTensorProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use AdaGradRDADenseTensorProto.newBuilder() to construct.
@@ -119,13 +119,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_AdaGradRDADenseTensorProto_descriptor;
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_AdaGradRDADenseTensorProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_AdaGradRDADenseTensorProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_AdaGradRDADenseTensorProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.AdaGradRDADenseTensorProto.class, org.tribuo.math.protos.AdaGradRDADenseTensorProto.Builder.class);
   }
@@ -133,7 +133,7 @@ private static final long serialVersionUID = 0L;
   public static final int DATA_FIELD_NUMBER = 1;
   private org.tribuo.math.protos.DenseTensorProto data_;
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return Whether the data field is set.
    */
   @java.lang.Override
@@ -141,7 +141,7 @@ private static final long serialVersionUID = 0L;
     return data_ != null;
   }
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return The data.
    */
   @java.lang.Override
@@ -149,7 +149,7 @@ private static final long serialVersionUID = 0L;
     return data_ == null ? org.tribuo.math.protos.DenseTensorProto.getDefaultInstance() : data_;
   }
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    */
   @java.lang.Override
   public org.tribuo.math.protos.DenseTensorProtoOrBuilder getDataOrBuilder() {
@@ -463,21 +463,21 @@ private static final long serialVersionUID = 0L;
    *endian double precision floats.
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.AdaGradRDADenseTensorProto}
+   * Protobuf type {@code tribuo.math.impl.AdaGradRDADenseTensorProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.AdaGradRDADenseTensorProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.impl.AdaGradRDADenseTensorProto)
       org.tribuo.math.protos.AdaGradRDADenseTensorProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_AdaGradRDADenseTensorProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_AdaGradRDADenseTensorProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_AdaGradRDADenseTensorProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_AdaGradRDADenseTensorProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.AdaGradRDADenseTensorProto.class, org.tribuo.math.protos.AdaGradRDADenseTensorProto.Builder.class);
     }
@@ -524,7 +524,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_AdaGradRDADenseTensorProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_AdaGradRDADenseTensorProto_descriptor;
     }
 
     @java.lang.Override
@@ -657,14 +657,14 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         org.tribuo.math.protos.DenseTensorProto, org.tribuo.math.protos.DenseTensorProto.Builder, org.tribuo.math.protos.DenseTensorProtoOrBuilder> dataBuilder_;
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      * @return Whether the data field is set.
      */
     public boolean hasData() {
       return dataBuilder_ != null || data_ != null;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      * @return The data.
      */
     public org.tribuo.math.protos.DenseTensorProto getData() {
@@ -675,7 +675,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder setData(org.tribuo.math.protos.DenseTensorProto value) {
       if (dataBuilder_ == null) {
@@ -691,7 +691,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder setData(
         org.tribuo.math.protos.DenseTensorProto.Builder builderForValue) {
@@ -705,7 +705,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder mergeData(org.tribuo.math.protos.DenseTensorProto value) {
       if (dataBuilder_ == null) {
@@ -723,7 +723,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder clearData() {
       if (dataBuilder_ == null) {
@@ -737,7 +737,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public org.tribuo.math.protos.DenseTensorProto.Builder getDataBuilder() {
       
@@ -745,7 +745,7 @@ private static final long serialVersionUID = 0L;
       return getDataFieldBuilder().getBuilder();
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public org.tribuo.math.protos.DenseTensorProtoOrBuilder getDataOrBuilder() {
       if (dataBuilder_ != null) {
@@ -756,7 +756,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         org.tribuo.math.protos.DenseTensorProto, org.tribuo.math.protos.DenseTensorProto.Builder, org.tribuo.math.protos.DenseTensorProtoOrBuilder> 
@@ -973,10 +973,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.AdaGradRDADenseTensorProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.impl.AdaGradRDADenseTensorProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.AdaGradRDADenseTensorProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.impl.AdaGradRDADenseTensorProto)
   private static final org.tribuo.math.protos.AdaGradRDADenseTensorProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.AdaGradRDADenseTensorProto();

@@ -9,11 +9,11 @@ package org.tribuo.math.protos;
  *NeighboursQueryFactory redirection proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.NeighbourFactoryProto}
+ * Protobuf type {@code tribuo.math.NeighbourFactoryProto}
  */
 public final class NeighbourFactoryProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.NeighbourFactoryProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.NeighbourFactoryProto)
     NeighbourFactoryProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use NeighbourFactoryProto.newBuilder() to construct.
@@ -99,13 +99,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NeighbourFactoryProto_descriptor;
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NeighbourFactoryProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NeighbourFactoryProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NeighbourFactoryProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.NeighbourFactoryProto.class, org.tribuo.math.protos.NeighbourFactoryProto.Builder.class);
   }
@@ -372,21 +372,21 @@ private static final long serialVersionUID = 0L;
    *NeighboursQueryFactory redirection proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.NeighbourFactoryProto}
+   * Protobuf type {@code tribuo.math.NeighbourFactoryProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.NeighbourFactoryProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.NeighbourFactoryProto)
       org.tribuo.math.protos.NeighbourFactoryProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NeighbourFactoryProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NeighbourFactoryProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NeighbourFactoryProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NeighbourFactoryProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.NeighbourFactoryProto.class, org.tribuo.math.protos.NeighbourFactoryProto.Builder.class);
     }
@@ -425,7 +425,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NeighbourFactoryProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NeighbourFactoryProto_descriptor;
     }
 
     @java.lang.Override
@@ -777,10 +777,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.NeighbourFactoryProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.NeighbourFactoryProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.NeighbourFactoryProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.NeighbourFactoryProto)
   private static final org.tribuo.math.protos.NeighbourFactoryProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.NeighbourFactoryProto();

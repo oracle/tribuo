@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface DenseTensorProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.DenseTensorProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.DenseTensorProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

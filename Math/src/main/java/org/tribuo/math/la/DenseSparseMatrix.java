@@ -220,11 +220,6 @@ public class DenseSparseMatrix implements Matrix {
 
     @Override
     public TensorProto serialize() {
-        TensorProto.Builder builder = TensorProto.newBuilder();
-
-        builder.setVersion(CURRENT_VERSION);
-        builder.setClassName(DenseSparseMatrix.class.getName());
-
         SparseTensorProto.Builder dataBuilder = SparseTensorProto.newBuilder();
         dataBuilder.addAllDimensions(Arrays.stream(shape).boxed().collect(Collectors.toList()));
         int numNonZero = 0;
@@ -245,6 +240,11 @@ public class DenseSparseMatrix implements Matrix {
         dataBuilder.setIndices(ByteString.copyFrom(indicesBuffer));
         dataBuilder.setValues(ByteString.copyFrom(valuesBuffer));
         dataBuilder.setNumNonZero(numNonZero);
+
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(DenseSparseMatrix.class.getName());
         builder.setSerializedData(Any.pack(dataBuilder.build()));
 
         return builder.build();

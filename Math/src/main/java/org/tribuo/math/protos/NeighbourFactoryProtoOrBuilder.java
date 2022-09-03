@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface NeighbourFactoryProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.NeighbourFactoryProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.NeighbourFactoryProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

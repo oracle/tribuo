@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *Merger redirection proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.MergerProto}
+ * Protobuf type {@code tribuo.math.MergerProto}
  */
 public final class MergerProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.MergerProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.MergerProto)
     MergerProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use MergerProto.newBuilder() to construct.
@@ -98,13 +98,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_MergerProto_descriptor;
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_MergerProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_MergerProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_MergerProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.MergerProto.class, org.tribuo.math.protos.MergerProto.Builder.class);
   }
@@ -370,21 +370,21 @@ private static final long serialVersionUID = 0L;
    *Merger redirection proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.MergerProto}
+   * Protobuf type {@code tribuo.math.MergerProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.MergerProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.MergerProto)
       org.tribuo.math.protos.MergerProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_MergerProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_MergerProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_MergerProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_MergerProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.MergerProto.class, org.tribuo.math.protos.MergerProto.Builder.class);
     }
@@ -423,7 +423,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_MergerProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_MergerProto_descriptor;
     }
 
     @java.lang.Override
@@ -775,10 +775,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.MergerProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.MergerProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.MergerProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.MergerProto)
   private static final org.tribuo.math.protos.MergerProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.MergerProto();

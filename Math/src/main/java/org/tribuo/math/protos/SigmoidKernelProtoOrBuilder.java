@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface SigmoidKernelProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.SigmoidKernelProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.SigmoidKernelProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

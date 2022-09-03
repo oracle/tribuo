@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *KDTreeFactory proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.KDTreeFactoryProto}
+ * Protobuf type {@code tribuo.math.impl.KDTreeFactoryProto}
  */
 public final class KDTreeFactoryProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.KDTreeFactoryProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.impl.KDTreeFactoryProto)
     KDTreeFactoryProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use KDTreeFactoryProto.newBuilder() to construct.
@@ -85,13 +85,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_KDTreeFactoryProto_descriptor;
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_KDTreeFactoryProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_KDTreeFactoryProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_KDTreeFactoryProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.KDTreeFactoryProto.class, org.tribuo.math.protos.KDTreeFactoryProto.Builder.class);
   }
@@ -315,21 +315,21 @@ private static final long serialVersionUID = 0L;
    *KDTreeFactory proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.KDTreeFactoryProto}
+   * Protobuf type {@code tribuo.math.impl.KDTreeFactoryProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.KDTreeFactoryProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.impl.KDTreeFactoryProto)
       org.tribuo.math.protos.KDTreeFactoryProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_KDTreeFactoryProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_KDTreeFactoryProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_KDTreeFactoryProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_KDTreeFactoryProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.KDTreeFactoryProto.class, org.tribuo.math.protos.KDTreeFactoryProto.Builder.class);
     }
@@ -362,7 +362,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_KDTreeFactoryProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_KDTreeFactoryProto_descriptor;
     }
 
     @java.lang.Override
@@ -587,10 +587,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.KDTreeFactoryProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.impl.KDTreeFactoryProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.KDTreeFactoryProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.impl.KDTreeFactoryProto)
   private static final org.tribuo.math.protos.KDTreeFactoryProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.KDTreeFactoryProto();

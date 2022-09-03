@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *LinearParameters proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.LinearParametersProto}
+ * Protobuf type {@code tribuo.math.impl.LinearParametersProto}
  */
 public final class LinearParametersProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.LinearParametersProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.impl.LinearParametersProto)
     LinearParametersProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use LinearParametersProto.newBuilder() to construct.
@@ -86,13 +86,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_LinearParametersProto_descriptor;
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_LinearParametersProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_LinearParametersProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_LinearParametersProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.LinearParametersProto.class, org.tribuo.math.protos.LinearParametersProto.Builder.class);
   }
@@ -100,7 +100,7 @@ private static final long serialVersionUID = 0L;
   public static final int WEIGHTMATRIX_FIELD_NUMBER = 1;
   private org.tribuo.math.protos.TensorProto weightMatrix_;
   /**
-   * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+   * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
    * @return Whether the weightMatrix field is set.
    */
   @java.lang.Override
@@ -108,7 +108,7 @@ private static final long serialVersionUID = 0L;
     return weightMatrix_ != null;
   }
   /**
-   * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+   * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
    * @return The weightMatrix.
    */
   @java.lang.Override
@@ -116,7 +116,7 @@ private static final long serialVersionUID = 0L;
     return weightMatrix_ == null ? org.tribuo.math.protos.TensorProto.getDefaultInstance() : weightMatrix_;
   }
   /**
-   * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+   * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
    */
   @java.lang.Override
   public org.tribuo.math.protos.TensorProtoOrBuilder getWeightMatrixOrBuilder() {
@@ -288,21 +288,21 @@ private static final long serialVersionUID = 0L;
    *LinearParameters proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.LinearParametersProto}
+   * Protobuf type {@code tribuo.math.impl.LinearParametersProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.LinearParametersProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.impl.LinearParametersProto)
       org.tribuo.math.protos.LinearParametersProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_LinearParametersProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_LinearParametersProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_LinearParametersProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_LinearParametersProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.LinearParametersProto.class, org.tribuo.math.protos.LinearParametersProto.Builder.class);
     }
@@ -337,7 +337,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_LinearParametersProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_LinearParametersProto_descriptor;
     }
 
     @java.lang.Override
@@ -446,14 +446,14 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         org.tribuo.math.protos.TensorProto, org.tribuo.math.protos.TensorProto.Builder, org.tribuo.math.protos.TensorProtoOrBuilder> weightMatrixBuilder_;
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      * @return Whether the weightMatrix field is set.
      */
     public boolean hasWeightMatrix() {
       return weightMatrixBuilder_ != null || weightMatrix_ != null;
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      * @return The weightMatrix.
      */
     public org.tribuo.math.protos.TensorProto getWeightMatrix() {
@@ -464,7 +464,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      */
     public Builder setWeightMatrix(org.tribuo.math.protos.TensorProto value) {
       if (weightMatrixBuilder_ == null) {
@@ -480,7 +480,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      */
     public Builder setWeightMatrix(
         org.tribuo.math.protos.TensorProto.Builder builderForValue) {
@@ -494,7 +494,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      */
     public Builder mergeWeightMatrix(org.tribuo.math.protos.TensorProto value) {
       if (weightMatrixBuilder_ == null) {
@@ -512,7 +512,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      */
     public Builder clearWeightMatrix() {
       if (weightMatrixBuilder_ == null) {
@@ -526,7 +526,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      */
     public org.tribuo.math.protos.TensorProto.Builder getWeightMatrixBuilder() {
       
@@ -534,7 +534,7 @@ private static final long serialVersionUID = 0L;
       return getWeightMatrixFieldBuilder().getBuilder();
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      */
     public org.tribuo.math.protos.TensorProtoOrBuilder getWeightMatrixOrBuilder() {
       if (weightMatrixBuilder_ != null) {
@@ -545,7 +545,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>.tribuo.core.TensorProto weightMatrix = 1;</code>
+     * <code>.tribuo.math.TensorProto weightMatrix = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         org.tribuo.math.protos.TensorProto, org.tribuo.math.protos.TensorProto.Builder, org.tribuo.math.protos.TensorProtoOrBuilder> 
@@ -573,10 +573,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.LinearParametersProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.impl.LinearParametersProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.LinearParametersProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.impl.LinearParametersProto)
   private static final org.tribuo.math.protos.LinearParametersProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.LinearParametersProto();

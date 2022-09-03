@@ -4,21 +4,21 @@
 package org.tribuo.math.protos;
 
 public interface AdaGradRDADenseTensorProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.AdaGradRDADenseTensorProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.AdaGradRDADenseTensorProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return Whether the data field is set.
    */
   boolean hasData();
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return The data.
    */
   org.tribuo.math.protos.DenseTensorProto getData();
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    */
   org.tribuo.math.protos.DenseTensorProtoOrBuilder getDataOrBuilder();
 

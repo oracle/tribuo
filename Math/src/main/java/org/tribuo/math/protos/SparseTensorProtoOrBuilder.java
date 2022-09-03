@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface SparseTensorProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.SparseTensorProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.SparseTensorProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

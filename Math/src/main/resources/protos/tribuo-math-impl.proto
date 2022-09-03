@@ -55,7 +55,7 @@ message SparseTensorProto {
 LinearParameters proto
  */
 message LinearParametersProto {
-  TensorProto weightMatrix = 1;
+  tribuo.math.TensorProto weightMatrix = 1;
 }
 
 /*
