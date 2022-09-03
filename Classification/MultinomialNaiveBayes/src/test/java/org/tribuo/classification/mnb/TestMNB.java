@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,7 +69,9 @@ public class TestMNB {
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
         Model<Label> model = testMNB(p);
-        Helpers.testModelSerialization(model,Label.class);
+        Helpers.testModelSerialization(model, Label.class);
+        Model<Label> m = Helpers.testModelProtoSerialization(model, Label.class);
+        m.predict(p.getB());
     }
 
     @Test
