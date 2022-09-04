@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.bmc.ConfigFileReader;
 import com.oracle.bmc.auth.AuthenticationDetailsProvider;
 import com.oracle.bmc.auth.ConfigFileAuthenticationDetailsProvider;
@@ -38,10 +40,17 @@ import org.tribuo.Prediction;
 import org.tribuo.interop.ExternalDatasetProvenance;
 import org.tribuo.interop.ExternalModel;
 import org.tribuo.interop.ExternalTrainerProvenance;
+import org.tribuo.interop.oci.protos.OCIModelProto;
+import org.tribuo.interop.oci.protos.OCIOutputConverterProto;
 import org.tribuo.math.la.DenseMatrix;
+import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.Tensor;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.util.Util;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -56,6 +65,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -63,6 +73,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A wrapper class around an OCI Data Science Model Deployment endpoint which sends off inputs for scoring and
@@ -72,6 +83,11 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(OCIModel.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final Path configFile;
     private final String profileName;
@@ -169,6 +185,34 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
         this.modelEndpoint = jerseyClient.target(endpointURL + modelDeploymentId).path("predict");
     }
 
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check
+    public static OCIModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, IOException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        OCIModelProto proto = message.unpack(OCIModelProto.class);
+        OCIOutputConverter<?> converter = ProtoUtil.deserialize(proto.getOutputConverter());
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(converter.getTypeWitness())) {
+            throw new IllegalStateException("Invalid protobuf, output domain does not match converter, found " + carrier.outputDomain().getClass() + " and " + converter.getTypeWitness());
+        }
+        Path configFile = Paths.get(proto.getConfigFile());
+        AuthenticationDetailsProvider authProvider = makeAuthProvider(configFile, proto.getProfileName());
+        int[] featureForwardMapping = Util.toPrimitiveInt(proto.getForwardFeatureMappingList());
+        int[] featureBackwardMapping = Util.toPrimitiveInt(proto.getBackwardFeatureMappingList());
+
+        return new OCIModel(carrier.name(), carrier.provenance(), carrier.featureDomain(), carrier.outputDomain(),
+                featureForwardMapping, featureBackwardMapping, configFile, proto.getProfileName(), authProvider,
+                proto.getEndpointUrl(), proto.getModelDeploymentId(), converter);
+    }
+
     @Override
     public Map<String, List<Pair<String, Double>>> getTopFeatures(int i) {
         return Collections.emptyMap();
@@ -252,6 +296,28 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     @Override
     public void close() {
         jerseyClient.close();
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        OCIModelProto.Builder modelBuilder = OCIModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.addAllForwardFeatureMapping(Arrays.stream(featureForwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.addAllBackwardFeatureMapping(Arrays.stream(featureBackwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.setConfigFile(configFile.toString());
+        modelBuilder.setProfileName(profileName);
+        modelBuilder.setEndpointUrl(endpointURL);
+        modelBuilder.setModelDeploymentId(modelDeploymentId);
+        modelBuilder.setOutputConverter(outputConverter.serialize());
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(OCIModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

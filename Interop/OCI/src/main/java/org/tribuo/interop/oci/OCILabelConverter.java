@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.interop.oci;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -23,8 +25,13 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.interop.oci.protos.OCILabelConverterProto;
+import org.tribuo.interop.oci.protos.OCIOutputConverterProto;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -38,9 +45,16 @@ import java.util.Objects;
  * If the input has length 1 it is assumed to be a single label value, otherwise it
  * must have length = outputIDInfo.size().
  */
+@ProtoSerializableClass(serializedDataClass = OCILabelConverterProto.class, version = OCILabelConverter.CURRENT_VERSION)
 public final class OCILabelConverter implements OCIOutputConverter<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    @ProtoSerializableField
     @Config(mandatory = true, description = "Does this converter produce probabilistic outputs.")
     private boolean generatesProbabilities;
 
@@ -55,6 +69,20 @@ public final class OCILabelConverter implements OCIOutputConverter<Label> {
      */
     public OCILabelConverter(boolean generatesProbabilities) {
         this.generatesProbabilities = generatesProbabilities;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static OCILabelConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        OCILabelConverterProto proto = message.unpack(OCILabelConverterProto.class);
+        return new OCILabelConverter(proto.getGeneratesProbabilities());
     }
 
     @Override
@@ -134,6 +162,11 @@ public final class OCILabelConverter implements OCIOutputConverter<Label> {
     }
 
     @Override
+    public Class<Label> getTypeWitness() {
+        return Label.class;
+    }
+
+    @Override
     public String toString() {
         return "OCILabelConverter(generatesProbabilities="+generatesProbabilities+")";
     }
@@ -149,6 +182,11 @@ public final class OCILabelConverter implements OCIOutputConverter<Label> {
     @Override
     public int hashCode() {
         return Objects.hash(generatesProbabilities);
+    }
+
+    @Override
+    public OCIOutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override
