@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,13 @@ import ai.onnxruntime.OnnxJavaType;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtException;
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Label;
+import org.tribuo.protos.ProtoSerializableClass;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,9 +49,15 @@ import java.util.logging.Logger;
  * Operates on either a list containing a single tensor [batch_size,(numOutputs*(numOutputs-1))/2], or
  * a list containing two tensors where the second one contains the one-v-one predictions as before.
  */
+@ProtoSerializableClass(version = LabelOneVOneTransformer.CURRENT_VERSION)
 public final class LabelOneVOneTransformer extends LabelTransformer {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Constructs a Label transformer that operates on a one v one output and produces scores via voting.
@@ -61,6 +71,22 @@ public final class LabelOneVOneTransformer extends LabelTransformer {
         if (generatesProbabilities) {
             throw new PropertyException("", "generatesProbabilities", "generatesProbabilities must not be set to true for this class.");
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LabelOneVOneTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new LabelOneVOneTransformer();
     }
 
     /**

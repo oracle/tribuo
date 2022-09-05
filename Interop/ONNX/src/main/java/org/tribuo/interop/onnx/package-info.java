@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
  */
 
 /**
- * This package contains a Tribuo wrapper around the ONNX Runtime.
+ * This package contains a Tribuo wrapper around ONNX Runtime.
  * <p>
- * The ONNX Runtime allows the deployment of models trained in scikit-learn, pytorch and other packages
+ * ONNX Runtime allows the deployment of models trained in scikit-learn, pytorch and other packages
  * without requiring them to be present at runtime.
- * <p>
- * N.B. ONNX support is experimental, and may change without a major version bump.
  */
 package org.tribuo.interop.onnx;

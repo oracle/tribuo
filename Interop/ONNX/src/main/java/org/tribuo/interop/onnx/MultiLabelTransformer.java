@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import ai.onnxruntime.OnnxJavaType;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtException;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
@@ -28,7 +30,11 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.interop.onnx.protos.MultiLabelTransformerProto;
+import org.tribuo.interop.onnx.protos.OutputTransformerProto;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -48,9 +55,15 @@ import java.util.logging.Logger;
  * above this are considered to be present in the output, and the model output is assumed
  * to be probabilistic.
  */
+@ProtoSerializableClass(serializedDataClass = MultiLabelTransformerProto.class, version = MultiLabelTransformer.CURRENT_VERSION)
 public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(MultiLabelTransformer.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * The default threshold for conversion into a label.
@@ -90,6 +103,20 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
         if (generatesProbabilities && (threshold < 0.0 || threshold > 1.0)) {
             throw new PropertyException("","threshold","Threshold must be between 0 and 1 to generate probabilities, found " + threshold);
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MultiLabelTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MultiLabelTransformerProto proto = message.unpack(MultiLabelTransformerProto.class);
+        return new MultiLabelTransformer(proto.getThreshold(), proto.getGeneratesProbabilities());
     }
 
     @Override
@@ -203,6 +230,29 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
     @Override
     public String toString() {
         return "MultiLabelTransformer(threshold="+threshold+",generatesProbabilities="+generatesProbabilities+")";
+    }
+
+    @Override
+    public Class<MultiLabel> getTypeWitness() {
+        return MultiLabel.class;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MultiLabelTransformer that = (MultiLabelTransformer) o;
+        return Double.compare(that.threshold, threshold) == 0 && generatesProbabilities == that.generatesProbabilities;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(threshold, generatesProbabilities);
+    }
+
+    @Override
+    public OutputTransformerProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

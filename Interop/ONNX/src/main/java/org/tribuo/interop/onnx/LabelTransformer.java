@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.SequenceInfo;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -29,12 +31,18 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.interop.onnx.protos.LabelTransformerProto;
+import org.tribuo.interop.onnx.protos.OutputTransformerProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -52,11 +60,18 @@ import java.util.logging.Logger;
  * of a one v one predictor between all classes then {@link LabelOneVOneTransformer} performs the
  * appropriate scoring operation, and this class will throw an exception when used on such input.
  */
+@ProtoSerializableClass(serializedDataClass = LabelTransformerProto.class, version = LabelTransformer.CURRENT_VERSION)
 public class LabelTransformer implements OutputTransformer<Label> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     @Config(description = "Does this transformer produce probabilistic outputs?")
+    @ProtoSerializableField
     protected boolean generatesProbabilities = true;
 
     /**
@@ -72,6 +87,20 @@ public class LabelTransformer implements OutputTransformer<Label> {
      */
     public LabelTransformer(boolean generatesProbabilities) {
         this.generatesProbabilities = generatesProbabilities;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LabelTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        LabelTransformerProto proto = message.unpack(LabelTransformerProto.class);
+        return new LabelTransformer(proto.getGeneratesProbabilities());
     }
 
     @Override
@@ -231,6 +260,29 @@ public class LabelTransformer implements OutputTransformer<Label> {
     @Override
     public String toString() {
         return "LabelTransformer(generatesProbabilities="+generatesProbabilities+")";
+    }
+
+    @Override
+    public Class<Label> getTypeWitness() {
+        return Label.class;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        LabelTransformer that = (LabelTransformer) o;
+        return generatesProbabilities == that.generatesProbabilities;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(generatesProbabilities);
+    }
+
+    @Override
+    public OutputTransformerProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

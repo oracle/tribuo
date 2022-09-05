@@ -1,0 +1,86 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo's ONNX runtime classes.
+ */
+package tribuo.interop.onnx;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.interop.onnx.protos";
+
+// We use any to encode polymorphism
+import "google/protobuf/any.proto";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+/*
+ONNX OutputTransformer redirect proto
+ */
+message OutputTransformerProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+ONNX ExampleTransformer redirect proto
+ */
+message ExampleTransformerProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+LabelTransformer proto
+ */
+message LabelTransformerProto {
+  bool generates_probabilities = 1;
+}
+
+/*
+MultiLabelTransformer proto
+ */
+message MultiLabelTransformerProto {
+  bool generates_probabilities = 1;
+  double threshold = 2;
+}
+
+/*
+ImageTransformer proto
+ */
+message ImageTransformerProto {
+  int32 width = 1;
+  int32 height = 2;
+  int32 channels = 3;
+}
+
+/*
+ONNXExternalModel proto
+ */
+message ONNXExternalModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated int32 forward_feature_mapping = 2;
+  repeated int32 backward_feature_mapping = 3;
+  bytes model_array = 4;
+  string input_name = 5;
+  OutputTransformerProto output_transformer = 6;
+  ExampleTransformerProto example_transformer = 7;
+}
