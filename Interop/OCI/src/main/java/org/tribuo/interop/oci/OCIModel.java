@@ -207,6 +207,9 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
         AuthenticationDetailsProvider authProvider = makeAuthProvider(configFile, proto.getProfileName());
         int[] featureForwardMapping = Util.toPrimitiveInt(proto.getForwardFeatureMappingList());
         int[] featureBackwardMapping = Util.toPrimitiveInt(proto.getBackwardFeatureMappingList());
+        if (!validateFeatureMapping(featureForwardMapping,featureBackwardMapping,carrier.featureDomain())) {
+            throw new IllegalStateException("Invalid protobuf, external<->Tribuo feature mapping does not form a bijection");
+        }
 
         return new OCIModel(carrier.name(), carrier.provenance(), carrier.featureDomain(), carrier.outputDomain(),
                 featureForwardMapping, featureBackwardMapping, configFile, proto.getProfileName(), authProvider,

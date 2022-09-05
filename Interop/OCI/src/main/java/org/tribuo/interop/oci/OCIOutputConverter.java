@@ -64,8 +64,14 @@ public interface OCIOutputConverter<T extends Output<T>> extends Configurable, P
     public boolean generatesProbabilities();
 
     /**
-     * The type witness used when deserializing the OCI model.
+     * The type witness used when deserializing the OCI model from a protobuf.
+     * <p>
+     * The default implementation throws {@link UnsupportedOperationException} for compatibility with implementations
+     * which don't use protobuf serialization. This implementation will be removed in the next major version of
+     * Tribuo.
      * @return The output class this object produces.
      */
-    public Class<T> getTypeWitness();
+    default public Class<T> getTypeWitness() {
+        throw new UnsupportedOperationException("This implementation should be replaced to support protobuf serialization");
+    }
 }

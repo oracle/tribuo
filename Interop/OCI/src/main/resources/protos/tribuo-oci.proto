@@ -19,7 +19,7 @@ syntax = "proto3";
 /*
  * Protos for serializing Tribuo's OCI classes.
  */
-package tribuo.classification.mnb;
+package tribuo.interop.oci;
 
 option java_multiple_files = true;
 option java_package = "org.tribuo.interop.oci.protos";

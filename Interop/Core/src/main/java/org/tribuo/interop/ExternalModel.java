@@ -32,6 +32,7 @@ import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -284,4 +285,31 @@ public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
         return factory.constructInfoForExternalModel(outputs);
     }
 
+    /**
+     * Checks if the feature mappings are valid for the supplied feature map.
+     * @param featureForwardMapping The forward feature mapping.
+     * @param featureBackwardMapping The backward feature mapping.
+     * @param featureDomain The feature domain.
+     * @return True if the feature mapping is valid (the forward & backward mappings are a bijection and the same size as the feature domain).
+     */
+    protected static boolean validateFeatureMapping(int[] featureForwardMapping, int[] featureBackwardMapping, ImmutableFeatureMap featureDomain) {
+        if (featureBackwardMapping.length != featureForwardMapping.length) {
+            return false;
+        } else if (featureBackwardMapping.length != featureDomain.size()) {
+            return false;
+        } else {
+            // check bijection
+            Set<Integer> seenIndices = new HashSet<>();
+            for (int tribuoId = 0; tribuoId < featureForwardMapping.length; tribuoId++) {
+                int mappingId = featureForwardMapping[tribuoId];
+                if (featureBackwardMapping[mappingId] != tribuoId) {
+                    // not a bijection
+                    return false;
+                }
+                seenIndices.add(mappingId);
+            }
+            // check for duplicate mapping
+            return seenIndices.size() == featureDomain.size();
+        }
+    }
 }
