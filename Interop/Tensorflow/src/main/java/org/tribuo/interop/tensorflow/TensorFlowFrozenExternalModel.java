@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.Example;
@@ -25,15 +28,20 @@ import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.interop.ExternalDatasetProvenance;
 import org.tribuo.interop.ExternalModel;
 import org.tribuo.interop.ExternalTrainerProvenance;
+import org.tribuo.interop.tensorflow.protos.TensorFlowFrozenExternalModelProto;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
+import org.tribuo.util.Util;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -42,9 +50,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A Tribuo wrapper around a TensorFlow frozen model.
@@ -56,6 +67,11 @@ import java.util.Map;
 public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, Tensor> implements Closeable {
     private static final long serialVersionUID = 200L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private transient Graph model;
 
     private transient Session session;
@@ -64,19 +80,19 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
 
     private final OutputConverter<T> outputConverter;
 
-    private final String inputName;
+    @Deprecated // unused as the input name is in the feature converter
+    private final String inputName = "";
 
     private final String outputName;
 
     private TensorFlowFrozenExternalModel(String name, ModelProvenance provenance,
                                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                           Map<String, Integer> featureMapping,
-                                          Graph model, String inputName, String outputName,
+                                          Graph model, String outputName,
                                           FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.model = model;
         this.session = new Session(model);
-        this.inputName = inputName;
         this.outputName = outputName;
         this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
@@ -85,16 +101,49 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
     private TensorFlowFrozenExternalModel(String name, ModelProvenance provenance,
                                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                           int[] featureForwardMapping, int[] featureBackwardMapping,
-                                          Graph model, String inputName, String outputName,
+                                          Graph model, String outputName,
                                           FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name,provenance,featureIDMap,outputIDInfo,featureForwardMapping,featureBackwardMapping,
                 outputConverter.generatesProbabilities());
         this.model = model;
         this.session = new Session(model);
-        this.inputName = inputName;
         this.outputName = outputName;
         this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check that the output domain and converter are compatible
+    public static TensorFlowFrozenExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        TensorFlowFrozenExternalModelProto proto = message.unpack(TensorFlowFrozenExternalModelProto.class);
+
+        OutputConverter<?> outputConverter = ProtoUtil.deserialize(proto.getOutputConverter());
+        FeatureConverter featureConverter = ProtoUtil.deserialize(proto.getFeatureConverter());
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(outputConverter.getTypeWitness())) {
+            throw new IllegalStateException("Invalid protobuf, output domain does not match converter, found " + carrier.outputDomain().getClass() + " and " + outputConverter.getTypeWitness());
+        }
+        int[] featureForwardMapping = Util.toPrimitiveInt(proto.getForwardFeatureMappingList());
+        int[] featureBackwardMapping = Util.toPrimitiveInt(proto.getBackwardFeatureMappingList());
+        if (!validateFeatureMapping(featureForwardMapping,featureBackwardMapping,carrier.featureDomain())) {
+            throw new IllegalStateException("Invalid protobuf, external<->Tribuo feature mapping does not form a bijection");
+        }
+
+        Graph graph = new Graph();
+        graph.importGraphDef(GraphDef.parseFrom(proto.getModelDef()));
+
+        return new TensorFlowFrozenExternalModel(carrier.name(), carrier.provenance(), carrier.featureDomain(),
+                carrier.outputDomain(), featureForwardMapping, featureBackwardMapping, graph, proto.getOutputName(),
+                featureConverter, outputConverter);
     }
 
     @Override
@@ -163,7 +212,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
         newGraph.importGraphDef(modelBytes);
         return new TensorFlowFrozenExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
                 featureForwardMapping,featureBackwardMapping,
-                newGraph,inputName,outputName,featureConverter, outputConverter);
+                newGraph,outputName,featureConverter, outputConverter);
     }
 
     @Override
@@ -176,12 +225,32 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
         }
     }
 
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        TensorFlowFrozenExternalModelProto.Builder modelBuilder = TensorFlowFrozenExternalModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setModelDef(ByteString.copyFrom(model.toGraphDef().toByteArray()));
+        modelBuilder.setOutputName(outputName);
+        modelBuilder.addAllForwardFeatureMapping(Arrays.stream(featureForwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.addAllBackwardFeatureMapping(Arrays.stream(featureBackwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.setOutputConverter(outputConverter.serialize());
+        modelBuilder.setFeatureConverter(featureConverter.serialize());
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(TensorFlowFrozenExternalModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
+    }
+
     /**
      * Creates a TensorflowFrozenExternalModel by loading in a frozen graph.
      * @param factory The output factory.
      * @param featureMapping The feature mapping between Tribuo's names and the TF integer ids.
      * @param outputMapping The output mapping between Tribuo's names and the TF integer ids.
-     * @param inputName The name of the input placeholder.
      * @param outputName The name of the output tensor.
      * @param featureConverter The feature transformation function.
      * @param outputConverter The output transformation function.
@@ -192,7 +261,6 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
     public static <T extends Output<T>> TensorFlowFrozenExternalModel<T> createTensorflowModel(OutputFactory<T> factory,
                                                                                                Map<String, Integer> featureMapping,
                                                                                                Map<T,Integer> outputMapping,
-                                                                                               String inputName,
                                                                                                String outputName,
                                                                                                FeatureConverter featureConverter,
                                                                                                OutputConverter<T> outputConverter,
@@ -210,7 +278,7 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
             DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data",factory,false,featureMapping.size(),outputMapping.size());
             ModelProvenance provenance = new ModelProvenance(TensorFlowFrozenExternalModel.class.getName(),now,datasetProvenance,trainerProvenance);
             return new TensorFlowFrozenExternalModel<>("tf-frozen-graph",provenance,featureMap,outputInfo,
-                    featureMapping,graph,inputName,outputName,featureConverter, outputConverter);
+                    featureMapping,graph,outputName,featureConverter, outputConverter);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load model from path " + filename, e);
         }

@@ -88,6 +88,7 @@ public class RegressionTest {
 
         // Check Tribuo serialization
         Helpers.testModelSerialization(model,Regressor.class);
+        Helpers.testModelProtoSerialization(model, Regressor.class, testData);
 
         // Check saved model bundle export
         Path outputPath = Files.createTempDirectory("tf-regression-test");

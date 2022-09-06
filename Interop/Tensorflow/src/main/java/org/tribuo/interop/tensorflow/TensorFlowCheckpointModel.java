@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,19 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tensorflow.exceptions.TensorFlowException;
 import org.tensorflow.proto.framework.GraphDef;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.interop.tensorflow.protos.TensorFlowCheckpointModelProto;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tensorflow.Graph;
 import org.tensorflow.Session;
@@ -59,13 +66,21 @@ public final class TensorFlowCheckpointModel<T extends Output<T>> extends Tensor
 
     private static final long serialVersionUID = 200L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private String checkpointDirectory;
 
     private String checkpointName;
 
     private boolean initialized;
 
-    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory, String checkpointName, int batchSize, String outputName, FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
+    TensorFlowCheckpointModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
+                              ImmutableOutputInfo<T> outputIDMap, GraphDef graphDef, String checkpointDirectory,
+                              String checkpointName, int batchSize, String outputName,
+                              FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
         super(name, description, featureIDMap, outputIDMap, graphDef, batchSize, outputName, featureConverter, outputConverter);
         this.checkpointDirectory = checkpointDirectory;
         this.checkpointName = checkpointName;
@@ -75,6 +90,34 @@ public final class TensorFlowCheckpointModel<T extends Output<T>> extends Tensor
         } catch (TensorFlowException e) {
             logger.log(Level.WARNING, "Failed to initialise model in directory " + checkpointDirectory, e);
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check that the output domain and converter are compatible
+    public static TensorFlowCheckpointModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        TensorFlowCheckpointModelProto proto = message.unpack(TensorFlowCheckpointModelProto.class);
+
+        OutputConverter<?> outputConverter = ProtoUtil.deserialize(proto.getOutputConverter());
+        FeatureConverter featureConverter = ProtoUtil.deserialize(proto.getFeatureConverter());
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(outputConverter.getTypeWitness())) {
+            throw new IllegalStateException("Invalid protobuf, output domain does not match converter, found " + carrier.outputDomain().getClass() + " and " + outputConverter.getTypeWitness());
+        }
+
+        GraphDef graphDef = GraphDef.parseFrom(proto.getModelDef());
+
+        return new TensorFlowCheckpointModel(carrier.name(), carrier.provenance(), carrier.featureDomain(),
+                carrier.outputDomain(), graphDef, proto.getCheckpointDirectory(), proto.getCheckpointName(),
+                proto.getBatchSize(), proto.getOutputName(), featureConverter, outputConverter);
     }
 
     /**
@@ -161,6 +204,28 @@ public final class TensorFlowCheckpointModel<T extends Output<T>> extends Tensor
     @Override
     protected TensorFlowCheckpointModel<T> copy(String newName, ModelProvenance newProvenance) {
         return new TensorFlowCheckpointModel<>(newName,newProvenance,featureIDMap,outputIDInfo,modelGraph.toGraphDef(),checkpointDirectory,checkpointName,batchSize,outputName, featureConverter, outputConverter);
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        TensorFlowCheckpointModelProto.Builder modelBuilder = TensorFlowCheckpointModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setModelDef(ByteString.copyFrom(modelGraph.toGraphDef().toByteArray()));
+        modelBuilder.setOutputName(outputName);
+        modelBuilder.setBatchSize(batchSize);
+        modelBuilder.setCheckpointDirectory(checkpointDirectory);
+        modelBuilder.setCheckpointName(checkpointName);
+        modelBuilder.setOutputConverter(outputConverter.serialize());
+        modelBuilder.setFeatureConverter(featureConverter.serialize());
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(TensorFlowCheckpointModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws IOException {

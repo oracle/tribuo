@@ -30,7 +30,6 @@ import com.oracle.labs.mlrg.olcut.provenance.io.ProvenanceSerializationException
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.apache.commons.collections4.Transformer;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -39,6 +38,7 @@ import org.tribuo.ONNXExportable;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.interop.ExternalDatasetProvenance;
 import org.tribuo.interop.ExternalModel;
 import org.tribuo.interop.ExternalTrainerProvenance;
@@ -346,7 +346,6 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
         builder.setVersion(CURRENT_VERSION);
 
         return builder.build();
-
     }
 
     /**

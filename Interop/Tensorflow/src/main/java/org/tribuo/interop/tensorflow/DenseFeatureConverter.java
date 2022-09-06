@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
@@ -26,9 +28,14 @@ import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.interop.tensorflow.protos.DenseFeatureConverterProto;
+import org.tribuo.interop.tensorflow.protos.FeatureConverterProto;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,9 +45,15 @@ import java.util.logging.Logger;
 /**
  * Converts a sparse example into a dense float vector, then wraps it in a {@link TFloat32}.
  */
+@ProtoSerializableClass(serializedDataClass = DenseFeatureConverterProto.class, version = DenseFeatureConverter.CURRENT_VERSION)
 public class DenseFeatureConverter implements FeatureConverter {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(DenseFeatureConverter.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Feature size beyond which a warning is generated (as TensorFlow requires dense features and large feature spaces are memory hungry).
@@ -55,6 +68,7 @@ public class DenseFeatureConverter implements FeatureConverter {
     private int warningCount = 0;
 
     @Config(mandatory=true,description="TensorFlow Placeholder Input name.")
+    @ProtoSerializableField
     private String inputName;
 
     /**
@@ -68,6 +82,25 @@ public class DenseFeatureConverter implements FeatureConverter {
      */
     public DenseFeatureConverter(String inputName) {
         this.inputName = inputName;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static DenseFeatureConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        DenseFeatureConverterProto proto = message.unpack(DenseFeatureConverterProto.class);
+        return new DenseFeatureConverter(proto.getInputName());
+    }
+
+    @Override
+    public FeatureConverterProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     float[] innerTransform(Example<?> example, ImmutableFeatureMap featureIDMap) {

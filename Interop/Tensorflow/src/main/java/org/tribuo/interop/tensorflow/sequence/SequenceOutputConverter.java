@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.interop.tensorflow.TensorMap;
+import org.tribuo.interop.tensorflow.protos.SequenceOutputConverterProto;
+import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.sequence.SequenceExample;
 import org.tensorflow.Tensor;
 
@@ -35,7 +37,7 @@ import java.util.List;
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public interface SequenceOutputConverter<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceOutputConverter<T extends Output<T>> extends Configurable, ProtoSerializable<SequenceOutputConverterProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Decode a tensor of graph output into a list of predictions for the input sequence.
@@ -75,4 +77,15 @@ public interface SequenceOutputConverter<T extends Output<T>> extends Configurab
      */
     TensorMap encode(List<SequenceExample<T>> batch, ImmutableOutputInfo<T> labelMap);
 
+    /**
+     * The type witness used when deserializing the TensorFlow model from a protobuf.
+     * <p>
+     * The default implementation throws {@link UnsupportedOperationException} for compatibility with implementations
+     * which don't use protobuf serialization. This implementation will be removed in the next major version of
+     * Tribuo.
+     * @return The output class this object produces.
+     */
+    default public Class<T> getTypeWitness() {
+        throw new UnsupportedOperationException("This implementation should be replaced to support protobuf serialization");
+    }
 }

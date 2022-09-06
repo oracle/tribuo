@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -34,6 +37,9 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tensorflow.Tensor;
+import org.tribuo.interop.tensorflow.protos.OutputConverterProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,14 +53,41 @@ import java.util.logging.Logger;
  * Can convert a {@link Label} into a {@link Tensor} containing one hot encoding of the label and
  * can convert a {@link TFloat16} or {@link TFloat32} into a {@link Prediction} or a {@link Label}.
  */
+@ProtoSerializableClass(version = LabelConverter.CURRENT_VERSION)
 public class LabelConverter implements OutputConverter<Label> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelConverter.class.getName());
 
     /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    /**
      * Constructs a LabelConverter.
      */
     public LabelConverter() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LabelConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new LabelConverter();
+    }
+
+    @Override
+    public OutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
 
     /**
      * Returns a cross-entropy loss.
@@ -250,5 +283,10 @@ public class LabelConverter implements OutputConverter<Label> {
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"OutputConverter");
+    }
+
+    @Override
+    public Class<Label> getTypeWitness() {
+        return Label.class;
     }
 }
