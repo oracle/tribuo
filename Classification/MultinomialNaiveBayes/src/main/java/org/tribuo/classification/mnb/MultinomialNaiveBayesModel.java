@@ -28,6 +28,7 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.mnb.protos.MultinomialNaiveBayesProto;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;

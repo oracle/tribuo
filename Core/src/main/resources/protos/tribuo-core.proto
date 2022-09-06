@@ -40,6 +40,15 @@ message ModelProto {
 }
 
 /*
+SequenceModel redirect proto
+ */
+message SequenceModelProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
 Model data proto containing shared model fields
  */
 message ModelDataProto {
