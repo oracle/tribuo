@@ -18,6 +18,7 @@ package org.tribuo.classification;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.Objects;
 import org.tribuo.classification.protos.LabelProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
@@ -118,7 +119,7 @@ public final class Label implements Classifiable<Label> {
 
         Label that = (Label) o;
 
-        return label != null ? label.equals(that.label) : that.label == null;
+        return Objects.equals(label, that.label);
     }
 
     @Override
@@ -127,7 +128,21 @@ public final class Label implements Classifiable<Label> {
         if (o == null) return false;
 
         if ((!(Double.isNaN(o.score) && Double.isNaN(score))) && (Double.compare(o.score, score) != 0)) return false;
-        return label != null ? label.equals(o.label) : o.label == null;
+        return Objects.equals(label, o.label);
+    }
+
+    @Override
+    public boolean fullEquals(Label o, double tolerance) {
+        if (this == o) return true;
+        if (o == null) return false;
+
+        if (Double.isNaN(o.score) ^ Double.isNaN(score)) {
+            return false;
+        }
+        if (Math.abs(o.score - score) > tolerance) {
+            return false;
+        }
+        return Objects.equals(label, o.label);
     }
 
     @Override

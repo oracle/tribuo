@@ -305,6 +305,36 @@ public class MultiLabel implements Classifiable<MultiLabel> {
     }
 
     @Override
+    public boolean fullEquals(MultiLabel o, double tolerance) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        if (Math.abs(o.score - score) > tolerance) {
+            return false;
+        }
+        Map<String,Double> thisMap = new HashMap<>();
+        for (Label l : labels) {
+            thisMap.put(l.getLabel(),l.getScore());
+        }
+        Map<String,Double> thatMap = new HashMap<>();
+        for (Label l : o.labels) {
+            thatMap.put(l.getLabel(),l.getScore());
+        }
+        if (thisMap.size() == thatMap.size()) {
+            for (Map.Entry<String,Double> e : thisMap.entrySet()) {
+                Double thisValue = e.getValue();
+                Double thatValue = thatMap.get(e.getKey());
+                if ((thatValue == null) || Math.abs(thisValue - thatValue) > tolerance) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(labelStrings);
     }

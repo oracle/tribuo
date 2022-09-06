@@ -260,6 +260,28 @@ public class Prediction<T extends Output<T>> implements ProtoSerializable<Predic
         return true;
     }
 
+    /**
+     * Checks that the other prediction has the same distribution as this prediction,
+     * using the {@link Output#fullEquals} method.
+     * @param other The prediction to compare.
+     * @param threshold The tolerance threshold for the scores.
+     * @return True if they have the same distributions.
+     */
+    public boolean distributionEquals(Prediction<T> other, double threshold) {
+        if (outputScores.size() != other.outputScores.size()) {
+            return false;
+        }
+        for (Map.Entry<String,T> e : outputScores.entrySet()) {
+            T otherScore = other.outputScores.get(e.getKey());
+            if (otherScore == null) {
+                return false;
+            } else if (!e.getValue().fullEquals(otherScore, threshold)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public PredictionProto serialize() {
         return ProtoUtil.serialize(this);

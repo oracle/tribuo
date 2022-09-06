@@ -20,6 +20,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
+import java.util.Objects;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.OutputProto;
@@ -328,16 +329,21 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
 
     @Override
     public boolean fullEquals(Regressor other) {
+        return fullEquals(other, TOLERANCE);
+    }
+
+    @Override
+    public boolean fullEquals(Regressor other, double tolerance) {
         if (!Arrays.equals(names,other.names)) {
             return false;
         } else {
             for (int i = 0; i < values.length; i++) {
-                if (Math.abs(values[i] - other.values[i]) > TOLERANCE) {
+                if ((Math.abs(values[i] - other.values[i]) > tolerance) || (Double.isNaN(values[i]) ^ Double.isNaN(other.values[i]))) {
                     return false;
                 } else {
                     double ourVar = variances[i];
                     double otherVar = other.variances[i];
-                    if ((Math.abs(ourVar-otherVar) > TOLERANCE) || (Double.isNaN(ourVar) ^ Double.isNaN(otherVar))) {
+                    if ((Math.abs(ourVar-otherVar) > tolerance) || (Double.isNaN(ourVar) ^ Double.isNaN(otherVar))) {
                         return false;
                     }
                 }

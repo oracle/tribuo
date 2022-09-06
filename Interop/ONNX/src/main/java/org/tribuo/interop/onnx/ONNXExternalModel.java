@@ -155,6 +155,8 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
         // Create the ONNX env to ensure the session options can be built.
         OrtEnvironment env = OrtEnvironment.getEnvironment();
         OrtSession.SessionOptions options = new OrtSession.SessionOptions();
+        options.setInterOpNumThreads(1);
+        options.setIntraOpNumThreads(1);
 
         return new ONNXExternalModel(carrier.name(), carrier.provenance(), carrier.featureDomain(), carrier.outputDomain(),
                 featureForwardMapping, featureBackwardMapping, proto.getModelArray().toByteArray(), options,
