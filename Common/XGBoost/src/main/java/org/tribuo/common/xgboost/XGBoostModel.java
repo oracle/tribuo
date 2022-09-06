@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.common.xgboost;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import ml.dmlc.xgboost4j.java.Booster;
@@ -30,6 +32,9 @@ import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.common.xgboost.XGBoostTrainer.DMatrixTuple;
+import org.tribuo.common.xgboost.protos.XGBoostModelProto;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 
@@ -80,6 +85,11 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
     private static final long serialVersionUID = 4L;
 
     private static final Logger logger = Logger.getLogger(XGBoostModel.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final XGBoostOutputConverter<T> converter;
 
@@ -290,6 +300,29 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
             newModels.add(copyModel(model));
         }
         return new XGBoostModel<>(newName, newProvenance, featureIDMap, outputIDInfo, newModels, converter);
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        XGBoostModelProto.Builder modelBuilder = XGBoostModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setConverter(converter.serialize());
+        try {
+            for (Booster b : models) {
+                modelBuilder.addModels(ByteString.copyFrom(b.toByteArray()));
+            }
+        } catch (XGBoostError e) {
+            throw new IllegalStateException("Failed to serialize XGBoost model");
+        }
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(XGBoostModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

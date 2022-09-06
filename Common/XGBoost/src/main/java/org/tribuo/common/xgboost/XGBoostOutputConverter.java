@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,14 @@ import org.tribuo.Prediction;
 
 import java.io.Serializable;
 import java.util.List;
+import org.tribuo.common.xgboost.protos.XGBoostOutputConverterProto;
+import org.tribuo.protos.ProtoSerializable;
 
 /**
  * Converts the output of XGBoost into the appropriate prediction type.
  */
-public interface XGBoostOutputConverter<T extends Output<T>> extends Serializable {
+public interface XGBoostOutputConverter<T extends Output<T>> extends
+    ProtoSerializable<XGBoostOutputConverterProto>, Serializable {
 
     /**
      * Does this converter produce probabilities?
@@ -54,5 +57,16 @@ public interface XGBoostOutputConverter<T extends Output<T>> extends Serializabl
      * @return The prediction object.
      */
     public List<Prediction<T>> convertBatchOutput(ImmutableOutputInfo<T> info, List<float[][]> probabilities, int[] numValidFeatures, Example<T>[] examples);
+
+    /**
+     * Gets the type witness for the output this converter uses.
+     * <p>
+     * The default implementation throws {@link UnsupportedOperationException} for compatibility
+     * with subclasses which don't support protobuf serialization.
+     * @return The class of the output.
+     */
+    default public Class<T> getTypeWitness() {
+        throw new UnsupportedOperationException("This class has not been updated to support protobuf serialization.");
+    }
 
 }
