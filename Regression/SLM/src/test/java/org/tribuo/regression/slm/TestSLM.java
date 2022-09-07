@@ -129,14 +129,19 @@ public class TestSLM {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> sfs = testSFS(p,false);
         Helpers.testModelSerialization(sfs,Regressor.class);
+        Helpers.testModelProtoSerialization(sfs,Regressor.class,p.getB());
         Model<Regressor> sfsn = testSFSN(p,false);
         Helpers.testModelSerialization(sfsn,Regressor.class);
+        Helpers.testModelProtoSerialization(sfsn,Regressor.class,p.getB());
         Model<Regressor> lars = testLARS(p,false);
         Helpers.testModelSerialization(lars,Regressor.class);
+        Helpers.testModelProtoSerialization(lars,Regressor.class,p.getB());
         Model<Regressor> lasso = testLASSO(p,false);
         Helpers.testModelSerialization(lasso,Regressor.class);
+        Helpers.testModelProtoSerialization(lasso,Regressor.class,p.getB());
         Model<Regressor> elastic = testElasticNet(p,false);
         Helpers.testModelSerialization(elastic,Regressor.class);
+        Helpers.testModelProtoSerialization(elastic,Regressor.class,p.getB());
     }
 
     @Test
@@ -220,9 +225,11 @@ public class TestSLM {
         });
     }
 
+    @Test
     public void testThreeDenseDataLARS() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
         SparseModel<Regressor> llModel = LARS.train(p.getA());
+        Helpers.testModelProtoSerialization(llModel, Regressor.class, p.getB());
         RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
         double expectedDim1 = 0.5671244360433836;
         double expectedDim2 = 0.5671244360433927;
@@ -248,6 +255,7 @@ public class TestSLM {
     public void testThreeDenseDataENet() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
         SparseModel<Regressor> llModel = ELASTIC_NET.train(p.getA());
+        Helpers.testModelProtoSerialization(llModel, Regressor.class, p.getB());
         RegressionEvaluation llEval = e.evaluate(llModel,p.getB());
         double expectedDim1 = 0.5902193395184064;
         double expectedDim2 = 0.5902193395184064;
