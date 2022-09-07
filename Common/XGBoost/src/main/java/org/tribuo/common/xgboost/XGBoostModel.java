@@ -18,6 +18,7 @@ package org.tribuo.common.xgboost;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import ml.dmlc.xgboost4j.java.Booster;
@@ -34,6 +35,7 @@ import org.tribuo.Prediction;
 import org.tribuo.common.xgboost.XGBoostTrainer.DMatrixTuple;
 import org.tribuo.common.xgboost.protos.XGBoostModelProto;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
@@ -108,6 +110,35 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
         this.converter = converter;
         this.models = models;
         this.regression41MappingFix = true;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static XGBoostModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, XGBoostError, IOException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        XGBoostModelProto proto = message.unpack(XGBoostModelProto.class);
+
+        XGBoostOutputConverter<?> converter = ProtoUtil.deserialize(proto.getConverter());
+        Class<?> converterWitness = converter.getTypeWitness();
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(converterWitness)) {
+            throw new IllegalStateException("Invalid protobuf, output domain does not match the converter, found " + carrier.outputDomain().getClass() + " and " + converterWitness);
+        }
+        List<Booster> models = new ArrayList<>();
+        for (ByteString b : proto.getModelsList()) {
+            models.add(XGBoost.loadModel(b.toByteArray()));
+        }
+        if (models.isEmpty()) {
+            throw new IllegalStateException("Invalid protobuf, no XGBoost models were found");
+        }
+
+        return new XGBoostModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),carrier.outputDomain(),models,converter);
     }
 
     /**

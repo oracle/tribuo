@@ -18,6 +18,7 @@ package org.tribuo.common.xgboost;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import java.util.Arrays;
@@ -39,9 +40,11 @@ import org.tribuo.interop.ExternalDatasetProvenance;
 import org.tribuo.interop.ExternalModel;
 import org.tribuo.interop.ExternalTrainerProvenance;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.util.Util;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -125,6 +128,37 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
               converter.generatesProbabilities());
         this.model = model;
         this.converter = converter;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // output converter and domain are checked via getClass.
+    public static XGBoostExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, XGBoostError, IOException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        XGBoostExternalModelProto proto = message.unpack(XGBoostExternalModelProto.class);
+
+        XGBoostOutputConverter<?> converter = ProtoUtil.deserialize(proto.getConverter());
+        Class<?> converterWitness = converter.getTypeWitness();
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(converterWitness)) {
+            throw new IllegalStateException("Invalid protobuf, output domain does not match the converter, found " + carrier.outputDomain().getClass() + " and " + converterWitness);
+        }
+        int[] featureForwardMapping = Util.toPrimitiveInt(proto.getForwardFeatureMappingList());
+        int[] featureBackwardMapping = Util.toPrimitiveInt(proto.getBackwardFeatureMappingList());
+        if (!validateFeatureMapping(featureForwardMapping,featureBackwardMapping,carrier.featureDomain())) {
+            throw new IllegalStateException("Invalid protobuf, external<->Tribuo feature mapping does not form a bijection");
+        }
+
+        Booster model = XGBoost.loadModel(proto.getModel().toByteArray());
+
+        return new XGBoostExternalModel(carrier.name(), carrier.provenance(), carrier.featureDomain(),
+                carrier.outputDomain(), featureForwardMapping, featureBackwardMapping, model, converter);
     }
 
     @Override

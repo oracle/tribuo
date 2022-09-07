@@ -221,6 +221,7 @@ public class TestXGBoost {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testXGBoost(t,p);
         Helpers.testModelSerialization(model,Label.class);
+        Helpers.testModelProtoSerialization(model, Label.class, p.getB());
         testXGBoost(dart,p);
         testXGBoost(linear,p);
         XGBoostModel<Label> m = testXGBoost(gbtree,p);
