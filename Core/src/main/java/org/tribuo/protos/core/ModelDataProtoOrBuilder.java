@@ -8,35 +8,133 @@ public interface ModelDataProtoOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>int32 version = 1;</code>
-   * @return The version.
+   * <pre>
+   *The model name
+   * </pre>
+   *
+   * <code>string name = 1;</code>
+   * @return The name.
    */
-  int getVersion();
-
+  java.lang.String getName();
   /**
-   * <code>string class_name = 2;</code>
-   * @return The className.
-   */
-  java.lang.String getClassName();
-  /**
-   * <code>string class_name = 2;</code>
-   * @return The bytes for className.
+   * <pre>
+   *The model name
+   * </pre>
+   *
+   * <code>string name = 1;</code>
+   * @return The bytes for name.
    */
   com.google.protobuf.ByteString
-      getClassNameBytes();
+      getNameBytes();
 
   /**
-   * <code>.google.protobuf.Any serialized_data = 3;</code>
-   * @return Whether the serializedData field is set.
+   * <pre>
+   *The model provenance
+   * </pre>
+   *
+   * <code>.olcut.RootProvenanceProto provenance = 2;</code>
+   * @return Whether the provenance field is set.
    */
-  boolean hasSerializedData();
+  boolean hasProvenance();
   /**
-   * <code>.google.protobuf.Any serialized_data = 3;</code>
-   * @return The serializedData.
+   * <pre>
+   *The model provenance
+   * </pre>
+   *
+   * <code>.olcut.RootProvenanceProto provenance = 2;</code>
+   * @return The provenance.
    */
-  com.google.protobuf.Any getSerializedData();
+  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance();
   /**
-   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * <pre>
+   *The model provenance
+   * </pre>
+   *
+   * <code>.olcut.RootProvenanceProto provenance = 2;</code>
    */
-  com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder();
+  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder();
+
+  /**
+   * <pre>
+   *Does the model generate probabilities
+   * </pre>
+   *
+   * <code>bool generate_probabilities = 3;</code>
+   * @return The generateProbabilities.
+   */
+  boolean getGenerateProbabilities();
+
+  /**
+   * <pre>
+   *Model feature domain
+   * </pre>
+   *
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
+   * @return Whether the featureDomain field is set.
+   */
+  boolean hasFeatureDomain();
+  /**
+   * <pre>
+   *Model feature domain
+   * </pre>
+   *
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
+   * @return The featureDomain.
+   */
+  org.tribuo.protos.core.FeatureDomainProto getFeatureDomain();
+  /**
+   * <pre>
+   *Model feature domain
+   * </pre>
+   *
+   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
+   */
+  org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder();
+
+  /**
+   * <pre>
+   *Model output domain
+   * </pre>
+   *
+   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
+   * @return Whether the outputDomain field is set.
+   */
+  boolean hasOutputDomain();
+  /**
+   * <pre>
+   *Model output domain
+   * </pre>
+   *
+   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
+   * @return The outputDomain.
+   */
+  org.tribuo.protos.core.OutputDomainProto getOutputDomain();
+  /**
+   * <pre>
+   *Model output domain
+   * </pre>
+   *
+   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
+   */
+  org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder();
+
+  /**
+   * <pre>
+   *Tribuo version
+   * </pre>
+   *
+   * <code>string tribuo_version = 6;</code>
+   * @return The tribuoVersion.
+   */
+  java.lang.String getTribuoVersion();
+  /**
+   * <pre>
+   *Tribuo version
+   * </pre>
+   *
+   * <code>string tribuo_version = 6;</code>
+   * @return The bytes for tribuoVersion.
+   */
+  com.google.protobuf.ByteString
+      getTribuoVersionBytes();
 }

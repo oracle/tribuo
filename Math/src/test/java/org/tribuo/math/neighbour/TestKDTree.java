@@ -22,10 +22,13 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.neighbour.kdtree.KDTree;
 import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
+import org.tribuo.math.protos.NeighbourFactoryProto;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -95,7 +98,16 @@ public class TestKDTree {
         NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
     }
 
-    @Test void testInvalidKDTreeFactory() {
+    @Test
+    public void testInvalidKDTreeFactory() {
         assertThrows(PropertyException.class, () -> new KDTreeFactory(DistanceType.L2, 0) );
+    }
+
+    @Test
+    public void serializationTest() {
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 4);
+        NeighbourFactoryProto proto = factory.serialize();
+        NeighboursQueryFactory deser = ProtoUtil.deserialize(proto);
+        assertEquals(factory,deser);
     }
 }

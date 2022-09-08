@@ -5,7 +5,7 @@ package org.tribuo.protos.core;
 
 /**
  * <pre>
- *Prediction proto
+ *Prediction redirect proto
  * </pre>
  *
  * Protobuf type {@code tribuo.core.PredictionProto}
@@ -43,7 +43,6 @@ private static final long serialVersionUID = 0L;
     if (extensionRegistry == null) {
       throw new java.lang.NullPointerException();
     }
-    int mutable_bitField0_ = 0;
     com.google.protobuf.UnknownFieldSet.Builder unknownFields =
         com.google.protobuf.UnknownFieldSet.newBuilder();
     try {
@@ -66,57 +65,16 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 26: {
-            org.tribuo.protos.core.ExampleProto.Builder subBuilder = null;
-            if (example_ != null) {
-              subBuilder = example_.toBuilder();
+            com.google.protobuf.Any.Builder subBuilder = null;
+            if (serializedData_ != null) {
+              subBuilder = serializedData_.toBuilder();
             }
-            example_ = input.readMessage(org.tribuo.protos.core.ExampleProto.parser(), extensionRegistry);
+            serializedData_ = input.readMessage(com.google.protobuf.Any.parser(), extensionRegistry);
             if (subBuilder != null) {
-              subBuilder.mergeFrom(example_);
-              example_ = subBuilder.buildPartial();
+              subBuilder.mergeFrom(serializedData_);
+              serializedData_ = subBuilder.buildPartial();
             }
 
-            break;
-          }
-          case 34: {
-            org.tribuo.protos.core.OutputProto.Builder subBuilder = null;
-            if (output_ != null) {
-              subBuilder = output_.toBuilder();
-            }
-            output_ = input.readMessage(org.tribuo.protos.core.OutputProto.parser(), extensionRegistry);
-            if (subBuilder != null) {
-              subBuilder.mergeFrom(output_);
-              output_ = subBuilder.buildPartial();
-            }
-
-            break;
-          }
-          case 40: {
-
-            probability_ = input.readBool();
-            break;
-          }
-          case 48: {
-
-            numUsed_ = input.readInt32();
-            break;
-          }
-          case 56: {
-
-            exampleSize_ = input.readInt32();
-            break;
-          }
-          case 66: {
-            if (!((mutable_bitField0_ & 0x00000001) != 0)) {
-              outputScores_ = com.google.protobuf.MapField.newMapField(
-                  OutputScoresDefaultEntryHolder.defaultEntry);
-              mutable_bitField0_ |= 0x00000001;
-            }
-            com.google.protobuf.MapEntry<java.lang.String, org.tribuo.protos.core.OutputProto>
-            outputScores__ = input.readMessage(
-                OutputScoresDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
-            outputScores_.getMutableMap().put(
-                outputScores__.getKey(), outputScores__.getValue());
             break;
           }
           default: {
@@ -130,8 +88,6 @@ private static final long serialVersionUID = 0L;
       }
     } catch (com.google.protobuf.InvalidProtocolBufferException e) {
       throw e.setUnfinishedMessage(this);
-    } catch (com.google.protobuf.UninitializedMessageException e) {
-      throw e.asInvalidProtocolBufferException().setUnfinishedMessage(this);
     } catch (java.io.IOException e) {
       throw new com.google.protobuf.InvalidProtocolBufferException(
           e).setUnfinishedMessage(this);
@@ -145,18 +101,6 @@ private static final long serialVersionUID = 0L;
     return org.tribuo.protos.core.TribuoCore.internal_static_tribuo_core_PredictionProto_descriptor;
   }
 
-  @SuppressWarnings({"rawtypes"})
-  @java.lang.Override
-  protected com.google.protobuf.MapField internalGetMapField(
-      int number) {
-    switch (number) {
-      case 8:
-        return internalGetOutputScores();
-      default:
-        throw new RuntimeException(
-            "Invalid map field number: " + number);
-    }
-  }
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
@@ -214,170 +158,30 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int EXAMPLE_FIELD_NUMBER = 3;
-  private org.tribuo.protos.core.ExampleProto example_;
+  public static final int SERIALIZED_DATA_FIELD_NUMBER = 3;
+  private com.google.protobuf.Any serializedData_;
   /**
-   * <code>.tribuo.core.ExampleProto example = 3;</code>
-   * @return Whether the example field is set.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return Whether the serializedData field is set.
    */
   @java.lang.Override
-  public boolean hasExample() {
-    return example_ != null;
+  public boolean hasSerializedData() {
+    return serializedData_ != null;
   }
   /**
-   * <code>.tribuo.core.ExampleProto example = 3;</code>
-   * @return The example.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return The serializedData.
    */
   @java.lang.Override
-  public org.tribuo.protos.core.ExampleProto getExample() {
-    return example_ == null ? org.tribuo.protos.core.ExampleProto.getDefaultInstance() : example_;
+  public com.google.protobuf.Any getSerializedData() {
+    return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
   }
   /**
-   * <code>.tribuo.core.ExampleProto example = 3;</code>
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
    */
   @java.lang.Override
-  public org.tribuo.protos.core.ExampleProtoOrBuilder getExampleOrBuilder() {
-    return getExample();
-  }
-
-  public static final int OUTPUT_FIELD_NUMBER = 4;
-  private org.tribuo.protos.core.OutputProto output_;
-  /**
-   * <code>.tribuo.core.OutputProto output = 4;</code>
-   * @return Whether the output field is set.
-   */
-  @java.lang.Override
-  public boolean hasOutput() {
-    return output_ != null;
-  }
-  /**
-   * <code>.tribuo.core.OutputProto output = 4;</code>
-   * @return The output.
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.OutputProto getOutput() {
-    return output_ == null ? org.tribuo.protos.core.OutputProto.getDefaultInstance() : output_;
-  }
-  /**
-   * <code>.tribuo.core.OutputProto output = 4;</code>
-   */
-  @java.lang.Override
-  public org.tribuo.protos.core.OutputProtoOrBuilder getOutputOrBuilder() {
-    return getOutput();
-  }
-
-  public static final int PROBABILITY_FIELD_NUMBER = 5;
-  private boolean probability_;
-  /**
-   * <code>bool probability = 5;</code>
-   * @return The probability.
-   */
-  @java.lang.Override
-  public boolean getProbability() {
-    return probability_;
-  }
-
-  public static final int NUM_USED_FIELD_NUMBER = 6;
-  private int numUsed_;
-  /**
-   * <code>int32 num_used = 6;</code>
-   * @return The numUsed.
-   */
-  @java.lang.Override
-  public int getNumUsed() {
-    return numUsed_;
-  }
-
-  public static final int EXAMPLE_SIZE_FIELD_NUMBER = 7;
-  private int exampleSize_;
-  /**
-   * <code>int32 example_size = 7;</code>
-   * @return The exampleSize.
-   */
-  @java.lang.Override
-  public int getExampleSize() {
-    return exampleSize_;
-  }
-
-  public static final int OUTPUT_SCORES_FIELD_NUMBER = 8;
-  private static final class OutputScoresDefaultEntryHolder {
-    static final com.google.protobuf.MapEntry<
-        java.lang.String, org.tribuo.protos.core.OutputProto> defaultEntry =
-            com.google.protobuf.MapEntry
-            .<java.lang.String, org.tribuo.protos.core.OutputProto>newDefaultInstance(
-                org.tribuo.protos.core.TribuoCore.internal_static_tribuo_core_PredictionProto_OutputScoresEntry_descriptor, 
-                com.google.protobuf.WireFormat.FieldType.STRING,
-                "",
-                com.google.protobuf.WireFormat.FieldType.MESSAGE,
-                org.tribuo.protos.core.OutputProto.getDefaultInstance());
-  }
-  private com.google.protobuf.MapField<
-      java.lang.String, org.tribuo.protos.core.OutputProto> outputScores_;
-  private com.google.protobuf.MapField<java.lang.String, org.tribuo.protos.core.OutputProto>
-  internalGetOutputScores() {
-    if (outputScores_ == null) {
-      return com.google.protobuf.MapField.emptyMapField(
-          OutputScoresDefaultEntryHolder.defaultEntry);
-    }
-    return outputScores_;
-  }
-
-  public int getOutputScoresCount() {
-    return internalGetOutputScores().getMap().size();
-  }
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-
-  @java.lang.Override
-  public boolean containsOutputScores(
-      java.lang.String key) {
-    if (key == null) { throw new NullPointerException("map key"); }
-    return internalGetOutputScores().getMap().containsKey(key);
-  }
-  /**
-   * Use {@link #getOutputScoresMap()} instead.
-   */
-  @java.lang.Override
-  @java.lang.Deprecated
-  public java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> getOutputScores() {
-    return getOutputScoresMap();
-  }
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-  @java.lang.Override
-
-  public java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> getOutputScoresMap() {
-    return internalGetOutputScores().getMap();
-  }
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-  @java.lang.Override
-
-  public org.tribuo.protos.core.OutputProto getOutputScoresOrDefault(
-      java.lang.String key,
-      org.tribuo.protos.core.OutputProto defaultValue) {
-    if (key == null) { throw new NullPointerException("map key"); }
-    java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> map =
-        internalGetOutputScores().getMap();
-    return map.containsKey(key) ? map.get(key) : defaultValue;
-  }
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-  @java.lang.Override
-
-  public org.tribuo.protos.core.OutputProto getOutputScoresOrThrow(
-      java.lang.String key) {
-    if (key == null) { throw new NullPointerException("map key"); }
-    java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> map =
-        internalGetOutputScores().getMap();
-    if (!map.containsKey(key)) {
-      throw new java.lang.IllegalArgumentException();
-    }
-    return map.get(key);
+  public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+    return getSerializedData();
   }
 
   private byte memoizedIsInitialized = -1;
@@ -400,27 +204,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
       com.google.protobuf.GeneratedMessageV3.writeString(output, 2, className_);
     }
-    if (example_ != null) {
-      output.writeMessage(3, getExample());
+    if (serializedData_ != null) {
+      output.writeMessage(3, getSerializedData());
     }
-    if (output_ != null) {
-      output.writeMessage(4, getOutput());
-    }
-    if (probability_ != false) {
-      output.writeBool(5, probability_);
-    }
-    if (numUsed_ != 0) {
-      output.writeInt32(6, numUsed_);
-    }
-    if (exampleSize_ != 0) {
-      output.writeInt32(7, exampleSize_);
-    }
-    com.google.protobuf.GeneratedMessageV3
-      .serializeStringMapTo(
-        output,
-        internalGetOutputScores(),
-        OutputScoresDefaultEntryHolder.defaultEntry,
-        8);
     unknownFields.writeTo(output);
   }
 
@@ -437,35 +223,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(className_)) {
       size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, className_);
     }
-    if (example_ != null) {
+    if (serializedData_ != null) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(3, getExample());
-    }
-    if (output_ != null) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(4, getOutput());
-    }
-    if (probability_ != false) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeBoolSize(5, probability_);
-    }
-    if (numUsed_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(6, numUsed_);
-    }
-    if (exampleSize_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(7, exampleSize_);
-    }
-    for (java.util.Map.Entry<java.lang.String, org.tribuo.protos.core.OutputProto> entry
-         : internalGetOutputScores().getMap().entrySet()) {
-      com.google.protobuf.MapEntry<java.lang.String, org.tribuo.protos.core.OutputProto>
-      outputScores__ = OutputScoresDefaultEntryHolder.defaultEntry.newBuilderForType()
-          .setKey(entry.getKey())
-          .setValue(entry.getValue())
-          .build();
-      size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(8, outputScores__);
+        .computeMessageSize(3, getSerializedData());
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -486,24 +246,11 @@ private static final long serialVersionUID = 0L;
         != other.getVersion()) return false;
     if (!getClassName()
         .equals(other.getClassName())) return false;
-    if (hasExample() != other.hasExample()) return false;
-    if (hasExample()) {
-      if (!getExample()
-          .equals(other.getExample())) return false;
+    if (hasSerializedData() != other.hasSerializedData()) return false;
+    if (hasSerializedData()) {
+      if (!getSerializedData()
+          .equals(other.getSerializedData())) return false;
     }
-    if (hasOutput() != other.hasOutput()) return false;
-    if (hasOutput()) {
-      if (!getOutput()
-          .equals(other.getOutput())) return false;
-    }
-    if (getProbability()
-        != other.getProbability()) return false;
-    if (getNumUsed()
-        != other.getNumUsed()) return false;
-    if (getExampleSize()
-        != other.getExampleSize()) return false;
-    if (!internalGetOutputScores().equals(
-        other.internalGetOutputScores())) return false;
     if (!unknownFields.equals(other.unknownFields)) return false;
     return true;
   }
@@ -519,24 +266,9 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getVersion();
     hash = (37 * hash) + CLASS_NAME_FIELD_NUMBER;
     hash = (53 * hash) + getClassName().hashCode();
-    if (hasExample()) {
-      hash = (37 * hash) + EXAMPLE_FIELD_NUMBER;
-      hash = (53 * hash) + getExample().hashCode();
-    }
-    if (hasOutput()) {
-      hash = (37 * hash) + OUTPUT_FIELD_NUMBER;
-      hash = (53 * hash) + getOutput().hashCode();
-    }
-    hash = (37 * hash) + PROBABILITY_FIELD_NUMBER;
-    hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
-        getProbability());
-    hash = (37 * hash) + NUM_USED_FIELD_NUMBER;
-    hash = (53 * hash) + getNumUsed();
-    hash = (37 * hash) + EXAMPLE_SIZE_FIELD_NUMBER;
-    hash = (53 * hash) + getExampleSize();
-    if (!internalGetOutputScores().getMap().isEmpty()) {
-      hash = (37 * hash) + OUTPUT_SCORES_FIELD_NUMBER;
-      hash = (53 * hash) + internalGetOutputScores().hashCode();
+    if (hasSerializedData()) {
+      hash = (37 * hash) + SERIALIZED_DATA_FIELD_NUMBER;
+      hash = (53 * hash) + getSerializedData().hashCode();
     }
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
@@ -635,7 +367,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   *Prediction proto
+   *Prediction redirect proto
    * </pre>
    *
    * Protobuf type {@code tribuo.core.PredictionProto}
@@ -649,28 +381,6 @@ private static final long serialVersionUID = 0L;
       return org.tribuo.protos.core.TribuoCore.internal_static_tribuo_core_PredictionProto_descriptor;
     }
 
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMapField(
-        int number) {
-      switch (number) {
-        case 8:
-          return internalGetOutputScores();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
-    @SuppressWarnings({"rawtypes"})
-    protected com.google.protobuf.MapField internalGetMutableMapField(
-        int number) {
-      switch (number) {
-        case 8:
-          return internalGetMutableOutputScores();
-        default:
-          throw new RuntimeException(
-              "Invalid map field number: " + number);
-      }
-    }
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
@@ -701,25 +411,12 @@ private static final long serialVersionUID = 0L;
 
       className_ = "";
 
-      if (exampleBuilder_ == null) {
-        example_ = null;
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
       } else {
-        example_ = null;
-        exampleBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
-      if (outputBuilder_ == null) {
-        output_ = null;
-      } else {
-        output_ = null;
-        outputBuilder_ = null;
-      }
-      probability_ = false;
-
-      numUsed_ = 0;
-
-      exampleSize_ = 0;
-
-      internalGetMutableOutputScores().clear();
       return this;
     }
 
@@ -746,24 +443,13 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public org.tribuo.protos.core.PredictionProto buildPartial() {
       org.tribuo.protos.core.PredictionProto result = new org.tribuo.protos.core.PredictionProto(this);
-      int from_bitField0_ = bitField0_;
       result.version_ = version_;
       result.className_ = className_;
-      if (exampleBuilder_ == null) {
-        result.example_ = example_;
+      if (serializedDataBuilder_ == null) {
+        result.serializedData_ = serializedData_;
       } else {
-        result.example_ = exampleBuilder_.build();
+        result.serializedData_ = serializedDataBuilder_.build();
       }
-      if (outputBuilder_ == null) {
-        result.output_ = output_;
-      } else {
-        result.output_ = outputBuilder_.build();
-      }
-      result.probability_ = probability_;
-      result.numUsed_ = numUsed_;
-      result.exampleSize_ = exampleSize_;
-      result.outputScores_ = internalGetOutputScores();
-      result.outputScores_.makeImmutable();
       onBuilt();
       return result;
     }
@@ -819,23 +505,9 @@ private static final long serialVersionUID = 0L;
         className_ = other.className_;
         onChanged();
       }
-      if (other.hasExample()) {
-        mergeExample(other.getExample());
+      if (other.hasSerializedData()) {
+        mergeSerializedData(other.getSerializedData());
       }
-      if (other.hasOutput()) {
-        mergeOutput(other.getOutput());
-      }
-      if (other.getProbability() != false) {
-        setProbability(other.getProbability());
-      }
-      if (other.getNumUsed() != 0) {
-        setNumUsed(other.getNumUsed());
-      }
-      if (other.getExampleSize() != 0) {
-        setExampleSize(other.getExampleSize());
-      }
-      internalGetMutableOutputScores().mergeFrom(
-          other.internalGetOutputScores());
       this.mergeUnknownFields(other.unknownFields);
       onChanged();
       return this;
@@ -864,7 +536,6 @@ private static final long serialVersionUID = 0L;
       }
       return this;
     }
-    private int bitField0_;
 
     private int version_ ;
     /**
@@ -973,466 +644,123 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private org.tribuo.protos.core.ExampleProto example_;
+    private com.google.protobuf.Any serializedData_;
     private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.ExampleProto, org.tribuo.protos.core.ExampleProto.Builder, org.tribuo.protos.core.ExampleProtoOrBuilder> exampleBuilder_;
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> serializedDataBuilder_;
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
-     * @return Whether the example field is set.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return Whether the serializedData field is set.
      */
-    public boolean hasExample() {
-      return exampleBuilder_ != null || example_ != null;
+    public boolean hasSerializedData() {
+      return serializedDataBuilder_ != null || serializedData_ != null;
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
-     * @return The example.
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
+     * @return The serializedData.
      */
-    public org.tribuo.protos.core.ExampleProto getExample() {
-      if (exampleBuilder_ == null) {
-        return example_ == null ? org.tribuo.protos.core.ExampleProto.getDefaultInstance() : example_;
+    public com.google.protobuf.Any getSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        return serializedData_ == null ? com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       } else {
-        return exampleBuilder_.getMessage();
+        return serializedDataBuilder_.getMessage();
       }
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setExample(org.tribuo.protos.core.ExampleProto value) {
-      if (exampleBuilder_ == null) {
+    public Builder setSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
         if (value == null) {
           throw new NullPointerException();
         }
-        example_ = value;
+        serializedData_ = value;
         onChanged();
       } else {
-        exampleBuilder_.setMessage(value);
+        serializedDataBuilder_.setMessage(value);
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder setExample(
-        org.tribuo.protos.core.ExampleProto.Builder builderForValue) {
-      if (exampleBuilder_ == null) {
-        example_ = builderForValue.build();
+    public Builder setSerializedData(
+        com.google.protobuf.Any.Builder builderForValue) {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = builderForValue.build();
         onChanged();
       } else {
-        exampleBuilder_.setMessage(builderForValue.build());
+        serializedDataBuilder_.setMessage(builderForValue.build());
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder mergeExample(org.tribuo.protos.core.ExampleProto value) {
-      if (exampleBuilder_ == null) {
-        if (example_ != null) {
-          example_ =
-            org.tribuo.protos.core.ExampleProto.newBuilder(example_).mergeFrom(value).buildPartial();
+    public Builder mergeSerializedData(com.google.protobuf.Any value) {
+      if (serializedDataBuilder_ == null) {
+        if (serializedData_ != null) {
+          serializedData_ =
+            com.google.protobuf.Any.newBuilder(serializedData_).mergeFrom(value).buildPartial();
         } else {
-          example_ = value;
+          serializedData_ = value;
         }
         onChanged();
       } else {
-        exampleBuilder_.mergeFrom(value);
+        serializedDataBuilder_.mergeFrom(value);
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public Builder clearExample() {
-      if (exampleBuilder_ == null) {
-        example_ = null;
+    public Builder clearSerializedData() {
+      if (serializedDataBuilder_ == null) {
+        serializedData_ = null;
         onChanged();
       } else {
-        example_ = null;
-        exampleBuilder_ = null;
+        serializedData_ = null;
+        serializedDataBuilder_ = null;
       }
 
       return this;
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public org.tribuo.protos.core.ExampleProto.Builder getExampleBuilder() {
+    public com.google.protobuf.Any.Builder getSerializedDataBuilder() {
       
       onChanged();
-      return getExampleFieldBuilder().getBuilder();
+      return getSerializedDataFieldBuilder().getBuilder();
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
-    public org.tribuo.protos.core.ExampleProtoOrBuilder getExampleOrBuilder() {
-      if (exampleBuilder_ != null) {
-        return exampleBuilder_.getMessageOrBuilder();
+    public com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder() {
+      if (serializedDataBuilder_ != null) {
+        return serializedDataBuilder_.getMessageOrBuilder();
       } else {
-        return example_ == null ?
-            org.tribuo.protos.core.ExampleProto.getDefaultInstance() : example_;
+        return serializedData_ == null ?
+            com.google.protobuf.Any.getDefaultInstance() : serializedData_;
       }
     }
     /**
-     * <code>.tribuo.core.ExampleProto example = 3;</code>
+     * <code>.google.protobuf.Any serialized_data = 3;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.ExampleProto, org.tribuo.protos.core.ExampleProto.Builder, org.tribuo.protos.core.ExampleProtoOrBuilder> 
-        getExampleFieldBuilder() {
-      if (exampleBuilder_ == null) {
-        exampleBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.ExampleProto, org.tribuo.protos.core.ExampleProto.Builder, org.tribuo.protos.core.ExampleProtoOrBuilder>(
-                getExample(),
+        com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder> 
+        getSerializedDataFieldBuilder() {
+      if (serializedDataBuilder_ == null) {
+        serializedDataBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            com.google.protobuf.Any, com.google.protobuf.Any.Builder, com.google.protobuf.AnyOrBuilder>(
+                getSerializedData(),
                 getParentForChildren(),
                 isClean());
-        example_ = null;
+        serializedData_ = null;
       }
-      return exampleBuilder_;
-    }
-
-    private org.tribuo.protos.core.OutputProto output_;
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputProto, org.tribuo.protos.core.OutputProto.Builder, org.tribuo.protos.core.OutputProtoOrBuilder> outputBuilder_;
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     * @return Whether the output field is set.
-     */
-    public boolean hasOutput() {
-      return outputBuilder_ != null || output_ != null;
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     * @return The output.
-     */
-    public org.tribuo.protos.core.OutputProto getOutput() {
-      if (outputBuilder_ == null) {
-        return output_ == null ? org.tribuo.protos.core.OutputProto.getDefaultInstance() : output_;
-      } else {
-        return outputBuilder_.getMessage();
-      }
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     */
-    public Builder setOutput(org.tribuo.protos.core.OutputProto value) {
-      if (outputBuilder_ == null) {
-        if (value == null) {
-          throw new NullPointerException();
-        }
-        output_ = value;
-        onChanged();
-      } else {
-        outputBuilder_.setMessage(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     */
-    public Builder setOutput(
-        org.tribuo.protos.core.OutputProto.Builder builderForValue) {
-      if (outputBuilder_ == null) {
-        output_ = builderForValue.build();
-        onChanged();
-      } else {
-        outputBuilder_.setMessage(builderForValue.build());
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     */
-    public Builder mergeOutput(org.tribuo.protos.core.OutputProto value) {
-      if (outputBuilder_ == null) {
-        if (output_ != null) {
-          output_ =
-            org.tribuo.protos.core.OutputProto.newBuilder(output_).mergeFrom(value).buildPartial();
-        } else {
-          output_ = value;
-        }
-        onChanged();
-      } else {
-        outputBuilder_.mergeFrom(value);
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     */
-    public Builder clearOutput() {
-      if (outputBuilder_ == null) {
-        output_ = null;
-        onChanged();
-      } else {
-        output_ = null;
-        outputBuilder_ = null;
-      }
-
-      return this;
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     */
-    public org.tribuo.protos.core.OutputProto.Builder getOutputBuilder() {
-      
-      onChanged();
-      return getOutputFieldBuilder().getBuilder();
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     */
-    public org.tribuo.protos.core.OutputProtoOrBuilder getOutputOrBuilder() {
-      if (outputBuilder_ != null) {
-        return outputBuilder_.getMessageOrBuilder();
-      } else {
-        return output_ == null ?
-            org.tribuo.protos.core.OutputProto.getDefaultInstance() : output_;
-      }
-    }
-    /**
-     * <code>.tribuo.core.OutputProto output = 4;</code>
-     */
-    private com.google.protobuf.SingleFieldBuilderV3<
-        org.tribuo.protos.core.OutputProto, org.tribuo.protos.core.OutputProto.Builder, org.tribuo.protos.core.OutputProtoOrBuilder> 
-        getOutputFieldBuilder() {
-      if (outputBuilder_ == null) {
-        outputBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-            org.tribuo.protos.core.OutputProto, org.tribuo.protos.core.OutputProto.Builder, org.tribuo.protos.core.OutputProtoOrBuilder>(
-                getOutput(),
-                getParentForChildren(),
-                isClean());
-        output_ = null;
-      }
-      return outputBuilder_;
-    }
-
-    private boolean probability_ ;
-    /**
-     * <code>bool probability = 5;</code>
-     * @return The probability.
-     */
-    @java.lang.Override
-    public boolean getProbability() {
-      return probability_;
-    }
-    /**
-     * <code>bool probability = 5;</code>
-     * @param value The probability to set.
-     * @return This builder for chaining.
-     */
-    public Builder setProbability(boolean value) {
-      
-      probability_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>bool probability = 5;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearProbability() {
-      
-      probability_ = false;
-      onChanged();
-      return this;
-    }
-
-    private int numUsed_ ;
-    /**
-     * <code>int32 num_used = 6;</code>
-     * @return The numUsed.
-     */
-    @java.lang.Override
-    public int getNumUsed() {
-      return numUsed_;
-    }
-    /**
-     * <code>int32 num_used = 6;</code>
-     * @param value The numUsed to set.
-     * @return This builder for chaining.
-     */
-    public Builder setNumUsed(int value) {
-      
-      numUsed_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>int32 num_used = 6;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearNumUsed() {
-      
-      numUsed_ = 0;
-      onChanged();
-      return this;
-    }
-
-    private int exampleSize_ ;
-    /**
-     * <code>int32 example_size = 7;</code>
-     * @return The exampleSize.
-     */
-    @java.lang.Override
-    public int getExampleSize() {
-      return exampleSize_;
-    }
-    /**
-     * <code>int32 example_size = 7;</code>
-     * @param value The exampleSize to set.
-     * @return This builder for chaining.
-     */
-    public Builder setExampleSize(int value) {
-      
-      exampleSize_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>int32 example_size = 7;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearExampleSize() {
-      
-      exampleSize_ = 0;
-      onChanged();
-      return this;
-    }
-
-    private com.google.protobuf.MapField<
-        java.lang.String, org.tribuo.protos.core.OutputProto> outputScores_;
-    private com.google.protobuf.MapField<java.lang.String, org.tribuo.protos.core.OutputProto>
-    internalGetOutputScores() {
-      if (outputScores_ == null) {
-        return com.google.protobuf.MapField.emptyMapField(
-            OutputScoresDefaultEntryHolder.defaultEntry);
-      }
-      return outputScores_;
-    }
-    private com.google.protobuf.MapField<java.lang.String, org.tribuo.protos.core.OutputProto>
-    internalGetMutableOutputScores() {
-      onChanged();;
-      if (outputScores_ == null) {
-        outputScores_ = com.google.protobuf.MapField.newMapField(
-            OutputScoresDefaultEntryHolder.defaultEntry);
-      }
-      if (!outputScores_.isMutable()) {
-        outputScores_ = outputScores_.copy();
-      }
-      return outputScores_;
-    }
-
-    public int getOutputScoresCount() {
-      return internalGetOutputScores().getMap().size();
-    }
-    /**
-     * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-     */
-
-    @java.lang.Override
-    public boolean containsOutputScores(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      return internalGetOutputScores().getMap().containsKey(key);
-    }
-    /**
-     * Use {@link #getOutputScoresMap()} instead.
-     */
-    @java.lang.Override
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> getOutputScores() {
-      return getOutputScoresMap();
-    }
-    /**
-     * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-     */
-    @java.lang.Override
-
-    public java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> getOutputScoresMap() {
-      return internalGetOutputScores().getMap();
-    }
-    /**
-     * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-     */
-    @java.lang.Override
-
-    public org.tribuo.protos.core.OutputProto getOutputScoresOrDefault(
-        java.lang.String key,
-        org.tribuo.protos.core.OutputProto defaultValue) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> map =
-          internalGetOutputScores().getMap();
-      return map.containsKey(key) ? map.get(key) : defaultValue;
-    }
-    /**
-     * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-     */
-    @java.lang.Override
-
-    public org.tribuo.protos.core.OutputProto getOutputScoresOrThrow(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> map =
-          internalGetOutputScores().getMap();
-      if (!map.containsKey(key)) {
-        throw new java.lang.IllegalArgumentException();
-      }
-      return map.get(key);
-    }
-
-    public Builder clearOutputScores() {
-      internalGetMutableOutputScores().getMutableMap()
-          .clear();
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-     */
-
-    public Builder removeOutputScores(
-        java.lang.String key) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      internalGetMutableOutputScores().getMutableMap()
-          .remove(key);
-      return this;
-    }
-    /**
-     * Use alternate mutation accessors instead.
-     */
-    @java.lang.Deprecated
-    public java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto>
-    getMutableOutputScores() {
-      return internalGetMutableOutputScores().getMutableMap();
-    }
-    /**
-     * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-     */
-    public Builder putOutputScores(
-        java.lang.String key,
-        org.tribuo.protos.core.OutputProto value) {
-      if (key == null) { throw new NullPointerException("map key"); }
-      if (value == null) {
-  throw new NullPointerException("map value");
-}
-
-      internalGetMutableOutputScores().getMutableMap()
-          .put(key, value);
-      return this;
-    }
-    /**
-     * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-     */
-
-    public Builder putAllOutputScores(
-        java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto> values) {
-      internalGetMutableOutputScores().getMutableMap()
-          .putAll(values);
-      return this;
+      return serializedDataBuilder_;
     }
     @java.lang.Override
     public final Builder setUnknownFields(

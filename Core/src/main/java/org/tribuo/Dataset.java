@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,14 @@
 
 package org.tribuo;
 
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformStatistics;
@@ -50,7 +56,8 @@ import java.util.regex.Pattern;
  * Subclass {@link MutableDataset} rather than this class.
  * @param <T> the type of the features in the data set.
  */
-public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T>>, Provenancable<DatasetProvenance>, Serializable {
+public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T>>, ProtoSerializable<DatasetProto>,
+    Provenancable<DatasetProvenance>, Serializable {
     private static final long serialVersionUID = 2L;
 
     private static final Logger logger = Logger.getLogger(Dataset.class.getName());
@@ -76,6 +83,11 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
     protected final OutputFactory<T> outputFactory;
 
     /**
+     * The Tribuo version which originally created this dataset
+     */
+    protected final String tribuoVersion;
+
+    /**
      * The indices of the shuffled order.
      */
     protected int[] indices = null;
@@ -86,8 +98,19 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      * @param outputFactory The output factory.
      */
     protected Dataset(DataProvenance provenance, OutputFactory<T> outputFactory) {
+        this(provenance, outputFactory, Tribuo.VERSION);
+    }
+
+    /**
+     * Creates a dataset.
+     * @param provenance A description of the data, including preprocessing steps.
+     * @param outputFactory The output factory.
+     * @param tribuoVersion The Tribuo version.
+     */
+    protected Dataset(DataProvenance provenance, OutputFactory<T> outputFactory, String tribuoVersion) {
         this.sourceProvenance = provenance;
         this.outputFactory = outputFactory;
+        this.tribuoVersion = tribuoVersion;
     }
 
     /**
@@ -96,6 +119,15 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      */
     protected Dataset(DataSource<T> dataSource) {
         this(dataSource.getProvenance(),dataSource.getOutputFactory());
+    }
+
+    /**
+     * Deserializes a dataset proto into a dataset.
+     * @param datasetProto The proto to deserialize.
+     * @return The dataset.
+     */
+    public static Dataset<?> deserialize(DatasetProto datasetProto) {
+        return ProtoUtil.deserialize(datasetProto);
     }
 
     /**
@@ -384,6 +416,28 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
     }
 
     /**
+     * Constructs the data carrier for serialization.
+     * @param featureMap The feature domain.
+     * @param outputInfo The output domain.
+     * @return The serialization data carrier.
+     */
+    protected DatasetDataCarrier<T> createDataCarrier(FeatureMap featureMap, OutputInfo<T> outputInfo) {
+        return createDataCarrier(featureMap,outputInfo,Collections.emptyList());
+    }
+
+    /**
+     * Constructs the data carrier for serialization.
+     * @param featureMap The feature domain.
+     * @param outputInfo The output domain.
+     * @param transformationProvenances The transformation provenances, must be non-null, but can be empty.
+     * @return The serialization data carrier.
+     */
+    protected DatasetDataCarrier<T> createDataCarrier(FeatureMap featureMap, OutputInfo<T> outputInfo, List<ObjectProvenance> transformationProvenances) {
+        String version = tribuoVersion == null ? Tribuo.VERSION : tribuoVersion;
+        return new DatasetDataCarrier<>(sourceProvenance,featureMap,outputInfo,outputFactory,transformationProvenances,version);
+    }
+
+    /**
      * Validates that this Dataset does in fact contain the supplied output type.
      * <p>
      * As the output type is erased at runtime, deserialising a Dataset is an unchecked
@@ -443,6 +497,24 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
             index++;
             return e;
         }
+    }
+
+    protected static List<Example<?>> deserializeExamples(List<ExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
+        List<Example<?>> examples = new ArrayList<>();
+        for (ExampleProto e : examplesList) {
+            Example<?> example = Example.deserialize(e);
+            if (example.getOutput().getClass().equals(outputClass)) {
+                for (Feature f : example) {
+                   if (fmap.get(f.getName()) == null) {
+                       throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                   }
+                }
+                examples.add(example);
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
+            }
+        }
+        return examples;
     }
 }
 

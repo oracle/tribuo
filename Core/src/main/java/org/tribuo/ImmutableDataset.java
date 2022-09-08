@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,15 @@
 
 package org.tribuo;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.hash.Hasher;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.ExampleProto;
+import org.tribuo.protos.core.ImmutableDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.util.Merger;
@@ -41,7 +47,12 @@ public class ImmutableDataset<T extends Output<T>> extends Dataset<T> implements
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ImmutableDataset.class.getName());
-    
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     /**
      * Output information, and id numbers for outputs found in this dataset.
      */
@@ -140,10 +151,53 @@ public class ImmutableDataset<T extends Output<T>> extends Dataset<T> implements
      * @param outputIDInfo The output id map.
      */
     protected ImmutableDataset(DataProvenance description, OutputFactory<T> outputFactory, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo) {
-        super(description,outputFactory);
+        super(description, outputFactory);
         this.featureIDMap = featureIDMap;
         this.outputIDInfo = outputIDInfo;
         this.dropInvalidExamples = false;
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param provenance The source provenance.
+     * @param factory The output factory.
+     * @param tribuoVersion The tribuo version.
+     * @param fmap The feature id map.
+     * @param outputInfo The output id info.
+     * @param examples The examples.
+     * @param dropInvalidExamples Should invalid examples be dropped when added?
+     */
+    protected ImmutableDataset(DataProvenance provenance, OutputFactory<T> factory, String tribuoVersion, ImmutableFeatureMap fmap, ImmutableOutputInfo<T> outputInfo, List<Example<T>> examples, boolean dropInvalidExamples) {
+        super(provenance,factory,tribuoVersion);
+        this.featureIDMap = fmap;
+        this.outputIDInfo = outputInfo;
+        this.data.addAll(examples);
+        this.dropInvalidExamples = dropInvalidExamples;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static ImmutableDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ImmutableDatasetProto proto = message.unpack(ImmutableDatasetProto.class);
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
+        FeatureMap fmap = carrier.featureDomain();
+        List<Example<?>> examples = deserializeExamples(proto.getExamplesList(), outputClass, fmap);
+        if (!(fmap instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
+        }
+        if (!(carrier.outputDomain() instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
+        }
+        return new ImmutableDataset(carrier.provenance(), carrier.outputFactory(), carrier.tribuoVersion(), (ImmutableFeatureMap) fmap, (ImmutableOutputInfo) carrier.outputDomain(), examples, proto.getDropInvalidExamples());
     }
 
     /**
@@ -260,6 +314,25 @@ public class ImmutableDataset<T extends Output<T>> extends Dataset<T> implements
      */
     private DatasetProvenance cacheProvenance() {
         return new DatasetProvenance(sourceProvenance,new ListProvenance<>(),this);
+    }
+
+    @Override
+    public DatasetProto serialize() {
+        ImmutableDatasetProto.Builder datasetBuilder = ImmutableDatasetProto.newBuilder();
+
+        datasetBuilder.setDropInvalidExamples(dropInvalidExamples);
+        datasetBuilder.setMetadata(createDataCarrier(featureIDMap,outputIDInfo).serialize());
+        for (Example<T> e : data) {
+            datasetBuilder.addExamples(e.serialize());
+        }
+
+        DatasetProto.Builder builder = DatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(ImmutableDataset.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 
     /**

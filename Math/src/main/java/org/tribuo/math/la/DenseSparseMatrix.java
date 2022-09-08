@@ -16,12 +16,24 @@
 
 package org.tribuo.math.la;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.math.protos.SparseTensorProto;
+import org.tribuo.math.protos.TensorProto;
+import org.tribuo.util.Util;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.DoubleUnaryOperator;
+import java.util.stream.Collectors;
 
 /**
  * A matrix which is dense in the first dimension and sparse in the second.
@@ -30,6 +42,11 @@ import java.util.function.DoubleUnaryOperator;
  */
 public class DenseSparseMatrix implements Matrix {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final SparseVector[] values;
     private final int dim1;
@@ -141,6 +158,96 @@ public class DenseSparseMatrix implements Matrix {
             newValues[i] = new SparseVector(dimension, new int[]{i}, new double[]{diagonal.get(i)});
         }
         return new DenseSparseMatrix(newValues);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static DenseSparseMatrix deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        SparseTensorProto proto = message.unpack(SparseTensorProto.class);
+        List<Integer> shapeList = proto.getDimensionsList();
+        int[] shape = Util.toPrimitiveInt(shapeList);
+        if (shape.length != 2) {
+            throw new IllegalArgumentException("Invalid proto, expected a vector, found shape " + Arrays.toString(shape));
+        }
+        for (int i = 0; i < shape.length; i++) {
+            if (shape[i] < 1) {
+                throw new IllegalArgumentException("Invalid proto, shape must be positive, found " + shape[i] + " at position " + i);
+            }
+        }
+        int numElements = proto.getNumNonZero();
+        IntBuffer indicesBuffer = proto.getIndices().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+        if (indicesBuffer.remaining() != numElements * 2) {
+            throw new IllegalArgumentException("Invalid proto, claimed " + (numElements * 2) + ", but only had " + indicesBuffer.remaining() + " indices");
+        }
+        DoubleBuffer valuesBuffer = proto.getValues().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
+        if (valuesBuffer.remaining() != numElements) {
+            throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + valuesBuffer.remaining() + " values");
+        }
+        SparseVector[] vectors = new SparseVector[shape[0]];
+        List<Integer> indices = new ArrayList<>();
+        List<Double> values = new ArrayList<>();
+        int rowCounter = 0;
+        for (int i = 0; i < numElements; i++) {
+            int curI = indicesBuffer.get();
+            int curJ = indicesBuffer.get();
+            double curValue = valuesBuffer.get();
+            while (curI != rowCounter) {
+                vectors[rowCounter] = SparseVector.createAndValidate(shape[1],Util.toPrimitiveInt(indices),Util.toPrimitiveDouble(values));
+                indices.clear();
+                values.clear();
+                rowCounter++;
+            }
+            indices.add(curJ);
+            values.add(curValue);
+        }
+        vectors[rowCounter] = SparseVector.createAndValidate(shape[1],Util.toPrimitiveInt(indices),Util.toPrimitiveDouble(values));
+        indices.clear();
+        values.clear();
+        rowCounter++;
+        while (rowCounter < shape[0]) {
+            vectors[rowCounter] = new SparseVector(shape[1],new int[0],new double[0]);
+            rowCounter++;
+        }
+        return new DenseSparseMatrix(vectors);
+    }
+
+    @Override
+    public TensorProto serialize() {
+        SparseTensorProto.Builder dataBuilder = SparseTensorProto.newBuilder();
+        dataBuilder.addAllDimensions(Arrays.stream(shape).boxed().collect(Collectors.toList()));
+        int numNonZero = 0;
+        for (int i = 0; i < values.length; i++) {
+            numNonZero += values[i].numActiveElements();
+        }
+        ByteBuffer indicesBuffer = ByteBuffer.allocate(numNonZero * 2 * 4).order(ByteOrder.LITTLE_ENDIAN);
+        IntBuffer intBuffer = indicesBuffer.asIntBuffer();
+        ByteBuffer valuesBuffer = ByteBuffer.allocate(numNonZero * 8).order(ByteOrder.LITTLE_ENDIAN);
+        DoubleBuffer doubleBuffer = valuesBuffer.asDoubleBuffer();
+        for (MatrixTuple i : this) {
+            intBuffer.put(i.i);
+            intBuffer.put(i.j);
+            doubleBuffer.put(i.value);
+        }
+        intBuffer.rewind();
+        doubleBuffer.rewind();
+        dataBuilder.setIndices(ByteString.copyFrom(indicesBuffer));
+        dataBuilder.setValues(ByteString.copyFrom(valuesBuffer));
+        dataBuilder.setNumNonZero(numNonZero);
+
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(DenseSparseMatrix.class.getName());
+        builder.setSerializedData(Any.pack(dataBuilder.build()));
+
+        return builder.build();
     }
 
     @Override

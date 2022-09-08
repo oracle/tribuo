@@ -27,14 +27,11 @@ option java_package = "org.tribuo.protos.core";
 // Import Tribuo's core protos
 import "tribuo-core.proto";
 
-// Import OLCUT's provenance proto
-import "olcut_proto.proto";
-
 /*
 HashedFeatureMap proto
  */
 message HashedFeatureMapProto {
-  HasherProto hasher = 1;
+  tribuo.core.HasherProto hasher = 1;
   repeated VariableInfoProto info = 2;
 }
 
@@ -42,7 +39,7 @@ message HashedFeatureMapProto {
 ImmutableFeatureMap proto
  */
 message ImmutableFeatureMapProto {
-  repeated VariableInfoProto info = 1;
+  repeated tribuo.core.VariableInfoProto info = 1;
 }
 
 /*
@@ -50,7 +47,7 @@ MutableFeatureMap proto
  */
 message MutableFeatureMapProto {
   bool convert_high_cardinality = 1;
-  repeated VariableInfoProto info = 2;
+  repeated tribuo.core.VariableInfoProto info = 2;
 }
 
 /*
@@ -161,4 +158,134 @@ message BinningTransformerProto {
   string binning_type = 1;
   repeated double bins = 2;
   repeated double values = 3;
+}
+
+/*
+Example proto shared by ListExample and ArrayExample
+ */
+message ExampleDataProto {
+  tribuo.core.OutputProto output = 1;
+  repeated string feature_name = 2;
+  repeated double feature_value = 3;
+  map<string,string> metadata = 4;
+  float weight = 5;
+}
+
+/*
+BinaryFeaturesExample proto
+ */
+message BinaryFeaturesExampleProto {
+  tribuo.core.OutputProto output = 1;
+  repeated string feature_name = 2;
+  map<string, string> metadata = 3;
+  float weight = 4;
+}
+
+/*
+ IndexedArrayExample proto
+ */
+message IndexedArrayExampleProto {
+  tribuo.core.OutputProto output = 1;
+  int32 output_idx = 2;
+  repeated string feature_name = 3;
+  repeated int32 feature_idx = 4;
+  repeated double feature_value = 5;
+  map<string,string> metadata = 6;
+  float weight = 7;
+  tribuo.core.FeatureDomainProto feature_domain = 8;
+  tribuo.core.OutputDomainProto output_domain = 9;
+}
+
+/*
+SequenceExample impl proto
+ */
+message SequenceExampleImplProto {
+  repeated tribuo.core.ExampleProto examples = 1;
+  float weight = 2;
+}
+
+/*
+Prediction impl proto
+ */
+message PredictionImplProto {
+  tribuo.core.ExampleProto example = 3;
+  tribuo.core.OutputProto output = 4;
+  bool probability = 5;
+  int32 num_used = 6;
+  int32 example_size = 7;
+  map<string,tribuo.core.OutputProto> output_scores = 8;
+}
+
+/*
+MutableDataset proto
+ */
+message MutableDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.ExampleProto examples = 2;
+  bool dense = 3;
+}
+
+/*
+ImmutableDataset proto
+ */
+message ImmutableDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.ExampleProto examples = 2;
+  bool drop_invalid_examples = 3;
+}
+
+/*
+DatasetView proto
+ */
+message DatasetViewProto {
+  tribuo.core.DatasetProto inner_dataset = 1;
+  tribuo.core.FeatureDomainProto feature_domain = 2;
+  tribuo.core.OutputDomainProto output_domain = 3;
+  int32 size = 4;
+  repeated int32 indices = 5;
+  int64 seed = 6;
+  string tag = 7;
+  bool sampled = 8;
+  bool weighted = 9;
+  bool store_indices = 10;
+}
+
+/*
+MinimumCardinalityDataset proto
+ */
+message MinimumCardinalityDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.ExampleProto examples = 2;
+  bool drop_invalid_examples = 3;
+  int32 min_cardinality = 4;
+  int32 num_examples_removed = 5;
+  repeated string removed = 6;
+}
+
+/*
+MutableSequenceDataset proto
+ */
+message MutableSequenceDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.SequenceExampleProto examples = 2;
+  bool dense = 3;
+}
+
+/*
+ImmutableSequenceDataset proto
+ */
+message ImmutableSequenceDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.SequenceExampleProto examples = 2;
+}
+
+/*
+MinimumCardinalitySequenceDataset proto
+ */
+message MinimumCardinalitySequenceDatasetProto {
+  tribuo.core.DatasetDataProto metadata = 1;
+  repeated tribuo.core.SequenceExampleProto examples = 2;
+  int32 min_cardinality = 4;
+  int32 num_examples_removed = 5;
+  repeated string removed = 6;
 }

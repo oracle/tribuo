@@ -59,3 +59,14 @@ message ImmutableMultiLabelInfoProto {
   int32 unknownCount = 4;
   int32 totalCount = 5;
 }
+
+/*
+BinaryExample proto
+ */
+message BinaryExampleProto {
+  tribuo.core.ExampleProto inner_example = 1;
+  tribuo.core.OutputProto label = 2;
+  float weight = 3;
+  repeated string feature_name = 4;
+  repeated double feature_value = 5;
+}

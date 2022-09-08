@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,10 @@
 
 package org.tribuo.math.la;
 
+import org.tribuo.math.protos.TensorProto;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
@@ -23,7 +27,7 @@ import java.util.function.DoubleUnaryOperator;
 /**
  * An interface for Tensors, currently Vectors and Matrices.
  */
-public interface Tensor extends Serializable {
+public interface Tensor extends ProtoSerializable<TensorProto>, Serializable {
 
     /**
      * The number of elements in this shape, i.e., the product of the shape array.
@@ -145,4 +149,15 @@ public interface Tensor extends Serializable {
      * @return The euclidean norm.
      */
     public double twoNorm();
+
+    /**
+     * Deserialize a tensor proto into a Tensor.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the proto is invalid.
+     * @param proto The proto to deserialize.
+     * @return The tensor.
+     */
+    public static Tensor deserialize(TensorProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }

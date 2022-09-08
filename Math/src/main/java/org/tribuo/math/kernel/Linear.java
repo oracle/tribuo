@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,16 @@
 
 package org.tribuo.math.kernel;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.protos.KernelProto;
+import org.tribuo.math.protos.SigmoidKernelProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 /**
  * A linear kernel, u.dot(v).
@@ -27,9 +34,38 @@ public class Linear implements Kernel {
     private static final long serialVersionUID = 1L;
 
     /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    /**
      * A linear kernel, u.dot(v).
      */
     public Linear() { }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static Linear deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new Linear();
+    }
+
+    @Override
+    public KernelProto serialize() {
+        KernelProto.Builder kernelProto = KernelProto.newBuilder();
+        kernelProto.setClassName(this.getClass().getName());
+        kernelProto.setVersion(CURRENT_VERSION);
+        return kernelProto.build();
+    }
 
     @Override
     public double similarity(SparseVector a, SparseVector b) {
@@ -44,5 +80,15 @@ public class Linear implements Kernel {
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"Kernel");
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o.getClass().equals(Linear.class);
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
     }
 }

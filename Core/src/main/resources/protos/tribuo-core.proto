@@ -31,38 +31,51 @@ import "google/protobuf/any.proto";
 import "olcut_proto.proto";
 
 /*
-Base model protobuf. Contains the core model fields, along with the ModelDataProto
-containing model specific information.
+Model redirect proto
  */
 message ModelProto {
-  /*
-  Version number of the model proto
-   */
   int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+SequenceModel redirect proto
+ */
+message SequenceModelProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Model data proto containing shared model fields
+ */
+message ModelDataProto {
   /*
   The model name
    */
-  string name = 2;
+  string name = 1;
   /*
   The model provenance
    */
-  olcut.RootProvenanceProto provenance = 3;
+  olcut.RootProvenanceProto provenance = 2;
   /*
   Does the model generate probabilities
    */
-  bool generate_probabilities = 4;
+  bool generate_probabilities = 3;
   /*
   Model feature domain
    */
-  FeatureDomainProto feature_domain = 5;
+  FeatureDomainProto feature_domain = 4;
   /*
   Model output domain
    */
-  OutputDomainProto output_domain = 6;
+  OutputDomainProto output_domain = 5;
   /*
-  Model data
+  Tribuo version
    */
-  ModelDataProto model_data = 7;
+  string tribuo_version = 6;
 }
 
 /*
@@ -102,15 +115,6 @@ message OutputDomainProto {
 }
 
 /*
-Model data redirection proto
- */
-message ModelDataProto {
-  int32 version = 1;
-  string class_name = 2;
-  google.protobuf.Any serialized_data = 3;
-}
-
-/*
 Output redirection proto
  */
 message OutputProto {
@@ -120,42 +124,60 @@ message OutputProto {
 }
 
 /*
-Example proto
+Example redirect proto
  */
 message ExampleProto {
   int32 version = 1;
   string class_name = 2;
-  OutputProto output = 3;
-  repeated string feature_name = 4;
-  repeated double feature_value = 5;
-  map<string,string> metadata = 6;
+  google.protobuf.Any serialized_data = 3;
 }
 
 /*
-Dataset proto
+Dataset redirect proto
  */
 message DatasetProto {
   int32 version = 1;
   string class_name = 2;
-  olcut.RootProvenanceProto provenance = 3;
-  FeatureDomainProto feature_domain = 4;
-  OutputDomainProto output_domain = 5;
-  repeated ExampleProto examples = 6;
-  olcut.ListProvenanceProto transform_provenance = 7;
+  google.protobuf.Any serialized_data = 3;
 }
 
 /*
-Prediction proto
+SequenceExample redirect proto
+ */
+message SequenceExampleProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+SequenceDataset redirect proto
+ */
+message SequenceDatasetProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Dataset info proto
+ */
+message DatasetDataProto {
+  olcut.RootProvenanceProto provenance = 1;
+  FeatureDomainProto feature_domain = 2;
+  OutputDomainProto output_domain = 3;
+  repeated olcut.RootProvenanceProto transform_provenance = 4;
+  OutputFactoryProto output_factory = 5;
+  string tribuo_version = 6;
+}
+
+/*
+Prediction redirect proto
  */
 message PredictionProto {
   int32 version = 1;
   string class_name = 2;
-  ExampleProto example = 3;
-  OutputProto output = 4;
-  bool probability = 5;
-  int32 num_used = 6;
-  int32 example_size = 7;
-  map<string,OutputProto> output_scores = 8;
+  google.protobuf.Any serialized_data = 3;
 }
 
 /*

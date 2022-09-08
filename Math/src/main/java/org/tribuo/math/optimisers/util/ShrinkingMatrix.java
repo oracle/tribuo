@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.math.optimisers.util;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
@@ -24,8 +27,18 @@ import org.tribuo.math.la.MatrixTuple;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.math.protos.DenseTensorProto;
+import org.tribuo.math.protos.ShrinkingDenseTensorProto;
+import org.tribuo.math.protos.TensorProto;
+import org.tribuo.util.Util;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.DoubleBuffer;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.DoubleUnaryOperator;
+import java.util.stream.Collectors;
 
 /**
  * A subclass of {@link DenseMatrix} which shrinks the value every time a new value is added.
@@ -78,6 +91,81 @@ public class ShrinkingMatrix extends DenseMatrix implements ShrinkingTensor {
         this.squaredTwoNorm = 0.0;
         this.iteration = 1;
         this.multiplier = 1.0;
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param v The dense matrix.
+     * @param baseRate Base rate of shrinkage.
+     * @param scaleShrinking Is the scale shrinking?
+     * @param lambdaSqrt sqrt of the lambda parameter.
+     * @param reproject Should the matrix reproject itself?
+     * @param squaredTwoNorm The squaredTwoNorm of the matrix.
+     * @param iteration The iteration number.
+     * @param multiplier The current multiplier
+     */
+    private ShrinkingMatrix(DenseMatrix v, double baseRate, boolean scaleShrinking, double lambdaSqrt, boolean reproject, double squaredTwoNorm, int iteration, double multiplier) {
+        super(v);
+        this.baseRate = baseRate;
+        this.scaleShrinking = scaleShrinking;
+        this.lambdaSqrt = lambdaSqrt;
+        if (!reproject && lambdaSqrt != 0.0) {
+            throw new IllegalStateException("Invalid ShrinkingMatrix, when reproject is true lambda must be zero");
+        }
+        this.reproject = reproject;
+        this.squaredTwoNorm = squaredTwoNorm;
+        if (iteration < 0) {
+            throw new IllegalArgumentException("Invalid ShrinkingMatrix, iteration must be non-negative");
+        }
+        this.iteration = iteration;
+        this.multiplier = multiplier;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ShrinkingMatrix deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ShrinkingDenseTensorProto proto = message.unpack(ShrinkingDenseTensorProto.class);
+        DenseMatrix data = DenseMatrix.unpackProto(proto.getData());
+        return new ShrinkingMatrix(data, proto.getBaseRate(), proto.getScaleShrinking(), proto.getLambdaSqrt(),
+                proto.getReproject(), proto.getSquaredTwoNorm(), proto.getIteration(), proto.getMultiplier());
+    }
+
+    @Override
+    public TensorProto serialize() {
+        TensorProto.Builder builder = TensorProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(ShrinkingMatrix.class.getName());
+
+        ShrinkingDenseTensorProto.Builder shrinkingBuilder = ShrinkingDenseTensorProto.newBuilder();
+        DenseTensorProto.Builder dataBuilder = DenseTensorProto.newBuilder();
+        dataBuilder.addDimensions(dim1);
+        dataBuilder.addDimensions(dim2);
+        ByteBuffer buffer = ByteBuffer.allocate(dim1 * dim2 * 8).order(ByteOrder.LITTLE_ENDIAN);
+        DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+        for (int i = 0; i < values.length; i ++) {
+            doubleBuffer.put(values[i]);
+        }
+        doubleBuffer.rewind();
+        dataBuilder.setValues(ByteString.copyFrom(buffer));
+        shrinkingBuilder.setData(dataBuilder.build());
+        shrinkingBuilder.setBaseRate(baseRate);
+        shrinkingBuilder.setLambdaSqrt(lambdaSqrt);
+        shrinkingBuilder.setScaleShrinking(scaleShrinking);
+        shrinkingBuilder.setReproject(reproject);
+        shrinkingBuilder.setSquaredTwoNorm(squaredTwoNorm);
+        shrinkingBuilder.setIteration(iteration);
+        shrinkingBuilder.setMultiplier(multiplier);
+        builder.setSerializedData(Any.pack(shrinkingBuilder.build()));
+
+        return builder.build();
     }
 
     @Override

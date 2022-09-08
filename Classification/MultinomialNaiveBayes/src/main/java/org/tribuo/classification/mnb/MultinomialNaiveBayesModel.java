@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.classification.mnb;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -25,12 +27,16 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.mnb.protos.MultinomialNaiveBayesProto;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.util.ExpNormalizer;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -56,6 +62,11 @@ import java.util.Optional;
 public class MultinomialNaiveBayesModel extends Model<Label> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final DenseSparseMatrix labelWordProbs;
     private final double alpha;
 
@@ -65,6 +76,46 @@ public class MultinomialNaiveBayesModel extends Model<Label> {
         super(name, description, featureInfos, labelInfos, true);
         this.labelWordProbs = labelWordProbs;
         this.alpha = alpha;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MultinomialNaiveBayesModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MultinomialNaiveBayesProto proto = message.unpack(MultinomialNaiveBayesProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Label.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a label domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Label> outputDomain = (ImmutableOutputInfo<Label>) carrier.outputDomain();
+
+        Tensor weights = Tensor.deserialize(proto.getLabelWordProbs());
+        if (!(weights instanceof DenseSparseMatrix)) {
+            throw new IllegalStateException("Invalid protobuf, label word probs must be a sparse matrix, found " + weights.getClass());
+        }
+        DenseSparseMatrix labelWordProbs = (DenseSparseMatrix) weights;
+        if (labelWordProbs.getDimension1Size() != carrier.outputDomain().size()) {
+            throw new IllegalStateException("Invalid protobuf, labelWordProbs not the right size, expected " + carrier.outputDomain().size() + ", found " + labelWordProbs.getDimension1Size());
+        }
+        if (labelWordProbs.getDimension2Size() != carrier.featureDomain().size()) {
+            throw new IllegalStateException("Invalid protobuf, labelWordProbs not the right size, expected " + carrier.featureDomain().size() + ", found " + labelWordProbs.getDimension2Size());
+        }
+
+        double alpha = proto.getAlpha();
+
+        if (alpha < 0.0) {
+            throw new IllegalStateException("Invalid protobuf, alpha must be non-negative, found " + alpha);
+        }
+
+        return new MultinomialNaiveBayesModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,labelWordProbs,alpha);
     }
 
     @Override
@@ -156,5 +207,22 @@ public class MultinomialNaiveBayesModel extends Model<Label> {
     @Override
     protected MultinomialNaiveBayesModel copy(String newName, ModelProvenance newProvenance) {
         return new MultinomialNaiveBayesModel(newName,newProvenance,featureIDMap,outputIDInfo,new DenseSparseMatrix(labelWordProbs),alpha);
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<Label> carrier = createDataCarrier();
+
+        MultinomialNaiveBayesProto.Builder modelBuilder = MultinomialNaiveBayesProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setLabelWordProbs(labelWordProbs.serialize());
+        modelBuilder.setAlpha(alpha);
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(MultinomialNaiveBayesModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 }

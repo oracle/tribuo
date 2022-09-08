@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 
 package org.tribuo.sequence;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import org.tribuo.Example;
 import org.tribuo.Feature;
+import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableFeatureMap;
@@ -26,10 +29,16 @@ import org.tribuo.MutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.core.MutableSequenceDatasetProto;
+import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,6 +47,11 @@ import java.util.Set;
  */
 public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset<T> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * A map from labels to IDs for the labels found in this dataset.
@@ -104,6 +118,39 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
         for (SequenceExample<T> ex : dataset) {
             add(new SequenceExample<>(ex));
         }
+    }
+
+    private MutableSequenceDataset(DataProvenance provenance, OutputFactory<T> factory, String tribuoVersion, MutableFeatureMap fmap, MutableOutputInfo<T> outputInfo, List<SequenceExample<T>> examples, boolean dense) {
+        super(provenance,factory,tribuoVersion);
+        this.featureMap = fmap;
+        this.outputInfo = outputInfo;
+        this.data.addAll(examples);
+        this.dense = dense;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static MutableSequenceDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MutableSequenceDatasetProto proto = message.unpack(MutableSequenceDatasetProto.class);
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
+        FeatureMap fmap = carrier.featureDomain();
+        List<SequenceExample<?>> examples = deserializeExamples(proto.getExamplesList(), outputClass, fmap);
+        if (!(fmap instanceof MutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not mutable");
+        }
+        if (!(carrier.outputDomain() instanceof MutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not mutable");
+        }
+        return new MutableSequenceDataset(carrier.provenance(), carrier.outputFactory(), carrier.tribuoVersion(), (MutableFeatureMap) fmap, (MutableOutputInfo) carrier.outputDomain(), examples, proto.getDense());
     }
 
     /**
@@ -209,5 +256,24 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
     @Override
     public DatasetProvenance getProvenance() {
         return new DatasetProvenance(sourceProvenance, new ListProvenance<>(), this);
+    }
+
+    @Override
+    public SequenceDatasetProto serialize() {
+        MutableSequenceDatasetProto.Builder datasetBuilder = MutableSequenceDatasetProto.newBuilder();
+
+        datasetBuilder.setDense(dense);
+        datasetBuilder.setMetadata(createDataCarrier(featureMap,outputInfo).serialize());
+        for (SequenceExample<T> e : data) {
+            datasetBuilder.addExamples(e.serialize());
+        }
+
+        SequenceDatasetProto.Builder builder = SequenceDatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(MutableSequenceDataset.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 }

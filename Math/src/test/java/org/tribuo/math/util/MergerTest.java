@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,18 @@ package org.tribuo.math.util;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.protos.MergerProto;
+import org.tribuo.protos.ProtoUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.tribuo.test.Helpers.testProtoSerialization;
 
 /**
  *
  */
 public class MergerTest {
 
-    public DenseSparseMatrix generateAB() {
+    public static DenseSparseMatrix generateAB() {
         int[] firstIndices = new int[]     {0,3,5,8, 9,10,14,15,18,19};
         double[] firstValues = new double[]{6,4,0,1,12,56, 9, 9,14,20};
         int[] secondIndices = new int[]     {1, 4,9,10,18};
@@ -41,7 +44,7 @@ public class MergerTest {
         return DenseSparseMatrix.createFromSparseVectors(array);
     }
 
-    public DenseSparseMatrix generateAABB() {
+    public static DenseSparseMatrix generateAABB() {
         int[] firstIndices = new int[]     { 0,3,5,8, 9, 10,14,15,18,19};
         double[] firstValues = new double[]{12,8,0,2,24,112,18,18,28,40};
         int[] secondIndices = new int[]     { 1, 4,9,10,18};
@@ -55,7 +58,7 @@ public class MergerTest {
         return DenseSparseMatrix.createFromSparseVectors(array);
     }
 
-    public DenseSparseMatrix generateA() {
+    public static DenseSparseMatrix generateA() {
         int[] firstIndices = new int[]     {0,3, 5, 9,10,14,15,18,19};
         double[] firstValues = new double[]{6,4,-1, 3,56,-6, 7,12,20};
         int[] secondIndices = new int[]     {  1,9,18};
@@ -69,7 +72,7 @@ public class MergerTest {
         return DenseSparseMatrix.createFromSparseVectors(array);
     }
 
-    public DenseSparseMatrix generateB() {
+    public static DenseSparseMatrix generateB() {
         int[] firstIndices = new int[]     {5,8,9,14,15,18};
         double[] firstValues = new double[]{1,1,9,15, 2, 2};
         int[] secondIndices = new int[]     {  1, 4,10,18};
@@ -83,7 +86,7 @@ public class MergerTest {
         return DenseSparseMatrix.createFromSparseVectors(array);
     }
 
-    public DenseSparseMatrix generateBB() {
+    public static DenseSparseMatrix generateBB() {
         int[] firstIndices = new int[]     {5,8,9,14,15,18};
         double[] firstValues = new double[]{2,2,18,30, 4, 4};
         int[] secondIndices = new int[]     {  1, 4,10,18};
@@ -97,7 +100,7 @@ public class MergerTest {
         return DenseSparseMatrix.createFromSparseVectors(array);
     }
 
-    public DenseSparseMatrix generateZipA() {
+    public static DenseSparseMatrix generateZipA() {
         int[] firstIndices = new int[]     {0,2,4,6,8,10,12,14,16,18};
         double[] firstValues = new double[]{1,1,1,1,1, 1, 1, 1, 1, 1};
         int[] secondIndices = new int[]     {1,3,5,7,9,11,13,15,17,19};
@@ -111,7 +114,7 @@ public class MergerTest {
         return DenseSparseMatrix.createFromSparseVectors(array);
     }
 
-    public DenseSparseMatrix generateZipB() {
+    public static DenseSparseMatrix generateZipB() {
         int[] firstIndices = new int[]     {1,3,5,7,9,11,13,15,17,19};
         double[] firstValues = new double[]{1,1,1,1,1, 1, 1, 1, 1, 1};
         int[] secondIndices = new int[]     {0,2,4,6,8,10,12,14,16,18};
@@ -125,7 +128,7 @@ public class MergerTest {
         return DenseSparseMatrix.createFromSparseVectors(array);
     }
 
-    public DenseSparseMatrix generateZip() {
+    public static DenseSparseMatrix generateZip() {
         int[] firstIndices = new int[]     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
         double[] firstValues = new double[]{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
         int[] secondIndices = new int[]     {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19};
@@ -143,15 +146,17 @@ public class MergerTest {
     public void testMatrixHeapMerger() {
         MatrixHeapMerger merger = new MatrixHeapMerger();
         testMerger(merger);
+        testProtoSerialization(merger);
     }
 
     @Test
     public void testHeapMerger() {
         HeapMerger merger = new HeapMerger();
         testMerger(merger);
+        testProtoSerialization(merger);
     }
 
-    public void testMerger(Merger merger) {
+    public static void testMerger(Merger merger) {
         DenseSparseMatrix[] array = new DenseSparseMatrix[2];
         array[0] = generateA();
         array[1] = generateB();

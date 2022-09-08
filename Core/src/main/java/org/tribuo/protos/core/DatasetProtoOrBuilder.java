@@ -26,86 +26,17 @@ public interface DatasetProtoOrBuilder extends
       getClassNameBytes();
 
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return Whether the provenance field is set.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return Whether the serializedData field is set.
    */
-  boolean hasProvenance();
+  boolean hasSerializedData();
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
-   * @return The provenance.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return The serializedData.
    */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProto getProvenance();
+  com.google.protobuf.Any getSerializedData();
   /**
-   * <code>.olcut.RootProvenanceProto provenance = 3;</code>
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
    */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.RootProvenanceProtoOrBuilder getProvenanceOrBuilder();
-
-  /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-   * @return Whether the featureDomain field is set.
-   */
-  boolean hasFeatureDomain();
-  /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-   * @return The featureDomain.
-   */
-  org.tribuo.protos.core.FeatureDomainProto getFeatureDomain();
-  /**
-   * <code>.tribuo.core.FeatureDomainProto feature_domain = 4;</code>
-   */
-  org.tribuo.protos.core.FeatureDomainProtoOrBuilder getFeatureDomainOrBuilder();
-
-  /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-   * @return Whether the outputDomain field is set.
-   */
-  boolean hasOutputDomain();
-  /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-   * @return The outputDomain.
-   */
-  org.tribuo.protos.core.OutputDomainProto getOutputDomain();
-  /**
-   * <code>.tribuo.core.OutputDomainProto output_domain = 5;</code>
-   */
-  org.tribuo.protos.core.OutputDomainProtoOrBuilder getOutputDomainOrBuilder();
-
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  java.util.List<org.tribuo.protos.core.ExampleProto> 
-      getExamplesList();
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  org.tribuo.protos.core.ExampleProto getExamples(int index);
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  int getExamplesCount();
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  java.util.List<? extends org.tribuo.protos.core.ExampleProtoOrBuilder> 
-      getExamplesOrBuilderList();
-  /**
-   * <code>repeated .tribuo.core.ExampleProto examples = 6;</code>
-   */
-  org.tribuo.protos.core.ExampleProtoOrBuilder getExamplesOrBuilder(
-      int index);
-
-  /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   * @return Whether the transformProvenance field is set.
-   */
-  boolean hasTransformProvenance();
-  /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   * @return The transformProvenance.
-   */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProto getTransformProvenance();
-  /**
-   * <code>.olcut.ListProvenanceProto transform_provenance = 7;</code>
-   */
-  com.oracle.labs.mlrg.olcut.config.protobuf.protos.ListProvenanceProtoOrBuilder getTransformProvenanceOrBuilder();
+  com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder();
 }

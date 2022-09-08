@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,24 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.OutputFactory;
 import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.BinaryFeaturesExample;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.core.MinimumCardinalitySequenceDatasetProto;
+import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.protos.core.SequenceExampleProto;
+import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
@@ -59,6 +68,11 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
 
     private static final Logger logger = Logger.getLogger(MinimumCardinalitySequenceDataset.class.getName());
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final int minCardinality;
 
     private int numExamplesRemoved = 0;
@@ -74,6 +88,9 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
     public MinimumCardinalitySequenceDataset(SequenceDataset<T> sequenceDataset, int minCardinality) {
         super(sequenceDataset.getProvenance(), sequenceDataset.getOutputFactory());
         this.minCardinality = minCardinality;
+        if (minCardinality < 0) {
+            throw new IllegalArgumentException("Minimum cardinality must be non-negative, found " + minCardinality);
+        }
 
         MutableFeatureMap featureInfos = new MutableFeatureMap();
 
@@ -140,6 +157,56 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
         }
     }
 
+    private MinimumCardinalitySequenceDataset(DataProvenance provenance, OutputFactory<T> factory, String tribuoVersion,
+                                              ImmutableFeatureMap fmap, ImmutableOutputInfo<T> outputInfo,
+                                              List<SequenceExample<T>> examples, int minCardinality,
+                                              int numExamplesRemoved, Set<String> removed) {
+        super(provenance,factory,tribuoVersion,fmap,outputInfo,examples);
+        this.minCardinality = minCardinality;
+        this.numExamplesRemoved = numExamplesRemoved;
+        this.removedFeatureNames.addAll(removed);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static MinimumCardinalitySequenceDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MinimumCardinalitySequenceDatasetProto proto = message.unpack(MinimumCardinalitySequenceDatasetProto.class);
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
+        FeatureMap fmap = carrier.featureDomain();
+        List<SequenceExample<?>> examples = deserializeExamples(proto.getExamplesList(), outputClass, fmap);
+        if (!(fmap instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
+        }
+        if (!(carrier.outputDomain() instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
+        }
+        int minCardinality = proto.getMinCardinality();
+        if (minCardinality < 0) {
+            throw new IllegalStateException("Invalid protobuf, minimum cardinality must be non-negative, found " + minCardinality);
+        }
+        int numRemoved = proto.getNumExamplesRemoved();
+        if (numRemoved < 0) {
+            throw new IllegalStateException("Invalid protobuf, number of examples removed must be non-negative, found " + numRemoved);
+        }
+        List<String> removedList = proto.getRemovedList();
+        Set<String> removedFeatures = new HashSet<>(removedList);
+        if (removedFeatures.size() != removedList.size()) {
+            throw new IllegalStateException("Invalid protobuf, features removed contained duplicates, removed = " + removedList);
+        }
+        return new MinimumCardinalitySequenceDataset(carrier.provenance(), carrier.outputFactory(), carrier.tribuoVersion(),
+            (ImmutableFeatureMap) fmap, (ImmutableOutputInfo) carrier.outputDomain(), examples,
+            minCardinality, numRemoved, removedFeatures);
+    }
+
     /**
      * The feature names that were removed.
      * 
@@ -165,6 +232,28 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
      */
     public int getMinCardinality() {
         return minCardinality;
+    }
+
+
+    @Override
+    public SequenceDatasetProto serialize() {
+        MinimumCardinalitySequenceDatasetProto.Builder datasetBuilder = MinimumCardinalitySequenceDatasetProto.newBuilder();
+
+        datasetBuilder.setMetadata(createDataCarrier(featureIDMap,outputIDInfo).serialize());
+        for (SequenceExample<T> e : data) {
+            datasetBuilder.addExamples(e.serialize());
+        }
+        datasetBuilder.setMinCardinality(minCardinality);
+        datasetBuilder.setNumExamplesRemoved(numExamplesRemoved);
+        datasetBuilder.addAllRemoved(removedFeatureNames);
+
+        SequenceDatasetProto.Builder builder = SequenceDatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(MinimumCardinalitySequenceDataset.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 
     @Override

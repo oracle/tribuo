@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.protos.KernelProto;
+import org.tribuo.protos.ProtoSerializable;
 
 import java.io.Serializable;
 
@@ -28,7 +30,7 @@ import java.io.Serializable;
  * <p>
  * It's preferable for kernels to override toString.
  */
-public interface Kernel extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface Kernel extends Configurable, ProtoSerializable<KernelProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Calculates the similarity between two {@link SparseVector}s.

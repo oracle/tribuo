@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.dataset;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
@@ -27,10 +29,17 @@ import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.OutputFactory;
 import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.ExampleProto;
+import org.tribuo.protos.core.MinimumCardinalityDatasetProto;
+import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
 import java.util.ArrayList;
@@ -59,8 +68,13 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
 
     private static final Logger logger = Logger.getLogger(MinimumCardinalityDataset.class.getName());
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final int minCardinality;
-    
+
     private int numExamplesRemoved = 0;
 
     private final Set<String> removed = new HashSet<>();
@@ -72,6 +86,9 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
     public MinimumCardinalityDataset(Dataset<T> dataset, int minCardinality) {
         super(dataset.getProvenance(), dataset.getOutputFactory());
         this.minCardinality = minCardinality;
+        if (minCardinality < 0) {
+            throw new IllegalArgumentException("Minimum cardinality must be non-negative, found " + minCardinality);
+        }
 
         MutableFeatureMap featureInfos = new MutableFeatureMap();
 
@@ -122,6 +139,56 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
 
     }
 
+    private MinimumCardinalityDataset(DataProvenance provenance, OutputFactory<T> factory, String tribuoVersion,
+                                      ImmutableFeatureMap fmap, ImmutableOutputInfo<T> outputInfo,
+                                      List<Example<T>> examples, boolean dropInvalidExamples, int minCardinality,
+                                      int numExamplesRemoved, Set<String> removed) {
+        super(provenance,factory,tribuoVersion,fmap,outputInfo,examples,dropInvalidExamples);
+        this.minCardinality = minCardinality;
+        this.numExamplesRemoved = numExamplesRemoved;
+        this.removed.addAll(removed);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
+    public static MinimumCardinalityDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        MinimumCardinalityDatasetProto proto = message.unpack(MinimumCardinalityDatasetProto.class);
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
+        FeatureMap fmap = carrier.featureDomain();
+        List<Example<?>> examples = deserializeExamples(proto.getExamplesList(), outputClass, fmap);
+        if (!(fmap instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
+        }
+        if (!(carrier.outputDomain() instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
+        }
+        int minCardinality = proto.getMinCardinality();
+        if (minCardinality < 0) {
+            throw new IllegalStateException("Invalid protobuf, minimum cardinality must be non-negative, found " + minCardinality);
+        }
+        int numRemoved = proto.getNumExamplesRemoved();
+        if (numRemoved < 0) {
+            throw new IllegalStateException("Invalid protobuf, number of examples removed must be non-negative, found " + numRemoved);
+        }
+        List<String> removedList = proto.getRemovedList();
+        Set<String> removedFeatures = new HashSet<>(removedList);
+        if (removedFeatures.size() != removedList.size()) {
+            throw new IllegalStateException("Invalid protobuf, features removed contained duplicates, removed = " + removedList);
+        }
+        return new MinimumCardinalityDataset(carrier.provenance(), carrier.outputFactory(), carrier.tribuoVersion(),
+            (ImmutableFeatureMap) fmap, (ImmutableOutputInfo) carrier.outputDomain(), examples,
+            proto.getDropInvalidExamples(), minCardinality, numRemoved, removedFeatures);
+    }
+
     /**
      * The feature names that were removed.
      * @return The feature names.
@@ -149,6 +216,28 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
     @Override
     public DatasetProvenance getProvenance() {
         return new MinimumCardinalityDatasetProvenance(this);
+    }
+
+    @Override
+    public DatasetProto serialize() {
+        MinimumCardinalityDatasetProto.Builder datasetBuilder = MinimumCardinalityDatasetProto.newBuilder();
+
+        datasetBuilder.setDropInvalidExamples(dropInvalidExamples);
+        datasetBuilder.setMetadata(createDataCarrier(featureIDMap,outputIDInfo).serialize());
+        for (Example<T> e : data) {
+            datasetBuilder.addExamples(e.serialize());
+        }
+        datasetBuilder.setMinCardinality(minCardinality);
+        datasetBuilder.setNumExamplesRemoved(numExamplesRemoved);
+        datasetBuilder.addAllRemoved(removed);
+
+        DatasetProto.Builder builder = DatasetProto.newBuilder();
+
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(MinimumCardinalityDataset.class.getName());
+        builder.setSerializedData(Any.pack(datasetBuilder.build()));
+
+        return builder.build();
     }
 
     /**

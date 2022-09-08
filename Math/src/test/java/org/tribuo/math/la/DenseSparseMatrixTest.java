@@ -17,9 +17,13 @@
 package org.tribuo.math.la;
 
 import org.junit.jupiter.api.Test;
+import org.tribuo.math.protos.TensorProto;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.tribuo.math.la.SparseVectorTest.makeMalformedSparseProto;
+import static org.tribuo.test.Helpers.testProtoSerialization;
 
 public class DenseSparseMatrixTest {
 
@@ -47,6 +51,85 @@ public class DenseSparseMatrixTest {
         assertEquals(0, column.get(0));
         assertEquals(Math.E, column.get(1));
         assertEquals(0, column.get(2));
+    }
+
+    @Test
+    public void serializationTest() {
+        DenseSparseMatrix a = DenseSparseMatrix.createDiagonal(new DenseVector(new double[]{1,2,3,4,5,6}));
+        testProtoSerialization(a);
+
+        SparseVector[] vectors = new SparseVector[3];
+        vectors[0] = new SparseVector(5, new int[]{1}, new double[]{3});
+        vectors[1] = new SparseVector(5, new int[0], new double[0]);
+        vectors[2] = new SparseVector(5, new int[]{4}, new double[]{3});
+        DenseSparseMatrix missingRow = DenseSparseMatrix.createFromSparseVectors(vectors);
+        testProtoSerialization(missingRow);
+
+        vectors = new SparseVector[3];
+        vectors[0] = new SparseVector(5, new int[]{1}, new double[]{3});
+        vectors[1] = new SparseVector(5, new int[]{4}, new double[]{3});
+        vectors[2] = new SparseVector(5, new int[0], new double[0]);
+        missingRow = DenseSparseMatrix.createFromSparseVectors(vectors);
+        testProtoSerialization(missingRow);
+
+        vectors = new SparseVector[3];
+        vectors[0] = new SparseVector(5, new int[0], new double[0]);
+        vectors[1] = new SparseVector(5, new int[]{1}, new double[]{3});
+        vectors[2] = new SparseVector(5, new int[]{4}, new double[]{3});
+        missingRow = DenseSparseMatrix.createFromSparseVectors(vectors);
+        testProtoSerialization(missingRow);
+    }
+
+    @Test
+    public void serializationValidationTest() {
+        String className = DenseSparseMatrix.class.getName();
+        TensorProto negSize = makeMalformedSparseProto(className,new int[]{-1,1}, 2, new int[]{0,0,1,1}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(negSize);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto negNonZero = makeMalformedSparseProto(className,new int[]{5,4}, -1, new int[]{0,0,3,3}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(negNonZero);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto nonZeroMismatch = makeMalformedSparseProto(className,new int[]{5,4}, 3, new int[]{0,0,3,3}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(nonZeroMismatch);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto invalidIndices = makeMalformedSparseProto(className, new int[]{5,4}, 3, new int[]{0,-1,3,4}, new double[2]);
+        try {
+            Tensor deser = Tensor.deserialize(invalidIndices);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto valueIndicesMismatch = makeMalformedSparseProto(className, new int[]{5,4}, 2, new int[]{0,3,0,4}, new double[1]);
+        try {
+            Tensor deser = Tensor.deserialize(valueIndicesMismatch);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
+
+        TensorProto vector = makeMalformedSparseProto(className, new int[]{5}, 2, new int[]{0,0}, new double[]{1,2});
+        try {
+            Tensor deser = Tensor.deserialize(vector);
+            fail("Should have thrown ISE");
+        } catch (IllegalStateException e) {
+            //pass
+        }
     }
 
     public static void assertMatrixEquals(Matrix expected, Matrix actual) {

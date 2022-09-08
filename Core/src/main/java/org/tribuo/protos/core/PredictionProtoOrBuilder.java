@@ -26,86 +26,17 @@ public interface PredictionProtoOrBuilder extends
       getClassNameBytes();
 
   /**
-   * <code>.tribuo.core.ExampleProto example = 3;</code>
-   * @return Whether the example field is set.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return Whether the serializedData field is set.
    */
-  boolean hasExample();
+  boolean hasSerializedData();
   /**
-   * <code>.tribuo.core.ExampleProto example = 3;</code>
-   * @return The example.
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
+   * @return The serializedData.
    */
-  org.tribuo.protos.core.ExampleProto getExample();
+  com.google.protobuf.Any getSerializedData();
   /**
-   * <code>.tribuo.core.ExampleProto example = 3;</code>
+   * <code>.google.protobuf.Any serialized_data = 3;</code>
    */
-  org.tribuo.protos.core.ExampleProtoOrBuilder getExampleOrBuilder();
-
-  /**
-   * <code>.tribuo.core.OutputProto output = 4;</code>
-   * @return Whether the output field is set.
-   */
-  boolean hasOutput();
-  /**
-   * <code>.tribuo.core.OutputProto output = 4;</code>
-   * @return The output.
-   */
-  org.tribuo.protos.core.OutputProto getOutput();
-  /**
-   * <code>.tribuo.core.OutputProto output = 4;</code>
-   */
-  org.tribuo.protos.core.OutputProtoOrBuilder getOutputOrBuilder();
-
-  /**
-   * <code>bool probability = 5;</code>
-   * @return The probability.
-   */
-  boolean getProbability();
-
-  /**
-   * <code>int32 num_used = 6;</code>
-   * @return The numUsed.
-   */
-  int getNumUsed();
-
-  /**
-   * <code>int32 example_size = 7;</code>
-   * @return The exampleSize.
-   */
-  int getExampleSize();
-
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-  int getOutputScoresCount();
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-  boolean containsOutputScores(
-      java.lang.String key);
-  /**
-   * Use {@link #getOutputScoresMap()} instead.
-   */
-  @java.lang.Deprecated
-  java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto>
-  getOutputScores();
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-  java.util.Map<java.lang.String, org.tribuo.protos.core.OutputProto>
-  getOutputScoresMap();
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-
-  /* nullable */
-org.tribuo.protos.core.OutputProto getOutputScoresOrDefault(
-      java.lang.String key,
-      /* nullable */
-org.tribuo.protos.core.OutputProto defaultValue);
-  /**
-   * <code>map&lt;string, .tribuo.core.OutputProto&gt; output_scores = 8;</code>
-   */
-
-  org.tribuo.protos.core.OutputProto getOutputScoresOrThrow(
-      java.lang.String key);
+  com.google.protobuf.AnyOrBuilder getSerializedDataOrBuilder();
 }

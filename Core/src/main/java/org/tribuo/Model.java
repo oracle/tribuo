@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,11 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.Serializable;
@@ -35,9 +40,13 @@ import java.util.Set;
  * <p>
  * If two features map to the same id in the featureIDMap, then
  * occurrences of those features will be combined at prediction time.
+ * <p>
+ * Note Model's implementation of {@link ProtoSerializable} throws {@link UnsupportedOperationException}
+ * for compatibility reasons. This default implementation will be removed in the next major release
+ * of Tribuo.
  * @param <T> the type of prediction produced by the model.
  */
-public abstract class Model<T extends Output<T>> implements Provenancable<ModelProvenance>, Serializable {
+public abstract class Model<T extends Output<T>> implements ProtoSerializable<ModelProto>, Provenancable<ModelProvenance>, Serializable {
     private static final long serialVersionUID = 2L;
 
     /**
@@ -302,7 +311,7 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
      * Casts the model to the specified output type, assuming it is valid.
      * If it's not valid, throws {@link ClassCastException}.
      * <p>
-     * This method is intended for use on a deserialized model to restore it's
+     * This method is intended for use on a deserialized model to restore its
      * generic type in a safe way.
      * @param outputType The output type to cast to.
      * @param <U> The output type.
@@ -317,5 +326,27 @@ public abstract class Model<T extends Output<T>> implements Provenancable<ModelP
             throw new ClassCastException("Attempted to cast model to " + outputType.getName() + " which is not valid for model " + this.toString());
         }
     }
-    
+
+    @Override
+    public ModelProto serialize() {
+        throw new UnsupportedOperationException("The default implementation of Model.serialize() must be overridden to support protobuf serialization.");
+    }
+
+    /**
+     * Deserializes the model from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The model.
+     */
+    public static Model<?> deserialize(ModelProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
+
+    /**
+     * Constructs the data carrier for serialization.
+     * @return The serialization data carrier.
+     */
+    protected ModelDataCarrier<T> createDataCarrier() {
+        return new ModelDataCarrier<>(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities,provenance.getTribuoVersion());
+    }
+
 }
