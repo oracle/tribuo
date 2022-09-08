@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface BruteForceFactoryProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.BruteForceFactoryProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.BruteForceFactoryProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

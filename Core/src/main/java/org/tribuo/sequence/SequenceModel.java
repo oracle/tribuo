@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,9 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.Serializable;
@@ -35,7 +38,7 @@ import java.util.stream.Collectors;
  * A prediction model, which is used to predict outputs for unseen instances.
  * @param <T> the type of the outputs used to train the model.
  */
-public abstract class SequenceModel<T extends Output<T>> implements Provenancable<ModelProvenance>, Serializable {
+public abstract class SequenceModel<T extends Output<T>> implements ProtoSerializable<SequenceModelProto>, Provenancable<ModelProvenance>, Serializable {
     private static final long serialVersionUID = 1L;
 
     protected String name;
@@ -164,7 +167,20 @@ public abstract class SequenceModel<T extends Output<T>> implements Provenancabl
         }
         return predictions;
     }
-    
+
+    @Override
+    public SequenceModelProto serialize() {
+        throw new UnsupportedOperationException("The default implementation of SequenceModel.serialize() must be overridden to support protobuf serialization.");
+    }
+
+    /**
+     * Constructs the data carrier for serialization.
+     * @return The serialization data carrier.
+     */
+    protected ModelDataCarrier<T> createDataCarrier() {
+        return new ModelDataCarrier<>(name,provenance,featureIDMap,outputIDMap,false,provenance.getTribuoVersion());
+    }
+
     /**
      * Gets the top {@code n} features associated with this model.
      * <p>
@@ -175,7 +191,7 @@ public abstract class SequenceModel<T extends Output<T>> implements Provenancabl
      * If the model cannot describe it's top features then it returns {@link java.util.Collections#emptyMap}.
      * </p>
      * @param n the number of features to return. If this value is less than 0,
-     * all features should be returned for each class, unless the model cannot score it's features.
+     * all features should be returned for each class, unless the model cannot score its features.
      * @return a map from string outputs to an ordered list of pairs of
      * feature names and weights associated with that feature in the model
      */

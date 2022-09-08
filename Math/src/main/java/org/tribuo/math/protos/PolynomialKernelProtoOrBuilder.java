@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface PolynomialKernelProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.PolynomialKernelProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.PolynomialKernelProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

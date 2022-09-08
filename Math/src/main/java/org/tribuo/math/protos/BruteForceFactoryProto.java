@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *NeighboursBruteForceFactory proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.BruteForceFactoryProto}
+ * Protobuf type {@code tribuo.math.impl.BruteForceFactoryProto}
  */
 public final class BruteForceFactoryProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.BruteForceFactoryProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.impl.BruteForceFactoryProto)
     BruteForceFactoryProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use BruteForceFactoryProto.newBuilder() to construct.
@@ -85,13 +85,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_BruteForceFactoryProto_descriptor;
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_BruteForceFactoryProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_BruteForceFactoryProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_BruteForceFactoryProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.BruteForceFactoryProto.class, org.tribuo.math.protos.BruteForceFactoryProto.Builder.class);
   }
@@ -315,21 +315,21 @@ private static final long serialVersionUID = 0L;
    *NeighboursBruteForceFactory proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.BruteForceFactoryProto}
+   * Protobuf type {@code tribuo.math.impl.BruteForceFactoryProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.BruteForceFactoryProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.impl.BruteForceFactoryProto)
       org.tribuo.math.protos.BruteForceFactoryProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_BruteForceFactoryProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_BruteForceFactoryProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_BruteForceFactoryProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_BruteForceFactoryProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.BruteForceFactoryProto.class, org.tribuo.math.protos.BruteForceFactoryProto.Builder.class);
     }
@@ -362,7 +362,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_BruteForceFactoryProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_BruteForceFactoryProto_descriptor;
     }
 
     @java.lang.Override
@@ -587,10 +587,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.BruteForceFactoryProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.impl.BruteForceFactoryProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.BruteForceFactoryProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.impl.BruteForceFactoryProto)
   private static final org.tribuo.math.protos.BruteForceFactoryProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.BruteForceFactoryProto();

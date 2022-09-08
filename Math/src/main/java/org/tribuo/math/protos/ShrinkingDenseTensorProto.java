@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *ShrinkingTensor Proto, uses dense tensors.
  * </pre>
  *
- * Protobuf type {@code tribuo.core.ShrinkingDenseTensorProto}
+ * Protobuf type {@code tribuo.math.impl.ShrinkingDenseTensorProto}
  */
 public final class ShrinkingDenseTensorProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.ShrinkingDenseTensorProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.impl.ShrinkingDenseTensorProto)
     ShrinkingDenseTensorProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use ShrinkingDenseTensorProto.newBuilder() to construct.
@@ -121,13 +121,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_ShrinkingDenseTensorProto_descriptor;
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_ShrinkingDenseTensorProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_ShrinkingDenseTensorProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_ShrinkingDenseTensorProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.ShrinkingDenseTensorProto.class, org.tribuo.math.protos.ShrinkingDenseTensorProto.Builder.class);
   }
@@ -135,7 +135,7 @@ private static final long serialVersionUID = 0L;
   public static final int DATA_FIELD_NUMBER = 1;
   private org.tribuo.math.protos.DenseTensorProto data_;
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return Whether the data field is set.
    */
   @java.lang.Override
@@ -143,7 +143,7 @@ private static final long serialVersionUID = 0L;
     return data_ != null;
   }
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return The data.
    */
   @java.lang.Override
@@ -151,7 +151,7 @@ private static final long serialVersionUID = 0L;
     return data_ == null ? org.tribuo.math.protos.DenseTensorProto.getDefaultInstance() : data_;
   }
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    */
   @java.lang.Override
   public org.tribuo.math.protos.DenseTensorProtoOrBuilder getDataOrBuilder() {
@@ -487,21 +487,21 @@ private static final long serialVersionUID = 0L;
    *ShrinkingTensor Proto, uses dense tensors.
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.ShrinkingDenseTensorProto}
+   * Protobuf type {@code tribuo.math.impl.ShrinkingDenseTensorProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.ShrinkingDenseTensorProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.impl.ShrinkingDenseTensorProto)
       org.tribuo.math.protos.ShrinkingDenseTensorProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_ShrinkingDenseTensorProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_ShrinkingDenseTensorProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_ShrinkingDenseTensorProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_ShrinkingDenseTensorProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.ShrinkingDenseTensorProto.class, org.tribuo.math.protos.ShrinkingDenseTensorProto.Builder.class);
     }
@@ -550,7 +550,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_ShrinkingDenseTensorProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_ShrinkingDenseTensorProto_descriptor;
     }
 
     @java.lang.Override
@@ -687,14 +687,14 @@ private static final long serialVersionUID = 0L;
     private com.google.protobuf.SingleFieldBuilderV3<
         org.tribuo.math.protos.DenseTensorProto, org.tribuo.math.protos.DenseTensorProto.Builder, org.tribuo.math.protos.DenseTensorProtoOrBuilder> dataBuilder_;
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      * @return Whether the data field is set.
      */
     public boolean hasData() {
       return dataBuilder_ != null || data_ != null;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      * @return The data.
      */
     public org.tribuo.math.protos.DenseTensorProto getData() {
@@ -705,7 +705,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder setData(org.tribuo.math.protos.DenseTensorProto value) {
       if (dataBuilder_ == null) {
@@ -721,7 +721,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder setData(
         org.tribuo.math.protos.DenseTensorProto.Builder builderForValue) {
@@ -735,7 +735,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder mergeData(org.tribuo.math.protos.DenseTensorProto value) {
       if (dataBuilder_ == null) {
@@ -753,7 +753,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public Builder clearData() {
       if (dataBuilder_ == null) {
@@ -767,7 +767,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public org.tribuo.math.protos.DenseTensorProto.Builder getDataBuilder() {
       
@@ -775,7 +775,7 @@ private static final long serialVersionUID = 0L;
       return getDataFieldBuilder().getBuilder();
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     public org.tribuo.math.protos.DenseTensorProtoOrBuilder getDataOrBuilder() {
       if (dataBuilder_ != null) {
@@ -786,7 +786,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+     * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
      */
     private com.google.protobuf.SingleFieldBuilderV3<
         org.tribuo.math.protos.DenseTensorProto, org.tribuo.math.protos.DenseTensorProto.Builder, org.tribuo.math.protos.DenseTensorProtoOrBuilder> 
@@ -1031,10 +1031,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.ShrinkingDenseTensorProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.impl.ShrinkingDenseTensorProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.ShrinkingDenseTensorProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.impl.ShrinkingDenseTensorProto)
   private static final org.tribuo.math.protos.ShrinkingDenseTensorProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.ShrinkingDenseTensorProto();

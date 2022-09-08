@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface KDTreeFactoryProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.KDTreeFactoryProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.KDTreeFactoryProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

@@ -24,14 +24,8 @@ package tribuo.math;
 option java_multiple_files = true;
 option java_package = "org.tribuo.math.protos";
 
-// We use any to encode polymorphism in feature domains, output domains, and model values
+// We use any to encode polymorphism
 import "google/protobuf/any.proto";
-
-// Import Tribuo's core protos
-import "tribuo-core.proto";
-
-// Import OLCUT's provenance proto
-import "olcut_proto.proto";
 
 /*
 Kernel redirection proto

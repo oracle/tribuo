@@ -4,21 +4,21 @@
 package org.tribuo.math.protos;
 
 public interface ShrinkingDenseTensorProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.ShrinkingDenseTensorProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.impl.ShrinkingDenseTensorProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return Whether the data field is set.
    */
   boolean hasData();
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    * @return The data.
    */
   org.tribuo.math.protos.DenseTensorProto getData();
   /**
-   * <code>.tribuo.core.DenseTensorProto data = 1;</code>
+   * <code>.tribuo.math.impl.DenseTensorProto data = 1;</code>
    */
   org.tribuo.math.protos.DenseTensorProtoOrBuilder getDataOrBuilder();
 

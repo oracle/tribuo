@@ -10,11 +10,11 @@ package org.tribuo.math.protos;
  *endian double precision floats for values and little endian ints for indices.
  * </pre>
  *
- * Protobuf type {@code tribuo.core.SparseTensorProto}
+ * Protobuf type {@code tribuo.math.impl.SparseTensorProto}
  */
 public final class SparseTensorProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.SparseTensorProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.impl.SparseTensorProto)
     SparseTensorProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use SparseTensorProto.newBuilder() to construct.
@@ -118,13 +118,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_SparseTensorProto_descriptor;
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_SparseTensorProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_SparseTensorProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_SparseTensorProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.SparseTensorProto.class, org.tribuo.math.protos.SparseTensorProto.Builder.class);
   }
@@ -402,21 +402,21 @@ private static final long serialVersionUID = 0L;
    *endian double precision floats for values and little endian ints for indices.
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.SparseTensorProto}
+   * Protobuf type {@code tribuo.math.impl.SparseTensorProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.SparseTensorProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.impl.SparseTensorProto)
       org.tribuo.math.protos.SparseTensorProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_SparseTensorProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_SparseTensorProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_SparseTensorProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_SparseTensorProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.SparseTensorProto.class, org.tribuo.math.protos.SparseTensorProto.Builder.class);
     }
@@ -453,7 +453,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_SparseTensorProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_SparseTensorProto_descriptor;
     }
 
     @java.lang.Override
@@ -769,10 +769,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.SparseTensorProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.impl.SparseTensorProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.SparseTensorProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.impl.SparseTensorProto)
   private static final org.tribuo.math.protos.SparseTensorProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.SparseTensorProto();

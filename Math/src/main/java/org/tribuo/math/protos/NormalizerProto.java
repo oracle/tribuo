@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *VectorNormalizer redirection proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.NormalizerProto}
+ * Protobuf type {@code tribuo.math.NormalizerProto}
  */
 public final class NormalizerProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.NormalizerProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.NormalizerProto)
     NormalizerProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use NormalizerProto.newBuilder() to construct.
@@ -98,13 +98,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NormalizerProto_descriptor;
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NormalizerProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NormalizerProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NormalizerProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.NormalizerProto.class, org.tribuo.math.protos.NormalizerProto.Builder.class);
   }
@@ -370,21 +370,21 @@ private static final long serialVersionUID = 0L;
    *VectorNormalizer redirection proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.NormalizerProto}
+   * Protobuf type {@code tribuo.math.NormalizerProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.NormalizerProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.NormalizerProto)
       org.tribuo.math.protos.NormalizerProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NormalizerProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NormalizerProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NormalizerProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NormalizerProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.NormalizerProto.class, org.tribuo.math.protos.NormalizerProto.Builder.class);
     }
@@ -423,7 +423,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_NormalizerProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_NormalizerProto_descriptor;
     }
 
     @java.lang.Override
@@ -775,10 +775,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.NormalizerProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.NormalizerProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.NormalizerProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.NormalizerProto)
   private static final org.tribuo.math.protos.NormalizerProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.NormalizerProto();

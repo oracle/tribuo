@@ -34,10 +34,12 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.Model;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.Output;
+import org.tribuo.Prediction;
 import org.tribuo.impl.ListExample;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.SequenceDatasetProto;
 import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceModel;
@@ -200,6 +202,35 @@ public final class Helpers {
         T deser = ProtoUtil.deserialize(proto);
         assertEquals(obj,deser);
         return deser;
+    }
+
+    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Dataset<T> data) {
+        // test provenance marshalling
+        testProvenanceMarshalling(model.getProvenance());
+
+        // serialize to proto
+        ModelProto proto = model.serialize();
+
+        // deserialize from proto
+        Model<?> deserializedModel = Model.deserialize(proto);
+
+        // check provenance is equal
+        assertEquals(model.getProvenance(), deserializedModel.getProvenance());
+        // validate that the model is still of the right type
+        assertTrue(deserializedModel.validate(outputClazz));
+        Model<T> deserModel = deserializedModel.castModel(outputClazz);
+
+        // validate the predictions are the same
+        List<Prediction<T>> modelPreds = model.predict(data);
+        List<Prediction<T>> deserPreds = deserModel.predict(data);
+        assertEquals(modelPreds.size(),deserPreds.size());
+        for (int i = 0; i < modelPreds.size(); i++) {
+            Prediction<T> cur = modelPreds.get(i);
+            Prediction<T> other = deserPreds.get(i);
+            assertTrue(cur.distributionEquals(other));
+        }
+
+        return deserModel;
     }
 
     public static <T extends Output<T>> void testModelSerialization(Model<T> model, Class<T> outputClazz) {

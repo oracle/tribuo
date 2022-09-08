@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *Kernel redirection proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.KernelProto}
+ * Protobuf type {@code tribuo.math.KernelProto}
  */
 public final class KernelProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.KernelProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.KernelProto)
     KernelProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use KernelProto.newBuilder() to construct.
@@ -98,13 +98,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_KernelProto_descriptor;
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_KernelProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_KernelProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_KernelProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.KernelProto.class, org.tribuo.math.protos.KernelProto.Builder.class);
   }
@@ -370,21 +370,21 @@ private static final long serialVersionUID = 0L;
    *Kernel redirection proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.KernelProto}
+   * Protobuf type {@code tribuo.math.KernelProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.KernelProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.KernelProto)
       org.tribuo.math.protos.KernelProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_KernelProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_KernelProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_KernelProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_KernelProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.KernelProto.class, org.tribuo.math.protos.KernelProto.Builder.class);
     }
@@ -423,7 +423,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_core_KernelProto_descriptor;
+      return org.tribuo.math.protos.TribuoMath.internal_static_tribuo_math_KernelProto_descriptor;
     }
 
     @java.lang.Override
@@ -775,10 +775,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.KernelProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.KernelProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.KernelProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.KernelProto)
   private static final org.tribuo.math.protos.KernelProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.KernelProto();

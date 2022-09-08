@@ -4,7 +4,7 @@
 package org.tribuo.math.protos;
 
 public interface ParametersProtoOrBuilder extends
-    // @@protoc_insertion_point(interface_extends:tribuo.core.ParametersProto)
+    // @@protoc_insertion_point(interface_extends:tribuo.math.ParametersProto)
     com.google.protobuf.MessageOrBuilder {
 
   /**

@@ -8,11 +8,11 @@ package org.tribuo.math.protos;
  *Polynomial kernel proto
  * </pre>
  *
- * Protobuf type {@code tribuo.core.PolynomialKernelProto}
+ * Protobuf type {@code tribuo.math.impl.PolynomialKernelProto}
  */
 public final class PolynomialKernelProto extends
     com.google.protobuf.GeneratedMessageV3 implements
-    // @@protoc_insertion_point(message_implements:tribuo.core.PolynomialKernelProto)
+    // @@protoc_insertion_point(message_implements:tribuo.math.impl.PolynomialKernelProto)
     PolynomialKernelProtoOrBuilder {
 private static final long serialVersionUID = 0L;
   // Use PolynomialKernelProto.newBuilder() to construct.
@@ -88,13 +88,13 @@ private static final long serialVersionUID = 0L;
   }
   public static final com.google.protobuf.Descriptors.Descriptor
       getDescriptor() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_PolynomialKernelProto_descriptor;
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_PolynomialKernelProto_descriptor;
   }
 
   @java.lang.Override
   protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internalGetFieldAccessorTable() {
-    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_PolynomialKernelProto_fieldAccessorTable
+    return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_PolynomialKernelProto_fieldAccessorTable
         .ensureFieldAccessorsInitialized(
             org.tribuo.math.protos.PolynomialKernelProto.class, org.tribuo.math.protos.PolynomialKernelProto.Builder.class);
   }
@@ -320,21 +320,21 @@ private static final long serialVersionUID = 0L;
    *Polynomial kernel proto
    * </pre>
    *
-   * Protobuf type {@code tribuo.core.PolynomialKernelProto}
+   * Protobuf type {@code tribuo.math.impl.PolynomialKernelProto}
    */
   public static final class Builder extends
       com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
-      // @@protoc_insertion_point(builder_implements:tribuo.core.PolynomialKernelProto)
+      // @@protoc_insertion_point(builder_implements:tribuo.math.impl.PolynomialKernelProto)
       org.tribuo.math.protos.PolynomialKernelProtoOrBuilder {
     public static final com.google.protobuf.Descriptors.Descriptor
         getDescriptor() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_PolynomialKernelProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_PolynomialKernelProto_descriptor;
     }
 
     @java.lang.Override
     protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
         internalGetFieldAccessorTable() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_PolynomialKernelProto_fieldAccessorTable
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_PolynomialKernelProto_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               org.tribuo.math.protos.PolynomialKernelProto.class, org.tribuo.math.protos.PolynomialKernelProto.Builder.class);
     }
@@ -369,7 +369,7 @@ private static final long serialVersionUID = 0L;
     @java.lang.Override
     public com.google.protobuf.Descriptors.Descriptor
         getDescriptorForType() {
-      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_core_PolynomialKernelProto_descriptor;
+      return org.tribuo.math.protos.TribuoMathImpl.internal_static_tribuo_math_impl_PolynomialKernelProto_descriptor;
     }
 
     @java.lang.Override
@@ -583,10 +583,10 @@ private static final long serialVersionUID = 0L;
     }
 
 
-    // @@protoc_insertion_point(builder_scope:tribuo.core.PolynomialKernelProto)
+    // @@protoc_insertion_point(builder_scope:tribuo.math.impl.PolynomialKernelProto)
   }
 
-  // @@protoc_insertion_point(class_scope:tribuo.core.PolynomialKernelProto)
+  // @@protoc_insertion_point(class_scope:tribuo.math.impl.PolynomialKernelProto)
   private static final org.tribuo.math.protos.PolynomialKernelProto DEFAULT_INSTANCE;
   static {
     DEFAULT_INSTANCE = new org.tribuo.math.protos.PolynomialKernelProto();
