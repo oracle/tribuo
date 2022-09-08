@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -609,7 +609,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
      *
      * @param <T>
      */
-    public static class Builder<T extends Output<T>> {
+    public static final class Builder<T extends Output<T>> {
 
         private List<FieldExtractor<?>> metadataExtractors;
         private FieldExtractor<Float> weightExtractor;
@@ -617,6 +617,9 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
         private Set<FeatureProcessor> featureProcessors;
         private boolean replaceNewLinesWithSpaces = true;
 
+        /**
+         * Builder for {@link RowProcessor}, see RowProcessor constructors for argument details.
+         */
         public Builder() {
             metadataExtractors = new ArrayList<>();
             featureProcessors = new HashSet<>();
@@ -728,18 +731,41 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
 
         /**
          * Construct the {@link RowProcessor} represented by this builder's state. Throws {@link PropertyException}
-         * if the state is invalid.
+         * if the state is invalid. The field processor list is expected to have a single processor for each fieldname
+         * and throws an {@link IllegalArgumentException} if there are duplicates.
          *
-         * @param fieldProcessors   Thd field processors to use.
+         * @param fieldProcessors   The field processors to use.
          * @param responseProcessor The response processor to use.
          * @return The RowProcessor represented by the builder's state
          */
         public RowProcessor<T> build(List<FieldProcessor> fieldProcessors, ResponseProcessor<T> responseProcessor) {
             Map<String, FieldProcessor> fieldProcessorMap = new HashMap<>();
             for (FieldProcessor fieldProcessor : fieldProcessors) {
+                if (fieldProcessorMap.containsKey(fieldProcessor.getFieldName())) {
+                    throw new IllegalArgumentException("Duplicate processor for field name: " + fieldProcessor.getFieldName());
+                }
                 fieldProcessorMap.put(fieldProcessor.getFieldName(), fieldProcessor);
             }
             return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, fieldProcessorMap, regexMappingProcessors, featureProcessors, replaceNewLinesWithSpaces);
+        }
+
+        /**
+         * Construct the {@link RowProcessor} represented by this builder's state. Throws {@link PropertyException}
+         * if the state is invalid. If there are already regex mapping processor (due to, eg. {@link #setRegexMappingProcessors(Map)})
+         * this method will merge with those, with the key values here taking precedence.
+         * <p>
+         * <strong>N.B.</strong> If none of the keys in the regex mapping processor match fields in your data the
+         * {@link RowProcessor}'s behavior is undefined.
+         *
+         * @param regexMappingProcessors The map from regex strings to FieldProcessors.
+         * @param responseProcessor      The response processor to use.
+         * @return The RowProcessor represented by the builder's state
+         */
+        public RowProcessor<T> build(Map<String, FieldProcessor> regexMappingProcessors, ResponseProcessor<T> responseProcessor) {
+            if (this.regexMappingProcessors != null) {
+                this.regexMappingProcessors.putAll(regexMappingProcessors);
+            }
+            return new RowProcessor<>(metadataExtractors, weightExtractor, responseProcessor, Collections.emptyMap(), regexMappingProcessors, featureProcessors, replaceNewLinesWithSpaces);
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.tribuo.data.columnar;
 
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
-import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Example;
 import org.tribuo.Feature;
@@ -31,8 +30,6 @@ import org.tribuo.data.columnar.processors.field.IdentityProcessor;
 import org.tribuo.data.columnar.processors.field.TextFieldProcessor;
 import org.tribuo.data.text.impl.TokenPipeline;
 import org.tribuo.test.MockOutput;
-import org.tribuo.util.tokens.Token;
-import org.tribuo.util.tokens.Token.TokenType;
 import org.tribuo.util.tokens.Tokenizer;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
@@ -198,7 +195,7 @@ public class RowProcessorBuilderTest {
             return BLANK_LINES.splitAsStream(charSequence).collect(Collectors.joining(" *\n\n"));
         };
 
-        Tokenizer tokenizer = new MungingTokenizer(new BreakIteratorTokenizer(Locale.US), newLiner);
+        Tokenizer tokenizer = new RowProcessorTest.MungingTokenizer(new BreakIteratorTokenizer(Locale.US), newLiner);
         TokenPipeline textPipeline = new TokenPipeline(tokenizer, 2, false);
 
         final Map<String, FieldProcessor> fieldProcessors = new HashMap<>();
@@ -253,70 +250,4 @@ public class RowProcessorBuilderTest {
         assertEquals("order_text@2-N=Jimmy/Hoffa", a.getName());
         assertFalse(featureIterator.hasNext());
     }
-
-    static class MungingTokenizer implements Tokenizer {
-        private final Tokenizer tokenizer;
-        private final Function<CharSequence, CharSequence> munger;
-
-        MungingTokenizer(final Tokenizer tokenizer, final Function<CharSequence, CharSequence> munger) {
-            this.tokenizer = tokenizer;
-            this.munger = munger;
-        }
-
-        protected Tokenizer delegate() {
-            return tokenizer;
-        }
-
-        @Override
-        public List<Token> tokenize(CharSequence cs) {
-            return tokenizer.tokenize(munger.apply(cs));
-        }
-
-        @Override
-        public List<String> split(CharSequence cs) {
-            return tokenizer.split(munger.apply(cs));
-        }
-
-        @Override
-        public Tokenizer clone() throws CloneNotSupportedException {
-            Tokenizer copy = tokenizer.clone();
-            return new MungingTokenizer(copy, munger);
-        }
-
-        @Override
-        public void reset(final CharSequence cs) {
-            delegate().reset(cs);
-        }
-
-        @Override
-        public boolean advance() {
-            return delegate().advance();
-        }
-
-        @Override
-        public String getText() {
-            return delegate().getText();
-        }
-
-        @Override
-        public int getStart() {
-            return delegate().getStart();
-        }
-
-        @Override
-        public int getEnd() {
-            return delegate().getEnd();
-        }
-
-        @Override
-        public TokenType getType() {
-            return delegate().getType();
-        }
-
-        @Override
-        public ConfiguredObjectProvenance getProvenance() {
-            return delegate().getProvenance();
-        }
-    } // end class MungingTokenizer
-
 }
