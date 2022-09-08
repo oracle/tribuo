@@ -23,6 +23,9 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
+import org.tribuo.common.libsvm.protos.SVMModelProto;
+import org.tribuo.common.libsvm.protos.SVMNodeArrayProto;
+import org.tribuo.common.libsvm.protos.SVMParameterProto;
 import org.tribuo.provenance.ModelProvenance;
 import libsvm.svm_model;
 import libsvm.svm_node;
@@ -205,4 +208,101 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
         }
     }
 
+    /**
+     * Serializes a LibSVM svm_model to a protobuf.
+     * @param model The model to serialize.
+     * @return The protobuf representation.
+     */
+    protected static SVMModelProto serializeModel(svm_model model) {
+        // Serialize hyperparameters.
+        SVMParameterProto.Builder paramBuilder = SVMParameterProto.newBuilder();
+        paramBuilder.setSvmType(model.param.svm_type);
+        paramBuilder.setKernelType(model.param.kernel_type);
+        paramBuilder.setDegree(model.param.degree);
+        paramBuilder.setGamma(model.param.gamma);
+        paramBuilder.setCoef0(model.param.coef0);
+        paramBuilder.setCacheSize(model.param.cache_size);
+        paramBuilder.setEps(model.param.eps);
+        paramBuilder.setC(model.param.C);
+        paramBuilder.setNrWeight(model.param.nr_weight);
+        paramBuilder.setNu(model.param.nu);
+        paramBuilder.setP(model.param.p);
+        paramBuilder.setShrinking(model.param.shrinking);
+        paramBuilder.setProbability(model.param.probability);
+        if (model.param.weight != null) {
+            for (int i = 0; i < model.param.weight.length; i++) {
+                paramBuilder.addWeight(model.param.weight[i]);
+            }
+        }
+        if (model.param.weight_label != null) {
+            for (int i = 0; i < model.param.weight_label.length; i++) {
+                paramBuilder.addWeightLabel(model.param.weight_label[i]);
+            }
+        }
+        SVMParameterProto paramProto = paramBuilder.build();
+
+        // Serialize model
+        SVMModelProto.Builder modelBuilder = SVMModelProto.newBuilder();
+        modelBuilder.setParam(paramProto);
+        modelBuilder.setNrClass(model.nr_class);
+        modelBuilder.setL(model.l);
+        modelBuilder.setNumSupportVectors(model.SV.length);
+        if (model.SV != null) {
+            for (int i = 0; i < model.SV.length; i++) {
+                SVMNodeArrayProto.Builder nodeBuilder = SVMNodeArrayProto.newBuilder();
+                for (int j = 0; j < model.SV[i].length; j++) {
+                    nodeBuilder.addIndex(model.SV[i][j].index);
+                    nodeBuilder.addValue(model.SV[i][j].value);
+                }
+                modelBuilder.addSV(nodeBuilder.build());
+            }
+        }
+        if (model.sv_coef != null) {
+            for (int i = 0; i < model.sv_coef.length; i++) {
+                modelBuilder.addSvCoefLengths(model.sv_coef[i].length);
+                for (int j = 0; j < model.sv_coef[i].length; j++) {
+                    modelBuilder.addSvCoef(model.sv_coef[i][j]);
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+    /*
+        message SVMModelProto {
+ SVMParameterProto param = 1;
+ int32 nr_class = 2;
+ int32 l = 3;
+ int32 num_support_vectors = 4;
+ repeated SVMNodeArrayProto SV = 5;
+ repeated int32 sv_coef_lengths = 6;
+ repeated double sv_coef = 7;
+ repeated double rho = 8;
+ repeated double probA = 9;
+ repeated double probB = 10;
+ repeated int32 sv_indices = 11;
+ repeated int32 label = 12;
+ repeated int32 nSV = 13;
+}
+         */
+
+
+        return modelBuilder.build();
+    }
+
+    /**
+     * Deserializes a LibSVM svm_model from a protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The svm_model.
+     */
+    protected static svm_model deserializeModel(SVMModelProto proto) {
+
+    }
 }
