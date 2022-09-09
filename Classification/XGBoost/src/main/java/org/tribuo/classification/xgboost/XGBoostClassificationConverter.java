@@ -124,4 +124,9 @@ public final class XGBoostClassificationConverter implements XGBoostOutputConver
     public XGBoostOutputConverterProto serialize() {
         return ProtoUtil.serialize(this);
     }
+
+    @Override
+    public Class<Label> getTypeWitness() {
+        return Label.class;
+    }
 }

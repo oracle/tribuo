@@ -265,7 +265,7 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
 
         ModelProto.Builder builder = ModelProto.newBuilder();
         builder.setSerializedData(Any.pack(modelBuilder.build()));
-        builder.setClassName(XGBoostModel.class.getName());
+        builder.setClassName(XGBoostExternalModel.class.getName());
         builder.setVersion(CURRENT_VERSION);
 
         return builder.build();

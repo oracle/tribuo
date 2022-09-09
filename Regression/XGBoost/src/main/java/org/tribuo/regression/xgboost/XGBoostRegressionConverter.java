@@ -107,4 +107,9 @@ public final class XGBoostRegressionConverter implements XGBoostOutputConverter<
     public XGBoostOutputConverterProto serialize() {
         return ProtoUtil.serialize(this);
     }
+
+    @Override
+    public Class<Regressor> getTypeWitness() {
+        return Regressor.class;
+    }
 }
