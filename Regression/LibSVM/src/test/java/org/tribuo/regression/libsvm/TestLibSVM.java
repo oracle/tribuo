@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,6 +162,7 @@ public class TestLibSVM {
             firstSV[i] = -firstSV[i];
         }
         assertArrayEquals(firstSV, secondSV);
+        Helpers.testModelProtoSerialization(rbfModel, Regressor.class, p.getB());
     }
 
     @Test
@@ -175,6 +176,7 @@ public class TestLibSVM {
         double[] variances = linSModel.getVariances();
         assertEquals(means[0],-means[1]);
         assertEquals(variances[0],variances[1]);
+        Helpers.testModelProtoSerialization(linSModel, Regressor.class, p.getB());
         // The two dimensions are the inverse of each other, and should have inverted sv_coef.
         // However the fact that some values are negative means the sv_coefs end up slightly different,
         // and it appears to happen inside LibSVM.

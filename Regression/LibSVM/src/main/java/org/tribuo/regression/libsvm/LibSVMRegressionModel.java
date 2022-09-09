@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,27 @@
 package org.tribuo.regression.libsvm;
 
 import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import libsvm.svm;
 import libsvm.svm_model;
 import libsvm.svm_node;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Model;
 import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
+import org.tribuo.common.libsvm.protos.SVMModelProto;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
+import org.tribuo.regression.libsvm.protos.LibSVMRegressionModelProto;
 import org.tribuo.util.Util;
 import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXInitializer;
@@ -73,6 +80,11 @@ import java.util.stream.Collectors;
  */
 public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONNXExportable {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final String[] dimensionNames;
 
@@ -119,6 +131,64 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
         this.variances = variances;
         this.standardized = true;
         this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
+    }
+
+    /**
+     * Deserialization constructor.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The features this model knows about.
+     * @param outputIDInfo The outputs this model can produce.
+     * @param models The svm_models themselves.
+     * @param means The output dimension means.
+     * @param variances The output dimension variances.
+     * @param standardized Is the model standardized?
+     */
+    private LibSVMRegressionModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo, List<svm_model> models, double[] means, double[] variances, boolean standardized) {
+        super(name, provenance, featureIDMap, outputIDInfo, false, models);
+        this.dimensionNames = Regressor.extractNames(outputIDInfo);
+        this.means = means;
+        this.variances = variances;
+        this.standardized = standardized;
+        this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LibSVMRegressionModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        LibSVMRegressionModelProto proto = message.unpack(LibSVMRegressionModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Regressor.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a regression domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Regressor> outputDomain = (ImmutableOutputInfo<Regressor>) carrier.outputDomain();
+
+        if (outputDomain.size() != proto.getModelCount()) {
+            throw new IllegalStateException("Invalid protobuf, did not find a model for each output dimension, expected " + outputDomain.size() + " found " + proto.getModelCount());
+        }
+        List<svm_model> models = new ArrayList<>();
+        for (SVMModelProto modelProto : proto.getModelList()) {
+            models.add(deserializeModel(modelProto));
+        }
+        double[] means = proto.getMeansCount() == 0 ? null : Util.toPrimitiveDouble(proto.getMeansList());
+        if (means != null && means.length != outputDomain.size()) {
+            throw new IllegalStateException("Invalid protobuf, expected " + outputDomain.size() + " means, found " + means.length);
+        }
+        double[] variances = proto.getVariancesCount() == 0 ? null : Util.toPrimitiveDouble(proto.getVariancesList());
+        if (variances != null && variances.length != outputDomain.size()) {
+            throw new IllegalStateException("Invalid protobuf, expected " + outputDomain.size() + " variances, found " + variances.length);
+        }
+
+        return new LibSVMRegressionModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,Collections.unmodifiableList(models),means,variances,proto.getStandardized());
     }
 
     /**
@@ -254,6 +324,31 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
         } else {
             return concat;
         }
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<Regressor> carrier = createDataCarrier();
+
+        LibSVMRegressionModelProto.Builder modelBuilder = LibSVMRegressionModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        for (svm_model m : models) {
+            modelBuilder.addModel(serializeModel(m));
+        }
+        if (means != null) {
+            modelBuilder.addAllMeans(Arrays.stream(means).boxed().collect(Collectors.toList()));
+        }
+        if (variances != null) {
+            modelBuilder.addAllVariances(Arrays.stream(variances).boxed().collect(Collectors.toList()));
+        }
+        modelBuilder.setStandardized(standardized);
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(LibSVMRegressionModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {

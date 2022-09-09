@@ -47,16 +47,15 @@ public final class TribuoLibsvm {
       "eight\030\013 \003(\001\022\n\n\002nu\030\014 \001(\001\022\t\n\001p\030\r \001(\001\022\021\n\tsh" +
       "rinking\030\016 \001(\005\022\023\n\013probability\030\017 \001(\005\"1\n\021SV" +
       "MNodeArrayProto\022\r\n\005index\030\001 \003(\005\022\r\n\005value\030" +
-      "\002 \003(\001\"\273\002\n\rSVMModelProto\0226\n\005param\030\001 \001(\0132\'" +
+      "\002 \003(\001\"\236\002\n\rSVMModelProto\0226\n\005param\030\001 \001(\0132\'" +
       ".tribuo.common.libsvm.SVMParameterProto\022" +
-      "\020\n\010nr_class\030\002 \001(\005\022\t\n\001l\030\003 \001(\005\022\033\n\023num_supp" +
-      "ort_vectors\030\004 \001(\005\0223\n\002SV\030\005 \003(\0132\'.tribuo.c" +
-      "ommon.libsvm.SVMNodeArrayProto\022\027\n\017sv_coe" +
-      "f_lengths\030\006 \003(\005\022\017\n\007sv_coef\030\007 \003(\001\022\013\n\003rho\030" +
-      "\010 \003(\001\022\r\n\005probA\030\t \003(\001\022\r\n\005probB\030\n \003(\001\022\022\n\ns" +
-      "v_indices\030\013 \003(\005\022\r\n\005label\030\014 \003(\005\022\013\n\003nSV\030\r " +
-      "\003(\005B#\n\037org.tribuo.common.libsvm.protosP\001" +
-      "b\006proto3"
+      "\020\n\010nr_class\030\002 \001(\005\022\t\n\001l\030\003 \001(\005\0223\n\002SV\030\004 \003(\013" +
+      "2\'.tribuo.common.libsvm.SVMNodeArrayProt" +
+      "o\022\027\n\017sv_coef_lengths\030\005 \003(\005\022\017\n\007sv_coef\030\006 " +
+      "\003(\001\022\013\n\003rho\030\007 \003(\001\022\r\n\005probA\030\010 \003(\001\022\r\n\005probB" +
+      "\030\t \003(\001\022\022\n\nsv_indices\030\n \003(\005\022\r\n\005label\030\013 \003(" +
+      "\005\022\013\n\003nSV\030\014 \003(\005B#\n\037org.tribuo.common.libs" +
+      "vm.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -79,7 +78,7 @@ public final class TribuoLibsvm {
     internal_static_tribuo_common_libsvm_SVMModelProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_common_libsvm_SVMModelProto_descriptor,
-        new java.lang.String[] { "Param", "NrClass", "L", "NumSupportVectors", "SV", "SvCoefLengths", "SvCoef", "Rho", "ProbA", "ProbB", "SvIndices", "Label", "NSV", });
+        new java.lang.String[] { "Param", "NrClass", "L", "SV", "SvCoefLengths", "SvCoef", "Rho", "ProbA", "ProbB", "SvIndices", "Label", "NSV", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

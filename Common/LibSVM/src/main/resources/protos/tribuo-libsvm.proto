@@ -60,14 +60,13 @@ message SVMModelProto {
  SVMParameterProto param = 1;
  int32 nr_class = 2;
  int32 l = 3;
- int32 num_support_vectors = 4;
- repeated SVMNodeArrayProto SV = 5;
- repeated int32 sv_coef_lengths = 6;
- repeated double sv_coef = 7;
- repeated double rho = 8;
- repeated double probA = 9;
- repeated double probB = 10;
- repeated int32 sv_indices = 11;
- repeated int32 label = 12;
- repeated int32 nSV = 13;
+ repeated SVMNodeArrayProto SV = 4;
+ repeated int32 sv_coef_lengths = 5;
+ repeated double sv_coef = 6;
+ repeated double rho = 7;
+ repeated double probA = 8;
+ repeated double probB = 9;
+ repeated int32 sv_indices = 10;
+ repeated int32 label = 11;
+ repeated int32 nSV = 12;
 }

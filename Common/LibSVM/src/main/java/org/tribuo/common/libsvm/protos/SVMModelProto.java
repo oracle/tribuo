@@ -85,12 +85,7 @@ private static final long serialVersionUID = 0L;
             l_ = input.readInt32();
             break;
           }
-          case 32: {
-
-            numSupportVectors_ = input.readInt32();
-            break;
-          }
-          case 42: {
+          case 34: {
             if (!((mutable_bitField0_ & 0x00000001) != 0)) {
               sV_ = new java.util.ArrayList<org.tribuo.common.libsvm.protos.SVMNodeArrayProto>();
               mutable_bitField0_ |= 0x00000001;
@@ -99,7 +94,7 @@ private static final long serialVersionUID = 0L;
                 input.readMessage(org.tribuo.common.libsvm.protos.SVMNodeArrayProto.parser(), extensionRegistry));
             break;
           }
-          case 48: {
+          case 40: {
             if (!((mutable_bitField0_ & 0x00000002) != 0)) {
               svCoefLengths_ = newIntList();
               mutable_bitField0_ |= 0x00000002;
@@ -107,7 +102,7 @@ private static final long serialVersionUID = 0L;
             svCoefLengths_.addInt(input.readInt32());
             break;
           }
-          case 50: {
+          case 42: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000002) != 0) && input.getBytesUntilLimit() > 0) {
@@ -120,7 +115,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 57: {
+          case 49: {
             if (!((mutable_bitField0_ & 0x00000004) != 0)) {
               svCoef_ = newDoubleList();
               mutable_bitField0_ |= 0x00000004;
@@ -128,7 +123,7 @@ private static final long serialVersionUID = 0L;
             svCoef_.addDouble(input.readDouble());
             break;
           }
-          case 58: {
+          case 50: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000004) != 0) && input.getBytesUntilLimit() > 0) {
@@ -141,7 +136,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 65: {
+          case 57: {
             if (!((mutable_bitField0_ & 0x00000008) != 0)) {
               rho_ = newDoubleList();
               mutable_bitField0_ |= 0x00000008;
@@ -149,7 +144,7 @@ private static final long serialVersionUID = 0L;
             rho_.addDouble(input.readDouble());
             break;
           }
-          case 66: {
+          case 58: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000008) != 0) && input.getBytesUntilLimit() > 0) {
@@ -162,7 +157,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 73: {
+          case 65: {
             if (!((mutable_bitField0_ & 0x00000010) != 0)) {
               probA_ = newDoubleList();
               mutable_bitField0_ |= 0x00000010;
@@ -170,7 +165,7 @@ private static final long serialVersionUID = 0L;
             probA_.addDouble(input.readDouble());
             break;
           }
-          case 74: {
+          case 66: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000010) != 0) && input.getBytesUntilLimit() > 0) {
@@ -183,7 +178,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 81: {
+          case 73: {
             if (!((mutable_bitField0_ & 0x00000020) != 0)) {
               probB_ = newDoubleList();
               mutable_bitField0_ |= 0x00000020;
@@ -191,7 +186,7 @@ private static final long serialVersionUID = 0L;
             probB_.addDouble(input.readDouble());
             break;
           }
-          case 82: {
+          case 74: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000020) != 0) && input.getBytesUntilLimit() > 0) {
@@ -204,7 +199,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 88: {
+          case 80: {
             if (!((mutable_bitField0_ & 0x00000040) != 0)) {
               svIndices_ = newIntList();
               mutable_bitField0_ |= 0x00000040;
@@ -212,7 +207,7 @@ private static final long serialVersionUID = 0L;
             svIndices_.addInt(input.readInt32());
             break;
           }
-          case 90: {
+          case 82: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000040) != 0) && input.getBytesUntilLimit() > 0) {
@@ -225,7 +220,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 96: {
+          case 88: {
             if (!((mutable_bitField0_ & 0x00000080) != 0)) {
               label_ = newIntList();
               mutable_bitField0_ |= 0x00000080;
@@ -233,7 +228,7 @@ private static final long serialVersionUID = 0L;
             label_.addInt(input.readInt32());
             break;
           }
-          case 98: {
+          case 90: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000080) != 0) && input.getBytesUntilLimit() > 0) {
@@ -246,7 +241,7 @@ private static final long serialVersionUID = 0L;
             input.popLimit(limit);
             break;
           }
-          case 104: {
+          case 96: {
             if (!((mutable_bitField0_ & 0x00000100) != 0)) {
               nSV_ = newIntList();
               mutable_bitField0_ |= 0x00000100;
@@ -254,7 +249,7 @@ private static final long serialVersionUID = 0L;
             nSV_.addInt(input.readInt32());
             break;
           }
-          case 106: {
+          case 98: {
             int length = input.readRawVarint32();
             int limit = input.pushLimit(length);
             if (!((mutable_bitField0_ & 0x00000100) != 0) && input.getBytesUntilLimit() > 0) {
@@ -374,28 +369,17 @@ private static final long serialVersionUID = 0L;
     return l_;
   }
 
-  public static final int NUM_SUPPORT_VECTORS_FIELD_NUMBER = 4;
-  private int numSupportVectors_;
-  /**
-   * <code>int32 num_support_vectors = 4;</code>
-   * @return The numSupportVectors.
-   */
-  @java.lang.Override
-  public int getNumSupportVectors() {
-    return numSupportVectors_;
-  }
-
-  public static final int SV_FIELD_NUMBER = 5;
+  public static final int SV_FIELD_NUMBER = 4;
   private java.util.List<org.tribuo.common.libsvm.protos.SVMNodeArrayProto> sV_;
   /**
-   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
    */
   @java.lang.Override
   public java.util.List<org.tribuo.common.libsvm.protos.SVMNodeArrayProto> getSVList() {
     return sV_;
   }
   /**
-   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
    */
   @java.lang.Override
   public java.util.List<? extends org.tribuo.common.libsvm.protos.SVMNodeArrayProtoOrBuilder> 
@@ -403,21 +387,21 @@ private static final long serialVersionUID = 0L;
     return sV_;
   }
   /**
-   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
    */
   @java.lang.Override
   public int getSVCount() {
     return sV_.size();
   }
   /**
-   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
    */
   @java.lang.Override
   public org.tribuo.common.libsvm.protos.SVMNodeArrayProto getSV(int index) {
     return sV_.get(index);
   }
   /**
-   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+   * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
    */
   @java.lang.Override
   public org.tribuo.common.libsvm.protos.SVMNodeArrayProtoOrBuilder getSVOrBuilder(
@@ -425,10 +409,10 @@ private static final long serialVersionUID = 0L;
     return sV_.get(index);
   }
 
-  public static final int SV_COEF_LENGTHS_FIELD_NUMBER = 6;
+  public static final int SV_COEF_LENGTHS_FIELD_NUMBER = 5;
   private com.google.protobuf.Internal.IntList svCoefLengths_;
   /**
-   * <code>repeated int32 sv_coef_lengths = 6;</code>
+   * <code>repeated int32 sv_coef_lengths = 5;</code>
    * @return A list containing the svCoefLengths.
    */
   @java.lang.Override
@@ -437,14 +421,14 @@ private static final long serialVersionUID = 0L;
     return svCoefLengths_;
   }
   /**
-   * <code>repeated int32 sv_coef_lengths = 6;</code>
+   * <code>repeated int32 sv_coef_lengths = 5;</code>
    * @return The count of svCoefLengths.
    */
   public int getSvCoefLengthsCount() {
     return svCoefLengths_.size();
   }
   /**
-   * <code>repeated int32 sv_coef_lengths = 6;</code>
+   * <code>repeated int32 sv_coef_lengths = 5;</code>
    * @param index The index of the element to return.
    * @return The svCoefLengths at the given index.
    */
@@ -453,10 +437,10 @@ private static final long serialVersionUID = 0L;
   }
   private int svCoefLengthsMemoizedSerializedSize = -1;
 
-  public static final int SV_COEF_FIELD_NUMBER = 7;
+  public static final int SV_COEF_FIELD_NUMBER = 6;
   private com.google.protobuf.Internal.DoubleList svCoef_;
   /**
-   * <code>repeated double sv_coef = 7;</code>
+   * <code>repeated double sv_coef = 6;</code>
    * @return A list containing the svCoef.
    */
   @java.lang.Override
@@ -465,14 +449,14 @@ private static final long serialVersionUID = 0L;
     return svCoef_;
   }
   /**
-   * <code>repeated double sv_coef = 7;</code>
+   * <code>repeated double sv_coef = 6;</code>
    * @return The count of svCoef.
    */
   public int getSvCoefCount() {
     return svCoef_.size();
   }
   /**
-   * <code>repeated double sv_coef = 7;</code>
+   * <code>repeated double sv_coef = 6;</code>
    * @param index The index of the element to return.
    * @return The svCoef at the given index.
    */
@@ -481,10 +465,10 @@ private static final long serialVersionUID = 0L;
   }
   private int svCoefMemoizedSerializedSize = -1;
 
-  public static final int RHO_FIELD_NUMBER = 8;
+  public static final int RHO_FIELD_NUMBER = 7;
   private com.google.protobuf.Internal.DoubleList rho_;
   /**
-   * <code>repeated double rho = 8;</code>
+   * <code>repeated double rho = 7;</code>
    * @return A list containing the rho.
    */
   @java.lang.Override
@@ -493,14 +477,14 @@ private static final long serialVersionUID = 0L;
     return rho_;
   }
   /**
-   * <code>repeated double rho = 8;</code>
+   * <code>repeated double rho = 7;</code>
    * @return The count of rho.
    */
   public int getRhoCount() {
     return rho_.size();
   }
   /**
-   * <code>repeated double rho = 8;</code>
+   * <code>repeated double rho = 7;</code>
    * @param index The index of the element to return.
    * @return The rho at the given index.
    */
@@ -509,10 +493,10 @@ private static final long serialVersionUID = 0L;
   }
   private int rhoMemoizedSerializedSize = -1;
 
-  public static final int PROBA_FIELD_NUMBER = 9;
+  public static final int PROBA_FIELD_NUMBER = 8;
   private com.google.protobuf.Internal.DoubleList probA_;
   /**
-   * <code>repeated double probA = 9;</code>
+   * <code>repeated double probA = 8;</code>
    * @return A list containing the probA.
    */
   @java.lang.Override
@@ -521,14 +505,14 @@ private static final long serialVersionUID = 0L;
     return probA_;
   }
   /**
-   * <code>repeated double probA = 9;</code>
+   * <code>repeated double probA = 8;</code>
    * @return The count of probA.
    */
   public int getProbACount() {
     return probA_.size();
   }
   /**
-   * <code>repeated double probA = 9;</code>
+   * <code>repeated double probA = 8;</code>
    * @param index The index of the element to return.
    * @return The probA at the given index.
    */
@@ -537,10 +521,10 @@ private static final long serialVersionUID = 0L;
   }
   private int probAMemoizedSerializedSize = -1;
 
-  public static final int PROBB_FIELD_NUMBER = 10;
+  public static final int PROBB_FIELD_NUMBER = 9;
   private com.google.protobuf.Internal.DoubleList probB_;
   /**
-   * <code>repeated double probB = 10;</code>
+   * <code>repeated double probB = 9;</code>
    * @return A list containing the probB.
    */
   @java.lang.Override
@@ -549,14 +533,14 @@ private static final long serialVersionUID = 0L;
     return probB_;
   }
   /**
-   * <code>repeated double probB = 10;</code>
+   * <code>repeated double probB = 9;</code>
    * @return The count of probB.
    */
   public int getProbBCount() {
     return probB_.size();
   }
   /**
-   * <code>repeated double probB = 10;</code>
+   * <code>repeated double probB = 9;</code>
    * @param index The index of the element to return.
    * @return The probB at the given index.
    */
@@ -565,10 +549,10 @@ private static final long serialVersionUID = 0L;
   }
   private int probBMemoizedSerializedSize = -1;
 
-  public static final int SV_INDICES_FIELD_NUMBER = 11;
+  public static final int SV_INDICES_FIELD_NUMBER = 10;
   private com.google.protobuf.Internal.IntList svIndices_;
   /**
-   * <code>repeated int32 sv_indices = 11;</code>
+   * <code>repeated int32 sv_indices = 10;</code>
    * @return A list containing the svIndices.
    */
   @java.lang.Override
@@ -577,14 +561,14 @@ private static final long serialVersionUID = 0L;
     return svIndices_;
   }
   /**
-   * <code>repeated int32 sv_indices = 11;</code>
+   * <code>repeated int32 sv_indices = 10;</code>
    * @return The count of svIndices.
    */
   public int getSvIndicesCount() {
     return svIndices_.size();
   }
   /**
-   * <code>repeated int32 sv_indices = 11;</code>
+   * <code>repeated int32 sv_indices = 10;</code>
    * @param index The index of the element to return.
    * @return The svIndices at the given index.
    */
@@ -593,10 +577,10 @@ private static final long serialVersionUID = 0L;
   }
   private int svIndicesMemoizedSerializedSize = -1;
 
-  public static final int LABEL_FIELD_NUMBER = 12;
+  public static final int LABEL_FIELD_NUMBER = 11;
   private com.google.protobuf.Internal.IntList label_;
   /**
-   * <code>repeated int32 label = 12;</code>
+   * <code>repeated int32 label = 11;</code>
    * @return A list containing the label.
    */
   @java.lang.Override
@@ -605,14 +589,14 @@ private static final long serialVersionUID = 0L;
     return label_;
   }
   /**
-   * <code>repeated int32 label = 12;</code>
+   * <code>repeated int32 label = 11;</code>
    * @return The count of label.
    */
   public int getLabelCount() {
     return label_.size();
   }
   /**
-   * <code>repeated int32 label = 12;</code>
+   * <code>repeated int32 label = 11;</code>
    * @param index The index of the element to return.
    * @return The label at the given index.
    */
@@ -621,10 +605,10 @@ private static final long serialVersionUID = 0L;
   }
   private int labelMemoizedSerializedSize = -1;
 
-  public static final int NSV_FIELD_NUMBER = 13;
+  public static final int NSV_FIELD_NUMBER = 12;
   private com.google.protobuf.Internal.IntList nSV_;
   /**
-   * <code>repeated int32 nSV = 13;</code>
+   * <code>repeated int32 nSV = 12;</code>
    * @return A list containing the nSV.
    */
   @java.lang.Override
@@ -633,14 +617,14 @@ private static final long serialVersionUID = 0L;
     return nSV_;
   }
   /**
-   * <code>repeated int32 nSV = 13;</code>
+   * <code>repeated int32 nSV = 12;</code>
    * @return The count of nSV.
    */
   public int getNSVCount() {
     return nSV_.size();
   }
   /**
-   * <code>repeated int32 nSV = 13;</code>
+   * <code>repeated int32 nSV = 12;</code>
    * @param index The index of the element to return.
    * @return The nSV at the given index.
    */
@@ -673,63 +657,60 @@ private static final long serialVersionUID = 0L;
     if (l_ != 0) {
       output.writeInt32(3, l_);
     }
-    if (numSupportVectors_ != 0) {
-      output.writeInt32(4, numSupportVectors_);
-    }
     for (int i = 0; i < sV_.size(); i++) {
-      output.writeMessage(5, sV_.get(i));
+      output.writeMessage(4, sV_.get(i));
     }
     if (getSvCoefLengthsList().size() > 0) {
-      output.writeUInt32NoTag(50);
+      output.writeUInt32NoTag(42);
       output.writeUInt32NoTag(svCoefLengthsMemoizedSerializedSize);
     }
     for (int i = 0; i < svCoefLengths_.size(); i++) {
       output.writeInt32NoTag(svCoefLengths_.getInt(i));
     }
     if (getSvCoefList().size() > 0) {
-      output.writeUInt32NoTag(58);
+      output.writeUInt32NoTag(50);
       output.writeUInt32NoTag(svCoefMemoizedSerializedSize);
     }
     for (int i = 0; i < svCoef_.size(); i++) {
       output.writeDoubleNoTag(svCoef_.getDouble(i));
     }
     if (getRhoList().size() > 0) {
-      output.writeUInt32NoTag(66);
+      output.writeUInt32NoTag(58);
       output.writeUInt32NoTag(rhoMemoizedSerializedSize);
     }
     for (int i = 0; i < rho_.size(); i++) {
       output.writeDoubleNoTag(rho_.getDouble(i));
     }
     if (getProbAList().size() > 0) {
-      output.writeUInt32NoTag(74);
+      output.writeUInt32NoTag(66);
       output.writeUInt32NoTag(probAMemoizedSerializedSize);
     }
     for (int i = 0; i < probA_.size(); i++) {
       output.writeDoubleNoTag(probA_.getDouble(i));
     }
     if (getProbBList().size() > 0) {
-      output.writeUInt32NoTag(82);
+      output.writeUInt32NoTag(74);
       output.writeUInt32NoTag(probBMemoizedSerializedSize);
     }
     for (int i = 0; i < probB_.size(); i++) {
       output.writeDoubleNoTag(probB_.getDouble(i));
     }
     if (getSvIndicesList().size() > 0) {
-      output.writeUInt32NoTag(90);
+      output.writeUInt32NoTag(82);
       output.writeUInt32NoTag(svIndicesMemoizedSerializedSize);
     }
     for (int i = 0; i < svIndices_.size(); i++) {
       output.writeInt32NoTag(svIndices_.getInt(i));
     }
     if (getLabelList().size() > 0) {
-      output.writeUInt32NoTag(98);
+      output.writeUInt32NoTag(90);
       output.writeUInt32NoTag(labelMemoizedSerializedSize);
     }
     for (int i = 0; i < label_.size(); i++) {
       output.writeInt32NoTag(label_.getInt(i));
     }
     if (getNSVList().size() > 0) {
-      output.writeUInt32NoTag(106);
+      output.writeUInt32NoTag(98);
       output.writeUInt32NoTag(nSVMemoizedSerializedSize);
     }
     for (int i = 0; i < nSV_.size(); i++) {
@@ -756,13 +737,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(3, l_);
     }
-    if (numSupportVectors_ != 0) {
-      size += com.google.protobuf.CodedOutputStream
-        .computeInt32Size(4, numSupportVectors_);
-    }
     for (int i = 0; i < sV_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
-        .computeMessageSize(5, sV_.get(i));
+        .computeMessageSize(4, sV_.get(i));
     }
     {
       int dataSize = 0;
@@ -888,8 +865,6 @@ private static final long serialVersionUID = 0L;
         != other.getNrClass()) return false;
     if (getL()
         != other.getL()) return false;
-    if (getNumSupportVectors()
-        != other.getNumSupportVectors()) return false;
     if (!getSVList()
         .equals(other.getSVList())) return false;
     if (!getSvCoefLengthsList()
@@ -927,8 +902,6 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getNrClass();
     hash = (37 * hash) + L_FIELD_NUMBER;
     hash = (53 * hash) + getL();
-    hash = (37 * hash) + NUM_SUPPORT_VECTORS_FIELD_NUMBER;
-    hash = (53 * hash) + getNumSupportVectors();
     if (getSVCount() > 0) {
       hash = (37 * hash) + SV_FIELD_NUMBER;
       hash = (53 * hash) + getSVList().hashCode();
@@ -1113,8 +1086,6 @@ private static final long serialVersionUID = 0L;
 
       l_ = 0;
 
-      numSupportVectors_ = 0;
-
       if (sVBuilder_ == null) {
         sV_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000001);
@@ -1171,7 +1142,6 @@ private static final long serialVersionUID = 0L;
       }
       result.nrClass_ = nrClass_;
       result.l_ = l_;
-      result.numSupportVectors_ = numSupportVectors_;
       if (sVBuilder_ == null) {
         if (((bitField0_ & 0x00000001) != 0)) {
           sV_ = java.util.Collections.unmodifiableList(sV_);
@@ -1277,9 +1247,6 @@ private static final long serialVersionUID = 0L;
       }
       if (other.getL() != 0) {
         setL(other.getL());
-      }
-      if (other.getNumSupportVectors() != 0) {
-        setNumSupportVectors(other.getNumSupportVectors());
       }
       if (sVBuilder_ == null) {
         if (!other.sV_.isEmpty()) {
@@ -1598,37 +1565,6 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private int numSupportVectors_ ;
-    /**
-     * <code>int32 num_support_vectors = 4;</code>
-     * @return The numSupportVectors.
-     */
-    @java.lang.Override
-    public int getNumSupportVectors() {
-      return numSupportVectors_;
-    }
-    /**
-     * <code>int32 num_support_vectors = 4;</code>
-     * @param value The numSupportVectors to set.
-     * @return This builder for chaining.
-     */
-    public Builder setNumSupportVectors(int value) {
-      
-      numSupportVectors_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>int32 num_support_vectors = 4;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearNumSupportVectors() {
-      
-      numSupportVectors_ = 0;
-      onChanged();
-      return this;
-    }
-
     private java.util.List<org.tribuo.common.libsvm.protos.SVMNodeArrayProto> sV_ =
       java.util.Collections.emptyList();
     private void ensureSVIsMutable() {
@@ -1642,7 +1578,7 @@ private static final long serialVersionUID = 0L;
         org.tribuo.common.libsvm.protos.SVMNodeArrayProto, org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder, org.tribuo.common.libsvm.protos.SVMNodeArrayProtoOrBuilder> sVBuilder_;
 
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public java.util.List<org.tribuo.common.libsvm.protos.SVMNodeArrayProto> getSVList() {
       if (sVBuilder_ == null) {
@@ -1652,7 +1588,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public int getSVCount() {
       if (sVBuilder_ == null) {
@@ -1662,7 +1598,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public org.tribuo.common.libsvm.protos.SVMNodeArrayProto getSV(int index) {
       if (sVBuilder_ == null) {
@@ -1672,7 +1608,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder setSV(
         int index, org.tribuo.common.libsvm.protos.SVMNodeArrayProto value) {
@@ -1689,7 +1625,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder setSV(
         int index, org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder builderForValue) {
@@ -1703,7 +1639,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder addSV(org.tribuo.common.libsvm.protos.SVMNodeArrayProto value) {
       if (sVBuilder_ == null) {
@@ -1719,7 +1655,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder addSV(
         int index, org.tribuo.common.libsvm.protos.SVMNodeArrayProto value) {
@@ -1736,7 +1672,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder addSV(
         org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder builderForValue) {
@@ -1750,7 +1686,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder addSV(
         int index, org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder builderForValue) {
@@ -1764,7 +1700,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder addAllSV(
         java.lang.Iterable<? extends org.tribuo.common.libsvm.protos.SVMNodeArrayProto> values) {
@@ -1779,7 +1715,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder clearSV() {
       if (sVBuilder_ == null) {
@@ -1792,7 +1728,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public Builder removeSV(int index) {
       if (sVBuilder_ == null) {
@@ -1805,14 +1741,14 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder getSVBuilder(
         int index) {
       return getSVFieldBuilder().getBuilder(index);
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public org.tribuo.common.libsvm.protos.SVMNodeArrayProtoOrBuilder getSVOrBuilder(
         int index) {
@@ -1822,7 +1758,7 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public java.util.List<? extends org.tribuo.common.libsvm.protos.SVMNodeArrayProtoOrBuilder> 
          getSVOrBuilderList() {
@@ -1833,14 +1769,14 @@ private static final long serialVersionUID = 0L;
       }
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder addSVBuilder() {
       return getSVFieldBuilder().addBuilder(
           org.tribuo.common.libsvm.protos.SVMNodeArrayProto.getDefaultInstance());
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder addSVBuilder(
         int index) {
@@ -1848,7 +1784,7 @@ private static final long serialVersionUID = 0L;
           index, org.tribuo.common.libsvm.protos.SVMNodeArrayProto.getDefaultInstance());
     }
     /**
-     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 5;</code>
+     * <code>repeated .tribuo.common.libsvm.SVMNodeArrayProto SV = 4;</code>
      */
     public java.util.List<org.tribuo.common.libsvm.protos.SVMNodeArrayProto.Builder> 
          getSVBuilderList() {
@@ -1877,7 +1813,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated int32 sv_coef_lengths = 6;</code>
+     * <code>repeated int32 sv_coef_lengths = 5;</code>
      * @return A list containing the svCoefLengths.
      */
     public java.util.List<java.lang.Integer>
@@ -1886,14 +1822,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(svCoefLengths_) : svCoefLengths_;
     }
     /**
-     * <code>repeated int32 sv_coef_lengths = 6;</code>
+     * <code>repeated int32 sv_coef_lengths = 5;</code>
      * @return The count of svCoefLengths.
      */
     public int getSvCoefLengthsCount() {
       return svCoefLengths_.size();
     }
     /**
-     * <code>repeated int32 sv_coef_lengths = 6;</code>
+     * <code>repeated int32 sv_coef_lengths = 5;</code>
      * @param index The index of the element to return.
      * @return The svCoefLengths at the given index.
      */
@@ -1901,7 +1837,7 @@ private static final long serialVersionUID = 0L;
       return svCoefLengths_.getInt(index);
     }
     /**
-     * <code>repeated int32 sv_coef_lengths = 6;</code>
+     * <code>repeated int32 sv_coef_lengths = 5;</code>
      * @param index The index to set the value at.
      * @param value The svCoefLengths to set.
      * @return This builder for chaining.
@@ -1914,7 +1850,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 sv_coef_lengths = 6;</code>
+     * <code>repeated int32 sv_coef_lengths = 5;</code>
      * @param value The svCoefLengths to add.
      * @return This builder for chaining.
      */
@@ -1925,7 +1861,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 sv_coef_lengths = 6;</code>
+     * <code>repeated int32 sv_coef_lengths = 5;</code>
      * @param values The svCoefLengths to add.
      * @return This builder for chaining.
      */
@@ -1938,7 +1874,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 sv_coef_lengths = 6;</code>
+     * <code>repeated int32 sv_coef_lengths = 5;</code>
      * @return This builder for chaining.
      */
     public Builder clearSvCoefLengths() {
@@ -1956,7 +1892,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated double sv_coef = 7;</code>
+     * <code>repeated double sv_coef = 6;</code>
      * @return A list containing the svCoef.
      */
     public java.util.List<java.lang.Double>
@@ -1965,14 +1901,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(svCoef_) : svCoef_;
     }
     /**
-     * <code>repeated double sv_coef = 7;</code>
+     * <code>repeated double sv_coef = 6;</code>
      * @return The count of svCoef.
      */
     public int getSvCoefCount() {
       return svCoef_.size();
     }
     /**
-     * <code>repeated double sv_coef = 7;</code>
+     * <code>repeated double sv_coef = 6;</code>
      * @param index The index of the element to return.
      * @return The svCoef at the given index.
      */
@@ -1980,7 +1916,7 @@ private static final long serialVersionUID = 0L;
       return svCoef_.getDouble(index);
     }
     /**
-     * <code>repeated double sv_coef = 7;</code>
+     * <code>repeated double sv_coef = 6;</code>
      * @param index The index to set the value at.
      * @param value The svCoef to set.
      * @return This builder for chaining.
@@ -1993,7 +1929,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double sv_coef = 7;</code>
+     * <code>repeated double sv_coef = 6;</code>
      * @param value The svCoef to add.
      * @return This builder for chaining.
      */
@@ -2004,7 +1940,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double sv_coef = 7;</code>
+     * <code>repeated double sv_coef = 6;</code>
      * @param values The svCoef to add.
      * @return This builder for chaining.
      */
@@ -2017,7 +1953,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double sv_coef = 7;</code>
+     * <code>repeated double sv_coef = 6;</code>
      * @return This builder for chaining.
      */
     public Builder clearSvCoef() {
@@ -2035,7 +1971,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated double rho = 8;</code>
+     * <code>repeated double rho = 7;</code>
      * @return A list containing the rho.
      */
     public java.util.List<java.lang.Double>
@@ -2044,14 +1980,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(rho_) : rho_;
     }
     /**
-     * <code>repeated double rho = 8;</code>
+     * <code>repeated double rho = 7;</code>
      * @return The count of rho.
      */
     public int getRhoCount() {
       return rho_.size();
     }
     /**
-     * <code>repeated double rho = 8;</code>
+     * <code>repeated double rho = 7;</code>
      * @param index The index of the element to return.
      * @return The rho at the given index.
      */
@@ -2059,7 +1995,7 @@ private static final long serialVersionUID = 0L;
       return rho_.getDouble(index);
     }
     /**
-     * <code>repeated double rho = 8;</code>
+     * <code>repeated double rho = 7;</code>
      * @param index The index to set the value at.
      * @param value The rho to set.
      * @return This builder for chaining.
@@ -2072,7 +2008,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double rho = 8;</code>
+     * <code>repeated double rho = 7;</code>
      * @param value The rho to add.
      * @return This builder for chaining.
      */
@@ -2083,7 +2019,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double rho = 8;</code>
+     * <code>repeated double rho = 7;</code>
      * @param values The rho to add.
      * @return This builder for chaining.
      */
@@ -2096,7 +2032,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double rho = 8;</code>
+     * <code>repeated double rho = 7;</code>
      * @return This builder for chaining.
      */
     public Builder clearRho() {
@@ -2114,7 +2050,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated double probA = 9;</code>
+     * <code>repeated double probA = 8;</code>
      * @return A list containing the probA.
      */
     public java.util.List<java.lang.Double>
@@ -2123,14 +2059,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(probA_) : probA_;
     }
     /**
-     * <code>repeated double probA = 9;</code>
+     * <code>repeated double probA = 8;</code>
      * @return The count of probA.
      */
     public int getProbACount() {
       return probA_.size();
     }
     /**
-     * <code>repeated double probA = 9;</code>
+     * <code>repeated double probA = 8;</code>
      * @param index The index of the element to return.
      * @return The probA at the given index.
      */
@@ -2138,7 +2074,7 @@ private static final long serialVersionUID = 0L;
       return probA_.getDouble(index);
     }
     /**
-     * <code>repeated double probA = 9;</code>
+     * <code>repeated double probA = 8;</code>
      * @param index The index to set the value at.
      * @param value The probA to set.
      * @return This builder for chaining.
@@ -2151,7 +2087,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double probA = 9;</code>
+     * <code>repeated double probA = 8;</code>
      * @param value The probA to add.
      * @return This builder for chaining.
      */
@@ -2162,7 +2098,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double probA = 9;</code>
+     * <code>repeated double probA = 8;</code>
      * @param values The probA to add.
      * @return This builder for chaining.
      */
@@ -2175,7 +2111,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double probA = 9;</code>
+     * <code>repeated double probA = 8;</code>
      * @return This builder for chaining.
      */
     public Builder clearProbA() {
@@ -2193,7 +2129,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated double probB = 10;</code>
+     * <code>repeated double probB = 9;</code>
      * @return A list containing the probB.
      */
     public java.util.List<java.lang.Double>
@@ -2202,14 +2138,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(probB_) : probB_;
     }
     /**
-     * <code>repeated double probB = 10;</code>
+     * <code>repeated double probB = 9;</code>
      * @return The count of probB.
      */
     public int getProbBCount() {
       return probB_.size();
     }
     /**
-     * <code>repeated double probB = 10;</code>
+     * <code>repeated double probB = 9;</code>
      * @param index The index of the element to return.
      * @return The probB at the given index.
      */
@@ -2217,7 +2153,7 @@ private static final long serialVersionUID = 0L;
       return probB_.getDouble(index);
     }
     /**
-     * <code>repeated double probB = 10;</code>
+     * <code>repeated double probB = 9;</code>
      * @param index The index to set the value at.
      * @param value The probB to set.
      * @return This builder for chaining.
@@ -2230,7 +2166,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double probB = 10;</code>
+     * <code>repeated double probB = 9;</code>
      * @param value The probB to add.
      * @return This builder for chaining.
      */
@@ -2241,7 +2177,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double probB = 10;</code>
+     * <code>repeated double probB = 9;</code>
      * @param values The probB to add.
      * @return This builder for chaining.
      */
@@ -2254,7 +2190,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated double probB = 10;</code>
+     * <code>repeated double probB = 9;</code>
      * @return This builder for chaining.
      */
     public Builder clearProbB() {
@@ -2272,7 +2208,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated int32 sv_indices = 11;</code>
+     * <code>repeated int32 sv_indices = 10;</code>
      * @return A list containing the svIndices.
      */
     public java.util.List<java.lang.Integer>
@@ -2281,14 +2217,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(svIndices_) : svIndices_;
     }
     /**
-     * <code>repeated int32 sv_indices = 11;</code>
+     * <code>repeated int32 sv_indices = 10;</code>
      * @return The count of svIndices.
      */
     public int getSvIndicesCount() {
       return svIndices_.size();
     }
     /**
-     * <code>repeated int32 sv_indices = 11;</code>
+     * <code>repeated int32 sv_indices = 10;</code>
      * @param index The index of the element to return.
      * @return The svIndices at the given index.
      */
@@ -2296,7 +2232,7 @@ private static final long serialVersionUID = 0L;
       return svIndices_.getInt(index);
     }
     /**
-     * <code>repeated int32 sv_indices = 11;</code>
+     * <code>repeated int32 sv_indices = 10;</code>
      * @param index The index to set the value at.
      * @param value The svIndices to set.
      * @return This builder for chaining.
@@ -2309,7 +2245,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 sv_indices = 11;</code>
+     * <code>repeated int32 sv_indices = 10;</code>
      * @param value The svIndices to add.
      * @return This builder for chaining.
      */
@@ -2320,7 +2256,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 sv_indices = 11;</code>
+     * <code>repeated int32 sv_indices = 10;</code>
      * @param values The svIndices to add.
      * @return This builder for chaining.
      */
@@ -2333,7 +2269,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 sv_indices = 11;</code>
+     * <code>repeated int32 sv_indices = 10;</code>
      * @return This builder for chaining.
      */
     public Builder clearSvIndices() {
@@ -2351,7 +2287,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated int32 label = 12;</code>
+     * <code>repeated int32 label = 11;</code>
      * @return A list containing the label.
      */
     public java.util.List<java.lang.Integer>
@@ -2360,14 +2296,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(label_) : label_;
     }
     /**
-     * <code>repeated int32 label = 12;</code>
+     * <code>repeated int32 label = 11;</code>
      * @return The count of label.
      */
     public int getLabelCount() {
       return label_.size();
     }
     /**
-     * <code>repeated int32 label = 12;</code>
+     * <code>repeated int32 label = 11;</code>
      * @param index The index of the element to return.
      * @return The label at the given index.
      */
@@ -2375,7 +2311,7 @@ private static final long serialVersionUID = 0L;
       return label_.getInt(index);
     }
     /**
-     * <code>repeated int32 label = 12;</code>
+     * <code>repeated int32 label = 11;</code>
      * @param index The index to set the value at.
      * @param value The label to set.
      * @return This builder for chaining.
@@ -2388,7 +2324,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 label = 12;</code>
+     * <code>repeated int32 label = 11;</code>
      * @param value The label to add.
      * @return This builder for chaining.
      */
@@ -2399,7 +2335,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 label = 12;</code>
+     * <code>repeated int32 label = 11;</code>
      * @param values The label to add.
      * @return This builder for chaining.
      */
@@ -2412,7 +2348,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 label = 12;</code>
+     * <code>repeated int32 label = 11;</code>
      * @return This builder for chaining.
      */
     public Builder clearLabel() {
@@ -2430,7 +2366,7 @@ private static final long serialVersionUID = 0L;
        }
     }
     /**
-     * <code>repeated int32 nSV = 13;</code>
+     * <code>repeated int32 nSV = 12;</code>
      * @return A list containing the nSV.
      */
     public java.util.List<java.lang.Integer>
@@ -2439,14 +2375,14 @@ private static final long serialVersionUID = 0L;
                java.util.Collections.unmodifiableList(nSV_) : nSV_;
     }
     /**
-     * <code>repeated int32 nSV = 13;</code>
+     * <code>repeated int32 nSV = 12;</code>
      * @return The count of nSV.
      */
     public int getNSVCount() {
       return nSV_.size();
     }
     /**
-     * <code>repeated int32 nSV = 13;</code>
+     * <code>repeated int32 nSV = 12;</code>
      * @param index The index of the element to return.
      * @return The nSV at the given index.
      */
@@ -2454,7 +2390,7 @@ private static final long serialVersionUID = 0L;
       return nSV_.getInt(index);
     }
     /**
-     * <code>repeated int32 nSV = 13;</code>
+     * <code>repeated int32 nSV = 12;</code>
      * @param index The index to set the value at.
      * @param value The nSV to set.
      * @return This builder for chaining.
@@ -2467,7 +2403,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 nSV = 13;</code>
+     * <code>repeated int32 nSV = 12;</code>
      * @param value The nSV to add.
      * @return This builder for chaining.
      */
@@ -2478,7 +2414,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 nSV = 13;</code>
+     * <code>repeated int32 nSV = 12;</code>
      * @param values The nSV to add.
      * @return This builder for chaining.
      */
@@ -2491,7 +2427,7 @@ private static final long serialVersionUID = 0L;
       return this;
     }
     /**
-     * <code>repeated int32 nSV = 13;</code>
+     * <code>repeated int32 nSV = 12;</code>
      * @return This builder for chaining.
      */
     public Builder clearNSV() {
