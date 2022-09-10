@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 package org.tribuo.regression.liblinear;
 
 import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Linear;
@@ -30,6 +33,8 @@ import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
+import org.tribuo.common.liblinear.protos.LibLinearModelProto;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
@@ -40,7 +45,9 @@ import org.tribuo.util.onnx.ONNXOperators;
 import org.tribuo.util.onnx.ONNXPlaceholder;
 import org.tribuo.util.onnx.ONNXRef;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,6 +92,46 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         super(name, description, featureIDMap, outputInfo, false, models);
         this.dimensionNames = Regressor.extractNames(outputInfo);
         this.mapping = ((ImmutableRegressionInfo) outputInfo).getIDtoNaturalOrderMapping();
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LibLinearRegressionModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (!"org.tribuo.regression.liblinear.LibLinearRegressionModel".equals(className)) {
+            throw new IllegalStateException("Invalid protobuf, this class can only deserialize LibLinearRegressionModel");
+        }
+        LibLinearModelProto proto = message.unpack(LibLinearModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Regressor.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a regression domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Regressor> outputDomain = (ImmutableOutputInfo<Regressor>) carrier.outputDomain();
+
+        if (proto.getModelsCount() != outputDomain.size()) {
+            throw new IllegalStateException("Invalid protobuf, expected " + outputDomain.size() + " model, found " + proto.getModelsCount());
+        }
+        try {
+            List<de.bwaldvogel.liblinear.Model> models = new ArrayList<>();
+            for (ByteString modelArray : proto.getModelsList()) {
+                ByteArrayInputStream bais = new ByteArrayInputStream(modelArray.toByteArray());
+                ObjectInputStream ois = new ObjectInputStream(bais);
+                de.bwaldvogel.liblinear.Model model = (de.bwaldvogel.liblinear.Model) ois.readObject();
+                ois.close();
+                models.add(model);
+            }
+            return new LibLinearRegressionModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,Collections.unmodifiableList(models));
+        } catch (IOException | ClassNotFoundException e) {
+            throw new IllegalStateException("Invalid protobuf, failed to deserialize liblinear model", e);
+        }
     }
 
     @Override
