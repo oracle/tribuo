@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,15 @@
 
 package org.tribuo.regression.xgboost;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.common.xgboost.XGBoostOutputConverter;
+import org.tribuo.common.xgboost.protos.XGBoostOutputConverterProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.regression.Regressor;
 
 import java.util.ArrayList;
@@ -30,13 +35,35 @@ import java.util.List;
  * <p>
  * Instances of this class are stateless and thread-safe.
  */
+@ProtoSerializableClass(version = XGBoostRegressionConverter.CURRENT_VERSION)
 public final class XGBoostRegressionConverter implements XGBoostOutputConverter<Regressor> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Construct an XGBoostRegressionConverter.
      */
     public XGBoostRegressionConverter() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static XGBoostRegressionConverter deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new XGBoostRegressionConverter();
+    }
 
     @Override
     public boolean generatesProbabilities() {
@@ -76,4 +103,13 @@ public final class XGBoostRegressionConverter implements XGBoostOutputConverter<
         return predictions;
     }
 
+    @Override
+    public XGBoostOutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    @Override
+    public Class<Regressor> getTypeWitness() {
+        return Regressor.class;
+    }
 }

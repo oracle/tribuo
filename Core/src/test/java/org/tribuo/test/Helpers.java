@@ -204,7 +204,7 @@ public final class Helpers {
         return deser;
     }
 
-    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Dataset<T> data) {
+    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Iterable<Example<T>> data) {
         // test provenance marshalling
         testProvenanceMarshalling(model.getProvenance());
 
