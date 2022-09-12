@@ -18,6 +18,7 @@ package org.tribuo.math.util;
 
 import org.tribuo.math.protos.NormalizerProto;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXNode;
 
@@ -64,5 +65,14 @@ public interface VectorNormalizer extends ProtoSerializable<NormalizerProto>, Se
     default ONNXNode exportNormalizer(ONNXNode input) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export a normalizer to ONNX format, but this is not implemented.");
         throw new IllegalStateException("Normalizer " + this.getClass() + " cannot be exported in ONNX models.");
+    }
+
+    /**
+     * Deserializes the vector normalizer from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The normalizer.
+     */
+    public static VectorNormalizer deserialize(NormalizerProto proto) {
+        return ProtoUtil.deserialize(proto);
     }
 }

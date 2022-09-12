@@ -22,6 +22,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.protos.KernelProto;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 
@@ -40,4 +41,12 @@ public interface Kernel extends Configurable, ProtoSerializable<KernelProto>, Pr
      */
     public double similarity(SparseVector first, SparseVector second);
 
+    /**
+     * Deserializes the kernel from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The kernel.
+     */
+    public static Kernel deserialize(KernelProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }

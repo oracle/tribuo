@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.multilabel.sgd.fm;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -24,9 +26,13 @@ import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.common.sgd.AbstractFMModel;
 import org.tribuo.common.sgd.FMParameters;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.multilabel.sgd.protos.FMMultiLabelModelProto;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.onnx.ONNXNode;
 
@@ -47,6 +53,11 @@ import java.util.Set;
  */
 public class FMMultiLabelModel extends AbstractFMModel<MultiLabel> implements ONNXExportable {
     private static final long serialVersionUID = 2L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final VectorNormalizer normalizer;
     private final double threshold;
@@ -70,6 +81,36 @@ public class FMMultiLabelModel extends AbstractFMModel<MultiLabel> implements ON
         this.threshold = threshold;
     }
 
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static FMMultiLabelModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        FMMultiLabelModelProto proto = message.unpack(FMMultiLabelModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(MultiLabel.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a multi-label domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<MultiLabel> outputDomain = (ImmutableOutputInfo<MultiLabel>) carrier.outputDomain();
+
+        Parameters params = Parameters.deserialize(proto.getParams());
+        if (!(params instanceof FMParameters)) {
+            throw new IllegalStateException("Invalid protobuf, parameters must be FMParameters, found " + params.getClass());
+        }
+
+        VectorNormalizer normalizer = VectorNormalizer.deserialize(proto.getNormalizer());
+
+        return new FMMultiLabelModel(carrier.name(), carrier.provenance(), carrier.featureDomain(), outputDomain,
+                (FMParameters) params, normalizer, carrier.generatesProbabilities(), proto.getThreshold());
+    }
+
     @Override
     public Prediction<MultiLabel> predict(Example<MultiLabel> example) {
         PredAndActive predTuple = predictSingle(example);
@@ -87,6 +128,23 @@ public class FMMultiLabelModel extends AbstractFMModel<MultiLabel> implements ON
             fullLabels.put(labelName,new MultiLabel(score));
         }
         return new Prediction<>(new MultiLabel(predictedLabels), fullLabels, predTuple.numActiveFeatures - 1, example, generatesProbabilities);
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<MultiLabel> carrier = createDataCarrier();
+        FMMultiLabelModelProto.Builder modelBuilder = FMMultiLabelModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setParams(modelParameters.serialize());
+        modelBuilder.setNormalizer(normalizer.serialize());
+        modelBuilder.setThreshold(threshold);
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(FMMultiLabelModel.class.getName());
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+
+        return builder.build();
     }
 
     @Override

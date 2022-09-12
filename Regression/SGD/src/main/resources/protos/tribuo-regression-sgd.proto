@@ -17,12 +17,12 @@
 syntax = "proto3";
 
 /*
- * Protos for serializing Tribuo classification SGD classes.
+ * Protos for serializing Tribuo regression SGD classes.
  */
-package tribuo.classification.sgd;
+package tribuo.regression.sgd;
 
 option java_multiple_files = true;
-option java_package = "org.tribuo.classification.sgd.protos";
+option java_package = "org.tribuo.regression.sgd.protos";
 
 // Import Tribuo's core protos
 import "tribuo-core.proto";
@@ -31,49 +31,20 @@ import "tribuo-core.proto";
 import "tribuo-math.proto";
 
 /*
-CRFParameters proto
+FMRegressionModel proto
  */
-message CRFParametersProto {
-  int32 numFeatures = 1;
-  int32 numLabels = 2;
-  tribuo.math.TensorProto biases = 3;
-  tribuo.math.TensorProto featureLabelWeights = 4;
-  tribuo.math.TensorProto labelLabelWeights = 5;
-}
-
-/*
-CRFModel proto
- */
-message CRFModelProto {
+message FMRegressionModelProto {
   tribuo.core.ModelDataProto metadata = 1;
   tribuo.math.ParametersProto params = 2;
-  string confidence_type = 3;
-}
-
-/*
-FMClassificationModel proto
- */
-message FMClassificationModelProto {
-  tribuo.core.ModelDataProto metadata = 1;
-  tribuo.math.ParametersProto params = 2;
-  tribuo.math.NormalizerProto normalizer = 3;
+  repeated string dimension_names = 3;
+  bool standardise = 4;
 }
 
 /*
 LinearSGDModel proto
  */
-message ClassificationLinearSGDProto {
+message RegressionLinearSGDProto {
   tribuo.core.ModelDataProto metadata = 1;
   tribuo.math.ParametersProto params = 2;
-  tribuo.math.NormalizerProto normalizer = 3;
-}
-
-/*
-KernelSVMModel proto
- */
-message KernelSVMModelProto {
-  tribuo.core.ModelDataProto metadata = 1;
-  tribuo.math.KernelProto kernel = 2;
-  tribuo.math.TensorProto weights = 3;
-  repeated tribuo.math.TensorProto support_vectors = 4;
+  repeated string dimension_names = 3;
 }

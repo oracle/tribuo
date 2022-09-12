@@ -41,6 +41,7 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceModel;
 
@@ -228,6 +229,40 @@ public final class Helpers {
             Prediction<T> cur = modelPreds.get(i);
             Prediction<T> other = deserPreds.get(i);
             assertTrue(cur.distributionEquals(other));
+        }
+
+        return deserModel;
+    }
+
+    public static <T extends Output<T>> SequenceModel<T> testSequenceModelProtoSerialization(SequenceModel<T> model, Class<T> outputClazz, SequenceDataset<T> data) {
+        // test provenance marshalling
+        testProvenanceMarshalling(model.getProvenance());
+
+        // serialize to proto
+        SequenceModelProto proto = model.serialize();
+
+        // deserialize from proto
+        SequenceModel<?> deserializedModel = SequenceModel.deserialize(proto);
+
+        // check provenance is equal
+        assertEquals(model.getProvenance(), deserializedModel.getProvenance());
+        // validate that the model is still of the right type
+        assertTrue(deserializedModel.validate(outputClazz));
+        SequenceModel<T> deserModel = deserializedModel.castModel(outputClazz);
+
+        // validate the predictions are the same
+        List<List<Prediction<T>>> modelPreds = model.predict(data);
+        List<List<Prediction<T>>> deserPreds = deserModel.predict(data);
+        assertEquals(modelPreds.size(),deserPreds.size());
+        for (int i = 0; i < modelPreds.size(); i++) {
+            List<Prediction<T>> innerModelPreds = modelPreds.get(i);
+            List<Prediction<T>> innerDeserPreds = deserPreds.get(i);
+            assertEquals(innerModelPreds.size(), innerDeserPreds.size());
+            for (int j = 0; j < innerModelPreds.size(); j++) {
+                Prediction<T> cur = innerModelPreds.get(j);
+                Prediction<T> other = innerDeserPreds.get(j);
+                assertTrue(cur.distributionEquals(other));
+            }
         }
 
         return deserModel;
