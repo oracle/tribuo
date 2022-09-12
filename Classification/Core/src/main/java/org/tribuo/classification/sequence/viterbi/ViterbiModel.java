@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,22 @@
 
 package org.tribuo.classification.sequence.viterbi;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Feature;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.protos.ViterbiModelProto;
+import org.tribuo.classification.protos.ViterbiModelProtoOrBuilder;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.la.DenseSparseMatrix;
+import org.tribuo.math.la.Tensor;
+import org.tribuo.protos.core.ModelProto;
+import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceExample;
@@ -42,6 +52,11 @@ import java.util.stream.Collectors;
 public class ViterbiModel extends SequenceModel<Label> {
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Types of label score aggregation.
@@ -83,6 +98,40 @@ public class ViterbiModel extends SequenceModel<Label> {
         this.labelFeatureExtractor = labelFeatureExtractor;
         this.stackSize = stackSize;
         this.scoreAggregation = scoreAggregation;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ViterbiModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ViterbiModelProto proto = message.unpack(ViterbiModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Label.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a label domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Label> outputDomain = (ImmutableOutputInfo<Label>) carrier.outputDomain();
+
+        Model<?> model = Model.deserialize(proto.getModel());
+        if (!model.validate(Label.class)) {
+            throw new IllegalStateException("Invalid protobuf, expected a classification model, found " + model);
+        }
+        Model<Label> labelModel = model.castModel(Label.class);
+
+        LabelFeatureExtractor labelFeatureExtractor = LabelFeatureExtractor.deserialize(proto.getLabelFeatureExtractor());
+
+        int stackSize = proto.getStackSize();
+
+        ScoreAggregation scoreAggregation = ScoreAggregation.valueOf(proto.getScoreAggregation());
+
+        return new ViterbiModel(carrier.name(),carrier.provenance(),labelModel,labelFeatureExtractor,stackSize,scoreAggregation);
     }
 
     @Override
@@ -243,4 +292,22 @@ public class ViterbiModel extends SequenceModel<Label> {
         return model.getTopFeatures(n);
     }
 
+    @Override
+    public SequenceModelProto serialize() {
+        ModelDataCarrier<Label> carrier = createDataCarrier();
+
+        ViterbiModelProto.Builder modelBuilder = ViterbiModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setModel(model.serialize());
+        modelBuilder.setLabelFeatureExtractor(labelFeatureExtractor.serialize());
+        modelBuilder.setStackSize(stackSize);
+        modelBuilder.setScoreAggregation(scoreAggregation.name());
+
+        SequenceModelProto.Builder builder = SequenceModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(ViterbiModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
+    }
 }
