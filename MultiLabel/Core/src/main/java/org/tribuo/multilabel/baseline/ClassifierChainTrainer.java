@@ -257,7 +257,7 @@ public final class ClassifierChainTrainer implements Trainer<MultiLabel> {
             }
         }
         ModelProvenance provenance = new ModelProvenance(ClassifierChainModel.class.getName(), OffsetDateTime.now(), datasetProvenance, trainerProvenance, runProvenance);
-        return new ClassifierChainModel(Collections.unmodifiableList(curLabelOrder),modelsList,provenance,featureMap,labelInfo);
+        return new ClassifierChainModel(curLabelOrder,modelsList,provenance,featureMap,labelInfo);
     }
 
     @Override

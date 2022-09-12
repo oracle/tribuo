@@ -34,6 +34,16 @@ public final class TribuoMultilabelCore {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_multilabel_BinaryExampleProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_multilabel_IndependentMultiLabelModelProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_multilabel_IndependentMultiLabelModelProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_multilabel_ClassifierChainModelProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_multilabel_ClassifierChainModelProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -44,26 +54,33 @@ public final class TribuoMultilabelCore {
   static {
     java.lang.String[] descriptorData = {
       "\n\034tribuo-multilabel-core.proto\022\021tribuo.m" +
-      "ultilabel\032\021tribuo-core.proto\032\021olcut_prot" +
-      "o.proto\"H\n\017MultiLabelProto\022\r\n\005label\030\001 \003(" +
-      "\t\022\020\n\010lblScore\030\002 \003(\001\022\024\n\014overallScore\030\003 \001(" +
-      "\001\"d\n\032MutableMultiLabelInfoProto\022\r\n\005label" +
-      "\030\001 \003(\t\022\r\n\005count\030\002 \003(\003\022\024\n\014unknownCount\030\003 " +
-      "\001(\005\022\022\n\ntotalCount\030\004 \001(\005\"r\n\034ImmutableMult" +
-      "iLabelInfoProto\022\r\n\005label\030\001 \003(\t\022\r\n\005count\030" +
-      "\002 \003(\003\022\n\n\002id\030\003 \003(\005\022\024\n\014unknownCount\030\004 \001(\005\022" +
-      "\022\n\ntotalCount\030\005 \001(\005\"\254\001\n\022BinaryExamplePro" +
-      "to\0220\n\rinner_example\030\001 \001(\0132\031.tribuo.core." +
-      "ExampleProto\022\'\n\005label\030\002 \001(\0132\030.tribuo.cor" +
-      "e.OutputProto\022\016\n\006weight\030\003 \001(\002\022\024\n\014feature" +
-      "_name\030\004 \003(\t\022\025\n\rfeature_value\030\005 \003(\001B \n\034or" +
-      "g.tribuo.multilabel.protosP\001b\006proto3"
+      "ultilabel\032\021tribuo-core.proto\"H\n\017MultiLab" +
+      "elProto\022\r\n\005label\030\001 \003(\t\022\020\n\010lblScore\030\002 \003(\001" +
+      "\022\024\n\014overallScore\030\003 \001(\001\"d\n\032MutableMultiLa" +
+      "belInfoProto\022\r\n\005label\030\001 \003(\t\022\r\n\005count\030\002 \003" +
+      "(\003\022\024\n\014unknownCount\030\003 \001(\005\022\022\n\ntotalCount\030\004" +
+      " \001(\005\"r\n\034ImmutableMultiLabelInfoProto\022\r\n\005" +
+      "label\030\001 \003(\t\022\r\n\005count\030\002 \003(\003\022\n\n\002id\030\003 \003(\005\022\024" +
+      "\n\014unknownCount\030\004 \001(\005\022\022\n\ntotalCount\030\005 \001(\005" +
+      "\"\254\001\n\022BinaryExampleProto\0220\n\rinner_example" +
+      "\030\001 \001(\0132\031.tribuo.core.ExampleProto\022\'\n\005lab" +
+      "el\030\002 \001(\0132\030.tribuo.core.OutputProto\022\016\n\006we" +
+      "ight\030\003 \001(\002\022\024\n\014feature_name\030\004 \003(\t\022\025\n\rfeat" +
+      "ure_value\030\005 \003(\001\"\243\001\n\037IndependentMultiLabe" +
+      "lModelProto\022-\n\010metadata\030\001 \001(\0132\033.tribuo.c" +
+      "ore.ModelDataProto\022\'\n\006models\030\002 \003(\0132\027.tri" +
+      "buo.core.ModelProto\022(\n\006labels\030\003 \003(\0132\030.tr" +
+      "ibuo.core.OutputProto\"\242\001\n\031ClassifierChai" +
+      "nModelProto\022-\n\010metadata\030\001 \001(\0132\033.tribuo.c" +
+      "ore.ModelDataProto\022\'\n\006models\030\002 \003(\0132\027.tri" +
+      "buo.core.ModelProto\022-\n\013label_order\030\003 \003(\013" +
+      "2\030.tribuo.core.OutputProtoB \n\034org.tribuo" +
+      ".multilabel.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           org.tribuo.protos.core.TribuoCore.getDescriptor(),
-          com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor(),
         });
     internal_static_tribuo_multilabel_MultiLabelProto_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -89,8 +106,19 @@ public final class TribuoMultilabelCore {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_multilabel_BinaryExampleProto_descriptor,
         new java.lang.String[] { "InnerExample", "Label", "Weight", "FeatureName", "FeatureValue", });
+    internal_static_tribuo_multilabel_IndependentMultiLabelModelProto_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_tribuo_multilabel_IndependentMultiLabelModelProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_multilabel_IndependentMultiLabelModelProto_descriptor,
+        new java.lang.String[] { "Metadata", "Models", "Labels", });
+    internal_static_tribuo_multilabel_ClassifierChainModelProto_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_tribuo_multilabel_ClassifierChainModelProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_multilabel_ClassifierChainModelProto_descriptor,
+        new java.lang.String[] { "Metadata", "Models", "LabelOrder", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
-    com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)

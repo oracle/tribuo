@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.multilabel.baseline;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -23,9 +25,14 @@ import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
+import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.multilabel.protos.ClassifierChainModelProto;
+import org.tribuo.protos.core.ModelProto;
+import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -66,6 +73,11 @@ import static org.tribuo.multilabel.baseline.ClassifierChainTrainer.CC_SEPARATOR
 public final class ClassifierChainModel extends Model<MultiLabel> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final List<Model<Label>> models;
     private final List<Label> labelOrder;
 
@@ -79,8 +91,63 @@ public final class ClassifierChainModel extends Model<MultiLabel> {
      */
     ClassifierChainModel(List<Label> labelOrder, List<Model<Label>> models, ModelProvenance description, ImmutableFeatureMap featureMap, ImmutableOutputInfo<MultiLabel> labelInfo) {
         super("classifier-chain",description,featureMap,labelInfo,false);
-        this.labelOrder = labelOrder;
-        this.models = models;
+        this.labelOrder = Collections.unmodifiableList(labelOrder);
+        this.models = Collections.unmodifiableList(models);
+    }
+
+    private ClassifierChainModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureMap,
+                                 ImmutableOutputInfo<MultiLabel> labelInfo, List<Label> labelOrder,
+                                 List<Model<Label>> models) {
+        super(name,provenance,featureMap,labelInfo,false);
+        this.labelOrder = Collections.unmodifiableList(labelOrder);
+        this.models = Collections.unmodifiableList(models);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ClassifierChainModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ClassifierChainModelProto proto = message.unpack(ClassifierChainModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(MultiLabel.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a multi-label domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<MultiLabel> outputDomain = (ImmutableOutputInfo<MultiLabel>) carrier.outputDomain();
+
+        if (proto.getLabelOrderCount() != outputDomain.size()) {
+            throw new IllegalStateException("Invalid protobuf, mismatch in number of labels, found " + proto.getLabelOrderCount() + " expected " + outputDomain.size());
+        }
+        if (proto.getLabelOrderCount() != proto.getModelsCount()) {
+            throw new IllegalStateException("Invalid protobuf, expected one model per label, found " + proto.getModelsCount() + " models and " + outputDomain.size() + " labels");
+        }
+        List<Label> labelOrder = new ArrayList<>(proto.getLabelOrderCount());
+        for (OutputProto p : proto.getLabelOrderList()) {
+            Output<?> output = Output.deserialize(p);
+            if (output instanceof Label) {
+                labelOrder.add((Label)output);
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected label ordering, found " + output.getClass());
+            }
+        }
+        List<Model<Label>> models = new ArrayList<>(proto.getModelsCount());
+        for (ModelProto p : proto.getModelsList()) {
+            Model<?> model = Model.deserialize(p);
+            if (model.validate(Label.class)) {
+                models.add(model.castModel(Label.class));
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected all models to be classification, found " + model);
+            }
+        }
+
+        return new ClassifierChainModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,labelOrder,models);
     }
 
     @Override
@@ -125,6 +192,27 @@ public final class ClassifierChainModel extends Model<MultiLabel> {
     @Override
     public Optional<Excuse<MultiLabel>> getExcuse(Example<MultiLabel> example) {
         return Optional.empty();
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<MultiLabel> carrier = createDataCarrier();
+
+        ClassifierChainModelProto.Builder modelBuilder = ClassifierChainModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        for (Model<Label> m : models) {
+            modelBuilder.addModels(m.serialize());
+        }
+        for (Label l : labelOrder) {
+            modelBuilder.addLabelOrder(l.serialize());
+        }
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(ClassifierChainModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     @Override
