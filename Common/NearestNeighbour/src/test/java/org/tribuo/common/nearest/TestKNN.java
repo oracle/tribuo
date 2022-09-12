@@ -166,6 +166,7 @@ public class TestKNN {
 
         // Test serialization
         Helpers.testModelSerialization(model, Label.class);
+        Helpers.testModelProtoSerialization(model, Label.class, testingDataset);
     }
 
     @Test
@@ -177,6 +178,7 @@ public class TestKNN {
 
         // Test serialization
         Helpers.testModelSerialization(model,Regressor.class);
+        Helpers.testModelProtoSerialization(model, Regressor.class, pair.getB());
     }
 
     @Test

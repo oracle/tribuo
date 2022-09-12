@@ -165,6 +165,11 @@ public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label
         return new ConfiguredObjectProvenanceImpl(this, "EnsembleCombiner");
     }
 
+    @Override
+    public Class<Label> getTypeWitness() {
+        return Label.class;
+    }
+
     /**
      * Exports this voting combiner to ONNX.
      * <p>

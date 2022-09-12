@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo's K-NN model.
+ */
+package tribuo.common.nearest;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.common.nearest.protos";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+// Import Tribuo's math protos
+import "tribuo-math.proto";
+
+/*
+KNNModel proto
+ */
+message KNNModelProto {
+ tribuo.core.ModelDataProto metadata = 1;
+ repeated tribuo.math.TensorProto vectors = 2;
+ repeated tribuo.core.OutputProto outputs = 3;
+ int32 k = 4;
+ string dist_type = 5;
+ int32 num_threads = 6;
+ string parallel_backend = 7;
+ tribuo.core.EnsembleCombinerProto combiner = 8;
+ tribuo.math.NeighbourFactoryProto neighbours_query_factory = 9;
+}

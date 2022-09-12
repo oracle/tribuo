@@ -178,6 +178,11 @@ public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLab
         return new ConfiguredObjectProvenanceImpl(this,"EnsembleCombiner");
     }
 
+    @Override
+    public Class<MultiLabel> getTypeWitness() {
+        return MultiLabel.class;
+    }
+
     /**
      * Exports this voting combiner to ONNX.
      * <p>

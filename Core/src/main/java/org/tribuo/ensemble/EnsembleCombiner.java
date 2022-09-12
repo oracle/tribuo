@@ -23,6 +23,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.EnsembleCombinerProto;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXRef;
@@ -87,5 +88,26 @@ public interface EnsembleCombiner<T extends Output<T>> extends Configurable, Pro
     default <U extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, U weight) {
         Logger.getLogger(this.getClass().getName()).severe("Tried to export an ensemble combiner to ONNX format, but this is not implemented.");
         throw new IllegalStateException("This ensemble cannot be exported as the combiner '" + this.getClass() + "' uses the default implementation of EnsembleCombiner.exportCombiner.");
+    }
+
+    /**
+     * The type witness used when deserializing the combiner from a protobuf.
+     * <p>
+     * The default implementation throws {@link UnsupportedOperationException} for compatibility with implementations
+     * which don't use protobuf serialization. This implementation will be removed in the next major version of
+     * Tribuo.
+     * @return The output class this object produces.
+     */
+    default public Class<T> getTypeWitness() {
+        throw new UnsupportedOperationException("This implementation needs to be updated to support protobuf serialization");
+    }
+
+    /**
+     * Deserialization helper for EnsembleCombiner.
+     * @param proto The proto to deserialize.
+     * @return The combiner.
+     */
+    public static EnsembleCombiner<?> deserialize(EnsembleCombinerProto proto) {
+        return ProtoUtil.deserialize(proto);
     }
 }
