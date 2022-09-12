@@ -164,6 +164,11 @@ public final class TribuoCoreImpl {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_core_MinimumCardinalitySequenceDatasetProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_WeightedEnsembleModelProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_WeightedEnsembleModelProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -272,8 +277,13 @@ public final class TribuoCoreImpl {
       "re.DatasetDataProto\0223\n\010examples\030\002 \003(\0132!." +
       "tribuo.core.SequenceExampleProto\022\027\n\017min_" +
       "cardinality\030\004 \001(\005\022\034\n\024num_examples_remove" +
-      "d\030\005 \001(\005\022\017\n\007removed\030\006 \003(\tB\032\n\026org.tribuo.p" +
-      "rotos.coreP\001b\006proto3"
+      "d\030\005 \001(\005\022\017\n\007removed\030\006 \003(\t\"\273\001\n\032WeightedEns" +
+      "embleModelProto\022-\n\010metadata\030\001 \001(\0132\033.trib" +
+      "uo.core.ModelDataProto\022\'\n\006models\030\002 \003(\0132\027" +
+      ".tribuo.core.ModelProto\022\017\n\007weights\030\003 \003(\002" +
+      "\0224\n\010combiner\030\004 \001(\0132\".tribuo.core.Ensembl" +
+      "eCombinerProtoB\032\n\026org.tribuo.protos.core" +
+      "P\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -460,6 +470,12 @@ public final class TribuoCoreImpl {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_MinimumCardinalitySequenceDatasetProto_descriptor,
         new java.lang.String[] { "Metadata", "Examples", "MinCardinality", "NumExamplesRemoved", "Removed", });
+    internal_static_tribuo_core_WeightedEnsembleModelProto_descriptor =
+      getDescriptor().getMessageTypes().get(26);
+    internal_static_tribuo_core_WeightedEnsembleModelProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_WeightedEnsembleModelProto_descriptor,
+        new java.lang.String[] { "Metadata", "Models", "Weights", "Combiner", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
   }
 

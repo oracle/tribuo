@@ -696,6 +696,19 @@ public final class Util {
     }
 
     /**
+     * Boxes an array of floats into a list.
+     * @param input The array to box.
+     * @return The list of boxed floats.
+     */
+    public static List<Float> toBoxedFloats(float[] input) {
+        List<Float> output = new ArrayList<>(input.length);
+        for (int i = 0; i < input.length; i++) {
+            output.add(input[i]);
+        }
+        return output;
+    }
+
+    /**
      * Converts a boxed list of integers into an array of primitive doubles.
      * @param input The input integer list.
      * @return An array of doubles.

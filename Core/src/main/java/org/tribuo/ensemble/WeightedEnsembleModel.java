@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.tribuo.ensemble;
 
 import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
@@ -27,7 +29,11 @@ import org.tribuo.Model;
 import org.tribuo.ONNXExportable;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.core.ModelProto;
+import org.tribuo.protos.core.WeightedEnsembleModelProto;
 import org.tribuo.provenance.EnsembleModelProvenance;
+import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.impl.TimestampedTrainerProvenance;
 import org.tribuo.util.Util;
 import org.tribuo.util.onnx.ONNXContext;
@@ -41,7 +47,6 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +59,11 @@ import java.util.Set;
  */
 public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleModel<T> implements ONNXExportable {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     protected final float[] weights;
 
@@ -91,11 +101,59 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
      * @param weights The model combination weights.
      */
     public WeightedEnsembleModel(String name, EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDMap,
-                          ImmutableOutputInfo<T> outputIDInfo,
-                          List<Model<T>> newModels, EnsembleCombiner<T> combiner, float[] weights) {
+                                 ImmutableOutputInfo<T> outputIDInfo, List<Model<T>> newModels,
+                                 EnsembleCombiner<T> combiner, float[] weights) {
         super(name,provenance,featureIDMap,outputIDInfo,newModels);
         this.weights = Arrays.copyOf(weights,weights.length);
         this.combiner = combiner;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
+    public static WeightedEnsembleModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        WeightedEnsembleModelProto proto = message.unpack(WeightedEnsembleModelProto.class);
+
+        ModelDataCarrier<? extends Output<?>> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ModelProvenance prov = carrier.provenance();
+        if (!(prov instanceof EnsembleModelProvenance)) {
+            throw new IllegalStateException("Invalid protobuf, the provenance was not an EnsembleModelProvenance. Found " + prov);
+        }
+        EnsembleModelProvenance ensembleProvenance = (EnsembleModelProvenance) prov;
+        ImmutableOutputInfo<? extends Output<?>> outputDomain = carrier.outputDomain();
+        Class<? extends Output> outputClass = outputDomain.getOutput(0).getClass();
+        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());
+        if (!outputClass.equals(combiner.getTypeWitness())) {
+            throw new IllegalStateException("Invalid protobuf, combiner and output domain have a type mismatch, expected " + outputClass + " found " + combiner.getTypeWitness());
+        }
+
+        if (proto.getModelsCount() == 0) {
+            throw new IllegalStateException("Invalid protobuf, no models were found in the ensemble");
+        }
+        if (proto.getModelsCount() != proto.getWeightsCount()) {
+            throw new IllegalStateException("Invalid protobuf, different numbers of models and weights were found, " + proto.getModelsCount() + " models, " + proto.getWeightsCount() + " weights");
+        }
+        List<Model> models = new ArrayList<>(proto.getModelsCount());
+        for (ModelProto p : proto.getModelsList()) {
+            Model model = Model.deserialize(p);
+            if (model.validate(outputClass)) {
+                models.add(model);
+            } else {
+                throw new IllegalStateException("Invalid protobuf, output type of model '" + model.toString() + "' did not match expected " + outputClass);
+            }
+        }
+
+        float[] weights = Util.toPrimitiveFloat(proto.getWeightsList());
+
+        return new WeightedEnsembleModel(carrier.name(), ensembleProvenance, carrier.featureDomain(), outputDomain,
+            models, combiner, weights);
     }
 
     @Override
@@ -279,5 +337,25 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
         ONNXNode concat = onnx.operation(ONNXOperators.CONCAT, unsqueezedMembers, "ensemble_concat", Collections.singletonMap("axis", 2));
 
         return combiner.exportCombiner(concat, ensembleWeights);
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        WeightedEnsembleModelProto.Builder modelBuilder = WeightedEnsembleModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        for (Model<T> m : models) {
+            modelBuilder.addModels(m.serialize());
+        }
+        modelBuilder.addAllWeights(Util.toBoxedFloats(weights));
+        modelBuilder.setCombiner(combiner.serialize());
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(WeightedEnsembleModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 }

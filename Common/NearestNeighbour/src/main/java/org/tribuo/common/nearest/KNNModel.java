@@ -203,7 +203,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         Backend backend = Backend.valueOf(proto.getParallelBackend());
         NeighboursQueryFactory queryFactory = NeighboursQueryFactory.deserialize(proto.getNeighboursQueryFactory());
 
-        return new KNNModel(carrier.name(), carrier.provenance(), carrier.featureDomain(), outputDomain,
+        return new KNNModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain,
             carrier.generatesProbabilities(), k, distType, numThreads, combiner, pairs, backend, queryFactory);
     }
 

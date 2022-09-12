@@ -127,8 +127,7 @@ public class KMeansModel extends Model<ClusterID> {
 
         DistanceType distType = DistanceType.valueOf(proto.getDistType());
 
-        return new KMeansModel(carrier.name(), carrier.provenance(), carrier.featureDomain(),
-            outputDomain, centroids, distType);
+        return new KMeansModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain, centroids, distType);
     }
 
     /**
