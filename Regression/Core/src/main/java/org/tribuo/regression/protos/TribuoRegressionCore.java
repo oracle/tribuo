@@ -34,6 +34,11 @@ public final class TribuoRegressionCore {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_regression_ImmutableRegressionInfoProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_regression_DummyRegressionModelProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_regression_DummyRegressionModelProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -44,26 +49,30 @@ public final class TribuoRegressionCore {
   static {
     java.lang.String[] descriptorData = {
       "\n\034tribuo-regression-core.proto\022\021tribuo.r" +
-      "egression\032\021tribuo-core.proto\032\021olcut_prot" +
-      "o.proto\"?\n\016RegressorProto\022\014\n\004name\030\001 \003(\t\022" +
-      "\r\n\005value\030\002 \003(\001\022\020\n\010variance\030\003 \003(\001\"+\n\026Regr" +
-      "essionFactoryProto\022\021\n\tsplitChar\030\001 \001(\t\"\242\001" +
-      "\n\032MutableRegressionInfoProto\022\r\n\005label\030\001 " +
-      "\003(\t\022\r\n\005count\030\002 \003(\003\022\013\n\003max\030\003 \003(\001\022\013\n\003min\030\004" +
-      " \003(\001\022\014\n\004mean\030\005 \003(\001\022\022\n\nsumSquares\030\006 \003(\001\022\024" +
-      "\n\014unknownCount\030\007 \001(\005\022\024\n\014overallCount\030\010 \001" +
-      "(\003\"\260\001\n\034ImmutableRegressionInfoProto\022\r\n\005l" +
-      "abel\030\001 \003(\t\022\r\n\005count\030\002 \003(\003\022\n\n\002id\030\003 \003(\005\022\013\n" +
-      "\003max\030\004 \003(\001\022\013\n\003min\030\005 \003(\001\022\014\n\004mean\030\006 \003(\001\022\022\n" +
-      "\nsumSquares\030\007 \003(\001\022\024\n\014unknownCount\030\010 \001(\005\022" +
-      "\024\n\014overallCount\030\t \001(\003B \n\034org.tribuo.regr" +
-      "ession.protosP\001b\006proto3"
+      "egression\032\021tribuo-core.proto\"?\n\016Regresso" +
+      "rProto\022\014\n\004name\030\001 \003(\t\022\r\n\005value\030\002 \003(\001\022\020\n\010v" +
+      "ariance\030\003 \003(\001\"+\n\026RegressionFactoryProto\022" +
+      "\021\n\tsplitChar\030\001 \001(\t\"\242\001\n\032MutableRegression" +
+      "InfoProto\022\r\n\005label\030\001 \003(\t\022\r\n\005count\030\002 \003(\003\022" +
+      "\013\n\003max\030\003 \003(\001\022\013\n\003min\030\004 \003(\001\022\014\n\004mean\030\005 \003(\001\022" +
+      "\022\n\nsumSquares\030\006 \003(\001\022\024\n\014unknownCount\030\007 \001(" +
+      "\005\022\024\n\014overallCount\030\010 \001(\003\"\260\001\n\034ImmutableReg" +
+      "ressionInfoProto\022\r\n\005label\030\001 \003(\t\022\r\n\005count" +
+      "\030\002 \003(\003\022\n\n\002id\030\003 \003(\005\022\013\n\003max\030\004 \003(\001\022\013\n\003min\030\005" +
+      " \003(\001\022\014\n\004mean\030\006 \003(\001\022\022\n\nsumSquares\030\007 \003(\001\022\024" +
+      "\n\014unknownCount\030\010 \001(\005\022\024\n\014overallCount\030\t \001" +
+      "(\003\"\321\001\n\031DummyRegressionModelProto\022-\n\010meta" +
+      "data\030\001 \001(\0132\033.tribuo.core.ModelDataProto\022" +
+      "\022\n\ndummy_type\030\002 \001(\t\022(\n\006output\030\003 \001(\0132\030.tr" +
+      "ibuo.core.OutputProto\022\014\n\004seed\030\004 \001(\003\022\r\n\005m" +
+      "eans\030\005 \003(\001\022\021\n\tvariances\030\006 \003(\001\022\027\n\017dimensi" +
+      "on_names\030\007 \003(\tB \n\034org.tribuo.regression." +
+      "protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           org.tribuo.protos.core.TribuoCore.getDescriptor(),
-          com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor(),
         });
     internal_static_tribuo_regression_RegressorProto_descriptor =
       getDescriptor().getMessageTypes().get(0);
@@ -89,8 +98,13 @@ public final class TribuoRegressionCore {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_regression_ImmutableRegressionInfoProto_descriptor,
         new java.lang.String[] { "Label", "Count", "Id", "Max", "Min", "Mean", "SumSquares", "UnknownCount", "OverallCount", });
+    internal_static_tribuo_regression_DummyRegressionModelProto_descriptor =
+      getDescriptor().getMessageTypes().get(4);
+    internal_static_tribuo_regression_DummyRegressionModelProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_regression_DummyRegressionModelProto_descriptor,
+        new java.lang.String[] { "Metadata", "DummyType", "Output", "Seed", "Means", "Variances", "DimensionNames", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
-    com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor();
   }
 
   // @@protoc_insertion_point(outer_class_scope)
