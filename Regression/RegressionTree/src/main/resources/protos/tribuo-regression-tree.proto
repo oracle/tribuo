@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo regression trees.
+ */
+package tribuo.regression.tree;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.regression.tree.protos";
+
+// We use any to encode polymorphism
+import "google/protobuf/any.proto";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+// Import Tribuo's tree protos
+import "tribuo-tree.proto";
+
+/*
+Carrier for a list of tree nodes.
+ */
+message TreeNodeListProto {
+  repeated TreeNodeProto nodes = 3;
+}
+
+/*
+IndependentRegressionTreeModel proto
+ */
+message IndependentRegressionTreeModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  map<string,TreeNodeListProto> nodes = 2;
+}

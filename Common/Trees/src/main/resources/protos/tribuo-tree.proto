@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo trees.
+ */
+package tribuo.tree;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.common.tree.protos";
+
+// We use any to encode polymorphism
+import "google/protobuf/any.proto";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+/**
+Tree Node proto
+ */
+message TreeNodeProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+SplitNode proto
+ */
+message SplitNodeProto {
+  int32 parent_idx = 1;
+  int32 greater_than_idx = 2;
+  int32 less_than_or_equal_idx = 3;
+  int32 split_feature_idx = 4;
+  double split_value = 5;
+  double impurity = 6;
+}
+
+/*
+LeafNode proto
+ */
+message LeafNodeProto {
+  int32 parent_idx = 1;
+  double impurity = 2;
+  tribuo.core.OutputProto output = 3;
+  map<string,tribuo.core.OutputProto> score = 4;
+  bool generates_probabilities = 5;
+}
+
+/*
+TreeModel proto
+ */
+message TreeModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated TreeNodeProto nodes = 2;
+}
