@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.regression.rtree;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -27,10 +29,16 @@ import org.tribuo.common.tree.LeafNode;
 import org.tribuo.common.tree.Node;
 import org.tribuo.common.tree.SplitNode;
 import org.tribuo.common.tree.TreeModel;
+import org.tribuo.common.tree.protos.TreeModelProto;
+import org.tribuo.common.tree.protos.TreeNodeProto;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.Regressor.DimensionTuple;
+import org.tribuo.regression.rtree.protos.IndependentRegressionTreeModelProto;
+import org.tribuo.regression.rtree.protos.TreeNodeListProto;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,13 +61,58 @@ import java.util.Set;
 public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final Map<String,Node<Regressor>> roots;
 
     IndependentRegressionTreeModel(String name, ModelProvenance description,
-                                          ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo, boolean generatesProbabilities,
-                                          Map<String,Node<Regressor>> roots) {
+                                   ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo, boolean generatesProbabilities,
+                                   Map<String,Node<Regressor>> roots) {
         super(name, description, featureIDMap, outputIDInfo, generatesProbabilities, gatherActiveFeatures(featureIDMap,roots));
         this.roots = roots;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass to ensure all the output types are the same.
+    public static IndependentRegressionTreeModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        IndependentRegressionTreeModelProto proto = message.unpack(IndependentRegressionTreeModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Regressor.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a regression domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Regressor> outputDomain = (ImmutableOutputInfo<Regressor>) carrier.outputDomain();
+
+        if (proto.getNodesCount() == 0) {
+            throw new IllegalStateException("Invalid protobuf, tree must contain nodes");
+        } else if (proto.getNodesCount() != outputDomain.size()) {
+            throw new IllegalStateException("Invalid protobuf, must have one tree per output dimension, found " + proto.getNodesCount());
+        }
+
+        Map<String,Node<Regressor>> map = new HashMap<>();
+
+        for (Map.Entry<String, TreeNodeListProto> e : proto.getNodesMap().entrySet()) {
+            List<TreeNodeProto> nodeProtos = e.getValue().getNodesList();
+            if (nodeProtos.size() == 0) {
+                throw new IllegalStateException("Invalid protobuf, tree must contain nodes");
+            }
+            List<Node<Regressor>> nodes = deserializeFromProtos(nodeProtos, Regressor.class);
+            map.put(e.getKey(), nodes.get(0));
+        }
+
+        return new IndependentRegressionTreeModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,carrier.generatesProbabilities(),map);
     }
 
     private static Map<String,List<String>> gatherActiveFeatures(ImmutableFeatureMap fMap, Map<String,Node<Regressor>> roots) {
@@ -308,5 +361,24 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
     @Override
     public Node<Regressor> getRoot() {
         return null;
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<Regressor> carrier = createDataCarrier();
+
+        IndependentRegressionTreeModelProto.Builder modelBuilder = IndependentRegressionTreeModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        for (Map.Entry<String, Node<Regressor>> e : roots.entrySet()) {
+            TreeNodeListProto listProto = TreeNodeListProto.newBuilder().addAllNodes(serializeToNodes(e.getValue())).build();
+            modelBuilder.putNodes(e.getKey(), listProto);
+        }
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(TreeModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 }

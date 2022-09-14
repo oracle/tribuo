@@ -22,10 +22,7 @@ syntax = "proto3";
 package tribuo.regression.tree;
 
 option java_multiple_files = true;
-option java_package = "org.tribuo.regression.tree.protos";
-
-// We use any to encode polymorphism
-import "google/protobuf/any.proto";
+option java_package = "org.tribuo.regression.rtree.protos";
 
 // Import Tribuo's core protos
 import "tribuo-core.proto";
@@ -37,7 +34,7 @@ import "tribuo-tree.proto";
 Carrier for a list of tree nodes.
  */
 message TreeNodeListProto {
-  repeated TreeNodeProto nodes = 3;
+  repeated tribuo.common.tree.TreeNodeProto nodes = 3;
 }
 
 /*

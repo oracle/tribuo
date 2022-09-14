@@ -16,7 +16,10 @@
 
 package org.tribuo.common.tree;
 
+import com.google.protobuf.Any;
 import org.tribuo.Output;
+import org.tribuo.common.tree.protos.SplitNodeProto;
+import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.math.la.SparseVector;
 
 import java.util.Objects;
@@ -26,6 +29,11 @@ import java.util.Objects;
  */
 public class SplitNode<T extends Output<T>> implements Node<T> {
     private static final long serialVersionUID = 3L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final Node<T> greaterThan;
 
@@ -137,6 +145,118 @@ public class SplitNode<T extends Output<T>> implements Node<T> {
     @Override
     public int hashCode() {
         return Objects.hash(greaterThan, lessThanOrEqual, splitFeature, splitValue, impurity);
+    }
+
+    TreeNodeProto serialize(int parentIdx, int curIdx, int greaterThanIdx, int lessThanOrEqualIdx) {
+        SplitNodeProto.Builder nodeBuilder = SplitNodeProto.newBuilder();
+        nodeBuilder.setParentIdx(parentIdx);
+        nodeBuilder.setCurIdx(curIdx);
+        nodeBuilder.setGreaterThanIdx(greaterThanIdx);
+        nodeBuilder.setLessThanOrEqualIdx(lessThanOrEqualIdx);
+        nodeBuilder.setSplitFeatureIdx(splitFeature);
+        nodeBuilder.setSplitValue(splitValue);
+        nodeBuilder.setImpurity(impurity);
+
+        TreeNodeProto.Builder builder = TreeNodeProto.newBuilder();
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(LeafNode.class.getName());
+        builder.setSerializedData(Any.pack(nodeBuilder.build()));
+
+        return builder.build();
+    }
+
+    static final class SplitNodeBuilder<T extends Output<T>> extends TreeModel.NodeBuilder implements Node<T> {
+
+        private final int parentIdx;
+        private final int curIdx;
+        private final int greaterThanIdx;
+        private final int lessThanOrEqualIdx;
+        private final int splitFeature;
+        private final double splitValue;
+        private final double impurity;
+
+        private Node<T> greaterThan;
+        private Node<T> lessThanOrEqual;
+
+        SplitNodeBuilder(SplitNodeProto proto) {
+            this.parentIdx = proto.getParentIdx();
+            this.curIdx = proto.getCurIdx();
+            this.greaterThanIdx = proto.getGreaterThanIdx();
+            this.lessThanOrEqualIdx = proto.getLessThanOrEqualIdx();
+            this.splitFeature = proto.getSplitFeatureIdx();
+            this.splitValue = proto.getSplitValue();
+            this.impurity = proto.getImpurity();
+        }
+
+        SplitNodeBuilder(int parentIdx, int curIdx, int greaterThanIdx, int lessThanOrEqualIdx, int splitFeature, double splitValue, double impurity) {
+            this.parentIdx = parentIdx;
+            this.curIdx = curIdx;
+            this.greaterThanIdx = greaterThanIdx;
+            this.lessThanOrEqualIdx = lessThanOrEqualIdx;
+            this.splitFeature = splitFeature;
+            this.splitValue = splitValue;
+            this.impurity = impurity;
+        }
+
+        @Override
+        public boolean isLeaf() {
+            return false;
+        }
+
+        @Override
+        public Node<T> getNextNode(SparseVector example) {
+            return null;
+        }
+
+        @Override
+        public double getImpurity() {
+            return impurity;
+        }
+
+        @Override
+        public SplitNodeBuilder<T> copy() {
+            return new SplitNodeBuilder<>(parentIdx, curIdx, greaterThanIdx, lessThanOrEqualIdx, splitFeature, splitValue, impurity);
+        }
+
+        boolean canBuild() {
+            return greaterThan != null && lessThanOrEqual != null;
+        }
+
+        SplitNode<T> build() {
+            return new SplitNode<>(splitValue,splitFeature,impurity,greaterThan,lessThanOrEqual);
+        }
+
+        void setGreaterThan(Node<T> greaterThan) {
+            if (this.greaterThan == null) {
+                this.greaterThan = greaterThan;
+            } else {
+                throw new IllegalStateException("Invalid protobuf, multiple nodes mapped to the greaterThanIdx");
+            }
+        }
+
+        void setLessThanOrEqualIdx(Node<T> lessThanOrEqual) {
+            if (this.lessThanOrEqual == null) {
+                this.lessThanOrEqual = lessThanOrEqual;
+            } else {
+                throw new IllegalStateException("Invalid protobuf, multiple nodes mapped to the lessThanOrEqualIdx");
+            }
+        }
+
+        int getGreaterThanIdx() {
+            return greaterThanIdx;
+        }
+
+        int getLessThanOrEqualIdx() {
+            return lessThanOrEqualIdx;
+        }
+
+        int getParentIdx() {
+            return parentIdx;
+        }
+
+        int getCurIdx() {
+            return curIdx;
+        }
     }
 }
 

@@ -19,7 +19,7 @@ syntax = "proto3";
 /*
  * Protos for serializing Tribuo trees.
  */
-package tribuo.tree;
+package tribuo.common.tree;
 
 option java_multiple_files = true;
 option java_package = "org.tribuo.common.tree.protos";
@@ -44,11 +44,12 @@ SplitNode proto
  */
 message SplitNodeProto {
   int32 parent_idx = 1;
-  int32 greater_than_idx = 2;
-  int32 less_than_or_equal_idx = 3;
-  int32 split_feature_idx = 4;
-  double split_value = 5;
-  double impurity = 6;
+  int32 cur_idx = 2;
+  int32 greater_than_idx = 3;
+  int32 less_than_or_equal_idx = 4;
+  int32 split_feature_idx = 5;
+  double split_value = 6;
+  double impurity = 7;
 }
 
 /*
@@ -56,10 +57,11 @@ LeafNode proto
  */
 message LeafNodeProto {
   int32 parent_idx = 1;
-  double impurity = 2;
-  tribuo.core.OutputProto output = 3;
-  map<string,tribuo.core.OutputProto> score = 4;
-  bool generates_probabilities = 5;
+  int32 cur_idx = 2;
+  double impurity = 3;
+  tribuo.core.OutputProto output = 4;
+  map<string,tribuo.core.OutputProto> score = 5;
+  bool generates_probabilities = 6;
 }
 
 /*

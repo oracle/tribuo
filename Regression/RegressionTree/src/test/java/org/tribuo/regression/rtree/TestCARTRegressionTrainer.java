@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ public class TestCARTRegressionTrainer {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        Helpers.testModelProtoSerialization(m, Regressor.class, p.getB());
         return m;
     }
 
@@ -204,6 +205,7 @@ public class TestCARTRegressionTrainer {
         assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedAve,llEval.averageR2(),1e-6);
+        Helpers.testModelProtoSerialization(llModel, Regressor.class, p.getB());
 
         p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, true);
         llModel = t.train(p.getA());

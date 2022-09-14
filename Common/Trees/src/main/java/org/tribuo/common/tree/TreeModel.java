@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.common.tree;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -25,9 +27,18 @@ import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.SparseModel;
+import org.tribuo.common.tree.protos.LeafNodeProto;
+import org.tribuo.common.tree.protos.SplitNodeProto;
+import org.tribuo.common.tree.protos.TreeModelProto;
+import org.tribuo.common.tree.protos.TreeNodeProto;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.Tensor;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,6 +58,11 @@ import java.util.Set;
  */
 public class TreeModel<T extends Output<T>> extends SparseModel<T> {
     private static final long serialVersionUID = 3L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final Node<T> root;
 
@@ -81,6 +97,127 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
                         boolean generatesProbabilities, Map<String,List<String>> activeFeatures) {
         super(name, description, featureIDMap, outputIDInfo, generatesProbabilities, activeFeatures);
         this.root = null;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass to ensure all the output types are the same.
+    public static TreeModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        TreeModelProto proto = message.unpack(TreeModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        Class<?> outputClass = carrier.outputDomain().getOutput(0).getClass();
+
+        if (proto.getNodesCount() == 0) {
+            throw new IllegalStateException("Invalid protobuf, tree must contain nodes");
+        }
+
+        List<TreeNodeProto> nodeProtos = proto.getNodesList();
+        List<Node<?>> nodes = deserializeFromProtos(nodeProtos, (Class) outputClass);
+
+        return new TreeModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),carrier.outputDomain(),carrier.generatesProbabilities(),nodes.get(0));
+    }
+
+    private static Node<?> deserializeNodeProto(TreeNodeProto proto) throws InvalidProtocolBufferException {
+        int version = proto.getVersion();
+        String className = proto.getClassName();
+        Any message = proto.getSerializedData();
+        String type = message.getTypeUrl();
+        if (type.equals(SplitNodeProto.getDescriptor().getFullName())) {
+            SplitNodeProto splitProto = message.unpack(SplitNodeProto.class);
+            return new SplitNode.SplitNodeBuilder<>(splitProto);
+        } else if (type.equals(LeafNodeProto.getDescriptor().getFullName())) {
+            LeafNodeProto leafProto = message.unpack(LeafNodeProto.class);
+            return new LeafNode.LeafNodeBuilder<>(leafProto);
+        } else {
+            throw new IllegalStateException("Invalid protobuf, expected leaf or split node, found " + type);
+        }
+    }
+
+    /**
+     * Deserializes a list of node protos into a list of nodes, with the root in the first element.
+     * @param nodeProtos The node protos to deserialize.
+     * @return The nodes.
+     * @throws InvalidProtocolBufferException If an unexpected proto is found.
+     */
+    //@SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass to ensure all the output types are the same.
+    protected static <U extends Output<U>> List<Node<U>> deserializeFromProtos(List<TreeNodeProto> nodeProtos, Class<U> outputClass) throws InvalidProtocolBufferException {
+        List<Node<U>> nodes = new ArrayList<>(nodeProtos.size());
+
+        for (TreeNodeProto p : nodeProtos) {
+            @SuppressWarnings("unchecked") // we'll catch this later with the getClass check
+            Node<U> curNode = (Node<U>) deserializeNodeProto(p);
+            nodes.add(curNode);
+        }
+
+        Queue<Node<U>> nodeQueue = new ArrayDeque<>();
+        for (Node<U> node : nodes) {
+            if (node instanceof LeafNode.LeafNodeBuilder) {
+                nodeQueue.offer(node);
+            }
+        }
+
+        while (!nodeQueue.isEmpty()) {
+            Node<U> node = nodeQueue.poll();
+            int parentIdx = -1;
+            Node<U> parent = null;
+            Node<U> builtNode = null;
+            if (node instanceof LeafNode.LeafNodeBuilder) {
+                // build leaf node
+                LeafNode.LeafNodeBuilder<U> builder = (LeafNode.LeafNodeBuilder<U>) node;
+                LeafNode<U> leaf = builder.build();
+                nodes.set(builder.getCurIdx(), leaf);
+                builtNode = leaf;
+                // update parent
+                parentIdx = builder.getParentIdx();
+                parent = nodes.get(parentIdx);
+            } else if (node instanceof SplitNode.SplitNodeBuilder) {
+                SplitNode.SplitNodeBuilder<U> builder = (SplitNode.SplitNodeBuilder<U>) node;
+                SplitNode<U> split = builder.build();
+                nodes.set(builder.getCurIdx(), split);
+                builtNode = split;
+                parentIdx = builder.getParentIdx();
+                if (parentIdx != -1) {
+                    parent = nodes.get(parentIdx);
+                }
+            }
+            if (parent instanceof SplitNode.SplitNodeBuilder) {
+                SplitNode.SplitNodeBuilder<U> splitBuilder = (SplitNode.SplitNodeBuilder<U>) parent;
+                if (parentIdx == splitBuilder.getGreaterThanIdx()) {
+                    splitBuilder.setGreaterThan(builtNode);
+                } else if (parentIdx == splitBuilder.getLessThanOrEqualIdx()) {
+                    splitBuilder.setLessThanOrEqualIdx(builtNode);
+                } else {
+                    throw new IllegalStateException("Invalid protobuf, found a child node which didn't map into a parent");
+                }
+                // If we can build this split node pop it on the queue.
+                if (splitBuilder.canBuild()) {
+                    nodeQueue.offer(splitBuilder);
+                }
+            } else if (parent != null) {
+                throw new IllegalStateException("Invalid protobuf, found a " + parent.getClass() + " when a SplitNodeBuilder was expected");
+            }
+        }
+
+        for (Node<U> node : nodes) {
+            if (!(node instanceof SplitNode || node instanceof LeafNode)) {
+                throw new IllegalStateException("Invalid protobuf, found unbuilt node, " + node);
+            } else if (node instanceof LeafNode) {
+                U cur = ((LeafNode<U>) node).getOutput();
+                if (!cur.getClass().equals(outputClass)) {
+                    throw new IllegalStateException("Invalid protobuf, node output did not match output domain, found " + cur.getClass() + ", expected " + outputClass);
+                }
+            }
+        }
+
+        return nodes;
     }
 
     private static <T extends Output<T>> Map<String,List<String>> gatherActiveFeatures(ImmutableFeatureMap fMap, Node<T> root) {
@@ -287,4 +424,31 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         return root;
     }
 
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        TreeModelProto.Builder modelBuilder = TreeModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.addAllNodes(serializeToNodes(root));
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(TreeModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
+    }
+
+    protected List<TreeNodeProto> serializeToNodes(Node<T> root) {
+        List<TreeNodeProto> protos = new ArrayList<>();
+
+        return protos;
+    }
+
+    static abstract class NodeBuilder {
+        abstract int getParentIdx();
+        abstract int getCurIdx();
+        abstract Node<?> build();
+    }
 }
