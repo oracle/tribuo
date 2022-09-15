@@ -245,8 +245,8 @@ public final class DataOptions implements Options {
                 // Load Tribuo protobuf serialised datasets.
                 logger.info("Deserialising protobuf dataset from " + trainingPath);
                 Dataset<?> tmp = Dataset.deserializeFromFile(trainingPath);
-                if (tmp.validate((Class<? extends Output<?>>) outputFactory.getUnknownOutput().getClass())) {
-                    train = Dataset.castDataset(tmp, outputFactory.getUnknownOutput().getClass());
+                if (tmp.validate(outputFactory.getTypeWitness())) {
+                    train = Dataset.castDataset(tmp, outputFactory.getTypeWitness());
                     if (minCount > 0) {
                         logger.info("Found " + train.getFeatureIDMap().size() + " features");
                         logger.info("Removing features that occur fewer than " + minCount + " times.");
@@ -257,8 +257,8 @@ public final class DataOptions implements Options {
 
                     logger.info("Deserialising protobuf dataset from " + testingPath);
                     tmp = Dataset.deserializeFromFile(testingPath);
-                    if (tmp.validate((Class<? extends Output<?>>) outputFactory.getUnknownOutput().getClass())) {
-                        Dataset<T> deserTest = Dataset.castDataset(tmp, outputFactory.getUnknownOutput().getClass());
+                    if (tmp.validate(outputFactory.getTypeWitness())) {
+                        Dataset<T> deserTest = Dataset.castDataset(tmp, outputFactory.getTypeWitness());
                         test = new ImmutableDataset<>(deserTest, deserTest.getSourceProvenance(), deserTest.getOutputFactory(), train.getFeatureIDMap(), train.getOutputIDInfo(), true);
                     } else {
                         throw new IllegalArgumentException("Invalid test dataset type, expected " + outputFactory.getUnknownOutput().getClass());

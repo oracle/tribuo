@@ -89,6 +89,14 @@ public interface OutputFactory<T extends Output<T>> extends Configurable, ProtoS
     public Evaluator<T,? extends Evaluation<T>> getEvaluator();
 
     /**
+     * Gets the output class that this factory supports.
+     * @return The output class.
+     */
+    default public Class<T> getTypeWitness() {
+        throw new UnsupportedOperationException("This class must be updated to support protobuf serialization");
+    }
+
+    /**
      * Generate a list of outputs from the supplied list of inputs.
      * <p>
      * Makes inputs.size() calls to {@link OutputFactory#generateOutput}.
