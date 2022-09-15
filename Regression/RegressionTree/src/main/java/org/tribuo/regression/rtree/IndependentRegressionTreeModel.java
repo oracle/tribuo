@@ -29,7 +29,6 @@ import org.tribuo.common.tree.LeafNode;
 import org.tribuo.common.tree.Node;
 import org.tribuo.common.tree.SplitNode;
 import org.tribuo.common.tree.TreeModel;
-import org.tribuo.common.tree.protos.TreeModelProto;
 import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.SparseVector;
@@ -376,7 +375,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
 
         ModelProto.Builder builder = ModelProto.newBuilder();
         builder.setSerializedData(Any.pack(modelBuilder.build()));
-        builder.setClassName(TreeModel.class.getName());
+        builder.setClassName(IndependentRegressionTreeModel.class.getName());
         builder.setVersion(CURRENT_VERSION);
 
         return builder.build();

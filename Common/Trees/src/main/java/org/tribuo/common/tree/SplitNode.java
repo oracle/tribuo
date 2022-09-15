@@ -223,6 +223,9 @@ public class SplitNode<T extends Output<T>> implements Node<T> {
         }
 
         SplitNode<T> build() {
+            if (!canBuild()) {
+                throw new IllegalStateException("Not ready to build this split node, missing the children pointers");
+            }
             return new SplitNode<>(splitValue,splitFeature,impurity,greaterThan,lessThanOrEqual);
         }
 

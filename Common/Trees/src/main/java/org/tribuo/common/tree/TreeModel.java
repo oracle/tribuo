@@ -32,14 +32,13 @@ import org.tribuo.common.tree.protos.SplitNodeProto;
 import org.tribuo.common.tree.protos.TreeModelProto;
 import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
-import org.tribuo.math.la.Tensor;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -129,15 +128,14 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         int version = proto.getVersion();
         String className = proto.getClassName();
         Any message = proto.getSerializedData();
-        String type = message.getTypeUrl();
-        if (type.equals(SplitNodeProto.getDescriptor().getFullName())) {
+        if (message.is(SplitNodeProto.class)) {
             SplitNodeProto splitProto = message.unpack(SplitNodeProto.class);
             return new SplitNode.SplitNodeBuilder<>(splitProto);
-        } else if (type.equals(LeafNodeProto.getDescriptor().getFullName())) {
+        } else if (message.is(LeafNodeProto.class)) {
             LeafNodeProto leafProto = message.unpack(LeafNodeProto.class);
             return new LeafNode.LeafNodeBuilder<>(leafProto);
         } else {
-            throw new IllegalStateException("Invalid protobuf, expected leaf or split node, found " + type);
+            throw new IllegalStateException("Invalid protobuf, expected leaf or split node, found " + message.getTypeUrl());
         }
     }
 
@@ -165,34 +163,42 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         }
 
         while (!nodeQueue.isEmpty()) {
-            Node<U> node = nodeQueue.poll();
-            int parentIdx = -1;
+            Node<U> nodeBuilder = nodeQueue.poll();
+            int curIdx = -1;
             Node<U> parent = null;
             Node<U> builtNode = null;
-            if (node instanceof LeafNode.LeafNodeBuilder) {
+            if (nodeBuilder instanceof LeafNode.LeafNodeBuilder) {
                 // build leaf node
-                LeafNode.LeafNodeBuilder<U> builder = (LeafNode.LeafNodeBuilder<U>) node;
+                LeafNode.LeafNodeBuilder<U> builder = (LeafNode.LeafNodeBuilder<U>) nodeBuilder;
                 LeafNode<U> leaf = builder.build();
                 nodes.set(builder.getCurIdx(), leaf);
                 builtNode = leaf;
+                curIdx = builder.getCurIdx();
                 // update parent
-                parentIdx = builder.getParentIdx();
-                parent = nodes.get(parentIdx);
-            } else if (node instanceof SplitNode.SplitNodeBuilder) {
-                SplitNode.SplitNodeBuilder<U> builder = (SplitNode.SplitNodeBuilder<U>) node;
-                SplitNode<U> split = builder.build();
-                nodes.set(builder.getCurIdx(), split);
-                builtNode = split;
-                parentIdx = builder.getParentIdx();
+                int parentIdx = builder.getParentIdx();
                 if (parentIdx != -1) {
                     parent = nodes.get(parentIdx);
                 }
+            } else if (nodeBuilder instanceof SplitNode.SplitNodeBuilder) {
+                // build split node now the childred are ready
+                SplitNode.SplitNodeBuilder<U> builder = (SplitNode.SplitNodeBuilder<U>) nodeBuilder;
+                SplitNode<U> split = builder.build();
+                nodes.set(builder.getCurIdx(), split);
+                builtNode = split;
+                curIdx = builder.getCurIdx();
+                // update parent
+                int parentIdx = builder.getParentIdx();
+                if (parentIdx != -1) {
+                    parent = nodes.get(parentIdx);
+                }
+            } else {
+                throw new IllegalStateException("Invalid protobuf, found a constructed node was added to the build queue, found " + nodeBuilder.getClass());
             }
             if (parent instanceof SplitNode.SplitNodeBuilder) {
                 SplitNode.SplitNodeBuilder<U> splitBuilder = (SplitNode.SplitNodeBuilder<U>) parent;
-                if (parentIdx == splitBuilder.getGreaterThanIdx()) {
+                if (curIdx == splitBuilder.getGreaterThanIdx()) {
                     splitBuilder.setGreaterThan(builtNode);
-                } else if (parentIdx == splitBuilder.getLessThanOrEqualIdx()) {
+                } else if (curIdx == splitBuilder.getLessThanOrEqualIdx()) {
                     splitBuilder.setLessThanOrEqualIdx(builtNode);
                 } else {
                     throw new IllegalStateException("Invalid protobuf, found a child node which didn't map into a parent");
@@ -211,7 +217,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
                 throw new IllegalStateException("Invalid protobuf, found unbuilt node, " + node);
             } else if (node instanceof LeafNode) {
                 U cur = ((LeafNode<U>) node).getOutput();
-                if (!cur.getClass().equals(outputClass)) {
+                if (!outputClass.isAssignableFrom(cur.getClass())) {
                     throw new IllegalStateException("Invalid protobuf, node output did not match output domain, found " + cur.getClass() + ", expected " + outputClass);
                 }
             }
@@ -411,6 +417,32 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         return features;
     }
 
+    /**
+     * Counts the number of nodes in the tree rooted at the supplied node, including that node.
+     * @param root The tree root.
+     * @return The number of nodes.
+     */
+    public int countNodes(Node<T> root) {
+        Queue<Node<T>> nodeQueue = new LinkedList<>();
+
+        int counter = 0;
+        nodeQueue.offer(root);
+
+        while (!nodeQueue.isEmpty()) {
+            Node<T> node = nodeQueue.poll();
+            if (node != null) {
+                counter++;
+                if (!node.isLeaf()) {
+                    SplitNode<T> splitNode = (SplitNode<T>) node;
+                    nodeQueue.offer(splitNode.getGreaterThan());
+                    nodeQueue.offer(splitNode.getLessThanOrEqual());
+                }
+            }
+        }
+
+        return counter;
+    }
+
     @Override
     public String toString() {
         return "TreeModel(description="+provenance.toString()+",\n\t\ttree="+root.toString()+")";
@@ -441,9 +473,44 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
     }
 
     protected List<TreeNodeProto> serializeToNodes(Node<T> root) {
-        List<TreeNodeProto> protos = new ArrayList<>();
+        int numNodes = countNodes(root);
+        TreeNodeProto[] protos = new TreeNodeProto[numNodes];
 
-        return protos;
+        int counter = 0;
+        Queue<SerializationState<T>> nodeQueue = new ArrayDeque<>();
+        nodeQueue.offer(new SerializationState<>(-1,counter,root));
+        while (!nodeQueue.isEmpty()) {
+            SerializationState<T> state = nodeQueue.poll();
+            if (state.node instanceof SplitNode) {
+                SplitNode<T> node = (SplitNode<T>) state.node;
+                int greaterIdx = ++counter;
+                int lessIdx = ++counter;
+                TreeNodeProto proto = node.serialize(state.parentIdx, state.curIdx, greaterIdx, lessIdx);
+                protos[state.curIdx] = proto;
+                nodeQueue.offer(new SerializationState<>(state.curIdx, greaterIdx, node.getGreaterThan()));
+                nodeQueue.offer(new SerializationState<>(state.curIdx, lessIdx, node.getLessThanOrEqual()));
+            } else if (state.node instanceof LeafNode) {
+                LeafNode<T> node = (LeafNode<T>) state.node;
+                TreeNodeProto proto = node.serialize(state.parentIdx, state.curIdx);
+                protos[state.curIdx] = proto;
+            } else {
+                throw new IllegalStateException("Invalid tree structure, contained a node which wasn't a SplitNode or a LeafNode, found " + state.node.getClass());
+            }
+        }
+
+        return Arrays.asList(protos);
+    }
+
+    private static final class SerializationState<T extends Output<T>> {
+        final int parentIdx;
+        final int curIdx;
+        final Node<T> node;
+
+        SerializationState(int parentIdx, int curIdx, Node<T> node) {
+            this.parentIdx = parentIdx;
+            this.curIdx = curIdx;
+            this.node = node;
+        }
     }
 
     static abstract class NodeBuilder {
