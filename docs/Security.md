@@ -24,6 +24,10 @@ Additionally, when running with a security manager, Tribuo will need access to
 the relevant filesystem locations to load or save model files. See the section 
 on [Configuration](#Configuration) for more details.
 
+In Tribuo 4.3 we introduced protobuf based serialization for all supported Java
+serializable types. This is the preferred serialization mechanism, and Java
+serialization support will be removed in the next major release of Tribuo.
+
 ## Database access
 Tribuo provides a SQL interface that can load data via a JDBC connection. As
 it's frequently necessary to load data via a joined query from an unknown

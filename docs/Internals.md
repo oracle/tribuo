@@ -102,7 +102,7 @@ this `Feature` was observed.
 
 At this point the `Dataset` can be transformed, by a `TransformationMap`. This
 applies an independent sequence of transformation to each `Feature`, so it can
-perform rescaling or binning, but not Principle Component Analysis (PCA).  The
+perform rescaling or binning, but not Principal Component Analysis (PCA).  The
 `TransformationMap` gathers the necessary statistics about the features, and
 then rewrites each `Example` according to the transformation, generating a
 `TransformerMap` which can be used to apply that specific transformations to
@@ -166,3 +166,26 @@ classification, RMSE for regression etc). Finally, the input data's
 `DataProvenance` and the `Model`'s `ModelProvenance` are queried, and the
 evaluation statistics, provenances and predictions are passed to the
 appropriate `Evaluation`'s constructor for storage.
+
+## Protobuf Serialization
+
+Tribuo's protobuf serialization is based around redirection and the `Any` packed
+protobuf to simulate polymorphic behaviour. Each type is packaged into a top
+level protobuf representing the interface it implements which has an integer 
+version field incrementing from 0, the class name of the class which can 
+deserialize this object, and a packed `Any` message which contains class specific serialization information. This protobuf is
+unpacked using the deserialization mechanism in `org.tribuo.protos.ProtoUtil` and
+then the method `deserializeFromProto(int version, String className, Any message)`
+is called on the `className` specified in the proto. The class name is passed through
+to allow redirection for Tribuo internal classes which may want to deserialize as a
+different type as we evolve the library. That method then typically checks that the
+version is supported by the current class, to prevent inaccurate deserialization of
+protobufs written by newer versions of Tribuo when loaded into older versions, and
+then the `Any` message is unpacked into a class specific protobuf, any necessary
+validation is performed, the deserialized object is constructed and then returned.
+
+There are two helper classes, `ModelDataCarrier` and `DatasetDataCarrier` which
+allow easy serialization/deserialization of shared fields in `Model` and 
+`Dataset` respectively (and the sequence variants thereof). These are considered
+an implementation detail as they may change to incorporate new fields, and may
+be converted into records when Tribuo moves to a newer version of Java.
