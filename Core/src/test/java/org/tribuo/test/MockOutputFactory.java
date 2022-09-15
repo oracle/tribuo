@@ -86,6 +86,11 @@ public class MockOutputFactory implements OutputFactory<MockOutput> {
     }
 
     @Override
+    public Class<MockOutput> getTypeWitness() {
+        return MockOutput.class;
+    }
+
+    @Override
     public int hashCode() {
         return "MockOutputFactory".hashCode();
     }

@@ -129,6 +129,11 @@ public final class MultiLabelFactory implements OutputFactory<MultiLabel> {
     }
 
     @Override
+    public Class<MultiLabel> getTypeWitness() {
+        return MultiLabel.class;
+    }
+
+    @Override
     public int hashCode() {
         return "MultiLabelFactory".hashCode();
     }

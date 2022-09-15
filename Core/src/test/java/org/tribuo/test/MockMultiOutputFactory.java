@@ -98,6 +98,11 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
     }
 
     @Override
+    public Class<MockMultiOutput> getTypeWitness() {
+        return MockMultiOutput.class;
+    }
+
+    @Override
     public int hashCode() {
         return this.getClass().hashCode();
     }

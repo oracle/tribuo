@@ -203,6 +203,11 @@ public final class RegressionFactory implements OutputFactory<Regressor> {
     }
 
     @Override
+    public Class<Regressor> getTypeWitness() {
+        return Regressor.class;
+    }
+
+    @Override
     public int hashCode() {
         return "RegressionFactory".hashCode() ^ Character.hashCode(splitChar);
     }

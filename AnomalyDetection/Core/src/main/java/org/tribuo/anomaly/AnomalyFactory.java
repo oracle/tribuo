@@ -122,6 +122,11 @@ public final class AnomalyFactory implements OutputFactory<Event> {
     }
 
     @Override
+    public Class<Event> getTypeWitness() {
+        return Event.class;
+    }
+
+    @Override
     public int hashCode() {
         return "AnomalyFactory".hashCode();
     }

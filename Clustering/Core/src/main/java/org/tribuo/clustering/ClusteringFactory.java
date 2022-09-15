@@ -122,6 +122,11 @@ public final class ClusteringFactory implements OutputFactory<ClusterID> {
     }
 
     @Override
+    public Class<ClusterID> getTypeWitness() {
+        return ClusterID.class;
+    }
+
+    @Override
     public int hashCode() {
         return "ClusteringFactory".hashCode();
     }

@@ -121,6 +121,11 @@ public final class LabelFactory implements OutputFactory<Label> {
     }
 
     @Override
+    public Class<Label> getTypeWitness() {
+        return Label.class;
+    }
+
+    @Override
     public int hashCode() {
         return "LabelFactory".hashCode();
     }
