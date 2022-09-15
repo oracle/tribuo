@@ -28,7 +28,14 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -172,6 +179,63 @@ public abstract class SequenceModel<T extends Output<T>> implements ProtoSeriali
     @Override
     public SequenceModelProto serialize() {
         throw new UnsupportedOperationException("The default implementation of SequenceModel.serialize() must be overridden to support protobuf serialization.");
+    }
+
+    /**
+     * Serializes this model to a {@link SequenceModelProto} and writes it to the supplied path.
+     * @param path The path to write to.
+     * @throws IOException If the path could not be written to.
+     */
+    public void serializeToFile(Path path) throws IOException {
+        try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(path))) {
+            serializeToStream(os);
+        }
+    }
+
+    /**
+     * Serializes this model to a {@link SequenceModelProto} and writes it to the supplied output stream.
+     * <p>
+     * Does not close the stream.
+     * @param stream The output stream to write to.
+     * @throws IOException If the stream could not be written to.
+     */
+    public void serializeToStream(OutputStream stream) throws IOException {
+        SequenceModelProto proto = serialize();
+        proto.writeTo(stream);
+    }
+
+    /**
+     * Deserializes the model from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The model.
+     */
+    public static SequenceModel<?> deserialize(SequenceModelProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
+
+    /**
+     * Reads an instance of {@link SequenceModelProto} from the supplied path and deserializes it.
+     * @param path The path to read.
+     * @return The deserialized model.
+     * @throws IOException If the path could not be read from, or the parsing failed.
+     */
+    public static SequenceModel<?> deserializeFromFile(Path path) throws IOException {
+        try (InputStream is = new BufferedInputStream(Files.newInputStream(path))) {
+            return deserializeFromStream(is);
+        }
+    }
+
+    /**
+     * Reads an instance of {@link SequenceModelProto} from the supplied input stream and deserializes it.
+     * <p>
+     * Does not close the stream.
+     * @param is The input stream to read.
+     * @return The deserialized model.
+     * @throws IOException If the stream could not be read from, or the parsing failed.
+     */
+    public static SequenceModel<?> deserializeFromStream(InputStream is) throws IOException {
+        SequenceModelProto proto = SequenceModelProto.parseFrom(is);
+        return deserialize(proto);
     }
 
     /**

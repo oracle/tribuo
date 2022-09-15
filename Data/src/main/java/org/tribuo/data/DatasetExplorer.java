@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,22 +92,32 @@ public final class DatasetExplorer implements CommandGroup {
      * @param path The path to load.
      * @return A status string.
      */
-    @Command(usage = "<filename> - Load a dataset from disk.", completers="fileCompleter")
-    public String loadDataset(CommandInterpreter ci, File path) {
-        try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
-            dataset = (Dataset<?>) ois.readObject();
-        } catch (ClassNotFoundException e) {
-            logger.log(Level.SEVERE,"Failed to load class from stream " + path.getAbsolutePath(),e);
-            return "Failed to load dataset";
-        } catch (FileNotFoundException e) {
-            logger.log(Level.SEVERE,"Failed to open file " + path.getAbsolutePath(),e);
-            return "Failed to load dataset";
-        } catch (IOException e) {
-            logger.log(Level.SEVERE,"IOException when reading from file " + path.getAbsolutePath(),e);
-            return "Failed to load dataset";
+    @Command(usage = "<filename> <is-protobuf> - Load a dataset from disk.", completers="fileCompleter")
+    public String loadDataset(CommandInterpreter ci, File path, boolean protobuf) {
+        String output = "Failed to load dataset";
+        if (protobuf) {
+            try {
+                dataset = Dataset.deserializeFromFile(path.toPath());
+                output = "Loaded dataset from path " + path.getAbsolutePath();
+            } catch (IllegalStateException e) {
+                logger.log(Level.SEVERE, "Failed to deserialize protobuf when reading from file " + path.getAbsolutePath(), e);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
+            }
+        } else {
+            try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
+                dataset = (Dataset<?>) ois.readObject();
+                output = "Loaded dataset from path " + path.getAbsolutePath();
+            } catch (ClassNotFoundException e) {
+                logger.log(Level.SEVERE, "Failed to load class from stream " + path.getAbsolutePath(), e);
+            } catch (FileNotFoundException e) {
+                logger.log(Level.SEVERE, "Failed to open file " + path.getAbsolutePath(), e);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
+            }
         }
 
-        return "Loaded dataset from path " + path.toString();
+        return output;
     }
 
     /**
@@ -220,6 +230,12 @@ public final class DatasetExplorer implements CommandGroup {
          */
         @Option(charName = 'f', longName = "filename", usage = "Dataset file to load. Optional.")
         public String modelFilename;
+
+        /**
+         * Load the model from a protobuf. Optional.
+         */
+        @Option(charName = 'p', longName = "protobuf-model", usage = "Load the model from a protobuf. Optional")
+        public boolean protobufFormat;
     }
 
     /**
@@ -231,7 +247,7 @@ public final class DatasetExplorer implements CommandGroup {
         ConfigurationManager cm = new ConfigurationManager(args,options,false);
         DatasetExplorer driver = new DatasetExplorer();
         if (options.modelFilename != null) {
-            logger.log(Level.INFO,driver.loadDataset(driver.shell, new File(options.modelFilename)));
+            logger.log(Level.INFO,driver.loadDataset(driver.shell, new File(options.modelFilename), options.protobufFormat));
         }
         driver.startShell();
     }

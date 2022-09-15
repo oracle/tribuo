@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,8 +63,12 @@ public abstract class OCIModelCLI {
     private static void createModelAndDeploy(OCIModelOptions options) throws IOException, ClassNotFoundException {
         // Load the Tribuo model
         Model<Label> model;
-        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(options.modelPath))) {
-            model = ((Model<?>)ois.readObject()).castModel(Label.class);
+        if (options.modelProtobuf) {
+            model = Model.deserializeFromFile(options.modelPath).castModel(Label.class);
+        } else {
+            try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(options.modelPath))) {
+                model = ((Model<?>)ois.readObject()).castModel(Label.class);
+            }
         }
         if (!(model instanceof ONNXExportable)) {
             throw new IllegalArgumentException("Model not ONNXExportable, received " + model.toString());
@@ -120,8 +124,12 @@ public abstract class OCIModelCLI {
     private static void modelScoring(OCIModelOptions options) throws IOException, ClassNotFoundException {
         // Load the dataset
         Dataset<Label> dataset;
-        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(options.datasetPath))) {
-            dataset = Dataset.castDataset((Dataset<?>) ois.readObject(), Label.class);
+        if (options.datasetProtobuf) {
+            dataset = Dataset.castDataset(Dataset.deserializeFromFile(options.datasetPath), Label.class);
+        } else {
+            try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(options.datasetPath))) {
+                dataset = Dataset.castDataset((Dataset<?>) ois.readObject(), Label.class);
+            }
         }
         ImmutableFeatureMap featureIDMap = dataset.getFeatureIDMap();
 
@@ -231,6 +239,11 @@ public abstract class OCIModelCLI {
         @Option(charName='d',longName="deploy-model-path",usage="Path to the serialized model to deploy to OCI DS.")
         public Path modelPath;
         /**
+         * Is the model stored in protobuf format?
+         */
+        @Option(longName="model-protobuf",usage="Is the model stored in protobuf format?")
+        public boolean modelProtobuf;
+        /**
          * Model display name.
          */
         @Option(longName="model-display-name",usage="Model display name.")
@@ -261,6 +274,11 @@ public abstract class OCIModelCLI {
          */
         @Option(charName='s',longName="dataset-path",usage="Path to the serialized dataset to score.")
         public Path datasetPath;
+        /**
+         * Is the serialized dataset in protobuf format?
+         */
+        @Option(longName="dataset-protobuf",usage="Is the serialized dataset a protobuf?")
+        public boolean datasetProtobuf;
         /**
          * The id of the model deployment.
          */

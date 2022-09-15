@@ -33,7 +33,14 @@ import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.util.Util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -128,6 +135,52 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
      */
     public static Dataset<?> deserialize(DatasetProto datasetProto) {
         return ProtoUtil.deserialize(datasetProto);
+    }
+
+    /**
+     * Reads an instance of {@link DatasetProto} from the supplied path and deserializes it.
+     * @param path The path to read.
+     * @return The deserialized dataset.
+     * @throws IOException If the path could not be read from, or the parsing failed.
+     */
+    public static Dataset<?> deserializeFromFile(Path path) throws IOException {
+        try (InputStream is = new BufferedInputStream(Files.newInputStream(path))) {
+            return deserializeFromStream(is);
+        }
+    }
+
+    /**
+     * Reads an instance of {@link DatasetProto} from the supplied input stream and deserializes it.
+     * @param is The input stream to read.
+     * @return The deserialized dataset.
+     * @throws IOException If the stream could not be read from, or the parsing failed.
+     */
+    public static Dataset<?> deserializeFromStream(InputStream is) throws IOException {
+        DatasetProto proto = DatasetProto.parseFrom(is);
+        return deserialize(proto);
+    }
+
+    /**
+     * Serializes this dataset to a {@link DatasetProto} and writes it to the supplied path.
+     * @param path The path to write to.
+     * @throws IOException If the path could not be written to.
+     */
+    public void serializeToFile(Path path) throws IOException {
+        try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(path))) {
+            serializeToStream(os);
+        }
+    }
+
+    /**
+     * Serializes this dataset to a {@link DatasetProto} and writes it to the supplied output stream.
+     * <p>
+     * Does not close the stream.
+     * @param stream The output stream to write to.
+     * @throws IOException If the stream could not be written to.
+     */
+    public void serializeToStream(OutputStream stream) throws IOException {
+        DatasetProto proto = serialize();
+        proto.writeTo(stream);
     }
 
     /**

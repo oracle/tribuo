@@ -30,12 +30,20 @@ import org.tribuo.OutputInfo;
 import org.tribuo.Tribuo;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.SequenceDatasetProto;
 import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -187,6 +195,99 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
     @Override
     public String toString() {
         return "SequenceDataset(source=" + sourceProvenance.toString() + ")";
+    }
+
+    /**
+     * Validates that this SequenceDataset does in fact contain the supplied output type.
+     * <p>
+     * As the output type is erased at runtime, deserialising a SequenceDataset is an unchecked
+     * operation. This method allows the user to check that the deserialised dataset is
+     * of the appropriate type, rather than seeing if the Dataset throws a {@link ClassCastException}
+     * when used.
+     * @param clazz The class object to verify the output type against.
+     * @return True if the output type is assignable to the class object type, false otherwise.
+     */
+    public boolean validate(Class<? extends Output<?>> clazz) {
+        Set<T> domain = getOutputInfo().getDomain();
+        boolean output = true;
+        for (T type : domain) {
+            output &= clazz.isInstance(type);
+        }
+        return output;
+    }
+
+    /**
+     * Casts the dataset to the specified output type, assuming it is valid.
+     * <p>
+     * If it's not valid, throws {@link ClassCastException}.
+     * @param inputDataset The model to cast.
+     * @param outputType The output type to cast to.
+     * @param <T> The output type.
+     * @return The model cast to the correct value.
+     */
+    public static <T extends Output<T>> SequenceDataset<T> castDataset(SequenceDataset<?> inputDataset, Class<T> outputType) {
+        if (inputDataset.validate(outputType)) {
+            @SuppressWarnings("unchecked") // guarded by validate
+            SequenceDataset<T> castedModel = (SequenceDataset<T>) inputDataset;
+            return castedModel;
+        } else {
+            throw new ClassCastException("Attempted to cast dataset to " + outputType.getName() + " which is not valid for dataset " + inputDataset.toString());
+        }
+    }
+
+    /**
+     * Deserializes a sequence dataset proto into a sequence dataset.
+     * @param sequenceProto The proto to deserialize.
+     * @return The sequence dataset.
+     */
+    public static SequenceDataset<?> deserialize(SequenceDatasetProto sequenceProto) {
+        return ProtoUtil.deserialize(sequenceProto);
+    }
+
+    /**
+     * Reads an instance of {@link SequenceDatasetProto} from the supplied path and deserializes it.
+     * @param path The path to read.
+     * @return The deserialized sequence dataset.
+     * @throws IOException If the path could not be read from, or the parsing failed.
+     */
+    public static SequenceDataset<?> deserializeFromFile(Path path) throws IOException {
+        try (InputStream is = new BufferedInputStream(Files.newInputStream(path))) {
+            return deserializeFromStream(is);
+        }
+    }
+
+    /**
+     * Reads an instance of {@link SequenceDatasetProto} from the supplied input stream and deserializes it.
+     * @param is The input stream to read.
+     * @return The deserialized sequence dataset.
+     * @throws IOException If the stream could not be read from, or the parsing failed.
+     */
+    public static SequenceDataset<?> deserializeFromStream(InputStream is) throws IOException {
+        SequenceDatasetProto proto = SequenceDatasetProto.parseFrom(is);
+        return deserialize(proto);
+    }
+
+    /**
+     * Serializes this sequence dataset to a {@link SequenceDatasetProto} and writes it to the supplied path.
+     * @param path The path to write to.
+     * @throws IOException If the path could not be written to.
+     */
+    public void serializeToFile(Path path) throws IOException {
+        try (OutputStream os = new BufferedOutputStream(Files.newOutputStream(path))) {
+            serializeToStream(os);
+        }
+    }
+
+    /**
+     * Serializes this sequence dataset to a {@link SequenceDatasetProto} and writes it to the supplied output stream.
+     * <p>
+     * Does not close the stream.
+     * @param stream The output stream to write to.
+     * @throws IOException If the stream could not be written to.
+     */
+    public void serializeToStream(OutputStream stream) throws IOException {
+        SequenceDatasetProto proto = serialize();
+        proto.writeTo(stream);
     }
 
     /**

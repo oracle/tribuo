@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,10 +43,10 @@ import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Locale;
@@ -66,6 +66,10 @@ public final class DataOptions implements Options {
          * Serialized Tribuo datasets.
          */
         SERIALIZED,
+        /**
+         * Protobuf serialized Tribuo datasets.
+         */
+        SERIALIZED_PROTOBUF,
         /**
          * LibSVM/svm-light format data.
          */
@@ -136,6 +140,11 @@ public final class DataOptions implements Options {
      */
     @Option(charName = 'f', longName = "model-output-path", usage = "Path to serialize model to.")
     public Path outputPath;
+    /**
+     * Write the model out as a protobuf.
+     */
+    @Option(longName = "model-output-protobuf", usage = "Serialize the model as a protobuf.")
+    public boolean modelOutputProtobuf;
     /**
      * RNG seed.
      */
@@ -223,11 +232,39 @@ public final class DataOptions implements Options {
                     }
                     logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
                     logger.info("Found " + train.getFeatureIDMap().size() + " features, and " + train.getOutputInfo().size() + " response dimensions");
+                    logger.info("Deserialising dataset from " + testingPath);
                     @SuppressWarnings("unchecked")
                     Dataset<T> deserTest = (Dataset<T>) oits.readObject();
                     test = new ImmutableDataset<>(deserTest, deserTest.getSourceProvenance(), deserTest.getOutputFactory(), train.getFeatureIDMap(), train.getOutputIDInfo(), true);
                 } catch (ClassNotFoundException e) {
                     throw new IllegalArgumentException("Unknown class in serialised files", e);
+                }
+                break;
+            case SERIALIZED_PROTOBUF:
+                //
+                // Load Tribuo protobuf serialised datasets.
+                logger.info("Deserialising protobuf dataset from " + trainingPath);
+                Dataset<?> tmp = Dataset.deserializeFromFile(trainingPath);
+                if (tmp.validate((Class<? extends Output<?>>) outputFactory.getUnknownOutput().getClass())) {
+                    train = Dataset.castDataset(tmp, outputFactory.getUnknownOutput().getClass());
+                    if (minCount > 0) {
+                        logger.info("Found " + train.getFeatureIDMap().size() + " features");
+                        logger.info("Removing features that occur fewer than " + minCount + " times.");
+                        train = new MinimumCardinalityDataset<>(train, minCount);
+                    }
+                    logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
+                    logger.info("Found " + train.getFeatureIDMap().size() + " features, and " + train.getOutputInfo().size() + " response dimensions");
+
+                    logger.info("Deserialising protobuf dataset from " + testingPath);
+                    tmp = Dataset.deserializeFromFile(testingPath);
+                    if (tmp.validate((Class<? extends Output<?>>) outputFactory.getUnknownOutput().getClass())) {
+                        Dataset<T> deserTest = Dataset.castDataset(tmp, outputFactory.getUnknownOutput().getClass());
+                        test = new ImmutableDataset<>(deserTest, deserTest.getSourceProvenance(), deserTest.getOutputFactory(), train.getFeatureIDMap(), train.getOutputIDInfo(), true);
+                    } else {
+                        throw new IllegalArgumentException("Invalid test dataset type, expected " + outputFactory.getUnknownOutput().getClass());
+                    }
+                } else {
+                    throw new IllegalArgumentException("Invalid train dataset type, expected " + outputFactory.getUnknownOutput().getClass());
                 }
                 break;
             case LIBSVM:
@@ -320,9 +357,14 @@ public final class DataOptions implements Options {
      * @throws IOException If the model could not be saved.
      */
     public <T extends Output<T>> void saveModel(Model<T> model) throws IOException {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath.toFile()))) {
-            oos.writeObject(model);
-            logger.info("Serialized model to file: " + outputPath);
+        if (modelOutputProtobuf) {
+            model.serializeToFile(outputPath);
+            logger.info("Serialized model as a protobuf to file: " + outputPath);
+        } else {
+            try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(outputPath))) {
+                oos.writeObject(model);
+                logger.info("Serialized model to file: " + outputPath);
+            }
         }
     }
 }

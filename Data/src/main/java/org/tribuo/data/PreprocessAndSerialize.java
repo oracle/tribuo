@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,12 @@ import org.tribuo.Output;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * Reads in a Datasource, processes all the data, and writes it out as a serialized dataset. This makes sharing
@@ -55,6 +58,12 @@ public final class PreprocessAndSerialize {
          */
         @Option(charName = 'o', longName = "serialized-dataset", usage = "path to serialize the dataset")
         public Path output;
+
+        /**
+         * Save the dataset as a protobuf.
+         */
+        @Option(charName = 'p', longName = "save-as-protobuf", usage = "Save the dataset as a protobuf.")
+        public boolean protobufFormat;
     }
 
     /**
@@ -82,11 +91,19 @@ public final class PreprocessAndSerialize {
         if(opts.output.endsWith("gz")) {
             logger.info("Writing zipped dataset");
         }
-        try(ObjectOutputStream os = IOUtil.getObjectOutputStream(opts.output.toString(), opts.output.endsWith("gz"))) {
-            os.writeObject(dataset);
-        } catch (IOException e) {
-            logger.log(Level.SEVERE,  "Error writing serialized dataset", e);
-            System.exit(1);
+        if (opts.protobufFormat) {
+            try (OutputStream os = opts.output.endsWith("gz") ? new GZIPOutputStream(Files.newOutputStream(opts.output)) : Files.newOutputStream(opts.output)) {
+                dataset.serializeToStream(os);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Error writing serialized dataset", e);
+            }
+        } else {
+            try(ObjectOutputStream os = IOUtil.getObjectOutputStream(opts.output.toString(), opts.output.endsWith("gz"))) {
+                os.writeObject(dataset);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE,  "Error writing serialized dataset", e);
+                System.exit(1);
+            }
         }
     }
 }
