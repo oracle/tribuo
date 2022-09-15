@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,17 +31,15 @@ import org.tribuo.hash.MessageDigestHasher;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.optimisers.GradientOptimiserOptions;
 import org.tribuo.sequence.HashingSequenceTrainer;
-import org.tribuo.sequence.ImmutableSequenceDataset;
 import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceTrainer;
 import org.tribuo.util.Util;
 
 import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
@@ -120,6 +118,9 @@ public class SeqTest {
          */
         @Option(longName = "model-hashing-salt", usage = "Salt for hashing the model.")
         public String modelHashingSalt = "";
+
+        @Option(longName = "protobuf-model", usage = "Load the model from a protobuf. Optional")
+        public boolean protobufFormat;
     }
 
     /**
@@ -159,16 +160,31 @@ public class SeqTest {
                 break;
             default:
                 if ((o.trainDataset != null) && (o.testDataset != null)) {
-                    logger.info("Loading training data from " + o.trainDataset);
-                    try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(o.trainDataset.toFile())));
-                         ObjectInputStream oits = new ObjectInputStream(new BufferedInputStream(new FileInputStream(o.testDataset.toFile())))) {
-                        train = (SequenceDataset<Label>) ois.readObject();
+                    if (o.protobufFormat) {
+                        logger.info("Loading protobuf format training data from " + o.trainDataset);
+                        SequenceDataset<?> tmpTrain = SequenceDataset.deserializeFromFile(o.trainDataset);
+                        train = SequenceDataset.castDataset(tmpTrain, Label.class);
                         logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
                         logger.info("Found " + train.getFeatureIDMap().size() + " features");
-                        logger.info("Loading testing data from " + o.testDataset);
-                        SequenceDataset<Label> deserTest = (SequenceDataset<Label>) oits.readObject();
-                        test = ImmutableSequenceDataset.copyDataset(deserTest, train.getFeatureIDMap(), train.getOutputIDInfo());
+                        logger.info("Loading protobuf format testing data from " + o.testDataset);
+                        SequenceDataset<?> tmpTest = SequenceDataset.deserializeFromFile(o.testDataset);
+                        test = SequenceDataset.castDataset(tmpTest, Label.class);
                         logger.info(String.format("Loaded %d testing examples", test.size()));
+                    } else {
+                        logger.info("Loading training data from " + o.trainDataset);
+                        try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(o.trainDataset)));
+                             ObjectInputStream oits = new ObjectInputStream(new BufferedInputStream(Files.newInputStream(o.testDataset)))) {
+                            @SuppressWarnings("unchecked") // deserialising a generic dataset.
+                            SequenceDataset<Label> tmpTrain = (SequenceDataset<Label>) ois.readObject();
+                            train = tmpTrain;
+                            logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
+                            logger.info("Found " + train.getFeatureIDMap().size() + " features");
+                            logger.info("Loading testing data from " + o.testDataset);
+                            @SuppressWarnings("unchecked") // deserialising a generic dataset.
+                            SequenceDataset<Label> tmpTest = (SequenceDataset<Label>) oits.readObject();
+                            test = tmpTest;
+                            logger.info(String.format("Loaded %d testing examples", test.size()));
+                        }
                     }
                 } else {
                     logger.warning("Unknown dataset " + o.datasetName);
@@ -217,11 +233,13 @@ public class SeqTest {
         System.out.println(evaluation.getConfusionMatrix().toString());
 
         if (o.outputPath != null) {
-            FileOutputStream fout = new FileOutputStream(o.outputPath.toFile());
-            ObjectOutputStream oout = new ObjectOutputStream(fout);
-            oout.writeObject(model);
-            oout.close();
-            fout.close();
+            if (o.protobufFormat) {
+                model.serializeToFile(o.outputPath);
+            } else {
+                try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(o.outputPath))) {
+                    oos.writeObject(model);
+                }
+            }
             logger.info("Serialized model to file: " + o.outputPath);
         }
     }
