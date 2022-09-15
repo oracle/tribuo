@@ -138,7 +138,9 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
             throw new IllegalStateException("Invalid protobuf, no XGBoost models were found");
         }
 
-        return new XGBoostModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),carrier.outputDomain(),models,converter);
+        @SuppressWarnings({"rawtypes","unchecked"}) // guarded by getClass check on the converter and domain above
+        XGBoostModel<?> model = new XGBoostModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),carrier.outputDomain(),models,converter);
+        return model;
     }
 
     /**
