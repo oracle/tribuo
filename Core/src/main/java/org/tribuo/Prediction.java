@@ -246,18 +246,7 @@ public class Prediction<T extends Output<T>> implements ProtoSerializable<Predic
      * @return True if they have the same distributions.
      */
     public boolean distributionEquals(Prediction<T> other) {
-        if (outputScores.size() != other.outputScores.size()) {
-            return false;
-        }
-        for (Map.Entry<String,T> e : outputScores.entrySet()) {
-            T otherScore = other.outputScores.get(e.getKey());
-            if (otherScore == null) {
-                return false;
-            } else if (!e.getValue().fullEquals(otherScore)) {
-                return false;
-            }
-        }
-        return true;
+        return distributionEquals(other, 0.0);
     }
 
     /**

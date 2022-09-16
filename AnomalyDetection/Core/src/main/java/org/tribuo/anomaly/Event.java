@@ -172,11 +172,7 @@ public final class Event implements Output<Event> {
 
     @Override
     public boolean fullEquals(Event o) {
-        if (this == o) return true;
-        if (o == null) return false;
-
-        if ((!(Double.isNaN(o.score) && Double.isNaN(score))) && (Double.compare(o.score, score) != 0)) return false;
-        return Objects.equals(type, o.type);
+        return fullEquals(o, 0.0);
     }
 
     @Override

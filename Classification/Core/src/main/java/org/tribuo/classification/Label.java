@@ -124,11 +124,7 @@ public final class Label implements Classifiable<Label> {
 
     @Override
     public boolean fullEquals(Label o) {
-        if (this == o) return true;
-        if (o == null) return false;
-
-        if ((!(Double.isNaN(o.score) && Double.isNaN(score))) && (Double.compare(o.score, score) != 0)) return false;
-        return Objects.equals(label, o.label);
+        return fullEquals(o, 0.0);
     }
 
     @Override
