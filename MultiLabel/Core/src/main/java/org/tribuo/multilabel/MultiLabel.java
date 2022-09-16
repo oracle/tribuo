@@ -276,32 +276,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     @Override
     public boolean fullEquals(MultiLabel o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        if (Double.compare(score, o.score) != 0) {
-            return false;
-        }
-        Map<String,Double> thisMap = new HashMap<>();
-        for (Label l : labels) {
-            thisMap.put(l.getLabel(),l.getScore());
-        }
-        Map<String,Double> thatMap = new HashMap<>();
-        for (Label l : o.labels) {
-            thatMap.put(l.getLabel(),l.getScore());
-        }
-        if (thisMap.size() == thatMap.size()) {
-            for (Map.Entry<String,Double> e : thisMap.entrySet()) {
-                Double thisValue = e.getValue();
-                Double thatValue = thatMap.get(e.getKey());
-                if ((thatValue == null) || Double.compare(thisValue,thatValue) != 0) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
+        return fullEquals(o, 0.0);
     }
 
     @Override
