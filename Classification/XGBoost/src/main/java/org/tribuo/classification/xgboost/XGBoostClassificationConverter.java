@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,16 @@
 
 package org.tribuo.classification.xgboost;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.common.xgboost.XGBoostOutputConverter;
+import org.tribuo.common.xgboost.protos.XGBoostOutputConverterProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -29,13 +34,35 @@ import java.util.List;
 /**
  * Converts XGBoost outputs into {@link Label} {@link Prediction}s.
  */
+@ProtoSerializableClass(version = XGBoostClassificationConverter.CURRENT_VERSION)
 public final class XGBoostClassificationConverter implements XGBoostOutputConverter<Label> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Constructs an XGBoostClassificationConverter.
      */
     public XGBoostClassificationConverter() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static XGBoostClassificationConverter deserializeFromProto(int version, String className, Any message) {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new XGBoostClassificationConverter();
+    }
 
     @Override
     public boolean generatesProbabilities() {
@@ -91,5 +118,15 @@ public final class XGBoostClassificationConverter implements XGBoostOutputConver
         }
 
         return predictions;
+    }
+
+    @Override
+    public XGBoostOutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
+
+    @Override
+    public Class<Label> getTypeWitness() {
+        return Label.class;
     }
 }

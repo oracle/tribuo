@@ -204,11 +204,12 @@ public final class Helpers {
         return deser;
     }
 
-    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Dataset<T> data) {
+
+    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Iterable<Example<T>> data) {
         return testModelProtoSerialization(model, outputClazz, data, 1e-15);
     }
 
-    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Dataset<T> data, double tolerance) {
+    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Iterable<Example<T>> data, double tolerance) {
         // test provenance marshalling
         testProvenanceMarshalling(model.getProvenance());
 
