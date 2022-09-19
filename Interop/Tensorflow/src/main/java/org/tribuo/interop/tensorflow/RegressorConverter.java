@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -33,6 +36,9 @@ import org.tensorflow.types.family.TNumber;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
+import org.tribuo.interop.tensorflow.protos.OutputConverterProto;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tensorflow.Tensor;
@@ -44,15 +50,42 @@ import java.util.function.BiFunction;
 
 /**
  * Can convert a {@link Regressor} to a {@link TFloat32} vector and a {@link TFloat32} into a
- * {@link Prediction} or Regressor.
+ * {@link Prediction} or {@code Regressor}.
  */
+@ProtoSerializableClass(version = RegressorConverter.CURRENT_VERSION)
 public class RegressorConverter implements OutputConverter<Regressor> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Constructs a RegressorConverter.
      */
     public RegressorConverter() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static RegressorConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new RegressorConverter();
+    }
+
+    @Override
+    public OutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
 
     /**
      * Returns a mean squared error loss.
@@ -219,5 +252,10 @@ public class RegressorConverter implements OutputConverter<Regressor> {
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"OutputConverter");
+    }
+
+    @Override
+    public Class<Regressor> getTypeWitness() {
+        return Regressor.class;
     }
 }

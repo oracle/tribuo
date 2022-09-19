@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import ai.onnxruntime.OrtException;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import org.tribuo.interop.onnx.protos.ExampleTransformerProto;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.ProtoSerializable;
 
 import java.io.Serializable;
 import java.util.List;
@@ -34,7 +36,7 @@ import java.util.List;
  * <p>
  * N.B. ONNX support is experimental, and may change without a major version bump.
  */
-public interface ExampleTransformer extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface ExampleTransformer extends Configurable, ProtoSerializable<ExampleTransformerProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Converts a {@link SparseVector} representing the features into a {@link OnnxTensor}.

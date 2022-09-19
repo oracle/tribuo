@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Tensor;
@@ -27,12 +29,17 @@ import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.interop.ExternalDatasetProvenance;
 import org.tribuo.interop.ExternalModel;
 import org.tribuo.interop.ExternalTrainerProvenance;
+import org.tribuo.interop.tensorflow.protos.TensorFlowSavedModelExternalModelProto;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.util.Util;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -40,10 +47,12 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * A Tribuo wrapper around a TensorFlow saved model bundle.
@@ -54,6 +63,11 @@ import java.util.Optional;
  */
 public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, TensorMap> implements Closeable {
     private static final long serialVersionUID = 200L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final String modelDirectory;
 
@@ -92,6 +106,37 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
         this.outputConverter = outputConverter;
         SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
         bundle = loader.load();
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check that the output domain and converter are compatible
+    public static TensorFlowSavedModelExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        TensorFlowSavedModelExternalModelProto proto = message.unpack(TensorFlowSavedModelExternalModelProto.class);
+
+        OutputConverter<?> outputConverter = ProtoUtil.deserialize(proto.getOutputConverter());
+        FeatureConverter featureConverter = ProtoUtil.deserialize(proto.getFeatureConverter());
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(outputConverter.getTypeWitness())) {
+            throw new IllegalStateException("Invalid protobuf, output domain does not match converter, found " + carrier.outputDomain().getClass() + " and " + outputConverter.getTypeWitness());
+        }
+        int[] featureForwardMapping = Util.toPrimitiveInt(proto.getForwardFeatureMappingList());
+        int[] featureBackwardMapping = Util.toPrimitiveInt(proto.getBackwardFeatureMappingList());
+        if (!validateFeatureMapping(featureForwardMapping,featureBackwardMapping,carrier.featureDomain())) {
+            throw new IllegalStateException("Invalid protobuf, external<->Tribuo feature mapping does not form a bijection");
+        }
+
+        return new TensorFlowSavedModelExternalModel(carrier.name(), carrier.provenance(), carrier.featureDomain(),
+                carrier.outputDomain(), featureForwardMapping, featureBackwardMapping, proto.getModelDirectory(),
+                proto.getOutputName(), featureConverter, outputConverter);
     }
 
     @Override
@@ -177,6 +222,27 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
         if (bundle != null) {
             bundle.close();
         }
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        TensorFlowSavedModelExternalModelProto.Builder modelBuilder = TensorFlowSavedModelExternalModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setOutputName(outputName);
+        modelBuilder.setModelDirectory(modelDirectory);
+        modelBuilder.addAllForwardFeatureMapping(Arrays.stream(featureForwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.addAllBackwardFeatureMapping(Arrays.stream(featureBackwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.setOutputConverter(outputConverter.serialize());
+        modelBuilder.setFeatureConverter(featureConverter.serialize());
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(TensorFlowSavedModelExternalModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     /**

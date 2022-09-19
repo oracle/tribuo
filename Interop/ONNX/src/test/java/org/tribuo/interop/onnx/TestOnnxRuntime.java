@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -93,6 +93,8 @@ public class TestOnnxRuntime {
         LabelFactory labelFactory = new LabelFactory();
         try (OrtEnvironment env = OrtEnvironment.getEnvironment()) {
             OrtSession.SessionOptions sessionOptions = new OrtSession.SessionOptions();
+            sessionOptions.setInterOpNumThreads(1);
+            sessionOptions.setIntraOpNumThreads(1);
 
             // Loads regular MNIST
             URL data = TestOnnxRuntime.class.getResource("/org/tribuo/interop/onnx/mnist_test_head.libsvm");
@@ -124,6 +126,8 @@ public class TestOnnxRuntime {
             assertEquals(0.024285, evaluation.balancedErrorRate(), 1e-6);
 
             Helpers.testModelSerialization(transposedMNISTLR,Label.class);
+
+            Helpers.testModelProtoSerialization(transposedMNISTLR, Label.class, new MutableDataset<>(transposedMNIST), 1e-6);
         }
     }
 

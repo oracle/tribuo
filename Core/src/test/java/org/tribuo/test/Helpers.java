@@ -204,7 +204,12 @@ public final class Helpers {
         return deser;
     }
 
+
     public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Iterable<Example<T>> data) {
+        return testModelProtoSerialization(model, outputClazz, data, 1e-15);
+    }
+
+    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Iterable<Example<T>> data, double tolerance) {
         // test provenance marshalling
         testProvenanceMarshalling(model.getProvenance());
 
@@ -227,7 +232,7 @@ public final class Helpers {
         for (int i = 0; i < modelPreds.size(); i++) {
             Prediction<T> cur = modelPreds.get(i);
             Prediction<T> other = deserPreds.get(i);
-            assertTrue(cur.distributionEquals(other));
+            assertTrue(cur.distributionEquals(other, tolerance));
         }
 
         return deserModel;

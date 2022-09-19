@@ -40,7 +40,7 @@ import java.io.Serializable;
 public interface Output<T extends Output<T>> extends ProtoSerializable<OutputProto>, Serializable {
 
     /**
-     * Deep copy of the output up to it's immutable state.
+     * Deep copy of the output up to its immutable state.
      * @return A copy of the output.
      */
     public T copy();
@@ -59,6 +59,20 @@ public interface Output<T extends Output<T>> extends ProtoSerializable<OutputPro
      * @return True if the other instance has value equality to this instance. False otherwise.
      */
     public boolean fullEquals(T other);
+
+    /**
+     * Compares other to this output. Uses all score values
+     * and the strings.
+     * <p>
+     * The default implementation of this method ignores the tolerance for compatibility reasons,
+     * it is overridden in all output classes in Tribuo.
+     * @param other Another output instance.
+     * @param tolerance The tolerance level for an absolute value comparison.
+     * @return True if the other instance has value equality to this instance. False otherwise.
+     */
+    default public boolean fullEquals(T other, double tolerance) {
+        return fullEquals(other);
+    }
 
     /**
      * Deserializes a {@link OutputProto} into a {@link Output} subclass.

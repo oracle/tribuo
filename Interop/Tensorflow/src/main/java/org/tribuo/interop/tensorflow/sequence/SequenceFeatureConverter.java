@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,9 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.ImmutableFeatureMap;
-import org.tribuo.Output;
 import org.tribuo.interop.tensorflow.TensorMap;
+import org.tribuo.interop.tensorflow.protos.SequenceFeatureConverterProto;
+import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.sequence.SequenceExample;
 
 import java.io.Serializable;
@@ -33,7 +34,7 @@ import java.util.Set;
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public interface SequenceFeatureConverter extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceFeatureConverter extends Configurable, ProtoSerializable<SequenceFeatureConverterProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Encodes an example as a feed dict.

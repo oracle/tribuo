@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -35,9 +38,12 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.interop.tensorflow.protos.OutputConverterProto;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,9 +62,15 @@ import java.util.logging.Logger;
  * Predictions are thresholded at {@link #THRESHOLD}, probabilities above this are considered to be present in the
  * output.
  */
+@ProtoSerializableClass(version = MultiLabelConverter.CURRENT_VERSION)
 public class MultiLabelConverter implements OutputConverter<MultiLabel> {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(MultiLabelConverter.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * The threshold to determine if a label has been predicted.
@@ -69,6 +81,27 @@ public class MultiLabelConverter implements OutputConverter<MultiLabel> {
      * Constructs a MultiLabelConverter.
      */
     public MultiLabelConverter() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static MultiLabelConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new MultiLabelConverter();
+    }
+
+    @Override
+    public OutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
+    }
 
     /**
      * Returns a sigmoid cross-entropy loss.
@@ -252,5 +285,10 @@ public class MultiLabelConverter implements OutputConverter<MultiLabel> {
     @Override
     public ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"OutputConverter");
+    }
+
+    @Override
+    public Class<MultiLabel> getTypeWitness() {
+        return MultiLabel.class;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
@@ -27,8 +29,13 @@ import org.tensorflow.types.TFloat32;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.interop.tensorflow.protos.FeatureConverterProto;
+import org.tribuo.interop.tensorflow.protos.ImageConverterProto;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,19 +48,29 @@ import java.util.Set;
  * </pre>
  * That is, they are in multidimensional row major order (e.g. the order used by {@link org.tribuo.datasource.IDXDataSource}).
  */
+@ProtoSerializableClass(serializedDataClass = ImageConverterProto.class, version = ImageConverter.CURRENT_VERSION)
 public class ImageConverter implements FeatureConverter {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     @Config(mandatory=true,description="TensorFlow Placeholder Input name.")
+    @ProtoSerializableField
     private String inputName;
 
     @Config(mandatory=true,description="Image width.")
+    @ProtoSerializableField
     private int width;
 
     @Config(mandatory=true,description="Image height.")
+    @ProtoSerializableField
     private int height;
 
     @Config(mandatory=true,description="Number of channels.")
+    @ProtoSerializableField
     private int channels;
 
     private int totalPixels;
@@ -101,6 +118,25 @@ public class ImageConverter implements FeatureConverter {
             throw new PropertyException("","Image size must be less than 2^31, found " + values);
         }
         this.totalPixels = (int) values;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImageConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ImageConverterProto proto = message.unpack(ImageConverterProto.class);
+        return new ImageConverter(proto.getInputName(), proto.getWidth(), proto.getHeight(), proto.getChannels());
+    }
+
+    @Override
+    public FeatureConverterProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

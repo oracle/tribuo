@@ -276,10 +276,15 @@ public class MultiLabel implements Classifiable<MultiLabel> {
 
     @Override
     public boolean fullEquals(MultiLabel o) {
+        return fullEquals(o, 0.0);
+    }
+
+    @Override
+    public boolean fullEquals(MultiLabel o, double tolerance) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        if (Double.compare(score, o.score) != 0) {
+        if (Math.abs(o.score - score) > tolerance) {
             return false;
         }
         Map<String,Double> thisMap = new HashMap<>();
@@ -294,7 +299,7 @@ public class MultiLabel implements Classifiable<MultiLabel> {
             for (Map.Entry<String,Double> e : thisMap.entrySet()) {
                 Double thisValue = e.getValue();
                 Double thatValue = thatMap.get(e.getKey());
-                if ((thatValue == null) || Double.compare(thisValue,thatValue) != 0) {
+                if ((thatValue == null) || Math.abs(thisValue - thatValue) > tolerance) {
                     return false;
                 }
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022 Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,6 +148,7 @@ public class ClassificationTest {
         @SuppressWarnings("unchecked")
         TensorFlowCheckpointModel<Label> ckptModel = (TensorFlowCheckpointModel<Label>) testTrainer(checkpointTrainer, trainData, testData);
         List<Prediction<Label>> oldCkptPreds = ckptModel.predict(testData);
+        Helpers.testModelProtoSerialization(ckptModel, Label.class, testData);
 
         // Check we can move the checkpoint and the model still works
         Assertions.assertTrue(ckptModel.isInitialized());
@@ -163,6 +164,7 @@ public class ClassificationTest {
         TensorFlowNativeModel<Label> nativeCkptModel = ckptModel.convertToNativeModel();
         List<Prediction<Label>> nativeCkptPreds = nativeCkptModel.predict(testData);
         checkPredictionEquality(ckptPreds,nativeCkptPreds);
+        Helpers.testModelProtoSerialization(nativeCkptModel, Label.class, testData);
 
         // Clean up checkpoint and native model
         ckptModel.close();
@@ -378,6 +380,7 @@ public class ClassificationTest {
         // Check predictions are equal
         List<Prediction<Label>> externalPredictions = externalModel.predict(testData);
         checkPredictionEquality(predictions,externalPredictions);
+        Helpers.testModelProtoSerialization(externalModel, Label.class, testData);
 
         // Cleanup saved model bundle
         externalModel.close();

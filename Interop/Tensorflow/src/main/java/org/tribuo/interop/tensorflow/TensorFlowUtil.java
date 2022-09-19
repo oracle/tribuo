@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.tribuo.interop.tensorflow;
 
+import com.google.protobuf.ByteString;
 import org.tensorflow.Graph;
 import org.tensorflow.GraphOperation;
 import org.tensorflow.GraphOperationBuilder;
@@ -26,9 +27,12 @@ import org.tensorflow.ndarray.buffer.ByteDataBuffer;
 import org.tensorflow.ndarray.buffer.DataBuffers;
 import org.tensorflow.op.Scope;
 import org.tensorflow.types.family.TType;
+import org.tribuo.interop.tensorflow.protos.TensorTupleProto;
+import org.tribuo.util.Util;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Helper functions for working with TensorFlow.
@@ -234,6 +239,16 @@ public abstract class TensorFlowUtil {
         }
 
         /**
+         * Deserializes the tensor tuple from the supplied protobuf.
+         * @param proto The proto to deserialize.
+         */
+        public TensorTuple(TensorTupleProto proto) {
+            this.className = proto.getClassName();
+            this.shape = Util.toPrimitiveLong(proto.getShapeList());
+            this.data = proto.getData().toByteArray();
+        }
+
+        /**
          * Recreates the Tensor from the serialized form.
          * @return The Tensor.
          */
@@ -252,6 +267,20 @@ public abstract class TensorFlowUtil {
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException("Failed to instantiate Tensor class",e);
             }
+        }
+
+        /**
+         * Serializes this object to a protobuf.
+         * @return The protobuf.
+         */
+        public TensorTupleProto serialize() {
+            TensorTupleProto.Builder builder = TensorTupleProto.newBuilder();
+
+            builder.setClassName(className);
+            builder.addAllShape(Arrays.stream(shape).boxed().collect(Collectors.toList()));
+            builder.setData(ByteString.copyFrom(data));
+
+            return builder.build();
         }
 
         /**

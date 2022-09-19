@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,25 @@ package org.tribuo.interop.onnx;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.interop.onnx.protos.ExampleTransformerProto;
+import org.tribuo.interop.onnx.protos.ImageTransformerProto;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
+import org.tribuo.protos.ProtoUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Image transformer. Assumes the feature id numbers are linearised ids of the form
@@ -38,16 +46,25 @@ import java.util.List;
  * <p>
  * ONNX expects images in the format [channels,height,width].
  */
+@ProtoSerializableClass(serializedDataClass = ImageTransformerProto.class, version = ImageTransformer.CURRENT_VERSION)
 public class ImageTransformer implements ExampleTransformer {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     @Config(mandatory=true,description="Image width.")
+    @ProtoSerializableField
     private int width;
 
     @Config(mandatory=true,description="Image height.")
+    @ProtoSerializableField
     private int height;
 
     @Config(mandatory=true,description="Number of channels.")
+    @ProtoSerializableField
     private int channels;
 
     /**
@@ -78,6 +95,20 @@ public class ImageTransformer implements ExampleTransformer {
         if (width < 1 || height < 1 || channels < 1) {
             throw new PropertyException("","Inputs must be positive integers, found [c="+channels+",h="+height+",w="+width+"]");
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static ImageTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ImageTransformerProto proto = message.unpack(ImageTransformerProto.class);
+        return new ImageTransformer(proto.getChannels(), proto.getHeight(), proto.getWidth());
     }
 
     /**
@@ -125,6 +156,24 @@ public class ImageTransformer implements ExampleTransformer {
     @Override
     public String toString() {
         return "ImageTransformer(channels="+channels+",height="+height+",width="+width+")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ImageTransformer that = (ImageTransformer) o;
+        return width == that.width && height == that.height && channels == that.channels;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(width, height, channels);
+    }
+
+    @Override
+    public ExampleTransformerProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

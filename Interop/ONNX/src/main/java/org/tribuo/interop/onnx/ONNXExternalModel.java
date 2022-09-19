@@ -22,6 +22,9 @@ import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.io.ProvenanceSerializationException;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance;
@@ -35,12 +38,17 @@ import org.tribuo.ONNXExportable;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.interop.ExternalDatasetProvenance;
 import org.tribuo.interop.ExternalModel;
 import org.tribuo.interop.ExternalTrainerProvenance;
+import org.tribuo.interop.onnx.protos.ONNXExternalModelProto;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.util.Util;
 
 import java.io.IOException;
 import java.net.URL;
@@ -57,6 +65,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A Tribuo wrapper around a ONNX model.
@@ -67,6 +76,11 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ONNXExternalModel.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private transient OrtEnvironment env;
 
@@ -111,6 +125,42 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
         this.outputTransformer = outputTransformer;
         this.env = OrtEnvironment.getEnvironment();
         this.session = env.createSession(modelArray, options);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check
+    public static ONNXExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, IOException, OrtException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        ONNXExternalModelProto proto = message.unpack(ONNXExternalModelProto.class);
+        OutputTransformer<?> outputTransformer = ProtoUtil.deserialize(proto.getOutputTransformer());
+        ExampleTransformer exampleTransformer = ProtoUtil.deserialize(proto.getExampleTransformer());
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(outputTransformer.getTypeWitness())) {
+            throw new IllegalStateException("Invalid protobuf, output domain does not match converter, found " + carrier.outputDomain().getClass() + " and " + outputTransformer.getTypeWitness());
+        }
+        int[] featureForwardMapping = Util.toPrimitiveInt(proto.getForwardFeatureMappingList());
+        int[] featureBackwardMapping = Util.toPrimitiveInt(proto.getBackwardFeatureMappingList());
+        if (!validateFeatureMapping(featureForwardMapping,featureBackwardMapping,carrier.featureDomain())) {
+            throw new IllegalStateException("Invalid protobuf, external<->Tribuo feature mapping does not form a bijection");
+        }
+
+        // Create the ONNX env to ensure the session options can be built.
+        OrtEnvironment env = OrtEnvironment.getEnvironment();
+        OrtSession.SessionOptions options = new OrtSession.SessionOptions();
+        options.setInterOpNumThreads(1);
+        options.setIntraOpNumThreads(1);
+
+        return new ONNXExternalModel(carrier.name(), carrier.provenance(), carrier.featureDomain(), carrier.outputDomain(),
+                featureForwardMapping, featureBackwardMapping, proto.getModelArray().toByteArray(), options,
+                proto.getInputName(), exampleTransformer, outputTransformer);
     }
 
     /**
@@ -277,6 +327,27 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
             logger.log(Level.WARNING, "Failed to parse provenance from value.",e);
             return Optional.empty();
         }
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        ONNXExternalModelProto.Builder modelBuilder = ONNXExternalModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.addAllForwardFeatureMapping(Arrays.stream(featureForwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.addAllBackwardFeatureMapping(Arrays.stream(featureBackwardMapping).boxed().collect(Collectors.toList()));
+        modelBuilder.setModelArray(ByteString.copyFrom(modelArray));
+        modelBuilder.setInputName(inputName);
+        modelBuilder.setOutputTransformer(outputTransformer.serialize());
+        modelBuilder.setExampleTransformer(featureTransformer.serialize());
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(ONNXExternalModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     /**

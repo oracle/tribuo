@@ -1,0 +1,158 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo's TensorFlow interop classes.
+ */
+package tribuo.interop.tensorflow;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.interop.tensorflow.protos";
+
+// We use any to encode polymorphism
+import "google/protobuf/any.proto";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+/*
+TF OutputConverter redirect proto
+ */
+message OutputConverterProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+TF FeatureConverter redirect proto
+ */
+message FeatureConverterProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+TF SequenceOutputConverter redirect proto
+ */
+message SequenceOutputConverterProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+TF SequenceFeatureConverter redirect proto
+ */
+message SequenceFeatureConverterProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+ImageConverter proto
+ */
+message ImageConverterProto {
+  string input_name = 1;
+  int32 width = 2;
+  int32 height = 3;
+  int32 channels = 4;
+}
+
+/*
+DenseFeatureConverter proto
+ */
+message DenseFeatureConverterProto {
+  string input_name = 1;
+}
+
+/*
+TensorFlowUtil.TensorTuple proto
+ */
+message TensorTupleProto {
+  string class_name = 1;
+  repeated int64 shape = 2;
+  bytes data = 3;
+}
+
+/*
+TensorFlowSavedModelExternalModel proto
+ */
+message TensorFlowSavedModelExternalModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated int32 forward_feature_mapping = 2;
+  repeated int32 backward_feature_mapping = 3;
+  string model_directory = 4;
+  FeatureConverterProto feature_converter = 5;
+  OutputConverterProto output_converter = 6;
+  string output_name = 7;
+}
+
+/*
+TensorFlowFrozenExternalModel proto
+ */
+message TensorFlowFrozenExternalModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated int32 forward_feature_mapping = 2;
+  repeated int32 backward_feature_mapping = 3;
+  FeatureConverterProto feature_converter = 4;
+  OutputConverterProto output_converter = 5;
+  string output_name = 6;
+  bytes model_def = 7;
+}
+
+/*
+TensorFlowNativeModel proto
+ */
+message TensorFlowNativeModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  bytes model_def = 2;
+  map<string, TensorTupleProto> tensors = 3;
+  FeatureConverterProto feature_converter = 4;
+  OutputConverterProto output_converter = 5;
+  int32 batch_size = 6;
+  string output_name = 7;
+}
+
+/*
+TensorFlowCheckpointModel proto
+ */
+message TensorFlowCheckpointModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  bytes model_def = 2;
+  string checkpoint_directory = 3;
+  string checkpoint_name = 4;
+  FeatureConverterProto feature_converter = 5;
+  OutputConverterProto output_converter = 6;
+  int32 batch_size = 7;
+  string output_name = 8;
+}
+
+/*
+TensorFlowSequenceModel proto
+ */
+message TensorFlowSequenceModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  bytes model_def = 2;
+  map<string, TensorTupleProto> tensors = 3;
+  SequenceFeatureConverterProto feature_converter = 4;
+  SequenceOutputConverterProto output_converter = 5;
+  string predict_op = 6;
+}

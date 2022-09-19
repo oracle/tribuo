@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,20 @@
 
 package org.tribuo.interop.oci;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
+import org.tribuo.interop.oci.protos.OCIOutputConverterProto;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.regression.Regressor;
 
 import java.util.ArrayList;
@@ -32,18 +38,40 @@ import java.util.List;
 /**
  * A converter for {@link DenseMatrix} and {@link DenseVector} into {@link Regressor} {@link Prediction}s.
  */
+@ProtoSerializableClass(version = OCIRegressorConverter.CURRENT_VERSION)
 public final class OCIRegressorConverter implements OCIOutputConverter<Regressor> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Constructs an OCIRegressorConverter.
      */
     public OCIRegressorConverter() {}
 
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static OCIRegressorConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new OCIRegressorConverter();
+    }
+
     @Override
     public Prediction<Regressor> convertOutput(DenseVector scores, int numValidFeature, Example<Regressor> example, ImmutableOutputInfo<Regressor> outputIDInfo) {
         if (scores.size() != outputIDInfo.size()) {
-                throw new IllegalStateException("Expected scores for each output, received " + scores.size() + " when there are " + outputIDInfo.size() + "outputs");
+            throw new IllegalStateException("Expected scores for each output, received " + scores.size() + " when there are " + outputIDInfo.size() + "outputs");
         } else {
             // Note this inserts in an ordering which is not necessarily the natural one,
             // but the Regressor constructor sorts it to maintain the natural ordering.
@@ -93,8 +121,29 @@ public final class OCIRegressorConverter implements OCIOutputConverter<Regressor
     }
 
     @Override
+    public Class<Regressor> getTypeWitness() {
+        return Regressor.class;
+    }
+
+    @Override
     public String toString() {
         return "OCIRegressorConverter()";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        return o != null && getClass() == o.getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+
+    @Override
+    public OCIOutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.interop.oci;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
@@ -24,9 +26,13 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.interop.oci.protos.OCIMultiLabelConverterProto;
+import org.tribuo.interop.oci.protos.OCIOutputConverterProto;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,13 +42,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+
 /**
  * A converter for {@link DenseMatrix} and {@link DenseVector} into {@link MultiLabel} {@link Prediction}s.
  * <p>
  * The threshold is user determined, but defaults to 0.5.
  */
+@ProtoSerializableClass(serializedDataClass = OCIMultiLabelConverterProto.class, version = OCIMultiLabelConverter.CURRENT_VERSION)
 public final class OCIMultiLabelConverter implements OCIOutputConverter<MultiLabel> {
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * The default threshold for conversion into a label.
@@ -81,6 +94,20 @@ public final class OCIMultiLabelConverter implements OCIOutputConverter<MultiLab
         if (generatesProbabilities && (threshold < 0.0 || threshold > 1.0)) {
             throw new PropertyException("","threshold","Threshold must be between 0 and 1 to generate probabilities, found " + threshold);
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static OCIMultiLabelConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        OCIMultiLabelConverterProto proto = message.unpack(OCIMultiLabelConverterProto.class);
+        return new OCIMultiLabelConverter(proto.getThreshold(),proto.getGeneratesProbabilities());
     }
 
     @Override
@@ -135,6 +162,11 @@ public final class OCIMultiLabelConverter implements OCIOutputConverter<MultiLab
         return generatesProbabilities;
     }
 
+    @Override
+    public Class<MultiLabel> getTypeWitness() {
+        return MultiLabel.class;
+    }
+
     /**
      * Returns the threshold this converter uses to emit labels.
      * @return The threshold.
@@ -159,6 +191,11 @@ public final class OCIMultiLabelConverter implements OCIOutputConverter<MultiLab
     @Override
     public int hashCode() {
         return Objects.hash(generatesProbabilities, threshold);
+    }
+
+    @Override
+    public OCIOutputConverterProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override

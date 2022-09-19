@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,16 @@ package org.tribuo.interop.onnx;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
+import com.google.protobuf.Any;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.interop.onnx.protos.ExampleTransformerProto;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoUtil;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -30,9 +36,15 @@ import java.util.logging.Logger;
 /**
  * Converts a sparse Tribuo example into a dense float vector, then wraps it in an {@link OnnxTensor}.
  */
+@ProtoSerializableClass(version = DenseTransformer.CURRENT_VERSION)
 public class DenseTransformer implements ExampleTransformer {
     private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(DenseTransformer.class.getName());
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     /**
      * Feature size beyond which a warning is generated (as ONNX requires dense features and large feature spaces are memory hungry).
@@ -45,6 +57,27 @@ public class DenseTransformer implements ExampleTransformer {
     public static final int WARNING_THRESHOLD = 10;
 
     private int warningCount = 0;
+
+    /**
+     * Construct a transformer which converts Tribuo sparse vectors into a dense tensor.
+     */
+    public DenseTransformer() {}
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static DenseTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (message.getValue() != ByteString.EMPTY) {
+            throw new IllegalArgumentException("Invalid proto");
+        }
+        return new DenseTransformer();
+    }
 
     private float[] innerTransform(SparseVector vector) {
         if ((warningCount < WARNING_THRESHOLD) && (vector.size() > THRESHOLD)) {
@@ -83,6 +116,22 @@ public class DenseTransformer implements ExampleTransformer {
     @Override
     public String toString() {
         return "DenseTransformer()";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        return o != null && getClass() == o.getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+
+    @Override
+    public ExampleTransformerProto serialize() {
+        return ProtoUtil.serialize(this);
     }
 
     @Override
