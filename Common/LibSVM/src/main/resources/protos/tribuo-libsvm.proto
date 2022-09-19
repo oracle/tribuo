@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing LibSVM models.
+ */
+package tribuo.common.libsvm;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.common.libsvm.protos";
+
+/*
+svm_parameter proto
+ */
+message SVMParameterProto {
+ int32 svm_type = 1;
+ int32 kernel_type = 2;
+ int32 degree = 3;
+ double gamma = 4;
+ double coef0 = 5;
+ double cache_size = 6;
+ double eps = 7;
+ double C = 8;
+ int32 nr_weight = 9;
+ repeated int32 weight_label = 10;
+ repeated double weight = 11;
+ double nu = 12;
+ double p = 13;
+ int32 shrinking = 14;
+ int32 probability = 15;
+}
+
+/*
+svm_node proto
+ */
+message SVMNodeArrayProto {
+ repeated int32 index = 1;
+ repeated double value = 2;
+}
+
+/*
+svm_model proto
+ */
+message SVMModelProto {
+ SVMParameterProto param = 1;
+ int32 nr_class = 2;
+ int32 l = 3;
+ repeated SVMNodeArrayProto SV = 4;
+ repeated int32 sv_coef_lengths = 5;
+ repeated double sv_coef = 6;
+ repeated double rho = 7;
+ repeated double probA = 8;
+ repeated double probB = 9;
+ repeated int32 sv_indices = 10;
+ repeated int32 label = 11;
+ repeated int32 nSV = 12;
+}

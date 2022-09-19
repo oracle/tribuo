@@ -130,7 +130,7 @@ public class LibSVMRegressionTrainer extends LibSVMTrainer<Regressor> {
                 variances[i] = curModel.variance;
                 unpickedModels.add(curModel.innerModel);
             }
-            return new LibSVMRegressionModel("svm-regression-model", provenance, featureIDMap, outputIDInfo, unpickedModels, means, variances);
+            return new LibSVMRegressionModel("svm-regression-model", provenance, featureIDMap, outputIDInfo, Collections.unmodifiableList(unpickedModels), means, variances);
         } else {
             return new LibSVMRegressionModel("svm-regression-model", provenance, featureIDMap, outputIDInfo, models);
         }

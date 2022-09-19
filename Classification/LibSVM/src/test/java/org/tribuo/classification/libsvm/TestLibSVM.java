@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -245,40 +245,43 @@ public class TestLibSVM {
         ImmutableDataset<Label> newTrain = ImmutableDataset.copyDataset(binary.getA(), binary.getA().getFeatureIDMap(), newInfo);
         ImmutableDataset<Label> newTest = ImmutableDataset.copyDataset(binary.getB(), binary.getA().getFeatureIDMap(), newInfo);
 
-        testOnnxSerialization(new Pair<>(newTrain,newTest), C_LINEAR);
+        testSerialization(new Pair<>(newTrain,newTest), C_LINEAR);
 
-        testOnnxSerialization(binary, C_LINEAR);
-        testOnnxSerialization(binary, C_RBF);
-        testOnnxSerialization(binary, NU_LINEAR);
-        testOnnxSerialization(binary, NU_RBF);
+        testSerialization(binary, C_LINEAR);
+        testSerialization(binary, C_RBF);
+        testSerialization(binary, NU_LINEAR);
+        testSerialization(binary, NU_RBF);
 
         SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.RBF);
         params.setProbability();
         LibSVMClassificationTrainer probTrainer = new LibSVMClassificationTrainer(params);
 
-        testOnnxSerialization(binary,probTrainer);
+        testSerialization(binary,probTrainer);
     }
 
     @Test
     public void testOnnxMulticlassSerialization() throws IOException, OrtException {
         Pair<Dataset<Label>,Dataset<Label>> multiclass = LabelledDataGenerator.denseTrainTest();
 
-        testOnnxSerialization(multiclass,C_LINEAR);
-        testOnnxSerialization(multiclass,C_RBF);
-        testOnnxSerialization(multiclass,NU_LINEAR);
-        testOnnxSerialization(multiclass,NU_RBF);
+        testSerialization(multiclass,C_LINEAR);
+        testSerialization(multiclass,C_RBF);
+        testSerialization(multiclass,NU_LINEAR);
+        testSerialization(multiclass,NU_RBF);
 
         SVMParameters<Label> params = new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.RBF);
         params.setProbability();
         LibSVMClassificationTrainer probTrainer = new LibSVMClassificationTrainer(params);
 
-        testOnnxSerialization(multiclass,probTrainer);
+        testSerialization(multiclass,probTrainer);
     }
 
-    private static void testOnnxSerialization(Pair<Dataset<Label>,Dataset<Label>> datasetPair, LibSVMClassificationTrainer trainer) throws IOException, OrtException {
+    private static void testSerialization(Pair<Dataset<Label>,Dataset<Label>> datasetPair, LibSVMClassificationTrainer trainer) throws IOException, OrtException {
         LibSVMClassificationModel model = (LibSVMClassificationModel) trainer.train(datasetPair.getA());
 
-        // Write out model
+        // Test protobuf serialization
+        Helpers.testModelProtoSerialization(model, Label.class, datasetPair.getB());
+
+        // Write out model in ONNX
         Path onnxFile = Files.createTempFile("tribuo-libsvm-test", ".onnx");
         model.saveONNXModel("org.tribuo.classification.libsvm.test", 1, onnxFile);
 

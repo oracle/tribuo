@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.tribuo.classification.libsvm;
 
 import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import libsvm.svm;
 import libsvm.svm_model;
@@ -27,9 +29,12 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.libsvm.protos.LibSVMClassificationModelProto;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
 import org.tribuo.util.onnx.ONNXContext;
@@ -78,6 +83,11 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
     private static final long serialVersionUID = 3L;
 
     /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
+    /**
      * This is used when the model hasn't seen as many outputs as the OutputInfo says are there.
      * It stores the unseen labels to ensure the predict method has the right number of outputs.
      * If there are no unobserved labels it's set to Collections.emptySet.
@@ -104,6 +114,30 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         } else {
             this.unobservedLabels = Collections.emptySet();
         }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LibSVMClassificationModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        LibSVMClassificationModelProto proto = message.unpack(LibSVMClassificationModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Label.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a label domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Label> outputDomain = (ImmutableOutputInfo<Label>) carrier.outputDomain();
+
+        svm_model model = deserializeModel(proto.getModel());
+
+        return new LibSVMClassificationModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,Collections.singletonList(model));
     }
 
     /**
@@ -290,4 +324,19 @@ public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONN
         return onnx.operation(ONNXOperators.CONCAT, oneVOneVotes, "svm_output", Collections.singletonMap("axis", 1));
     }
 
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<Label> carrier = createDataCarrier();
+
+        LibSVMClassificationModelProto.Builder modelBuilder = LibSVMClassificationModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setModel(serializeModel(models.get(0)));
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(LibSVMClassificationModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
+    }
 }

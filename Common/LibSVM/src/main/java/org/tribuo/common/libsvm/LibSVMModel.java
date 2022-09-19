@@ -16,16 +16,22 @@
 
 package org.tribuo.common.libsvm;
 
+import com.google.protobuf.EmptyOrBuilder;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import libsvm.svm_parameter;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
+import org.tribuo.common.libsvm.protos.SVMModelProto;
+import org.tribuo.common.libsvm.protos.SVMNodeArrayProto;
+import org.tribuo.common.libsvm.protos.SVMParameterProto;
 import org.tribuo.provenance.ModelProvenance;
 import libsvm.svm_model;
 import libsvm.svm_node;
+import org.tribuo.util.Util;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -35,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * A model that uses an underlying libSVM model to make the
@@ -205,4 +212,188 @@ public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implemen
         }
     }
 
+    /**
+     * Serializes a svm_parameter to a protobuf.
+     * @param param The parameters to serialize.
+     * @return The protobuf.
+     */
+    protected static SVMParameterProto serializeParameters(svm_parameter param) {
+        SVMParameterProto.Builder paramBuilder = SVMParameterProto.newBuilder();
+        paramBuilder.setSvmType(param.svm_type);
+        paramBuilder.setKernelType(param.kernel_type);
+        paramBuilder.setDegree(param.degree);
+        paramBuilder.setGamma(param.gamma);
+        paramBuilder.setCoef0(param.coef0);
+        paramBuilder.setCacheSize(param.cache_size);
+        paramBuilder.setEps(param.eps);
+        paramBuilder.setC(param.C);
+        paramBuilder.setNrWeight(param.nr_weight);
+        paramBuilder.setNu(param.nu);
+        paramBuilder.setP(param.p);
+        paramBuilder.setShrinking(param.shrinking);
+        paramBuilder.setProbability(param.probability);
+        if (param.weight != null) {
+            for (int i = 0; i < param.weight.length; i++) {
+                paramBuilder.addWeight(param.weight[i]);
+            }
+        }
+        if (param.weight_label != null) {
+            for (int i = 0; i < param.weight_label.length; i++) {
+                paramBuilder.addWeightLabel(param.weight_label[i]);
+            }
+        }
+        return paramBuilder.build();
+    }
+
+    /**
+     * Serializes a LibSVM svm_model to a protobuf.
+     * @param model The model to serialize.
+     * @return The protobuf representation.
+     */
+    protected static SVMModelProto serializeModel(svm_model model) {
+        SVMModelProto.Builder modelBuilder = SVMModelProto.newBuilder();
+        modelBuilder.setParam(serializeParameters(model.param));
+        modelBuilder.setNrClass(model.nr_class);
+        modelBuilder.setL(model.l);
+        if (model.SV != null) {
+            for (int i = 0; i < model.SV.length; i++) {
+                SVMNodeArrayProto.Builder nodeBuilder = SVMNodeArrayProto.newBuilder();
+                for (int j = 0; j < model.SV[i].length; j++) {
+                    nodeBuilder.addIndex(model.SV[i][j].index);
+                    nodeBuilder.addValue(model.SV[i][j].value);
+                }
+                modelBuilder.addSV(nodeBuilder.build());
+            }
+        }
+        if (model.sv_coef != null) {
+            for (int i = 0; i < model.sv_coef.length; i++) {
+                modelBuilder.addSvCoefLengths(model.sv_coef[i].length);
+                for (int j = 0; j < model.sv_coef[i].length; j++) {
+                    modelBuilder.addSvCoef(model.sv_coef[i][j]);
+                }
+            }
+        }
+        if (model.rho != null) {
+            modelBuilder.addAllRho(Arrays.stream(model.rho).boxed().collect(Collectors.toList()));
+        }
+        if (model.probA != null) {
+            modelBuilder.addAllProbA(Arrays.stream(model.probA).boxed().collect(Collectors.toList()));
+        }
+        if (model.probB != null) {
+            modelBuilder.addAllProbB(Arrays.stream(model.probB).boxed().collect(Collectors.toList()));
+        }
+        if (model.sv_indices != null) {
+            modelBuilder.addAllSvIndices(Arrays.stream(model.sv_indices).boxed().collect(Collectors.toList()));
+        }
+        if (model.label != null) {
+            modelBuilder.addAllLabel(Arrays.stream(model.label).boxed().collect(Collectors.toList()));
+        }
+        if (model.nSV != null) {
+            modelBuilder.addAllNSV(Arrays.stream(model.nSV).boxed().collect(Collectors.toList()));
+        }
+        return modelBuilder.build();
+    }
+
+    /**
+     * Deserializes svm_parameter from a protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The parameters.
+     */
+    protected static svm_parameter deserializeParameters(SVMParameterProto proto) {
+        svm_parameter param = new svm_parameter();
+        param.svm_type = proto.getSvmType();
+        param.kernel_type = proto.getKernelType();
+        param.degree = proto.getDegree();
+        param.gamma = proto.getGamma();
+        param.coef0 = proto.getCoef0();
+        param.cache_size = proto.getCacheSize();
+        param.eps = proto.getEps();
+        param.C = proto.getC();
+        param.nr_weight = proto.getNrWeight();
+        param.nu = proto.getNu();
+        param.p = proto.getP();
+        param.shrinking = proto.getShrinking();
+        param.probability = proto.getProbability();
+        if (proto.getWeightCount() > 0) {
+            param.weight = new double[proto.getWeightCount()];
+            for (int i = 0; i < proto.getWeightCount(); i++) {
+                param.weight[i] = proto.getWeight(i);
+            }
+        }
+        if (proto.getWeightLabelCount() > 0) {
+            param.weight_label = new int[proto.getWeightLabelCount()];
+            for (int i = 0; i < proto.getWeightLabelCount(); i++) {
+                param.weight_label[i] = proto.getWeightLabel(i);
+            }
+        }
+        return param;
+    }
+
+    /**
+     * Deserializes a LibSVM svm_model from a protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The svm_model.
+     */
+    protected static svm_model deserializeModel(SVMModelProto proto) {
+        svm_model model = new svm_model();
+        model.param = deserializeParameters(proto.getParam());
+        model.nr_class = proto.getNrClass();
+        model.l = proto.getL();
+        if (proto.getSVCount() > 0) {
+            model.SV = new svm_node[proto.getSVCount()][];
+            for (int i = 0; i < proto.getSVCount(); i++) {
+                SVMNodeArrayProto nodes = proto.getSV(i);
+                if (nodes.getIndexCount() != nodes.getValueCount()) {
+                    throw new IllegalStateException("Invalid protobuf, expected the same number of indices and values, found " + nodes.getIndexCount() + " indices and " + nodes.getValueCount() + " values");
+                } else {
+                    model.SV[i] = new svm_node[nodes.getIndexCount()];
+                    for (int j = 0; j < nodes.getIndexCount(); j++) {
+                        model.SV[i][j] = new svm_node();
+                        model.SV[i][j].index = nodes.getIndex(j);
+                        model.SV[i][j].value = nodes.getValue(j);
+                    }
+                }
+            }
+        }
+        if (proto.getSvCoefCount() > 0) {
+            if (proto.getSvCoefLengthsCount() > 0) {
+                model.sv_coef = new double[proto.getSvCoefLengthsCount()][];
+                for (int i = 0; i < proto.getSvCoefLengthsCount(); i++) {
+                    model.sv_coef[i] = new double[proto.getSvCoefLengths(i)];
+                }
+                int i = 0;
+                int j = 0;
+                for (int k = 0; k < proto.getSvCoefCount(); k++) {
+                    model.sv_coef[i][j] = proto.getSvCoef(k);
+                    j++;
+                    if (j >= proto.getSvCoefLengths(i)) {
+                        i++;
+                        j = 0;
+                    }
+                }
+            } else {
+                throw new IllegalStateException("Invalid protobuf, length counts not stored for sv_coef");
+            }
+        }
+        if (proto.getRhoCount() > 0) {
+            model.rho = Util.toPrimitiveDouble(proto.getRhoList());
+        }
+        if (proto.getProbACount() > 0) {
+            model.probA = Util.toPrimitiveDouble(proto.getProbAList());
+        }
+        if (proto.getProbBCount() > 0) {
+            model.probB = Util.toPrimitiveDouble(proto.getProbBList());
+        }
+        if (proto.getSvIndicesCount() > 0) {
+            model.sv_indices = Util.toPrimitiveInt(proto.getSvIndicesList());
+        }
+        if (proto.getLabelCount() > 0) {
+            model.label = Util.toPrimitiveInt(proto.getLabelList());
+        }
+        if (proto.getNSVCount() > 0) {
+            model.nSV = Util.toPrimitiveInt(proto.getNSVList());
+        }
+
+        return model;
+    }
 }
