@@ -1,6 +1,6 @@
 <p align="center"><img width="50%" alt="Tribuo Logo" src="docs/img/Tribuo_Logo_Colour.png" /></p>
 
-# Tribuo - A Java prediction library (v4.2)
+# Tribuo - A Java prediction library (v4.3)
 
 [Tribuo](https://tribuo.org) is a machine learning library in Java that
 provides multi-class classification, regression, clustering, anomaly detection
@@ -13,10 +13,10 @@ Learning Research Group;  we welcome community contributions.
 
 All trainers are configurable using the
 [OLCUT](https://github.com/oracle/olcut) configuration system. This allows a
-user to define a trainer in an xml file and repeatably build models.  Example
-configurations for each of the supplied Trainers can be found in the config
-folder of each package. These configuration files can also be written in json
-or edn by using the appropriate OLCUT configuration dependency. Models and
+user to define a trainer in an xml or json file and repeatably build models.
+Example configurations for each of the supplied Trainers can be found in the
+config folder of each package. These configuration files can also be written in
+json or edn by using the appropriate OLCUT configuration dependency. Models and
 datasets are serializable using Java serialization. 
 
 All models and evaluations include a serializable provenance object which
@@ -37,15 +37,15 @@ architectures on Windows 10, macOS and Linux (RHEL/OL/CentOS 7+), as these are
 supported platforms for the native libraries with which we interface. If you're
 interested in another platform and wish to use one of the native library
 interfaces (ONNX Runtime, TensorFlow, and XGBoost), we recommend reaching out
-to the developers of those libraries. Note the reproducibility package
-requires Java 17, and as such is not part of the `tribuo-all` Maven Central
-deployment.
+to the developers of those libraries. Note the model card and reproducibility
+packages require Java 17, and as such are not part of the `tribuo-all` Maven
+Central deployment.
 
 ## Documentation
 
 * [Library Architecture](docs/Architecture.md)
 * [Package Overview](docs/PackageOverview.md)
-* Javadoc [4.2](https://tribuo.org/learn/4.2/javadoc), [4.1](https://tribuo.org/learn/4.1/javadoc/), [4.0](https://tribuo.org/learn/4.0/javadoc/)
+* Javadoc [4.3](https://tribuo.org/learn/4.3/javadoc), [4.2](https://tribuo.org/learn/4.2/javadoc), [4.1](https://tribuo.org/learn/4.1/javadoc/), [4.0](https://tribuo.org/learn/4.0/javadoc/)
 * [Helper Programs](docs/HelperPrograms.md)
 * [Developer Documentation](docs/Internals.md)
 * [Roadmap](docs/Roadmap.md)
@@ -58,9 +58,9 @@ Regression, Anomaly Detection, TensorFlow, document classification, columnar
 data loading, working with externally trained models, and the configuration
 system, can be found in the [tutorials](tutorials). These use the
 [IJava](https://github.com/SpencerPark/IJava) Jupyter notebook kernel, and work
-with Java 10+, except the reproducibility tutorial which requires Java 17.  To
-convert the tutorials' code back to Java 8, in most cases simply replace the
-`var` keyword with the appropriate types.
+with Java 10+, except the model card & reproducibility tutorials which require
+Java 17.  To convert the tutorials' code back to Java 8, in most cases simply
+replace the `var` keyword with the appropriate types.
 
 ## Algorithms
 
@@ -100,6 +100,13 @@ Tribuo has implementations or interfaces for:
 
 Tribuo also supplies a linear chain CRF for sequence classification tasks. This
 CRF is trained via SGD using any of Tribuo's gradient optimizers.
+
+Tribuo has a set of information theoretic feature selection algorithms which
+can be applied to classification tasks. Feature inputs are automatically
+discretised into equal width bins. At the moment this includes implementations
+of mutual information maximisation (MIM), Conditional Mutual Information
+Maximisation (CMIM), minimum Redundancy Maximum Relevancy (mRMR) and Joint
+Mutual Information (JMI).
 
 To explain classifier predictions there is an implementation of the LIME
 algorithm. Tribuo's implementation allows the mixing of text and tabular data,
@@ -167,37 +174,38 @@ discuss how it would fit into Tribuo.
 
 Currently we have interfaces to:
 
-* [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) (v2.43).
+* [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) (v2.44).
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.25).
-* [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.9.0).
-* [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.4.1 (based on TensorFlow v2.7.1). This allows the training and deployment of TensorFlow models entirely in Java.
-* [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.5.0).
+* [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.12.1).
+* [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.4.2 (based on TensorFlow v2.7.4). This allows the training and deployment of TensorFlow models entirely in Java.
+* [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.6.1).
 
 ## Binaries
 
 Binaries are available on Maven Central, using groupId `org.tribuo`. To pull
-all of Tribuo, including the bindings for TensorFlow, ONNX Runtime and XGBoost
-(which are native libraries), use:
+all the Java 8 compatible components of Tribuo, including the bindings for
+TensorFlow, ONNX Runtime and XGBoost (which are native libraries), use:
 
 Maven:
 ```xml
 <dependency>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
-    <version>4.2.1</version>
+    <version>4.3.0</version>
     <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-implementation ("org.tribuo:tribuo-all:4.2.1@pom") {
+implementation ("org.tribuo:tribuo-all:4.3.0@pom") {
     transitive = true // for build.gradle (i.e., Groovy)
     // isTransitive = true // for build.gradle.kts (i.e., Kotlin)
 }
 ```
 
 The `tribuo-all` dependency is a pom which depends on all the Tribuo
-subprojects except for the reproducibility project which requires Java 17.
+subprojects except for the model card and reproducibility projects which
+require Java 17.
 
 Most of Tribuo is pure Java and thus cross-platform, however some of the
 interfaces link to libraries which use native code. Those interfaces
@@ -207,9 +215,11 @@ are supplied. If you need support for a specific platform, reach out to the
 maintainers of those projects. As of the 4.1 release these native packages all
 provide x86\_64 binaries for Windows, macOS and Linux. It is also possible to
 compile each package for macOS ARM64 (i.e., Apple Silicon), though there are no
-binaries available on Maven Central for that platform. When developing on an
-ARM platform you can select the `arm` profile in Tribuo's pom.xml to disable
-the native library tests.
+binaries available on Maven Central for that platform for TensorFlow or
+XGBoost. As of the 4.3 release Tribuo now depends on a version of ONNX Runtime
+which includes support for macOS ARM64 and Linux aarch64 platforms.  When
+developing on an ARM platform you can select the `arm` profile in Tribuo's
+`pom.xml` to disable the native library tests.
 
 Individual jars are published for each Tribuo module. It is preferable to
 depend only on the modules necessary for the specific project. This prevents
@@ -223,7 +233,8 @@ with the latest release. To build, simply run `mvn clean package`. All Tribuo's
 dependencies should be available on Maven Central. Please file an issue for
 build-related issues if you're having trouble (though do check if you're
 missing proxy settings for Maven first, as that's a common cause of build
-failures, and out of our control).
+failures, and out of our control). Note if you're building using Java 16 or
+earlier the model card and reproducibility packages will be disabled.
 
 ## Repository Layout
 
@@ -254,6 +265,7 @@ Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
+- [v4.3.0](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-3-release-notes.md) - Model card support, feature selection for classification, protobuf serialization format, kd-tree for distance computations, speed improvements for sparse linear models. Version bumps for most dependencies, and various other small fixes and improvements.
 - [v4.2.1](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-2-1-release-notes.md) - Bug fixes for KMeans' multithreading, nondeterministic iteration orders affecting ONNX export and K-Means initialization, and upgraded TF-Java to 0.4.1.
 - [v4.2.0](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-2-release-notes.md) - Added factorization machines, classifier chains, HDBSCAN. Added ONNX export and OCI Data Science integration. Added reproducibility framework. Various other small fixes and improvements, including the regression fixes from v4.1.1. Filled out the remaining javadoc, added 4 new tutorials (onnx export, multi-label classification, reproducibility, hdbscan), expanded existing tutorials.
 - [v4.1.1](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-1-1-release-notes.md) - Bug fixes for multi-output regression, multi-label evaluation, KMeans & KNN with SecurityManager, and update TF-Java 0.4.0.
