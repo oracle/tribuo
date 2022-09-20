@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 package org.tribuo.classification.liblinear;
 
 import ai.onnx.proto.OnnxMl;
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import de.bwaldvogel.liblinear.FeatureNode;
 import de.bwaldvogel.liblinear.Linear;
@@ -31,6 +33,8 @@ import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
+import org.tribuo.common.liblinear.protos.LibLinearModelProto;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXInitializer;
@@ -39,6 +43,9 @@ import org.tribuo.util.onnx.ONNXOperators;
 import org.tribuo.util.onnx.ONNXPlaceholder;
 import org.tribuo.util.onnx.ONNXRef;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -101,6 +108,42 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
             this.unobservedLabels = Collections.unmodifiableSet(tmpSet);
         } else {
             this.unobservedLabels = Collections.emptySet();
+        }
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static LibLinearClassificationModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        if (!"org.tribuo.classification.liblinear.LibLinearClassificationModel".equals(className)) {
+            throw new IllegalStateException("Invalid protobuf, this class can only deserialize LibLinearClassificationModel");
+        }
+        LibLinearModelProto proto = message.unpack(LibLinearModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Label.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a label domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Label> outputDomain = (ImmutableOutputInfo<Label>) carrier.outputDomain();
+
+        if (proto.getModelsCount() != 1) {
+            throw new IllegalStateException("Invalid protobuf, expected 1 model, found " + proto.getModelsCount());
+        }
+        try {
+            ByteArrayInputStream bais = new ByteArrayInputStream(proto.getModels(0).toByteArray());
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            de.bwaldvogel.liblinear.Model model = (de.bwaldvogel.liblinear.Model) ois.readObject();
+            ois.close();
+            return new LibLinearClassificationModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,Collections.singletonList(model));
+        } catch (IOException | ClassNotFoundException e) {
+            throw new IllegalStateException("Invalid protobuf, failed to deserialize liblinear model", e);
         }
     }
 

@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo's liblinear wrapper.
+ */
+package tribuo.common.liblinear;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.common.liblinear.protos";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+/*
+Liblinear model data proto
+ */
+message LibLinearProto {
+  double bias = 1;
+  repeated int32 label = 2;
+  int32 nr_class = 3;
+  int32 nr_feature = 4;
+  string solver_type = 5;
+  repeated double w = 6;
+  double rho = 7;
+}
+
+/*
+LibLinearModel proto
+ */
+message LibLinearModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated bytes models = 2;
+}

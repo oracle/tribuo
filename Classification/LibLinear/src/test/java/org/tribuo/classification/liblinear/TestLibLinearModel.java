@@ -212,6 +212,8 @@ public class TestLibLinearModel {
 
         // Test serialization
         Helpers.testModelSerialization(model,Label.class);
+
+        Helpers.testModelProtoSerialization(model, Label.class, p.getB());
     }
 
     @Test
