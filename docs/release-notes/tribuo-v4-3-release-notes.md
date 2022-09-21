@@ -1,6 +1,6 @@
 # Tribuo v4.3 Release Notes
 
-Tribuo 4.3 adds feature selection for classification problems, support for
+Tribuo v4.3 adds feature selection for classification problems, support for
 guided generation of model cards, and protobuf serialization for all
 serializable classes.  In addition there is a new interface for distance based
 computations which can now use a kd-tree or brute force comparisons, the sparse
@@ -50,7 +50,7 @@ buffer](https://developers.google.com/protocol-buffers) definitions for
 serializing all of Tribuo's serializable types, along with the necessary code
 to interact with those definitions. This effort has improved the validation of
 serialized data, and will allow Tribuo models to be upwards compatible across
-major versions of Tribuo. Any serialized model or dataset from Tribuo 4.2 or
+major versions of Tribuo. Any serialized model or dataset from Tribuo v4.2 or
 earlier can be loaded in and saved out into the new format which will ensure
 compatibility with the next major version of Tribuo.
 
@@ -90,17 +90,17 @@ profile, and so those tests will execute on Linux & macOS ARM64 platforms.
 ## Small improvements
 
 - Improved the assignment to the noise cluster in HDBSCAN ([#222](https://github.com/oracle/tribuo/pull/222)).
-- Upgrade liblinear-java to 2.44 ([#228](https://github.com/oracle/tribuo/pull/228)).
+- Upgrade liblinear-java to v2.44 ([#228](https://github.com/oracle/tribuo/pull/228)).
 - Added accessors for the HDBSCAN cluster exemplars ([#229](https://github.com/oracle/tribuo/pull/229)).
 - Improve validation of salts when hashing feature names ([#237](https://github.com/oracle/tribuo/pull/237)).
 - Added accessors to TransformedModel for the wrapped model ([#244](https://github.com/oracle/tribuo/pull/244)).
 - Added a regex text preprocessor ([#247](https://github.com/oracle/tribuo/pull/247)).
-- Upgrade XGBoost to 1.6.1 ([#257](https://github.com/oracle/tribuo/pull/257)).
-- Upgrade OCI SDK to 2.38.0 ([#258](https://github.com/oracle/tribuo/pull/258)).
-- Upgrade OpenCSV to 5.6 ([#259](https://github.com/oracle/tribuo/pull/259)).
+- Upgrade XGBoost to v1.6.1 ([#257](https://github.com/oracle/tribuo/pull/257)).
+- Upgrade OCI SDK to v2.38.0 ([#258](https://github.com/oracle/tribuo/pull/258)).
+- Upgrade OpenCSV to v5.6 ([#259](https://github.com/oracle/tribuo/pull/259)).
 - Added a builder to RowProcessor to make it less confusing ([#263](https://github.com/oracle/tribuo/pull/263)).
-- Upgrade TF-Java to 0.4.2 ([]()).
-- Upgrade LibSVM to 3.30 ([]()).
+- Upgrade TF-Java to v0.4.2 ([#281](https://github.com/oracle/tribuo/pull/281)).
+- Upgrade LibSVM to v3.30 ([]()).
 
 ## Bug Fixes
 
