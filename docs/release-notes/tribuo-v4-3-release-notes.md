@@ -81,14 +81,26 @@ ONNX support on the JVM.
 
 - ONNX operator refactor ([#245](https://github.com/oracle/tribuo/pull/245)).
 
+ONNX Runtime has been upgraded to v1.12.1, which includes Linux ARM64 and macOS
+ARM64 binaries. As a result we've removed the ONNX tests from the arm Maven
+profile, and so those tests will execute on Linux & macOS ARM64 platforms.
+
+- ONNX Runtime upgrade ([#256](https://github.com/oracle/tribuo/pull/256)).
+
 ## Small improvements
 
 - Improved the assignment to the noise cluster in HDBSCAN ([#222](https://github.com/oracle/tribuo/pull/222)).
+- Upgrade liblinear-java to 2.44 ([#228](https://github.com/oracle/tribuo/pull/228)).
 - Added accessors for the HDBSCAN cluster exemplars ([#229](https://github.com/oracle/tribuo/pull/229)).
 - Improve validation of salts when hashing feature names ([#237](https://github.com/oracle/tribuo/pull/237)).
 - Added accessors to TransformedModel for the wrapped model ([#244](https://github.com/oracle/tribuo/pull/244)).
 - Added a regex text preprocessor ([#247](https://github.com/oracle/tribuo/pull/247)).
+- Upgrade XGBoost to 1.6.1 ([#257](https://github.com/oracle/tribuo/pull/257)).
+- Upgrade OCI SDK to 2.38.0 ([#258](https://github.com/oracle/tribuo/pull/258)).
+- Upgrade OpenCSV to 5.6 ([#259](https://github.com/oracle/tribuo/pull/259)).
 - Added a builder to RowProcessor to make it less confusing ([#263](https://github.com/oracle/tribuo/pull/263)).
+- Upgrade TF-Java to 0.4.2 ([]()).
+- Upgrade LibSVM to 3.30 ([]()).
 
 ## Bug Fixes
 
