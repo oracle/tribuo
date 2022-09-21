@@ -51,7 +51,7 @@
         <liblinear.version>2.44</liblinear.version>
         <libsvm.version>3.25</libsvm.version>
         <onnxruntime.version>1.12.1</onnxruntime.version>
-        <tensorflow.version>0.4.1</tensorflow.version>
+        <tensorflow.version>0.4.2</tensorflow.version>
         <xgboost.version>1.6.1</xgboost.version>
 
         <!-- 3rd party other dependencies -->
