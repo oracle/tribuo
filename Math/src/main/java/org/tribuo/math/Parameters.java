@@ -19,6 +19,7 @@ package org.tribuo.math;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.protos.ParametersProto;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 
@@ -75,5 +76,14 @@ public interface Parameters extends ProtoSerializable<ParametersProto>, Serializ
      * @return A single {@link Tensor} array of the summed gradients.
      */
     public Tensor[] merge(Tensor[][] gradients, int size);
+
+    /**
+     * Deserializes the parameters from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The parameters.
+     */
+    public static Parameters deserialize(ParametersProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 
 }

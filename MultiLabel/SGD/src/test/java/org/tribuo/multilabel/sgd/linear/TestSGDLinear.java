@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,6 +86,7 @@ public class TestSGDLinear {
         Assertions.assertEquals(1.0, evaluation.microAveragedRecall());
 
         Helpers.testModelSerialization(model, MultiLabel.class);
+        Helpers.testModelProtoSerialization(model, MultiLabel.class, test);
     }
 
     @Test

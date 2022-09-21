@@ -24,6 +24,7 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
@@ -206,4 +207,34 @@ public abstract class SequenceModel<T extends Output<T>> implements ProtoSeriali
     public static <T extends Output<T>> List<T> toMaxLabels(List<Prediction<T>> predictions) {
         return predictions.stream().map(Prediction::getOutput).collect(Collectors.toList());
     }
+
+    /**
+     * Casts the model to the specified output type, assuming it is valid.
+     * If it's not valid, throws {@link ClassCastException}.
+     * <p>
+     * This method is intended for use on a deserialized model to restore its
+     * generic type in a safe way.
+     * @param outputType The output type to cast to.
+     * @param <U> The output type.
+     * @return The model cast to the correct value.
+     */
+    public <U extends Output<U>> SequenceModel<U> castModel(Class<U> outputType) {
+        if (validate(outputType)) {
+            @SuppressWarnings("unchecked") // guarded by validate
+            SequenceModel<U> castedModel = (SequenceModel<U>) this;
+            return castedModel;
+        } else {
+            throw new ClassCastException("Attempted to cast sequence model to " + outputType.getName() + " which is not valid for model " + this.toString());
+        }
+    }
+
+    /**
+     * Deserializes the sequence model from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The sequence model.
+     */
+    public static SequenceModel<?> deserialize(SequenceModelProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
+
 }

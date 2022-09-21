@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,7 @@ public class CRFTrainerTest {
         SequenceModel<Label> m = t.train(p);
         m.predict(p.getExample(0));
         Helpers.testSequenceModelSerialization(m,Label.class);
+        Helpers.testSequenceModelProtoSerialization(m,Label.class,p);
     }
 
     @Test

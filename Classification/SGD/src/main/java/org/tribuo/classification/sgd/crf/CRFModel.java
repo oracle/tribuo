@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.classification.sgd.crf;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -24,10 +26,14 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.sequence.ConfidencePredictingSequenceModel;
+import org.tribuo.classification.sgd.protos.CRFModelProto;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
+import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceExample;
 
@@ -59,6 +65,11 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
     private static final Logger logger = Logger.getLogger(CRFModel.class.getName());
     private static final long serialVersionUID = 2L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final CRFParameters parameters;
 
     /**
@@ -85,6 +96,37 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
         super(name, description, featureIDMap, labelIDMap);
         this.parameters = parameters;
         this.confidenceType = ConfidenceType.NONE;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static CRFModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        CRFModelProto proto = message.unpack(CRFModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(Label.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a label domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<Label> outputDomain = (ImmutableOutputInfo<Label>) carrier.outputDomain();
+
+        Parameters params = Parameters.deserialize(proto.getParams());
+        if (!(params instanceof CRFParameters)) {
+            throw new IllegalStateException("Invalid protobuf, parameters must be CRFParameters, found " + params.getClass());
+        }
+
+        ConfidenceType confidenceType = ConfidenceType.valueOf(proto.getConfidenceType());
+
+        CRFModel model = new CRFModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,(CRFParameters) params);
+        model.confidenceType = confidenceType;
+        return model;
     }
 
     /**
@@ -255,6 +297,22 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
         buffer.append('\n');
 
         return buffer.toString();
+    }
+
+    @Override
+    public SequenceModelProto serialize() {
+        ModelDataCarrier<Label> carrier = createDataCarrier();
+        CRFModelProto.Builder modelBuilder = CRFModelProto.newBuilder();
+        modelBuilder.setConfidenceType(confidenceType.name());
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setParams(parameters.serialize());
+
+        SequenceModelProto.Builder builder = SequenceModelProto.newBuilder();
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(CRFModel.class.getName());
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+
+        return builder.build();
     }
 
     /**

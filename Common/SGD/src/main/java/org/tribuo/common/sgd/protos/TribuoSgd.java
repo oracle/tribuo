@@ -3,8 +3,8 @@
 
 package org.tribuo.common.sgd.protos;
 
-public final class TribuoCommonSgd {
-  private TribuoCommonSgd() {}
+public final class TribuoSgd {
+  private TribuoSgd() {}
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistryLite registry) {
   }
@@ -28,11 +28,11 @@ public final class TribuoCommonSgd {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\027tribuo-common-sgd.proto\022\021tribuo.common" +
-      ".sgd\032\021tribuo-math.proto\"R\n\021FMParametersP" +
-      "roto\022\022\n\nnumFactors\030\001 \001(\005\022)\n\007weights\030\002 \003(" +
-      "\0132\030.tribuo.math.TensorProtoB \n\034org.tribu" +
-      "o.common.sgd.protosP\001b\006proto3"
+      "\n\020tribuo-sgd.proto\022\021tribuo.common.sgd\032\021t" +
+      "ribuo-math.proto\"R\n\021FMParametersProto\022\022\n" +
+      "\nnumFactors\030\001 \001(\005\022)\n\007weights\030\002 \003(\0132\030.tri" +
+      "buo.math.TensorProtoB \n\034org.tribuo.commo" +
+      "n.sgd.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
