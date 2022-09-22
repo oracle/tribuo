@@ -24,6 +24,7 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Tribuo;
 
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -206,7 +207,7 @@ public class ModelProvenance implements ObjectProvenance {
      * @return The Java version.
      */
     public String getJavaVersion() {
-        return javaVersionString;
+        return javaVersionString == null ? UNKNOWN_VERSION : javaVersionString;
     }
 
     /**
@@ -214,7 +215,7 @@ public class ModelProvenance implements ObjectProvenance {
      * @return The OS name.
      */
     public String getOS() {
-        return osString;
+        return osString == null ? UNKNOWN_VERSION : osString;
     }
 
     /**
@@ -222,7 +223,7 @@ public class ModelProvenance implements ObjectProvenance {
      * @return The CPU architecture.
      */
     public String getArch() {
-        return archString;
+        return archString == null ? UNKNOWN_VERSION : archString;
     }
 
     @Override
@@ -269,9 +270,9 @@ public class ModelProvenance implements ObjectProvenance {
         iterable.add(new Pair<>(TRAINING_TIME,new DateTimeProvenance(TRAINING_TIME,time)));
         iterable.add(new Pair<>(INSTANCE_VALUES,instanceProvenance));
         iterable.add(new Pair<>(TRIBUO_VERSION_STRING,new StringProvenance(TRIBUO_VERSION_STRING,versionString)));
-        iterable.add(new Pair<>(JAVA_VERSION_STRING,new StringProvenance(JAVA_VERSION_STRING,javaVersionString)));
-        iterable.add(new Pair<>(OS_STRING,new StringProvenance(OS_STRING,osString)));
-        iterable.add(new Pair<>(ARCH_STRING,new StringProvenance(ARCH_STRING,archString)));
+        iterable.add(new Pair<>(JAVA_VERSION_STRING,new StringProvenance(JAVA_VERSION_STRING,getJavaVersion())));
+        iterable.add(new Pair<>(OS_STRING,new StringProvenance(OS_STRING,getOS())));
+        iterable.add(new Pair<>(ARCH_STRING,new StringProvenance(ARCH_STRING,getArch())));
         return iterable;
     }
 
