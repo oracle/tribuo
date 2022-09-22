@@ -292,13 +292,4 @@ public abstract class SequenceModel<T extends Output<T>> implements ProtoSeriali
         }
     }
 
-    /**
-     * Deserializes the sequence model from the supplied protobuf.
-     * @param proto The protobuf to deserialize.
-     * @return The sequence model.
-     */
-    public static SequenceModel<?> deserialize(SequenceModelProto proto) {
-        return ProtoUtil.deserialize(proto);
-    }
-
 }
