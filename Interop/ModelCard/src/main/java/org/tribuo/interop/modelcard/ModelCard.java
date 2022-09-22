@@ -103,6 +103,21 @@ public class ModelCard {
     }
 
     /**
+     * Creates an instance of ModelCard that does not include any testing metrics and has its {@link UsageDetails} set to null.
+     * <p>
+     * @param model The trained model for which a model card will be built.
+     */
+    ModelCard(Model<?> model) {
+        if (model instanceof ExternalModel) {
+            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
+        }
+        modelDetails = new ModelDetails(model);
+        trainingDetails = new TrainingDetails(model);
+        testingDetails = new TestingDetails();
+        usageDetails = null;
+    }
+
+    /**
      * Creates an instance of ModelCard.
      * <p>
      * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
