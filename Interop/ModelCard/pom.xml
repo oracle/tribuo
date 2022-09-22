@@ -26,11 +26,6 @@
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-data</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-interop-core</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -53,6 +48,12 @@
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-data</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-classification-core</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
@@ -66,12 +67,6 @@
         <dependency>
             <groupId>org.tribuo</groupId>
             <artifactId>tribuo-classification-sgd</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.tribuo</groupId>
-            <artifactId>tribuo-common-sgd</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

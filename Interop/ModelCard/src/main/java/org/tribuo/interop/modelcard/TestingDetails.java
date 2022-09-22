@@ -55,6 +55,13 @@ public final class TestingDetails {
     }
 
     /**
+     * Creates an empty TestingDetails.
+     */
+    TestingDetails() {
+        testingSetSize = 0;
+    }
+
+    /**
      * Creates an instance of TestingDetails.
      * <p>
      * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
