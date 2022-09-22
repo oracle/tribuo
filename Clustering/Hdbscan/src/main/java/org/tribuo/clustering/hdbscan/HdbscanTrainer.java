@@ -27,10 +27,12 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
+import org.tribuo.clustering.hdbscan.protos.ClusterExemplarProto;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.Tensor;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
@@ -923,6 +925,26 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         @Override
         public int hashCode() {
             return Objects.hash(label, outlierScore, features, maxDistToEdge);
+        }
+
+        ClusterExemplarProto serialize() {
+            ClusterExemplarProto.Builder builder = ClusterExemplarProto.newBuilder();
+
+            builder.setLabel(label);
+            builder.setOutlierScore(outlierScore);
+            builder.setFeatures(features.serialize());
+            builder.setMaxDistToEdge(maxDistToEdge);
+
+            return builder.build();
+        }
+
+        static ClusterExemplar deserialize(ClusterExemplarProto proto) {
+            Tensor tensor = Tensor.deserialize(proto.getFeatures());
+            if (!(tensor instanceof SGDVector)) {
+                throw new IllegalStateException("Invalid protobuf, features must be an SGDVector, found " + tensor.getClass());
+            }
+            SGDVector vector = (SGDVector) tensor;
+            return new ClusterExemplar(proto.getLabel(),proto.getOutlierScore(),vector,proto.getMaxDistToEdge());
         }
     }
     

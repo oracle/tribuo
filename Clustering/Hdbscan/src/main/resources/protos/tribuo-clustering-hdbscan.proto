@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo's HDBSCAN.
+ */
+package tribuo.clustering.hdbscan;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.clustering.hdbscan.protos";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+// Import Tribuo's math protos
+import "tribuo-math.proto";
+
+/*
+HdbscanTrainer.ClusterExemplar proto
+ */
+message ClusterExemplarProto {
+ int32 label = 1;
+ double outlier_score = 2;
+ tribuo.math.TensorProto features = 3;
+ double max_dist_to_edge = 4;
+}
+
+/*
+HdbscanModel proto
+ */
+message HdbscanModelProto {
+ tribuo.core.ModelDataProto metadata = 1;
+ repeated int32 cluster_labels = 2;
+ tribuo.math.TensorProto outlier_scores_vector = 3;
+ string dist_type = 4;
+ repeated ClusterExemplarProto cluster_exemplars = 5;
+ double noise_points_outlier_score = 6;
+}

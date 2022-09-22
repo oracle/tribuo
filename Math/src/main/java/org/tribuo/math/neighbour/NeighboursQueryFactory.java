@@ -24,6 +24,7 @@ import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.protos.NeighbourFactoryProto;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 
@@ -54,5 +55,14 @@ public interface NeighboursQueryFactory extends Configurable, ProtoSerializable<
     @Override
     default ConfiguredObjectProvenance getProvenance() {
         return new ConfiguredObjectProvenanceImpl(this,"NeighboursQueryFactory");
+    }
+
+    /**
+     * Deserialization helper for NeighboursQueryFactories.
+     * @param proto The proto to deserialize.
+     * @return The query factory.
+     */
+    public static NeighboursQueryFactory deserialize(NeighbourFactoryProto proto) {
+        return ProtoUtil.deserialize(proto);
     }
 }

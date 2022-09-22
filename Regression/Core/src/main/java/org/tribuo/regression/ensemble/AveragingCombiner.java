@@ -162,6 +162,11 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
         return new ConfiguredObjectProvenanceImpl(this,"EnsembleCombiner");
     }
 
+    @Override
+    public Class<Regressor> getTypeWitness() {
+        return Regressor.class;
+    }
+
     /**
      * Exports this averaging combiner, writing constructed nodes into the {@link ONNXContext}
      * governing {@code input} and returning the leaf node of the combiner.

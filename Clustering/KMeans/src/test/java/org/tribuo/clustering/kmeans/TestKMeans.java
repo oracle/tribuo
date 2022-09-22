@@ -74,6 +74,9 @@ public class TestKMeans {
 
         KMeansModel model = trainer.train(data);
 
+        Helpers.testModelSerialization(model, ClusterID.class);
+        Helpers.testModelProtoSerialization(model, ClusterID.class, test);
+
         ClusteringEvaluation trainEvaluation = eval.evaluate(model,data);
         assertFalse(Double.isNaN(trainEvaluation.adjustedMI()));
         assertFalse(Double.isNaN(trainEvaluation.normalizedMI()));

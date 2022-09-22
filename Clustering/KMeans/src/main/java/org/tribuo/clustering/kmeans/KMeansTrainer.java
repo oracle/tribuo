@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.tribuo.clustering.kmeans;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
@@ -257,6 +258,10 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                 this.distType = this.distanceType.getDistanceType();
                 this.distanceType = null;
             }
+        }
+
+        if (centroids < 1) {
+            throw new PropertyException("centroids", "Centroids must be positive, found " + centroids);
         }
     }
 

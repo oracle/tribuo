@@ -289,3 +289,13 @@ message MinimumCardinalitySequenceDatasetProto {
   int32 num_examples_removed = 5;
   repeated string removed = 6;
 }
+
+/*
+WeightedEnsembleModel proto
+ */
+message WeightedEnsembleModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated tribuo.core.ModelProto models = 2;
+  repeated float weights = 3;
+  tribuo.core.EnsembleCombinerProto combiner = 4;
+}

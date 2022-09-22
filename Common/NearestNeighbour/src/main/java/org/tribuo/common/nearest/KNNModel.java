@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.common.nearest;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import com.oracle.labs.mlrg.olcut.util.StreamUtil;
 import org.tribuo.Example;
@@ -26,14 +28,20 @@ import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.common.nearest.KNNTrainer.Distance;
+import org.tribuo.common.nearest.protos.KNNModelProto;
 import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.Tensor;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
+import org.tribuo.math.protos.TensorProto;
+import org.tribuo.protos.core.ModelProto;
+import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -70,6 +78,11 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private static final Logger logger = Logger.getLogger(KNNModel.class.getName());
 
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     // Thread factory for the FJP, to allow use with OpenSearch's SecureSM
     private static final CustomForkJoinWorkerThreadFactory THREAD_FACTORY = new CustomForkJoinWorkerThreadFactory();
@@ -126,6 +139,72 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         this.vectors = vectors;
         this.neighboursQueryFactory = neighboursQueryFactory;
         this.neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
+    public static KNNModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        KNNModelProto proto = message.unpack(KNNModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ImmutableFeatureMap featureDomain = carrier.featureDomain();
+        ImmutableOutputInfo<?> outputDomain = carrier.outputDomain();
+        Class<?> outputClass = outputDomain.getOutput(0).getClass();
+        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());
+        if (!outputClass.equals(combiner.getTypeWitness())) {
+            throw new IllegalStateException("Invalid protobuf, combiner and output domain have a type mismatch, expected " + outputClass + " found " + combiner.getTypeWitness());
+        }
+
+        int k = proto.getK();
+        if (k < 1) {
+            throw new IllegalStateException("Invalid protobuf, k must be positive, found " + k);
+        }
+        int numThreads = proto.getNumThreads();
+        if (numThreads < 0) {
+            throw new IllegalStateException("Invalid protobuf, numThreads must be positive, found " + numThreads);
+        }
+
+        if (proto.getVectorsCount() == 0) {
+            throw new IllegalStateException("Invalid protobuf, no vectors were found");
+        }
+        if (proto.getVectorsCount() != proto.getOutputsCount()) {
+            throw new IllegalStateException("Invalid protobuf, different numbers of outputs and vectors were found, " + proto.getVectorsCount() + " vectors, " + proto.getOutputsCount() + " outputs");
+        }
+        Pair<SGDVector, ?>[] pairs = new Pair[proto.getVectorsCount()];
+        List<TensorProto> vectorProtos = proto.getVectorsList();
+        List<OutputProto> outputProtos = proto.getOutputsList();
+        for (int i = 0; i < pairs.length; i++) {
+            Tensor vectorTensor = Tensor.deserialize(vectorProtos.get(i));
+            Output output = Output.deserialize(outputProtos.get(i));
+            if (vectorTensor instanceof SGDVector) {
+                SGDVector vector = (SGDVector) vectorTensor;
+                if (vector.size() != featureDomain.size()) {
+                    throw new IllegalStateException("Invalid protobuf, vector did not contain all the features, found " + vector.size() + " expected " + featureDomain.size());
+                }
+                if (output.getClass().equals(outputClass)) {
+                    pairs[i] = new Pair<>(vector,output);
+                } else {
+                    throw new IllegalStateException("Invalid protobuf, output type did not match, found " + output.getClass() + " expected " + outputClass);
+                }
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected centroid to be a vector, found " + vectorTensor.getClass());
+            }
+        }
+
+        DistanceType distType = DistanceType.valueOf(proto.getDistType());
+        Backend backend = Backend.valueOf(proto.getParallelBackend());
+        NeighboursQueryFactory queryFactory = NeighboursQueryFactory.deserialize(proto.getNeighboursQueryFactory());
+
+        return new KNNModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain,
+            carrier.generatesProbabilities(), k, distType, numThreads, combiner, pairs, backend, queryFactory);
     }
 
     @Override
@@ -404,6 +483,31 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     @Override
     public Optional<Excuse<T>> getExcuse(Example<T> example) {
         return Optional.empty();
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        KNNModelProto.Builder modelBuilder = KNNModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        for (Pair<SGDVector,T> e : vectors) {
+            modelBuilder.addVectors(e.getA().serialize());
+            modelBuilder.addOutputs(e.getB().serialize());
+        }
+        modelBuilder.setK(k);
+        modelBuilder.setDistType(distType.name());
+        modelBuilder.setNumThreads(numThreads);
+        modelBuilder.setParallelBackend(parallelBackend.name());
+        modelBuilder.setCombiner(combiner.serialize());
+        modelBuilder.setNeighboursQueryFactory(neighboursQueryFactory.serialize());
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(KNNModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     @SuppressWarnings("unchecked") // Generic array creation.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.clustering.kmeans;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
@@ -26,11 +28,16 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
+import org.tribuo.clustering.kmeans.protos.KMeansModelProto;
+import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.math.protos.TensorProto;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -58,6 +65,11 @@ import java.util.Optional;
 public class KMeansModel extends Model<ClusterID> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final DenseVector[] centroidVectors;
 
     @Deprecated
@@ -72,6 +84,50 @@ public class KMeansModel extends Model<ClusterID> {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.centroidVectors = centroidVectors;
         this.distType = distType;
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     */
+    public static KMeansModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        KMeansModelProto proto = message.unpack(KMeansModelProto.class);
+
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        if (!carrier.outputDomain().getOutput(0).getClass().equals(ClusterID.class)) {
+            throw new IllegalStateException("Invalid protobuf, output domain is not a clustering domain, found " + carrier.outputDomain().getClass());
+        }
+        @SuppressWarnings("unchecked") // guarded by getClass
+        ImmutableOutputInfo<ClusterID> outputDomain = (ImmutableOutputInfo<ClusterID>) carrier.outputDomain();
+
+        ImmutableFeatureMap featureDomain = carrier.featureDomain();
+
+        if (proto.getCentroidVectorsCount() == 0) {
+            throw new IllegalStateException("Invalid protobuf, no centroids were found");
+        }
+        DenseVector[] centroids = new DenseVector[proto.getCentroidVectorsCount()];
+        List<TensorProto> centroidProtos = proto.getCentroidVectorsList();
+        for (int i = 0; i < centroids.length; i++) {
+            Tensor centroidTensor = Tensor.deserialize(centroidProtos.get(i));
+            if (centroidTensor instanceof DenseVector) {
+                DenseVector centroid = (DenseVector) centroidTensor;
+                if (centroid.size() != featureDomain.size()) {
+                    throw new IllegalStateException("Invalid protobuf, centroid did not contain all the features, found " + centroid.size() + " expected " + featureDomain.size());
+                }
+                centroids[i] = centroid;
+            } else {
+                throw new IllegalStateException("Invalid protobuf, expected centroid to be a dense vector, found " + centroidTensor.getClass());
+            }
+        }
+
+        DistanceType distType = DistanceType.valueOf(proto.getDistType());
+
+        return new KMeansModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain, centroids, distType);
     }
 
     /**
@@ -153,6 +209,25 @@ public class KMeansModel extends Model<ClusterID> {
     @Override
     public Optional<Excuse<ClusterID>> getExcuse(Example<ClusterID> example) {
         return Optional.empty();
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<ClusterID> carrier = createDataCarrier();
+
+        KMeansModelProto.Builder modelBuilder = KMeansModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setDistType(distType.name());
+        for (DenseVector e : centroidVectors) {
+            modelBuilder.addCentroidVectors(e.serialize());
+        }
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(KMeansModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 
     @Override
