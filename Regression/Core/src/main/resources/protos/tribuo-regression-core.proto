@@ -27,8 +27,6 @@ option java_package = "org.tribuo.regression.protos";
 // Import Tribuo's core protos
 import "tribuo-core.proto";
 
-// Import OLCUT's provenance proto
-import "olcut_proto.proto";
 
 /*
 Regressor proto
@@ -73,4 +71,17 @@ message ImmutableRegressionInfoProto {
   repeated double sumSquares = 7;
   int32 unknownCount = 8;
   int64 overallCount = 9;
+}
+
+/*
+DummyRegressionModel proto
+ */
+message DummyRegressionModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  string dummy_type = 2;
+  tribuo.core.OutputProto output = 3;
+  int64 seed = 4;
+  repeated double means = 5;
+  repeated double variances = 6;
+  repeated string dimension_names = 7;
 }

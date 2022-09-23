@@ -24,11 +24,11 @@ package tribuo.classification;
 option java_multiple_files = true;
 option java_package = "org.tribuo.classification.protos";
 
+// We use any to encode polymorphism
+import "google/protobuf/any.proto";
+
 // Import Tribuo's core protos
 import "tribuo-core.proto";
-
-// Import OLCUT's provenance proto
-import "olcut_proto.proto";
 
 /*
 Label proto
@@ -55,4 +55,46 @@ message ImmutableLabelInfoProto {
   repeated int64 count = 2;
   repeated int32 id = 3;
   int32 unknownCount = 4;
+}
+
+/*
+DummyClassifierModel proto
+ */
+message DummyClassifierModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  string dummy_type = 2;
+  tribuo.core.OutputProto constant_label = 3;
+  repeated double cdf = 4;
+  int64 seed = 5;
+}
+
+/*
+Viterbi's LabelFeatureExtractor proto
+ */
+message LabelFeatureExtractorProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
+Viterbi's DefaultFeatureExtractor proto
+ */
+message DefaultFeatureExtractorProto {
+  int32 most_recent_outcome = 1;
+  int32 least_recent_outcome = 2;
+  bool use_bigram = 3;
+  bool use_trigram = 4;
+  bool use_4gram = 5;
+}
+
+/*
+ViterbiModel proto
+ */
+message ViterbiModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  tribuo.core.ModelProto model = 2;
+  LabelFeatureExtractorProto label_feature_extractor = 3;
+  int32 stack_size = 4;
+  string score_aggregation = 5;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Feature;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.protos.LabelFeatureExtractorProto;
+import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 
 import java.io.Serializable;
 import java.util.List;
@@ -28,7 +31,7 @@ import java.util.List;
 /**
  * A class for featurising labels from previous steps in Viterbi.
  */
-public interface LabelFeatureExtractor extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface LabelFeatureExtractor extends Configurable, ProtoSerializable<LabelFeatureExtractorProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
 
     /**
      * Generates features based on the previously produced labels.
@@ -38,4 +41,13 @@ public interface LabelFeatureExtractor extends Configurable, Provenancable<Confi
      */
     public List<Feature> extractFeatures(List<Label> previousOutcomes, double value);
 
+    /**
+     * Deserializes the LabelFeatureExtractor from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @return The label feature extractor.
+     */
+    public static LabelFeatureExtractor deserialize(LabelFeatureExtractorProto proto) {
+        return ProtoUtil.deserialize(proto);
+    }
 }
+

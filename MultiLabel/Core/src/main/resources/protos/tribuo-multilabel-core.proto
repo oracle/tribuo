@@ -27,9 +27,6 @@ option java_package = "org.tribuo.multilabel.protos";
 // Import Tribuo's core protos
 import "tribuo-core.proto";
 
-// Import OLCUT's provenance proto
-import "olcut_proto.proto";
-
 /*
 MultiLabel proto
  */
@@ -69,4 +66,22 @@ message BinaryExampleProto {
   float weight = 3;
   repeated string feature_name = 4;
   repeated double feature_value = 5;
+}
+
+/*
+IndependentMultiLabelModel proto
+ */
+message IndependentMultiLabelModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated tribuo.core.ModelProto models = 2;
+  repeated tribuo.core.OutputProto labels = 3;
+}
+
+/**
+ClassifierChainModel proto
+ */
+message ClassifierChainModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated tribuo.core.ModelProto models = 2;
+  repeated tribuo.core.OutputProto label_order = 3;
 }

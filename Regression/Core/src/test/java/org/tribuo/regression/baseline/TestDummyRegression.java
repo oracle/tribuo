@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,7 @@ public class TestDummyRegression {
             RegressionEvaluation evaluation = evaluator.evaluate(m,p.getB());
             if (testModelSave) {
                 Helpers.testModelSerialization(m,Regressor.class);
+                Helpers.testModelProtoSerialization(m, Regressor.class, p.getB());
             }
         }
     }
