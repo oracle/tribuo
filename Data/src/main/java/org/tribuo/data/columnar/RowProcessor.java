@@ -752,11 +752,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
          * Retrieves, if present, the fieldProcessor with the given name
          */
         public Optional<FieldProcessor> getFieldProcessor(String fieldName) {
-            if (this.fieldProcessors.containsKey(fieldName)) {
-                return Optional.of(this.fieldProcessors.get(fieldName));
-            } else {
-                return Optional.empty();
-            }
+            return Optional.ofNullable(this.fieldProcessors.get(fieldName);
         }
 
         /**
@@ -781,11 +777,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
          * Retrieves, if present, the regexFieldProcessor with the given regex
          */
         public Optional<FieldProcessor> getRegexFieldProcessor(String regexName) {
-            if (this.regexMappingProcessors.containsKey(regexName)) {
-                return Optional.of(this.regexMappingProcessors.get(regexName));
-            } else {
-                return Optional.empty();
-            }
+            return Optional.ofNullable(this.regexMappingProcessors.get(regexName));
         }
 
         /**
