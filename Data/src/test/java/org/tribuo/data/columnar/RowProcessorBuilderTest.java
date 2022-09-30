@@ -49,7 +49,10 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  *
@@ -71,7 +74,8 @@ public class RowProcessorBuilderTest {
             regex.put("Monkeys", new IdentityProcessor("Monkeys"));
             RowProcessor<MockOutput> rowProcessor = new RowProcessor.Builder<MockOutput>()
                     .setRegexMappingProcessors(regex)
-                    .build(new ArrayList<>(fixed.values()), new MockResponseProcessor("Label"));
+                    .setFieldProcessors(fixed.values())
+                    .build(new MockResponseProcessor("Label"));
             rowProcessor.expandRegexMapping(fieldNames);
             fail("Should have thrown an IllegalArgumentException");
         } catch (IllegalArgumentException e) {
@@ -86,7 +90,8 @@ public class RowProcessorBuilderTest {
             regex.put("Battle*", new IdentityProcessor("Battle*"));
             RowProcessor<MockOutput> rowProcessor = new RowProcessor.Builder<MockOutput>()
                     .setRegexMappingProcessors(regex)
-                    .build(new ArrayList<>(fixed.values()), new MockResponseProcessor("Label"));
+                    .setFieldProcessors(fixed.values())
+                    .build(new MockResponseProcessor("Label"));
             rowProcessor.expandRegexMapping(fieldNames);
             fail("Should have thrown an IllegalArgumentException");
         } catch (IllegalArgumentException e) {
@@ -102,7 +107,8 @@ public class RowProcessorBuilderTest {
             regex.put("Armadil*", new IdentityProcessor("Armadil*"));
             RowProcessor<MockOutput> rowProcessor = new RowProcessor.Builder<MockOutput>()
                     .setRegexMappingProcessors(regex)
-                    .build(new ArrayList<>(fixed.values()), new MockResponseProcessor("Label"));
+                    .setFieldProcessors(fixed.values())
+                    .build(new MockResponseProcessor("Label"));
             rowProcessor.expandRegexMapping(fieldNames);
             fail("Should have thrown an IllegalArgumentException");
         } catch (IllegalArgumentException e) {
@@ -143,7 +149,8 @@ public class RowProcessorBuilderTest {
         RowProcessor<MockOutput> processor = new RowProcessor.Builder<MockOutput>()
                 .setMetadataExtractors(metadataExtractors)
                 .setWeightExtractor(weightExtractor)
-                .build(new ArrayList<>(fixed.values()), response);
+                .setFieldProcessors(fixed.values())
+                .build(response);
 
         Example<MockOutput> example = processor.generateExample(row, true).get();
 
@@ -209,7 +216,8 @@ public class RowProcessorBuilderTest {
 
         RowProcessor<MockOutput> processor = new RowProcessor.Builder<MockOutput>()
                 .setReplaceNewLinesWithSpaces(false)
-                .build(new ArrayList<>(fieldProcessors.values()), response);
+                .setFieldProcessors(fieldProcessors.values())
+                .build(response);
 
         Example<MockOutput> example = processor.generateExample(row, true).get();
 
@@ -233,7 +241,8 @@ public class RowProcessorBuilderTest {
         // same input with replaceNewlinesWithSpacesTest=true (the default) produces different features
         processor = new RowProcessor.Builder<MockOutput>()
                 .setReplaceNewLinesWithSpaces(true)
-                .build(new ArrayList<>(fieldProcessors.values()), response);
+                .setFieldProcessors(fieldProcessors.values())
+                .build(response);
 
         example = processor.generateExample(row, true).get();
 
