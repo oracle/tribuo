@@ -752,7 +752,7 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
          * Retrieves, if present, the fieldProcessor with the given name
          */
         public Optional<FieldProcessor> getFieldProcessor(String fieldName) {
-            return Optional.ofNullable(this.fieldProcessors.get(fieldName);
+            return Optional.ofNullable(this.fieldProcessors.get(fieldName));
         }
 
         /**
