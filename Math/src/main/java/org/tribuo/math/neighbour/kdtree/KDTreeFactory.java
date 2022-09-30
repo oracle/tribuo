@@ -20,11 +20,10 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
-import org.tribuo.math.protos.BruteForceFactoryProto;
 import org.tribuo.math.protos.KDTreeFactoryProto;
 import org.tribuo.math.protos.NeighbourFactoryProto;
 import org.tribuo.protos.ProtoSerializableClass;
@@ -47,7 +46,7 @@ public class KDTreeFactory implements NeighboursQueryFactory {
 
     @Config(description = "The distance function to use.")
     @ProtoSerializableField
-    private DistanceType distanceType = DistanceType.L2;
+    private Distance distance = DistanceType.L2.getDistance();
 
     @Config(description = "The number of threads to use for training.")
     @ProtoSerializableField
@@ -60,11 +59,11 @@ public class KDTreeFactory implements NeighboursQueryFactory {
 
     /**
      * Constructs a k-d tree nearest neighbor query factory object using the supplied parameters.
-     * @param distanceType The distance function.
+     * @param distance The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    public KDTreeFactory(DistanceType distanceType, int numThreads) {
-        this.distanceType = distanceType;
+    public KDTreeFactory(Distance distance, int numThreads) {
+        this.distance = distance;
         this.numThreads = numThreads;
         postConfig();
     }
@@ -80,7 +79,7 @@ public class KDTreeFactory implements NeighboursQueryFactory {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         KDTreeFactoryProto queryProto = message.unpack(KDTreeFactoryProto.class);
-        return new KDTreeFactory(DistanceType.valueOf(queryProto.getDistanceType()),
+        return new KDTreeFactory(ProtoUtil.deserialize(queryProto.getDistance()),
                 queryProto.getNumThreads());
     }
 
@@ -95,12 +94,12 @@ public class KDTreeFactory implements NeighboursQueryFactory {
      */
     @Override
     public KDTree createNeighboursQuery(SGDVector[] data) {
-        return new KDTree(data, this.distanceType, this.numThreads);
+        return new KDTree(data, this.distance, this.numThreads);
     }
 
     @Override
-    public DistanceType getDistanceType() {
-        return distanceType;
+    public Distance getDistance() {
+        return distance;
     }
 
     @Override
@@ -123,11 +122,11 @@ public class KDTreeFactory implements NeighboursQueryFactory {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         KDTreeFactory that = (KDTreeFactory) o;
-        return numThreads == that.numThreads && distanceType == that.distanceType;
+        return numThreads == that.numThreads && distance.equals(that.distance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(distanceType, numThreads);
+        return Objects.hash(distance, numThreads);
     }
 }

@@ -16,7 +16,7 @@
 
 package org.tribuo.math.neighbour.kdtree;
 
-import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.SGDVector;
 
 import static org.tribuo.math.neighbour.kdtree.KDTree.IntAndVector;
@@ -36,7 +36,7 @@ final class DimensionNode {
 
     private final double coord;
 
-    private final DistanceType distanceType;
+    private final Distance distance;
 
     private DimensionNode below;
 
@@ -48,13 +48,13 @@ final class DimensionNode {
      *
      * @param dimension The dimension that this node represents.
      * @param intAndVector The point.
-     * @param distanceType The distance function.
+     * @param distance The distance function.
      */
-    DimensionNode(int dimension, IntAndVector intAndVector, DistanceType distanceType) {
+    DimensionNode(int dimension, IntAndVector intAndVector, Distance distance) {
         this.dimension = dimension;
         this.intAndVector = intAndVector;
         this.maxD = intAndVector.vector.size() - 1;
-        this.distanceType = distanceType;
+        this.distance = distance;
         this.coord = intAndVector.vector.get(dimension);
     }
 
@@ -130,7 +130,7 @@ final class DimensionNode {
         }
         
         // Get the distance between this node and the target point.
-        double dist = DistanceType.getDistance(this.intAndVector.vector, point, distanceType);
+        double dist = distance.computeDistance(this.intAndVector.vector, point);
         queue.boundedOffer(this.intAndVector, dist);
 
         // Determine if we must traverse this node's subtrees by computing the perpendicular distance between the point

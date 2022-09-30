@@ -94,11 +94,12 @@ public final class TribuoMathImpl {
       "amma\030\001 \001(\001\022\021\n\tintercept\030\002 \001(\001\022\016\n\006degree\030" +
       "\003 \001(\001\"\037\n\016RBFKernelProto\022\r\n\005gamma\030\001 \001(\001\"6" +
       "\n\022SigmoidKernelProto\022\r\n\005gamma\030\001 \001(\001\022\021\n\ti" +
-      "ntercept\030\002 \001(\001\"B\n\026BruteForceFactoryProto" +
-      "\022\022\n\nnumThreads\030\001 \001(\005\022\024\n\014distanceType\030\002 \001" +
-      "(\t\">\n\022KDTreeFactoryProto\022\022\n\nnumThreads\030\001" +
-      " \001(\005\022\024\n\014distanceType\030\002 \001(\tB\032\n\026org.tribuo" +
-      ".math.protosP\001b\006proto3"
+      "ntercept\030\002 \001(\001\"Z\n\026BruteForceFactoryProto" +
+      "\022\022\n\nnumThreads\030\001 \001(\005\022,\n\010distance\030\002 \001(\0132\032" +
+      ".tribuo.math.DistanceProto\"V\n\022KDTreeFact" +
+      "oryProto\022\022\n\nnumThreads\030\001 \001(\005\022,\n\010distance" +
+      "\030\002 \001(\0132\032.tribuo.math.DistanceProtoB\032\n\026or" +
+      "g.tribuo.math.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -158,13 +159,13 @@ public final class TribuoMathImpl {
     internal_static_tribuo_math_impl_BruteForceFactoryProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_impl_BruteForceFactoryProto_descriptor,
-        new java.lang.String[] { "NumThreads", "DistanceType", });
+        new java.lang.String[] { "NumThreads", "Distance", });
     internal_static_tribuo_math_impl_KDTreeFactoryProto_descriptor =
       getDescriptor().getMessageTypes().get(9);
     internal_static_tribuo_math_impl_KDTreeFactoryProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_impl_KDTreeFactoryProto_descriptor,
-        new java.lang.String[] { "NumThreads", "DistanceType", });
+        new java.lang.String[] { "NumThreads", "Distance", });
     org.tribuo.math.protos.TribuoMath.getDescriptor();
   }
 

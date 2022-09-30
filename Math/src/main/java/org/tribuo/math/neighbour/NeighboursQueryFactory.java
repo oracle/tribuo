@@ -20,7 +20,7 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.protos.NeighbourFactoryProto;
 import org.tribuo.protos.ProtoSerializable;
@@ -40,10 +40,10 @@ public interface NeighboursQueryFactory extends Configurable, ProtoSerializable<
     NeighboursQuery createNeighboursQuery(SGDVector[] data);
 
     /**
-     * Gets the {@link DistanceType} set on this object.
+     * Gets the {@link Distance} set on this object.
      * @return The distance function.
      */
-    DistanceType getDistanceType();
+    Distance getDistance();
 
     /**
      * Get the number of threads set on this object. There could be factory implementations that are sequential,

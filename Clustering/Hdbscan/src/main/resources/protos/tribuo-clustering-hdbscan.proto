@@ -47,7 +47,7 @@ message HdbscanModelProto {
  tribuo.core.ModelDataProto metadata = 1;
  repeated int32 cluster_labels = 2;
  tribuo.math.TensorProto outlier_scores_vector = 3;
- string dist_type = 4;
+ tribuo.math.DistanceProto distance = 4;
  repeated ClusterExemplarProto cluster_exemplars = 5;
  double noise_points_outlier_score = 6;
 }

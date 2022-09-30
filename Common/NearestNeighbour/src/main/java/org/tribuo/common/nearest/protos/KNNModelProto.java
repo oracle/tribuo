@@ -22,7 +22,6 @@ private static final long serialVersionUID = 0L;
   private KNNModelProto() {
     vectors_ = java.util.Collections.emptyList();
     outputs_ = java.util.Collections.emptyList();
-    distType_ = "";
     parallelBackend_ = "";
   }
 
@@ -94,9 +93,16 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 42: {
-            java.lang.String s = input.readStringRequireUtf8();
+            org.tribuo.math.protos.DistanceProto.Builder subBuilder = null;
+            if (distance_ != null) {
+              subBuilder = distance_.toBuilder();
+            }
+            distance_ = input.readMessage(org.tribuo.math.protos.DistanceProto.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(distance_);
+              distance_ = subBuilder.buildPartial();
+            }
 
-            distType_ = s;
             break;
           }
           case 48: {
@@ -291,42 +297,30 @@ private static final long serialVersionUID = 0L;
     return k_;
   }
 
-  public static final int DIST_TYPE_FIELD_NUMBER = 5;
-  private volatile java.lang.Object distType_;
+  public static final int DISTANCE_FIELD_NUMBER = 5;
+  private org.tribuo.math.protos.DistanceProto distance_;
   /**
-   * <code>string dist_type = 5;</code>
-   * @return The distType.
+   * <code>.tribuo.math.DistanceProto distance = 5;</code>
+   * @return Whether the distance field is set.
    */
   @java.lang.Override
-  public java.lang.String getDistType() {
-    java.lang.Object ref = distType_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      distType_ = s;
-      return s;
-    }
+  public boolean hasDistance() {
+    return distance_ != null;
   }
   /**
-   * <code>string dist_type = 5;</code>
-   * @return The bytes for distType.
+   * <code>.tribuo.math.DistanceProto distance = 5;</code>
+   * @return The distance.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getDistTypeBytes() {
-    java.lang.Object ref = distType_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      distType_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
+  public org.tribuo.math.protos.DistanceProto getDistance() {
+    return distance_ == null ? org.tribuo.math.protos.DistanceProto.getDefaultInstance() : distance_;
+  }
+  /**
+   * <code>.tribuo.math.DistanceProto distance = 5;</code>
+   */
+  @java.lang.Override
+  public org.tribuo.math.protos.DistanceProtoOrBuilder getDistanceOrBuilder() {
+    return getDistance();
   }
 
   public static final int NUM_THREADS_FIELD_NUMBER = 6;
@@ -456,8 +450,8 @@ private static final long serialVersionUID = 0L;
     if (k_ != 0) {
       output.writeInt32(4, k_);
     }
-    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(distType_)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, distType_);
+    if (distance_ != null) {
+      output.writeMessage(5, getDistance());
     }
     if (numThreads_ != 0) {
       output.writeInt32(6, numThreads_);
@@ -496,8 +490,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(4, k_);
     }
-    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(distType_)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, distType_);
+    if (distance_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(5, getDistance());
     }
     if (numThreads_ != 0) {
       size += com.google.protobuf.CodedOutputStream
@@ -540,8 +535,11 @@ private static final long serialVersionUID = 0L;
         .equals(other.getOutputsList())) return false;
     if (getK()
         != other.getK()) return false;
-    if (!getDistType()
-        .equals(other.getDistType())) return false;
+    if (hasDistance() != other.hasDistance()) return false;
+    if (hasDistance()) {
+      if (!getDistance()
+          .equals(other.getDistance())) return false;
+    }
     if (getNumThreads()
         != other.getNumThreads()) return false;
     if (!getParallelBackend()
@@ -581,8 +579,10 @@ private static final long serialVersionUID = 0L;
     }
     hash = (37 * hash) + K_FIELD_NUMBER;
     hash = (53 * hash) + getK();
-    hash = (37 * hash) + DIST_TYPE_FIELD_NUMBER;
-    hash = (53 * hash) + getDistType().hashCode();
+    if (hasDistance()) {
+      hash = (37 * hash) + DISTANCE_FIELD_NUMBER;
+      hash = (53 * hash) + getDistance().hashCode();
+    }
     hash = (37 * hash) + NUM_THREADS_FIELD_NUMBER;
     hash = (53 * hash) + getNumThreads();
     hash = (37 * hash) + PARALLEL_BACKEND_FIELD_NUMBER;
@@ -754,8 +754,12 @@ private static final long serialVersionUID = 0L;
       }
       k_ = 0;
 
-      distType_ = "";
-
+      if (distanceBuilder_ == null) {
+        distance_ = null;
+      } else {
+        distance_ = null;
+        distanceBuilder_ = null;
+      }
       numThreads_ = 0;
 
       parallelBackend_ = "";
@@ -823,7 +827,11 @@ private static final long serialVersionUID = 0L;
         result.outputs_ = outputsBuilder_.build();
       }
       result.k_ = k_;
-      result.distType_ = distType_;
+      if (distanceBuilder_ == null) {
+        result.distance_ = distance_;
+      } else {
+        result.distance_ = distanceBuilder_.build();
+      }
       result.numThreads_ = numThreads_;
       result.parallelBackend_ = parallelBackend_;
       if (combinerBuilder_ == null) {
@@ -942,9 +950,8 @@ private static final long serialVersionUID = 0L;
       if (other.getK() != 0) {
         setK(other.getK());
       }
-      if (!other.getDistType().isEmpty()) {
-        distType_ = other.distType_;
-        onChanged();
+      if (other.hasDistance()) {
+        mergeDistance(other.getDistance());
       }
       if (other.getNumThreads() != 0) {
         setNumThreads(other.getNumThreads());
@@ -1619,80 +1626,123 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object distType_ = "";
+    private org.tribuo.math.protos.DistanceProto distance_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.math.protos.DistanceProto, org.tribuo.math.protos.DistanceProto.Builder, org.tribuo.math.protos.DistanceProtoOrBuilder> distanceBuilder_;
     /**
-     * <code>string dist_type = 5;</code>
-     * @return The distType.
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
+     * @return Whether the distance field is set.
      */
-    public java.lang.String getDistType() {
-      java.lang.Object ref = distType_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        distType_ = s;
-        return s;
+    public boolean hasDistance() {
+      return distanceBuilder_ != null || distance_ != null;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
+     * @return The distance.
+     */
+    public org.tribuo.math.protos.DistanceProto getDistance() {
+      if (distanceBuilder_ == null) {
+        return distance_ == null ? org.tribuo.math.protos.DistanceProto.getDefaultInstance() : distance_;
       } else {
-        return (java.lang.String) ref;
+        return distanceBuilder_.getMessage();
       }
     }
     /**
-     * <code>string dist_type = 5;</code>
-     * @return The bytes for distType.
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
      */
-    public com.google.protobuf.ByteString
-        getDistTypeBytes() {
-      java.lang.Object ref = distType_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        distType_ = b;
-        return b;
+    public Builder setDistance(org.tribuo.math.protos.DistanceProto value) {
+      if (distanceBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        distance_ = value;
+        onChanged();
       } else {
-        return (com.google.protobuf.ByteString) ref;
+        distanceBuilder_.setMessage(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
+     */
+    public Builder setDistance(
+        org.tribuo.math.protos.DistanceProto.Builder builderForValue) {
+      if (distanceBuilder_ == null) {
+        distance_ = builderForValue.build();
+        onChanged();
+      } else {
+        distanceBuilder_.setMessage(builderForValue.build());
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
+     */
+    public Builder mergeDistance(org.tribuo.math.protos.DistanceProto value) {
+      if (distanceBuilder_ == null) {
+        if (distance_ != null) {
+          distance_ =
+            org.tribuo.math.protos.DistanceProto.newBuilder(distance_).mergeFrom(value).buildPartial();
+        } else {
+          distance_ = value;
+        }
+        onChanged();
+      } else {
+        distanceBuilder_.mergeFrom(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
+     */
+    public Builder clearDistance() {
+      if (distanceBuilder_ == null) {
+        distance_ = null;
+        onChanged();
+      } else {
+        distance_ = null;
+        distanceBuilder_ = null;
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
+     */
+    public org.tribuo.math.protos.DistanceProto.Builder getDistanceBuilder() {
+      
+      onChanged();
+      return getDistanceFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
+     */
+    public org.tribuo.math.protos.DistanceProtoOrBuilder getDistanceOrBuilder() {
+      if (distanceBuilder_ != null) {
+        return distanceBuilder_.getMessageOrBuilder();
+      } else {
+        return distance_ == null ?
+            org.tribuo.math.protos.DistanceProto.getDefaultInstance() : distance_;
       }
     }
     /**
-     * <code>string dist_type = 5;</code>
-     * @param value The distType to set.
-     * @return This builder for chaining.
+     * <code>.tribuo.math.DistanceProto distance = 5;</code>
      */
-    public Builder setDistType(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      distType_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string dist_type = 5;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearDistType() {
-      
-      distType_ = getDefaultInstance().getDistType();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string dist_type = 5;</code>
-     * @param value The bytes for distType to set.
-     * @return This builder for chaining.
-     */
-    public Builder setDistTypeBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      
-      distType_ = value;
-      onChanged();
-      return this;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.math.protos.DistanceProto, org.tribuo.math.protos.DistanceProto.Builder, org.tribuo.math.protos.DistanceProtoOrBuilder> 
+        getDistanceFieldBuilder() {
+      if (distanceBuilder_ == null) {
+        distanceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.tribuo.math.protos.DistanceProto, org.tribuo.math.protos.DistanceProto.Builder, org.tribuo.math.protos.DistanceProtoOrBuilder>(
+                getDistance(),
+                getParentForChildren(),
+                isClean());
+        distance_ = null;
+      }
+      return distanceBuilder_;
     }
 
     private int numThreads_ ;

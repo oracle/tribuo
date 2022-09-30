@@ -16,7 +16,7 @@
 
 package org.tribuo.math.neighbour;
 
-import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
 
@@ -38,18 +38,18 @@ public enum NeighboursQueryFactoryType {
 
     /**
      * Returns the appropriate {@link NeighboursQueryFactory} implementation.
-     * @param distanceType The distance function.
+     * @param distance The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
     public static NeighboursQueryFactory getNeighboursQueryFactory(NeighboursQueryFactoryType nqFactoryType,
-                                                                   DistanceType distanceType, int numThreads) {
+                                                                   Distance distance, int numThreads) {
         NeighboursQueryFactory neighboursQueryFactory;
         switch(nqFactoryType) {
             case BRUTE_FORCE:
-                neighboursQueryFactory = new NeighboursBruteForceFactory(distanceType, numThreads);
+                neighboursQueryFactory = new NeighboursBruteForceFactory(distance, numThreads);
                 break;
             case KD_TREE:
-                neighboursQueryFactory = new KDTreeFactory(distanceType, numThreads);
+                neighboursQueryFactory = new KDTreeFactory(distance, numThreads);
                 break;
             default:
                 throw new IllegalStateException("Unknown neighbour query factory " + nqFactoryType);

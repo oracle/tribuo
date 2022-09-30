@@ -28,6 +28,15 @@ option java_package = "org.tribuo.math.protos";
 import "google/protobuf/any.proto";
 
 /*
+Distance redirection proto
+ */
+message DistanceProto {
+  int32 version = 1;
+  string class_name = 2;
+  google.protobuf.Any serialized_data = 3;
+}
+
+/*
 Kernel redirection proto
  */
 message KernelProto {

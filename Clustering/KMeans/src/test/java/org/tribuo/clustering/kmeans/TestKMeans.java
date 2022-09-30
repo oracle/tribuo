@@ -43,10 +43,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestKMeans {
 
-    private static final KMeansTrainer t = new KMeansTrainer(4,10, DistanceType.L2,
+    private static final KMeansTrainer t = new KMeansTrainer(4,10, DistanceType.L2.getDistance(),
             KMeansTrainer.Initialisation.RANDOM, 1,1);
 
-    private static final KMeansTrainer plusPlus = new KMeansTrainer(4,10,  DistanceType.L2,
+    private static final KMeansTrainer plusPlus = new KMeansTrainer(4,10,  DistanceType.L2.getDistance(),
             KMeansTrainer.Initialisation.PLUSPLUS, 1,1);
 
     @BeforeAll
@@ -172,7 +172,7 @@ public class TestKMeans {
     @Test
     public void testSetInvocationCount() {
         // Create new trainer and dataset so as not to mess with the other tests
-        KMeansTrainer originalTrainer = new KMeansTrainer(4,10, DistanceType.L2,
+        KMeansTrainer originalTrainer = new KMeansTrainer(4,10, DistanceType.L2.getDistance(),
                 KMeansTrainer.Initialisation.RANDOM, 1,1);
         Pair<Dataset<ClusterID>,Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
 
@@ -190,7 +190,7 @@ public class TestKMeans {
         // Create a new model with same configuration, but set the invocation count to numOfInvocations
         // Assert that this succeeded, this means RNG will be at state where originalTrainer was before
         // it performed its last train.
-        KMeansTrainer newTrainer = new KMeansTrainer(4,10, DistanceType.L2,
+        KMeansTrainer newTrainer = new KMeansTrainer(4,10, DistanceType.L2.getDistance(),
                 KMeansTrainer.Initialisation.RANDOM, 1,1);
         newTrainer.setInvocationCount(numOfInvocations);
         assertEquals(numOfInvocations,newTrainer.getInvocationCount());
@@ -211,7 +211,7 @@ public class TestKMeans {
     @Test
     public void testNegativeInvocationCount(){
         assertThrows(IllegalArgumentException.class, () -> {
-            KMeansTrainer t = new KMeansTrainer(4,10, DistanceType.L2,
+            KMeansTrainer t = new KMeansTrainer(4,10, DistanceType.L2.getDistance(),
                     KMeansTrainer.Initialisation.RANDOM, 1,1);
             t.setInvocationCount(-1);
         });

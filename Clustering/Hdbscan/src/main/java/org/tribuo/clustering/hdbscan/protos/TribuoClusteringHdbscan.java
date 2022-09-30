@@ -38,16 +38,16 @@ public final class TribuoClusteringHdbscan {
       "\021tribuo-math.proto\"\202\001\n\024ClusterExemplarPr" +
       "oto\022\r\n\005label\030\001 \001(\005\022\025\n\routlier_score\030\002 \001(" +
       "\001\022*\n\010features\030\003 \001(\0132\030.tribuo.math.Tensor" +
-      "Proto\022\030\n\020max_dist_to_edge\030\004 \001(\001\"\226\002\n\021Hdbs" +
+      "Proto\022\030\n\020max_dist_to_edge\030\004 \001(\001\"\261\002\n\021Hdbs" +
       "canModelProto\022-\n\010metadata\030\001 \001(\0132\033.tribuo" +
       ".core.ModelDataProto\022\026\n\016cluster_labels\030\002" +
       " \003(\005\0227\n\025outlier_scores_vector\030\003 \001(\0132\030.tr" +
-      "ibuo.math.TensorProto\022\021\n\tdist_type\030\004 \001(\t" +
-      "\022J\n\021cluster_exemplars\030\005 \003(\0132/.tribuo.clu" +
-      "stering.hdbscan.ClusterExemplarProto\022\"\n\032" +
-      "noise_points_outlier_score\030\006 \001(\001B(\n$org." +
-      "tribuo.clustering.hdbscan.protosP\001b\006prot" +
-      "o3"
+      "ibuo.math.TensorProto\022,\n\010distance\030\004 \001(\0132" +
+      "\032.tribuo.math.DistanceProto\022J\n\021cluster_e" +
+      "xemplars\030\005 \003(\0132/.tribuo.clustering.hdbsc" +
+      "an.ClusterExemplarProto\022\"\n\032noise_points_" +
+      "outlier_score\030\006 \001(\001B(\n$org.tribuo.cluste" +
+      "ring.hdbscan.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -66,7 +66,7 @@ public final class TribuoClusteringHdbscan {
     internal_static_tribuo_clustering_hdbscan_HdbscanModelProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_clustering_hdbscan_HdbscanModelProto_descriptor,
-        new java.lang.String[] { "Metadata", "ClusterLabels", "OutlierScoresVector", "DistType", "ClusterExemplars", "NoisePointsOutlierScore", });
+        new java.lang.String[] { "Metadata", "ClusterLabels", "OutlierScoresVector", "Distance", "ClusterExemplars", "NoisePointsOutlierScore", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
     org.tribuo.math.protos.TribuoMath.getDescriptor();
   }

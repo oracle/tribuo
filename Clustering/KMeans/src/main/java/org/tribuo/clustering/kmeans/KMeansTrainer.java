@@ -158,7 +158,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     private Distance distanceType;
 
     @Config(description = "The distance function to use.")
-    private DistanceType distType;
+    private org.tribuo.math.distance.Distance dist;
 
     @Config(description = "The centroid initialisation method to use.")
     private Initialisation initialisationType = Initialisation.RANDOM;
@@ -199,12 +199,12 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      *
      * @param centroids The number of centroids to use.
      * @param iterations The maximum number of iterations.
-     * @param distType The distance function.
+     * @param dist The distance function.
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
-    public KMeansTrainer(int centroids, int iterations, DistanceType distType, int numThreads, long seed) {
-        this(centroids,iterations,distType,Initialisation.RANDOM,numThreads,seed);
+    public KMeansTrainer(int centroids, int iterations, org.tribuo.math.distance.Distance dist, int numThreads, long seed) {
+        this(centroids,iterations,dist,Initialisation.RANDOM,numThreads,seed);
     }
 
     /**
@@ -221,7 +221,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      */
     @Deprecated
     public KMeansTrainer(int centroids, int iterations, Distance distanceType, Initialisation initialisationType, int numThreads, long seed) {
-        this(centroids, iterations, distanceType.getDistanceType(), initialisationType, numThreads, seed);
+        this(centroids, iterations, distanceType.getDistanceType().getDistance(), initialisationType, numThreads, seed);
     }
 
     /**
@@ -229,15 +229,15 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      *
      * @param centroids The number of centroids to use.
      * @param iterations The maximum number of iterations.
-     * @param distType The distance function.
+     * @param dist The distance function.
      * @param initialisationType The centroid initialization method.
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
-    public KMeansTrainer(int centroids, int iterations, DistanceType distType, Initialisation initialisationType, int numThreads, long seed) {
+    public KMeansTrainer(int centroids, int iterations, org.tribuo.math.distance.Distance dist, Initialisation initialisationType, int numThreads, long seed) {
         this.centroids = centroids;
         this.iterations = iterations;
-        this.distType = distType;
+        this.dist = dist;
         this.initialisationType = initialisationType;
         this.numThreads = numThreads;
         this.seed = seed;
@@ -252,10 +252,10 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         this.rng = new SplittableRandom(seed);
 
         if (this.distanceType != null) {
-            if (this.distType != null) {
-                throw new PropertyException("distType", "Both distType and distanceType must not both be set.");
+            if (this.dist != null) {
+                throw new PropertyException("dist", "Both dist and distanceType must not both be set.");
             } else {
-                this.distType = this.distanceType.getDistanceType();
+                this.dist = this.distanceType.getDistanceType().getDistance();
                 this.distanceType = null;
             }
         }
@@ -285,8 +285,6 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
-
-
         int[] oldCentre = new int[examples.size()];
         SGDVector[] data = new SGDVector[examples.size()];
         double[] weights = new double[examples.size()];
@@ -308,7 +306,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                 centroidVectors = initialiseRandomCentroids(centroids, featureMap, localRNG);
                 break;
             case PLUSPLUS:
-                centroidVectors = initialisePlusPlusCentroids(centroids, data, localRNG, distType);
+                centroidVectors = initialisePlusPlusCentroids(centroids, data, localRNG, dist);
                 break;
             default:
                 throw new IllegalStateException("Unknown initialisation" + initialisationType);
@@ -328,7 +326,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             SGDVector vector = e.vector;
             for (int j = 0; j < centroids; j++) {
                 DenseVector cluster = centroidVectors[j];
-                double distance = DistanceType.getDistance(cluster, vector, distType);
+                double distance = dist.computeDistance(cluster, vector);
                 if (distance < minDist) {
                     minDist = distance;
                     clusterID = j;
@@ -402,7 +400,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
         ModelProvenance provenance = new ModelProvenance(KMeansModel.class.getName(), OffsetDateTime.now(),
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
-        return new KMeansModel("k-means-model", provenance, featureMap, outputMap, centroidVectors, distType);
+        return new KMeansModel("k-means-model", provenance, featureMap, outputMap, centroidVectors, dist);
     }
 
     @Override
@@ -460,11 +458,11 @@ public class KMeansTrainer implements Trainer<ClusterID> {
      * @param centroids The number of centroids to create.
      * @param data The dataset of {@link SGDVector} to use.
      * @param rng The RNG to use.
-     * @param distType The distance function.
+     * @param dist The distance function.
      * @return A {@link DenseVector} array of centroids.
      */
     private static DenseVector[] initialisePlusPlusCentroids(int centroids, SGDVector[] data, SplittableRandom rng,
-                                                             DistanceType distType) {
+                                                             org.tribuo.math.distance.Distance dist) {
         if (centroids > data.length) {
             throw new IllegalArgumentException("The number of centroids may not exceed the number of samples.");
         }
@@ -486,7 +484,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             // go through every vector and see if the min distance to the
             // newest centroid is smaller than previous min distance for vec
             for (int j = 0; j < data.length; j++) {
-                double tempDistance = DistanceType.getDistance(prevCentroid, data[j], distType);
+                double tempDistance = dist.computeDistance(prevCentroid, data[j]);
                 minDistancePerVector[j] = Math.min(minDistancePerVector[j], tempDistance);
             }
 
@@ -565,7 +563,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
     @Override
     public String toString() {
-        return "KMeansTrainer(centroids=" + centroids + ",distanceType=" + distType + ",seed=" + seed + ",numThreads=" + numThreads + ", initialisationType=" + initialisationType + ")";
+        return "KMeansTrainer(centroids=" + centroids + ",distance=" + dist + ",seed=" + seed + ",numThreads=" + numThreads + ", initialisationType=" + initialisationType + ")";
     }
 
     @Override

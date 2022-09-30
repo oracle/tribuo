@@ -15,6 +15,7 @@
  */
 
 /**
- * Provides the set of distance functions which can be used that are supported by {@link org.tribuo.math.la.SGDVector}.
+ * An interface for distance computations between two {@link org.tribuo.math.la.SGDVector} instances
+ * along with some standard implementations.
  */
 package org.tribuo.math.distance;

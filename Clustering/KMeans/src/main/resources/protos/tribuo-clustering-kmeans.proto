@@ -36,5 +36,5 @@ KMeansModel proto
 message KMeansModelProto {
  tribuo.core.ModelDataProto metadata = 1;
  repeated tribuo.math.TensorProto centroid_vectors = 2;
- string dist_type = 3;
+ tribuo.math.DistanceProto distance = 3;
 }

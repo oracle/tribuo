@@ -58,9 +58,9 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class TestKNN {
 
-    static final private KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2, 2,
+    static final private KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, DistanceType.L2.getDistance(), 2,
         new AveragingCombiner(), KNNModel.Backend.STREAMS, NeighboursQueryFactoryType.BRUTE_FORCE);
-    static final private KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 2,
+    static final private KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2.getDistance(), 2,
         new VotingCombiner(), KNNModel.Backend.THREADPOOL, NeighboursQueryFactoryType.KD_TREE);
 
     @BeforeAll
@@ -72,7 +72,7 @@ public class TestKNN {
     @Test
     public void invocationCounterTest() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> pair = RegressionDataGenerator.sparseTrainTest();
-        KNNTrainer<Regressor> trainer = new KNNTrainer<>(2, DistanceType.L1, 2, new AveragingCombiner(),
+        KNNTrainer<Regressor> trainer = new KNNTrainer<>(2, DistanceType.L1.getDistance(), 2, new AveragingCombiner(),
             KNNModel.Backend.THREADPOOL, NeighboursQueryFactoryType.BRUTE_FORCE);
 
         for (int i = 0; i < 5; i++) {
@@ -110,7 +110,7 @@ public class TestKNN {
 
     @Test
     public void knnRegressionSingleThreadedTest() {
-        NeighboursQueryFactory neighboursQueryFactory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        NeighboursQueryFactory neighboursQueryFactory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 1);
         KNNTrainer<Regressor> regressionTrainer = new KNNTrainer<>(3, 1, new AveragingCombiner(),
             KNNModel.Backend.THREADPOOL, neighboursQueryFactory);
         testKNNRegression(regressionTrainer);
@@ -143,7 +143,7 @@ public class TestKNN {
 
     @Test
     public void knnClassificationSingleThreadedTest() {
-        KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2, 1,
+        KNNTrainer<Label> classificationTrainer = new KNNTrainer<>(5, DistanceType.L2.getDistance(), 1,
             new VotingCombiner(), KNNModel.Backend.INNERTHREADPOOL, NeighboursQueryFactoryType.KD_TREE);
         testKNNClassification(classificationTrainer);
     }

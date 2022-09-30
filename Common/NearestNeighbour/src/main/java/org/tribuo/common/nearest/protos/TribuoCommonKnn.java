@@ -30,17 +30,17 @@ public final class TribuoCommonKnn {
     java.lang.String[] descriptorData = {
       "\n\027tribuo-common-knn.proto\022\025tribuo.common" +
       ".nearest\032\021tribuo-core.proto\032\021tribuo-math" +
-      ".proto\"\335\002\n\rKNNModelProto\022-\n\010metadata\030\001 \001" +
+      ".proto\"\370\002\n\rKNNModelProto\022-\n\010metadata\030\001 \001" +
       "(\0132\033.tribuo.core.ModelDataProto\022)\n\007vecto" +
       "rs\030\002 \003(\0132\030.tribuo.math.TensorProto\022)\n\007ou" +
       "tputs\030\003 \003(\0132\030.tribuo.core.OutputProto\022\t\n" +
-      "\001k\030\004 \001(\005\022\021\n\tdist_type\030\005 \001(\t\022\023\n\013num_threa" +
-      "ds\030\006 \001(\005\022\030\n\020parallel_backend\030\007 \001(\t\0224\n\010co" +
-      "mbiner\030\010 \001(\0132\".tribuo.core.EnsembleCombi" +
-      "nerProto\022D\n\030neighbours_query_factory\030\t \001" +
-      "(\0132\".tribuo.math.NeighbourFactoryProtoB$" +
-      "\n org.tribuo.common.nearest.protosP\001b\006pr" +
-      "oto3"
+      "\001k\030\004 \001(\005\022,\n\010distance\030\005 \001(\0132\032.tribuo.math" +
+      ".DistanceProto\022\023\n\013num_threads\030\006 \001(\005\022\030\n\020p" +
+      "arallel_backend\030\007 \001(\t\0224\n\010combiner\030\010 \001(\0132" +
+      "\".tribuo.core.EnsembleCombinerProto\022D\n\030n" +
+      "eighbours_query_factory\030\t \001(\0132\".tribuo.m" +
+      "ath.NeighbourFactoryProtoB$\n org.tribuo." +
+      "common.nearest.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -53,7 +53,7 @@ public final class TribuoCommonKnn {
     internal_static_tribuo_common_nearest_KNNModelProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_common_nearest_KNNModelProto_descriptor,
-        new java.lang.String[] { "Metadata", "Vectors", "Outputs", "K", "DistType", "NumThreads", "ParallelBackend", "Combiner", "NeighboursQueryFactory", });
+        new java.lang.String[] { "Metadata", "Vectors", "Outputs", "K", "Distance", "NumThreads", "ParallelBackend", "Combiner", "NeighboursQueryFactory", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
     org.tribuo.math.protos.TribuoMath.getDescriptor();
   }

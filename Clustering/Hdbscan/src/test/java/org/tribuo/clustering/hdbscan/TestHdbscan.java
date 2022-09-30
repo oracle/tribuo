@@ -74,7 +74,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public class TestHdbscan {
 
-    private static final HdbscanTrainer t = new HdbscanTrainer(5, DistanceType.L2, 5,2, NeighboursQueryFactoryType.KD_TREE);
+    private static final HdbscanTrainer t = new HdbscanTrainer(5, DistanceType.L2.getDistance(), 5,2, NeighboursQueryFactoryType.KD_TREE);
 
     @BeforeAll
     public static void setup() {
@@ -96,7 +96,7 @@ public class TestHdbscan {
         CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
-        HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2, 7,4, NeighboursQueryFactoryType.BRUTE_FORCE);
+        HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2.getDistance(), 7,4, NeighboursQueryFactoryType.BRUTE_FORCE);
         for (int i = 0; i < 5; i++) {
             HdbscanModel model = trainer.train(dataset);
         }
@@ -124,7 +124,7 @@ public class TestHdbscan {
         CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
-        NeighboursQueryFactory kdTreeFactory = new KDTreeFactory(DistanceType.L2, 4);
+        NeighboursQueryFactory kdTreeFactory = new KDTreeFactory(DistanceType.L2.getDistance(), 4);
         HdbscanTrainer trainer = new HdbscanTrainer(7,7,kdTreeFactory);
         HdbscanModel model = trainer.train(dataset);
 
@@ -156,7 +156,7 @@ public class TestHdbscan {
         CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict.csv"),rowProcessor,false);
         Dataset<ClusterID> testSet = new MutableDataset<>(csvTestSource);
 
-        HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2, 7,1, NeighboursQueryFactoryType.BRUTE_FORCE);
+        HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2.getDistance(), 7,1, NeighboursQueryFactoryType.BRUTE_FORCE);
         HdbscanModel model = trainer.train(dataset);
 
         List<Integer> clusterLabels = model.getClusterLabels();

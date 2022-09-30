@@ -71,6 +71,6 @@ public final class HdbscanOptions implements Options {
      */
     public HdbscanTrainer getTrainer() {
         logger.info("Configuring Hdbscan Trainer");
-        return new HdbscanTrainer(minClusterSize, distType, k, numThreads, nqFactoryType);
+        return new HdbscanTrainer(minClusterSize, distType.getDistance(), k, numThreads, nqFactoryType);
     }
 }
