@@ -114,7 +114,7 @@ public class TrainTest {
 
         //public KMeansTrainer(int centroids, int iterations, DistanceType distType, int numThreads, int seed)
         KMeansTrainer trainer = new KMeansTrainer(o.centroids,o.iterations,
-                o.distType,o.initialisation,o.numThreads,o.general.seed);
+                o.distType.getDistance(),o.initialisation,o.numThreads,o.general.seed);
         Model<ClusterID> model = trainer.train(train);
         logger.info("Finished training model");
         ClusteringEvaluation evaluation = factory.getEvaluator().evaluate(model,train);

@@ -219,7 +219,7 @@ public class TestKMeans {
 
     @Test
     public void testToString(){
-        assertEquals("KMeansTrainer(centroids=4,distanceType=L2,seed=1,numThreads=1, initialisationType=RANDOM)", t.toString());
-        assertEquals("KMeansTrainer(centroids=4,distanceType=L2,seed=1,numThreads=1, initialisationType=PLUSPLUS)", plusPlus.toString());
+        assertEquals("KMeansTrainer(centroids=4,distance=L2Distance(),seed=1,numThreads=1, initialisationType=RANDOM)", t.toString());
+        assertEquals("KMeansTrainer(centroids=4,distance=L2Distance(),seed=1,numThreads=1, initialisationType=PLUSPLUS)", plusPlus.toString());
     }
 }
