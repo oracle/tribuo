@@ -15,6 +15,11 @@ public final class TribuoMath {
         (com.google.protobuf.ExtensionRegistryLite) registry);
   }
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_math_DistanceProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_math_DistanceProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_tribuo_math_KernelProto_descriptor;
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -54,61 +59,70 @@ public final class TribuoMath {
   static {
     java.lang.String[] descriptorData = {
       "\n\021tribuo-math.proto\022\013tribuo.math\032\031google" +
-      "/protobuf/any.proto\"a\n\013KernelProto\022\017\n\007ve" +
+      "/protobuf/any.proto\"c\n\rDistanceProto\022\017\n\007" +
+      "version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017ser" +
+      "ialized_data\030\003 \001(\0132\024.google.protobuf.Any" +
+      "\"a\n\013KernelProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclas" +
+      "s_name\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024." +
+      "google.protobuf.Any\"a\n\013MergerProto\022\017\n\007ve" +
       "rsion\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017seria" +
-      "lized_data\030\003 \001(\0132\024.google.protobuf.Any\"a" +
-      "\n\013MergerProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_" +
-      "name\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.go" +
-      "ogle.protobuf.Any\"k\n\025NeighbourFactoryPro" +
-      "to\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022" +
-      "-\n\017serialized_data\030\003 \001(\0132\024.google.protob" +
-      "uf.Any\"e\n\017NormalizerProto\022\017\n\007version\030\001 \001" +
-      "(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_dat" +
-      "a\030\003 \001(\0132\024.google.protobuf.Any\"e\n\017Paramet" +
-      "ersProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030" +
+      "lized_data\030\003 \001(\0132\024.google.protobuf.Any\"k" +
+      "\n\025NeighbourFactoryProto\022\017\n\007version\030\001 \001(\005" +
+      "\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_data\030" +
+      "\003 \001(\0132\024.google.protobuf.Any\"e\n\017Normalize" +
+      "rProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030\002 " +
+      "\001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.google.pr" +
+      "otobuf.Any\"e\n\017ParametersProto\022\017\n\007version" +
+      "\030\001 \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized" +
+      "_data\030\003 \001(\0132\024.google.protobuf.Any\"a\n\013Ten" +
+      "sorProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass_name\030" +
       "\002 \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.google." +
-      "protobuf.Any\"a\n\013TensorProto\022\017\n\007version\030\001" +
-      " \001(\005\022\022\n\nclass_name\030\002 \001(\t\022-\n\017serialized_d" +
-      "ata\030\003 \001(\0132\024.google.protobuf.AnyB\032\n\026org.t" +
-      "ribuo.math.protosP\001b\006proto3"
+      "protobuf.AnyB\032\n\026org.tribuo.math.protosP\001" +
+      "b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
           com.google.protobuf.AnyProto.getDescriptor(),
         });
-    internal_static_tribuo_math_KernelProto_descriptor =
+    internal_static_tribuo_math_DistanceProto_descriptor =
       getDescriptor().getMessageTypes().get(0);
+    internal_static_tribuo_math_DistanceProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_math_DistanceProto_descriptor,
+        new java.lang.String[] { "Version", "ClassName", "SerializedData", });
+    internal_static_tribuo_math_KernelProto_descriptor =
+      getDescriptor().getMessageTypes().get(1);
     internal_static_tribuo_math_KernelProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_KernelProto_descriptor,
         new java.lang.String[] { "Version", "ClassName", "SerializedData", });
     internal_static_tribuo_math_MergerProto_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_tribuo_math_MergerProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_MergerProto_descriptor,
         new java.lang.String[] { "Version", "ClassName", "SerializedData", });
     internal_static_tribuo_math_NeighbourFactoryProto_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_tribuo_math_NeighbourFactoryProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_NeighbourFactoryProto_descriptor,
         new java.lang.String[] { "Version", "ClassName", "SerializedData", });
     internal_static_tribuo_math_NormalizerProto_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_tribuo_math_NormalizerProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_NormalizerProto_descriptor,
         new java.lang.String[] { "Version", "ClassName", "SerializedData", });
     internal_static_tribuo_math_ParametersProto_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_tribuo_math_ParametersProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_ParametersProto_descriptor,
         new java.lang.String[] { "Version", "ClassName", "SerializedData", });
     internal_static_tribuo_math_TensorProto_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_tribuo_math_TensorProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_math_TensorProto_descriptor,

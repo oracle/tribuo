@@ -77,16 +77,19 @@ public interface KNNModelProtoOrBuilder extends
   int getK();
 
   /**
-   * <code>string dist_type = 5;</code>
-   * @return The distType.
+   * <code>.tribuo.math.DistanceProto distance = 5;</code>
+   * @return Whether the distance field is set.
    */
-  java.lang.String getDistType();
+  boolean hasDistance();
   /**
-   * <code>string dist_type = 5;</code>
-   * @return The bytes for distType.
+   * <code>.tribuo.math.DistanceProto distance = 5;</code>
+   * @return The distance.
    */
-  com.google.protobuf.ByteString
-      getDistTypeBytes();
+  org.tribuo.math.protos.DistanceProto getDistance();
+  /**
+   * <code>.tribuo.math.DistanceProto distance = 5;</code>
+   */
+  org.tribuo.math.protos.DistanceProtoOrBuilder getDistanceOrBuilder();
 
   /**
    * <code>int32 num_threads = 6;</code>

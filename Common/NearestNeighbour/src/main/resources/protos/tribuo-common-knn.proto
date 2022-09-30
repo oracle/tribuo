@@ -38,7 +38,7 @@ message KNNModelProto {
  repeated tribuo.math.TensorProto vectors = 2;
  repeated tribuo.core.OutputProto outputs = 3;
  int32 k = 4;
- string dist_type = 5;
+ tribuo.math.DistanceProto distance = 5;
  int32 num_threads = 6;
  string parallel_backend = 7;
  tribuo.core.EnsembleCombinerProto combiner = 8;

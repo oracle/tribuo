@@ -20,6 +20,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
@@ -45,7 +46,7 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
 
     @Config(description = "The distance function to use.")
     @ProtoSerializableField
-    private DistanceType distanceType = DistanceType.L2;
+    private Distance distance = DistanceType.L2.getDistance();
 
     @Config(description = "The number of threads to use for training.")
     @ProtoSerializableField
@@ -58,11 +59,11 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
 
     /**
      * Constructs a brute-force nearest neighbor query factory object using the supplied parameters.
-     * @param distanceType The distance function.
+     * @param distance The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    public NeighboursBruteForceFactory(DistanceType distanceType, int numThreads) {
-        this.distanceType = distanceType;
+    public NeighboursBruteForceFactory(Distance distance, int numThreads) {
+        this.distance = distance;
         this.numThreads = numThreads;
         postConfig();
     }
@@ -78,7 +79,7 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         BruteForceFactoryProto queryProto = message.unpack(BruteForceFactoryProto.class);
-        return new NeighboursBruteForceFactory(DistanceType.valueOf(queryProto.getDistanceType()),
+        return new NeighboursBruteForceFactory(ProtoUtil.deserialize(queryProto.getDistance()),
                 queryProto.getNumThreads());
     }
 
@@ -93,12 +94,12 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
      */
     @Override
     public NeighboursBruteForce createNeighboursQuery(SGDVector[] data) {
-        return new NeighboursBruteForce(data, this.distanceType, this.numThreads);
+        return new NeighboursBruteForce(data, this.distance, this.numThreads);
     }
 
     @Override
-    public DistanceType getDistanceType() {
-        return distanceType;
+    public Distance getDistance() {
+        return distance;
     }
 
     @Override
@@ -121,11 +122,11 @@ public final class NeighboursBruteForceFactory implements NeighboursQueryFactory
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NeighboursBruteForceFactory that = (NeighboursBruteForceFactory) o;
-        return numThreads == that.numThreads && distanceType == that.distanceType;
+        return numThreads == that.numThreads && distance.equals(that.distance);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(distanceType, numThreads);
+        return Objects.hash(distance, numThreads);
     }
 }

@@ -135,7 +135,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     private Distance distanceType;
 
     @Config(description = "The distance function to use.")
-    private DistanceType distType;
+    private org.tribuo.math.distance.Distance dist;
 
     @Config(mandatory = true, description = "The number of nearest-neighbors to use in the initial density approximation. " +
         "This includes the point itself.")
@@ -154,19 +154,18 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     /**
      * for olcut.
      */
-    private HdbscanTrainer() {
-    }
+    private HdbscanTrainer() {}
 
     /**
      * Constructs an HDBSCAN* trainer with only the minClusterSize parameter.
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
-     * {@link #distType} defaults to {@link DistanceType#L2}, {@link #k} defaults to {@link #minClusterSize},
+     * {@link #dist} defaults to {@link DistanceType#L2}, {@link #k} defaults to {@link #minClusterSize},
      * {@link #numThreads} defaults to 1 and {@link #neighboursQueryFactory} defaults to
      * {@link NeighboursBruteForceFactory}.
      */
     public HdbscanTrainer(int minClusterSize) {
-        this(minClusterSize, DistanceType.L2, minClusterSize, 1, NeighboursQueryFactoryType.BRUTE_FORCE);
+        this(minClusterSize, DistanceType.L2.getDistance(), minClusterSize, 1, NeighboursQueryFactoryType.BRUTE_FORCE);
     }
 
     /**
@@ -182,24 +181,24 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      */
     @Deprecated
     public HdbscanTrainer(int minClusterSize, Distance distanceType, int k, int numThreads) {
-        this(minClusterSize, distanceType.getDistanceType(), k, numThreads, NeighboursQueryFactoryType.BRUTE_FORCE);
+        this(minClusterSize, distanceType.getDistanceType().getDistance(), k, numThreads, NeighboursQueryFactoryType.BRUTE_FORCE);
     }
 
     /**
      * Constructs an HDBSCAN* trainer using the supplied parameters.
      *
      * @param minClusterSize The minimum number of points required to form a cluster.
-     * @param distType The distance function.
+     * @param dist The distance function.
      * @param k The number of nearest-neighbors to use in the initial density approximation.
      * @param numThreads The number of threads.
      * @param nqFactoryType The nearest neighbour query implementation factory to use.
      */
-    public HdbscanTrainer(int minClusterSize, DistanceType distType, int k, int numThreads, NeighboursQueryFactoryType nqFactoryType) {
+    public HdbscanTrainer(int minClusterSize, org.tribuo.math.distance.Distance dist, int k, int numThreads, NeighboursQueryFactoryType nqFactoryType) {
         this.minClusterSize = minClusterSize;
-        this.distType = distType;
+        this.dist = dist;
         this.k = k;
         this.numThreads = numThreads;
-        this.neighboursQueryFactory = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, distType, numThreads);
+        this.neighboursQueryFactory = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, dist, numThreads);
     }
 
     /**
@@ -211,7 +210,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      */
     public HdbscanTrainer(int minClusterSize, int k, NeighboursQueryFactory neighboursQueryFactory) {
         this.minClusterSize = minClusterSize;
-        this.distType = neighboursQueryFactory.getDistanceType();
+        this.dist = neighboursQueryFactory.getDistance();
         this.k = k;
         this.neighboursQueryFactory = neighboursQueryFactory;
     }
@@ -222,19 +221,19 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     @Override
     public synchronized void postConfig() {
         if (this.distanceType != null) {
-            if (this.distType != null) {
+            if (this.dist != null) {
                 throw new PropertyException("distType", "Both distType and distanceType must not both be set.");
             } else {
-                this.distType = this.distanceType.getDistanceType();
+                this.dist = this.distanceType.getDistanceType().getDistance();
                 this.distanceType = null;
             }
         }
 
         if (neighboursQueryFactory == null) {
             int numberThreads = (this.numThreads <= 0) ? 1 : this.numThreads;
-            this.neighboursQueryFactory = new NeighboursBruteForceFactory(distType, numberThreads);
+            this.neighboursQueryFactory = new NeighboursBruteForceFactory(dist, numberThreads);
         } else {
-            if (!this.distType.equals(neighboursQueryFactory.getDistanceType())) {
+            if (!this.dist.equals(neighboursQueryFactory.getDistance())) {
                 throw new PropertyException("neighboursQueryFactory", "distType and its field on the " +
                     "NeighboursQueryFactory must be equal.");
             }
@@ -264,7 +263,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         }
 
         DenseVector coreDistances = calculateCoreDistances(data, k, neighboursQueryFactory);
-        ExtendedMinimumSpanningTree emst = constructEMST(data, coreDistances, distType);
+        ExtendedMinimumSpanningTree emst = constructEMST(data, coreDistances, dist);
 
         double[] pointNoiseLevels = new double[data.length];    // The levels at which each point becomes noise
         int[] pointLastClusters = new int[data.length];         // The last label of each point before becoming noise
@@ -284,7 +283,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         ImmutableOutputInfo<ClusterID> outputMap = new ImmutableClusteringInfo(counts);
 
         // Compute the cluster exemplars.
-        List<ClusterExemplar> clusterExemplars = computeExemplars(data, clusterAssignments, distType);
+        List<ClusterExemplar> clusterExemplars = computeExemplars(data, clusterAssignments, dist);
 
         // Get the outlier score value for points that are predicted as noise points.
         double noisePointsOutlierScore = getNoisePointsOutlierScore(clusterAssignments);
@@ -295,7 +294,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
         return new HdbscanModel("hdbscan-model", provenance, featureMap, outputMap, clusterLabels, outlierScoresVector,
-                                clusterExemplars, distType, noisePointsOutlierScore);
+                                clusterExemplars, dist, noisePointsOutlierScore);
     }
 
     @Override
@@ -347,12 +346,12 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * core distances for each point.
      * @param data An array of {@link DenseVector} containing the data.
      * @param coreDistances A {@link DenseVector} containing the core distances for every point.
-     * @param distType The distance metric to employ.
+     * @param dist The distance metric to employ.
      * @return An {@link ExtendedMinimumSpanningTree} representation of the data using the mutual reachability distances,
      * and the graph is sorted by edge weight in ascending order.
      */
     private static ExtendedMinimumSpanningTree constructEMST(SGDVector[] data, DenseVector coreDistances,
-                                                            DistanceType distType) {
+                                                             org.tribuo.math.distance.Distance dist) {
         // One bit is set (true) for each attached point, and unset (false) for unattached points:
         BitSet attachedPoints = new BitSet(data.length);
 
@@ -380,7 +379,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                     continue;
                 }
 
-                double mutualReachabilityDistance = DistanceType.getDistance(data[currentPoint], data[neighbor], distType);
+                double mutualReachabilityDistance = dist.computeDistance(data[currentPoint], data[neighbor]);
                 if (coreDistances.get(currentPoint) > mutualReachabilityDistance) {
                     mutualReachabilityDistance = coreDistances.get(currentPoint);
                 }
@@ -754,11 +753,11 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      *
      * @param data An array of {@link DenseVector} containing the data.
      * @param clusterAssignments A map of the cluster labels, and the points assigned to them.
-     * @param distType The distance metric to employ.
+     * @param dist The distance metric to employ.
      * @return A list of {@link ClusterExemplar}s which are used for predictions.
      */
     private static List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments,
-                                                          DistanceType distType) {
+                                                          org.tribuo.math.distance.Distance dist) {
         List<ClusterExemplar> clusterExemplars = new ArrayList<>();
         // The formula to calculate the exemplar number. This calculates the number of exemplars to be used for this
         // configuration. The appropriate number of exemplars is important for prediction. At the time, this
@@ -797,7 +796,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                     SGDVector features = data[partialClusterExemplar.getValue()];
                     double maxInnerDist = Double.NEGATIVE_INFINITY;
                     for (Entry<Double, Integer> entry : outlierScoreIndexTree.entrySet()) {
-                        double distance = DistanceType.getDistance(features, data[entry.getValue()], distType);
+                        double distance = dist.computeDistance(features, data[entry.getValue()]);
                         if (distance > maxInnerDist){
                             maxInnerDist = distance;
                         }
@@ -834,7 +833,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
     @Override
     public String toString() {
-        return "HdbscanTrainer(minClusterSize=" + minClusterSize + ",distanceType=" + distType + ",k=" + k + ",numThreads=" + numThreads + ")";
+        return "HdbscanTrainer(minClusterSize=" + minClusterSize + ",distanceType=" + dist + ",k=" + k + ",numThreads=" + numThreads + ")";
     }
 
     @Override

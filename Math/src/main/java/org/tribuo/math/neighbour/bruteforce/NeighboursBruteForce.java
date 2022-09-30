@@ -17,7 +17,7 @@
 package org.tribuo.math.neighbour.bruteforce;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQuery;
 
@@ -35,16 +35,16 @@ import java.util.concurrent.TimeUnit;
 public final class NeighboursBruteForce implements NeighboursQuery {
 
     private final SGDVector[] data;
-    private final DistanceType distanceType;
+    private final Distance distance;
     private final int numThreads;
 
     /**
      * Constructs a brute-force nearest neighbour query object using the supplied parameters.
      * @param data the data that will be used for neighbour queries.
-     * @param distanceType The distance function.
+     * @param distance The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
      */
-    NeighboursBruteForce(SGDVector[] data, DistanceType distanceType, int numThreads) {
+    NeighboursBruteForce(SGDVector[] data, Distance distance, int numThreads) {
         int numFeatures = data[0].size();
         for (SGDVector vector : data) {
             if (vector.size() != numFeatures) {
@@ -52,7 +52,7 @@ public final class NeighboursBruteForce implements NeighboursQuery {
             }
         }
         this.data = data;
-        this.distanceType = distanceType;
+        this.distance = distance;
         this.numThreads = numThreads;
     }
 
@@ -61,13 +61,13 @@ public final class NeighboursBruteForce implements NeighboursQuery {
         PriorityQueue<MutablePair> queue = new PriorityQueue<>(k);
 
         for (int neighbor = 0; neighbor < data.length && neighbor < k; neighbor++) {
-            double distance = DistanceType.getDistance(point, data[neighbor], distanceType);
+            double distance = this.distance.computeDistance(point, data[neighbor]);
             MutablePair newPair = new MutablePair(neighbor, distance);
             queue.offer(newPair);
         }
 
         for (int neighbor = k; neighbor < data.length; neighbor++) {
-            double distance = DistanceType.getDistance(point, data[neighbor], distanceType);
+            double distance = this.distance.computeDistance(point, data[neighbor]);
             if (Double.compare(distance, queue.peek().value) < 0) {
                 MutablePair pair = queue.poll();
                 pair.index = neighbor;

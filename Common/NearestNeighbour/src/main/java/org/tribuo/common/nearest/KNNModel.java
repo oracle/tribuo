@@ -31,7 +31,6 @@ import org.tribuo.common.nearest.KNNTrainer.Distance;
 import org.tribuo.common.nearest.protos.KNNModelProto;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
@@ -40,6 +39,7 @@ import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.math.protos.TensorProto;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -113,7 +113,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     // This is not final to support deserialization of older models. It will be final in a future version which doesn't
     // maintain serialization compatibility with 4.X.
-    private DistanceType distType;
+    private org.tribuo.math.distance.Distance dist;
 
     private final int numThreads;
 
@@ -128,11 +128,11 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private transient NeighboursQuery neighboursQuery;
 
     KNNModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-             boolean generatesProbabilities, int k, DistanceType distType, int numThreads, EnsembleCombiner<T> combiner,
+             boolean generatesProbabilities, int k, org.tribuo.math.distance.Distance dist, int numThreads, EnsembleCombiner<T> combiner,
              Pair<SGDVector,T>[] vectors, Backend backend, NeighboursQueryFactory neighboursQueryFactory) {
         super(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities);
         this.k = k;
-        this.distType = distType;
+        this.dist = dist;
         this.numThreads = numThreads;
         this.combiner = combiner;
         this.parallelBackend = backend;
@@ -199,12 +199,12 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
             }
         }
 
-        DistanceType distType = DistanceType.valueOf(proto.getDistType());
+        org.tribuo.math.distance.Distance dist = ProtoUtil.deserialize(proto.getDistance());
         Backend backend = Backend.valueOf(proto.getParallelBackend());
         NeighboursQueryFactory queryFactory = NeighboursQueryFactory.deserialize(proto.getNeighboursQueryFactory());
 
         return new KNNModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain,
-            carrier.generatesProbabilities(), k, distType, numThreads, combiner, pairs, backend, queryFactory);
+            carrier.generatesProbabilities(), k, dist, numThreads, combiner, pairs, backend, queryFactory);
     }
 
     @Override
@@ -221,7 +221,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         }
 
         Function<Pair<SGDVector,T>, OutputDoublePair<T>> distanceFunc =
-            (a) -> new OutputDoublePair<>(a.getB(),DistanceType.getDistance(a.getA(), input, distType));
+            (a) -> new OutputDoublePair<>(a.getB(), dist.computeDistance(a.getA(), input));
 
         List<Prediction<T>> predictions;
         Stream<Pair<SGDVector,T>> stream = Stream.of(vectors);
@@ -315,7 +315,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
             }
 
             Function<Pair<SGDVector, T>, OutputDoublePair<T>> distanceFunc =
-                (a) -> new OutputDoublePair<>(a.getB(), DistanceType.getDistance(a.getA(), input, distType));
+                (a) -> new OutputDoublePair<>(a.getB(), dist.computeDistance(a.getA(), input));
 
             Stream<Pair<SGDVector, T>> stream = Stream.of(vectors);
             try {
@@ -373,7 +373,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool = ThreadLocal.withInitial(() -> new PriorityQueue<>(k, (a,b) -> Double.compare(b.value, a.value)));
 
         for (Example<T> example : examples) {
-            predictions.add(innerPredictThreadPool(pool,queuePool,distType,example));
+            predictions.add(innerPredictThreadPool(pool,queuePool,dist,example));
         }
 
         pool.shutdown();
@@ -383,7 +383,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     private Prediction<T> innerPredictThreadPool(ExecutorService pool,
                                                  ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool,
-                                                 DistanceType distType,
+                                                 org.tribuo.math.distance.Distance dist,
                                                  Example<T> example) {
         SparseVector vector = SparseVector.createSparseVector(example, featureIDMap, false);
         List<Future<List<OutputDoublePair<T>>>> futures = new ArrayList<>();
@@ -391,7 +391,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         for (int i = 0; i < numThreads; i++) {
             int start = i * (vectors.length / numThreads);
             int end = (i + 1) * (vectors.length / numThreads);
-            futures.add(pool.submit(() -> innerPredictChunk(queuePool,vectors,start,end,distType,k,vector)));
+            futures.add(pool.submit(() -> innerPredictChunk(queuePool,vectors,start,end,dist,k,vector)));
         }
 
         PriorityQueue<OutputDoublePair<T>> queue = new PriorityQueue<>(k, (a,b) -> Double.compare(b.value, a.value));
@@ -424,7 +424,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
                                                                             Pair<SGDVector,T>[] vectors,
                                                                             int start,
                                                                             int end,
-                                                                            DistanceType distType,
+                                                                            org.tribuo.math.distance.Distance dist,
                                                                             int k,
                                                                             SGDVector input) {
         PriorityQueue<OutputDoublePair<T>> queue = queuePool.get();
@@ -433,7 +433,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         end = Math.min(end, vectors.length);
 
         for (int i = start; i < end; i++) {
-            double curDistance = DistanceType.getDistance(vectors[i].getA(), input, distType);
+            double curDistance = dist.computeDistance(vectors[i].getA(), input);
 
             if (queue.size() < k) {
                 OutputDoublePair<T> newPair = new OutputDoublePair<>(vectors[i].getB(),curDistance);
@@ -496,7 +496,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
             modelBuilder.addOutputs(e.getB().serialize());
         }
         modelBuilder.setK(k);
-        modelBuilder.setDistType(distType.name());
+        modelBuilder.setDistance(dist.serialize());
         modelBuilder.setNumThreads(numThreads);
         modelBuilder.setParallelBackend(parallelBackend.name());
         modelBuilder.setCombiner(combiner.serialize());
@@ -517,17 +517,17 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         for (int i = 0; i < vectors.length; i++) {
             vectorCopy[i] = new Pair<>(vectors[i].getA().copy(),vectors[i].getB().copy());
         }
-        return new KNNModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,k,distType,
+        return new KNNModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,k,dist,
             numThreads,combiner,vectorCopy,parallelBackend,neighboursQueryFactory);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if (distType == null) {
-            distType = distance.getDistanceType();
+        if (dist == null) {
+            dist = distance.getDistanceType().getDistance();
         }
         if (neighboursQueryFactory == null) {
-            neighboursQueryFactory = new NeighboursBruteForceFactory(distType, numThreads);
+            neighboursQueryFactory = new NeighboursBruteForceFactory(dist, numThreads);
         }
         neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
     }

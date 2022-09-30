@@ -64,6 +64,6 @@ public class KMeansOptions implements Options {
      */
     public KMeansTrainer getTrainer() {
         logger.info("Configuring K-Means Trainer");
-        return new KMeansTrainer(centroids, iterations, distType, initialisation, numThreads, seed);
+        return new KMeansTrainer(centroids, iterations, distType.getDistance(), initialisation, numThreads, seed);
     }
 }

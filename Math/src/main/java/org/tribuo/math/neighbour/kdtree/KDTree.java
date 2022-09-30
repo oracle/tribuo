@@ -17,7 +17,7 @@
 package org.tribuo.math.neighbour.kdtree;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQuery;
 
@@ -56,10 +56,10 @@ public final class KDTree implements NeighboursQuery {
      * Constructs a k-d tree nearest neighbour query object using the supplied parameters.
      *
      * @param data The data that will be used for neighbour queries.
-     * @param distanceType The distance function.
+     * @param distance The distance function.
      * @param numThreads The number of threads to be used to parallelize queries for multiple points.
      */
-    KDTree(SGDVector[] data, DistanceType distanceType, int numThreads) {
+    KDTree(SGDVector[] data, Distance distance, int numThreads) {
         this.data = data;
         this.numThreads = numThreads;
 
@@ -76,7 +76,7 @@ public final class KDTree implements NeighboursQuery {
             }
         }
 
-        root = generateTree(0, numDimensions-1, points, 0, data.length - 1, distanceType);
+        root = generateTree(0, numDimensions-1, points, 0, data.length - 1, distance);
     }
 
     @Override
@@ -143,17 +143,17 @@ public final class KDTree implements NeighboursQuery {
      * @param points The array of points, which are {@link IntAndVector}s of the point's original index and the features.
      * @param left The lower bound index of for this node of the tree.
      * @param right The upper bound index of for this node of the tree.
-     * @param distanceType The distance function.
+     * @param distance The distance function.
      * @return The DimensionNode at the root of the (sub)tree being generated.
      */
     private static DimensionNode generateTree(int d, int maxD, IntAndVector[] points, int left, int right,
-                                       DistanceType distanceType) {
+                                       Distance distance) {
         // Handle the termination cases
         if (right < left) {
             return null;
         }
         if (right == left) {
-            return new DimensionNode(d, points[left], distanceType);
+            return new DimensionNode(d, points[left], distance);
         }
 
         // Order the points[left, right] based on the dimension d, such that the mth element will be the median.
@@ -163,7 +163,7 @@ public final class KDTree implements NeighboursQuery {
         setMedian(points, median, left, right, d);
 
         // Construct a dimension node using the median point
-        DimensionNode medianNode = new DimensionNode(d, points[left+median-1], distanceType);
+        DimensionNode medianNode = new DimensionNode(d, points[left+median-1], distance);
 
         // Increment the dimension, resetting back to 0 when it exceeds maxD
         d++;
@@ -172,8 +172,8 @@ public final class KDTree implements NeighboursQuery {
         }
 
         // Generate the below/left and above/right subtrees.
-        medianNode.setBelow(generateTree(d, maxD, points, left, left+median-2, distanceType));
-        medianNode.setAbove(generateTree(d, maxD, points, left+median, right, distanceType));
+        medianNode.setBelow(generateTree(d, maxD, points, left, left+median-2, distance));
+        medianNode.setAbove(generateTree(d, maxD, points, left+median, right, distance));
         return medianNode;
     }
 

@@ -117,7 +117,7 @@ NeighboursBruteForceFactory proto
  */
 message BruteForceFactoryProto {
   int32 numThreads = 1;
-  string distanceType = 2;
+  tribuo.math.DistanceProto distance = 2;
 }
 
 /*
@@ -125,5 +125,5 @@ KDTreeFactory proto
  */
 message KDTreeFactoryProto {
   int32 numThreads = 1;
-  string distanceType = 2;
+  tribuo.math.DistanceProto distance = 2;
 }

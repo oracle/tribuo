@@ -30,12 +30,12 @@ public final class TribuoClusteringKmeans {
     java.lang.String[] descriptorData = {
       "\n\036tribuo-clustering-kmeans.proto\022\030tribuo" +
       ".clustering.kmeans\032\021tribuo-core.proto\032\021t" +
-      "ribuo-math.proto\"\210\001\n\020KMeansModelProto\022-\n" +
+      "ribuo-math.proto\"\243\001\n\020KMeansModelProto\022-\n" +
       "\010metadata\030\001 \001(\0132\033.tribuo.core.ModelDataP" +
       "roto\0222\n\020centroid_vectors\030\002 \003(\0132\030.tribuo." +
-      "math.TensorProto\022\021\n\tdist_type\030\003 \001(\tB\'\n#o" +
-      "rg.tribuo.clustering.kmeans.protosP\001b\006pr" +
-      "oto3"
+      "math.TensorProto\022,\n\010distance\030\003 \001(\0132\032.tri" +
+      "buo.math.DistanceProtoB\'\n#org.tribuo.clu" +
+      "stering.kmeans.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -48,7 +48,7 @@ public final class TribuoClusteringKmeans {
     internal_static_tribuo_clustering_kmeans_KMeansModelProto_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_clustering_kmeans_KMeansModelProto_descriptor,
-        new java.lang.String[] { "Metadata", "CentroidVectors", "DistType", });
+        new java.lang.String[] { "Metadata", "CentroidVectors", "Distance", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
     org.tribuo.math.protos.TribuoMath.getDescriptor();
   }

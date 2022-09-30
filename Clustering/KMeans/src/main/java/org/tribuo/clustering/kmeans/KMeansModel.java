@@ -30,13 +30,13 @@ import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.tribuo.clustering.kmeans.protos.KMeansModelProto;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.TensorProto;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
@@ -77,13 +77,13 @@ public class KMeansModel extends Model<ClusterID> {
 
     // This is not final to support deserialization of older models. It will be final in a future version which doesn't
     // maintain serialization compatibility with 4.X.
-    private DistanceType distType;
+    private org.tribuo.math.distance.Distance dist;
 
     KMeansModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
-                ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] centroidVectors, DistanceType distType) {
+                ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] centroidVectors, org.tribuo.math.distance.Distance dist) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.centroidVectors = centroidVectors;
-        this.distType = distType;
+        this.dist = dist;
     }
 
     /**
@@ -125,9 +125,9 @@ public class KMeansModel extends Model<ClusterID> {
             }
         }
 
-        DistanceType distType = DistanceType.valueOf(proto.getDistType());
+        org.tribuo.math.distance.Distance dist = ProtoUtil.deserialize(proto.getDistance());
 
-        return new KMeansModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain, centroids, distType);
+        return new KMeansModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain, centroids, dist);
     }
 
     /**
@@ -191,7 +191,7 @@ public class KMeansModel extends Model<ClusterID> {
         double minDistance = Double.POSITIVE_INFINITY;
         int id = -1;
         for (int i = 0; i < centroidVectors.length; i++) {
-            double distance = DistanceType.getDistance(centroidVectors[i], vector, distType);
+            double distance = dist.computeDistance(centroidVectors[i], vector);
 
             if (distance < minDistance) {
                 minDistance = distance;
@@ -217,7 +217,7 @@ public class KMeansModel extends Model<ClusterID> {
 
         KMeansModelProto.Builder modelBuilder = KMeansModelProto.newBuilder();
         modelBuilder.setMetadata(carrier.serialize());
-        modelBuilder.setDistType(distType.name());
+        modelBuilder.setDistance(dist.serialize());
         for (DenseVector e : centroidVectors) {
             modelBuilder.addCentroidVectors(e.serialize());
         }
@@ -236,13 +236,13 @@ public class KMeansModel extends Model<ClusterID> {
         for (int i = 0; i < centroidVectors.length; i++) {
             newCentroids[i] = centroidVectors[i].copy();
         }
-        return new KMeansModel(newName,newProvenance,featureIDMap,outputIDInfo,newCentroids,distType);
+        return new KMeansModel(newName,newProvenance,featureIDMap,outputIDInfo,newCentroids,dist);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if (distType == null) {
-            distType = distanceType.getDistanceType();
+        if (dist == null) {
+            dist = distanceType.getDistanceType().getDistance();
         }
     }
 }

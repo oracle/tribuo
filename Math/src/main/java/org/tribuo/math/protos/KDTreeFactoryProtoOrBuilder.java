@@ -14,14 +14,17 @@ public interface KDTreeFactoryProtoOrBuilder extends
   int getNumThreads();
 
   /**
-   * <code>string distanceType = 2;</code>
-   * @return The distanceType.
+   * <code>.tribuo.math.DistanceProto distance = 2;</code>
+   * @return Whether the distance field is set.
    */
-  java.lang.String getDistanceType();
+  boolean hasDistance();
   /**
-   * <code>string distanceType = 2;</code>
-   * @return The bytes for distanceType.
+   * <code>.tribuo.math.DistanceProto distance = 2;</code>
+   * @return The distance.
    */
-  com.google.protobuf.ByteString
-      getDistanceTypeBytes();
+  org.tribuo.math.protos.DistanceProto getDistance();
+  /**
+   * <code>.tribuo.math.DistanceProto distance = 2;</code>
+   */
+  org.tribuo.math.protos.DistanceProtoOrBuilder getDistanceOrBuilder();
 }

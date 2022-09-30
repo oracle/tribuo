@@ -31,12 +31,12 @@ import org.tribuo.clustering.hdbscan.HdbscanTrainer.Distance;
 import org.tribuo.clustering.hdbscan.protos.ClusterExemplarProto;
 import org.tribuo.clustering.hdbscan.protos.HdbscanModelProto;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
@@ -78,7 +78,7 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     // This is not final to support deserialization of older models. It will be final in a future version which doesn't
     // maintain serialization compatibility with 4.X.
-    private DistanceType distType;
+    private org.tribuo.math.distance.Distance dist;
 
     private final List<HdbscanTrainer.ClusterExemplar> clusterExemplars;
 
@@ -86,12 +86,12 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     HdbscanModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                  ImmutableOutputInfo<ClusterID> outputIDInfo, List<Integer> clusterLabels, DenseVector outlierScoresVector,
-                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, DistanceType distType, double noisePointsOutlierScore) {
+                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, org.tribuo.math.distance.Distance dist, double noisePointsOutlierScore) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.clusterLabels = Collections.unmodifiableList(clusterLabels);
         this.outlierScoresVector = outlierScoresVector;
         this.clusterExemplars = Collections.unmodifiableList(clusterExemplars);
-        this.distType = distType;
+        this.dist = dist;
         this.noisePointsOutlierScore = noisePointsOutlierScore;
     }
 
@@ -135,10 +135,10 @@ public final class HdbscanModel extends Model<ClusterID> {
             exemplars.add(HdbscanTrainer.ClusterExemplar.deserialize(p));
         }
 
-        DistanceType distType = DistanceType.valueOf(proto.getDistType());
+        org.tribuo.math.distance.Distance dist = ProtoUtil.deserialize(proto.getDistance());
 
         return new HdbscanModel(carrier.name(), carrier.provenance(), carrier.featureDomain(),
-            outputDomain, clusterLabels, outlierScoresVector, exemplars, distType, proto.getNoisePointsOutlierScore());
+            outputDomain, clusterLabels, outlierScoresVector, exemplars, dist, proto.getNoisePointsOutlierScore());
     }
 
     /**
@@ -222,7 +222,7 @@ public final class HdbscanModel extends Model<ClusterID> {
         if (Double.compare(noisePointsOutlierScore, 0) > 0) { // This will be true from models > 4.2
             boolean isNoisePoint = true;
             for (HdbscanTrainer.ClusterExemplar clusterExemplar : clusterExemplars) {
-                double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), vector, distType);
+                double distance = dist.computeDistance(clusterExemplar.getFeatures(), vector);
                 if (isNoisePoint && distance <= clusterExemplar.getMaxDistToEdge()) {
                     isNoisePoint = false;
                 }
@@ -239,7 +239,7 @@ public final class HdbscanModel extends Model<ClusterID> {
         }
         else {
             for (HdbscanTrainer.ClusterExemplar clusterExemplar : clusterExemplars) {
-                double distance = DistanceType.getDistance(clusterExemplar.getFeatures(), vector, distType);
+                double distance = dist.computeDistance(clusterExemplar.getFeatures(), vector);
                 if (distance < minDistance) {
                     minDistance = distance;
                     clusterLabel = clusterExemplar.getLabel();
@@ -268,7 +268,7 @@ public final class HdbscanModel extends Model<ClusterID> {
         modelBuilder.setMetadata(carrier.serialize());
         modelBuilder.addAllClusterLabels(clusterLabels);
         modelBuilder.setOutlierScoresVector(outlierScoresVector.serialize());
-        modelBuilder.setDistType(distType.name());
+        modelBuilder.setDistance(dist.serialize());
         for (HdbscanTrainer.ClusterExemplar e : clusterExemplars) {
             modelBuilder.addClusterExemplars(e.serialize());
         }
@@ -288,13 +288,13 @@ public final class HdbscanModel extends Model<ClusterID> {
         List<Integer> copyClusterLabels = new ArrayList<>(clusterLabels);
         List<HdbscanTrainer.ClusterExemplar> copyExemplars = new ArrayList<>(clusterExemplars);
         return new HdbscanModel(newName, newProvenance, featureIDMap, outputIDInfo, copyClusterLabels,
-            copyOutlierScoresVector, copyExemplars, distType, noisePointsOutlierScore);
+            copyOutlierScoresVector, copyExemplars, dist, noisePointsOutlierScore);
     }
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        if (distType == null) {
-            distType = distanceType.getDistanceType();
+        if (dist == null) {
+            dist = distanceType.getDistanceType().getDistance();
         }
     }
 }

@@ -55,16 +55,19 @@ public interface HdbscanModelProtoOrBuilder extends
   org.tribuo.math.protos.TensorProtoOrBuilder getOutlierScoresVectorOrBuilder();
 
   /**
-   * <code>string dist_type = 4;</code>
-   * @return The distType.
+   * <code>.tribuo.math.DistanceProto distance = 4;</code>
+   * @return Whether the distance field is set.
    */
-  java.lang.String getDistType();
+  boolean hasDistance();
   /**
-   * <code>string dist_type = 4;</code>
-   * @return The bytes for distType.
+   * <code>.tribuo.math.DistanceProto distance = 4;</code>
+   * @return The distance.
    */
-  com.google.protobuf.ByteString
-      getDistTypeBytes();
+  org.tribuo.math.protos.DistanceProto getDistance();
+  /**
+   * <code>.tribuo.math.DistanceProto distance = 4;</code>
+   */
+  org.tribuo.math.protos.DistanceProtoOrBuilder getDistanceOrBuilder();
 
   /**
    * <code>repeated .tribuo.clustering.hdbscan.ClusterExemplarProto cluster_exemplars = 5;</code>

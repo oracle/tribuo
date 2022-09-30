@@ -97,6 +97,6 @@ public class KNNClassifierOptions implements ClassificationOptions<KNNTrainer<La
 
     @Override
     public KNNTrainer<Label> getTrainer() {
-        return new KNNTrainer<>(knnK, distType, knnNumThreads, getEnsembleCombiner(), knnBackend, nqFactoryType);
+        return new KNNTrainer<>(knnK, distType.getDistance(), knnNumThreads, getEnsembleCombiner(), knnBackend, nqFactoryType);
     }
 }

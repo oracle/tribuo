@@ -44,67 +44,67 @@ public class TestNeighborsBruteForce {
 
     @Test
     public void testSingleThreadQueryAll() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryAll(factory);
     }
 
     @Test
     public void testMultiThreadQueryAll() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 4);
         NeighbourQueryTestHelper.neighboursQueryAll(factory);
     }
 
 
     @Test
     public void testSingleThreadQueryMany() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryMany(factory);
     }
 
     @Test
     public void testMultiThreadQueryMany() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 2);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 2);
         NeighbourQueryTestHelper.neighboursQueryMany(factory);
     }
 
     @Test
     public void testNeighboursQueryOneInclusive() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryOneInclusive(factory);
     }
 
     @Test
     public void testNeighboursQueryOneExclusive() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryOneExclusive(factory);
     }
 
     @Test
     public void testSingleDimension() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 1);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQuerySingleDimension(factory);
     }
 
     @Test
     public void testMultiThreadQueryMany3D() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 2);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 2);
         NeighbourQueryTestHelper.neighboursQueryMany3D(factory);
     }
 
     @Test
     public void testMultiThreadQueryAllIntegers4D() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 4);
         NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
     }
 
     @Test
     public void testInvalidKDTreeFactory() {
-        assertThrows(PropertyException.class, () -> new NeighboursBruteForceFactory(DistanceType.L1, 0) );
+        assertThrows(PropertyException.class, () -> new NeighboursBruteForceFactory(DistanceType.L1.getDistance(), 0) );
     }
 
     @Test
     public void serializationTest() {
-        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2, 4);
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 4);
         NeighbourFactoryProto proto = factory.serialize();
         NeighboursQueryFactory deser = ProtoUtil.deserialize(proto);
         assertEquals(factory,deser);

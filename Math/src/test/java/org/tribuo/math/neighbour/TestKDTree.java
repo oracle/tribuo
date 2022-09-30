@@ -45,67 +45,67 @@ public class TestKDTree {
 
     @Test
     public void testSingleThreadQueryAll() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryAll(factory);
     }
 
     @Test
     public void testMultiThreadQueryAll() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 4);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 4);
         NeighbourQueryTestHelper.neighboursQueryAll(factory);
     }
 
 
     @Test
     public void testSingleThreadQueryMany() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryMany(factory);
     }
 
     @Test
     public void testMultiThreadQueryMany() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 2);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 2);
         NeighbourQueryTestHelper.neighboursQueryMany(factory);
     }
 
     @Test
     public void testNeighboursQueryOneInclusive() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryOneInclusive(factory);
     }
 
     @Test
     public void testNeighboursQueryOneExclusive() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQueryOneExclusive(factory);
     }
 
     @Test
     public void testSingleDimension() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 1);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 1);
         NeighbourQueryTestHelper.neighboursQuerySingleDimension(factory);
     }
 
     @Test
     public void testMultiThreadQueryMany3D() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 2);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 2);
         NeighbourQueryTestHelper.neighboursQueryMany3D(factory);
     }
 
     @Test
     public void testMultiThreadQueryAllIntegers4D() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 4);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 4);
         NeighbourQueryTestHelper.neighboursQueryAllIntegers4D(factory);
     }
 
     @Test
     public void testInvalidKDTreeFactory() {
-        assertThrows(PropertyException.class, () -> new KDTreeFactory(DistanceType.L2, 0) );
+        assertThrows(PropertyException.class, () -> new KDTreeFactory(DistanceType.L2.getDistance(), 0) );
     }
 
     @Test
     public void serializationTest() {
-        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2, 4);
+        KDTreeFactory factory = new KDTreeFactory(DistanceType.L2.getDistance(), 4);
         NeighbourFactoryProto proto = factory.serialize();
         NeighboursQueryFactory deser = ProtoUtil.deserialize(proto);
         assertEquals(factory,deser);

@@ -21,7 +21,6 @@ private static final long serialVersionUID = 0L;
   }
   private HdbscanModelProto() {
     clusterLabels_ = emptyIntList();
-    distType_ = "";
     clusterExemplars_ = java.util.Collections.emptyList();
   }
 
@@ -104,9 +103,16 @@ private static final long serialVersionUID = 0L;
             break;
           }
           case 34: {
-            java.lang.String s = input.readStringRequireUtf8();
+            org.tribuo.math.protos.DistanceProto.Builder subBuilder = null;
+            if (distance_ != null) {
+              subBuilder = distance_.toBuilder();
+            }
+            distance_ = input.readMessage(org.tribuo.math.protos.DistanceProto.parser(), extensionRegistry);
+            if (subBuilder != null) {
+              subBuilder.mergeFrom(distance_);
+              distance_ = subBuilder.buildPartial();
+            }
 
-            distType_ = s;
             break;
           }
           case 42: {
@@ -241,42 +247,30 @@ private static final long serialVersionUID = 0L;
     return getOutlierScoresVector();
   }
 
-  public static final int DIST_TYPE_FIELD_NUMBER = 4;
-  private volatile java.lang.Object distType_;
+  public static final int DISTANCE_FIELD_NUMBER = 4;
+  private org.tribuo.math.protos.DistanceProto distance_;
   /**
-   * <code>string dist_type = 4;</code>
-   * @return The distType.
+   * <code>.tribuo.math.DistanceProto distance = 4;</code>
+   * @return Whether the distance field is set.
    */
   @java.lang.Override
-  public java.lang.String getDistType() {
-    java.lang.Object ref = distType_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      distType_ = s;
-      return s;
-    }
+  public boolean hasDistance() {
+    return distance_ != null;
   }
   /**
-   * <code>string dist_type = 4;</code>
-   * @return The bytes for distType.
+   * <code>.tribuo.math.DistanceProto distance = 4;</code>
+   * @return The distance.
    */
   @java.lang.Override
-  public com.google.protobuf.ByteString
-      getDistTypeBytes() {
-    java.lang.Object ref = distType_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      distType_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
+  public org.tribuo.math.protos.DistanceProto getDistance() {
+    return distance_ == null ? org.tribuo.math.protos.DistanceProto.getDefaultInstance() : distance_;
+  }
+  /**
+   * <code>.tribuo.math.DistanceProto distance = 4;</code>
+   */
+  @java.lang.Override
+  public org.tribuo.math.protos.DistanceProtoOrBuilder getDistanceOrBuilder() {
+    return getDistance();
   }
 
   public static final int CLUSTER_EXEMPLARS_FIELD_NUMBER = 5;
@@ -358,8 +352,8 @@ private static final long serialVersionUID = 0L;
     if (outlierScoresVector_ != null) {
       output.writeMessage(3, getOutlierScoresVector());
     }
-    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(distType_)) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, distType_);
+    if (distance_ != null) {
+      output.writeMessage(4, getDistance());
     }
     for (int i = 0; i < clusterExemplars_.size(); i++) {
       output.writeMessage(5, clusterExemplars_.get(i));
@@ -398,8 +392,9 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeMessageSize(3, getOutlierScoresVector());
     }
-    if (!com.google.protobuf.GeneratedMessageV3.isStringEmpty(distType_)) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, distType_);
+    if (distance_ != null) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(4, getDistance());
     }
     for (int i = 0; i < clusterExemplars_.size(); i++) {
       size += com.google.protobuf.CodedOutputStream
@@ -436,8 +431,11 @@ private static final long serialVersionUID = 0L;
       if (!getOutlierScoresVector()
           .equals(other.getOutlierScoresVector())) return false;
     }
-    if (!getDistType()
-        .equals(other.getDistType())) return false;
+    if (hasDistance() != other.hasDistance()) return false;
+    if (hasDistance()) {
+      if (!getDistance()
+          .equals(other.getDistance())) return false;
+    }
     if (!getClusterExemplarsList()
         .equals(other.getClusterExemplarsList())) return false;
     if (java.lang.Double.doubleToLongBits(getNoisePointsOutlierScore())
@@ -466,8 +464,10 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + OUTLIER_SCORES_VECTOR_FIELD_NUMBER;
       hash = (53 * hash) + getOutlierScoresVector().hashCode();
     }
-    hash = (37 * hash) + DIST_TYPE_FIELD_NUMBER;
-    hash = (53 * hash) + getDistType().hashCode();
+    if (hasDistance()) {
+      hash = (37 * hash) + DISTANCE_FIELD_NUMBER;
+      hash = (53 * hash) + getDistance().hashCode();
+    }
     if (getClusterExemplarsCount() > 0) {
       hash = (37 * hash) + CLUSTER_EXEMPLARS_FIELD_NUMBER;
       hash = (53 * hash) + getClusterExemplarsList().hashCode();
@@ -627,8 +627,12 @@ private static final long serialVersionUID = 0L;
         outlierScoresVector_ = null;
         outlierScoresVectorBuilder_ = null;
       }
-      distType_ = "";
-
+      if (distanceBuilder_ == null) {
+        distance_ = null;
+      } else {
+        distance_ = null;
+        distanceBuilder_ = null;
+      }
       if (clusterExemplarsBuilder_ == null) {
         clusterExemplars_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -679,7 +683,11 @@ private static final long serialVersionUID = 0L;
       } else {
         result.outlierScoresVector_ = outlierScoresVectorBuilder_.build();
       }
-      result.distType_ = distType_;
+      if (distanceBuilder_ == null) {
+        result.distance_ = distance_;
+      } else {
+        result.distance_ = distanceBuilder_.build();
+      }
       if (clusterExemplarsBuilder_ == null) {
         if (((bitField0_ & 0x00000002) != 0)) {
           clusterExemplars_ = java.util.Collections.unmodifiableList(clusterExemplars_);
@@ -754,9 +762,8 @@ private static final long serialVersionUID = 0L;
       if (other.hasOutlierScoresVector()) {
         mergeOutlierScoresVector(other.getOutlierScoresVector());
       }
-      if (!other.getDistType().isEmpty()) {
-        distType_ = other.distType_;
-        onChanged();
+      if (other.hasDistance()) {
+        mergeDistance(other.getDistance());
       }
       if (clusterExemplarsBuilder_ == null) {
         if (!other.clusterExemplars_.isEmpty()) {
@@ -1134,80 +1141,123 @@ private static final long serialVersionUID = 0L;
       return outlierScoresVectorBuilder_;
     }
 
-    private java.lang.Object distType_ = "";
+    private org.tribuo.math.protos.DistanceProto distance_;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.math.protos.DistanceProto, org.tribuo.math.protos.DistanceProto.Builder, org.tribuo.math.protos.DistanceProtoOrBuilder> distanceBuilder_;
     /**
-     * <code>string dist_type = 4;</code>
-     * @return The distType.
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
+     * @return Whether the distance field is set.
      */
-    public java.lang.String getDistType() {
-      java.lang.Object ref = distType_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        distType_ = s;
-        return s;
+    public boolean hasDistance() {
+      return distanceBuilder_ != null || distance_ != null;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
+     * @return The distance.
+     */
+    public org.tribuo.math.protos.DistanceProto getDistance() {
+      if (distanceBuilder_ == null) {
+        return distance_ == null ? org.tribuo.math.protos.DistanceProto.getDefaultInstance() : distance_;
       } else {
-        return (java.lang.String) ref;
+        return distanceBuilder_.getMessage();
       }
     }
     /**
-     * <code>string dist_type = 4;</code>
-     * @return The bytes for distType.
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
      */
-    public com.google.protobuf.ByteString
-        getDistTypeBytes() {
-      java.lang.Object ref = distType_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        distType_ = b;
-        return b;
+    public Builder setDistance(org.tribuo.math.protos.DistanceProto value) {
+      if (distanceBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        distance_ = value;
+        onChanged();
       } else {
-        return (com.google.protobuf.ByteString) ref;
+        distanceBuilder_.setMessage(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
+     */
+    public Builder setDistance(
+        org.tribuo.math.protos.DistanceProto.Builder builderForValue) {
+      if (distanceBuilder_ == null) {
+        distance_ = builderForValue.build();
+        onChanged();
+      } else {
+        distanceBuilder_.setMessage(builderForValue.build());
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
+     */
+    public Builder mergeDistance(org.tribuo.math.protos.DistanceProto value) {
+      if (distanceBuilder_ == null) {
+        if (distance_ != null) {
+          distance_ =
+            org.tribuo.math.protos.DistanceProto.newBuilder(distance_).mergeFrom(value).buildPartial();
+        } else {
+          distance_ = value;
+        }
+        onChanged();
+      } else {
+        distanceBuilder_.mergeFrom(value);
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
+     */
+    public Builder clearDistance() {
+      if (distanceBuilder_ == null) {
+        distance_ = null;
+        onChanged();
+      } else {
+        distance_ = null;
+        distanceBuilder_ = null;
+      }
+
+      return this;
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
+     */
+    public org.tribuo.math.protos.DistanceProto.Builder getDistanceBuilder() {
+      
+      onChanged();
+      return getDistanceFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
+     */
+    public org.tribuo.math.protos.DistanceProtoOrBuilder getDistanceOrBuilder() {
+      if (distanceBuilder_ != null) {
+        return distanceBuilder_.getMessageOrBuilder();
+      } else {
+        return distance_ == null ?
+            org.tribuo.math.protos.DistanceProto.getDefaultInstance() : distance_;
       }
     }
     /**
-     * <code>string dist_type = 4;</code>
-     * @param value The distType to set.
-     * @return This builder for chaining.
+     * <code>.tribuo.math.DistanceProto distance = 4;</code>
      */
-    public Builder setDistType(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      distType_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string dist_type = 4;</code>
-     * @return This builder for chaining.
-     */
-    public Builder clearDistType() {
-      
-      distType_ = getDefaultInstance().getDistType();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string dist_type = 4;</code>
-     * @param value The bytes for distType to set.
-     * @return This builder for chaining.
-     */
-    public Builder setDistTypeBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      
-      distType_ = value;
-      onChanged();
-      return this;
+    private com.google.protobuf.SingleFieldBuilderV3<
+        org.tribuo.math.protos.DistanceProto, org.tribuo.math.protos.DistanceProto.Builder, org.tribuo.math.protos.DistanceProtoOrBuilder> 
+        getDistanceFieldBuilder() {
+      if (distanceBuilder_ == null) {
+        distanceBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+            org.tribuo.math.protos.DistanceProto, org.tribuo.math.protos.DistanceProto.Builder, org.tribuo.math.protos.DistanceProtoOrBuilder>(
+                getDistance(),
+                getParentForChildren(),
+                isClean());
+        distance_ = null;
+      }
+      return distanceBuilder_;
     }
 
     private java.util.List<org.tribuo.clustering.hdbscan.protos.ClusterExemplarProto> clusterExemplars_ =
