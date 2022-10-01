@@ -28,13 +28,13 @@
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
-        <module>MultinomialNaiveBayes</module>
         <module>DecisionTree</module>
         <module>Experiments</module>
         <module>Explanations</module>
         <module>FeatureSelection</module>
         <module>LibLinear</module>
         <module>LibSVM</module>
+        <module>MultinomialNaiveBayes</module>
         <module>SGD</module>
         <module>XGBoost</module>
     </modules>
@@ -56,11 +56,6 @@
             <dependency>
                 <groupId>org.tribuo</groupId>
                 <artifactId>tribuo-math</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.tribuo</groupId>
-                <artifactId>tribuo-sequence</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
