@@ -20,8 +20,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
-import java.io.Serializable;
-
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoSerializableClass;
@@ -31,6 +29,7 @@ import org.tribuo.protos.core.FeatureSetProto;
 import org.tribuo.protos.core.SelectedFeatureSetProto;
 import org.tribuo.provenance.FeatureSetProvenance;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
