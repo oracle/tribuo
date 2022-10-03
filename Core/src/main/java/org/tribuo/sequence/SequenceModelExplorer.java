@@ -88,6 +88,7 @@ public class SequenceModelExplorer implements CommandGroup {
      * Loads a model.
      * @param ci The shell instance.
      * @param path The path to load.
+     * @param protobuf Load in a protobuf format model.
      * @return A status string.
      */
     @Command(usage = "<filename> <is-protobuf-format> - Load a model from disk.", completers="fileCompleter")

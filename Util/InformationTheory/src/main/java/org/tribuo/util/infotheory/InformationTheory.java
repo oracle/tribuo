@@ -557,6 +557,7 @@ public final class InformationTheory {
      *
      * @param first The first vector.
      * @param second The second vector.
+     * @param <T> The type inside the list. Must define equals and hashcode.
      * @return The expected mutual information under a hypergeometric distribution.
      */
     public static <T> double expectedMI(List<T> first, List<T> second) {

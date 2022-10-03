@@ -242,13 +242,14 @@ public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T>
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static <T extends Output<T>> BinaryFeaturesExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    @SuppressWarnings({"rawtypes","unchecked"})
+    public static BinaryFeaturesExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         BinaryFeaturesExampleProto proto = message.unpack(BinaryFeaturesExampleProto.class);
-        T output = ProtoUtil.deserialize(proto.getOutput());
-        return new BinaryFeaturesExample<>(output,proto.getWeight(),proto.getFeatureNameList(),proto.getMetadataMap());
+        Output<?> output = ProtoUtil.deserialize(proto.getOutput());
+        return new BinaryFeaturesExample(output,proto.getWeight(),proto.getFeatureNameList(),proto.getMetadataMap());
     }
 
     /**

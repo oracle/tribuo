@@ -191,7 +191,7 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks
-    public static <T extends Output<T>> SequenceExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static SequenceExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }

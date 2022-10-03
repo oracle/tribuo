@@ -407,14 +407,12 @@ public class ModelCardCLI implements CommandGroup {
     /**
      * Saves a serialized version of the {@link UsageDetails} created by the builder to the destination file.
      * <p>
-     * Note that the destination file must already contain a serialized version of a ModelCard.
-     * Throws {@link IOException} if a problem is encountered when reading/writing to file.
      * Throws {@link IllegalArgumentException} if the serialized ModelCard stored at the destination file already
      * contains a non-null UsageDetails.
      * @param ci The command shelll.
-     * @param destinationFile The Json file path corresponding to a serialized ModelCard to which a serialized
-     * UsageDetails will be appended.
+     * @param destinationFile The file path where the model card will be saved in json format.
      * @return A status string.
+     * @throws IOException if a problem is encountered when writing to the file.
      */
     @Command(usage = "<filename> Saves UsageDetails to an existing ModelCard file.")
     public String saveUsageDetails(CommandInterpreter ci, File destinationFile) throws IOException {
@@ -503,6 +501,8 @@ public class ModelCardCLI implements CommandGroup {
 
     /**
      * Closes the command shell
+     * @param ci The command shell.
+     * @return A status string.
      */
     @Command(usage = "Closes CLI without explicitly saving anything recorded.")
     public String close(CommandInterpreter ci) {

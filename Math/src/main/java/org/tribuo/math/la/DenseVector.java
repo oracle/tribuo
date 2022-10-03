@@ -282,6 +282,7 @@ public class DenseVector implements SGDVector {
      * @param initialValue The initial value.
      * @param op The element wise operation to apply before reducing.
      * @param reduction The reduction operation (should be commutative).
+     * @param <T> The output type to reduce to.
      * @return The reduced value.
      */
     public <T> T reduce(T initialValue, DoubleUnaryOperator op, BiFunction<Double, T, T> reduction) {

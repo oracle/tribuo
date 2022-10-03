@@ -77,9 +77,16 @@ public class SeqTrainTest {
          */
         @Option(charName = 't', longName = "trainer-name", usage = "Name of the trainer in the configuration file.")
         public SequenceTrainer<Label> trainer;
-
-        @Option(charName = 'p', longName = "protobuf-model", usage = "Load the model from a protobuf. Optional")
+        /**
+         * Load in the data in protobuf format.
+         */
+        @Option(charName = 'p', longName = "protobuf-format-dataset", usage = "Load the model from a protobuf. Optional")
         public boolean protobufFormat;
+        /**
+         * Write the model out in protobuf format.
+         */
+        @Option(longName = "write-protobuf-model", usage = "Write the model out in protobuf format.")
+        public boolean writeProtobuf;
     }
 
     /**
@@ -162,10 +169,14 @@ public class SeqTrainTest {
         System.out.println(evaluation.getConfusionMatrix().toString());
 
         if (o.outputPath != null) {
-            try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(o.outputPath))) {
-                oos.writeObject(model);
-                logger.info("Serialized model to file: " + o.outputPath);
+            if (o.writeProtobuf) {
+                model.serializeToFile(o.outputPath);
+            } else {
+                try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(o.outputPath))) {
+                    oos.writeObject(model);
+                }
             }
+            logger.info("Serialized model to file: " + o.outputPath);
         }
     }
 }

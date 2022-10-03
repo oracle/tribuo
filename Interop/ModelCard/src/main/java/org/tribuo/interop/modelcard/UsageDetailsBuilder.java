@@ -122,6 +122,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the intended use of the model for which an instance of UsageDetails will be built.
+     * @param intendedUse The intented use of the model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder intendedUse(String intendedUse) {
@@ -131,6 +132,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the intended users of the model for which an instance of UsageDetails will be built.
+     * @param intendedUsers The intended users of the model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder intendedUsers(String intendedUsers) {
@@ -140,6 +142,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the out-of-scope uses of the model for which an instance of UsageDetails will be built.
+     * @param uses Out of scope uses of this model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder outOfScopeUses(List<String> uses) {
@@ -149,6 +152,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the pre-processing steps of the model for which an instance of UsageDetails will be built.
+     * @param steps Pre-processing steps applied to the data before the model was built.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder preProcessingSteps(List<String> steps) {
@@ -158,6 +162,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the considerations of the model for which an instance of UsageDetails will be built.
+     * @param considerations Considerations for using this model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder considerations(List<String> considerations) {
@@ -167,6 +172,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the relevant factors of the model for which an instance of UsageDetails will be built.
+     * @param factors Relevant factors when considering this model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder factors(List<String> factors) {
@@ -176,6 +182,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the relevant resources of the model for which an instance of UsageDetails will be built.
+     * @param resources Relevant resources when using this model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder resources(List<String> resources) {
@@ -185,6 +192,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the primary contact person of the model for which an instance of UsageDetails will be built.
+     * @param primaryContact The primary contact for this model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder primaryContact(String primaryContact) {
@@ -194,6 +202,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the model citation of the model for which an instance of UsageDetails will be built.
+     * @param modelCitation A citation which can be used for this model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder modelCitation(String modelCitation) {
@@ -203,6 +212,7 @@ public final class UsageDetailsBuilder {
 
     /**
      * Sets the model license of the model for which an instance of UsageDetails will be built.
+     * @param modelLicense The license for this model.
      * @return This instance of UsageDetailsBuilder.
      */
     public UsageDetailsBuilder modelLicense(String modelLicense) {

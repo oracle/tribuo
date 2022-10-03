@@ -341,9 +341,16 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
      * Carrier type for easy deserialization from JSON.
      */
     public static final class PredictionJson {
+        /**
+         * The predicted probabilities or scores.
+         */
         @JsonProperty("prediction")
         public double[][] prediction;
 
+        /**
+         * Constructs a prediction object.
+         * @param prediction The predicted probabilities or scores.
+         */
         @JsonCreator
         public PredictionJson(@JsonProperty("prediction") double[][] prediction) {
             this.prediction = prediction;

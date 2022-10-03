@@ -72,6 +72,9 @@ public class RunAll {
         @Option(charName = 'd', longName = "output-directory", usage = "Directory to write out the models and test reports.")
         public File directory;
 
+        /**
+         * Write out models in protobuf format.
+         */
         @Option(longName = "write-protobuf-models", usage = "Write out models in protobuf format.")
         public boolean protobuf;
     }

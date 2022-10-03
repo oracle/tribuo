@@ -44,6 +44,9 @@ public enum ONNXOperators implements ONNXOperator {
     CONCAT("Concat",VARIADIC_INPUT,1, Collections.singletonList(
             new ONNXAttribute("axis", OnnxMl.AttributeProto.AttributeType.INT, true)
     )),
+    /**
+     * Makes a constant of the size of the supplied shape containing the {@code value}.
+     */
     CONSTANT_OF_SHAPE("ConstantOfShape",1,1, Collections.singletonList(
             new ONNXAttribute("value", OnnxMl.AttributeProto.AttributeType.TENSOR, false)
     )),

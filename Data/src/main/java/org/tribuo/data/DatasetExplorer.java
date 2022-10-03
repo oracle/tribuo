@@ -90,6 +90,7 @@ public final class DatasetExplorer implements CommandGroup {
      * Loads a serialized dataset.
      * @param ci The command interpreter.
      * @param path The path to load.
+     * @param protobuf Load the model from protobuf?
      * @return A status string.
      */
     @Command(usage = "<filename> <is-protobuf> - Load a dataset from disk.", completers="fileCompleter")

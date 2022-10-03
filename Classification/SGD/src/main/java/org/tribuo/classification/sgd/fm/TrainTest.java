@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.TrainTestHelper;
 import org.tribuo.classification.ensemble.ClassificationEnsembleOptions;
-import org.tribuo.classification.sgd.linear.LinearSGDOptions;
 import org.tribuo.data.DataOptions;
 
 import java.io.IOException;
@@ -45,11 +44,25 @@ public class TrainTest {
             return "Trains and tests a linear SGD model on the specified datasets.";
         }
 
+        /**
+         * The data loading options.
+         */
         public DataOptions general;
+        /**
+         * The factorization machine trainer options.
+         */
         public FMClassificationOptions trainerOptions;
+        /**
+         * The ensemble options.
+         */
         public ClassificationEnsembleOptions ensembleOptions;
     }
 
+    /**
+     * Runs a TrainTest CLI.
+     * @param args the command line arguments
+     * @throws IOException if there is any error reading the examples.
+     */
     public static void main(String[] args) throws IOException {
         TrainTestOptions o = new TrainTestOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args,o)) {

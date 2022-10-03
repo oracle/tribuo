@@ -146,7 +146,8 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static <T extends Output<T>> ListExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    @SuppressWarnings({"rawtypes","unchecked"})
+    public static ListExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -154,14 +155,14 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
         if (proto.getFeatureNameCount() != proto.getFeatureValueCount()) {
             throw new IllegalStateException("Invalid protobuf, different numbers of feature names and values, found " + proto.getFeatureNameCount() + " names and " + proto.getFeatureValueCount() + " values.");
         }
-        T output = ProtoUtil.deserialize(proto.getOutput());
+        Output<?> output = ProtoUtil.deserialize(proto.getOutput());
         String[] featureNames = new String[proto.getFeatureNameCount()];
         double[] featureValues = new double[proto.getFeatureValueCount()];
         for (int i = 0; i < proto.getFeatureNameCount(); i++) {
             featureNames[i] = proto.getFeatureName(i);
             featureValues[i] = proto.getFeatureValue(i);
         }
-        return new ListExample<>(output,proto.getWeight(),featureNames,featureValues,proto.getMetadataMap());
+        return new ListExample(output,proto.getWeight(),featureNames,featureValues,proto.getMetadataMap());
     }
 
     /**

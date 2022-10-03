@@ -116,7 +116,9 @@ public class Test {
          */
         @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
         public Path testingPath;
-
+        /**
+         * Load the model in protobuf format.
+         */
         @Option(longName = "read-protobuf-model", usage = "Load the model in protobuf format.")
         public boolean protobufModel;
     }

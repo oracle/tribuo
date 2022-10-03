@@ -32,7 +32,7 @@ import static org.tribuo.interop.modelcard.ModelCard.mapper;
  * UsageDetails section of a {@link ModelCard}.
  */
 public final class UsageDetails {
-    public static final String schemaVersion = "1.0";
+    private static final String schemaVersion = "1.0";
     private final String intendedUse;
     private final String intendedUsers;
     private final List<String> outOfScopeUses;

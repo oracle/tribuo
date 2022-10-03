@@ -508,6 +508,7 @@ public final class ReproUtil<T extends Output<T>> {
      * Throws {@link IllegalStateException} if the model provenance is malformed or not defined.
      * @return A reproduced model identical to the one described in the provenance.
      * @throws ClassNotFoundException If the trainer or datasource class cannot be instantiated.
+     * @throws JsonProcessingException If the json diff could not be created.
      */
     public ModelReproduction<T> reproduceFromModel() throws ClassNotFoundException, JsonProcessingException {
         if(this.originalModel == null){
@@ -550,6 +551,7 @@ public final class ReproUtil<T extends Output<T>> {
      * @param originalProvenance The first of the two provenance objects to diff
      * @param newProvenance The second of the two provenance objects to diff
      * @return A String JSON report displaying the differences in the model.
+     * @throws JsonProcessingException If the json diff could not be created.
      */
     public static String diffProvenance(ModelProvenance originalProvenance, ModelProvenance newProvenance) throws JsonProcessingException {
 

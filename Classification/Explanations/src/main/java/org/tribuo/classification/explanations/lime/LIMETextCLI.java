@@ -115,6 +115,7 @@ public class LIMETextCLI implements CommandGroup {
      * Loads a model in from disk.
      * @param ci The command interpreter.
      * @param path The path to load the model from.
+     * @param protobuf Load the model from protobuf?
      * @return A status message.
      */
     @Command(usage = "<filename> <load-protobuf> - Load a model from disk.", completers="fileCompleter")

@@ -118,7 +118,9 @@ public class SeqTest {
          */
         @Option(longName = "model-hashing-salt", usage = "Salt for hashing the model.")
         public String modelHashingSalt = "";
-
+        /**
+         * Load in the model in protobuf format.
+         */
         @Option(longName = "protobuf-model", usage = "Load the model from a protobuf. Optional")
         public boolean protobufFormat;
     }
