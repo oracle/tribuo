@@ -140,7 +140,17 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
     }
 
     /**
-     * Deserializes a list of node protos into a list of nodes, with the root in the first element.
+     * We will start off with a list of node builders that we will replace item-by-item with the nodes
+     * that they built.  We will start with the leaf nodes and add split nodes as they become ready
+     * to build.  In this way we will travel up the tree and only attempt to build split nodes when
+     * both of their child nodes are available.  It may seem a bit tortured to do it this way, but this
+     * approach preserves the immutability of the built nodes (the split nodes in particular).  The split node
+     * builder only knows the index of its children when it is deserialized but must be given the actual
+     * nodes before their build method can be called.  Note that we only add split node builders to the queue
+     * once they can be built because both children have been created and provided to the builder.
+     * <p>
+     * This approach should traverse the entire tree in the correct order but we check at the end of the method
+     * that everything looks good.  
      * @param nodeProtos The node protos to deserialize.
      * @return The nodes.
      * @throws InvalidProtocolBufferException If an unexpected proto is found.
@@ -199,7 +209,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
                 if (curIdx == splitBuilder.getGreaterThanIdx()) {
                     splitBuilder.setGreaterThan(builtNode);
                 } else if (curIdx == splitBuilder.getLessThanOrEqualIdx()) {
-                    splitBuilder.setLessThanOrEqualIdx(builtNode);
+                    splitBuilder.setLessThanOrEqual(builtNode);
                 } else {
                     throw new IllegalStateException("Invalid protobuf, found a child node which didn't map into a parent");
                 }
