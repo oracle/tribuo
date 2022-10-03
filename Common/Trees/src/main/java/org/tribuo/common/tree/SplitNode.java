@@ -237,7 +237,7 @@ public class SplitNode<T extends Output<T>> implements Node<T> {
             }
         }
 
-        void setLessThanOrEqualIdx(Node<T> lessThanOrEqual) {
+        void setLessThanOrEqual(Node<T> lessThanOrEqual) {
             if (this.lessThanOrEqual == null) {
                 this.lessThanOrEqual = lessThanOrEqual;
             } else {
