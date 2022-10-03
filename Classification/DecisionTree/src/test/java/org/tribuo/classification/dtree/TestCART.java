@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ public class TestCART {
     private static final CARTClassificationTrainer randomt = new CARTClassificationTrainer(5,2, 0.0f,1.0f, true,
             new GiniIndex(), Trainer.DEFAULT_SEED);
 
-    public static Model<Label> testCART(Pair<Dataset<Label>,Dataset<Label>> p, CARTClassificationTrainer trainer) {
+    public static TreeModel<Label> testCART(Pair<Dataset<Label>,Dataset<Label>> p, CARTClassificationTrainer trainer) {
         TreeModel<Label> m = trainer.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
@@ -54,6 +54,7 @@ public class TestCART {
         features = m.getTopFeatures(-1);
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
+        Helpers.testModelProtoSerialization(m, Label.class, p.getB());
 
         return m;
     }
@@ -80,7 +81,7 @@ public class TestCART {
         runSingleClassTraining(randomt);
     }
 
-    public Model<Label> runDenseData(CARTClassificationTrainer trainer) {
+    public static TreeModel<Label> runDenseData(CARTClassificationTrainer trainer) {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         return testCART(p, trainer);
     }
@@ -89,6 +90,20 @@ public class TestCART {
     public void testDenseData() {
         Model<Label> model = runDenseData(t);
         Helpers.testModelSerialization(model,Label.class);
+    }
+
+    @Test
+    public void testDecisionStump() {
+        CARTClassificationTrainer stumpTrainer = new CARTClassificationTrainer(1);
+        TreeModel<Label> model = runDenseData(stumpTrainer);
+        assertEquals(3,model.countNodes(model.getRoot()));
+    }
+
+    @Test
+    public void testMajorityPrediction() {
+        CARTClassificationTrainer stumpTrainer = new CARTClassificationTrainer(0);
+        TreeModel<Label> model = runDenseData(stumpTrainer);
+        assertEquals(1,model.countNodes(model.getRoot()));
     }
 
     @Test

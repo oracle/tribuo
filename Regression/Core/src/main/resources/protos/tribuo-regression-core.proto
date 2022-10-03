@@ -27,7 +27,6 @@ option java_package = "org.tribuo.regression.protos";
 // Import Tribuo's core protos
 import "tribuo-core.proto";
 
-
 /*
 Regressor proto
  */
@@ -35,6 +34,15 @@ message RegressorProto {
   repeated string name = 1;
   repeated double value = 2;
   repeated double variance = 3;
+}
+
+/*
+Regressor.DimensionTuple proto
+ */
+message DimensionTupleProto {
+  string name = 1;
+  double value = 2;
+  double variance = 3;
 }
 
 /*

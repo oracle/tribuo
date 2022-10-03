@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,8 +126,8 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
             throw new IllegalArgumentException("minImpurityDecrease must be greater than or equal to 0");
         }
 
-        if (maxDepth < 1) {
-            throw new IllegalArgumentException("maxDepth must be greater than or equal to 1");
+        if (maxDepth < 0) {
+            throw new IllegalArgumentException("maxDepth must be non-negative");
         }
 
         if (minChildWeight <= 0.0f) {

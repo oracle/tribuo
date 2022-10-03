@@ -16,10 +16,14 @@
 
 package org.tribuo.common.tree;
 
+import com.google.protobuf.Any;
 import org.tribuo.Example;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.common.tree.protos.LeafNodeProto;
+import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.core.OutputProto;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +38,11 @@ import java.util.Objects;
  */
 public class LeafNode<T extends Output<T>> implements Node<T> {
     private static final long serialVersionUID = 4L;
+
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
 
     private final double impurity;
 
@@ -136,4 +145,102 @@ public class LeafNode<T extends Output<T>> implements Node<T> {
         return "LeafNode(impurity="+impurity+",output="+output.toString()+",scores="+scores.toString()+",probability="+generatesProbabilities+")";
     }
 
+    TreeNodeProto serialize(int parentIdx, int curIdx) {
+        LeafNodeProto.Builder nodeBuilder = LeafNodeProto.newBuilder();
+        nodeBuilder.setParentIdx(parentIdx);
+        nodeBuilder.setCurIdx(curIdx);
+        nodeBuilder.setOutput(output.serialize());
+        for (Map.Entry<String, T> e : scores.entrySet()) {
+            nodeBuilder.putScore(e.getKey(), e.getValue().serialize());
+        }
+        nodeBuilder.setGeneratesProbabilities(generatesProbabilities);
+        nodeBuilder.setImpurity(impurity);
+
+
+        TreeNodeProto.Builder builder = TreeNodeProto.newBuilder();
+        builder.setVersion(CURRENT_VERSION);
+        builder.setClassName(LeafNode.class.getName());
+        builder.setSerializedData(Any.pack(nodeBuilder.build()));
+
+        return builder.build();
+    }
+
+    static final class LeafNodeBuilder<T extends Output<T>> extends TreeModel.NodeBuilder implements Node<T> {
+        private final int parentIdx;
+        private final int curIdx;
+        private final double impurity;
+        private final T output;
+        private final Map<String,T> scores;
+        private final boolean generatesProbabilities;
+
+        @SuppressWarnings("unchecked")
+        LeafNodeBuilder(LeafNodeProto proto) {
+            this.parentIdx = proto.getParentIdx();
+            this.curIdx = proto.getCurIdx();
+            this.impurity = proto.getImpurity();
+            this.output = (T) Output.deserialize(proto.getOutput());
+            this.scores = new HashMap<>();
+            for (Map.Entry<String, OutputProto> e : proto.getScoreMap().entrySet()) {
+                Output<?> curOutput = Output.deserialize(e.getValue());
+                if (!curOutput.getClass().equals(output.getClass())) {
+                    throw new IllegalStateException("Invalid protobuf, scores were not the same type as the most likely output, found " + curOutput.getClass() + ", expected " + output.getClass());
+                }
+                this.scores.put(e.getKey(), (T) curOutput);
+            }
+            this.generatesProbabilities = proto.getGeneratesProbabilities();
+        }
+
+        LeafNodeBuilder(int parentIdx, int curIdx, double impurity, T output, Map<String, T> scores, boolean generatesProbabilities) {
+            this.parentIdx = parentIdx;
+            this.curIdx = curIdx;
+            this.impurity = impurity;
+            this.output = output;
+            this.scores = scores;
+            this.generatesProbabilities = generatesProbabilities;
+        }
+
+        @Override
+        public boolean isLeaf() {
+            return true;
+        }
+
+        @Override
+        public Node<T> getNextNode(SparseVector example) {
+            return null;
+        }
+
+        @Override
+        public double getImpurity() {
+            return impurity;
+        }
+
+        @Override
+        public LeafNodeBuilder<T> copy() {
+            return new LeafNodeBuilder<>(parentIdx,curIdx,impurity,output.copy(),new HashMap<>(scores),generatesProbabilities);
+        }
+
+        /**
+         * Gets the index of the parent node.
+         * @return The parent index.
+         */
+        int getParentIdx() {
+            return parentIdx;
+        }
+
+        /**
+         * Gets the index of this node.
+         * @return The current node index.
+         */
+        int getCurIdx() {
+            return curIdx;
+        }
+
+        /**
+         * Builds this builder into a leaf node.
+         * @return The leaf node.
+         */
+        LeafNode<T> build() {
+            return new LeafNode<>(impurity,output.copy(),new HashMap<>(scores),generatesProbabilities);
+        }
+    }
 }
