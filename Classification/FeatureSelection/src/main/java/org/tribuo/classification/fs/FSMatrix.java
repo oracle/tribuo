@@ -106,18 +106,18 @@ interface FSMatrix {
     double jmi(int featureIndex, int jointIndex);
 
     /**
-     * Calculates the joint mutual information I(X_iX_j;X_k)
+     * Calculates the joint mutual information I(X_i,X_j;X_k)
      * @param firstIndex The index i
-     * @param jointIndex The index j
+     * @param secondIndex The index j
      * @param targetIndex The index k
-     * @return I(X_iX_j;X_k)
+     * @return I(X_i,X_j;X_k)
      */
-    double jmi(int firstIndex, int jointIndex, int targetIndex);
+    double jmi(int firstIndex, int secondIndex, int targetIndex);
 
     /**
-     * Generates an array of I(X_iZ;Y), ranging X_i over all possible features, where Y is the label.
+     * Generates an array of I(X_i,Z;Y), ranging X_i over all possible features, where Y is the label.
      * @param jointIndex The index of the Z variable
-     * @return An array where array[i] = I(X_iZ;Y)
+     * @return An array where array[i] = I(X_i,Z;Y)
      */
     default double[] jmiList(int jointIndex) {
         int numFeatures = getNumFeatures();
@@ -129,16 +129,16 @@ interface FSMatrix {
     }
 
     /**
-     * Generates an array of I(X_iZ;Y), ranging X_i over all possible features.
-     * @param targetIndex The index of the Y variable
-     * @param jointIndex The index of the Z variable
-     * @return An array where array[i] = I(X_iZ;Y)
+     * Generates an array of I(X_i,X_j;Y), ranging X_i over all possible features.
+     * @param secondIndex The index of the X_j variable
+     * @param targetIndex The index of the X_k variable
+     * @return An array where array[i] = I(X_i,X_j;X_k)
      */
-    default double[] jmiList(int targetIndex, int jointIndex) {
+    default double[] jmiList(int secondIndex, int targetIndex) {
         int numFeatures = getNumFeatures();
         double[] row = new double[numFeatures];
         for (int i = 0; i < numFeatures; i++) {
-            row[i] = jmi(i,jointIndex,targetIndex);
+            row[i] = jmi(i,secondIndex,targetIndex);
         }
         return row;
     }
@@ -175,16 +175,16 @@ interface FSMatrix {
     }
 
     /**
-     * Generates an array of I(X_i;Y|Z), ranging X_i over all possible features.
-     * @param targetIndex The index of the Y variable
-     * @param conditionIndex The index of the Z variable
-     * @return An array where array[i] = I(X_i;Y|Z)
+     * Generates an array of I(X_i;X_j|X_k), ranging X_i over all possible features.
+     * @param featureIndex The index of the X_j variable
+     * @param conditionIndex The index of the X_k variable
+     * @return An array where array[i] = I(X_i;X_j|X_k)
      */
-    default double[] cmiList(int targetIndex, int conditionIndex) {
+    default double[] cmiList(int featureIndex, int conditionIndex) {
         int numFeatures = getNumFeatures();
         double[] row = new double[numFeatures];
         for (int i = 0; i < numFeatures; i++) {
-            row[i] = cmi(i,targetIndex,conditionIndex);
+            row[i] = cmi(i,featureIndex,conditionIndex);
         }
         return row;
     }
