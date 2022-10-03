@@ -141,6 +141,8 @@ public class Prediction<T extends Output<T>> implements ProtoSerializable<Predic
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"rawtypes","unchecked"}) // types are checked via getClass to ensure that the example, output and scores are all the same class.
     public static Prediction<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

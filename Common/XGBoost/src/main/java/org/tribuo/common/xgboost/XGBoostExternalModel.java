@@ -135,6 +135,10 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @throws XGBoostError If the XGBoost byte array failed to parse.
+     * @throws IOException If the XGBoost byte array failed to parse.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // output converter and domain are checked via getClass.
     public static XGBoostExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, XGBoostError, IOException {

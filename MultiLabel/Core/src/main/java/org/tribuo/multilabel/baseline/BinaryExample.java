@@ -90,6 +90,8 @@ class BinaryExample extends Example<Label> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings("unchecked") // guarded by an instanceof check on the output type.
     public static BinaryExample deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

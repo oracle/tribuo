@@ -146,6 +146,8 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
     public static KNNModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

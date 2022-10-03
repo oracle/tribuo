@@ -18,7 +18,6 @@ package org.tribuo.interop.tensorflow;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -71,8 +70,9 @@ public class RegressorConverter implements OutputConverter<Regressor> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
-    public static RegressorConverter deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static RegressorConverter deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }

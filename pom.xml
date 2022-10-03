@@ -211,7 +211,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.1</version>
                 <configuration>
                     <additionalJOptions>
                         <additionalJOption>-Xmaxerrs</additionalJOption>
@@ -243,7 +243,7 @@
                         </tag>
                     </tags>
                     <overview>./Core/src/main/javadoc/overview.html</overview>
-                    <bottom>Copyright &#169; 2015&#x2013;2021 Oracle and/or its affiliates. All rights reserved.</bottom>
+                    <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
                     <groups>
                         <group>
                             <title>Core Packages</title>
@@ -284,6 +284,7 @@
                             <packages>org.tribuo.util.*:org.tribuo.reproducibility:org.tribuo.tests</packages>
                         </group>
                     </groups>
+                    <excludePackageNames>ai.onnx.proto:org.tribuo.protos.core:org.tribuo.*.protos</excludePackageNames>
                 </configuration>
                 <executions>
                     <execution>
@@ -299,8 +300,13 @@
                                 <additionalJOption>-Xmaxwarns</additionalJOption>
                                 <additionalJOption>65536</additionalJOption>
                             </additionalJOptions>
+                            <show>protected</show>
+                            <notimestamp>true</notimestamp>
+                            <failOnError>false</failOnError>
+                            <linksource>false</linksource>
+                            <nohelp>true</nohelp>
                             <overview>./Core/src/main/javadoc/overview.html</overview>
-                            <bottom>Copyright &#169; 2015&#x2013;2021 Oracle and/or its affiliates. All rights reserved.</bottom>
+                            <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
                             <groups>
                                 <group>
                                     <title>Core Packages</title>
@@ -341,6 +347,7 @@
                                     <packages>org.tribuo.util.*:org.tribuo.reproducibility:org.tribuo.tests</packages>
                                 </group>
                             </groups>
+                            <excludePackageNames>ai.onnx.proto:org.tribuo.protos.core:org.tribuo.*.protos</excludePackageNames>
                         </configuration>
                     </execution>
                 </executions>
@@ -435,9 +442,9 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.3.1</version>
+                        <version>3.4.1</version>
                         <configuration>
-                            <bottom>Copyright &#169; 2015&#x2013;2021 Oracle and/or its affiliates. All rights reserved.</bottom>
+                            <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
                         </configuration>
                         <executions>
                             <execution>

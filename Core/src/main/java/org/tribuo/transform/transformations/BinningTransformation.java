@@ -484,6 +484,7 @@ public final class BinningTransformation implements Transformation {
          * @param className The class name.
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link BinningTransformerProto}.
+         * @return The deserialized object.
          */
         static BinningTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             BinningTransformerProto proto = message.unpack(BinningTransformerProto.class);

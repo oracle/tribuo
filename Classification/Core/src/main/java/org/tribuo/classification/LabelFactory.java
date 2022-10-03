@@ -59,6 +59,7 @@ public final class LabelFactory implements OutputFactory<Label> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static LabelFactory deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > 0) {

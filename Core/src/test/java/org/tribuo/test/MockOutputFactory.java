@@ -18,7 +18,6 @@ package org.tribuo.test;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
@@ -44,8 +43,9 @@ public class MockOutputFactory implements OutputFactory<MockOutput> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
-    public static MockOutputFactory deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static MockOutputFactory deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > 0) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }

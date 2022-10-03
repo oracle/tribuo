@@ -55,6 +55,7 @@ public class HeapMerger implements Merger {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static HeapMerger deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > CURRENT_VERSION) {

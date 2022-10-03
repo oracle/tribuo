@@ -19,7 +19,6 @@ package org.tribuo.classification.baseline;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.tribuo.Example;
 import org.tribuo.Excuse;
 import org.tribuo.ImmutableFeatureMap;
@@ -33,8 +32,6 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.baseline.DummyClassifierTrainer.DummyType;
 import org.tribuo.classification.protos.DummyClassifierModelProto;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.la.DenseSparseMatrix;
-import org.tribuo.math.la.Tensor;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
@@ -114,6 +111,8 @@ public class DummyClassifierModel extends Model<Label> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static DummyClassifierModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {

@@ -44,6 +44,7 @@ public final class L2Distance implements Distance {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static L2Distance deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > CURRENT_VERSION) {

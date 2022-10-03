@@ -66,7 +66,7 @@ public final class ProtoUtil {
      * <p>
      * Deserialization proceeds as follows:
      * <ul>
-     *     <li>Check to see if there is a valid redirect for this version & class name tuple.
+     *     <li>Check to see if there is a valid redirect for this version and class name tuple.
      *     If there is then the new class name is used for the following steps.</li>
      *     <li>Lookup the class name and instantiate the {@link Class} object.</li>
      *     <li>Find the 3 arg static method {@code deserializeFromProto(int version, String className, com.google.protobuf.Any message)}.</li>

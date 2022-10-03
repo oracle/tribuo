@@ -158,6 +158,8 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks.
     public static <T extends Output<T>> ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
