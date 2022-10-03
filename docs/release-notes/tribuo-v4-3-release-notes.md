@@ -65,7 +65,7 @@ updated HDBSCAN, K-Means and K-NN to use the new interface. The old
 implementation has been renamed the "brute force" search operator, and a new
 implementation which uses a kd-tree has been added.
 
-- Distance refactor ([#213](https://github.com/oracle/tribuo/pull/213), [#216](https://github.com/oracle/tribuo/pull/216), [#221](https://github.com/oracle/tribuo/pull/221), [#231](https://github.com/oracle/tribuo/pull/231)).
+- Distance refactor ([#213](https://github.com/oracle/tribuo/pull/213), [#216](https://github.com/oracle/tribuo/pull/216), [#221](https://github.com/oracle/tribuo/pull/221), [#231](https://github.com/oracle/tribuo/pull/231), [#285](https://github.com/oracle/tribuo/pull/285)).
 
 We migrated off Apache Commons Math, which necessitated adding several methods
 to Tribuo's math library. In the process we refactored the sparse linear model
@@ -100,7 +100,6 @@ profile, and so those tests will execute on Linux & macOS ARM64 platforms.
 - Upgrade OpenCSV to v5.6 ([#259](https://github.com/oracle/tribuo/pull/259)).
 - Added a builder to RowProcessor to make it less confusing ([#263](https://github.com/oracle/tribuo/pull/263)).
 - Upgrade TF-Java to v0.4.2 ([#281](https://github.com/oracle/tribuo/pull/281)).
-- Upgrade LibSVM to v3.30 ([]()).
 
 ## Bug Fixes
 
