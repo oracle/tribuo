@@ -190,7 +190,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
                     parent = nodes.get(parentIdx);
                 }
             } else if (nodeBuilder instanceof SplitNode.SplitNodeBuilder) {
-                // build split node now the childred are ready
+                // build split node now the children are ready
                 SplitNode.SplitNodeBuilder<U> builder = (SplitNode.SplitNodeBuilder<U>) nodeBuilder;
                 SplitNode<U> split = builder.build();
                 nodes.set(builder.getCurIdx(), split);
