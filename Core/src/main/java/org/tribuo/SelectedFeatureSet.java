@@ -141,6 +141,15 @@ public final class SelectedFeatureSet implements ProtoSerializable<FeatureSetPro
         return ProtoUtil.serialize(this);
     }
 
+    /**
+     * Checks if this {@code SelectedFeatureSet} is equal to the supplied object.
+     * <p>
+     * Equals is defined as containing the same features, in the same order, with the same scores, and with
+     * the same provenance information. As that provenance includes machine information and timestamps, this
+     * means equals is defined as did this object derive from the same computation as the supplied object.
+     * @param o The object to test.
+     * @return True if they are equal.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -149,6 +158,13 @@ public final class SelectedFeatureSet implements ProtoSerializable<FeatureSetPro
         return isOrdered == that.isOrdered && featureNames.equals(that.featureNames) && featureScores.equals(that.featureScores) && provenance.equals(that.provenance);
     }
 
+    /**
+     * Computes the hash code.
+     * <p>
+     * The hash code depends on the provenance object, and is not just a function of the feature names and scores, to
+     * be consistent with the definition of equals.
+     * @return The hash code.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(featureNames, featureScores, provenance, isOrdered);

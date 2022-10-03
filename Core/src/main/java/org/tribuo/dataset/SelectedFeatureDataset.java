@@ -27,6 +27,7 @@ import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
+import org.tribuo.FeatureSelector;
 import org.tribuo.ImmutableDataset;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -94,7 +95,8 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
      * Constructs a selected feature dataset.
      * @param dataset This dataset is left untouched and is used to populate the constructed dataset.
      * @param featureSet The feature set to use.
-     * @param k Use the top k features if the feature set is ordered, or -1 to select all of them, throws {@link IllegalArgumentException} if it is unordered and set to a positive value.
+     * @param k Use the top k features if the feature set is ordered, or {@link FeatureSelector#SELECT_ALL} to select
+     *          all of them, throws {@link IllegalArgumentException} if it is unordered and set to a positive value.
      */
     public SelectedFeatureDataset(Dataset<T> dataset, SelectedFeatureSet featureSet, int k) {
         super(dataset.getProvenance(), dataset.getOutputFactory());
@@ -105,7 +107,7 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
         Set<String> tmpFeatures = new LinkedHashSet<>();
         if (k == 0 || featureSet.featureNames().size() == 0) {
             throw new IllegalArgumentException("Tried to select zero features.");
-        } else if (k != -1 && !featureSet.isOrdered()) {
+        } else if (k != FeatureSelector.SELECT_ALL && !featureSet.isOrdered()) {
             throw new IllegalArgumentException("Tried to select the top " + k + " features from an unordered feature set.");
         } else if (k > featureSet.featureNames().size()) {
             throw new IllegalArgumentException("Tried to select more features than are available in feature set, requested " + k + ", found " + featureSet.featureNames().size());
@@ -196,18 +198,20 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
         Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
         FeatureMap fmap = carrier.featureDomain();
         List<Example<?>> examples = new ArrayList<>();
+        int idx = 0;
         for (ExampleProto e : proto.getExamplesList()) {
             Example<?> example = Example.deserialize(e);
             if (example.getOutput().getClass().equals(outputClass)) {
                 for (Feature f : example) {
                     if (fmap.get(f.getName()) == null) {
-                        throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
+                        throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in example at idx " + idx);
                     }
                 }
                 examples.add(example);
             } else {
-                throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass());
+                throw new IllegalStateException("Invalid protobuf, expected all examples to have output class " + outputClass + ", but found " + example.getOutput().getClass() + " in example idx " + idx);
             }
+            idx++;
         }
         if (!(fmap instanceof ImmutableFeatureMap)) {
             throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
