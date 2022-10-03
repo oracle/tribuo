@@ -37,7 +37,6 @@ import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.DatasetProto;
-import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.MinimumCardinalityDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;

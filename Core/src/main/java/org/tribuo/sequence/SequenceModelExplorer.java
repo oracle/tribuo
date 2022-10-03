@@ -22,7 +22,6 @@ import com.oracle.labs.mlrg.olcut.command.CommandInterpreter;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
-import org.tribuo.Model;
 import org.tribuo.VariableInfo;
 import org.jline.builtins.Completers;
 import org.jline.reader.Completer;

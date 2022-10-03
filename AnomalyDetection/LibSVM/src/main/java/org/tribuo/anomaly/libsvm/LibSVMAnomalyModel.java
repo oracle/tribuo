@@ -27,8 +27,6 @@ import org.tribuo.anomaly.libsvm.protos.LibSVMAnomalyModelProto;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.la.DenseSparseMatrix;
-import org.tribuo.math.la.Tensor;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import libsvm.svm;

@@ -21,11 +21,9 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputInfo;
 import org.tribuo.anomaly.Event.EventType;
-import org.tribuo.anomaly.protos.AnomalyInfoProto;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputDomainProto;
-import org.tribuo.protos.core.OutputProto;
 
 import java.util.ArrayList;
 import java.util.Collections;

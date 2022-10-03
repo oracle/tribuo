@@ -19,7 +19,6 @@ package org.tribuo;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.FeatureDomainProto;
 import org.tribuo.protos.core.OutputDomainProto;
 
 import java.io.Serializable;

@@ -23,12 +23,10 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
-import org.tribuo.DataSource;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ColumnarDataSource;
 import org.tribuo.data.columnar.ColumnarIterator;
-import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 

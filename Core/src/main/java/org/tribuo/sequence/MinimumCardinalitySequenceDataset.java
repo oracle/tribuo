@@ -40,7 +40,6 @@ import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.MinimumCardinalitySequenceDatasetProto;
 import org.tribuo.protos.core.SequenceDatasetProto;
-import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 

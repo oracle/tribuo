@@ -20,7 +20,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
-import java.util.Objects;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.OutputProto;

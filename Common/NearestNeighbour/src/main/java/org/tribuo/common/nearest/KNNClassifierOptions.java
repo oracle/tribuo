@@ -23,7 +23,6 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.ensemble.FullyWeightedVotingCombiner;
 import org.tribuo.classification.ensemble.VotingCombiner;
 import org.tribuo.common.nearest.KNNModel.Backend;
-import org.tribuo.common.nearest.KNNTrainer.Distance;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;

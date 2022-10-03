@@ -19,13 +19,11 @@ package org.tribuo.classification;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import org.tribuo.MutableDataset;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.classification.protos.MutableLabelInfoProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputDomainProto;
-import org.tribuo.protos.core.OutputProto;
 
 import java.util.HashMap;
 import java.util.Map;

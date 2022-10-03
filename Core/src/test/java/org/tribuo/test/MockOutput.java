@@ -19,13 +19,10 @@ package org.tribuo.test;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
-import org.tribuo.RealInfo;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputProto;
-import org.tribuo.protos.core.RealInfoProto;
-import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.test.protos.MockOutputProto;
 
 import java.util.Objects;

@@ -17,10 +17,7 @@
 package org.tribuo.math.util;
 
 import org.junit.jupiter.api.Test;
-import org.tribuo.math.protos.NormalizerProto;
-import org.tribuo.protos.ProtoUtil;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.test.Helpers.testProtoSerialization;
 
 public class NormalizerTest {

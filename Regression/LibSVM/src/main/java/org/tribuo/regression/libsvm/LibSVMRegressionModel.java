@@ -25,7 +25,6 @@ import libsvm.svm_node;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.Model;
 import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.common.libsvm.KernelType;

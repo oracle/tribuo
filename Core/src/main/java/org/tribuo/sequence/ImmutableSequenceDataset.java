@@ -31,7 +31,6 @@ import org.tribuo.VariableInfo;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.ImmutableSequenceDatasetProto;
 import org.tribuo.protos.core.SequenceDatasetProto;
-import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.util.Merger;

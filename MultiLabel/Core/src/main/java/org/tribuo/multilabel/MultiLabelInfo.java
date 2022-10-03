@@ -23,7 +23,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputInfo;
 import org.tribuo.classification.Label;
-import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoSerializableKeysValuesField;
 

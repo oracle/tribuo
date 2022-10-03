@@ -18,14 +18,10 @@ package org.tribuo.math.kernel;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.protos.KernelProto;
-import org.tribuo.math.protos.SigmoidKernelProto;
-import org.tribuo.protos.ProtoSerializableClass;
-import org.tribuo.protos.ProtoUtil;
 
 /**
  * A linear kernel, u.dot(v).

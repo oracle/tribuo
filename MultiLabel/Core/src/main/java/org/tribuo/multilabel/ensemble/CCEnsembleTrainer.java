@@ -33,7 +33,6 @@ import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
-import javax.xml.crypto.Data;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;

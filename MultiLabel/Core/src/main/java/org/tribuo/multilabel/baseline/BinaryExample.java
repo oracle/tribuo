@@ -18,7 +18,6 @@ package org.tribuo.multilabel.baseline;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.tribuo.CategoricalInfo;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
@@ -26,15 +25,12 @@ import org.tribuo.Output;
 import org.tribuo.classification.Label;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.protos.BinaryExampleProto;
-import org.tribuo.multilabel.protos.MultiLabelProto;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.util.Merger;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;

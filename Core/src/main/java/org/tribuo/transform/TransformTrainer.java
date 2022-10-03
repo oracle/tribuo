@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
-import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.Trainer;
 import org.tribuo.provenance.ModelProvenance;

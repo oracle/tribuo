@@ -24,7 +24,6 @@ import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Tribuo;
 
-import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;

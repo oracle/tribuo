@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.tribuo.multilabel.Utils.label;
 import static org.tribuo.multilabel.Utils.mkDomain;
-import static org.tribuo.multilabel.Utils.mkPrediction;
 
 public class MultiLabelTest {
 

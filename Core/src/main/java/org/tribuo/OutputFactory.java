@@ -22,9 +22,7 @@ import org.tribuo.evaluation.Evaluation;
 import org.tribuo.evaluation.Evaluator;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
-import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
 import java.io.Serializable;

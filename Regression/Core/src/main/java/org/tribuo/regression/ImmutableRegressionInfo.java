@@ -24,7 +24,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.regression.protos.ImmutableRegressionInfoProto;
-import org.tribuo.regression.protos.MutableRegressionInfoProto;
 
 import java.io.IOException;
 import java.util.Arrays;

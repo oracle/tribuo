@@ -29,7 +29,6 @@ import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.multilabel.MultiLabel;
-import org.tribuo.multilabel.protos.ClassifierChainModelProto;
 import org.tribuo.multilabel.protos.IndependentMultiLabelModelProto;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.OutputProto;

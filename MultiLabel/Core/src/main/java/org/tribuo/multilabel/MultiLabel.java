@@ -18,23 +18,16 @@ package org.tribuo.multilabel;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.Classifiable;
-import org.tribuo.classification.ImmutableLabelInfo;
 import org.tribuo.classification.Label;
-import org.tribuo.classification.protos.ImmutableLabelInfoProto;
-import org.tribuo.classification.protos.LabelProto;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.multilabel.protos.MultiLabelProto;
-import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputProto;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;

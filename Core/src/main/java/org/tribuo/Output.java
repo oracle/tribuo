@@ -18,7 +18,6 @@ package org.tribuo;
 
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputProto;
 
 import java.io.Serializable;

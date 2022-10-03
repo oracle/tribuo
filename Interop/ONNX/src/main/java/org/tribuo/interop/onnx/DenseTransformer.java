@@ -21,7 +21,6 @@ import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.interop.onnx.protos.ExampleTransformerProto;

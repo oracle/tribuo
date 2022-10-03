@@ -25,7 +25,6 @@ import org.tribuo.FeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableInfo;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.BinaryFeaturesExampleProto;
 import org.tribuo.protos.core.ExampleDataProto;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.transform.Transformer;

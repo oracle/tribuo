@@ -22,8 +22,6 @@ import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.classification.protos.ImmutableLabelInfoProto;
-import org.tribuo.classification.protos.MutableLabelInfoProto;
-import org.tribuo.protos.ProtoSerializableMapValuesField;
 import org.tribuo.protos.core.OutputDomainProto;
 
 import java.io.IOException;

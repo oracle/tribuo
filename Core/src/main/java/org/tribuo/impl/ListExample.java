@@ -24,7 +24,6 @@ import org.tribuo.FeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableInfo;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.BinaryFeaturesExampleProto;
 import org.tribuo.protos.core.ExampleDataProto;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.transform.Transformer;
@@ -33,7 +32,6 @@ import org.tribuo.util.Merger;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;

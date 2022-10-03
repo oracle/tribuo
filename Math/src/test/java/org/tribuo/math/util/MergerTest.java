@@ -19,8 +19,6 @@ package org.tribuo.math.util;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
 import org.junit.jupiter.api.Test;
-import org.tribuo.math.protos.MergerProto;
-import org.tribuo.protos.ProtoUtil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.test.Helpers.testProtoSerialization;

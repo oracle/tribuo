@@ -22,7 +22,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.anomaly.Event.EventType;
 import org.tribuo.anomaly.protos.AnomalyInfoProto;
-import org.tribuo.anomaly.protos.EventProto;
 import org.tribuo.protos.ProtoSerializableClass;
 
 import java.util.ArrayList;

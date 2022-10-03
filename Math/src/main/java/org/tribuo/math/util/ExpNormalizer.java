@@ -18,8 +18,6 @@ package org.tribuo.math.util;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import org.tribuo.math.kernel.Linear;
-import org.tribuo.math.protos.KernelProto;
 import org.tribuo.math.protos.NormalizerProto;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXOperators;

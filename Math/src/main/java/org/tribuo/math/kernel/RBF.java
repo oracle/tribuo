@@ -23,7 +23,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.protos.KernelProto;
-import org.tribuo.math.protos.PolynomialKernelProto;
 import org.tribuo.math.protos.RBFKernelProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;

@@ -19,7 +19,6 @@ package org.tribuo.math.optimisers.util;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;

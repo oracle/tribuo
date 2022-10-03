@@ -23,7 +23,6 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import org.tribuo.ConfigurableDataSource;
-import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.MutableDataset;

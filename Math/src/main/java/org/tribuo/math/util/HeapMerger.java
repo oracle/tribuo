@@ -23,7 +23,6 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorIterator;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.MergerProto;
-import org.tribuo.math.protos.NormalizerProto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
