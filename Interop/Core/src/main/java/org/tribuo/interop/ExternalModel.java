@@ -290,7 +290,7 @@ public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
      * @param featureForwardMapping The forward feature mapping.
      * @param featureBackwardMapping The backward feature mapping.
      * @param featureDomain The feature domain.
-     * @return True if the feature mapping is valid (the forward & backward mappings are a bijection and the same size as the feature domain).
+     * @return True if the feature mapping is valid (the forward and backward mappings are a bijection and the same size as the feature domain).
      */
     protected static boolean validateFeatureMapping(int[] featureForwardMapping, int[] featureBackwardMapping, ImmutableFeatureMap featureDomain) {
         if (featureBackwardMapping.length != featureForwardMapping.length) {
