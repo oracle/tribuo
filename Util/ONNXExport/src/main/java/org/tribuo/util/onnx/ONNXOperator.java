@@ -32,31 +32,37 @@ public interface ONNXOperator {
 
     /**
      * The operator name.
+     * @return The name.
      */
     public String getOpName();
 
     /**
      * The number of inputs.
+     * @return The number of inputs.
      */
     public int getNumInputs();
 
     /**
      * The number of optional inputs.
+     * @return The number of optional inputs.
      */
     public int getNumOptionalInputs();
 
     /**
      * The number of outputs.
+     * @return The number of outputs.
      */
     public int getNumOutputs();
 
     /**
      * The operator attributes.
+     * @return The operator attribute map.
      */
     public Map<String,ONNXAttribute> getAttributes();
     
     /**
      * The mandatory attribute names.
+     * @return The required attribute names.
      */
     public Set<String> getMandatoryAttributeNames();
 

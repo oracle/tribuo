@@ -47,6 +47,9 @@ public class FMClassificationOptions implements ClassificationOptions<FMClassifi
         LOG
     }
 
+    /**
+     * The gradient descent algorithm options.
+     */
     public GradientOptimiserOptions sgoOptions;
 
     /**

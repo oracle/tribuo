@@ -22,7 +22,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.anomaly.Event.EventType;
 import org.tribuo.anomaly.protos.AnomalyInfoProto;
-import org.tribuo.anomaly.protos.EventProto;
 import org.tribuo.protos.ProtoSerializableClass;
 
 import java.util.ArrayList;
@@ -55,6 +54,8 @@ public final class ImmutableAnomalyInfo extends AnomalyInfo implements Immutable
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static ImmutableAnomalyInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > 0) {

@@ -32,11 +32,9 @@ import org.tribuo.OutputInfo;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.MutableSequenceDatasetProto;
 import org.tribuo.protos.core.SequenceDatasetProto;
-import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -133,6 +131,8 @@ public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
     public static MutableSequenceDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

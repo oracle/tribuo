@@ -26,11 +26,7 @@ import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.protos.ViterbiModelProto;
-import org.tribuo.classification.protos.ViterbiModelProtoOrBuilder;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.la.DenseSparseMatrix;
-import org.tribuo.math.la.Tensor;
-import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceDataset;
@@ -105,6 +101,8 @@ public class ViterbiModel extends SequenceModel<Label> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static ViterbiModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
@@ -236,10 +234,21 @@ public class ViterbiModel extends SequenceModel<Label> {
         return output;
     }
 
+    /**
+     * Gets the most likely labels.
+     * @param distribution The label distribution.
+     * @return The most likely labels in descending order.
+     */
     protected List<Label> getTopLabels(Map<String, Label> distribution) {
         return getTopLabels(distribution, this.stackSize);
     }
 
+    /**
+     * Gets the {@code stackSize} most likely labels.
+     * @param distribution The label distribution.
+     * @param stackSize The number of labels to pick.
+     * @return The most likely labels in descending order.
+     */
     protected static List<Label> getTopLabels(Map<String, Label> distribution, int stackSize) {
         return distribution.values().stream().sorted(Comparator.comparingDouble(Label::getScore).reversed()).limit(stackSize)
                 .collect(Collectors.toList());

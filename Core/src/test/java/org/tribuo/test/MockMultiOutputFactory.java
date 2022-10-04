@@ -17,7 +17,7 @@
 package org.tribuo.test;
 
 import com.google.protobuf.Any;
-import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.ByteString;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
@@ -48,12 +48,13 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
-    public static MockMultiOutputFactory deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static MockMultiOutputFactory deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > 0) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }
-        if (message != null) {
+        if (message.getValue() != ByteString.EMPTY) {
             throw new IllegalArgumentException("Invalid proto");
         }
         return new MockMultiOutputFactory();
@@ -95,6 +96,11 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
     @Override
     public Evaluator<MockMultiOutput, ? extends Evaluation<MockMultiOutput>> getEvaluator() {
         throw new UnsupportedOperationException("generateEvaluator not implemented");
+    }
+
+    @Override
+    public Class<MockMultiOutput> getTypeWitness() {
+        return MockMultiOutput.class;
     }
 
     @Override

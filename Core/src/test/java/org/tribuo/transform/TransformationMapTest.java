@@ -316,6 +316,7 @@ public class TransformationMapTest {
          * @param className The class name.
          * @param message   The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link TestCountTransformerProto}.
+         * @return The deserialized object.
          */
         static CountTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             TestCountTransformerProto proto = message.unpack(TestCountTransformerProto.class);

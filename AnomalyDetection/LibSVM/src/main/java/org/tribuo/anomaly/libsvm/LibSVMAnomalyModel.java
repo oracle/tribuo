@@ -27,8 +27,6 @@ import org.tribuo.anomaly.libsvm.protos.LibSVMAnomalyModelProto;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.LibSVMTrainer;
 import org.tribuo.impl.ModelDataCarrier;
-import org.tribuo.math.la.DenseSparseMatrix;
-import org.tribuo.math.la.Tensor;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import libsvm.svm;
@@ -73,6 +71,8 @@ public class LibSVMAnomalyModel extends LibSVMModel<Event> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static LibSVMAnomalyModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {

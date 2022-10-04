@@ -45,16 +45,37 @@ public abstract class RegressionInfo implements OutputInfo<Regressor> {
 
     private static final MutableDouble NAN = new MutableDouble(Double.NaN);
 
+    /**
+     * The maximum values seen per dimension.
+     */
     protected Map<String,MutableDouble> maxMap = new LinkedHashMap<>();
+    /**
+     * The minimum values seen per dimension.
+     */
     protected Map<String,MutableDouble> minMap = new LinkedHashMap<>();
 
+    /**
+     * The mean value per dimension.
+     */
     protected Map<String,MutableDouble> meanMap = new LinkedHashMap<>();
+    /**
+     * Sum of the squared differences per dimension.
+     */
     protected Map<String,MutableDouble> sumSquaresMap = new LinkedHashMap<>();
 
+    /**
+     * The occurrence count per dimension.
+     */
     protected Map<String,MutableLong> countMap = new TreeMap<>();
 
+    /**
+     * The overall number of {@link Regressor} objects this object has seen.
+     */
     protected long overallCount = 0;
 
+    /**
+     * The number of unknown {@link Regressor}s this object has seen.
+     */
     protected int unknownCount = 0;
 
     /**

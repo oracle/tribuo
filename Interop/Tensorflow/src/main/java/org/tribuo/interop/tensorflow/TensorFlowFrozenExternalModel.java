@@ -52,7 +52,6 @@ import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -117,6 +116,8 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check that the output domain and converter are compatible
     public static TensorFlowFrozenExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

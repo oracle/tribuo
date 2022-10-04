@@ -23,7 +23,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.tribuo.Model;
 import org.tribuo.regression.Regressor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.tribuo.interop.modelcard.ModelCard.mapper;
 
@@ -31,7 +36,7 @@ import static org.tribuo.interop.modelcard.ModelCard.mapper;
  * TrainingDetails section of a {@link ModelCard}.
  */
 public final class TrainingDetails {
-    public static final String schemaVersion = "1.0";
+    private static final String schemaVersion = "1.0";
     private final String trainingTime;
     private final int trainingSetSize;
     private final int numFeatures;
@@ -63,10 +68,10 @@ public final class TrainingDetails {
 
     /**
      * Creates an instance of TrainingDetails.
-     * <p>
-     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     *
      * @param trainingDetailsJson The Json content corresponding to a serialized TrainingDetails that will be used to
      * recreate a new instance of a TrainingDetails.
+     * @throws JsonProcessingException if a problem is encountered when processing Json content.
      */
     public TrainingDetails(JsonNode trainingDetailsJson) throws JsonProcessingException {
         trainingTime = trainingDetailsJson.get("training-time").textValue();

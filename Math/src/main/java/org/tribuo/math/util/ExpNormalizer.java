@@ -18,8 +18,6 @@ package org.tribuo.math.util;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
-import org.tribuo.math.kernel.Linear;
-import org.tribuo.math.protos.KernelProto;
 import org.tribuo.math.protos.NormalizerProto;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXOperators;
@@ -51,6 +49,7 @@ public class ExpNormalizer implements VectorNormalizer, Serializable {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static ExpNormalizer deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > CURRENT_VERSION) {

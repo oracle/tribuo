@@ -38,8 +38,10 @@ public enum NeighboursQueryFactoryType {
 
     /**
      * Returns the appropriate {@link NeighboursQueryFactory} implementation.
+     * @param nqFactoryType The query factory type.
      * @param distance The distance function.
      * @param numThreads The number of threads to be used to parallelize the computation.
+     * @return The query factory.
      */
     public static NeighboursQueryFactory getNeighboursQueryFactory(NeighboursQueryFactoryType nqFactoryType,
                                                                    Distance distance, int numThreads) {

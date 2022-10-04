@@ -21,8 +21,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.classification.ImmutableLabelInfo;
-import org.tribuo.classification.protos.ImmutableLabelInfoProto;
 import org.tribuo.multilabel.protos.ImmutableMultiLabelInfoProto;
 import org.tribuo.protos.core.OutputDomainProto;
 
@@ -121,6 +119,8 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static ImmutableMultiLabelInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > 0) {

@@ -21,7 +21,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import org.tribuo.FeatureMap;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.ModelDataProto;

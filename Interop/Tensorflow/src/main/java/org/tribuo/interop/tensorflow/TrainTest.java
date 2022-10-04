@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,9 @@ import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.datasource.LibSVMDataSource;
 import org.tribuo.util.Util;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -107,6 +107,11 @@ public class TrainTest {
          */
         @Option(charName = 'f', longName = "model-output-path", usage = "Path to serialize model to.")
         public Path outputPath;
+        /**
+         * Save the Tribuo model out as a protobuf.
+         */
+        @Option(longName = "model-save-to-proto", usage = "Save the Tribuo model out as a protobuf.")
+        public boolean saveToProto;
         /**
          * Path to the libsvm format training file.
          */
@@ -286,8 +291,12 @@ public class TrainTest {
         System.out.println(evaluation.getConfusionMatrix().toString());
 
         if (o.outputPath != null) {
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(o.outputPath.toFile()))) {
-                oos.writeObject(model);
+            if (o.saveToProto) {
+                model.serializeToFile(o.outputPath);
+            } else {
+                try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(o.outputPath))) {
+                    oos.writeObject(model);
+                }
             }
             logger.info("Serialized model to file: " + o.outputPath);
         }

@@ -44,38 +44,92 @@ import java.util.Objects;
 public class ModelProvenance implements ObjectProvenance {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The name of the dataset provenance field.
+     */
     protected static final String DATASET = "dataset";
+    /**
+     * The name of the trainer provenance field.
+     */
     protected static final String TRAINER = "trainer";
+    /**
+     * The name of the training time field.
+     */
     protected static final String TRAINING_TIME = "trained-at";
+    /**
+     * The name of the instance values field.
+     */
     protected static final String INSTANCE_VALUES = "instance-values";
+    /**
+     * The name of the Tribuo version string field.
+     */
     protected static final String TRIBUO_VERSION_STRING = "tribuo-version";
 
     // Note these have been added due to a discrepancy between java.lang.Math
     // and java.lang.StrictMath on x64 and aarch64 platforms (and between Java 8 and 9+).
     // Training a linear SGD predictor can create different models on different platforms
     // due to this discrepancy.
+    /**
+     * The name of the Java version field.
+     */
     protected static final String JAVA_VERSION_STRING = "java-version";
+    /**
+     * The name of the OS name field.
+     */
     protected static final String OS_STRING = "os-name";
+    /**
+     * The name of the architecture name field.
+     */
     protected static final String ARCH_STRING = "os-arch";
 
+    /**
+     * The value returned for models from Tribuo 4.1 and earlier which don't record the Java, OS or architecture.
+     */
     protected static final String UNKNOWN_VERSION = "unknown-version";
 
+    /**
+     * The name of the host class.
+     */
     protected final String className;
 
+    /**
+     * The time the model was created.
+     */
     protected final OffsetDateTime time;
 
+    /**
+     * The dataset provenance.
+     */
     protected final DatasetProvenance datasetProvenance;
 
+    /**
+     * Provenance of the trainer which created this model.
+     */
     protected final TrainerProvenance trainerProvenance;
 
+    /**
+     * Any instance time information supplied by the users.
+     */
     protected final MapProvenance<? extends Provenance> instanceProvenance;
 
+    /**
+     * The Tribuo version string.
+     */
     protected final String versionString;
 
+    /**
+     * The Java version string.
+     */
     protected final String javaVersionString;
 
+    /**
+     * The OS string.
+     */
     protected final String osString;
 
+    /**
+     * The system CPU architecture string.
+     */
     protected final String archString;
 
     /**
@@ -206,7 +260,7 @@ public class ModelProvenance implements ObjectProvenance {
      * @return The Java version.
      */
     public String getJavaVersion() {
-        return javaVersionString;
+        return javaVersionString == null ? UNKNOWN_VERSION : javaVersionString;
     }
 
     /**
@@ -214,7 +268,7 @@ public class ModelProvenance implements ObjectProvenance {
      * @return The OS name.
      */
     public String getOS() {
-        return osString;
+        return osString == null ? UNKNOWN_VERSION : osString;
     }
 
     /**
@@ -222,7 +276,7 @@ public class ModelProvenance implements ObjectProvenance {
      * @return The CPU architecture.
      */
     public String getArch() {
-        return archString;
+        return archString == null ? UNKNOWN_VERSION : archString;
     }
 
     @Override
@@ -269,9 +323,9 @@ public class ModelProvenance implements ObjectProvenance {
         iterable.add(new Pair<>(TRAINING_TIME,new DateTimeProvenance(TRAINING_TIME,time)));
         iterable.add(new Pair<>(INSTANCE_VALUES,instanceProvenance));
         iterable.add(new Pair<>(TRIBUO_VERSION_STRING,new StringProvenance(TRIBUO_VERSION_STRING,versionString)));
-        iterable.add(new Pair<>(JAVA_VERSION_STRING,new StringProvenance(JAVA_VERSION_STRING,javaVersionString)));
-        iterable.add(new Pair<>(OS_STRING,new StringProvenance(OS_STRING,osString)));
-        iterable.add(new Pair<>(ARCH_STRING,new StringProvenance(ARCH_STRING,archString)));
+        iterable.add(new Pair<>(JAVA_VERSION_STRING,new StringProvenance(JAVA_VERSION_STRING,getJavaVersion())));
+        iterable.add(new Pair<>(OS_STRING,new StringProvenance(OS_STRING,getOS())));
+        iterable.add(new Pair<>(ARCH_STRING,new StringProvenance(ARCH_STRING,getArch())));
         return iterable;
     }
 

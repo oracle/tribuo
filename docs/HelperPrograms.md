@@ -7,7 +7,8 @@ train/test loops with configuration.
 
 Most of these programs interact with Java serialization in some way, and so
 should be secured using the appropriate JEP 290 allowlist. For more information
-on Tribuo's use of Java serialization see the [security docs](./Security.md).
+on Tribuo's use of Java serialization see the [security docs](./Security.md). 
+All programs have been updated to read the new protobuf based Tribuo model format.
 
 All of these programs are built using OLCUT's command line arguments
 processing, and so print out the available arguments when ran with `--usage` or
@@ -104,6 +105,13 @@ to do so. However if you wish to write your own mechanism to remove the
 provenance (perhaps to store some different hash or key, or to only remove
 paths from a model) then this class should form a useful skeleton for building
 such functionality.
+
+### ModelCardCLI
+
+Found in tribuo-modelcard, `org.tribuo.interop.modelcard.ModelCardCLI` provides
+a shell for completing model cards by supplying a set of plain text fields. This
+is an interactive way of building up model cards, though it can be done directly
+by building the `UsageDetails` object itself along with a `ModelCard`.
 
 ### DescribeConfigurable
 

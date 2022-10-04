@@ -16,13 +16,11 @@
 
 package org.tribuo;
 
-import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import org.junit.jupiter.api.Test;
 import org.tribuo.hash.HashCodeHasher;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.hash.Hasher;
 import org.tribuo.protos.core.FeatureDomainProto;
-import org.tribuo.protos.core.HasherProto;
 
 import java.util.SplittableRandom;
 

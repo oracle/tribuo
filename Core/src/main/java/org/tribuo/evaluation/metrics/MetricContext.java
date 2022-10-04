@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,12 +34,22 @@ public abstract class MetricContext<T extends Output<T>> {
     private final SequenceModel<T> seqModel;
     private final List<Prediction<T>> predictions;
 
+    /**
+     * Constructs a metric context.
+     * @param model The model.
+     * @param predictions The model's predictions.
+     */
     protected MetricContext(Model<T> model, List<Prediction<T>> predictions) {
         this.model = model;
         this.seqModel = null;
         this.predictions = Collections.unmodifiableList(predictions);
     }
 
+    /**
+     * Constructs a metric context for a sequence model.
+     * @param model The model.
+     * @param predictions The model's predictions.
+     */
     protected MetricContext(SequenceModel<T> model, List<Prediction<T>> predictions) {
         this.model = null;
         this.seqModel = model;

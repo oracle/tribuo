@@ -19,13 +19,11 @@ package org.tribuo.classification;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import org.tribuo.MutableDataset;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.classification.protos.MutableLabelInfoProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputDomainProto;
-import org.tribuo.protos.core.OutputProto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +63,8 @@ public class MutableLabelInfo extends LabelInfo implements MutableOutputInfo<Lab
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static MutableLabelInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > 0) {

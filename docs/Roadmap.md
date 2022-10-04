@@ -37,14 +37,16 @@ specific operations (though this can be achieved today using `DatasetView` and p
 categorical and real valued features, and promotes the former to the latter when there
 are too many categories. This could be tied into the `RowProcessor` to give the user control
 over the feature types, which could filter down into algorithmic choices elsewhere in the package.
-- Serialization. We'd like to have alternate serialization mechanisms for models and datasets until
-Java's serialization mechanisms improve.
+- ~~Serialization. We'd like to have alternate serialization mechanisms for models and datasets until
+Java's serialization mechanisms improve.~~
+    - In 4.3 we added protobuf serialization to Tribuo and deprecated Java serialization.
 - Caching datasource. Datasources may currently perform expensive feature extraction steps 
 (I'm looking at you `RowProcessor`), and it would be useful to be able to cache the output of
 that locally, while maintaining the link to the original data. We don't have a firm design for
 this feature yet, but we're in need of it for some internal work.
-- KMeans & Nearest Neighbour share very little code, but are conceptually very similar. We'd like
-to refactor out the shared code (while maintaining serialization compatibility).
+- ~~KMeans & Nearest Neighbour share very little code, but are conceptually very similar. We'd like
+to refactor out the shared code (while maintaining serialization compatibility).~~
+    - In 4.3 we added a distance querying interface and refactored KMeans, KNN and HDBSCAN to use it.
 - Allow `DatasetView` to regenerate its feature and output domains. Currently all views of a dataset
 share the same immutable feature domain, but in some cases this can leak information from test time
 to train (e.g., when using the unselected data as an out of bag sample).
@@ -61,8 +63,9 @@ specify a minimum purity decrease requirement.~~
     - Integrated in Tribuo 4.1.
 - Gaussian Processes.
 - Vowpal Wabbit interface.
-- Feature selection. We already have several feature selection algorithms implemented 
-in a Tribuo compatible interface, but the codebase isn't quite ready for release.
+- ~~Feature selection. We already have several feature selection algorithms implemented 
+in a Tribuo compatible interface, but the codebase isn't quite ready for release.~~
+    - Feature selection for classification problems is integrated in Tribuo 4.3.
 - Support word embedding features.
 - ~~Support contextualised word embeddings (through the ONNX or TensorFlow interfaces).~~ 
     - ONNX support for BERT embeddings is integrated in Tribuo 4.1.

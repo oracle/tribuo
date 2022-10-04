@@ -54,7 +54,13 @@ public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
      */
     public static final int DEFAULT_BATCH_SIZE = 16;
 
+    /**
+     * The forward mapping from Tribuo's indices to the external indices.
+     */
     protected final int[] featureForwardMapping;
+    /**
+     * The backward mapping from the external indices to Tribuo's indices.
+     */
     protected final int[] featureBackwardMapping;
 
     private int batchSize = DEFAULT_BATCH_SIZE;
@@ -290,7 +296,7 @@ public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
      * @param featureForwardMapping The forward feature mapping.
      * @param featureBackwardMapping The backward feature mapping.
      * @param featureDomain The feature domain.
-     * @return True if the feature mapping is valid (the forward & backward mappings are a bijection and the same size as the feature domain).
+     * @return True if the feature mapping is valid (the forward and backward mappings are a bijection and the same size as the feature domain).
      */
     protected static boolean validateFeatureMapping(int[] featureForwardMapping, int[] featureBackwardMapping, ImmutableFeatureMap featureDomain) {
         if (featureBackwardMapping.length != featureForwardMapping.length) {

@@ -19,13 +19,10 @@ package org.tribuo.test;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Output;
-import org.tribuo.RealInfo;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputProto;
-import org.tribuo.protos.core.RealInfoProto;
-import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.test.protos.MockOutputProto;
 
 import java.util.Objects;
@@ -49,6 +46,8 @@ public class MockOutput implements Output<MockOutput> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static MockOutput deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > 0) {

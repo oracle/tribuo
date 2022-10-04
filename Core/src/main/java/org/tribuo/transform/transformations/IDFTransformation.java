@@ -133,6 +133,7 @@ public class IDFTransformation implements Transformation {
          * @param className The class name.
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link IDFTransformerProto}.
+         * @return The deserialized object.
          */
         static IDFTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             IDFTransformerProto proto = message.unpack(IDFTransformerProto.class);

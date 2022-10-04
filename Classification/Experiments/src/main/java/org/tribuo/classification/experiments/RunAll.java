@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,15 +32,14 @@ import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.data.DataOptions;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +71,12 @@ public class RunAll {
          */
         @Option(charName = 'd', longName = "output-directory", usage = "Directory to write out the models and test reports.")
         public File directory;
+
+        /**
+         * Write out models in protobuf format.
+         */
+        @Option(longName = "write-protobuf-models", usage = "Write out models in protobuf format.")
+        public boolean protobuf;
     }
 
     /**
@@ -124,8 +129,12 @@ public class RunAll {
                 logger.info("Found two trainers with the name " + name);
             }
             String outputPath = o.directory.toString()+"/"+name;
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath+".model"))) {
-                oos.writeObject(curModel);
+            if (o.protobuf) {
+                curModel.serializeToFile(Paths.get(outputPath + ".model"));
+            } else {
+                try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(outputPath + ".model"))) {
+                    oos.writeObject(curModel);
+                }
             }
             try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(new FileOutputStream(outputPath+".output"), StandardCharsets.UTF_8))) {
                 writer.println("Model = " + name);

@@ -117,6 +117,10 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @throws XGBoostError If the XGBoost byte array failed to parse.
+     * @throws IOException If the XGBoost byte array failed to parse.
+     * @return The deserialized object.
      */
     public static XGBoostModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, XGBoostError, IOException {
         if (version < 0 || version > CURRENT_VERSION) {
@@ -138,7 +142,9 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
             throw new IllegalStateException("Invalid protobuf, no XGBoost models were found");
         }
 
-        return new XGBoostModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),carrier.outputDomain(),models,converter);
+        @SuppressWarnings({"rawtypes","unchecked"}) // guarded by getClass check on the converter and domain above
+        XGBoostModel<?> model = new XGBoostModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),carrier.outputDomain(),models,converter);
+        return model;
     }
 
     /**

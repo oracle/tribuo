@@ -36,6 +36,7 @@ public interface NeighboursQueryFactory extends Configurable, ProtoSerializable<
     /**
      * Constructs a nearest neighbour query object using the supplied array of {@link SGDVector}.
      * @param data An array of {@link SGDVector}.
+     * @return A query object.
      */
     NeighboursQuery createNeighboursQuery(SGDVector[] data);
 

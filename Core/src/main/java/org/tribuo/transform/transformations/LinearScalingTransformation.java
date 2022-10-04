@@ -240,6 +240,7 @@ public final class LinearScalingTransformation implements Transformation {
          * @param className The class name.
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link LinearScalingTransformerProto}.
+         * @return The deserialized object.
          */
         static LinearScalingTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             LinearScalingTransformerProto proto = message.unpack(LinearScalingTransformerProto.class);

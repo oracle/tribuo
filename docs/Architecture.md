@@ -422,11 +422,36 @@ transparently hashes the inputs. The feature names tend to be particularly
 sensitive when working with NLP problems. For example, without such hashing,
 bigrams would appear in the feature domains.
 
+## Serialization
+
+Tribuo supports Java serialization (i.e., using `java.io.Serializable`) and from
+v4.3 it supports serializing objects to protobufs. Java serialization support is
+deprecated, and will be removed in the next major version. While using the Java 
+serialization support we recommend the use of a serialization filter, more 
+information is given in our [Security documentation](Security.md).
+Classes which support protobuf serialization
+now implement `ProtoSerializable<T>` where the type bound gives the type of the protobuf they
+serialize to. Tribuo's protobuf serialization supports
+all the types that Java serialization supports, with the exception of `Example`
+metadata values which previously supported any `java.io.Serializable` type, and now
+only support `String` values. Helper methods to deserialize objects from protobufs
+have been added to all the major interfaces of the form `<interface-name>.deserialize(<interface-name>Proto)`
+The protobuf definitions are packaged into Tribuo's jars, and the protobuf classes
+are compiled using protoc `v3.19.4`. Tribuo's protobuf support includes versioning
+of the protobufs to allow incremental modifications to the protobuf schemas as the
+types evolve. This flexibility should allow protobuf to remain the preferred serialization
+format for Tribuo without restricting the evolution of Tribuo's classes and interfaces.
+
+As Java's generic type system is erased, the objects returned from this serialization
+mechanism internally validate that the types are consistent, but users must validate
+that the `Model` is of the expected type using 
+`Model.validate(Class<? extends Output<?>>)` or similar.
+
 ## ONNX Export
 
 From v4.2 Tribuo supports exporting some models in the [ONNX](https://onnx.ai)
 model format. The ONNX format is a cross-platform model exchange format which
-can be loaded in by many different machine learning libraries. Tribuo supports
+can be loaded in by many machine learning libraries. Tribuo supports
 inference on ONNX models via ONNX Runtime. Models which can be exported
 implement the `ONNXExportable` interface, which provides methods for
 constructing the ONNX protobuf and serializing it to disk. As of the release of

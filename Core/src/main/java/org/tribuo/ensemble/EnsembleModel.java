@@ -42,6 +42,9 @@ import java.util.PriorityQueue;
 public abstract class EnsembleModel<T extends Output<T>> extends Model<T> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The list of models in this ensemble.
+     */
     protected final List<Model<T>> models;
 
     /**

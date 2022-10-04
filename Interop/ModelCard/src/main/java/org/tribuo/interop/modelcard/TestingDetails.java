@@ -55,11 +55,18 @@ public final class TestingDetails {
     }
 
     /**
+     * Creates an empty TestingDetails.
+     */
+    TestingDetails() {
+        testingSetSize = 0;
+    }
+
+    /**
      * Creates an instance of TestingDetails.
-     * <p>
-     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     *
      * @param testingDetailsJson The Json content corresponding to a serialized TestingDetails that will be used to
      * recreate a new instance of a TestingDetails.
+     * @throws JsonProcessingException if a problem is encountered when processing Json content.
      */
     public TestingDetails(JsonNode testingDetailsJson) throws JsonProcessingException {
         testingSetSize = testingDetailsJson.get("testing-set-size").intValue();

@@ -25,7 +25,6 @@ import org.tribuo.FeatureMap;
 import org.tribuo.Output;
 import org.tribuo.VariableInfo;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.BinaryFeaturesExampleProto;
 import org.tribuo.protos.core.ExampleDataProto;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.transform.Transformer;
@@ -240,8 +239,11 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
-    public static <T extends Output<T>> ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    @SuppressWarnings({"rawtypes","unchecked"})
+    public static ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -249,14 +251,14 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         if (proto.getFeatureNameCount() != proto.getFeatureValueCount()) {
             throw new IllegalStateException("Invalid protobuf, different numbers of feature names and values, found " + proto.getFeatureNameCount() + " names and " + proto.getFeatureValueCount() + " values.");
         }
-        T output = ProtoUtil.deserialize(proto.getOutput());
+        Output<?> output = ProtoUtil.deserialize(proto.getOutput());
         String[] featureNames = new String[proto.getFeatureNameCount()];
         double[] featureValues = new double[proto.getFeatureValueCount()];
         for (int i = 0; i < proto.getFeatureNameCount(); i++) {
             featureNames[i] = proto.getFeatureName(i);
             featureValues[i] = proto.getFeatureValue(i);
         }
-        return new ArrayExample<>(output,proto.getWeight(),featureNames,featureValues,proto.getMetadataMap());
+        return new ArrayExample(output,proto.getWeight(),featureNames,featureValues,proto.getMetadataMap());
     }
 
     /**

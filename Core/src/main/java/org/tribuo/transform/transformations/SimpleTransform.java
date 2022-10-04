@@ -203,6 +203,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
      * @param className The class name.
      * @param message The serialized data.
      * @throws InvalidProtocolBufferException If the message is not a {@link SimpleTransformProto}.
+     * @return The deserialized object.
      */
     static SimpleTransform deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         SimpleTransformProto proto = message.unpack(SimpleTransformProto.class);

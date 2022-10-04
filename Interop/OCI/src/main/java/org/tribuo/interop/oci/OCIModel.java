@@ -188,6 +188,8 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check
     public static OCIModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, IOException {
@@ -339,9 +341,16 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
      * Carrier type for easy deserialization from JSON.
      */
     public static final class PredictionJson {
+        /**
+         * The predicted probabilities or scores.
+         */
         @JsonProperty("prediction")
         public double[][] prediction;
 
+        /**
+         * Constructs a prediction object.
+         * @param prediction The predicted probabilities or scores.
+         */
         @JsonCreator
         public PredictionJson(@JsonProperty("prediction") double[][] prediction) {
             this.prediction = prediction;

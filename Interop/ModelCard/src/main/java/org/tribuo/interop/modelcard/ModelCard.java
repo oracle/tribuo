@@ -72,7 +72,7 @@ public class ModelCard {
 
     /**
      * Creates an instance of ModelCard that does not include any extracted metrics.
-     * <p>
+     *
      * @param model The trained model for which a model card will be built.
      * @param evaluation An {@link Evaluation} object for the trained model.
      * @param usage A {@link UsageDetails} object specifying the usage details of the trained model.
@@ -83,7 +83,7 @@ public class ModelCard {
 
     /**
      * Creates an instance of ModelCard that has its {@link UsageDetails} set to null.
-     * <p>
+     *
      * @param model The trained model for which a model card will be built.
      * @param evaluation An {@link Evaluation} object for the trained model.
      * @param testingMetrics A map of metric descriptions paired with their corresponding metric values for the trained model.
@@ -94,7 +94,7 @@ public class ModelCard {
 
     /**
      * Creates an instance of ModelCard that does not include any extracted metrics and has its {@link UsageDetails} set to null.
-     * <p>
+     *
      * @param model The trained model for which a model card will be built.
      * @param evaluation An {@link Evaluation} object for the trained model.
      */
@@ -103,11 +103,25 @@ public class ModelCard {
     }
 
     /**
+     * Creates an instance of ModelCard that does not include any testing metrics and has its {@link UsageDetails} set to null.
+     *
+     * @param model The trained model for which a model card will be built.
+     */
+    ModelCard(Model<?> model) {
+        if (model instanceof ExternalModel) {
+            throw new IllegalArgumentException("External models currently not supported by ModelCard.");
+        }
+        modelDetails = new ModelDetails(model);
+        trainingDetails = new TrainingDetails(model);
+        testingDetails = new TestingDetails();
+        usageDetails = null;
+    }
+
+    /**
      * Creates an instance of ModelCard.
-     * <p>
-     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
      * @param modelCard The Json content corresponding to a serialized ModelCard that will be used to recreate
      * a new instance of a ModelCard.
+     * @throws JsonProcessingException if a problem is encountered when processing Json content.
      */
     private ModelCard(JsonNode modelCard) throws JsonProcessingException {
         modelDetails = new ModelDetails(modelCard.get("ModelDetails"));
@@ -122,10 +136,9 @@ public class ModelCard {
 
     /**
      * Reads the Json content corresponding to a ModelCard from file and instantiates it.
-     * <p>
-     * Throws {@link IOException} if a problem is encountered when processing Json content.
      * @param sourceFile The Json file path corresponding to a serialized ModelCard.
      * @return A {@link ModelCard} object corresponding to the provided serialized ModelCard.
+     * @throws IOException If the model card could not be read from the path, or the Json failed to parse.
      */
     public static ModelCard deserializeFromJson(Path sourceFile) throws IOException {
         JsonNode modelCard = mapper.readTree(sourceFile.toFile());
@@ -134,11 +147,11 @@ public class ModelCard {
 
     /**
      * Reads the Json content corresponding to a ModelCard and instantiates it.
-     * <p>
-     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     *
      * @param modelCard The Json content corresponding to a serialized ModelCard that will be used to recreate
      * a new instance of a ModelCard.
      * @return A ModelCard object corresponding to the provided serialized ModelCard.
+     * @throws JsonProcessingException if a problem is encountered when processing Json content.
      */
     public static ModelCard deserializeFromJson(JsonNode modelCard) throws JsonProcessingException {
         return new ModelCard(modelCard);
@@ -195,9 +208,9 @@ public class ModelCard {
 
     /**
      * Serializes and saves the ModelCard object to the specified path.
-     * <p>
-     * Throws {@link IOException} if a problem is encountered when processing Json content.
+     *
      * @param destinationFile The file path to which the serialized ModelCard will be saved.
+     * @throws IOException if a problem is encountered when processing Json content or writing the file.
      */
     public void saveToFile(Path destinationFile) throws IOException {
         ObjectNode modelCardObject = toJson();

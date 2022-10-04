@@ -20,18 +20,14 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.classification.sgd.protos.CRFParametersProto;
-import org.tribuo.common.sgd.FMParameters;
-import org.tribuo.common.sgd.protos.FMParametersProto;
 import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.protos.ParametersProto;
-import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
 import org.tribuo.protos.ProtoUtil;
@@ -95,6 +91,8 @@ public class CRFParameters implements Parameters, Serializable {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static CRFParameters deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {

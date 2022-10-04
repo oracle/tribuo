@@ -69,6 +69,12 @@ public enum ClusteringMetrics {
         return adjustedMI(context.getPredictedIDs(), context.getTrueIDs());
     }
 
+    /**
+     * Calculates the adjusted normalized mutual information between two clusterings.
+     * @param predictedIDs The predicted cluster ids.
+     * @param trueIDs The ground truth cluster ids.
+     * @return The adjusted normalized mutual information.
+     */
     public static double adjustedMI(List<Integer> predictedIDs, List<Integer> trueIDs) {
         double mi = InformationTheory.mi(predictedIDs, trueIDs);
         double predEntropy = InformationTheory.entropy(predictedIDs);

@@ -30,15 +30,11 @@ import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.DenseTensorProto;
 import org.tribuo.math.protos.ShrinkingDenseTensorProto;
 import org.tribuo.math.protos.TensorProto;
-import org.tribuo.util.Util;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.DoubleUnaryOperator;
-import java.util.stream.Collectors;
 
 /**
  * A subclass of {@link DenseMatrix} which shrinks the value every time a new value is added.
@@ -126,6 +122,8 @@ public class ShrinkingMatrix extends DenseMatrix implements ShrinkingTensor {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static ShrinkingMatrix deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {

@@ -451,6 +451,11 @@ public final class LibSVMDataSource<T extends Output<T>> implements Configurable
             this.sha256Hash = (HashProvenance) info.instanceValues.get(RESOURCE_HASH);
         }
 
+        /**
+         * Separates out the configured and non-configured provenance values.
+         * @param map The provenances to separate.
+         * @return The extracted provenance information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, LibSVMDataSourceProvenance.class.getSimpleName()).getValue();

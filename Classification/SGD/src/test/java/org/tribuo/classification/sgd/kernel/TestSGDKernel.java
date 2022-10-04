@@ -24,13 +24,10 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
-import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.math.kernel.RBF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.tribuo.math.la.Tensor;
-import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.test.Helpers;
 
 import java.util.List;

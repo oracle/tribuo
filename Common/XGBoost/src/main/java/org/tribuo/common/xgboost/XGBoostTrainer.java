@@ -178,38 +178,74 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         }
     }
 
+    /**
+     * The XGBoost parameter map, only accessed internally.
+     */
     protected final Map<String, Object> parameters = new HashMap<>();
 
+    /**
+     * Override for the parameter map, must contain all parameters, including the objective function.
+     */
     @Config(description = "Override for parameters, if used must contain all the relevant parameters, including the objective")
     protected Map<String, String> overrideParameters = new HashMap<>();
 
+    /**
+     * The number of trees to build.
+     */
     @Config(mandatory = true,description="The number of trees to build.")
     protected int numTrees;
 
+    /**
+     * The learning rate.
+     */
     @Config(description = "The learning rate, shrinks the new tree output to prevent overfitting.")
     private double eta = 0.3;
 
+    /**
+     * Minimum loss reduction to split a node.
+     */
     @Config(description = "Minimum loss reduction needed to split a tree node.")
     private double gamma = 0.0;
 
+    /**
+     * Max tree depth.
+     */
     @Config(description="The maximum depth of any tree.")
     private int maxDepth = 6;
 
+    /**
+     * Minimum weight in each child node before the split is valid.
+     */
     @Config(description = "The minimum weight in each child node before a split is valid.")
     private double minChildWeight = 1.0;
 
+    /**
+     * Subsample the examples (i.e., bagging).
+     */
     @Config(description="Independently subsample the examples for each tree.")
     private double subsample = 1.0;
 
+    /**
+     * Subsample the columns.
+     */
     @Config(description="Independently subsample the features available for each node of each tree.")
     private double featureSubsample = 1.0;
 
+    /**
+     * L2 regularisation term
+     */
     @Config(description="l2 regularisation term on the weights.")
     private double lambda = 1.0;
 
+    /**
+     * L1 regularisation term.
+     */
     @Config(description="l1 regularisation term on the weights.")
     private double alpha = 1.0;
 
+    /**
+     * Number of training threads.
+     */
     @Config(description="The number of threads to use at training time.")
     private int nThread = 4;
 
@@ -232,6 +268,9 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
     @Config(description="The RNG seed.")
     private long seed = Trainer.DEFAULT_SEED;
 
+    /**
+     * Number of times the {@code train} method has been called on this object.
+     */
     protected int trainInvocationCounter = 0;
 
     /**
@@ -383,6 +422,16 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         return buffer.toString();
     }
 
+    /**
+     * Creates an XGBoost model from the booster list.
+     * @param name The model name.
+     * @param provenance The model provenance.
+     * @param featureIDMap The feature domain.
+     * @param outputIDInfo The output domain.
+     * @param models The boosters.
+     * @param converter The converter from XGBoost's output to Tribuo predictions.
+     * @return An XGBoost model.
+     */
     protected XGBoostModel<T> createModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo, List<Booster> models, XGBoostOutputConverter<T> converter) {
         return new XGBoostModel<>(name,provenance,featureIDMap,outputIDInfo,models,converter);
     }
@@ -390,6 +439,7 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
     /**
      * Returns a copy of the supplied parameter map which
      * has the appropriate type for passing to XGBoost.train.
+     * @param input The parameter map.
      * @return A (shallow) copy of the supplied map.
      */
     protected Map<String,Object> copyParams(Map<String, ?> input) {
@@ -410,14 +460,37 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         this.trainInvocationCounter = invocationCount;
     }
 
+    /**
+     * Converts a dataset into a DMatrix.
+     * @param examples The examples to convert.
+     * @param responseExtractor The extraction function for the output.
+     * @param <T> The type of the output.
+     * @return A DMatrixTuple.
+     * @throws XGBoostError If the native library failed to construct the DMatrix.
+     */
     protected static <T extends Output<T>> DMatrixTuple<T> convertDataset(Dataset<T> examples, Function<T,Float> responseExtractor) throws XGBoostError {
         return convertExamples(examples.getData(), examples.getFeatureIDMap(), responseExtractor);
     }
 
+    /**
+     * Converts a dataset into a DMatrix.
+     * @param examples The examples to convert.
+     * @param <T> The type of the output.
+     * @return A DMatrixTuple.
+     * @throws XGBoostError If the native library failed to construct the DMatrix.
+     */
     protected static <T extends Output<T>> DMatrixTuple<T> convertDataset(Dataset<T> examples) throws XGBoostError {
         return convertExamples(examples.getData(), examples.getFeatureIDMap(), null);
     }
 
+    /**
+     * Converts an iterable of examples into a DMatrix.
+     * @param examples The examples to convert.
+     * @param featureMap The feature id map which supplies the indices.
+     * @param <T> The type of the output.
+     * @return A DMatrixTuple.
+     * @throws XGBoostError If the native library failed to construct the DMatrix.
+     */
     protected static <T extends Output<T>> DMatrixTuple<T> convertExamples(Iterable<Example<T>> examples, ImmutableFeatureMap featureMap) throws XGBoostError {
         return convertExamples(examples, featureMap, null);
     }
@@ -479,12 +552,20 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
         return new DMatrixTuple<>(dataMatrix,Util.toPrimitiveInt(numValidFeatures),exampleArray);
     }
 
+    /**
+     * Converts an example into a DMatrix.
+     * @param example The example to convert.
+     * @param featureMap The feature id map which supplies the indices.
+     * @param <T> The type of the output.
+     * @return A DMatrixTuple.
+     * @throws XGBoostError If the native library failed to construct the DMatrix.
+     */
     protected static <T extends Output<T>> DMatrixTuple<T> convertExample(Example<T> example, ImmutableFeatureMap featureMap) throws XGBoostError {
         return convertExample(example,featureMap,null);
     }
 
     /**
-     * Converts an examples into a DMatrix.
+     * Converts an example into a DMatrix.
      * @param example The example to convert.
      * @param featureMap The feature id map which supplies the indices.
      * @param responseExtractor The extraction function for the output.
@@ -688,11 +769,26 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
      * @param <T> The output type.
      */
     protected static class DMatrixTuple<T extends Output<T>> {
+        /**
+         * The data matrix.
+         */
         public final DMatrix data;
+        /**
+         * The number of valid features in each example.
+         */
         public final int[] numValidFeatures;
+        /**
+         * The examples.
+         */
         public final Example<T>[] examples;
 
-        public DMatrixTuple(DMatrix data, int[] numValidFeatures, Example<T>[] examples) {
+        /**
+         * Constructs a tuple containing the data and some Tribuo metadata.
+         * @param data The data matrix.
+         * @param numValidFeatures The number of valid features in each example.
+         * @param examples The examples.
+         */
+        protected DMatrixTuple(DMatrix data, int[] numValidFeatures, Example<T>[] examples) {
             this.data = data;
             this.numValidFeatures = numValidFeatures;
             this.examples = examples;
@@ -701,15 +797,25 @@ public abstract class XGBoostTrainer<T extends Output<T>> implements Trainer<T>,
 
     /**
      * Provenance for {@link XGBoostTrainer}. No longer used.
+     * @deprecated Unused.
      */
     @Deprecated
     protected static class XGBoostTrainerProvenance extends SkeletalTrainerProvenance {
         private static final long serialVersionUID = 1L;
 
+        /**
+         * Constructs an XGBoostTrainerProvenance
+         * @param host The host object.
+         * @param <T> The output type.
+         */
         protected <T extends Output<T>> XGBoostTrainerProvenance(XGBoostTrainer<T> host) {
             super(host);
         }
 
+        /**
+         * Deserializes an XGBoostTrainerProvenance.
+         * @param map The map to deserialize from.
+         */
         protected XGBoostTrainerProvenance(Map<String,Provenance> map) {
             super(map);
         }

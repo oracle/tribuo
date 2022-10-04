@@ -31,7 +31,6 @@ import org.tribuo.VariableInfo;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.ImmutableSequenceDatasetProto;
 import org.tribuo.protos.core.SequenceDatasetProto;
-import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.util.Merger;
@@ -158,6 +157,8 @@ public class ImmutableSequenceDataset<T extends Output<T>> extends SequenceDatas
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
     public static ImmutableSequenceDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

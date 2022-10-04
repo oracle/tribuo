@@ -19,7 +19,6 @@ package org.tribuo.regression.impl;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.SparseModel;
 import org.tribuo.math.la.SparseVector;
@@ -38,6 +37,9 @@ import java.util.Map;
 public abstract class SkeletalIndependentRegressionSparseModel extends SparseModel<Regressor> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The output dimension names.
+     */
     protected final String[] dimensions;
 
     /**

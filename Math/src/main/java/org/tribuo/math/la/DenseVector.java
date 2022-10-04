@@ -55,6 +55,9 @@ public class DenseVector implements SGDVector {
     public static final int CURRENT_VERSION = 0;
 
     private final int[] shape;
+    /**
+     * The value array.
+     */
     protected final double[] elements;
 
     /**
@@ -146,6 +149,8 @@ public class DenseVector implements SGDVector {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static DenseVector deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
@@ -280,6 +285,7 @@ public class DenseVector implements SGDVector {
      * @param initialValue The initial value.
      * @param op The element wise operation to apply before reducing.
      * @param reduction The reduction operation (should be commutative).
+     * @param <T> The output type to reduce to.
      * @return The reduced value.
      */
     public <T> T reduce(T initialValue, DoubleUnaryOperator op, BiFunction<Double, T, T> reduction) {

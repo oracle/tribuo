@@ -242,6 +242,7 @@ public final class MeanStdDevTransformation implements Transformation {
          * @param className The class name.
          * @param message The serialized data.
          * @throws InvalidProtocolBufferException If the message is not a {@link MeanStdDevTransformerProto}.
+         * @return The deserialized object.
          */
         static MeanStdDevTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             MeanStdDevTransformerProto proto = message.unpack(MeanStdDevTransformerProto.class);

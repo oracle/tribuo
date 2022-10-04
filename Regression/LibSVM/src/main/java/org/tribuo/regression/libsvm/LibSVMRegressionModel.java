@@ -25,7 +25,6 @@ import libsvm.svm_node;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
-import org.tribuo.Model;
 import org.tribuo.ONNXExportable;
 import org.tribuo.Prediction;
 import org.tribuo.common.libsvm.KernelType;
@@ -158,6 +157,8 @@ public class LibSVMRegressionModel extends LibSVMModel<Regressor> implements ONN
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static LibSVMRegressionModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {

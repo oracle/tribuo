@@ -23,7 +23,6 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorIterator;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.MergerProto;
-import org.tribuo.math.protos.NormalizerProto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +54,7 @@ public class HeapMerger implements Merger {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static HeapMerger deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > CURRENT_VERSION) {

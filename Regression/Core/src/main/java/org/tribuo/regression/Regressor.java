@@ -20,7 +20,6 @@ import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import com.oracle.labs.mlrg.olcut.util.SortUtil;
-import java.util.Objects;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.OutputProto;
@@ -161,6 +160,8 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static Regressor deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > 0) {
@@ -581,6 +582,8 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
          * @param version The serialized object version.
          * @param className The class name.
          * @param message The serialized data.
+         * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+         * @return The deserialized object.
          */
         public static DimensionTuple deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
             if (version < 0 || version > 0) {

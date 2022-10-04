@@ -54,6 +54,7 @@ public final class XGBoostRegressionConverter implements XGBoostOutputConverter<
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static XGBoostRegressionConverter deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > CURRENT_VERSION) {

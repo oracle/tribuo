@@ -187,9 +187,11 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks
-    public static <T extends Output<T>> SequenceExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static SequenceExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }

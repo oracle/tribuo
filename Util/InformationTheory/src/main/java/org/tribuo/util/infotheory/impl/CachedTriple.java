@@ -38,8 +38,17 @@ public class CachedTriple<T1, T2, T3> implements Serializable {
     private final CachedPair<T1,T3> ac;
     private final CachedPair<T2,T3> bc;
 
+    /**
+     * The first element.
+     */
     protected final T1 a;
+    /**
+     * The second element.
+     */
     protected final T2 b;
+    /**
+     * The third element.
+     */
     protected final T3 c;
 
     private final int cachedHash;

@@ -40,7 +40,6 @@ import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.MinimumCardinalitySequenceDatasetProto;
 import org.tribuo.protos.core.SequenceDatasetProto;
-import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 
@@ -172,6 +171,8 @@ public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends Immu
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
     public static MinimumCardinalitySequenceDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

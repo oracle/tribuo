@@ -26,6 +26,9 @@ import org.tribuo.provenance.FeatureSelectorProvenance;
  */
 public interface FeatureSelector<T extends Output<T>> extends Configurable, Provenancable<FeatureSelectorProvenance> {
 
+    /**
+     * Constant which denotes a full feature ranking should be generated rather than a subset.
+     */
     public static final int SELECT_ALL = -1;
 
     /**

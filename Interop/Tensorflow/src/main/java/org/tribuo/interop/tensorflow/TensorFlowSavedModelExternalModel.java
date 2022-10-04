@@ -113,6 +113,8 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check that the output domain and converter are compatible
     public static TensorFlowSavedModelExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

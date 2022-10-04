@@ -158,9 +158,11 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks.
-    public static <T extends Output<T>> ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -168,7 +170,7 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
         if ((proto.getFeatureNameCount() != proto.getFeatureValueCount()) || (proto.getFeatureNameCount() != proto.getFeatureIdxCount())) {
             throw new IllegalStateException("Invalid protobuf, different numbers of feature names, ids and values, found " + proto.getFeatureNameCount() + " names, " + proto.getFeatureIdxCount() + " ids, and " + proto.getFeatureValueCount() + " values.");
         }
-        T output = ProtoUtil.deserialize(proto.getOutput());
+        Output<?> output = ProtoUtil.deserialize(proto.getOutput());
         int outputID = proto.getOutputIdx();
 
         FeatureMap fmap = ProtoUtil.deserialize(proto.getFeatureDomain());
@@ -198,7 +200,7 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
             }
             featureValues[i] = proto.getFeatureValue(i);
         }
-        return new IndexedArrayExample<>(output,outputID,proto.getWeight(),featureNames,featureIDs,featureValues,proto.getMetadataMap(),featureDomain,outputDomain);
+        return new IndexedArrayExample(output,outputID,proto.getWeight(),featureNames,featureIDs,featureValues,proto.getMetadataMap(),featureDomain,outputDomain);
     }
 
     @Override

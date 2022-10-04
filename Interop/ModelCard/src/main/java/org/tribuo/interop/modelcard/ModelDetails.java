@@ -54,10 +54,10 @@ public final class ModelDetails {
 
     /**
      * Creates an instance of ModelDetails.
-     * <p>
-     * Throws {@link JsonProcessingException} if a problem is encountered when processing Json content.
+     *
      * @param modelDetailsJson The Json content corresponding to a serialized ModelDetails that will be used to recreate
      * a new instance of a ModelDetails.
+     * @throws JsonProcessingException if a problem is encountered when processing Json content.
      */
     public ModelDetails(JsonNode modelDetailsJson) throws JsonProcessingException {
         modelType = modelDetailsJson.get("model-type").textValue();

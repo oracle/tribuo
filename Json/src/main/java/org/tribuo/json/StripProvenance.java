@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,8 @@ import static org.tribuo.json.StripProvenance.ProvenanceTypes.TRAINER;
 public final class StripProvenance {
     private static final Logger logger = Logger.getLogger(StripProvenance.class.getName());
 
-    private StripProvenance() { }
+    private StripProvenance() {
+    }
 
     /**
      * Types of provenance that can be removed.
@@ -106,9 +107,10 @@ public final class StripProvenance {
 
     /**
      * Creates a new model provenance with the requested provenances stripped out.
-     * @param old The old model provenance.
+     *
+     * @param old            The old model provenance.
      * @param provenanceHash The hash of the provenance (if requested it can be written into the new provenance for tracking).
-     * @param opt The program options.
+     * @param opt            The program options.
      * @return A new model provenance.
      */
     private static ModelProvenance cleanProvenance(ModelProvenance old, String provenanceHash, StripProvenanceOptions opt) {
@@ -138,7 +140,7 @@ public final class StripProvenance {
         }
         if (opt.storeHash) {
             logger.info("Writing provenance hash into instance map.");
-            instanceProvenance.put("original-provenance-hash",new HashProvenance(opt.hashType,"original-provenance-hash",provenanceHash));
+            instanceProvenance.put("original-provenance-hash", new HashProvenance(opt.hashType, "original-provenance-hash", provenanceHash));
         }
 
         boolean stripSystem;
@@ -148,15 +150,16 @@ public final class StripProvenance {
             stripSystem = false;
         }
 
-        return new ModelProvenance(old.getClassName(),time,datasetProvenance,trainerProvenance,instanceProvenance,!stripSystem);
+        return new ModelProvenance(old.getClassName(), time, datasetProvenance, trainerProvenance, instanceProvenance, !stripSystem);
     }
 
     /**
      * Creates a new ensemble provenance with the requested information removed.
-     * @param old The old ensemble provenance.
+     *
+     * @param old              The old ensemble provenance.
      * @param memberProvenance The new member provenances.
-     * @param provenanceHash The old ensemble provenance hash.
-     * @param opt The program options.
+     * @param provenanceHash   The old ensemble provenance hash.
+     * @param opt              The program options.
      * @return The new ensemble provenance with the requested fields removed.
      */
     private static EnsembleModelProvenance cleanEnsembleProvenance(EnsembleModelProvenance old, ListProvenance<ModelProvenance> memberProvenance, String provenanceHash, StripProvenanceOptions opt) {
@@ -186,21 +189,22 @@ public final class StripProvenance {
         }
         if (opt.storeHash) {
             logger.info("Writing provenance hash into instance map.");
-            instanceProvenance.put("original-provenance-hash",new HashProvenance(opt.hashType,"original-provenance-hash",provenanceHash));
+            instanceProvenance.put("original-provenance-hash", new HashProvenance(opt.hashType, "original-provenance-hash", provenanceHash));
         }
-        return new EnsembleModelProvenance(old.getClassName(),time,datasetProvenance,trainerProvenance,instanceProvenance,memberProvenance);
+        return new EnsembleModelProvenance(old.getClassName(), time, datasetProvenance, trainerProvenance, instanceProvenance, memberProvenance);
     }
 
     /**
      * Creates a copy of the old model with the requested provenance removed.
-     * @param oldModel The model to remove provenance from.
+     *
+     * @param oldModel       The model to remove provenance from.
      * @param provenanceHash A hash of the old provenance.
-     * @param opt The program options.
-     * @param <T> The output type.
+     * @param opt            The program options.
+     * @param <T>            The output type.
      * @return A copy of the model with redacted provenance.
      * @throws InvocationTargetException If the model doesn't expose a copy method (all models should do).
-     * @throws IllegalAccessException If the model's copy method is not accessible.
-     * @throws NoSuchMethodException If the model's copy method isn't present.
+     * @throws IllegalAccessException    If the model's copy method is not accessible.
+     * @throws NoSuchMethodException     If the model's copy method isn't present.
      */
     @SuppressWarnings("unchecked") // cast of model after call to copy which returns model.
     private static <T extends Output<T>> ModelTuple<T> convertModel(Model<T> oldModel, String provenanceHash, StripProvenanceOptions opt) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
@@ -209,12 +213,12 @@ public final class StripProvenance {
             List<ModelProvenance> newProvenances = new ArrayList<>();
             List<Model<T>> newModels = new ArrayList<>();
             for (Model<T> e : ((EnsembleModel<T>) oldModel).getModels()) {
-                ModelTuple<T> tuple = convertModel(e,provenanceHash,opt);
+                ModelTuple<T> tuple = convertModel(e, provenanceHash, opt);
                 newProvenances.add(tuple.provenance);
                 newModels.add(tuple.model);
             }
             ListProvenance<ModelProvenance> listProv = new ListProvenance<>(newProvenances);
-            EnsembleModelProvenance cleanedProvenance = cleanEnsembleProvenance(oldProvenance,listProv,provenanceHash,opt);
+            EnsembleModelProvenance cleanedProvenance = cleanEnsembleProvenance(oldProvenance, listProv, provenanceHash, opt);
             Class<? extends Model> clazz = oldModel.getClass();
             Method copyMethod = clazz.getDeclaredMethod("copy", String.class, ModelProvenance.class, List.class);
             boolean accessible = copyMethod.isAccessible();
@@ -276,14 +280,19 @@ public final class StripProvenance {
          */
         @Option(charName = 't', longName = "hash-type", usage = "The hash type to use.")
         public ProvenanceUtil.HashType hashType = ObjectProvenance.DEFAULT_HASH_TYPE;
+        /**
+         * Read and write protobuf formatted models.
+         */
+        @Option(longName = "model-protobuf", usage = "Read and write protobuf formatted models.")
+        public boolean protobuf;
     }
 
     /**
      * Runs StripProvenance.
+     *
      * @param args the command line arguments
      * @param <T>  The {@link Output} subclass.
      */
-    @SuppressWarnings("unchecked")
     public static <T extends Output<T>> void main(String[] args) {
 
         //
@@ -304,12 +313,18 @@ public final class StripProvenance {
             System.exit(1);
         }
 
-        try (ObjectInputStream ois = IOUtil.getObjectInputStream(o.inputModel);
-             ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(o.outputModel))) {
+        try {
             logger.info("Loading model from " + o.inputModel);
-            Model<T> input = (Model<T>) ois.readObject();
+            Model<?> model;
+            if (o.protobuf) {
+                model = Model.deserializeFromFile(o.inputModel.toPath());
+            } else {
+                try (ObjectInputStream ois = IOUtil.getObjectInputStream(o.inputModel)) {
+                    model = (Model<?>) ois.readObject();
+                }
+            }
 
-            ModelProvenance oldProvenance = input.getProvenance();
+            ModelProvenance oldProvenance = model.getProvenance();
 
             logger.info("Marshalling provenance and creating JSON.");
             JsonProvenanceSerialization jsonProvenanceSerialization = new JsonProvenanceSerialization(true);
@@ -328,9 +343,11 @@ public final class StripProvenance {
                 }
             }
 
-            ModelTuple<T> tuple = convertModel(input,provenanceHash,o);
+            ModelTuple<?> tuple = convertModel(model, provenanceHash, o);
             logger.info("Writing model to " + o.outputModel);
-            oos.writeObject(tuple.model);
+            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(o.outputModel))) {
+                oos.writeObject(tuple.model);
+            }
 
             ModelProvenance newProvenance = tuple.provenance;
             logger.info("Marshalling provenance and creating JSON.");
@@ -339,26 +356,27 @@ public final class StripProvenance {
             logger.info("Old provenance = \n" + jsonResult);
             logger.info("New provenance = \n" + newJsonResult);
         } catch (NoSuchMethodException e) {
-            logger.log(Level.SEVERE, "Model.copy method missing on a class which extends Model.",e);
+            logger.log(Level.SEVERE, "Model.copy method missing on a class which extends Model.", e);
         } catch (IllegalAccessException e) {
-            logger.log(Level.SEVERE, "Failed to modify protection on inner copy method on Model.",e);
+            logger.log(Level.SEVERE, "Failed to modify protection on inner copy method on Model.", e);
         } catch (InvocationTargetException e) {
-            logger.log(Level.SEVERE, "Failed to invoke inner copy method on Model.",e);
+            logger.log(Level.SEVERE, "Failed to invoke inner copy method on Model.", e);
         } catch (UnsupportedEncodingException e) {
-            logger.log(Level.SEVERE, "Unsupported encoding exception.",e);
+            logger.log(Level.SEVERE, "Unsupported encoding exception.", e);
         } catch (FileNotFoundException e) {
-            logger.log(Level.SEVERE, "Failed to find the input file.",e);
+            logger.log(Level.SEVERE, "Failed to find the input file.", e);
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "IO error when reading or writing a file.",e);
+            logger.log(Level.SEVERE, "IO error when reading or writing a file.", e);
         } catch (ClassNotFoundException e) {
-            logger.log(Level.SEVERE, "The model and/or provenance classes are not on the classpath.",e);
+            logger.log(Level.SEVERE, "The model and/or provenance classes are not on the classpath.", e);
         }
 
     }
 
     /**
      * It's a record. Or at least it will be.
-     * @param <T> The ouput type.
+     *
+     * @param <T> The output type.
      */
     private static class ModelTuple<T extends Output<T>> {
         public final Model<T> model;
@@ -366,7 +384,8 @@ public final class StripProvenance {
 
         /**
          * Constructs a model tuple.
-         * @param model The model.
+         *
+         * @param model      The model.
          * @param provenance The provenance.
          */
         public ModelTuple(Model<T> model, ModelProvenance provenance) {

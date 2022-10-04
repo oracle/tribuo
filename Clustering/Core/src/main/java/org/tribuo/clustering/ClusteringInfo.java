@@ -40,8 +40,14 @@ import java.util.Set;
 public abstract class ClusteringInfo implements OutputInfo<ClusterID> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The cluster counts for each id.
+     */
     @ProtoSerializableKeysValuesField(keysName = "id", valuesName = "count")
     protected final Map<Integer,MutableLong> clusterCounts;
+    /**
+     * The number of times this object has seen the unknown cluster id.
+     */
     @ProtoSerializableField
     protected int unknownCount = 0;
 

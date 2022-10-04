@@ -30,9 +30,15 @@ public abstract class SimpleFieldExtractor<T> implements FieldExtractor<T> {
 
     private static final Logger logger = Logger.getLogger(SimpleFieldExtractor.class.getName());
 
+    /**
+     * The field name to read.
+     */
     @Config(mandatory = true,description="The field name to read.")
     protected String fieldName;
 
+    /**
+     * The metadata key to emit.
+     */
     @Config(description="The metadata key to emit, defaults to field name if unpopulated")
     protected String metadataName;
 

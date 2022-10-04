@@ -23,7 +23,6 @@ import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.hash.Hasher;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.DatasetProto;
-import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.ImmutableDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
@@ -180,6 +179,8 @@ public class ImmutableDataset<T extends Output<T>> extends Dataset<T> implements
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
     public static ImmutableDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

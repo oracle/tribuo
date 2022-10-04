@@ -24,7 +24,6 @@ import org.tribuo.evaluation.metrics.MetricTarget;
 import org.tribuo.regression.Regressor;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.ToDoubleBiFunction;
 
 /**

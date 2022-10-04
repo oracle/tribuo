@@ -56,8 +56,17 @@ public class DenseMatrix implements Matrix {
 
     private static final double DELTA = 1e-10;
 
+    /**
+     * The value array.
+     */
     protected final double[][] values;
+    /**
+     * The number of rows.
+     */
     protected final int dim1;
+    /**
+     * The number of columns.
+     */
     protected final int dim2;
 
     private final int[] shape;
@@ -181,6 +190,8 @@ public class DenseMatrix implements Matrix {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static DenseMatrix deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {

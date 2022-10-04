@@ -45,6 +45,7 @@ public class NoopNormalizer implements VectorNormalizer, Serializable {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static NoopNormalizer deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > CURRENT_VERSION) {

@@ -22,9 +22,7 @@ import org.tribuo.evaluation.Evaluation;
 import org.tribuo.evaluation.Evaluator;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
-import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
 import java.io.Serializable;
@@ -87,6 +85,14 @@ public interface OutputFactory<T extends Output<T>> extends Configurable, ProtoS
      * @return An evaluator.
      */
     public Evaluator<T,? extends Evaluation<T>> getEvaluator();
+
+    /**
+     * Gets the output class that this factory supports.
+     * @return The output class.
+     */
+    default public Class<T> getTypeWitness() {
+        throw new UnsupportedOperationException("This class must be updated to support protobuf serialization");
+    }
 
     /**
      * Generate a list of outputs from the supplied list of inputs.

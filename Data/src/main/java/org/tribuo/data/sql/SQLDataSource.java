@@ -23,12 +23,10 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
-import org.tribuo.DataSource;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ColumnarDataSource;
 import org.tribuo.data.columnar.ColumnarIterator;
-import org.tribuo.data.columnar.FieldProcessor;
 import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 
@@ -147,6 +145,11 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
             this.dataSourceCreationTime = (DateTimeProvenance) info.instanceValues.get(DATASOURCE_CREATION_TIME);
         }
 
+        /**
+         * Separates out the configured and non-configured provenance values.
+         * @param map The provenances to separate.
+         * @return The extracted provenance information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, SQLDataSourceProvenance.class.getSimpleName()).getValue();

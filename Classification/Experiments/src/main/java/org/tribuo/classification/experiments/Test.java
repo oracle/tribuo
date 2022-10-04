@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,11 @@ public class Test {
          */
         @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
         public Path testingPath;
+        /**
+         * Load the model in protobuf format.
+         */
+        @Option(longName = "read-protobuf-model", usage = "Load the model in protobuf format.")
+        public boolean protobufModel;
     }
 
     /**
@@ -129,16 +134,17 @@ public class Test {
         Path modelPath = o.modelPath;
         Path datasetPath = o.testingPath;
         logger.info(String.format("Loading model from %s", modelPath));
-        Model<Label> model;
-        try (ObjectInputStream mois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(modelPath.toFile())))) {
-            model = (Model<Label>) mois.readObject();
-            boolean valid = model.validate(Label.class);
-            if (!valid) {
-                throw new ClassCastException("Failed to cast deserialised Model to Model<Label>");
+        Model<?> tmpModel;
+        if (o.protobufModel) {
+            tmpModel = Model.deserializeFromFile(modelPath);
+        } else {
+            try (ObjectInputStream mois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(modelPath.toFile())))) {
+                tmpModel = (Model<?>) mois.readObject();
+            } catch (ClassNotFoundException e) {
+                throw new IllegalArgumentException("Unknown class in serialised model", e);
             }
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Unknown class in serialised model", e);
         }
+        Model<Label> model = tmpModel.castModel(Label.class);
         logger.info(String.format("Loading data from %s", datasetPath));
         Dataset<Label> test;
         switch (o.inputFormat) {
@@ -152,6 +158,18 @@ public class Test {
                     logger.info(String.format("Loaded %d testing examples for %s", test.size(), test.getOutputs().toString()));
                 } catch (ClassNotFoundException e) {
                     throw new IllegalArgumentException("Unknown class in serialised dataset", e);
+                }
+                break;
+            case SERIALIZED_PROTOBUF:
+                //
+                // Load Tribuo protobuf serialised datasets.
+                Dataset<?> tmp = Dataset.deserializeFromFile(datasetPath);
+                if (tmp.validate(Label.class)) {
+                    test = Dataset.castDataset(tmp, Label.class);
+                    test = ImmutableDataset.copyDataset(test,model.getFeatureIDMap(),model.getOutputIDInfo());
+                    logger.info(String.format("Loaded %d testing examples for %s", test.size(), test.getOutputs().toString()));
+                } else {
+                    throw new IllegalArgumentException("Invalid test dataset type, expected Label.class");
                 }
                 break;
             case LIBSVM:

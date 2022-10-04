@@ -69,6 +69,9 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
 
     private static final Pattern splitPattern = Pattern.compile("##");
 
+    /**
+     * The data source provenance.
+     */
     protected ConfiguredDataSourceProvenance provenance;
 
     /**
@@ -100,6 +103,11 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
         postConfig();
     }
 
+    /**
+     * Cosntructs a data source without a path.
+     * @param outputFactory The output factory.
+     * @param extractor The text extraction pipeline.
+     */
     protected SimpleTextDataSource(OutputFactory<T> outputFactory, TextFeatureExtractor<T> extractor) {
         super((Path)null,outputFactory,extractor);
     }
@@ -113,6 +121,12 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
         provenance = cacheProvenance();
     }
 
+    /**
+     * Parses a line in Tribuo's default text format.
+     * @param line The line to parse.
+     * @param n The current line number.
+     * @return An example or an empty optional if it failed to parse.
+     */
     protected Optional<Example<T>> parseLine(String line, int n) {
         line = line.trim();
         if(line.isEmpty()) {
@@ -158,6 +172,10 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
         return provenance;
     }
 
+    /**
+     * Computes the provenance.
+     * @return The provenance.
+     */
     protected ConfiguredDataSourceProvenance cacheProvenance() {
         return new SimpleTextDataSourceProvenance(this);
     }
@@ -194,6 +212,11 @@ public class SimpleTextDataSource<T extends Output<T>> extends TextDataSource<T>
             this.sha256Hash = (HashProvenance) info.instanceValues.get(RESOURCE_HASH);
         }
 
+        /**
+         * Separates out the configured and non-configured provenance values.
+         * @param map The provenances to separate.
+         * @return The extracted provenance information.
+         */
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, SimpleTextDataSourceProvenance.class.getSimpleName()).getValue();

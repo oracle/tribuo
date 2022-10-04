@@ -16,7 +16,6 @@
 
 package org.tribuo.common.libsvm;
 
-import com.google.protobuf.EmptyOrBuilder;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import libsvm.svm_parameter;
 import org.tribuo.Example;

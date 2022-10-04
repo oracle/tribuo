@@ -37,7 +37,6 @@ import org.tribuo.VariableInfo;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.DatasetDataCarrier;
 import org.tribuo.protos.core.DatasetProto;
-import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.MinimumCardinalityDatasetProto;
 import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
@@ -154,6 +153,8 @@ public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDat
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
     public static MinimumCardinalityDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

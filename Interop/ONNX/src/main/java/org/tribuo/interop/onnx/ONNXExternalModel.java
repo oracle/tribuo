@@ -132,9 +132,12 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @throws OrtException If the ONNX model could not be instantiated.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"rawtypes","unchecked"}) // guarded by a getClass check
-    public static ONNXExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, IOException, OrtException {
+    public static ONNXExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, OrtException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }

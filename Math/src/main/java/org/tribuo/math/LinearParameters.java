@@ -19,8 +19,6 @@ package org.tribuo.math;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.ImmutableFeatureMap;
-import org.tribuo.VariableIDInfo;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
@@ -35,8 +33,6 @@ import org.tribuo.math.util.Merger;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
-import org.tribuo.protos.core.ImmutableFeatureMapProto;
-import org.tribuo.protos.core.VariableInfoProto;
 
 import java.util.Objects;
 
@@ -88,6 +84,8 @@ public class LinearParameters implements FeedForwardParameters {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     public static LinearParameters deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {

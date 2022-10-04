@@ -59,6 +59,7 @@ public final class ClusteringFactory implements OutputFactory<ClusterID> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @return The deserialized object.
      */
     public static ClusteringFactory deserializeFromProto(int version, String className, Any message) {
         if (version < 0 || version > 0) {
@@ -119,6 +120,11 @@ public final class ClusteringFactory implements OutputFactory<ClusterID> {
     @Override
     public Evaluator<ClusterID, ClusteringEvaluation> getEvaluator() {
         return evaluator;
+    }
+
+    @Override
+    public Class<ClusterID> getTypeWitness() {
+        return ClusterID.class;
     }
 
     @Override

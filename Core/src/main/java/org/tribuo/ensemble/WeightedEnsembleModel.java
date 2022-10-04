@@ -65,8 +65,14 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
      */
     public static final int CURRENT_VERSION = 0;
 
+    /**
+     * The ensemble member combination weights.
+     */
     protected final float[] weights;
 
+    /**
+     * The ensemble combination function.
+     */
     protected final EnsembleCombiner<T> combiner;
 
     /**
@@ -113,6 +119,8 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
     public static WeightedEnsembleModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {

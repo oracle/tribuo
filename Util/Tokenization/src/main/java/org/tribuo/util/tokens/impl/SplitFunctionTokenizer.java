@@ -214,6 +214,9 @@ public abstract class SplitFunctionTokenizer implements Tokenizer {
         public SplitResult apply(int codepoint, int index, CharSequence cs);
     }
 
+    /**
+     * The splitting function.
+     */
     protected SplitFunction splitFunction;
 
     /**
