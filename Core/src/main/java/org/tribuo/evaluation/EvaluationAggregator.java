@@ -175,6 +175,27 @@ public final class EvaluationAggregator {
     }
 
     /**
+     * Summarize all fields of a list of evaluations produced by {@link CrossValidation}.
+     * @param evaluations The evaluations to summarize.
+     * @param <T> The output type.
+     * @param <R> The evaluation type.
+     * @return The descriptive statistics for each metric.
+     */
+    public static <T extends Output<T>, R extends Evaluation<T>> Map<MetricID<T>, DescriptiveStats> summarizeCrossValidation(List<Pair<R, Model<T>>> evaluations) {
+        Map<MetricID<T>, DescriptiveStats> results = new HashMap<>();
+        for (Pair<R,Model<T>> pair : evaluations) {
+            R evaluation = pair.getA();
+            for (Map.Entry<MetricID<T>, Double> kv : evaluation.asMap().entrySet()) {
+                MetricID<T> key = kv.getKey();
+                DescriptiveStats summary = results.getOrDefault(key, new DescriptiveStats());
+                summary.addValue(kv.getValue());
+                results.put(key, summary);
+            }
+        }
+        return results;
+    }
+
+    /**
      * Summarize a single field of an evaluation across several evaluations.
      *
      * @param evaluations the evaluations

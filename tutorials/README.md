@@ -24,3 +24,4 @@ The tutorials cover:
 - [ONNX export and deployment](onnx-export-tribuo-v4.ipynb)
 - [Model reproducibility](reproducibility-tribuo-v4.ipynb)
 - [Documenting Tribuo Models with Model Cards](modelcard-tribuo-v4.ipynb)
+- [Feature selection for classification problems](feature-selection-tribuo-v4.ipynb)

@@ -19,6 +19,8 @@ package org.tribuo.protos;
 import com.google.protobuf.Any;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.Message;
+import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.util.MutableDouble;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import com.oracle.labs.mlrg.olcut.util.Pair;
@@ -278,6 +280,9 @@ public final class ProtoUtil {
     private static Object convert(Object obj) {
         if (obj instanceof ProtoSerializable) {
             return ((ProtoSerializable<?>) obj).serialize();
+        } else if (obj instanceof ObjectProvenance) {
+            return ProtoSerializable.PROVENANCE_SERIALIZER.serializeToProto(
+                    ProvenanceUtil.marshalProvenance((ObjectProvenance) obj));
         } else if (obj instanceof MutableLong) {
             return ((MutableLong) obj).longValue();
         } else if (obj instanceof MutableDouble) {

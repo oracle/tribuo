@@ -29,6 +29,7 @@ import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -331,6 +332,17 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         }
         int lookup = Util.sampleFromCDF(cdf,rng);
         return values[lookup];
+    }
+
+    /**
+     * Returns an array containing the observed values ordered by {@link Double#compare}.
+     * @return The observed values.
+     */
+    public double[] getValues() {
+        if (values == null) {
+            regenerateValues();
+        }
+        return Arrays.copyOf(values,values.length);
     }
 
     /**

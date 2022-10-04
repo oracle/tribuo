@@ -194,7 +194,7 @@ public class ModelProvenance implements ObjectProvenance {
     }
 
     /**
-     * The Tribuo version used to create this dataset.
+     * The Tribuo version used to create this model.
      * @return The Tribuo version.
      */
     public String getTribuoVersion() {

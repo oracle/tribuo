@@ -119,6 +119,11 @@ public final class TribuoCore {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_core_MeanVarianceProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_FeatureSetProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_FeatureSetProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -195,8 +200,11 @@ public final class TribuoCore {
       "erialized_data\030\003 \001(\0132\024.google.protobuf.A" +
       "ny\"o\n\021MeanVarianceProto\022\017\n\007version\030\001 \001(\005" +
       "\022\013\n\003max\030\002 \001(\001\022\013\n\003min\030\003 \001(\001\022\014\n\004mean\030\004 \001(\001" +
-      "\022\022\n\nsumSquares\030\005 \001(\001\022\r\n\005count\030\006 \001(\003B\032\n\026o" +
-      "rg.tribuo.protos.coreP\001b\006proto3"
+      "\022\022\n\nsumSquares\030\005 \001(\001\022\r\n\005count\030\006 \001(\003\"e\n\017F" +
+      "eatureSetProto\022\017\n\007version\030\001 \001(\005\022\022\n\nclass" +
+      "_name\030\002 \001(\t\022-\n\017serialized_data\030\003 \001(\0132\024.g" +
+      "oogle.protobuf.AnyB\032\n\026org.tribuo.protos." +
+      "coreP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -330,6 +338,12 @@ public final class TribuoCore {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_MeanVarianceProto_descriptor,
         new java.lang.String[] { "Version", "Max", "Min", "Mean", "SumSquares", "Count", });
+    internal_static_tribuo_core_FeatureSetProto_descriptor =
+      getDescriptor().getMessageTypes().get(20);
+    internal_static_tribuo_core_FeatureSetProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_FeatureSetProto_descriptor,
+        new java.lang.String[] { "Version", "ClassName", "SerializedData", });
     com.google.protobuf.AnyProto.getDescriptor();
     com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor();
   }
