@@ -442,6 +442,9 @@ public final class BinningTransformation implements Transformation {
         }
     }
 
+    /**
+     * The implementation of a {@link Transformer} which splits the input into n bins.
+     */
     @ProtoSerializableClass(version = BinningTransformer.CURRENT_VERSION, serializedDataClass = BinningTransformerProto.class)
     public static final class BinningTransformer implements Transformer {
         private static final long serialVersionUID = 1L;
@@ -458,6 +461,12 @@ public final class BinningTransformation implements Transformation {
         @ProtoSerializableField
         private final double[] values;
 
+        /**
+         * Constructs a binning transformer with the supplied bin widths and bin values.
+         * @param type The type of the generated bins.
+         * @param bins The bin start/end points.
+         * @param values The values for each bin.
+         */
         public BinningTransformer(BinningType type, double[] bins, double[] values) {
             if (bins == null || bins.length == 0) {
                 throw new IllegalArgumentException("Invalid bin array");
