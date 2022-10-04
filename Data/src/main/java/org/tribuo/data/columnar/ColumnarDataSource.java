@@ -32,12 +32,21 @@ import java.util.Optional;
  */
 public abstract class ColumnarDataSource<T extends Output<T>> implements ConfigurableDataSource<T> {
 
+    /**
+     * The output factory.
+     */
     @Config(mandatory = true,description="The output factory to use.")
     private OutputFactory<T> outputFactory;
 
+    /**
+     * The RowProcessor to use.
+     */
     @Config(mandatory = true,description="The row processor to use.")
     protected RowProcessor<T> rowProcessor;
 
+    /**
+     * Is an output required from each row?
+     */
     @Config(description="Is an output required from each row?")
     protected boolean outputRequired = true;
 

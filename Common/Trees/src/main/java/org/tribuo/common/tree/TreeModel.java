@@ -154,6 +154,8 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * This approach should traverse the entire tree in the correct order but we check at the end of the method
      * that everything looks good.  
      * @param nodeProtos The node protos to deserialize.
+     * @param outputClass The output type.
+     * @param <U> The output type of the nodes.
      * @return The nodes.
      * @throws InvalidProtocolBufferException If an unexpected proto is found.
      */
@@ -266,6 +268,13 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         return computeDepth(0,root);
     }
 
+    /**
+     * Computes the depth of the tree.
+     * @param initialDepth The current depth.
+     * @param root The root to probe.
+     * @return The tree depth.
+     * @param <T> The output type of the tree.
+     */
     protected static <T extends Output<T>> int computeDepth(int initialDepth, Node<T> root) {
         int maxDepth = initialDepth;
         Queue<Pair<Integer,Node<T>>> nodeQueue = new LinkedList<>();
@@ -484,6 +493,11 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         return builder.build();
     }
 
+    /**
+     * Serializes the supplied node tree into a list of protobufs.
+     * @param root The root of the tree to serialize.
+     * @return The protobuf list.
+     */
     protected List<TreeNodeProto> serializeToNodes(Node<T> root) {
         int numNodes = countNodes(root);
         TreeNodeProto[] protos = new TreeNodeProto[numNodes];

@@ -65,7 +65,13 @@ public class SparseVector implements SGDVector {
     public static final int CURRENT_VERSION = 0;
 
     private final int[] shape;
+    /**
+     * The indices array.
+     */
     protected final int[] indices;
+    /**
+     * The values array.
+     */
     protected final double[] values;
     private final int size;
 

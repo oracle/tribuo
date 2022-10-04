@@ -56,8 +56,17 @@ public class DenseMatrix implements Matrix {
 
     private static final double DELTA = 1e-10;
 
+    /**
+     * The value array.
+     */
     protected final double[][] values;
+    /**
+     * The number of rows.
+     */
     protected final int dim1;
+    /**
+     * The number of columns.
+     */
     protected final int dim2;
 
     private final int[] shape;

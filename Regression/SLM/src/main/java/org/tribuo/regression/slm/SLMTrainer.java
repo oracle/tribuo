@@ -54,12 +54,21 @@ import java.util.logging.Logger;
 public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(SLMTrainer.class.getName());
 
+    /**
+     * The maximum number of features to select.
+     */
     @Config(description="Maximum number of features to use.")
     protected int maxNumFeatures = -1;
 
+    /**
+     * Should the data be centred first? In most cases this should be true.
+     */
     @Config(description="Normalize the data first.")
     protected boolean normalize;
 
+    /**
+     * The number of times {@link #train} has been called on this object.
+     */
     protected int trainInvocationCounter = 0;
 
     /**

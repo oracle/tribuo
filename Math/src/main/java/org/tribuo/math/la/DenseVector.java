@@ -55,6 +55,9 @@ public class DenseVector implements SGDVector {
     public static final int CURRENT_VERSION = 0;
 
     private final int[] shape;
+    /**
+     * The value array.
+     */
     protected final double[] elements;
 
     /**

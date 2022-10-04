@@ -54,7 +54,13 @@ public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
      */
     public static final int DEFAULT_BATCH_SIZE = 16;
 
+    /**
+     * The forward mapping from Tribuo's indices to the external indices.
+     */
     protected final int[] featureForwardMapping;
+    /**
+     * The backward mapping from the external indices to Tribuo's indices.
+     */
     protected final int[] featureBackwardMapping;
 
     private int batchSize = DEFAULT_BATCH_SIZE;

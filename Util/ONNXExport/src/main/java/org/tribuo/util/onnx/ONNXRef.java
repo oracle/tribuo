@@ -40,8 +40,14 @@ import java.util.stream.Collectors;
  */
 public abstract class ONNXRef<T extends GeneratedMessageV3> {
     // Unfortunately there is no other shared supertype for OnnxML protobufs
+    /**
+     * Protobuf reference.
+     */
     protected final T backRef;
     private final String baseName;
+    /**
+     * The ONNX context.
+     */
     protected final ONNXContext context;
 
     /**

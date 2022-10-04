@@ -65,15 +65,27 @@ public abstract class SGD implements StochasticGradientOptimiser {
         NESTEROV
     }
 
+    /**
+     * The initial learning rate.
+     */
     @Config(mandatory = true,description="Initial learning rate.")
     protected double initialLearningRate;
 
+    /**
+     * Should it use momentum.
+     */
     @Config(mandatory = true,description="Momentum type to use.")
     protected Momentum useMomentum;
 
+    /**
+     * The scaling factor for the momentum.
+     */
     @Config(description="Momentum scaling factor.")
     protected double rho = 0.0;
 
+    /**
+     * The iteration number, in steps.
+     */
     protected int iteration = 0;
 
     private Tensor[] momentum;
@@ -193,7 +205,7 @@ public abstract class SGD implements StochasticGradientOptimiser {
 
     /**
      * Generates an SGD optimiser with a linearly decaying learning rate initialised to learningRate.
-     *
+     * <p>
      * The learning rate = initialLearningRate / iteration.
      * @param learningRate The learning rate.
      * @return A linear decay SGD.
@@ -204,7 +216,7 @@ public abstract class SGD implements StochasticGradientOptimiser {
 
     /**
      * Generates an SGD optimiser with a linearly decaying learning rate initialised to learningRate, with momentum.
-     *
+     * <p>
      * The learning rate = initialLearningRate / iteration.
      * @param learningRate The learning rate.
      * @param rho The momentum drag constant.
@@ -217,7 +229,7 @@ public abstract class SGD implements StochasticGradientOptimiser {
 
     /**
      * Generates an SGD optimiser with a sqrt decaying learning rate initialised to learningRate.
-     *
+     * <p>
      * The learning rate = initialLearningRate / sqrt(iteration).
      * @param learningRate The learning rate.
      * @return A sqrt decay SGD.
@@ -228,7 +240,7 @@ public abstract class SGD implements StochasticGradientOptimiser {
 
     /**
      * Generates an SGD optimiser with a sqrt decaying learning rate initialised to learningRate, with momentum.
-     *
+     * <p>
      * The learning rate = initialLearningRate / sqrt(iteration).
      * @param learningRate The learning rate.
      * @param rho The momentum drag constant.
@@ -241,15 +253,18 @@ public abstract class SGD implements StochasticGradientOptimiser {
 }
 
 final class SimpleSGD extends SGD {
-    public SimpleSGD(double learningRate) {
+    SimpleSGD(double learningRate) {
         super(learningRate);
     }
 
-    public SimpleSGD(double learningRate, double rho, Momentum momentumType) {
+    SimpleSGD(double learningRate, double rho, Momentum momentumType) {
         super(learningRate, rho, momentumType);
     }
 
-    protected SimpleSGD() { }
+    /**
+     * for OLCUT.
+     */
+    private SimpleSGD() { }
 
     @Override
     public double learningRate() {
@@ -268,15 +283,18 @@ final class SimpleSGD extends SGD {
 }
 
 final class LinearDecaySGD extends SGD {
-    public LinearDecaySGD(double learningRate) {
+    LinearDecaySGD(double learningRate) {
         super(learningRate);
     }
 
-    public LinearDecaySGD(double learningRate, double rho, Momentum momentumType) {
+    LinearDecaySGD(double learningRate, double rho, Momentum momentumType) {
         super(learningRate, rho, momentumType);
     }
 
-    protected LinearDecaySGD() { }
+    /**
+     * for OLCUT.
+     */
+    private LinearDecaySGD() { }
 
     @Override
     public double learningRate() {
@@ -295,15 +313,18 @@ final class LinearDecaySGD extends SGD {
 }
 
 final class SqrtDecaySGD extends SGD {
-    public SqrtDecaySGD(double learningRate) {
+    SqrtDecaySGD(double learningRate) {
         super(learningRate);
     }
 
-    public SqrtDecaySGD(double learningRate, double rho, Momentum momentumType) {
+    SqrtDecaySGD(double learningRate, double rho, Momentum momentumType) {
         super(learningRate, rho, momentumType);
     }
 
-    protected SqrtDecaySGD() { }
+    /**
+     * For OLCUT.
+     */
+    private SqrtDecaySGD() { }
 
     @Override
     public double learningRate() {

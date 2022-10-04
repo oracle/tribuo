@@ -66,15 +66,24 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     @Config(description = "Extractors for the example metadata.")
     private List<FieldExtractor<?>> metadataExtractors = Collections.emptyList();
 
+    /**
+     * The extractor for the example weight.
+     */
     @Config(description = "Extractor for the example weight.")
     protected FieldExtractor<Float> weightExtractor = null;
 
+    /**
+     * The processor which extracts the response.
+     */
     @Config(mandatory = true, description = "Processor which extracts the response.")
     protected ResponseProcessor<T> responseProcessor;
 
     @Config(mandatory = true, description = "The list of field processors to use.")
     private List<FieldProcessor> fieldProcessorList;
 
+    /**
+     * The map of field processors.
+     */
     // fieldProcessorList is unpacked into this map to make the config files less complex.
     // fieldProcessorMap is the store of record for field processors.
     protected Map<String, FieldProcessor> fieldProcessorMap;
@@ -82,12 +91,21 @@ public class RowProcessor<T extends Output<T>> implements Configurable, Provenan
     @Config(description = "A set of feature processors to apply after extraction.")
     private Set<FeatureProcessor> featureProcessors = new HashSet<>();
 
+    /**
+     * The map of regexes to field processors.
+     */
     @Config(description = "A map from a regex to field processors to apply to fields matching the regex.")
     protected Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
 
+    /**
+     * Should newlines be replaced with spaces before processing.
+     */
     @Config(description = "Replace newlines with spaces in values before passing them to field processors.")
     protected boolean replaceNewlinesWithSpaces = true;
 
+    /**
+     * Has this row processor been configured?
+     */
     protected boolean configured;
 
     /**

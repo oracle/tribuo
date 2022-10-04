@@ -31,10 +31,19 @@ public class SVMParameters<T extends Output<T>> implements Serializable {
     
     private static final Logger logger = Logger.getLogger(SVMParameters.class.getName());
 
+    /**
+     * The type of the SVM.
+     */
     protected final SVMType<T> svmType;
-    
+
+    /**
+     * The kernel.
+     */
     protected final KernelType kernelType;
-    
+
+    /**
+     * The libSVM format parameters.
+     */
     protected final svm_parameter parameters = new svm_parameter();
 
     /**

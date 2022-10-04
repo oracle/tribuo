@@ -37,6 +37,9 @@ import java.util.Map;
 public abstract class SkeletalIndependentRegressionSparseModel extends SparseModel<Regressor> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The output dimension names.
+     */
     protected final String[] dimensions;
 
     /**

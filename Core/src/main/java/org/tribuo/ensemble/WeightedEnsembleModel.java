@@ -65,8 +65,14 @@ public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleMo
      */
     public static final int CURRENT_VERSION = 0;
 
+    /**
+     * The ensemble member combination weights.
+     */
     protected final float[] weights;
 
+    /**
+     * The ensemble combination function.
+     */
     protected final EnsembleCombiner<T> combiner;
 
     /**

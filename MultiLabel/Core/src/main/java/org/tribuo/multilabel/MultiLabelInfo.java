@@ -40,12 +40,24 @@ import java.util.Set;
 public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The map of label occurrence counts.
+     */
     @ProtoSerializableKeysValuesField(keysName="label",valuesName="count")
     protected final Map<String,MutableLong> labelCounts;
+    /**
+     * The number of times the unknown label has been observed.
+     */
     @ProtoSerializableField
     protected int unknownCount = 0;
+    /**
+     * The label domain.
+     */
     protected transient Map<String,MultiLabel> labels;
 
+    /**
+     * The total number of {@link MultiLabel} objects this object has seen.
+     */
     @ProtoSerializableField
     protected int totalCount = 0;
 

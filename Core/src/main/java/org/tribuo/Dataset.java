@@ -552,6 +552,13 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         }
     }
 
+    /**
+     * Deserializes a list of example protos into a list of examples.
+     * @param examplesList The protos.
+     * @param outputClass The output class.
+     * @param fmap The feature domain.
+     * @return The list of deserialized examples.
+     */
     protected static List<Example<?>> deserializeExamples(List<ExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
         List<Example<?>> examples = new ArrayList<>();
         for (ExampleProto e : examplesList) {

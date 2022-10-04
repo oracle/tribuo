@@ -45,6 +45,11 @@ public abstract class SkeletalTrainerProvenance extends SkeletalConfiguredObject
 
     private final StringProvenance version;
 
+    /**
+     * Builds a trainer provenance extracting the standard information from the host.
+     * @param host The host object.
+     * @param <T> The output type.
+     */
     protected <T extends Output<T>> SkeletalTrainerProvenance(Trainer<T> host) {
         super(host,"Trainer");
         this.isSequence = new BooleanProvenance(IS_SEQUENCE,false);
@@ -52,6 +57,11 @@ public abstract class SkeletalTrainerProvenance extends SkeletalConfiguredObject
         this.version = new StringProvenance(TRIBUO_VERSION_STRING, Tribuo.VERSION);
     }
 
+    /**
+     * Builds a trainer provenance extracting the standard information from the host.
+     * @param host The host object.
+     * @param <T> The output type.
+     */
     protected <T extends Output<T>> SkeletalTrainerProvenance(SequenceTrainer<T> host) {
         super(host,"SequenceTrainer");
         this.isSequence = new BooleanProvenance(IS_SEQUENCE,true);
@@ -59,10 +69,18 @@ public abstract class SkeletalTrainerProvenance extends SkeletalConfiguredObject
         this.version = new StringProvenance(TRIBUO_VERSION_STRING, Tribuo.VERSION);
     }
 
+    /**
+     * Deserialization constructor.
+     * @param map The provenance map.
+     */
     protected SkeletalTrainerProvenance(Map<String, Provenance> map) {
         this(extractProvenanceInfo(map));
     }
 
+    /**
+     * Deserialization constructor.
+     * @param info The extracted provenance information.
+     */
     protected SkeletalTrainerProvenance(ExtractedInfo info) {
         super(info);
         this.invocationCount = SkeletalConfiguredObjectProvenance.checkAndExtractProvenance(info,TRAIN_INVOCATION_COUNT,IntProvenance.class, info.className);
@@ -112,6 +130,11 @@ public abstract class SkeletalTrainerProvenance extends SkeletalConfiguredObject
         return Objects.hash(super.hashCode(), invocationCount, isSequence);
     }
 
+    /**
+     * Extracts the provenance information from the supplied map, splitting it into configuration and instance information.
+     * @param map The provenance map.
+     * @return The provenance information.
+     */
     protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
         String className;
         String hostTypeStringName;

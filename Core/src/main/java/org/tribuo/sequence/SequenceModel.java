@@ -49,14 +49,26 @@ import java.util.stream.Collectors;
 public abstract class SequenceModel<T extends Output<T>> implements ProtoSerializable<SequenceModelProto>, Provenancable<ModelProvenance>, Serializable {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * The model name.
+     */
     protected String name;
 
     private final ModelProvenance provenance;
 
+    /**
+     * The toString of the model provenance.
+     */
     protected final String provenanceOutput;
 
+    /**
+     * The feature domain.
+     */
     protected final ImmutableFeatureMap featureIDMap;
 
+    /**
+     * The output domain.
+     */
     protected final ImmutableOutputInfo<T> outputIDMap;
 
     /**

@@ -234,10 +234,21 @@ public class ViterbiModel extends SequenceModel<Label> {
         return output;
     }
 
+    /**
+     * Gets the most likely labels.
+     * @param distribution The label distribution.
+     * @return The most likely labels in descending order.
+     */
     protected List<Label> getTopLabels(Map<String, Label> distribution) {
         return getTopLabels(distribution, this.stackSize);
     }
 
+    /**
+     * Gets the {@code stackSize} most likely labels.
+     * @param distribution The label distribution.
+     * @param stackSize The number of labels to pick.
+     * @return The most likely labels in descending order.
+     */
     protected static List<Label> getTopLabels(Map<String, Label> distribution, int stackSize) {
         return distribution.values().stream().sorted(Comparator.comparingDouble(Label::getScore).reversed()).limit(stackSize)
                 .collect(Collectors.toList());

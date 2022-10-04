@@ -82,10 +82,21 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
      */
     protected final DataProvenance sourceProvenance;
 
+    /**
+     * Constructs a sequence dataset using the current Tribuo version.
+     * @param sourceProvenance The provenance.
+     * @param outputFactory The output factory.
+     */
     protected SequenceDataset(DataProvenance sourceProvenance, OutputFactory<T> outputFactory) {
         this(sourceProvenance, outputFactory, Tribuo.VERSION);
     }
 
+    /**
+     * Constructs a sequence dataset.
+     * @param sourceProvenance The provenance.
+     * @param outputFactory The output factory.
+     * @param tribuoVersion The Tribuo version string.
+     */
     protected SequenceDataset(DataProvenance sourceProvenance, OutputFactory<T> outputFactory, String tribuoVersion) {
         this.sourceProvenance = sourceProvenance;
         this.outputFactory = outputFactory;
@@ -304,7 +315,7 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
     private static class FlatDataset<T extends Output<T>> extends ImmutableDataset<T> {
         private static final long serialVersionUID = 1L;
 
-        public FlatDataset(SequenceDataset<T> sequenceDataset) {
+        FlatDataset(SequenceDataset<T> sequenceDataset) {
             super(sequenceDataset.sourceProvenance, sequenceDataset.outputFactory, sequenceDataset.getFeatureIDMap(), sequenceDataset.getOutputIDInfo());
             for (SequenceExample<T> seq : sequenceDataset) {
                 for (Example<T> e : seq) {
@@ -314,6 +325,13 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
         }
     }
 
+    /**
+     * Deserializes a list of sequence example protos into a list of sequence examples.
+     * @param examplesList The protos.
+     * @param outputClass The output class.
+     * @param fmap The feature domain.
+     * @return The list of deserialized sequence examples.
+     */
     protected static List<SequenceExample<?>> deserializeExamples(List<SequenceExampleProto> examplesList, Class<?> outputClass, FeatureMap fmap) {
         List<SequenceExample<?>> examples = new ArrayList<>();
         for (SequenceExampleProto e : examplesList) {
