@@ -47,9 +47,11 @@ import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
 import org.tribuo.test.Helpers;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -85,7 +87,7 @@ public class TestHdbscan {
     }
 
     @Test
-    public void testInvocationCounter() {
+    public void testInvocationCounter() throws URISyntaxException {
         ClusteringFactory clusteringFactory = new ClusteringFactory();
         ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
         Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
@@ -93,7 +95,8 @@ public class TestHdbscan {
         regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
         regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
         RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
-        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
+        URI trainData = this.getClass().getResource("/basic-gaussians.csv").toURI();
+        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get(trainData),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
         HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2.getDistance(), 7,4, NeighboursQueryFactoryType.BRUTE_FORCE);
@@ -113,7 +116,7 @@ public class TestHdbscan {
     }
 
     @Test
-    public void testEndToEndTrainWithCSVData() {
+    public void testEndToEndTrainWithCSVData() throws URISyntaxException {
         ClusteringFactory clusteringFactory = new ClusteringFactory();
         ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
         Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
@@ -121,7 +124,8 @@ public class TestHdbscan {
         regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
         regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
         RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
-        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
+        URI trainData = this.getClass().getResource("/basic-gaussians.csv").toURI();
+        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get(trainData),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
         NeighboursQueryFactory kdTreeFactory = new KDTreeFactory(DistanceType.L2.getDistance(), 4);
@@ -142,7 +146,7 @@ public class TestHdbscan {
     }
 
     @Test
-    public void testEndToEndPredictWithCSVData() {
+    public void testEndToEndPredictWithCSVData() throws URISyntaxException {
         ClusteringFactory clusteringFactory = new ClusteringFactory();
         ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
         Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
@@ -150,10 +154,13 @@ public class TestHdbscan {
         regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
         regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
         RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
-        CSVDataSource<ClusterID> csvDataSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-train.csv"),rowProcessor,false);
+
+        URI trainData = this.getClass().getResource("/basic-gaussians-train.csv").toURI();
+        CSVDataSource<ClusterID> csvDataSource = new CSVDataSource<>(Paths.get(trainData),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvDataSource);
 
-        CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict.csv"),rowProcessor,false);
+        URI predictData = this.getClass().getResource("/basic-gaussians-predict.csv").toURI();
+        CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get(predictData),rowProcessor,false);
         Dataset<ClusterID> testSet = new MutableDataset<>(csvTestSource);
 
         HdbscanTrainer trainer = new HdbscanTrainer(7, DistanceType.L2.getDistance(), 7,1, NeighboursQueryFactoryType.BRUTE_FORCE);
@@ -188,7 +195,8 @@ public class TestHdbscan {
         assertArrayEquals(expectedLabelPredictions, actualLabelPredictions);
         assertArrayEquals(expectedOutlierScorePredictions, actualOutlierScorePredictions);
 
-        CSVDataSource<ClusterID> nextCsvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict-with-outliers.csv"),rowProcessor,false);
+        URI testData = this.getClass().getResource("/basic-gaussians-predict-with-outliers.csv").toURI();
+        CSVDataSource<ClusterID> nextCsvTestSource = new CSVDataSource<>(Paths.get(testData),rowProcessor,false);
         Dataset<ClusterID> nextTestSet = new MutableDataset<>(nextCsvTestSource);
 
         predictions = model.predict(nextTestSet);
@@ -279,12 +287,12 @@ public class TestHdbscan {
     }
 
     @Test
-    public void deserializeHdbscanModelV42Test() {
+    public void deserializeHdbscanModelV42Test() throws URISyntaxException {
         String serializedModelFilename = "Hdbscan_minClSize7_L2_k7_nt1_v4.2.model";
-        String serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename).getPath();
+        URL serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename);
 
         HdbscanModel model = null;
-        try (ObjectInputStream oin = new ObjectInputStream(new FileInputStream(serializedModelPath))) {
+        try (ObjectInputStream oin = new ObjectInputStream(serializedModelPath.openStream())) {
             Object data = oin.readObject();
             model = (HdbscanModel) data;
             if (!model.validate(ClusterID.class)) {
@@ -308,7 +316,8 @@ public class TestHdbscan {
         regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
         regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
         RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
-        CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict.csv"),rowProcessor,false);
+        URI testData = this.getClass().getResource("/basic-gaussians-predict.csv").toURI();
+        CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get(testData),rowProcessor,false);
         Dataset<ClusterID> testSet = new MutableDataset<>(csvTestSource);
 
         List<Prediction<ClusterID>> predictions = model.predict(testSet);
