@@ -20,9 +20,10 @@ import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,9 +32,9 @@ import java.util.List;
  */
 public class SGDVectorsFromCSV {
 
-    public static SGDVector[] getSGDVectorsFromCSV(String filePath, boolean fileContainsHeader) {
+    public static SGDVector[] getSGDVectorsFromCSV(URL filePath, boolean fileContainsHeader) {
         List<SGDVector> vectorList = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(filePath.openStream()))) {
             String line;
 
             if (fileContainsHeader) {

@@ -21,6 +21,7 @@ import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.SGDVectorsFromCSV;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -474,13 +475,13 @@ public class NeighbourQueryTestHelper {
 
     private static SGDVector[] get3DTestDataVectorArray() {
         String filename = "basic-gaussians-3d.csv";
-        String filepath = NeighbourQueryTestHelper.class.getClassLoader().getResource(filename).getPath();
+        URL filepath = NeighbourQueryTestHelper.class.getClassLoader().getResource(filename);
         return SGDVectorsFromCSV.getSGDVectorsFromCSV(filepath, true);
     }
 
     private static SGDVector[] get4DIntegerTestDataVectorArray() {
         String filename = "integers-1K-4features.csv";
-        String filepath = NeighbourQueryTestHelper.class.getClassLoader().getResource(filename).getPath();
+        URL filepath = NeighbourQueryTestHelper.class.getClassLoader().getResource(filename);
         return SGDVectorsFromCSV.getSGDVectorsFromCSV(filepath, true);
     }
 

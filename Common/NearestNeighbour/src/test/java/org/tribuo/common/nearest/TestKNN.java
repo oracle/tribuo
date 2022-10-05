@@ -39,9 +39,9 @@ import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.test.Helpers;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -203,10 +203,10 @@ public class TestKNN {
     @SuppressWarnings("unchecked")
     public void deserializeKNNRegressionV42ModelTest() {
         String serializedModelFilename = "KNNTrainerRegressor_k3_L2_nt2_voting_streams_v4.2.model";
-        String serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename).getPath();
+        URL serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename);
 
         KNNModel<Regressor> model = null;
-        try (ObjectInputStream oin = new ObjectInputStream(new FileInputStream(serializedModelPath))) {
+        try (ObjectInputStream oin = new ObjectInputStream(serializedModelPath.openStream())) {
             Object data = oin.readObject();
             model = (KNNModel<Regressor>) data;
             if (!model.validate(Regressor.class)) {

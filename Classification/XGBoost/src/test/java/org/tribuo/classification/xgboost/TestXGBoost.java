@@ -44,10 +44,10 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -77,12 +77,19 @@ public class TestXGBoost {
 
     private static final int[] NUM_TREES = new int[]{1,5,10,50};
 
-    //on Windows, this resolves to some nonsense like this: /C:/workspace/Classification/XGBoost/target/test-classes/test_input.tribuo
-    //and the leading slash is a problem and causes this test to fail on windows.
-    //it's generally poor practice to convert a resource to a path because the file won't normally exist as a file at runtime
-    //it only works at test time because ./target/test-classes/ is a folder that exists and it is on the classpath.
-    private final String TEST_INPUT_PATH = this.getClass().getResource("/test_input_binary.tribuo").getPath().replaceFirst("^/(.:/)", "$1");
-    private final String TEST_INPUT_PATH_MULTICLASS = this.getClass().getResource("/test_input_multiclass.tribuo").getPath().replaceFirst("^/(.:/)", "$1");
+    private static final Path TEST_INPUT_PATH;
+    private static final Path TEST_INPUT_PATH_MULTICLASS;
+    static {
+        URL input = null;
+        try {
+            input = TestXGBoost.class.getResource("/test_input_binary.tribuo");
+            TEST_INPUT_PATH = Paths.get(input.toURI());
+            input = TestXGBoost.class.getResource("/test_input_multiclass.tribuo");
+            TEST_INPUT_PATH_MULTICLASS = Paths.get(input.toURI());
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Invalid URL to test resource " + input);
+        }
+    }
 
     @Test
     public void testSingleClassTraining() {
@@ -144,8 +151,8 @@ public class TestXGBoost {
     }
 
     private XGBoostModel<Label> loadModel(String path) throws IOException, ClassNotFoundException {
-        File modelFile = new File(this.getClass().getResource(path).getPath());
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(modelFile))) {
+        URL modelFile = this.getClass().getResource(path);
+        try (ObjectInputStream ois = new ObjectInputStream(modelFile.openStream())) {
             @SuppressWarnings("unchecked") // checked by validate call.
             XGBoostModel<Label> data = (XGBoostModel<Label>) ois.readObject();
             if (!data.validate(Label.class)) {
@@ -159,11 +166,11 @@ public class TestXGBoost {
     }
 
     private Dataset<Label> loadTestDataset(XGBoostModel<Label> model) throws IOException {
-        return loadDataset(model, Paths.get(TEST_INPUT_PATH));
+        return loadDataset(model, TEST_INPUT_PATH);
     }
 
     private Dataset<Label> loadMulticlassTestDataset(XGBoostModel<Label> model) throws IOException {
-        return loadDataset(model, Paths.get(TEST_INPUT_PATH_MULTICLASS));
+        return loadDataset(model, TEST_INPUT_PATH_MULTICLASS);
     }
 
     private Dataset<Label> loadDataset(XGBoostModel<Label> model, Path path) throws IOException {
