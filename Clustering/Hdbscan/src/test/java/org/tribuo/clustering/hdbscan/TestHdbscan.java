@@ -40,6 +40,8 @@ import org.tribuo.data.csv.CSVDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.test.Helpers;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,7 +73,7 @@ public class TestHdbscan {
     }
 
     @Test
-    public void testInvocationCounter() {
+    public void testInvocationCounter() throws URISyntaxException {
         ClusteringFactory clusteringFactory = new ClusteringFactory();
         ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
         Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
@@ -79,7 +81,8 @@ public class TestHdbscan {
         regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
         regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
         RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
-        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
+        URI trainData = this.getClass().getResource("/basic-gaussians.csv").toURI();
+        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get(trainData),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
         HdbscanTrainer trainer = new HdbscanTrainer(7, Distance.EUCLIDEAN, 7,4);
@@ -99,7 +102,7 @@ public class TestHdbscan {
     }
 
     @Test
-    public void testEndToEndTrainWithCSVData() {
+    public void testEndToEndTrainWithCSVData() throws URISyntaxException {
         ClusteringFactory clusteringFactory = new ClusteringFactory();
         ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
         Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
@@ -107,7 +110,8 @@ public class TestHdbscan {
         regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
         regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
         RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
-        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians.csv"),rowProcessor,false);
+        URI trainData = this.getClass().getResource("/basic-gaussians.csv").toURI();
+        CSVDataSource<ClusterID> csvSource = new CSVDataSource<>(Paths.get(trainData),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvSource);
 
         HdbscanTrainer trainer = new HdbscanTrainer(7, Distance.EUCLIDEAN, 7,4);
@@ -127,7 +131,7 @@ public class TestHdbscan {
     }
 
     @Test
-    public void testEndToEndPredictWithCSVData() {
+    public void testEndToEndPredictWithCSVData() throws URISyntaxException {
         ClusteringFactory clusteringFactory = new ClusteringFactory();
         ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
         Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
@@ -135,10 +139,13 @@ public class TestHdbscan {
         regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
         regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
         RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
-        CSVDataSource<ClusterID> csvDataSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-train.csv"),rowProcessor,false);
+
+        URI trainData = this.getClass().getResource("/basic-gaussians-train.csv").toURI();
+        CSVDataSource<ClusterID> csvDataSource = new CSVDataSource<>(Paths.get(trainData),rowProcessor,false);
         Dataset<ClusterID> dataset = new MutableDataset<>(csvDataSource);
 
-        CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get("src/test/resources/basic-gaussians-predict.csv"),rowProcessor,false);
+        URI predictData = this.getClass().getResource("/basic-gaussians-predict.csv").toURI();
+        CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get(predictData),rowProcessor,false);
         Dataset<ClusterID> testSet = new MutableDataset<>(csvTestSource);
 
         HdbscanTrainer trainer = new HdbscanTrainer(7, Distance.EUCLIDEAN, 7,1);

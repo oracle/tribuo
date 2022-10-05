@@ -85,7 +85,7 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson-databind.version}</version>
         </dependency>
-        
+
         <!-- test time dependencies -->
         <dependency>
             <groupId>org.tribuo</groupId>
