@@ -27,11 +27,6 @@
     <name>Reproducibility</name>
     <artifactId>tribuo-reproducibility</artifactId>
     <packaging>jar</packaging>
-    <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.release>17</maven.compiler.release>
-    </properties>
 
     <dependencies>
         <!-- runtime dependencies -->
