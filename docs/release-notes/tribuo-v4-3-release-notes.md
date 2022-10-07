@@ -95,11 +95,10 @@ profile, and so those tests will execute on Linux & macOS ARM64 platforms.
 - Improve validation of salts when hashing feature names ([#237](https://github.com/oracle/tribuo/pull/237)).
 - Added accessors to TransformedModel for the wrapped model ([#244](https://github.com/oracle/tribuo/pull/244)).
 - Added a regex text preprocessor ([#247](https://github.com/oracle/tribuo/pull/247)).
-- Upgrade XGBoost to v1.6.1 ([#257](https://github.com/oracle/tribuo/pull/257)).
-- Upgrade OCI SDK to v2.38.0 ([#258](https://github.com/oracle/tribuo/pull/258)).
 - Upgrade OpenCSV to v5.6 ([#259](https://github.com/oracle/tribuo/pull/259)).
 - Added a builder to RowProcessor to make it less confusing ([#263](https://github.com/oracle/tribuo/pull/263)).
 - Upgrade TF-Java to v0.4.2 ([#281](https://github.com/oracle/tribuo/pull/281)).
+- Upgrade OCI Java SDK to v2.46.0, protobuf-java to 3.19.6, XGBoost to 1.6.2, jackson to 2.14.0-rc1 ([#288](https://github.com/oracle/tribuo/pull/288)).
 
 ## Bug Fixes
 

@@ -178,7 +178,7 @@ Currently we have interfaces to:
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.25).
 * [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.12.1).
 * [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.4.2 (based on TensorFlow v2.7.4). This allows the training and deployment of TensorFlow models entirely in Java.
-* [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.6.1).
+* [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.6.2).
 
 ## Binaries
 
