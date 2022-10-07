@@ -16,7 +16,7 @@ jobs:
       matrix:
         # test against supported LTS versions and latest
         java: [ 17, 19 ]
-    name: Windows OpenJDK ${{ matrix.java }}
+    name: Windows Java SE ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2
       - name: Setup Oracle Java SE
