@@ -54,7 +54,7 @@ major versions of Tribuo. Any serialized model or dataset from Tribuo v4.2 or
 earlier can be loaded in and saved out into the new format which will ensure
 compatibility with the next major version of Tribuo.
 
-- Protobuf support for core types ([#226](https://github.com/oracle/tribuo/pull/226),[#255](https://github.com/oracle/tribuo/pull/255),[#262](https://github.com/oracle/tribuo/pull/262),[#264](https://github.com/oracle/tribuo/pull/264)).
+- Protobuf support for core types ([#226](https://github.com/oracle/tribuo/pull/226), [#255](https://github.com/oracle/tribuo/pull/255), [#262](https://github.com/oracle/tribuo/pull/262), [#264](https://github.com/oracle/tribuo/pull/264)).
 - Protobuf support for models (Multinomial Naive Bayes [#267](https://github.com/oracle/tribuo/pull/267), Sparse linear models [#269](https://github.com/oracle/tribuo/pull/269), XGBoost [#270](https://github.com/oracle/tribuo/pull/270), OCI, ONNX and TF [#271](https://github.com/oracle/tribuo/pull/271), LibSVM [#272](https://github.com/oracle/tribuo/pull/272), LibLinear [#273](https://github.com/oracle/tribuo/pull/273), SGD [#275](https://github.com/oracle/tribuo/pull/275), Clustering models [#276](https://github.com/oracle/tribuo/pull/276), Baseline models and ensembles [#277](https://github.com/oracle/tribuo/pull/277), Trees [#278](https://github.com/oracle/tribuo/pull/278)).
 - Docs and supporting programs ([#279](https://github.com/oracle/tribuo/pull/279)).
 
