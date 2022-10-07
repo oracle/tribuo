@@ -45,19 +45,20 @@
         <olcut.version>5.2.1</olcut.version>
 
         <!-- Oracle dependencies -->
-        <oci.sdk.version>2.38.0</oci.sdk.version>
+        <oci.sdk.version>2.46.0</oci.sdk.version>
 
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.44</liblinear.version>
         <libsvm.version>3.25</libsvm.version>
         <onnxruntime.version>1.12.1</onnxruntime.version>
         <tensorflow.version>0.4.2</tensorflow.version>
-        <xgboost.version>1.6.1</xgboost.version>
+        <xgboost.version>1.6.2</xgboost.version>
 
         <!-- 3rd party other dependencies -->
-        <junit.version>5.7.1</junit.version>
+        <junit.version>5.9.1</junit.version>
         <opencsv.version>5.6</opencsv.version>
-        <protobuf.version>3.19.4</protobuf.version>
+        <protobuf.version>3.19.6</protobuf.version>
+        <jackson.version>2.14.0-rc1</jackson.version>
 
         <!-- Other properties -->
         <!-- Turn off tests which rely on native code -->
