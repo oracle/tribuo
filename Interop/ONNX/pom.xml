@@ -28,6 +28,19 @@
     <artifactId>tribuo-onnx</artifactId>
     <packaging>jar</packaging>
 
+    <repositories>
+        <repository>
+          <id>ORT-Nightly</id>
+          <url>https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/maven/v1</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
@@ -75,7 +88,7 @@
         <dependency>
             <groupId>com.microsoft.onnxruntime</groupId>
             <artifactId>onnxruntime</artifactId>
-            <version>${onnxruntime.version}</version>
+            <version>1.13.0-rc1</version>
         </dependency>
 
         <!-- Test dependencies -->
