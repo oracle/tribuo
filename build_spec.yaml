@@ -1,0 +1,14 @@
+version: 0.1
+component: build
+timeoutInSeconds: 1000
+shell: bash
+
+steps:
+  - type: Command
+    name: "compress the repo"
+    command: |
+      tar -cvzf repo.tgz ./
+outputArtifacts:
+  - name: artifact
+    type: BINARY
+    location: ${OCI_PRIMARY_SOURCE_DIR}/repo.tgz
