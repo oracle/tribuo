@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+  ~ Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo</artifactId>
-    <version>4.2.1</version>
+    <version>4.2.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
@@ -45,20 +45,22 @@
         <olcut.version>5.2.1</olcut.version>
 
         <!-- Oracle dependencies -->
-        <oci.sdk.version>2.12.0</oci.sdk.version>
+        <oci.sdk.version>2.46.0</oci.sdk.version>
 
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.43</liblinear.version>
         <libsvm.version>3.25</libsvm.version>
         <onnxruntime.version>1.9.0</onnxruntime.version>
-        <tensorflow.version>0.4.1</tensorflow.version>
+        <tensorflow.version>0.4.2</tensorflow.version>
         <xgboost.version>1.5.0</xgboost.version>
 
         <!-- 3rd party other dependencies -->
-        <junit.version>5.7.1</junit.version>
-        <opencsv.version>5.4</opencsv.version>
+        <junit.version>5.9.1</junit.version>
+        <opencsv.version>5.7.1</opencsv.version>
         <commonsmath.version>3.6.1</commonsmath.version>
-        <protobuf.version>3.19.4</protobuf.version>
+        <protobuf.version>3.19.6</protobuf.version>
+        <jackson.version>2.13.4</jackson.version>
+        <jackson-databind.version>2.13.4.2</jackson-databind.version>
 
         <!-- Other properties -->
         <!-- Turn off tests which rely on native code -->
