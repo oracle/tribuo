@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo</artifactId>
-    <version>4.3.0</version>
+    <version>4.3.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <modules>
         <module>Core</module>
@@ -56,9 +56,9 @@
 
         <!-- 3rd party other dependencies -->
         <junit.version>5.9.1</junit.version>
-        <opencsv.version>5.6</opencsv.version>
+        <opencsv.version>5.7.1</opencsv.version>
         <protobuf.version>3.19.6</protobuf.version>
-        <jackson.version>2.14.0-rc1</jackson.version>
+        <jackson.version>2.14.0-rc2</jackson.version>
 
         <!-- Other properties -->
         <!-- Turn off tests which rely on native code -->
@@ -74,7 +74,7 @@
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
     <developers>
@@ -118,7 +118,7 @@
     <scm>
         <connection>scm:git:git://github.com/oracle/tribuo.git</connection>
         <developerConnection>scm:git:ssh://github.com:oracle/tribuo.git</developerConnection>
-        <url>http://github.com/oracle/tribuo/tree/main</url>
+        <url>https://github.com/oracle/tribuo/tree/main</url>
     </scm>
 
     <dependencyManagement>
