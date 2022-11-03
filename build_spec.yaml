@@ -21,8 +21,8 @@ steps:
   - type: Command
     name: "compress the repo"
     command: |
-      tar -cvzf repo.tgz ./
+      tar -cvzf ${OCI_WORKSPACE_DIR}/repo.tgz ./
 outputArtifacts:
   - name: artifact
     type: BINARY
-    location: ${OCI_PRIMARY_SOURCE_DIR}/repo.tgz
+    location: ${OCI_WORKSPACE_DIR}/repo.tgz
