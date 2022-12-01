@@ -87,12 +87,6 @@
             <organizationUrl>https://labs.oracle.com</organizationUrl>
         </developer>
         <developer>
-            <name>Kate Silverstein</name>
-            <email>kate.silverstein@oracle.com</email>
-            <organization>Oracle Labs</organization>
-            <organizationUrl>https://labs.oracle.com</organizationUrl>
-        </developer>
-        <developer>
             <name>Stephen Green</name>
             <email>stephen.x.green@oracle.com</email>
             <organization>Oracle Labs</organization>
@@ -351,7 +345,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.10.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -392,6 +386,16 @@
     </build>
 
     <profiles>
+        <profile>
+            <!-- Enable javac release flag on 9+-->
+            <id>release-java9-plus</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
         <profile>
             <!-- Only enable the reproducibility module on Java 16 or 17 -->
             <id>reproducibility-java17</id>
