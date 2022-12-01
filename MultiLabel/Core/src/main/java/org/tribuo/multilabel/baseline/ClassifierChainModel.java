@@ -152,6 +152,14 @@ public final class ClassifierChainModel extends Model<MultiLabel> {
         return new ClassifierChainModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,labelOrder,models);
     }
 
+    /**
+     * Returns an unmodifiable view on the chain members.
+     * @return The chain members.
+     */
+    public List<Model<Label>> getModels() {
+        return models;
+    }
+
     @Override
     public Prediction<MultiLabel> predict(Example<MultiLabel> example) {
         Set<Label> predictedLabels = new HashSet<>();
