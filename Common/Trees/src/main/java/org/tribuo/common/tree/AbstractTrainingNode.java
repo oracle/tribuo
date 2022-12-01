@@ -99,7 +99,7 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
      * @return Whether the new node should be a {@link LeafNode}.
      */
     public boolean shouldMakeLeaf(double impurityScore, float weightSum) {
-        return ((impurityScore == 0.0) ||
+        return ((Math.abs(impurityScore) < 1e-15) ||
                 (depth + 1 >= leafDeterminer.getMaxDepth()) ||
                 (weightSum < leafDeterminer.getMinChildWeight()));
     }
