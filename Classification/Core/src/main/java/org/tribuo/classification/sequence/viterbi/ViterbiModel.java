@@ -157,7 +157,14 @@ public class ViterbiModel extends SequenceModel<Label> {
         } else {
             return viterbi(examples);
         }
+    }
 
+    /**
+     * Returns the inner model used for sequence element predictions.
+     * @return The inner model.
+     */
+    public Model<Label> getInnerModel() {
+        return model;
     }
 
     private List<Feature> extractFeatures(List<Label> labels) {
