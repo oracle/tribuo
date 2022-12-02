@@ -403,10 +403,10 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 // repeated features.
                 // They are left in just to make sure.
                 if (lastID > curID) {
-                    logger.severe("Example = " + e.toString());
+                    logger.severe("Example = " + e);
                     throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
                 } else if (lastID-1 == curID) {
-                    logger.severe("Example = " + e.toString());
+                    logger.severe("Example = " + e);
                     throw new IllegalStateException("Features are repeated. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
                 }
                 lastID = curID + 1;
@@ -422,12 +422,6 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         logger.fine("Sorting features");
 
         data.forEach(TreeFeature::sort);
-
-        /*
-        for (TreeFeature f : data) {
-            logger.info(f.toString());
-        }
-        */
 
         logger.fine("Fixing InvertedFeature sizes");
 
