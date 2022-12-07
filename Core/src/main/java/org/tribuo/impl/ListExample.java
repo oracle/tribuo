@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -331,23 +331,14 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
 
     @Override
     protected void densify(List<String> featureList) {
-        int oldSize = features.size();
-        int curPos = 0;
-        for (String curName : featureList) {
-            // If we've reached the end of our old feature set, just insert.
-            if (curPos == oldSize) {
-                features.add(new Feature(curName,0.0));
-            } else {
-                // Check to see if our insertion candidate is the same as the current feature name.
-                int comparison = curName.compareTo(features.get(curPos).getName());
-                if (comparison < 0) {
-                    // If it's earlier, insert it.
-                    features.add(new Feature(curName,0.0));
-                } else if (comparison == 0) {
-                    // Otherwise just bump our pointer, we've already got this feature.
-                    curPos++;
-                }
-            }
+        Set<String> featureSet = new HashSet<>(featureList);
+        // Compute intersection
+        for (Feature f : features) {
+            featureSet.remove(f.getName());
+        }
+        // Add missing features
+        for (String s : featureSet) {
+            features.add(new Feature(s,0.0));
         }
         // Sort the features
         sort();

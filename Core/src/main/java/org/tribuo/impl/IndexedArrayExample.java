@@ -364,6 +364,11 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
         return new IndexedArrayExample<>(this);
     }
 
+    /**
+     * Unlike {@link ArrayExample#densify(List)} this method will throw {@link IllegalArgumentException}
+     * if one of the feature names is not present in this example's {@link ImmutableFeatureMap}.
+     * @param featureList A *sorted* list of feature names.
+     */
     @Override
     public void densify(List<String> featureList) {
         if (featureList.size() != featureMap.size()) {
@@ -376,10 +381,14 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
         int insertedCount = 0;
         int curPos = 0;
         for (String curName : featureList) {
+            int newId = featureMap.getID(curName);
+            if (newId == -1) {
+                throw new IllegalArgumentException("Unexpected feature name '" + curName + "'");
+            }
             // If we've reached the end of our old feature set, just insert.
             if (curPos == size) {
                 featureNames[size + insertedCount] = curName;
-                featureIDs[size + insertedCount] = featureMap.getID(curName);
+                featureIDs[size + insertedCount] = newId;
                 insertedCount++;
             } else {
                 // Check to see if our insertion candidate is the same as the current feature name.
@@ -387,7 +396,7 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
                 if (comparison < 0) {
                     // If it's earlier, insert it.
                     featureNames[size + insertedCount] = curName;
-                    featureIDs[size + insertedCount] = featureMap.getID(curName);
+                    featureIDs[size + insertedCount] = newId;
                     insertedCount++;
                 } else if (comparison == 0) {
                     // Otherwise just bump our pointer, we've already got this feature.
