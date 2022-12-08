@@ -137,6 +137,22 @@ public class IndependentMultiLabelModel extends Model<MultiLabel> {
         return new IndependentMultiLabelModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,labels,models);
     }
 
+    /**
+     * Returns an unmodifiable view on the binary model members.
+     * @return The binary model members.
+     */
+    public List<Model<Label>> getModels() {
+        return Collections.unmodifiableList(models);
+    }
+
+    /**
+     * Returns the training label order.
+     * @return The training label order.
+     */
+    public List<Label> getLabelOrder() {
+        return Collections.unmodifiableList(labels);
+    }
+
     @Override
     public Prediction<MultiLabel> predict(Example<MultiLabel> example) {
         Set<Label> predictedLabels = new HashSet<>();
