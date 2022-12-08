@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,19 +157,17 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 float[] featureCounts = f.getWeightedLabelCounts();
                 Util.inPlaceAdd(lessThanCounts,featureCounts);
                 Util.inPlaceSubtract(greaterThanCounts,featureCounts);
-                // ImpurityWeighted rescales the impurity by the sum, in order to average properly when you add the
+                // impurityWeighted rescales the impurity by the sum, in order to average properly when you add the
                 // left side & right side together, and then divide by the sum of the counts
                 double lessThanScore = impurity.impurityWeighted(lessThanCounts);
                 double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
-                if ((lessThanScore > 1e-10) && (greaterThanScore > 1e-10)) {
-                    double score = (lessThanScore + greaterThanScore) / weightSum;
-                    if (score < bestScore) {
-                        bestID = i;
-                        bestScore = score;
-                        System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
-                        System.arraycopy(greaterThanCounts,0,greaterThanCountsOfBest,0,greaterThanCounts.length);
-                        bestSplitValue = (f.value + feature.get(j + 1).value) / 2.0;
-                    }
+                double score = (lessThanScore + greaterThanScore) / weightSum;
+                if (score < bestScore) {
+                    bestID = i;
+                    bestScore = score;
+                    System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
+                    System.arraycopy(greaterThanCounts,0,greaterThanCountsOfBest,0,greaterThanCounts.length);
+                    bestSplitValue = (f.value + feature.get(j + 1).value) / 2.0;
                 }
             }
         }
@@ -222,15 +220,13 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
             }
             double lessThanScore = impurity.impurityWeighted(lessThanCounts);
             double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
-            if ((lessThanScore > 1e-10) && (greaterThanScore > 1e-10)) {
-                double score = (lessThanScore + greaterThanScore) / weightSum;
-                if (score < bestScore) {
-                    bestID = i;
-                    bestScore = score;
-                    System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
-                    System.arraycopy(greaterThanCounts,0,greaterThanCountsOfBest,0,greaterThanCounts.length);
-                    bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
-                }
+            double score = (lessThanScore + greaterThanScore) / weightSum;
+            if (score < bestScore) {
+                bestID = i;
+                bestScore = score;
+                System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
+                System.arraycopy(greaterThanCounts,0,greaterThanCountsOfBest,0,greaterThanCounts.length);
+                bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
             }
         }
 
@@ -407,10 +403,10 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 // repeated features.
                 // They are left in just to make sure.
                 if (lastID > curID) {
-                    logger.severe("Example = " + e.toString());
+                    logger.severe("Example = " + e);
                     throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
                 } else if (lastID-1 == curID) {
-                    logger.severe("Example = " + e.toString());
+                    logger.severe("Example = " + e);
                     throw new IllegalStateException("Features are repeated. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
                 }
                 lastID = curID + 1;
@@ -426,12 +422,6 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         logger.fine("Sorting features");
 
         data.forEach(TreeFeature::sort);
-
-        /*
-        for (TreeFeature f : data) {
-            logger.info(f.toString());
-        }
-        */
 
         logger.fine("Fixing InvertedFeature sizes");
 

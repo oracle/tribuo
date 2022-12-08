@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@ import java.util.Map;
 
 /**
  * Calculates a tree impurity score based on label counts, weighted label counts or a probability distribution.
+ * <p>
+ * Impurity scores should be non-negative, with a zero signifying that the node is pure (i.e., contains
+ * only a single label), and increasing values indicating an increasingly uniform distribution over possible labels.
  */
 public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObjectProvenance> {
 

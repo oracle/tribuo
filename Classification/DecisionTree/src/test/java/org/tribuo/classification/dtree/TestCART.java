@@ -20,29 +20,53 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.LabelFactory;
+import org.tribuo.classification.dtree.impurity.Entropy;
 import org.tribuo.classification.dtree.impurity.GiniIndex;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
+import org.tribuo.common.tree.Node;
 import org.tribuo.common.tree.TreeModel;
+import org.tribuo.data.csv.CSVLoader;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestCART {
+    private static final Path TEST_PURE_LEAF_PATH;
+    static {
+        URL input = null;
+        try {
+            input = TestCART.class.getResource("/pure_leaf_data.csv");
+            TEST_PURE_LEAF_PATH = Paths.get(input.toURI());
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Invalid URL to test resource " + input);
+        }
+    }
 
+    private static final GiniIndex GINI = new GiniIndex();
+    private static final Entropy ENTROPY = new Entropy();
     private static final CARTClassificationTrainer t = new CARTClassificationTrainer();
     private static final CARTClassificationTrainer randomt = new CARTClassificationTrainer(5,2, 0.0f,1.0f, true,
-            new GiniIndex(), Trainer.DEFAULT_SEED);
+            GINI, Trainer.DEFAULT_SEED);
 
     public static TreeModel<Label> testCART(Pair<Dataset<Label>,Dataset<Label>> p, CARTClassificationTrainer trainer) {
         TreeModel<Label> m = trainer.train(p.getA());
@@ -217,5 +241,34 @@ public class TestCART {
                     new GiniIndex(), Trainer.DEFAULT_SEED);
             t.setInvocationCount(-1);
         });
+    }
+
+    @Test
+    public void testPureLeaf() throws IOException {
+        CSVLoader<Label> loader = new CSVLoader<>(new LabelFactory());
+        Dataset<Label> data = loader.load(TEST_PURE_LEAF_PATH, "Label");
+
+        CARTClassificationTrainer t = new CARTClassificationTrainer(5, 1, 0f, 1f, false, ENTROPY, Trainer.DEFAULT_SEED);
+        TreeModel<Label> model = t.train(data);
+
+        Node<Label> root = model.getRoot();
+        int numNodes = model.countNodes(root);
+        assertEquals(7, numNodes);
+
+        List<Prediction<Label>> predictions = model.predict(data);
+
+        // Pure leaves
+        assertTrue(predictions.get(0).getOutput().fullEquals(new Label("A",1.0)));
+        assertTrue(predictions.get(1).getOutput().fullEquals(new Label("B",1.0)));
+        assertTrue(predictions.get(2).getOutput().fullEquals(new Label("C",1.0)));
+        // Impure leaf
+        Map<String,Label> map = new HashMap<>();
+        map.put("A",new Label("A",0));
+        map.put("B",new Label("B",0));
+        map.put("C",new Label("C",0.5));
+        map.put("D",new Label("D",0.5));
+        Prediction<Label> pred = new Prediction<>(new Label("C", 0.5), map, 0, data.getExample(3), true);
+        assertTrue(predictions.get(3).distributionEquals(pred));
+        assertTrue(predictions.get(4).distributionEquals(pred));
     }
 }
