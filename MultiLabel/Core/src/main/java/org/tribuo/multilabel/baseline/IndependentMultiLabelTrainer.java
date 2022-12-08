@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.tribuo.multilabel.baseline;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import java.util.Collections;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -120,7 +121,9 @@ public class IndependentMultiLabelTrainer implements Trainer<MultiLabel> {
             modelsList.add(innerTrainer.train(trainingData));
         }
 
-        return new IndependentMultiLabelModel(labelList,modelsList,provenance,featureMap,labelInfo);
+        return new IndependentMultiLabelModel(Collections.unmodifiableList(labelList),
+                                              Collections.unmodifiableList(modelsList),
+                                              provenance,featureMap,labelInfo);
     }
 
     @Override
