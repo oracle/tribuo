@@ -367,13 +367,13 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
     /**
      * Unlike {@link ArrayExample#densify(List)} this method will throw {@link IllegalArgumentException}
      * if one of the feature names is not present in this example's {@link ImmutableFeatureMap}.
+     * <p>
+     * {@code featureList} must be sorted lexicographically using the {@link String}
+     * comparator, and behaviour is undefined otherwise.
      * @param featureList A *sorted* list of feature names.
      */
     @Override
     public void densify(List<String> featureList) {
-        if (featureList.size() != featureMap.size()) {
-            throw new IllegalArgumentException("Densifying an example with a different feature map");
-        }
         // Ensure we have enough space.
         if (featureList.size() > featureNames.length) {
             growArray(featureList.size());
