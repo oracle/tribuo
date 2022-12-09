@@ -329,9 +329,16 @@ public class ListExample<T extends Output<T>> extends Example<T> implements Seri
         }
     }
 
+    /**
+     * Adds zero valued features for each feature name in {@code featureNames}.
+     * <p>
+     * {@code featureNames} must be sorted lexicographically using the {@link String}
+     * comparator, and behaviour is undefined otherwise.
+     * @param featureNames A *sorted* list of feature names.
+     */
     @Override
-    protected void densify(List<String> featureList) {
-        Set<String> featureSet = new HashSet<>(featureList);
+    protected void densify(List<String> featureNames) {
+        Set<String> featureSet = new HashSet<>(featureNames);
         // Compute intersection
         for (Feature f : features) {
             featureSet.remove(f.getName());

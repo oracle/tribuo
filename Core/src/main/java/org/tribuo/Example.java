@@ -309,6 +309,11 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
      * Converts all implicit zeros into explicit zeros based on the supplied feature map.
      * <p>
      * That is, it inserts a zero valued feature for each feature in the map that is not present in this example.
+     * <p>
+     * Note: this is an optional method, some implementations of {@code Example} may
+     * throw {@link UnsupportedOperationException} or may have additional requirements
+     * on the {@code fMap} argument and consequently throw {@link IllegalArgumentException} if
+     * those requirements are not met.
      * @param fMap The feature map to use for densification.
      */
     public void densify(FeatureMap fMap) {
@@ -320,6 +325,14 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
 
     /**
      * Adds zero valued features for each feature name in {@code featureNames}.
+     * <p>
+     * {@code featureNames} must be sorted lexicographically using the {@link String}
+     * comparator, and behaviour is undefined otherwise.
+     * <p>
+     * Note: this is an optional method, some implementations of {@code Example} may
+     * throw {@link UnsupportedOperationException} or may have additional requirements
+     * on the {@code featureNames} argument and consequently throw
+     * {@link IllegalArgumentException} if those requirements are not met.
      * @param featureNames A *sorted* list of feature names.
      */
     protected abstract void densify(List<String> featureNames);

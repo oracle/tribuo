@@ -528,6 +528,13 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         }
     }
 
+    /**
+     * Adds zero valued features for each feature name in {@code featureList}.
+     * <p>
+     * {@code featureList} must be sorted lexicographically using the {@link String}
+     * comparator, and behaviour is undefined otherwise.
+     * @param featureList A *sorted* list of feature names.
+     */
     @Override
     public void densify(List<String> featureList) {
         int featureListSize = featureList.size();
