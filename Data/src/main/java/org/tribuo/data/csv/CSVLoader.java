@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,12 @@ import java.util.logging.Logger;
  * {@link org.tribuo.data.columnar.RowProcessor} to cope with your specific input format.
  * <p>
  * CSVLoader is thread safe and immutable.
+ * <p>
+ * Multi-output responses such as {@code MultiLabel} or {@code Regressor} can be processed in
+ * two different ways either as a single column of separated values, or multiple columns. If
+ * there is a single column the value is passed directly to the {@link OutputFactory}. If
+ * there are multiple response columns then the name of the column is concatenated with the
+ * value, then a list of the concatenated values is passed to the {@link OutputFactory}.
  * @param <T> The type of the output generated.
  */
 public class CSVLoader<T extends Output<T>> {
@@ -139,6 +145,10 @@ public class CSVLoader<T extends Output<T>> {
      * <p>
      * The {@code responseNames} set is traversed in iteration order to emit outputs,
      * and should be an ordered set to ensure reproducibility.
+     * <p>
+     * If there are multiple elements in {@code responseNames} then the responses are
+     * processed into the form 'column-name=column-value' before being passed to the
+     * {@link OutputFactory} for conversion into an {@link Output}.
      *
      * @param csvPath       The path to load.
      * @param responseNames The names of the response variables.
@@ -154,6 +164,10 @@ public class CSVLoader<T extends Output<T>> {
      * <p>
      * The {@code responseNames} set is traversed in iteration order to emit outputs,
      * and should be an ordered set to ensure reproducibility.
+     * <p>
+     * If there are multiple elements in {@code responseNames} then the responses are
+     * processed into the form 'column-name=column-value' before being passed to the
+     * {@link OutputFactory} for conversion into an {@link Output}.
      *
      * @param csvPath       The path to load.
      * @param responseNames The names of the response variables.
@@ -220,6 +234,10 @@ public class CSVLoader<T extends Output<T>> {
      * <p>
      * The {@code responseNames} set is traversed in iteration order to emit outputs,
      * and should be an ordered set to ensure reproducibility.
+     * <p>
+     * If there are multiple elements in {@code responseNames} then the responses are
+     * processed into the form 'column-name=column-value' before being passed to the
+     * {@link OutputFactory} for conversion into an {@link Output}.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
@@ -235,6 +253,10 @@ public class CSVLoader<T extends Output<T>> {
      * <p>
      * The {@code responseNames} set is traversed in iteration order to emit outputs,
      * and should be an ordered set to ensure reproducibility.
+     * <p>
+     * If there are multiple elements in {@code responseNames} then the responses are
+     * processed into the form 'column-name=column-value' before being passed to the
+     * {@link OutputFactory} for conversion into an {@link Output}.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
@@ -250,6 +272,10 @@ public class CSVLoader<T extends Output<T>> {
      * <p>
      * The {@code responseNames} set is traversed in iteration order to emit outputs,
      * and should be an ordered set to ensure reproducibility.
+     * <p>
+     * If there are multiple elements in {@code responseNames} then the responses are
+     * processed into the form 'column-name=column-value' before being passed to the
+     * {@link OutputFactory} for conversion into an {@link Output}.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
@@ -266,6 +292,10 @@ public class CSVLoader<T extends Output<T>> {
      * <p>
      * The {@code responseNames} set is traversed in iteration order to emit outputs,
      * and should be an ordered set to ensure reproducibility.
+     * <p>
+     * If there are multiple elements in {@code responseNames} then the responses are
+     * processed into the form 'column-name=column-value' before being passed to the
+     * {@link OutputFactory} for conversion into an {@link Output}.
      *
      * @param csvPath       The csv to load from.
      * @param responseNames The names of the response variables.
