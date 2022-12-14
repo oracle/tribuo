@@ -80,6 +80,32 @@ public class ExampleTest {
     }
 
     @Test
+    public void testExtendedArrayExampleDensify() {
+        MockOutput output = new MockOutput("UNK");
+        ArrayExample<MockOutput> example, expected;
+
+        // Single feature, contiguous densification
+        example = new ArrayExample<>(output, new String[]{"F0"}, new double[]{1.0});
+        example.densify(Arrays.asList("F0", "F1", "F2"));
+        expected = new ArrayExample<>(new MockOutput("UNK"), new String[]{"F0","F1","F2"}, new double[]{1.0,0.0,0.0});
+        checkDenseExample(expected,example);
+        example = new ArrayExample<>(output, new String[]{"F0"}, new double[]{1.0});
+        example.densify(Arrays.asList("F", "F1", "F2"));
+        expected = new ArrayExample<>(new MockOutput("UNK"), new String[]{"F","F0","F1","F2"}, new double[]{0.0,1.0,0.0,0.0});
+        checkDenseExample(expected,example);
+
+        // Multiple features, edges
+        example = new ArrayExample<>(output, new String[]{"F0","F7"}, new double[]{1.0,1.0});
+        example.densify(Arrays.asList("F0", "F5", "F10"));
+        expected = new ArrayExample<>(new MockOutput("UNK"), new String[]{"F0","F5","F7","F10"}, new double[]{1.0,0.0,1.0,0.0});
+        checkDenseExample(expected,example);
+        example = new ArrayExample<>(output, new String[]{"F0","F1","F2"}, new double[]{1.0,1.0,1.0});
+        example.densify(Arrays.asList("F1.5", "F2.5"));
+        expected = new ArrayExample<>(new MockOutput("UNK"), new String[]{"F0","F1","F1.5","F2","F2.5"}, new double[]{1.0,1.0,0.0,1.0,0.0});
+        checkDenseExample(expected,example);
+    }
+
+    @Test
     public void testListExampleDensify() {
         MockOutput output = new MockOutput("UNK");
         Example<MockOutput> example, expected;
@@ -111,6 +137,32 @@ public class ExampleTest {
         expected = new ListExample<>(new MockOutput("UNK"), featureNames, new double[]{1.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0,1.0});
         checkDenseExample(expected,example);
         testProtoSerialization(example);
+    }
+
+    @Test
+    public void testExtendedListExampleDensify() {
+        MockOutput output = new MockOutput("UNK");
+        Example<MockOutput> example, expected;
+
+        // Single feature, contiguous densification
+        example = new ListExample<>(output, new String[]{"F0"}, new double[]{1.0});
+        example.densify(Arrays.asList("F0", "F1", "F2"));
+        expected = new ListExample<>(new MockOutput("UNK"), new String[]{"F0","F1","F2"}, new double[]{1.0,0.0,0.0});
+        checkDenseExample(expected,example);
+        example = new ListExample<>(output, new String[]{"F0"}, new double[]{1.0});
+        example.densify(Arrays.asList("F", "F1", "F2"));
+        expected = new ListExample<>(new MockOutput("UNK"), new String[]{"F","F0","F1","F2"}, new double[]{0.0,1.0,0.0,0.0});
+        checkDenseExample(expected,example);
+
+        // Multiple features, edges
+        example = new ListExample<>(output, new String[]{"F0","F7"}, new double[]{1.0,1.0});
+        example.densify(Arrays.asList("F0", "F5", "F10"));
+        expected = new ListExample<>(new MockOutput("UNK"), new String[]{"F0","F5","F7","F10"}, new double[]{1.0,0.0,1.0,0.0});
+        checkDenseExample(expected,example);
+        example = new ListExample<>(output, new String[]{"F0","F1","F2"}, new double[]{1.0,1.0,1.0});
+        example.densify(Arrays.asList("F1.5", "F2.5"));
+        expected = new ListExample<>(new MockOutput("UNK"), new String[]{"F0","F1","F1.5","F2","F2.5"}, new double[]{1.0,1.0,0.0,1.0,0.0});
+        checkDenseExample(expected,example);
     }
 
     @Test
