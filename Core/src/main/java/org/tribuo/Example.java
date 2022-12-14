@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -307,6 +307,13 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
 
     /**
      * Converts all implicit zeros into explicit zeros based on the supplied feature map.
+     * <p>
+     * That is, it inserts a zero valued feature for each feature in the map that is not present in this example.
+     * <p>
+     * Note: this is an optional method, some implementations of {@code Example} may
+     * throw {@link UnsupportedOperationException} or may have additional requirements
+     * on the {@code fMap} argument and consequently throw {@link IllegalArgumentException} if
+     * those requirements are not met.
      * @param fMap The feature map to use for densification.
      */
     public void densify(FeatureMap fMap) {
@@ -317,7 +324,15 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
     }
 
     /**
-     * Converts all implicit zeros into explicit zeros based on the supplied feature names.
+     * Adds zero valued features for each feature name in {@code featureNames}.
+     * <p>
+     * {@code featureNames} must be sorted lexicographically using the {@link String}
+     * comparator, and behaviour is undefined otherwise.
+     * <p>
+     * Note: this is an optional method, some implementations of {@code Example} may
+     * throw {@link UnsupportedOperationException} or may have additional requirements
+     * on the {@code featureNames} argument and consequently throw
+     * {@link IllegalArgumentException} if those requirements are not met.
      * @param featureNames A *sorted* list of feature names.
      */
     protected abstract void densify(List<String> featureNames);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -528,34 +528,51 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
         }
     }
 
+    /**
+     * Adds zero valued features for each feature name in {@code featureList}.
+     * <p>
+     * {@code featureList} must be sorted lexicographically using the {@link String}
+     * comparator, and behaviour is undefined otherwise.
+     * @param featureList A *sorted* list of feature names.
+     */
     @Override
     public void densify(List<String> featureList) {
-        // Ensure we have enough space.
-        if (featureList.size() > featureNames.length) {
-            growArray(featureList.size());
-        }
-        int insertedCount = 0;
-        int curPos = 0;
-        for (String curName : featureList) {
-            // If we've reached the end of our old feature set, just insert.
-            if (curPos == size) {
-                featureNames[size + insertedCount] = curName;
-                insertedCount++;
+        int featureListSize = featureList.size();
+        List<String> insertionList = new ArrayList<>();
+
+        int thisIdx = 0;
+        int otherIdx = 0;
+        // Walk down both lists, checking the feature comparators
+        while (thisIdx < size && otherIdx < featureListSize) {
+            String curName = featureList.get(otherIdx);
+            int comp = curName.compareTo(featureNames[thisIdx]);
+            // String not present in featureNames, step featureList
+            if (comp < 0) {
+                insertionList.add(curName);
+                otherIdx++;
+            } else if (comp == 0) {
+                // Found feature, step both
+                thisIdx++;
+                otherIdx++;
             } else {
-                // Check to see if our insertion candidate is the same as the current feature name.
-                int comparison = curName.compareTo(featureNames[curPos]);
-                if (comparison < 0) {
-                    // If it's earlier, insert it.
-                    featureNames[size + insertedCount] = curName;
-                    insertedCount++;
-                } else if (comparison == 0) {
-                    // Otherwise just bump our pointer, we've already got this feature.
-                    curPos++;
-                }
+                // featureList is past this, step this
+                thisIdx++;
             }
         }
-        // Bump the size up by the number of inserted features.
-        size += insertedCount;
+        // Insert any remaining features from the list
+        for (; otherIdx < featureListSize; otherIdx++) {
+            insertionList.add(featureList.get(otherIdx));
+        }
+        // Check capacity and grow array
+        int capacityCheck = insertionList.size() + size;
+        if (capacityCheck > featureNames.length) {
+            growArray(capacityCheck);
+        }
+        // Insert new features
+        for (String s : insertionList) {
+            featureNames[size] = s;
+            size++;
+        }
         // Sort the features
         sort();
     }
