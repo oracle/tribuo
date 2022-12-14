@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,13 +82,21 @@ public class CSVLoaderTest {
         assertTrue(data.getExample(1).getOutput().contains("R1"));
         assertTrue(data.getExample(1).getOutput().contains("R2"));
 
-
         //
         // Row #2: R1=False and R2=False.
         // In this case, the labelSet is empty and the labelString is the empty string.
         assertEquals(0, data.getExample(2).getOutput().getLabelSet().size());
         assertEquals("", data.getExample(2).getOutput().getLabelString());
         assertTrue(data.getExample(2).validateExample());
+
+        URL singlePath = CSVLoaderTest.class.getResource("/org/tribuo/data/csv/test-multioutput-singlecolumn.csv");
+        DataSource<MockMultiOutput> singleSource = loader.loadDataSource(singlePath, "Label");
+        MutableDataset<MockMultiOutput> singleData = new MutableDataset<>(singleSource);
+        assertEquals(6, singleData.size());
+
+        for (int i = 0; i < 6; i++) {
+            assertEquals(data.getExample(i).getOutput().getLabelString(), singleData.getExample(i).getOutput().getLabelString());
+        }
     }
 
     @Test

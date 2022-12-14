@@ -231,11 +231,13 @@ public class MockMultiOutput implements Output<MockMultiOutput> {
         StringBuilder builder = new StringBuilder();
 
         builder.append("(LabelSet={");
-        for (MockOutput l : labels) {
-            builder.append(l.toString());
-            builder.append(',');
+        if (labels.size() > 0) {
+            for (MockOutput l : labels) {
+                builder.append(l.toString());
+                builder.append(',');
+            }
+            builder.deleteCharAt(builder.length() - 1);
         }
-        builder.deleteCharAt(builder.length()-1);
         builder.append('}');
         if (!Double.isNaN(score)) {
             builder.append(",OverallScore=");
