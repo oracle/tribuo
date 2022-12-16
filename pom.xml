@@ -58,7 +58,7 @@
         <junit.version>5.9.1</junit.version>
         <opencsv.version>5.7.1</opencsv.version>
         <protobuf.version>3.19.6</protobuf.version>
-        <jackson.version>2.14.0-rc2</jackson.version>
+        <jackson.version>2.14.1</jackson.version>
 
         <!-- Other properties -->
         <!-- Turn off tests which rely on native code -->
@@ -81,12 +81,6 @@
         <developer>
             <name>Adam Pocock</name>
             <email>adam.pocock@oracle.com</email>
-            <organization>Oracle Labs</organization>
-            <organizationUrl>https://labs.oracle.com</organizationUrl>
-        </developer>
-        <developer>
-            <name>Kate Silverstein</name>
-            <email>kate.silverstein@oracle.com</email>
             <organization>Oracle Labs</organization>
             <organizationUrl>https://labs.oracle.com</organizationUrl>
         </developer>
@@ -356,7 +350,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.10.1</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -396,7 +390,17 @@
         </plugins>
     </build>
 
-    <profiles>
+   <profiles>
+        <profile>
+            <!-- Enable javac release flag on 9+-->
+            <id>release-java9-plus</id>
+            <activation>
+                <jdk>[9,)</jdk>
+            </activation>
+            <properties>
+                <maven.compiler.release>8</maven.compiler.release>
+            </properties>
+        </profile>
         <profile>
             <!-- Only enable the reproducibility module on Java 16 or 17 -->
             <id>reproducibility-java17</id>
