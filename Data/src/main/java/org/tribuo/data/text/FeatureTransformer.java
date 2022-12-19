@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,11 @@ import org.tribuo.Feature;
 import java.util.List;
 
 /**
- * A feature transformer maps a list of features to a new list of features
- * Useful for example to apply the hashing trick to a set of features
+ * A feature transformer maps a list of features to a new list of features.
+ * Useful for example to apply the hashing trick to a set of features.
+ * <p>
+ * Note a list of features returned by a {@code FeatureTransformer} may contain
+ * duplicate features, and should be reduced to ensure that each feature is unique.
  */
 public interface FeatureTransformer extends Configurable, Provenancable<ConfiguredObjectProvenance> {
 

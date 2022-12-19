@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,15 +36,62 @@ public class FeatureHasher implements FeatureTransformer {
 
     private static final Logger logger = Logger.getLogger(FeatureHasher.class.getName());
 
+    /**
+     * Default value for the hash function seed.
+     */
+    public static final int DEFAULT_HASH_SEED = 38495;
+
+    /**
+     * Default value for the value hash function seed.
+     */
+    public static final int DEFAULT_HASH_VALUE_SEED = 77777;
+
     @Config(mandatory = true,description="Dimension to map the hash into.")
     private int dimension;
+
+    @Config(description = "Seed used in the hash function.")
+    private int hashSeed = DEFAULT_HASH_SEED;
+
+    @Config(description = "Seed used for value hash function.")
+    private int hashValueSeed = DEFAULT_HASH_VALUE_SEED;
+
+    @Config(description = "Preserve input feature value.")
+    private boolean preserveValue = false;
+
+    /**
+     * Constructs a feature hasher using the supplied hash dimension.
+     * <p>
+     * Note the hasher also hashes the feature value into {-1, 1}.
+     * @param dimension The dimension to reduce the hashed features into.
+     */
+    public FeatureHasher(int dimension) {
+        this(dimension, DEFAULT_HASH_SEED, DEFAULT_HASH_VALUE_SEED, false);
+    }
 
     /**
      * Constructs a feature hasher using the supplied hash dimension.
      * @param dimension The dimension to reduce the hashed features into.
+     * @param preserveValue If true the feature value is used unaltered in the new features,
+     *                      if false it is hashed into the values {-1, 1}.
      */
-    public FeatureHasher(int dimension) {
+    public FeatureHasher(int dimension, boolean preserveValue) {
+        this(dimension, DEFAULT_HASH_SEED, DEFAULT_HASH_VALUE_SEED, preserveValue);
+    }
+
+    /**
+     * Constructs a feature hasher using the supplied hash dimension and seed values.
+     * @param dimension The dimension to reduce the hashed features into.
+     * @param hashSeed The seed used in the murmurhash computation.
+     * @param hashValueSeed The seed used in the murmurhash computation for the feature value,
+     *                      unused if {@code preserveValue} is true.
+     * @param preserveValue If true the feature value is used unaltered in the new features,
+     *                      if false it is hashed into the values {-1, 1}.
+     */
+    public FeatureHasher(int dimension, int hashSeed, int hashValueSeed, boolean preserveValue) {
         this.dimension = dimension;
+        this.hashSeed = hashSeed;
+        this.hashValueSeed = hashValueSeed;
+        this.preserveValue = preserveValue;
     }
 
     /**
@@ -58,20 +105,23 @@ public class FeatureHasher implements FeatureTransformer {
         List<Feature> hashedFeatures = new ArrayList<>();
         
         for (Feature feature : features) {
-            int hash = MurmurHash3.murmurhash3_x86_32(feature.getName(), 0, feature.getName().length(), 38495);
-            //int bit = hash & 1;
-            int bit = MurmurHash3.murmurhash3_x86_32(feature.getName(), 0, feature.getName().length(), 77777) & 1; 
+            int hash = MurmurHash3.murmurhash3_x86_32(feature.getName(), 0, feature.getName().length(), hashSeed);
             hash = hash >>> 1;
             int code = hash % dimension;
-                        
-            int change = bit == 1 ? 1 : -1;
 
-            Feature newFeature = new Feature(tag + "-hash="+code,change);
+            double value;
+            if (preserveValue) {
+                value = feature.getValue();
+            } else {
+                int bit = MurmurHash3.murmurhash3_x86_32(feature.getName(), 0, feature.getName().length(), hashValueSeed) & 1;
+                value = bit == 1 ? 1 : -1;
+            }
+
+            Feature newFeature = new Feature(tag + "-hash="+code, value);
             hashedFeatures.add(newFeature);
         }
 
         return hashedFeatures;
-        
     }
 
     @Override
