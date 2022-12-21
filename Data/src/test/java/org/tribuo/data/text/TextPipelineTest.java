@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,34 @@ public class TextPipelineTest {
         assertTrue(featureList.contains(new Feature("2-N=some/input",1.0)));
         assertTrue(featureList.contains(new Feature("2-N=input/text",1.0)));
     }
+
+    @Test
+    public void testHashingTokenPipeline() {
+        String input = "This is some input text.";
+
+        TokenPipeline pipeline = new TokenPipeline(new BreakIteratorTokenizer(Locale.US),2,true, 10);
+
+        List<Feature> featureList = pipeline.process("test",input);
+
+        assertTrue(featureList.contains(new Feature("test-hash=1",1.0)));
+        assertTrue(featureList.contains(new Feature("test-hash=2",2.0)));
+        assertTrue(featureList.contains(new Feature("test-hash=3",5.0)));
+        assertTrue(featureList.contains(new Feature("test-hash=5",1.0)));
+        assertTrue(featureList.contains(new Feature("test-hash=6",1.0)));
+        assertTrue(featureList.contains(new Feature("test-hash=7",1.0)));
+
+        TokenPipeline hashedValuePipeline = new TokenPipeline(new BreakIteratorTokenizer(Locale.US),2,true, 10, false);
+
+        List<Feature> hashedValueFeatureList = hashedValuePipeline.process("test",input);
+
+        assertTrue(hashedValueFeatureList.contains(new Feature("test-hash=1",1.0)));
+        assertTrue(hashedValueFeatureList.contains(new Feature("test-hash=2",0.0)));
+        assertTrue(hashedValueFeatureList.contains(new Feature("test-hash=3",-1.0)));
+        assertTrue(hashedValueFeatureList.contains(new Feature("test-hash=5",-1.0)));
+        assertTrue(hashedValueFeatureList.contains(new Feature("test-hash=6",1.0)));
+        assertTrue(hashedValueFeatureList.contains(new Feature("test-hash=7",-1.0)));
+    }
+
 
     @Test
     public void testTokenPipelineTagging() {
