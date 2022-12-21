@@ -17,6 +17,7 @@
 package org.tribuo.data.text.impl;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.Feature;
@@ -44,7 +45,7 @@ public class FeatureHasher implements FeatureTransformer {
     /**
      * Default value for the value hash function seed.
      */
-    public static final int DEFAULT_HASH_VALUE_SEED = 77777;
+    public static final int DEFAULT_VALUE_HASH_SEED = 77777;
 
     @Config(mandatory = true,description="Dimension to map the hash into.")
     private int dimension;
@@ -53,7 +54,7 @@ public class FeatureHasher implements FeatureTransformer {
     private int hashSeed = DEFAULT_HASH_SEED;
 
     @Config(description = "Seed used for value hash function.")
-    private int hashValueSeed = DEFAULT_HASH_VALUE_SEED;
+    private int valueHashSeed = DEFAULT_VALUE_HASH_SEED;
 
     @Config(description = "Preserve input feature value.")
     private boolean preserveValue = false;
@@ -65,7 +66,7 @@ public class FeatureHasher implements FeatureTransformer {
      * @param dimension The dimension to reduce the hashed features into.
      */
     public FeatureHasher(int dimension) {
-        this(dimension, DEFAULT_HASH_SEED, DEFAULT_HASH_VALUE_SEED, false);
+        this(dimension, false);
     }
 
     /**
@@ -75,29 +76,40 @@ public class FeatureHasher implements FeatureTransformer {
      *                      if false it is hashed into the values {-1, 1}.
      */
     public FeatureHasher(int dimension, boolean preserveValue) {
-        this(dimension, DEFAULT_HASH_SEED, DEFAULT_HASH_VALUE_SEED, preserveValue);
+        this(dimension, DEFAULT_HASH_SEED, DEFAULT_VALUE_HASH_SEED, preserveValue);
     }
 
     /**
      * Constructs a feature hasher using the supplied hash dimension and seed values.
      * @param dimension The dimension to reduce the hashed features into.
      * @param hashSeed The seed used in the murmurhash computation.
-     * @param hashValueSeed The seed used in the murmurhash computation for the feature value,
+     * @param valueHashSeed The seed used in the murmurhash computation for the feature value,
      *                      unused if {@code preserveValue} is true.
      * @param preserveValue If true the feature value is used unaltered in the new features,
      *                      if false it is hashed into the values {-1, 1}.
      */
-    public FeatureHasher(int dimension, int hashSeed, int hashValueSeed, boolean preserveValue) {
+    public FeatureHasher(int dimension, int hashSeed, int valueHashSeed, boolean preserveValue) {
         this.dimension = dimension;
         this.hashSeed = hashSeed;
-        this.hashValueSeed = hashValueSeed;
+        this.valueHashSeed = valueHashSeed;
         this.preserveValue = preserveValue;
+        postConfig();
     }
 
     /**
      * For olcut.
      */
     private FeatureHasher() {}
+
+    /**
+     * Used by the OLCUT configuration system, and should not be called by external code.
+     */
+    @Override
+    public void postConfig() {
+        if (dimension < 1) {
+            throw new PropertyException("","dimension","Dimension must be positive, found " + dimension);
+        }
+    }
     
     @Override
     public List<Feature> map(String tag, List<Feature> features) {
@@ -113,7 +125,7 @@ public class FeatureHasher implements FeatureTransformer {
             if (preserveValue) {
                 value = feature.getValue();
             } else {
-                int bit = MurmurHash3.murmurhash3_x86_32(feature.getName(), 0, feature.getName().length(), hashValueSeed) & 1;
+                int bit = MurmurHash3.murmurhash3_x86_32(feature.getName(), 0, feature.getName().length(), valueHashSeed) & 1;
                 value = bit == 1 ? 1 : -1;
             }
 
