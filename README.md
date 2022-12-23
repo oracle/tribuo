@@ -191,13 +191,13 @@ Maven:
 <dependency>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
-    <version>4.3.0</version>
+    <version>4.3.1</version>
     <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-implementation ("org.tribuo:tribuo-all:4.3.0@pom") {
+implementation ("org.tribuo:tribuo-all:4.3.1@pom") {
     transitive = true // for build.gradle (i.e., Groovy)
     // isTransitive = true // for build.gradle.kts (i.e., Kotlin)
 }
@@ -265,6 +265,7 @@ Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
+- [v4.3.1](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-3-1-release-notes.md) - Small bug fixes, notably to CART trees and Example.densify, bumps dependencies to more secure versions.
 - [v4.3.0](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-3-release-notes.md) - Model card support, feature selection for classification, protobuf serialization format, kd-tree for distance computations, speed improvements for sparse linear models. Version bumps for most dependencies, and various other small fixes and improvements.
 - [v4.2.2](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-2-2-release-notes.md) - Small bug fixes, bump TF-Java to 0.4.2, jackson to 2.13.4, protobuf-java to 3.19.6, OpenCSV to 5.7.1.
 - [v4.2.1](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-2-1-release-notes.md) - Bug fixes for KMeans' multithreading, nondeterministic iteration orders affecting ONNX export and K-Means initialization, and upgraded TF-Java to 0.4.1.
