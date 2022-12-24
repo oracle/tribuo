@@ -49,9 +49,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -387,6 +389,13 @@ public final class Helpers {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public static <T extends Output<T>> void writeModelProtobuf(Model<T> model, Path path) throws IOException {
+        ModelProto proto = model.serialize();
+        try (FileOutputStream os = new FileOutputStream(path.toFile())) {
+            proto.writeTo(os);
         }
     }
 }

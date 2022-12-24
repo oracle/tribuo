@@ -19,14 +19,24 @@ package org.tribuo.anomaly.liblinear;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
+import org.tribuo.Model;
 import org.tribuo.MutableDataset;
+import org.tribuo.Prediction;
 import org.tribuo.anomaly.Event;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluation;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluator;
 import org.tribuo.anomaly.example.GaussianAnomalyDataSource;
 import org.tribuo.common.liblinear.LibLinearModel;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,6 +77,33 @@ public class LibLinearAnomalyTrainerTest {
         // Test serialization
         Helpers.testModelSerialization(model,Event.class);
         Helpers.testModelProtoSerialization(model,Event.class,testData);
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(LibLinearAnomalyTrainerTest.class.getResource("liblinear-anomaly-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            LibLinearAnomalyModel model = (LibLinearAnomalyModel) Model.deserialize(proto);
+
+            DataSource<Event> testSource = new GaussianAnomalyDataSource(1000, 0.2f, 1);
+            Dataset<Event> testData = new MutableDataset<>(testSource);
+            List<Prediction<Event>> output = model.predict(testData);
+            assertEquals(output.size(), testData.size());
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generateModel() throws IOException {
+        DataSource<Event> trainSource = new GaussianAnomalyDataSource(1000, 0.0f, 1);
+        Dataset<Event> trainData = new MutableDataset<>(trainSource);
+        LinearAnomalyType type = new LinearAnomalyType(LinearAnomalyType.LinearType.ONECLASS_SVM);
+        LibLinearAnomalyTrainer trainer = new LibLinearAnomalyTrainer(type,1.0,1000,0.01,0.05);
+        LibLinearModel<Event> model = trainer.train(trainData);
+        Helpers.writeModelProtobuf(model, Paths.get("src","test","resources","org","tribuo","anomaly","liblinear","liblinear-anomaly-431.tribuo"));
     }
 
 }
