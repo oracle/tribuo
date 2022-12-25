@@ -45,13 +45,17 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -402,4 +406,40 @@ public class TestHdbscan {
         runSparseData(t);
     }
 
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestHdbscan.class.getResource("hdbscan-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            HdbscanModel model = (HdbscanModel) Model.deserialize(proto);
+
+            ClusteringFactory clusteringFactory = new ClusteringFactory();
+            ResponseProcessor<ClusterID> emptyResponseProcessor = new EmptyResponseProcessor<>(clusteringFactory);
+            Map<String, FieldProcessor> regexMappingProcessors = new HashMap<>();
+            regexMappingProcessors.put("Feature1", new DoubleFieldProcessor("Feature1"));
+            regexMappingProcessors.put("Feature2", new DoubleFieldProcessor("Feature2"));
+            regexMappingProcessors.put("Feature3", new DoubleFieldProcessor("Feature3"));
+            RowProcessor<ClusterID> rowProcessor = new RowProcessor<>(emptyResponseProcessor,regexMappingProcessors);
+            URI testData = this.getClass().getResource("/basic-gaussians-predict.csv").toURI();
+            CSVDataSource<ClusterID> csvTestSource = new CSVDataSource<>(Paths.get(testData),rowProcessor,false);
+            Dataset<ClusterID> testSet = new MutableDataset<>(csvTestSource);
+
+            List<Prediction<ClusterID>> predictions = model.predict(testSet);
+
+            int i = 0;
+            int[] actualLabelPredictions = new int[testSet.size()];
+            double[] actualOutlierScorePredictions = new double[testSet.size()];
+            for (Prediction<ClusterID> pred : predictions) {
+                actualLabelPredictions[i] = pred.getOutput().getID();
+                actualOutlierScorePredictions[i] = pred.getOutput().getScore();
+                i++;
+            }
+
+            int[] expectedLabelPredictions = {5,3,5,5,3,5,4,4,5,3,3,3,3,4,4,5,4,5,5,4};
+            double[] expectedOutlierScorePredictions = {0.04384108680937504,0.04922915472735656,4.6591582469379667E-4,0.025225544503289288,0.04922915472735656,0.0,0.044397942146806146,0.044397942146806146,0.025225544503289288,0.0,0.04922915472735656,0.0,0.0,0.044397942146806146,0.02395925569434121,0.003121298369468062,0.02915273635987492,0.03422951971100352,0.0,0.02915273635987492};
+
+            assertArrayEquals(expectedLabelPredictions, actualLabelPredictions);
+            assertArrayEquals(expectedOutlierScorePredictions, actualOutlierScorePredictions);
+        }
+    }
 }

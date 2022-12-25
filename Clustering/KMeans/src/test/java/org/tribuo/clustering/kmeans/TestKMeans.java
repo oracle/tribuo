@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
+import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.evaluation.ClusteringEvaluation;
 import org.tribuo.clustering.evaluation.ClusteringEvaluator;
@@ -29,8 +30,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -221,5 +230,18 @@ public class TestKMeans {
     public void testToString(){
         assertEquals("KMeansTrainer(centroids=4,distance=L2Distance(),seed=1,numThreads=1, initialisationType=RANDOM)", t.toString());
         assertEquals("KMeansTrainer(centroids=4,distance=L2Distance(),seed=1,numThreads=1, initialisationType=PLUSPLUS)", plusPlus.toString());
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestKMeans.class.getResource("kmeans-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            KMeansModel model = (KMeansModel) Model.deserialize(proto);
+
+            Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
+            List<Prediction<ClusterID>> output = model.predict(test);
+            assertEquals(output.size(), test.size());
+        }
     }
 }
