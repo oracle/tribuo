@@ -24,6 +24,13 @@ import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.protos.core.OutputProto;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.anomaly.AnomalyFactory.ANOMALOUS_EVENT;
 import static org.tribuo.anomaly.AnomalyFactory.EXPECTED_EVENT;
@@ -70,4 +77,47 @@ public class SerializationTest {
         assertEquals(immutableInfo,deserImInfo);
     }
 
+    @Test
+    public void load431Protobufs() throws URISyntaxException, IOException {
+        // Event
+        Path eventPath = Paths.get(SerializationTest.class.getResource("event-anomaly-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(eventPath)) {
+            OutputProto proto = OutputProto.parseFrom(fis);
+            Event event = (Event) Output.deserialize(proto);
+            assertEquals(ANOMALOUS_EVENT, event);
+        }
+
+        // AnomalyFactory
+        Path factoryPath = Paths.get(SerializationTest.class.getResource("factory-anomaly-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(factoryPath)) {
+            OutputFactoryProto proto = OutputFactoryProto.parseFrom(fis);
+            AnomalyFactory factory = (AnomalyFactory) OutputFactory.deserialize(proto);
+            assertEquals(new AnomalyFactory(), factory);
+        }
+
+        MutableAnomalyInfo info = new MutableAnomalyInfo();
+        for (int i = 0; i < 5; i++) {
+            info.observe(EXPECTED_EVENT);
+            info.observe(ANOMALOUS_EVENT);
+        }
+        for (int i = 0; i < 2; i++) {
+            info.observe(UNKNOWN_EVENT);
+        }
+        ImmutableAnomalyInfo imInfo = (ImmutableAnomalyInfo) info.generateImmutableOutputInfo();
+
+        // MutableAnomalyInfo
+        Path mutablePath = Paths.get(SerializationTest.class.getResource("mutableinfo-anomaly-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(mutablePath)) {
+            OutputDomainProto proto = OutputDomainProto.parseFrom(fis);
+            AnomalyInfo deserInfo = (AnomalyInfo) OutputInfo.deserialize(proto);
+            assertEquals(info, deserInfo);
+        }
+        // ImmutableAnomalyInfo
+        Path immutablePath = Paths.get(SerializationTest.class.getResource("immutableinfo-anomaly-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(immutablePath)) {
+            OutputDomainProto proto = OutputDomainProto.parseFrom(fis);
+            AnomalyInfo deserInfo = (AnomalyInfo) OutputInfo.deserialize(proto);
+            assertEquals(imInfo, deserInfo);
+        }
+    }
 }

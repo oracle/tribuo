@@ -103,7 +103,7 @@ public class LibLinearAnomalyTrainerTest {
         LinearAnomalyType type = new LinearAnomalyType(LinearAnomalyType.LinearType.ONECLASS_SVM);
         LibLinearAnomalyTrainer trainer = new LibLinearAnomalyTrainer(type,1.0,1000,0.01,0.05);
         LibLinearModel<Event> model = trainer.train(trainData);
-        Helpers.writeModelProtobuf(model, Paths.get("src","test","resources","org","tribuo","anomaly","liblinear","liblinear-anomaly-431.tribuo"));
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","anomaly","liblinear","liblinear-anomaly-431.tribuo"));
     }
 
 }

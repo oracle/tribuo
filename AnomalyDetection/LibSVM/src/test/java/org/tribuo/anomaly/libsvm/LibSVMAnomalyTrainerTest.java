@@ -109,7 +109,7 @@ public class LibSVMAnomalyTrainerTest {
         params.setNu(0.1);
         LibSVMAnomalyTrainer trainer = new LibSVMAnomalyTrainer(params);
         LibSVMModel<Event> model = trainer.train(trainData);
-        Helpers.writeModelProtobuf(model, Paths.get("src","test","resources","org","tribuo","anomaly","libsvm","libsvm-anomaly-431.tribuo"));
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","anomaly","libsvm","libsvm-anomaly-431.tribuo"));
     }
 
 }

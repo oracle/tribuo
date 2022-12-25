@@ -392,8 +392,8 @@ public final class Helpers {
         }
     }
 
-    public static <T extends Output<T>> void writeModelProtobuf(Model<T> model, Path path) throws IOException {
-        ModelProto proto = model.serialize();
+    public static void writeProtobuf(ProtoSerializable<?> obj, Path path) throws IOException {
+        Message proto = obj.serialize();
         try (FileOutputStream os = new FileOutputStream(path.toFile())) {
             proto.writeTo(os);
         }
