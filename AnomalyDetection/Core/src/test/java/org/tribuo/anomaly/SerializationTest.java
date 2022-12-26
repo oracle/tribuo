@@ -23,6 +23,7 @@ import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.protos.core.OutputProto;
+import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,5 +120,21 @@ public class SerializationTest {
             AnomalyInfo deserInfo = (AnomalyInfo) OutputInfo.deserialize(proto);
             assertEquals(imInfo, deserInfo);
         }
+    }
+
+    public void generateProtobufs() throws IOException {
+        Helpers.writeProtobuf(new AnomalyFactory(), Paths.get("src","test","resources","org","tribuo","anomaly","factory-anomaly-431.tribuo"));
+        Helpers.writeProtobuf(ANOMALOUS_EVENT, Paths.get("src","test","resources","org","tribuo","anomaly","event-anomaly-431.tribuo"));
+        MutableAnomalyInfo info = new MutableAnomalyInfo();
+        for (int i = 0; i < 5; i++) {
+            info.observe(EXPECTED_EVENT);
+            info.observe(ANOMALOUS_EVENT);
+        }
+        for (int i = 0; i < 2; i++) {
+            info.observe(UNKNOWN_EVENT);
+        }
+        Helpers.writeProtobuf(info, Paths.get("src","test","resources","org","tribuo","anomaly","mutableinfo-anomaly-431.tribuo"));
+        ImmutableAnomalyInfo imInfo = (ImmutableAnomalyInfo) info.generateImmutableOutputInfo();
+        Helpers.writeProtobuf(imInfo, Paths.get("src","test","resources","org","tribuo","anomaly","immutableinfo-anomaly-431.tribuo"));
     }
 }

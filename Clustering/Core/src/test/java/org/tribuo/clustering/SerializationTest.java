@@ -23,6 +23,7 @@ import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.protos.core.OutputProto;
+import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -122,5 +123,22 @@ public class SerializationTest {
             ClusteringInfo deserInfo = (ClusteringInfo) OutputInfo.deserialize(proto);
             assertEquals(imInfo, deserInfo);
         }
+    }
+
+    public void generateProtobufs() throws IOException {
+        Helpers.writeProtobuf(new ClusteringFactory(), Paths.get("src","test","resources","org","tribuo","clustering","factory-clustering-431.tribuo"));
+        Helpers.writeProtobuf(ONE, Paths.get("src","test","resources","org","tribuo","clustering","clusterid-clustering-431.tribuo"));
+        MutableClusteringInfo info = new MutableClusteringInfo();
+        for (int i = 0; i < 5; i++) {
+            info.observe(ZERO);
+            info.observe(ONE);
+            info.observe(TWO);
+        }
+        for (int i = 0; i < 2; i++) {
+            info.observe(ClusteringFactory.UNASSIGNED_CLUSTER_ID);
+        }
+        Helpers.writeProtobuf(info, Paths.get("src","test","resources","org","tribuo","clustering","mutableinfo-clustering-431.tribuo"));
+        ImmutableClusteringInfo imInfo = (ImmutableClusteringInfo) info.generateImmutableOutputInfo();
+        Helpers.writeProtobuf(imInfo, Paths.get("src","test","resources","org","tribuo","clustering","immutableinfo-clustering-431.tribuo"));
     }
 }

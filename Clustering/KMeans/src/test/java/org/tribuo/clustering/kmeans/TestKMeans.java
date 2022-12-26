@@ -244,4 +244,15 @@ public class TestKMeans {
             assertEquals(output.size(), test.size());
         }
     }
+
+    public void generateProtobuf() throws IOException {
+        KMeansTrainer trainer = new KMeansTrainer(4,10,  DistanceType.L2.getDistance(),
+                KMeansTrainer.Initialisation.PLUSPLUS, 1,1);
+
+        Dataset<ClusterID> data = new MutableDataset<>(new GaussianClusterDataSource(500, 1L));
+
+        KMeansModel model = trainer.train(data);
+
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","clustering","kmeans","kmeans-431.tribuo"));
+    }
 }
