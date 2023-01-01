@@ -90,6 +90,8 @@ public class LibSVMAnomalyTrainerTest {
             ModelProto proto = ModelProto.parseFrom(fis);
             LibSVMAnomalyModel model = (LibSVMAnomalyModel) Model.deserialize(proto);
 
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
             DataSource<Event> testSource = new GaussianAnomalyDataSource(1000, 0.2f, 1);
             Dataset<Event> testData = new MutableDataset<>(testSource);
             List<Prediction<Event>> output = model.predict(testData);

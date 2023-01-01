@@ -239,6 +239,8 @@ public class TestKMeans {
             ModelProto proto = ModelProto.parseFrom(fis);
             KMeansModel model = (KMeansModel) Model.deserialize(proto);
 
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
             Dataset<ClusterID> test = ClusteringDataGenerator.gaussianClusters(500, 2L);
             List<Prediction<ClusterID>> output = model.predict(test);
             assertEquals(output.size(), test.size());

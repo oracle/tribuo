@@ -413,6 +413,8 @@ public class TestHdbscan {
             ModelProto proto = ModelProto.parseFrom(fis);
             HdbscanModel model = (HdbscanModel) Model.deserialize(proto);
 
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
             DataSource<ClusterID> gaussianSource = new GaussianClusterDataSource(1000, 1L);
             TrainTestSplitter<ClusterID> splitter = new TrainTestSplitter<>(gaussianSource, 0.8f, 2L);
             Dataset<ClusterID> testData = new MutableDataset<>(splitter.getTest());
