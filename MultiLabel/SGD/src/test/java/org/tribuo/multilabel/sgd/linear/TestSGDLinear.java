@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
+import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
@@ -34,11 +35,15 @@ import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.tribuo.multilabel.sgd.objectives.Hinge;
 import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -103,4 +108,27 @@ public class TestSGDLinear {
 
         onnxFile.toFile().delete();
     }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestSGDLinear.class.getResource("lin-ml-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            LinearSGDModel model = (LinearSGDModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
+            Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
+            List<Prediction<MultiLabel>> predictions = model.predict(test);
+            assertEquals(test.size(), predictions.size());
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        LinearSGDTrainer sigmoid = new LinearSGDTrainer(new BinaryCrossEntropy(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED);
+        Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
+        LinearSGDModel model = sigmoid.train(train);
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","multilabel","sgd","linear","lin-ml-431.tribuo"));
+    }
+
 }
