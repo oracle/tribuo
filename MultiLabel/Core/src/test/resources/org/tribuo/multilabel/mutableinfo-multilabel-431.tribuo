@@ -1,0 +1,6 @@
++org.tribuo.multilabel.MutableMultiLabelInfo\
+@type.googleapis.com/tribuo.multilabel.MutableMultiLabelInfoProto
+A
+B
+C
+ONE 
