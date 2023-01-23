@@ -34,11 +34,15 @@ import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.multilabel.sgd.objectives.Hinge;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -103,4 +107,27 @@ public class TestFMMultiLabel {
 
         onnxFile.toFile().delete();
     }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestFMMultiLabel.class.getResource("fm-ml-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            FMMultiLabelModel model = (FMMultiLabelModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
+            Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
+            List<Prediction<MultiLabel>> predictions = model.predict(test);
+            assertEquals(test.size(), predictions.size());
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        FMMultiLabelTrainer sigmoid = new FMMultiLabelTrainer(new BinaryCrossEntropy(),new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,5,0.1);
+        Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
+        FMMultiLabelModel model = sigmoid.train(train);
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","multilabel","sgd","fm","fm-ml-431.tribuo"));
+    }
+
 }

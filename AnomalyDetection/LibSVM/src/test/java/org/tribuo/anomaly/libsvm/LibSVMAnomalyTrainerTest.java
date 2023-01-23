@@ -17,17 +17,30 @@
 package org.tribuo.anomaly.libsvm;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.DataSource;
 import org.tribuo.Dataset;
+import org.tribuo.Model;
+import org.tribuo.MutableDataset;
+import org.tribuo.Prediction;
 import org.tribuo.anomaly.Event;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluation;
 import org.tribuo.anomaly.evaluation.AnomalyEvaluator;
 import org.tribuo.anomaly.example.AnomalyDataGenerator;
+import org.tribuo.anomaly.example.GaussianAnomalyDataSource;
 import org.tribuo.common.libsvm.KernelType;
 import org.tribuo.common.libsvm.LibSVMModel;
 import org.tribuo.common.libsvm.SVMParameters;
 import org.junit.jupiter.api.Test;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,6 +81,37 @@ public class LibSVMAnomalyTrainerTest {
 
         // Test protobuf serialization
         Helpers.testModelProtoSerialization(model, Event.class, pair.getB());
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(LibSVMAnomalyTrainerTest.class.getResource("libsvm-anomaly-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            LibSVMAnomalyModel model = (LibSVMAnomalyModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
+            DataSource<Event> testSource = new GaussianAnomalyDataSource(1000, 0.2f, 1);
+            Dataset<Event> testData = new MutableDataset<>(testSource);
+            List<Prediction<Event>> output = model.predict(testData);
+            assertEquals(output.size(), testData.size());
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generateModel() throws IOException {
+        DataSource<Event> trainSource = new GaussianAnomalyDataSource(1000, 0.0f, 1);
+        Dataset<Event> trainData = new MutableDataset<>(trainSource);
+        SVMParameters<Event> params = new SVMParameters<>(new SVMAnomalyType(SVMAnomalyType.SVMMode.ONE_CLASS), KernelType.RBF);
+        params.setGamma(1.0);
+        params.setNu(0.1);
+        LibSVMAnomalyTrainer trainer = new LibSVMAnomalyTrainer(params);
+        LibSVMModel<Event> model = trainer.train(trainData);
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","anomaly","libsvm","libsvm-anomaly-431.tribuo"));
     }
 
 }

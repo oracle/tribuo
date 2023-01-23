@@ -24,7 +24,14 @@ import org.tribuo.classification.Label;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.protos.core.OutputProto;
+import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -77,6 +84,66 @@ public class SerializationTest {
         OutputDomainProto serImInfo = immutableInfo.serialize();
         ImmutableMultiLabelInfo deserImInfo = (ImmutableMultiLabelInfo) OutputInfo.deserialize(serImInfo);
         assertEquals(immutableInfo,deserImInfo);
+    }
+
+    @Test
+    public void load431Protobufs() throws URISyntaxException, IOException {
+        // ClusterID
+        Path clusteridPath = Paths.get(SerializationTest.class.getResource("multilabel-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(clusteridPath)) {
+            OutputProto proto = OutputProto.parseFrom(fis);
+            MultiLabel multilabel = (MultiLabel) Output.deserialize(proto);
+            assertEquals(ONE, multilabel);
+        }
+
+        // ClusteringFactory
+        Path factoryPath = Paths.get(SerializationTest.class.getResource("factory-multilabel-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(factoryPath)) {
+            OutputFactoryProto proto = OutputFactoryProto.parseFrom(fis);
+            MultiLabelFactory factory = (MultiLabelFactory) OutputFactory.deserialize(proto);
+            assertEquals(new MultiLabelFactory(), factory);
+        }
+
+        MutableMultiLabelInfo info = new MutableMultiLabelInfo();
+        for (int i = 0; i < 5; i++) {
+            info.observe(ONE);
+            info.observe(TWO);
+        }
+        for (int i = 0; i < 2; i++) {
+            info.observe(MultiLabelFactory.UNKNOWN_MULTILABEL);
+        }
+        ImmutableMultiLabelInfo imInfo = (ImmutableMultiLabelInfo) info.generateImmutableOutputInfo();
+
+        // MutableMultiLabelInfo
+        Path mutablePath = Paths.get(SerializationTest.class.getResource("mutableinfo-multilabel-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(mutablePath)) {
+            OutputDomainProto proto = OutputDomainProto.parseFrom(fis);
+            MultiLabelInfo deserInfo = (MultiLabelInfo) OutputInfo.deserialize(proto);
+            assertEquals(info, deserInfo);
+        }
+        // ImmutableMultiLabelInfo
+        Path immutablePath = Paths.get(SerializationTest.class.getResource("immutableinfo-multilabel-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(immutablePath)) {
+            OutputDomainProto proto = OutputDomainProto.parseFrom(fis);
+            MultiLabelInfo deserInfo = (MultiLabelInfo) OutputInfo.deserialize(proto);
+            assertEquals(imInfo, deserInfo);
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        Helpers.writeProtobuf(new MultiLabelFactory(), Paths.get("src","test","resources","org","tribuo","multilabel","factory-multilabel-431.tribuo"));
+        Helpers.writeProtobuf(ONE, Paths.get("src","test","resources","org","tribuo","multilabel","multilabel-431.tribuo"));
+        MutableMultiLabelInfo info = new MutableMultiLabelInfo();
+        for (int i = 0; i < 5; i++) {
+            info.observe(ONE);
+            info.observe(TWO);
+        }
+        for (int i = 0; i < 2; i++) {
+            info.observe(MultiLabelFactory.UNKNOWN_MULTILABEL);
+        }
+        Helpers.writeProtobuf(info, Paths.get("src","test","resources","org","tribuo","multilabel","mutableinfo-multilabel-431.tribuo"));
+        ImmutableMultiLabelInfo imInfo = (ImmutableMultiLabelInfo) info.generateImmutableOutputInfo();
+        Helpers.writeProtobuf(imInfo, Paths.get("src","test","resources","org","tribuo","multilabel","immutableinfo-multilabel-431.tribuo"));
     }
 
 }

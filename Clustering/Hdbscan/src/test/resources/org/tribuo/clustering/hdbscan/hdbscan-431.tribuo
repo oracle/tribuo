@@ -1,0 +1,176 @@
+*org.tribuo.clustering.hdbscan.HdbscanModelç
+?type.googleapis.com/tribuo.clustering.hdbscan.HdbscanModelProto¢
+½L
+hdbscan-modelĞH
+òhdbscanmodel-0*org.tribuo.clustering.hdbscan.HdbscanModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+õ
+mutabledataset-1org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+«hdbscantrainer-2,org.tribuo.clustering.hdbscan.HdbscanTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+tribuo-version*
+neighboursQueryFactory*
+train-invocation-count*
+is-sequence*
+minClusterSize*
+dist*
+k*
+
+numThreads*
+host-short-name*
+
+class-name
+×traintestsplitter-3'org.tribuo.evaluation.TrainTestSplitter"Aorg.tribuo.evaluation.TrainTestSplitter$SplitDataSourceProvenance*
+train-proportion *
+seed!*
+size"*
+
+source#*
+
+class-name$*
+is-train%
+Ñ&kdtreefactory-4.org.tribuo.math.neighbour.kdtree.KDTreeFactory"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+distance'*
+
+numThreads(*
+host-short-name)*
+
+class-name*
+¥+l2distance-7#org.tribuo.math.distance.L2Distance"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+º.gaussianclusterdatasource-67org.tribuo.clustering.example.GaussianClusterDataSource"[org.tribuo.clustering.example.GaussianClusterDataSource$GaussianClusterDataSourceProvenance*
+fourthVariance/*
+seed4*
+firstVariance5*
+fifthVariance:*
+host-short-name?*
+
+class-name@*
+
+fourthMeanA*
+mixingDistributionD*
+	thirdMeanJ*
+
+numSamplesM*
+	fifthMeanN*
+
+secondMeanQ*
+secondVarianceT*
+thirdVarianceY*
+	firstMean^\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]java-version17.0.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceQtrainerhdbscantrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2023-01-09T20:50:31.537173-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceHdatasetmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0}	
+class-name*org.tribuo.clustering.hdbscan.HdbscanModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features2*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceUnum-examples800*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceh
+datasourcetraintestsplitter-3*Aorg.tribuo.evaluation.TrainTestSplitter$SplitDataSourceProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceVis-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancexneighboursQueryFactorykdtreefactory-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0]train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceUminClusterSize5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancecdistl2distance-7*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0Hk5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceQ
+numThreads2*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance
+class-name,org.tribuo.clustering.hdbscan.HdbscanTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancej train-proportion0.800000011920929*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceL!seed2*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenanceN"size1000*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance†#sourcegaussianclusterdatasource-6*[org.tribuo.clustering.example.GaussianClusterDataSource$GaussianClusterDataSourceProvenance0z$
+class-name'org.tribuo.evaluation.TrainTestSplitter*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceV%is-traintrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceg'distancel2distance-7*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0Q(
+numThreads2*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancen)host-short-nameNeighboursQueryFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance*
+class-name.org.tribuo.math.neighbour.kdtree.KDTreeFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance`,host-short-nameDistance*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancev-
+class-name#org.tribuo.math.distance.L2Distance*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceZ0fourthVariance0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZ1fourthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZ2fourthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZ3fourthVariance0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceL4seed1*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenanceY6firstVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY7firstVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY8firstVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY9firstVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY;fifthVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY<fifthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY=fifthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY>fifthVariance0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceb?host-short-name
+DataSource*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŠ@
+class-name7org.tribuo.clustering.example.GaussianClusterDataSource*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceWB
+fourthMean10.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceVC
+fourthMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance^EmixingDistribution0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_FmixingDistribution0.35*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_GmixingDistribution0.05*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_HmixingDistribution0.25*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_ImixingDistribution0.25*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUK	thirdMean2.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUL	thirdMean2.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceTM
+numSamples1000*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceVO	fifthMean-1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUP	fifthMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceVR
+secondMean5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceVS
+secondMean5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZUsecondVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZVsecondVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZWsecondVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZXsecondVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceYZthirdVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY[thirdVariance0.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY\thirdVariance0.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY]thirdVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceU_	firstMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceU`	firstMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance""/0123"56789":;<=>"ABC"	DEFGHI"JKL"NOP"QRS"TUVWX"YZ[\]"^_`"Òorg.tribuo.ImmutableFeatureMap¯
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProtoò
+vorg.tribuo.RealIDInfo]
+/type.googleapis.com/tribuo.core.RealIDInfoProto*
+A Q
+àĞAl‡%@Y{ĞUå]Àaº«³:÷@ir¦WA“Ì@
+xorg.tribuo.RealIDInfo_
+/type.googleapis.com/tribuo.core.RealIDInfoProto,
+B Q~Ğa:@Y yFMÀa°d)q±¿ş?iÕÈB³@*}-org.tribuo.clustering.ImmutableClusteringInfoL
+9type.googleapis.com/tribuo.clustering.ClusteringInfoProto
+ Ï´‡24.3.1                       ä2org.tribuo.math.la.DenseVectorÁ2
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto‡2
+ €2X‚Îä…ßİ?²®‹ªFÑ?uÆI#1è?LŠMµ4ë?Ä3r¼Fß?¨8ì^ÑÀ?šÉyC*Ş?D¾á6[ä?’Ëá’-ã?Ã'ÁZÀQà?ò0yÏ¾;Ö?øâ®·V5é?–Ç½7)…å?        Ÿ¯	Ö?µí®¼)î?¤Ï,¸™ß?        ’\É1wì?•Ú q+=ä?ÆÊ­ØqÛ?Ä3r¼Fß?‚Xö$æ?¬Nûjä?G8°ÎÎ?        yG‡ÉLæ?®jL@×?ˆ¯ã‹F¶á?"];Öüã?                Ê3ÔºÙ?Ï"Œ¹vî?        Ài	ÑøAá?4¶NDÏä?@ÂVjZÂ?ĞœÑ;$¯ß?Ù¢UEâ?:	p‰4İ?0aÿôQÜ?KB`|®Ü?        ºšPÿ	í?¯«“ó'Uç?AP“ˆYî?        RjdîU·×?:Ïˆ	šFÖ?        È&WrMè?êá|6â?~“W¿¬Îä?Ø[,M`Üã?Ï¼š[Aã?¸fÿ=ÑXâ?ª5šMÆæ?®±£çè?        H+›vĞÖ?AÆ§ƒôá?ü*ñ€-Ø?Â1ĞïLæ?        ù"¥¬ìAã?l¡ıÒÊ…İ?^d³ÔÛ¯Ú?Z¸õê?’´»ÿäâ?¨ìPØAì?˜ªQë?ôe1µvÊ?Úµ÷"FŞ?        ˆŞs.Qùà?Ä—¹YˆÛ?^š†ÌÛ?        bŸ/á»Ş?        @ê]/ Ğ? ¬ïœ7îÒ?803”M×?        Ö»CÖ¦qĞ?@+3ŒeòÙ?¿g(Mã?‚cøä‰â?ÖÒÚ<‚ãê?ÓbôÍx³â?^æ`ÚÒß?¾÷È.>:ì?ğëY6%é×?Ÿ¯	Ö?        º2`Çº1ì?                        d«[ı*İ?”š3¨áÑ?°4w¥Éê?¾ƒâ,;Mé?$ş	C¯Å?        ÇCÈë?`¹ñJ*°?        ğ‡<Ã/ÿ¹?‹©²5`Ù?        Ÿ¯	Ö?†è><„ã?æ+Ôjä?‚7é±â?.2QÊ»à?¢+a Îä?Ÿ¯	Ö?j©¹‚ã?hÅeÕ–;à?Nö•yİ?        ‹õô ñä?¢+a Îä?+Lqóá?ÍĞ4¢¯é?‹©²5`Ù?¸§sáeµ?­W@ ³ç?äQâ åçá?        ,!Á9‹É?        \Â¾}Ü‚ë?°ùg
+œUæ?H“Ó¾¡»æ?(¡ŞWÁá?r!·¬6ÉÒ?r£á1­İ?-rC©{ªæ?.rYlÇ'Ş?        ı¤–Ú[hé?2i˜Ï?²MĞmô+Ö?œÑc¦^ßç?s¹åMdÔæ?AÆ§ƒôá?è"åúå´?ÒPŠ-«ç?¨1
+
+X`è?pTy¥¥`Ş?ªãÇ©ş>Ô?ó‹ÀDğßè?ãÉIqê?¯'ûÂà?Üœ«._)â?        l¡ıÒÊ…İ?        (Ÿ—Z+ÓÛ?                ¶Æ1­}ê?¨ê±şê?        ~ªHt±Û?W#Æ§ë?”š3¨áÑ?œpÙçıÌÇ?ŞcIGbôà?ÜÌuÅvïÁ?$ÙœŠRÑ?T“›Æ±Zä?TàÛíĞÜ?Ä
+.‡Ë?Ÿ¯	Ö?i%4ê?Pàs[Ó¹?¸fÿ=ÑXâ?TF7ä	Ø?<
+p¿ó¦á?        ‹õô ñä? W©:â?dr»Aæ?Òú8ô³÷Ü?ğøRx¯>Í?                –Ç½7)…å?v»•9â?=7yá{ì?hÅeÕ–;à?ı–ñÉ³Ñ?¸§sáeµ?”ÜÕ–œ´ä?°bç«xé?¼µÁûèâ?âRİñsà?        ¹Ä`b¼í?ÍXdŸâ?        ğ–¾rãâ?ØwÈFhì?°ûÀ¥(¥«?šBi³äã?^d³ÔÛ¯Ú?BÀìDKá?ÜÌuÅvïÁ?²®‹ªFÑ?X·Å¼aPÖ?ÔèÊŞ´Ùß?Ú»Ë ±ç?–Ç½7)…å?ræ”’ç?Ø8íûbÔ?        ²YufSä?0b·¥qjä? ŒñÅÒâ?‚Ÿ^Şêë?ÌÕğ<ßÜ?ÚüÄcØOÛ?²5"«PŠÜ?ÎW^]°İß?zãğ få?yó&…å?P-³èßâ?ŠUÊ|è;Ø?Á¯yˆß? 4˜ Ñçå?š“© á?        ÜÌuÅvïÁ?        € CĞùÀ?        `G&Ò†¼?        °F Û-Ì?¾L¶€™eÜ?j8½bÅÔ?Ã~²ıAË?°Şğ¿znç?ÅOÜ!ì‘ä?8ÑwˆÑ[ç?ŞŸ¡¹lZØ?`Áw$gã?j8½bÅÔ?ÜèL˜qŞŞ?        MÏ%!OAà?4s]ûPÛ?                        l¡ıÒÊ…İ?Ã$TÛ?°ûÀ¥(¥«?:0aÌÕ?f“N[H¬Ù?Vœ$œíß?Ú„<ù“å?IU€ úfæ? ƒRµ>x?Pò·M¤/Ù?‚û²‡âß?l¡ıÒÊ…İ?|õ‰'' È?                        ­W@ ³ç?(Go
+XÊ?òÇ%‚Ä«ã?ÊÇIÆ°oä?Nö•yİ?TÈ²šÖ?œBeŞ†è?                0^3;².í?8èÍX)ˆÑ?À8î>ïèº?còÎ	şøâ?SBÜ2 ¿ä?D¸M-Õ?ÓMÍjÍç?+ ÇÆÏ¼ë?…é¤-JÚì?        Bôİ½¸É?ƒ})¹?°ğõã?X/k‚S”İ?Ğ!.*2ß?,¦®¦é?Ã~²ıAË?ÔıµûĞ?fR0ky›ë?z
+»apä?.!ò™İÒ?œŒ(€7ËÜ?”š3¨áÑ?        p¾% ç?8aÁ±IB³?        
+×_éïç?`Åk±¢+ë?J"
+ZØ?–Ç½7)…å?JçåÑ{mÚ?¾ƒâ,;Mé?X_åXØá?’Ëá’-ã?˜DóØ/½?        ¸¦?ÔğÒ?hÅeÕ–;à?^R€"ùÇØ?HÈÜu‰Ù?        è¨¤7LÔ?d?73Hñæ?à×Ç1ø‘à?Ò:D±æ?yG‡ÉLæ?         orw]%•?<)¯Ë8ìÁ?Ò-ŒbŸá?ªãÇ©ş>Ô?æäKör®Ü?Dyp,*Ç?|w•ğyøé?v92Z
+â?¸§sáeµ?P5Ÿ2V«?ììh7è? ºÈÒ¯6ë?+¥ÌMÆé?LŠMµ4ë?ñÃ\gòà?Ú¿?Dz:Ş?
+L—Â,Ù?^W™½Ïæ?AÚ'¥m4í?’Ëá’-ã?fø©Pªè?><&É)à?L‹âëğˆå?^R€"ùÇØ?®ÎŒ€3ä?ß2^xà?ÚsåşÄèá?˜DóØ/½?ÑZèşã?îâÔc±ç?€ŸÉã*6Í?ê¨‰ıÎÛâ?Pò·M¤/Ù?°F Û-Ì?†1#ø9®æ?L$ôké?BÀìDKá?Ös˜ñÄªé?j‰P[8İ?Pàs[Ó¹?<w›Çúç?ö¢f‘´0ä?¯ ªoâ?8ZÒî;¼?ôSßYâ?°ûÀ¥(¥«?òŠŠïÛ?X€ Í	µ?¨ÓBû^ß?                        ˜¯sõ Ú?1Aí‘¨Tã?…ÿdñKê?+ƒ*`ä?&ŒÔ¶ãÃà?$ñÃ6á+Ô?€ÌTA¼ßt?Ç¹Sô%ä?¡z6Egâ?ªŸÅ?fâ?üàşJ]Âå?>±w0"gá?Ø8íûbÔ?        >É7BfÖ?ÈòãşTà?¯«“ó'Uç?8[?Q@`Ù?€UiÂ’¼?        ‹=õ¬İ?F?ëwKé?Ÿ¯	Ö?Ø8íûbÔ?<¾§ñŠÃ×?¸fÿ=ÑXâ?‹õô ñä?–8…Â6ä?ÚzõŠùá?f¡Fbÿì?æ'kxnâ?j8½bÅÔ?Nö•yİ?pÇ5QĞ¢ß?©2çë?        ¤¾Êiàã?ÏµÕ¯¯á?        TF7ä	Ø?2éÍ °×é?–Ç½7)…å?ò’¿‚7ˆÙ?ÚúÀbVÓÕ?r!·¬6ÉÒ?úNDB‡Uä?.!ò™İÒ?         orw]%•?Ê‘…¬î?ÖÎ›¸9
+Û?†DjÂ?«ômíLéå? ¯]S¢Ÿà?ÜÌuÅvïÁ?¬ë”#é?@°–ñÛ?î4ÖÃ9qØ?‡‘¦·†å?f“N[H¬Ù?Pò·M¤/Ù?@ê]/ Ğ?c÷ãà4ì?Šˆ6»^„ç?VF«‹ÓYã?        $¦ŒŞÙÊ?Ì½Kİóİ?’CEwoå?        ¸¦?ÔğÒ?«Èõü6bé?™_
+êã?ªšcp`¦é?ğï¨K™Ù?J=pœrFİ?à<vk*Ç?°óÆªıÉ×?b$Ù£Uå?~öØô¶á?Ÿ¯	Ö?›hPcá?¼²7Ã»yà?yG‡ÉLæ?Fº0Ó$–â?&ÚV‰è:Ù?¸fÿ=ÑXâ?$ô&pñvÊ?>É7BfÖ?îJ<‡4à?Ş.¢Ÿ~á?        |ªH¸@Ü?        <ç¨XNtß?3dçÕè?°ûÀ¥(¥«?        2ÃÆÈmê?@é¦ŸåêØ?Ğ¨Š¼#­¶?ğÏÎñË‰¿?JRÉœŞ? fuVÛİ?Š:ªÖó‰×?n54†Ô?pîŸ|Â!İ?                ,+T¤rÎ?$ñÃ6á+Ô?ÖötGAŞ?        š¡­Væ?JóLí3ç?BÀìDKá?¤É$¼}×?                ı¤–Ú[hé?\4/H™|ë?sÙUÀúã?        ­W@ ³ç?b¦ó¥³¸Ü?f36Xç?ú*—ë¤Ò?èé–ŸxÁ?¼#tH]ÌÖ?fR0ky›ë?        g
+áp”«ì?îè…{Ræ?«ômíLéå?)O¢dØ?<G|¼Ù?        Æ…|ƒ>í?¬•Øƒ^Ëê?ÀÉ ^Ã}£?        <–ù~gÔ?ÄFÇì?¸fÿ=ÑXâ?ŞcIGbôà?T˜ÕLá?´)Yk—ß?        õø¶T*â?c‡ıµN†é?@ê]/ Ğ?È&WrMè?w¥;±á,ì?ˆ,u¡#gÜ?p}ãs)‘à?ò¿ y:å?        ä˜6"FÄØ?                ˜DóØ/½?Fÿ_È1ªß?        HÈÜu‰Ù?ÒÔSe›—á?Ô[> Øß?®É¹‘aá?Æ—ñh“	ß?ZÛŸï«Lä?I‡„0e‡ã?’Ëá’-ã? +¤Ã1Ï?€è•+ğp?m‘huá?ˆnió«ã?^R€"ùÇØ?ØwÈFhì?        [,‡>úzà?¶pâ(â?–Ç½7)…å?¬9—Í,@ì?        @Ğ¸r°é™?H·]ˆM†½?ˆzÒÁ¼v¾?        B&”—İ?ĞLl=Òß?        x»‡È?                S§„f¥İ?`bàĞÖ?pÃ(ÌìÀ?l- qÖé?uÕ«V.àé?¼[DğÜ?ø$‰;4ç?H“Ó¾¡»æ?        HeE„65è?BŞ¬Ì^å?†õfÇçíß?‚5 ~È[ä?(ÿ^÷6ë?‚B-İ?ø>w?iÔì?r!·¬6ÉÒ?FSï·Gì?«¾tèÏâ?        ş3Í ?ôæ?vX±((ä?        z<Vƒ¦"í?ïó¢8â?’!\«¦æ?hÅeÕ–;à?5¤IŞ6ã?`[à‰Wâ?        ü³'2MÉ?é%³\ä?BÀìDKá? +¤Ã1Ï?ŒÙqœ|Ş?nJfŠÇ…á?ŞŸ¡¹lZØ?ØÇ´8V~é?„Ì2’·-è?@5Ißš„?‹4ßçDDä?8‰Î‰ì?r!·¬6ÉÒ?°¶—Oîõ²?¼[DğÜ?Dyp,*Ç?        Ø¸ƒØØÑ´?¦×–NuòÛ?`bàĞÖ?¤)
+wÎdç?È¬ê£1tí?x[!¯µ? W©:â?0Uğ¾“&æ?Ş;§wnä?        Pò·M¤/Ù?        Î·ŞÈ¸ç?²+ö©Æå?Ê]v0M©å?8ŠCûà?        8[?Q@`Ù?        @ê]/ Ğ?˜(Še-Í?ƒË á?c‡ıµN†é?ïMš?å?fÕÈ9sä?NU—‡İ?­–Y‰è?        ^R€"ùÇØ?UÉ/Zã?,]	ç?¬òêë,å? ¬ïœ7îÒ?                Pµb»cÁ?Ÿ¯	Ö?D¸M-Õ?œÆı,1¸ç?0…2æÖæ?@ÁºÄŞ?†r4º¾œâ?        8[?Q@`Ù?@u/ùä?˜Õ·4MˆÔ?4ÌØ4 ä?;j^Nñ·æ?Ø}Ù6ë?f’¹£ç?x•g ò³?        Ø}Ù6ë?.–ÑÔ¿ã?        0@ËğPÏÆ?-ıë½íwí?x	RˆÃ"Ã?Oƒ9:”Âå?        x"éN±Û?°Ã(pØ?H
+øÔ™ÈÖ?†m|÷ºŞÖ?                ø¼}KÚ?BÀìDKá?´óo*ªãÓ?Şå©-Ö?t¥àK å?        ¸^³Ìæ?°ê)Ğ×VÛ?İQ.RTä?ê	ƒ!ÌXä?¸¼Ô 9´ã?Ã~²ıAË?PÒM’ Õ?.î«Ù?                ùM|
+.ã?vw~‰OWã?        jº†‚:Û?Ô?.GÕ,à?ºèÜ­<+à?        dèM4–è?0ûõm£Ú?,û?“Ò?ò0yÏ¾;Ö?        8bìğ7Ì?ËEñ-4ë?Öp>8á?        .»áâ?Pò·M¤/Ù?é«šš á?còÎ	şøâ?¤Ë(İ6Û?<"„tç?©¬=à‡í? +;œËqº?­W@ ³ç?@Ğ¸r°é™?¦joÂäØå?PêTğ™§à?Ø8íûbÔ?rİpé•ê?¸¶AÛGÈ´?<¸[²‘á?	)èö~â?à0%Åè?¢«Ú³è?ÌË!¦¦ß?Q²¿¡-ê?r!·¬6ÉÒ?‹jYâ?        @Ğ¸r°é™?&(v¹é?€¾esT§?úı•w¬bå?        X÷2`§Ä?Xÿ JÑ?Ô„93Â½â?­$og‡ä?        jÔà¤â?Ò’©ÌGåê?š£Mªğ®ç?ÍÉz^ë?¦³õe¾3â?                ø¼}KÚ?        Å¿}:J%é?@[ÊGâÍ?“2®mÒvå?`ÕQÃk´?        „rÿääPç?èS4ùg½Û?	'stìß?         W©:â?Ä;wŞÓ?ŞcIGbôà?ˆOæ:IÇ?´WH ‡ Ø?6ÍFœÜ?d?73Hñæ?fbn£ç?JçåÑ{mÚ?ÍXdŸâ?jŞæyã}Û?ö]89sûí?BÀìDKá?Pò·M¤/Ù?Ø8íûbÔ?        (éu„æ? orw]%•?ÀÕF0
+Û?Pâ³£¶¼?0mÜû”Û?        8[?Q@`Ù?îô<HP#Ü?ºêWNáê?"Šˆå?"%#org.tribuo.math.distance.L2Distance*}porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+ ±áLêN$@5DÏˆLÂ¿!©OÕÅêô?*†€è•+ğp?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+ãqNÏ“H#@´Ä^LÄ?!±œåoÄú?*†€¾esT§?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+ÂÄ;gñª#@Sæ&yÔk»¿!íœ5yõ?*†°ûÀ¥(¥«?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+ÉábS7$@J’Ô9§İ©¿!2ézR¿ó?*†`ÕQÃk´?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+vø#8cn#@¸P£@¢Ñ¿!ÔÓØó²ø?*†Ø¸ƒØØÑ´?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+à'&°æ$@]EÙÂ¾?!Ü^/r¢ö?*}porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+fG’Mè@`í1,‘ı@!~‹f²G@*†€ÌTA¼ßt?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+s?	†Ğ2@p1M4+³@!^¹\Ú0
+@*† ƒRµ>x?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+œæ;#n@òía±K@!x\
+Õa@*†P5Ÿ2V«?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+Šä*ıø@¶üi±@@!Úd°G±@*†°¶—Oîõ²?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+ª¹–à—}@úwÚd@!HB57n@*†è"åúå´?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+¸í‹Ø@6VÄŠÁ@!õ‘æ”…8@*†¸¶AÛGÈ´?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+Ğek6©@$“Q(@!Í¨¸O@*†X€ Í	µ?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+éøóJï@ß¹FºÁ”@!b÷HÆQ…@*†x[!¯µ?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+3ë´¸aç	@]ÇJR¯@!ŒÄàŒõ@*}porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+ÙŸtVñ¿­VÓ£B”¿!}?O Ğ´
+@*†@5Ißš„?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+BtÜÛµ¿‹®ƒé%äÊ?!%‰Ÿïãb@*† orw]%•?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+™4Õõ¿È`¶ŒvÕ¿!©Ùä@*†@Ğ¸r°é™?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+<Ê ¯$£å¿…B4æµ¿!R]ä2È@*† +¤Ã1Ï?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+À÷«µ¼?Ó!\ÛÈ¿!¯%L3@*†ÀÉ ^Ã}£?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+ºµ:éã¿ñvóù˜¿!Â~” (@*†`¹ñJ*°?porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+Lbÿô¿/å¯•ìÌÜ¿!_Ñ@1Ï"Œ¹vî?
