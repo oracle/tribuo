@@ -1,0 +1,101 @@
+(org.tribuo.clustering.kmeans.KMeansModel≈F
+=type.googleapis.com/tribuo.clustering.kmeans.KMeansModelProtoÉF
+ëB
+k-means-model§>
+Ôkmeansmodel-0(org.tribuo.clustering.kmeans.KMeansModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ı
+mutabledataset-1org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+≤kmeanstrainer-2*org.tribuo.clustering.kmeans.KMeansTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+initialisationType*
+seed*
+	centroids*
+tribuo-version*
+train-invocation-count*
+is-sequence*
+dist*
+
+numThreads*
+
+iterations*
+host-short-name*
+
+class-name
+∫ gaussianclusterdatasource-37org.tribuo.clustering.example.GaussianClusterDataSource"[org.tribuo.clustering.example.GaussianClusterDataSource$GaussianClusterDataSourceProvenance*
+fourthVariance!*
+seed&*
+firstVariance'*
+fifthVariance,*
+host-short-name1*
+
+class-name2*
+
+fourthMean3*
+mixingDistribution6*
+	thirdMean<*
+
+numSamples?*
+	fifthMean@*
+
+secondMeanC*
+secondVarianceF*
+thirdVarianceK*
+	firstMeanP
+•Sl2distance-4#org.tribuo.math.distance.L2Distance"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-nameT*
+
+class-nameU\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]java-version17.0.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancePtrainerkmeanstrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2023-01-09T20:51:17.792728-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceHdatasetmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0{	
+class-name(org.tribuo.clustering.kmeans.KMeansModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features2*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceUnum-examples500*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceä
+datasourcegaussianclusterdatasource-3*[org.tribuo.clustering.example.GaussianClusterDataSource$GaussianClusterDataSourceProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceVis-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceúinitialisationTypePLUSPLUS"9org.tribuo.clustering.kmeans.KMeansTrainer$Initialisation*?com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenanceLseed1*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenanceP	centroids4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancecdistl2distance-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0Q
+numThreads1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR
+iterations10*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance}
+class-name*org.tribuo.clustering.kmeans.KMeansTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceZ"fourthVariance0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZ#fourthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZ$fourthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZ%fourthVariance0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceL&seed1*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenanceY(firstVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY)firstVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY*firstVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY+firstVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY-fifthVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY.fifthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY/fifthVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceY0fifthVariance0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceb1host-short-name
+DataSource*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceä2
+class-name7org.tribuo.clustering.example.GaussianClusterDataSource*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceW4
+fourthMean10.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceV5
+fourthMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance^7mixingDistribution0.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_8mixingDistribution0.35*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_9mixingDistribution0.05*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_:mixingDistribution0.25*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance_;mixingDistribution0.25*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceU=	thirdMean2.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceU>	thirdMean2.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceS?
+numSamples500*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceVA	fifthMean-1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUB	fifthMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceVD
+secondMean5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceVE
+secondMean5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZGsecondVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZHsecondVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZIsecondVariance0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceZJsecondVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceYLthirdVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceYMthirdVariance0.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceYNthirdVariance0.5*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceYOthirdVariance1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUQ	firstMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUR	firstMean0.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance`Thost-short-nameDistance*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancevU
+class-name#org.tribuo.math.distance.L2Distance*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""!"#$%"'()*+",-./0"345"	6789:;"<=>"@AB"CDE"FGHIJ"KLMNO"PQR"“org.tribuo.ImmutableFeatureMapØ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProtoÚ
+vorg.tribuo.RealIDInfo]
+/type.googleapis.com/tribuo.core.RealIDInfoProto*
+AÙQ
+‡–Alá%@Yê{–UÂ]¿akpo‹Í@iBHøï¡@
+xorg.tribuo.RealIDInfo_
+/type.googleapis.com/tribuo.core.RealIDInfoProto,
+BÙQ~–a:@Y˚NÍ¿a/≈ÆÌˇ?ií_GV⁄ß@*}-org.tribuo.clustering.ImmutableClusteringInfoL
+9type.googleapis.com/tribuo.clustering.ClusteringInfoProto
+ ãÄ∏124.3.1porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+èç∏ó≠Òø¿i©&q•Øøporg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+§s˙™‡#@ä‚&…Î2ïøporg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+Óö2€u@Û¡Ÿ£”@porg.tribuo.math.la.DenseVectorN
+5type.googleapis.com/tribuo.math.impl.DenseTensorProto
+¥≠j&ôÖ˜?=%E˜Åˆ?%#org.tribuo.math.distance.L2Distance

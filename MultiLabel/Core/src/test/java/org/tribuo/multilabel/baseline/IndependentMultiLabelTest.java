@@ -26,8 +26,15 @@ import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +64,33 @@ public class IndependentMultiLabelTest {
 
         Helpers.testModelSerialization(model,MultiLabel.class);
         Helpers.testModelProtoSerialization(model, MultiLabel.class, test);
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(IndependentMultiLabelTest.class.getResource("iml-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            IndependentMultiLabelModel model = (IndependentMultiLabelModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
+            MultiLabelFactory factory = new MultiLabelFactory();
+            Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();
+            List<Prediction<MultiLabel>> predictions = model.predict(test);
+            Prediction<MultiLabel> first = predictions.get(0);
+            MultiLabel trueLabel = factory.generateOutput("MONKEY,PUZZLE,TREE");
+            assertEquals(trueLabel, first.getOutput(), "Predicted labels not equal");
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
+
+        IndependentMultiLabelTrainer trainer = new IndependentMultiLabelTrainer(DummyClassifierTrainer.createMostFrequentTrainer());
+        Model<MultiLabel> model = trainer.train(train);
+
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","multilabel","baseline","iml-431.tribuo"));
     }
 
 }

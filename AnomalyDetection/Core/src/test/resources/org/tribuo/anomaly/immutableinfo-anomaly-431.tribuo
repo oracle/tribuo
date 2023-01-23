@@ -1,0 +1,2 @@
+'org.tribuo.anomaly.ImmutableAnomalyInfo=
+3type.googleapis.com/tribuo.anomaly.AnomalyInfoProto

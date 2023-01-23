@@ -101,11 +101,8 @@ public class LibLinearAnomalyModel extends LibLinearModel<Event> {
         if (proto.getModelsCount() != 1) {
             throw new IllegalStateException("Invalid protobuf, expected 1 model, found " + proto.getModelsCount());
         }
-        try {
-            ByteArrayInputStream bais = new ByteArrayInputStream(proto.getModels(0).toByteArray());
-            ObjectInputStream ois = new ObjectInputStream(bais);
+        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(proto.getModels(0).toByteArray()))) {
             de.bwaldvogel.liblinear.Model model = (de.bwaldvogel.liblinear.Model) ois.readObject();
-            ois.close();
             return new LibLinearAnomalyModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,Collections.singletonList(model));
         } catch (IOException | ClassNotFoundException e) {
             throw new IllegalStateException("Invalid protobuf, failed to deserialize liblinear model", e);
