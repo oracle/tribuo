@@ -373,17 +373,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>enforce</id>
                         <configuration>
                             <rules>
-                                <!--
                                 <dependencyConvergence/>
-                                -->
                                 <requireMavenVersion>
-                                    <version>3.6</version>
+                                    <version>3.8</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
