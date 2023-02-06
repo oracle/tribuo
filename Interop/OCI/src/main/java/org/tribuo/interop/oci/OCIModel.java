@@ -94,11 +94,11 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     private final OCIOutputConverter<T> outputConverter;
 
     // Derived state
-    private transient AuthenticationDetailsProvider authProvider;
-    private transient RequestSigningFilter requestSigningFilter;
-    private transient Client jerseyClient;
-    private transient WebTarget modelEndpoint;
-    private transient ObjectMapper mapper;
+    private final AuthenticationDetailsProvider authProvider;
+    private final RequestSigningFilter requestSigningFilter;
+    private final Client jerseyClient;
+    private final WebTarget modelEndpoint;
+    private final ObjectMapper mapper;
 
     /**
      * Construct an OCIModel wrapping an OCI DS Model Deployment endpoint.
@@ -325,20 +325,6 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
         builder.setVersion(CURRENT_VERSION);
 
         return builder.build();
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        // Pre-Requirement: Allow setting of restricted headers. This is required to allow the SigningFilter
-        // to set the host header that gets computed during signing of the request.
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
-        // Rebuild transient state
-        this.authProvider = makeAuthProvider(configFile,profileName);
-        this.mapper = new ObjectMapper();
-        this.requestSigningFilter = RequestSigningFilter.fromAuthProvider(authProvider);
-        this.jerseyClient = ClientBuilder.newBuilder().build().register(requestSigningFilter);
-        this.modelEndpoint = jerseyClient.target(endpointURL + modelDeploymentId).path("predict");
     }
 
     /**

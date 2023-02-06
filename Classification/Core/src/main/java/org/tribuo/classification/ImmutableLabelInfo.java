@@ -303,10 +303,4 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             return new Pair<>(e.getKey(),new Label(e.getValue()));
         }
     }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
-    }
 }

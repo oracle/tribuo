@@ -157,14 +157,4 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> implements
         return "Regression-LinearSGDModel";
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        // Bounce old 4.0 style models into the new 4.1 style models
-        if (weights != null && modelParameters == null) {
-            modelParameters = new LinearParameters(weights);
-            weights = null;
-            addBias = true;
-        }
-    }
 }

@@ -432,8 +432,4 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         return data;
     }
 
-    private void writeObject(java.io.ObjectOutputStream stream)
-            throws IOException {
-        throw new NotSerializableException("ClassifierTrainingNode is a runtime class only, and should not be serialized.");
-    }
 }

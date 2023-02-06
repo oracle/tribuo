@@ -82,11 +82,11 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
      */
     public static final int CURRENT_VERSION = 0;
 
-    private transient OrtEnvironment env;
+    private final OrtEnvironment env;
 
-    private transient OrtSession.SessionOptions options;
+    private OrtSession.SessionOptions options;
 
-    private transient OrtSession session;
+    private OrtSession session;
 
     private final byte[] modelArray;
 
@@ -180,7 +180,7 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
             options.close();
         }
         options = newOptions;
-        env.createSession(modelArray, newOptions);
+        session = env.createSession(modelArray, newOptions);
     }
 
     @Override
@@ -434,17 +434,6 @@ public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<
                     featureMapping, modelArray, opts, inputName, featureTransformer, outputTransformer);
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load model from path " + path, e);
-        }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        try {
-            this.env = OrtEnvironment.getEnvironment();
-            this.options = new OrtSession.SessionOptions();
-            this.session = env.createSession(modelArray, options);
-        } catch (OrtException e) {
-            throw new IllegalStateException("Could not construct ONNX Runtime session during deserialization.");
         }
     }
 

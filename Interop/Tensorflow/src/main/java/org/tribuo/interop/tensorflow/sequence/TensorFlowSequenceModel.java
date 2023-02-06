@@ -39,7 +39,6 @@ import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -59,8 +58,8 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
      */
     public static final int CURRENT_VERSION = 0;
 
-    private transient Graph modelGraph = null;
-    private transient Session session = null;
+    private final Graph modelGraph;
+    private final Session session;
 
     protected final SequenceFeatureConverter featureConverter;
     protected final SequenceOutputConverter<T> outputConverter;
@@ -182,22 +181,4 @@ public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<
         return builder.build();
     }
 
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
-        out.writeObject(modelBytes);
-        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(modelGraph, session);
-        out.writeObject(tensorMap);
-    }
-
-    @SuppressWarnings("unchecked") //deserialising a typed map
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        byte[] modelBytes = (byte[]) in.readObject();
-        Map<String, TensorFlowUtil.TensorTuple> tensorMap = (Map<String, TensorFlowUtil.TensorTuple>) in.readObject();
-        modelGraph = new Graph();
-        modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
-        session = new Session(modelGraph);
-        TensorFlowUtil.restoreMarshalledVariables(session,tensorMap);
-    }
 }

@@ -72,7 +72,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
 
     private final String modelDirectory;
 
-    private transient SavedModelBundle bundle;
+    private final SavedModelBundle bundle;
 
     private final FeatureConverter featureConverter;
 
@@ -325,17 +325,6 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
         } catch (IOException | TensorFlowException e) {
             throw new IllegalArgumentException("Unable to load model from path " + bundleDirectory, e);
         }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
-        // For models before 4.3.2
-        if (tags == null) {
-            tags = new String[]{SavedModelBundle.DEFAULT_TAG};
-        }
-        loader.withTags(tags);
-        bundle = loader.load();
     }
 
 }

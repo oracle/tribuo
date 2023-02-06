@@ -28,7 +28,6 @@ import org.tribuo.protos.core.CategoricalInfoProto;
 import org.tribuo.protos.core.VariableInfoProto;
 import org.tribuo.util.Util;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -95,15 +94,15 @@ public class CategoricalInfo extends SkeletalVariableInfo {
     /**
      * The values array.
      */
-    protected transient double[] values = null;
+    protected double[] values = null;
     /**
      * The total number of observations (including zeros).
      */
-    protected transient long totalObservations = -1;
+    protected long totalObservations = -1;
     /**
      * The CDF to sample from.
      */
-    protected transient double[] cdf = null;
+    protected double[] cdf = null;
 
     /**
      * Constructs a new empty categorical info for the supplied feature name.
@@ -483,10 +482,4 @@ public class CategoricalInfo extends SkeletalVariableInfo {
         }
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        totalObservations = -1;
-        values = null;
-        cdf = null;
-    }
 }

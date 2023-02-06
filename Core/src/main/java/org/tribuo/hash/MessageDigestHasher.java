@@ -30,8 +30,6 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.HasherProto;
 import org.tribuo.protos.core.MessageDigestHasherProto;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -69,15 +67,15 @@ public final class MessageDigestHasher extends Hasher {
     @ProtoSerializableField
     private String hashType;
 
-    private transient ThreadLocal<MessageDigest> md;
+    private ThreadLocal<MessageDigest> md;
 
     /**
      * Only used by olcut.
      */
     @Config(mandatory = true,description="Salt used in the hash.",redact=true)
-    private transient String saltStr = null;
+    private String saltStr = null;
 
-    private transient byte[] salt = null;
+    private byte[] salt = null;
 
     private MessageDigestHasherProvenance provenance;
 
@@ -171,13 +169,6 @@ public final class MessageDigestHasher extends Hasher {
         } else {
             throw new IllegalArgumentException("Salt: '" + salt + "', does not meet the requirements for a salt.");
         }
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        salt = null;
-        saltStr = null;
-        md = ThreadLocal.withInitial(getDigestSupplier(hashType));
     }
 
     @Override
