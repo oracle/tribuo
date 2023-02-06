@@ -221,22 +221,20 @@ public final class StripProvenance {
             EnsembleModelProvenance cleanedProvenance = cleanEnsembleProvenance(oldProvenance, listProv, provenanceHash, opt);
             Class<? extends Model> clazz = oldModel.getClass();
             Method copyMethod = clazz.getDeclaredMethod("copy", String.class, ModelProvenance.class, List.class);
-            boolean accessible = copyMethod.isAccessible();
             copyMethod.setAccessible(true);
             String newName = oldModel.getName().isEmpty() ? "deprovenanced" : oldModel.getName() + "-deprovenanced";
             EnsembleModel<T> output = (EnsembleModel<T>) copyMethod.invoke(oldModel, newName, cleanedProvenance, newModels);
-            copyMethod.setAccessible(accessible);
+            copyMethod.setAccessible(false);
             return new ModelTuple<>(output, cleanedProvenance);
         } else {
             ModelProvenance oldProvenance = oldModel.getProvenance();
             ModelProvenance cleanedProvenance = cleanProvenance(oldProvenance, provenanceHash, opt);
             Class<? extends Model> clazz = oldModel.getClass();
             Method copyMethod = clazz.getDeclaredMethod("copy", String.class, ModelProvenance.class);
-            boolean accessible = copyMethod.isAccessible();
             copyMethod.setAccessible(true);
             String newName = oldModel.getName().isEmpty() ? "deprovenanced" : oldModel.getName() + "-deprovenanced";
             Model<T> output = (Model<T>) copyMethod.invoke(oldModel, newName, cleanedProvenance);
-            copyMethod.setAccessible(accessible);
+            copyMethod.setAccessible(false);
             return new ModelTuple<>(output, cleanedProvenance);
         }
     }

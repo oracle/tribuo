@@ -28,7 +28,6 @@ import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.util.Merger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +41,7 @@ import java.util.logging.Logger;
  * This class is mostly for performance optimisations inside the framework, and should not
  * generally be used by external code.
  */
-public class ImmutableDataset<T extends Output<T>> extends Dataset<T> implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class ImmutableDataset<T extends Output<T>> extends Dataset<T> {
 
     private static final Logger logger = Logger.getLogger(ImmutableDataset.class.getName());
 

@@ -158,16 +158,16 @@ public class TestClassificationEnsembles {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
 
         Model<Label> boost = testAdaBoost(p);
-        Helpers.testModelSerialization(boost,Label.class);
+        Helpers.testModelProtoSerialization(boost,Label.class);
 
         Model<Label> bag = testBagging(p);
-        Helpers.testModelSerialization(bag,Label.class);
+        Helpers.testModelProtoSerialization(bag,Label.class);
 
         Model<Label> rf = testRandomForest(p);
-        Helpers.testModelSerialization(rf,Label.class);
+        Helpers.testModelProtoSerialization(rf,Label.class);
 
         Model<Label> extra = testExtraTrees(p);
-        Helpers.testModelSerialization(extra,Label.class);
+        Helpers.testModelProtoSerialization(extra,Label.class);
     }
 
     @Test

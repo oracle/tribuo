@@ -103,7 +103,7 @@ public class TestLibSVM {
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> model = testLibSVM(p);
-        Helpers.testModelSerialization(model,Regressor.class);
+        Helpers.testModelProtoSerialization(model,Regressor.class);
     }
 
     @Test

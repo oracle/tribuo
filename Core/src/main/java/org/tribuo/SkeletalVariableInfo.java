@@ -26,7 +26,6 @@ import org.tribuo.protos.ProtoSerializableField;
  * in a {@link Dataset}.
  */
 public abstract class SkeletalVariableInfo implements VariableInfo {
-    private static final long serialVersionUID = 2L;
 
     private static final Logger logger = Logger.getLogger(SkeletalVariableInfo.class.getName());
 

@@ -22,15 +22,13 @@ import org.tribuo.math.protos.NormalizerProto;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXOperators;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * Normalizes the input by applying a logistic sigmoid to each element.
  * Used when the input is independent dimensions of log space.
  */
-public class SigmoidNormalizer implements VectorNormalizer, Serializable {
-    private static final long serialVersionUID = 1L;
+public class SigmoidNormalizer implements VectorNormalizer {
 
     /**
      * Protobuf serialization version.

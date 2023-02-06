@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
  */
 @ProtoSerializableClass(version = CategoricalInfo.CURRENT_VERSION, serializedDataClass = CategoricalInfoProto.class)
 public class CategoricalInfo extends SkeletalVariableInfo {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.

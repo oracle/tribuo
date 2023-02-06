@@ -24,14 +24,13 @@ import org.tribuo.util.onnx.ONNXInitializer;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXOperators;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 
 /**
  * Normalizes, but first subtracts the minimum value (to ensure positivity).
  */
-public class Normalizer implements VectorNormalizer, Serializable {
+public class Normalizer implements VectorNormalizer {
     private static final long serialVersionUID = 1L;
 
     /**

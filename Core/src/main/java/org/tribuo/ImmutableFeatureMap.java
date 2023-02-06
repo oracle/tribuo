@@ -24,7 +24,6 @@ import org.tribuo.protos.core.FeatureDomainProto;
 import org.tribuo.protos.core.ImmutableFeatureMapProto;
 import org.tribuo.protos.core.VariableInfoProto;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,7 @@ import java.util.TreeMap;
  * {@link Example}s and {@link ImmutableFeatureMap}.
  */
 @ProtoSerializableClass(version = ImmutableFeatureMap.CURRENT_VERSION, serializedDataClass = ImmutableFeatureMapProto.class)
-public class ImmutableFeatureMap extends FeatureMap implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class ImmutableFeatureMap extends FeatureMap {
 
     /**
      * Protobuf serialization version.

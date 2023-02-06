@@ -33,7 +33,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,8 +45,7 @@ import java.util.stream.Collectors;
  * A prediction model, which is used to predict outputs for unseen instances.
  * @param <T> the type of the outputs used to train the model.
  */
-public abstract class SequenceModel<T extends Output<T>> implements ProtoSerializable<SequenceModelProto>, Provenancable<ModelProvenance>, Serializable {
-    private static final long serialVersionUID = 1L;
+public abstract class SequenceModel<T extends Output<T>> implements ProtoSerializable<SequenceModelProto>, Provenancable<ModelProvenance> {
 
     /**
      * The model name.

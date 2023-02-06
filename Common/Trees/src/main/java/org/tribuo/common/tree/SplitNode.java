@@ -28,7 +28,6 @@ import java.util.Objects;
  * An immutable {@link Node} with a split and two child nodes.
  */
 public class SplitNode<T extends Output<T>> implements Node<T> {
-    private static final long serialVersionUID = 3L;
 
     /**
      * Protobuf serialization version.

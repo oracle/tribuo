@@ -119,7 +119,6 @@ public class TestSGDLinear {
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testSGDLinear(p);
-        Helpers.testModelSerialization(model,Label.class);
         Helpers.testModelProtoSerialization(model, Label.class, p.getB());
     }
 

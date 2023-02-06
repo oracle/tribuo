@@ -25,7 +25,6 @@ import org.tribuo.interop.tensorflow.protos.SequenceFeatureConverterProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.sequence.SequenceExample;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -34,7 +33,7 @@ import java.util.Set;
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public interface SequenceFeatureConverter extends Configurable, ProtoSerializable<SequenceFeatureConverterProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceFeatureConverter extends Configurable, ProtoSerializable<SequenceFeatureConverterProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Encodes an example as a feed dict.

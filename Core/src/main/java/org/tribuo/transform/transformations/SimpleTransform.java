@@ -33,7 +33,6 @@ import org.tribuo.transform.Transformation;
 import org.tribuo.transform.TransformationProvenance;
 import org.tribuo.transform.Transformer;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -118,7 +117,7 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
     @Config(description="Second operand (if required).")
     private double secondOperand = Double.NaN;
 
-    private SerializableDoubleUnaryOperator operation;
+    private DoubleUnaryOperator operation;
 
     private transient TransformationProvenance provenance;
 
@@ -447,8 +446,4 @@ public final class SimpleTransform implements Transformer, Transformation, Trans
         return new SimpleTransform(Operation.threshold,min,max);
     }
 
-    /**
-     * Tag interface to make the operators serializable.
-     */
-    interface SerializableDoubleUnaryOperator extends DoubleUnaryOperator, Serializable {}
 }

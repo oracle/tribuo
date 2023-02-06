@@ -25,13 +25,12 @@ import org.tribuo.classification.protos.LabelFeatureExtractorProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * A class for featurising labels from previous steps in Viterbi.
  */
-public interface LabelFeatureExtractor extends Configurable, ProtoSerializable<LabelFeatureExtractorProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface LabelFeatureExtractor extends Configurable, ProtoSerializable<LabelFeatureExtractorProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Generates features based on the previously produced labels.

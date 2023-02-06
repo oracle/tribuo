@@ -23,20 +23,17 @@ import org.tribuo.classification.Label;
 import org.tribuo.common.liblinear.LibLinearType;
 import de.bwaldvogel.liblinear.SolverType;
 
-import java.io.Serializable;
-
 /**
  * The carrier type for liblinear classification modes.
  * <p>
  * Supports: L1R_L2LOSS_SVC, L2R_L2LOSS_SVC, L2R_L2LOSS_SVC_DUAL, L2R_L1LOSS_SVC_DUAL, MCSVM_CS, L1R_LR, L2R_LR, L2R_LR_DUAL.
  */
 public final class LinearClassificationType implements LibLinearType<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The different model types available for classification.
      */
-    public enum LinearType implements Serializable {
+    public enum LinearType {
         /**
          * L1-regularized L2-loss support vector classification
          */

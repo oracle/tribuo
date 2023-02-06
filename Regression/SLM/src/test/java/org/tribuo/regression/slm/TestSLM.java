@@ -134,19 +134,14 @@ public class TestSLM {
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> sfs = testSFS(p,false);
-        Helpers.testModelSerialization(sfs,Regressor.class);
         Helpers.testModelProtoSerialization(sfs,Regressor.class,p.getB());
         Model<Regressor> sfsn = testSFSN(p,false);
-        Helpers.testModelSerialization(sfsn,Regressor.class);
         Helpers.testModelProtoSerialization(sfsn,Regressor.class,p.getB());
         Model<Regressor> lars = testLARS(p,false);
-        Helpers.testModelSerialization(lars,Regressor.class);
         Helpers.testModelProtoSerialization(lars,Regressor.class,p.getB());
         Model<Regressor> lasso = testLASSO(p,false);
-        Helpers.testModelSerialization(lasso,Regressor.class);
         Helpers.testModelProtoSerialization(lasso,Regressor.class,p.getB());
         Model<Regressor> elastic = testElasticNet(p,false);
-        Helpers.testModelSerialization(elastic,Regressor.class);
         Helpers.testModelProtoSerialization(elastic,Regressor.class,p.getB());
     }
 
@@ -189,7 +184,7 @@ public class TestSLM {
         testSFSN(p,true);
         testLARS(p,true);
         Model<Regressor> lasso = testLASSO(p,true);
-        Helpers.testModelSerialization(lasso,Regressor.class);
+        Helpers.testModelProtoSerialization(lasso,Regressor.class);
         testElasticNet(p,true);
     }
 

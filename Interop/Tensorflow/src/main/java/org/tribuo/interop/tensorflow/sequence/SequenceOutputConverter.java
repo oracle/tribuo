@@ -28,7 +28,6 @@ import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.sequence.SequenceExample;
 import org.tensorflow.Tensor;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -37,7 +36,7 @@ import java.util.List;
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public interface SequenceOutputConverter<T extends Output<T>> extends Configurable, ProtoSerializable<SequenceOutputConverterProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SequenceOutputConverter<T extends Output<T>> extends Configurable, ProtoSerializable<SequenceOutputConverterProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Decode a tensor of graph output into a list of predictions for the input sequence.

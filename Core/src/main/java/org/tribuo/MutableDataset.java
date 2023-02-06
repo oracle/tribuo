@@ -45,8 +45,6 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
     
     private static final Logger logger = Logger.getLogger(MutableDataset.class.getName());
     
-    private static final long serialVersionUID = 1L;
-
     /**
      * Protobuf serialization version.
      */
