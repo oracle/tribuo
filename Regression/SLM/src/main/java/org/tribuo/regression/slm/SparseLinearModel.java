@@ -35,8 +35,6 @@ import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
-import org.tribuo.provenance.TrainerProvenance;
-import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.Regressor.DimensionTuple;
 import org.tribuo.regression.impl.SkeletalIndependentRegressionSparseModel;
@@ -49,7 +47,6 @@ import org.tribuo.util.onnx.ONNXPlaceholder;
 import org.tribuo.util.onnx.ONNXRef;
 import org.tribuo.util.onnx.ONNXInitializer;
 
-import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,21 +74,18 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
      */
     public static final int CURRENT_VERSION = 0;
 
-    private SparseVector[] weights;
+    private final SparseVector[] weights;
     private final DenseVector featureMeans;
     /**
      * Note this variable is called a variance, but it actually stores the l2 norm of the centered feature column.
      */
     private final DenseVector featureVariance;
     private final boolean bias;
-    private double[] yMean;
+    private final double[] yMean;
     /**
      * Note this variable is called a variance, but it actually stores the l2 norm of the centered output.
      */
-    private double[] yVariance;
-
-    // Used to signal if the model has been rewritten to fix the issue with ElasticNet models in 4.0 and 4.1.0.
-    private boolean enet41MappingFix;
+    private final double[] yVariance;
 
     SparseLinearModel(String name, String[] dimensionNames, ModelProvenance description,
                       ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> labelIDMap,
@@ -103,7 +97,6 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         this.bias = bias;
         this.yVariance = yNorms;
         this.yMean = yMean;
-        this.enet41MappingFix = true;
     }
 
     /**
@@ -390,30 +383,4 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
                 .apply(ONNXOperators.ADD, outputMean);
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        // Rearrange the dimensions in ElasticNet models from 4.1.0 and earlier because they are corrupted.
-        String tribuoVersion = (String) provenance.getTrainerProvenance().getInstanceValues().get(TrainerProvenance.TRIBUO_VERSION_STRING).getValue();
-        if (provenance.getTrainerProvenance().getClassName().equals("org.tribuo.regression.slm.ElasticNetCDTrainer") && !enet41MappingFix &&
-                (tribuoVersion.startsWith("4.0.0") || tribuoVersion.startsWith("4.0.1") || tribuoVersion.startsWith("4.0.2") || tribuoVersion.startsWith("4.1.0")
-                        // This is explicit to catch the test model which has a 4.1.1-SNAPSHOT Tribuo version.
-                        || tribuoVersion.equals("4.1.1-SNAPSHOT"))) {
-            enet41MappingFix = true;
-            int[] mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
-            SparseVector[] newWeights = new SparseVector[weights.length];
-            double[] newYMeans = new double[weights.length];
-            double[] newYVariances = new double[weights.length];
-
-            for (int i = 0; i < mapping.length; i++) {
-                newWeights[i] = this.weights[mapping[i]];
-                newYMeans[i] = this.yMean[mapping[i]];
-                newYVariances[i] = this.yVariance[mapping[i]];
-            }
-
-            this.yMean = newYMeans;
-            this.yVariance = newYVariances;
-            this.weights = newWeights;
-        }
-    }
 }

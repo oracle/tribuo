@@ -16,13 +16,10 @@
 
 package org.tribuo.util.tokens;
 
-import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.util.IOUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public class TokenizerTestWrapper implements Serializable {
@@ -44,13 +41,4 @@ public class TokenizerTestWrapper implements Serializable {
         return tokenizer;
     }
 
-    private void readObject(ObjectInputStream inputStream) throws ClassNotFoundException, IOException {
-        this.name = (String) inputStream.readObject();
-        this.tokenizer = (Tokenizer) ProvenanceUtil.readObject(inputStream);
-    }
-
-    private void writeObject(ObjectOutputStream outputStream) throws IOException {
-        outputStream.writeObject(this.name);
-        ProvenanceUtil.writeObject(this.tokenizer, outputStream);
-    }
 }

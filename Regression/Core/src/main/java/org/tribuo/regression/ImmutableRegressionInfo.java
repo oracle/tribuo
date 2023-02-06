@@ -25,7 +25,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.regression.protos.ImmutableRegressionInfoProto;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -56,10 +55,10 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
 
     private final Set<Regressor> domain;
 
-    private transient double[] minArray;
-    private transient double[] maxArray;
-    private transient double[] meanArray;
-    private transient double[] varianceArray;
+    private double[] minArray;
+    private double[] maxArray;
+    private double[] meanArray;
+    private double[] varianceArray;
 
     /**
      * Copies an ImmutableRegressionInfo including the ids.
@@ -504,10 +503,4 @@ public class ImmutableRegressionInfo extends RegressionInfo implements Immutable
         }
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        // Rebuild statistic arrays
-        computeStatisticArrays();
-    }
 }

@@ -176,11 +176,4 @@ public abstract class LabelInfo implements OutputInfo<Label> {
     @Override
     public abstract LabelInfo copy();
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        labels = new HashMap<>();
-        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
-            labels.put(e.getKey(),new Label(e.getKey()));
-        }
-    }
 }

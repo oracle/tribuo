@@ -31,8 +31,6 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.HasherProto;
 import org.tribuo.protos.core.ModHashCodeHasherProto;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -55,7 +53,7 @@ public final class ModHashCodeHasher extends Hasher {
     static final String DIMENSION = "dimension";
 
     @Config(mandatory = true,redact = true,description="Salt used in the hash.")
-    private transient String salt = null;
+    private String salt = null;
 
     @ProtoSerializableField
     @Config(mandatory = true,description="Range of the hashing function.")
@@ -169,11 +167,6 @@ public final class ModHashCodeHasher extends Hasher {
     @Override
     public int hashCode() {
         return Objects.hash(salt, dimension);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        salt = null;
     }
 
     /**

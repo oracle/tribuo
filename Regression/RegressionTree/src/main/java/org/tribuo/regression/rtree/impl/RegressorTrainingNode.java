@@ -484,8 +484,4 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         }
     }
 
-    private void writeObject(java.io.ObjectOutputStream stream)
-            throws IOException {
-        throw new NotSerializableException("RegressorTrainingNode is a runtime class only, and should not be serialized.");
-    }
 }

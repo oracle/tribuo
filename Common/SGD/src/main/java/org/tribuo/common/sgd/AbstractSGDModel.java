@@ -43,8 +43,7 @@ public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
     /**
      * The weights for this model.
      */
-    // Note this is not final to allow backwards compatibility for 4.0 models which need to rewrite the field on load.
-    protected FeedForwardParameters modelParameters;
+    protected final FeedForwardParameters modelParameters;
 
     // Defaults to true for backwards compatibility with 4.0 models, not final due to this defaulting.
     protected boolean addBias = true;

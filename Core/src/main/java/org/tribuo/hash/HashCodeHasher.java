@@ -26,8 +26,6 @@ import org.tribuo.protos.core.HasherProto;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
@@ -48,7 +46,7 @@ public final class HashCodeHasher extends Hasher {
     public static final int CURRENT_VERSION = 0;
 
     @Config(mandatory = true, redact = true, description="Salt used in the hash.")
-    private transient String salt = null;
+    private String salt = null;
 
     private static final HashCodeHasherProvenance provenance = new HashCodeHasherProvenance();
 
@@ -142,11 +140,6 @@ public final class HashCodeHasher extends Hasher {
     @Override
     public int hashCode() {
         return Objects.hash(salt);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        salt = null;
     }
 
     /**

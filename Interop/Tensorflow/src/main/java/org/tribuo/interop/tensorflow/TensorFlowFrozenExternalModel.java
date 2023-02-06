@@ -71,16 +71,13 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
      */
     public static final int CURRENT_VERSION = 0;
 
-    private transient Graph model;
+    private final Graph model;
 
-    private transient Session session;
+    private final Session session;
 
     private final FeatureConverter featureConverter;
 
     private final OutputConverter<T> outputConverter;
-
-    @Deprecated // unused as the input name is in the feature converter
-    private final String inputName = "";
 
     private final String outputName;
 
@@ -283,20 +280,6 @@ public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends Ex
         } catch (IOException e) {
             throw new IllegalArgumentException("Unable to load model from path " + filename, e);
         }
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        GraphDef modelBytes = model.toGraphDef();
-        out.writeObject(modelBytes.toByteArray());
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        byte[] modelBytes = (byte[]) in.readObject();
-        model = new Graph();
-        model.importGraphDef(GraphDef.parseFrom(modelBytes));
-        session = new Session(model);
     }
 
 }

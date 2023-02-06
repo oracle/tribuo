@@ -30,12 +30,10 @@ import org.tribuo.interop.tensorflow.protos.TensorFlowCheckpointModelProto;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
-import org.tensorflow.Graph;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.logging.Level;
@@ -210,6 +208,9 @@ public final class TensorFlowCheckpointModel<T extends Output<T>> extends Tensor
 
     @Override
     public ModelProto serialize() {
+        if (closed) {
+            throw new IllegalStateException("Can't serialize a closed model, the state has gone.");
+        }
         ModelDataCarrier<T> carrier = createDataCarrier();
 
         TensorFlowCheckpointModelProto.Builder modelBuilder = TensorFlowCheckpointModelProto.newBuilder();
@@ -230,27 +231,4 @@ public final class TensorFlowCheckpointModel<T extends Output<T>> extends Tensor
         return builder.build();
     }
 
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        if (closed) {
-            throw new IllegalStateException("Can't serialize a closed model, the state has gone.");
-        }
-        out.defaultWriteObject();
-        byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
-        out.writeObject(modelBytes);
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        byte[] modelBytes = (byte[]) in.readObject();
-        this.modelGraph = new Graph();
-        this.modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
-        this.session = new Session(modelGraph);
-
-        try {
-            session.restore(resolvePath());
-            initialized = true;
-        } catch (TensorFlowException e) {
-            logger.log(Level.WARNING, "Failed to initialise model after deserialization, attempted to load from " + checkpointDirectory, e);
-        }
-    }
 }
