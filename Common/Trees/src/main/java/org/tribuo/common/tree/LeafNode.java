@@ -37,7 +37,6 @@ import java.util.Objects;
  * to determine equality of two leaves.
  */
 public class LeafNode<T extends Output<T>> implements Node<T> {
-    private static final long serialVersionUID = 4L;
 
     /**
      * Protobuf serialization version.

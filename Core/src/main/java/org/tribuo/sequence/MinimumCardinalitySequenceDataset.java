@@ -63,7 +63,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
  * @param <T> The type of the outputs in this {@link SequenceDataset}.
  */
 public class MinimumCardinalitySequenceDataset<T extends Output<T>> extends ImmutableSequenceDataset<T> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(MinimumCardinalitySequenceDataset.class.getName());
 

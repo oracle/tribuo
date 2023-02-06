@@ -28,7 +28,6 @@ import java.util.Map;
  * A model which uses a subset of the features it knows about to make predictions.
  */
 public abstract class SparseModel<T extends Output<T>> extends Model<T> {
-    private static final long serialVersionUID = 1L;
 
     private final Map<String,List<String>> activeFeatures;
 

@@ -22,13 +22,12 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXNode;
 
-import java.io.Serializable;
 import java.util.logging.Logger;
 
 /**
  * A functional interface that generates a normalized version of a double array.
  */
-public interface VectorNormalizer extends ProtoSerializable<NormalizerProto>, Serializable {
+public interface VectorNormalizer extends ProtoSerializable<NormalizerProto> {
 
     /**
      * Normalizes the input array in some fashion specified by the class.

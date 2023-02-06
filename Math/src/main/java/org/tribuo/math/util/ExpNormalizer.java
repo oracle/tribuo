@@ -22,7 +22,6 @@ import org.tribuo.math.protos.NormalizerProto;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXOperators;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -31,8 +30,7 @@ import java.util.Collections;
  * <p>
  * a.k.a. SoftMax.
  */
-public class ExpNormalizer implements VectorNormalizer, Serializable {
-    private static final long serialVersionUID = 1L;
+public class ExpNormalizer implements VectorNormalizer {
 
     /**
      * Protobuf serialization version.

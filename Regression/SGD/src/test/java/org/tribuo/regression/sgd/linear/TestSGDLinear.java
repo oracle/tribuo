@@ -108,7 +108,6 @@ public class TestSGDLinear {
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> model = testSGDLinear(p);
-        Helpers.testModelSerialization(model,Regressor.class);
         Helpers.testModelProtoSerialization(model, Regressor.class, p.getB());
     }
 

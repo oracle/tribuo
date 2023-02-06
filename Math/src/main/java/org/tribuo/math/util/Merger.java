@@ -21,8 +21,6 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.protos.MergerProto;
 import org.tribuo.protos.ProtoSerializable;
 
-import java.io.Serializable;
-
 /**
  * An interface for merging an array of {@link DenseSparseMatrix} into a single {@link DenseSparseMatrix}.
  * <p>
@@ -30,7 +28,7 @@ import java.io.Serializable;
  * <p>
  * Merging is done by summation.
  */
-public interface Merger extends ProtoSerializable<MergerProto>, Serializable {
+public interface Merger extends ProtoSerializable<MergerProto> {
 
     /**
      * Merges an array of DenseSparseMatrix into a single DenseSparseMatrix.

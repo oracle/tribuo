@@ -175,7 +175,6 @@ public class TestKNN {
         assertEquals(evaluation.recall(DemoLabelDataSource.SECOND_CLASS), 1.0);
 
         // Test serialization
-        Helpers.testModelSerialization(model, Label.class);
         Helpers.testModelProtoSerialization(model, Label.class, testingDataset);
     }
 
@@ -187,7 +186,6 @@ public class TestKNN {
         evaluator.evaluate(model, pair.getB());
 
         // Test serialization
-        Helpers.testModelSerialization(model,Regressor.class);
         Helpers.testModelProtoSerialization(model, Regressor.class, pair.getB());
     }
 

@@ -208,6 +208,9 @@ public final class Helpers {
         return deser;
     }
 
+    public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz) {
+        return testModelProtoSerialization(model, outputClazz, null, 1e-15);
+    }
 
     public static <T extends Output<T>> Model<T> testModelProtoSerialization(Model<T> model, Class<T> outputClazz, Iterable<Example<T>> data) {
         return testModelProtoSerialization(model, outputClazz, data, 1e-15);
@@ -229,14 +232,16 @@ public final class Helpers {
         assertTrue(deserializedModel.validate(outputClazz));
         Model<T> deserModel = deserializedModel.castModel(outputClazz);
 
-        // validate the predictions are the same
-        List<Prediction<T>> modelPreds = model.predict(data);
-        List<Prediction<T>> deserPreds = deserModel.predict(data);
-        assertEquals(modelPreds.size(),deserPreds.size());
-        for (int i = 0; i < modelPreds.size(); i++) {
-            Prediction<T> cur = modelPreds.get(i);
-            Prediction<T> other = deserPreds.get(i);
-            assertTrue(cur.distributionEquals(other, tolerance));
+        if (data != null) {
+            // validate the predictions are the same
+            List<Prediction<T>> modelPreds = model.predict(data);
+            List<Prediction<T>> deserPreds = deserModel.predict(data);
+            assertEquals(modelPreds.size(), deserPreds.size());
+            for (int i = 0; i < modelPreds.size(); i++) {
+                Prediction<T> cur = modelPreds.get(i);
+                Prediction<T> other = deserPreds.get(i);
+                assertTrue(cur.distributionEquals(other, tolerance));
+            }
         }
 
         return deserModel;
@@ -274,83 +279,6 @@ public final class Helpers {
         }
 
         return deserModel;
-    }
-
-    public static <T extends Output<T>> void testModelSerialization(Model<T> model, Class<T> outputClazz) {
-        // test provenance marshalling
-        testProvenanceMarshalling(model.getProvenance());
-
-        // write to byte array
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(baos))) {
-            oos.writeObject(model);
-        } catch (IOException ex) {
-            logger.severe("IOException when writing out model");
-            Assertions.fail("Failed to serialize model class " + model.getClass().toString(), ex);
-        }
-
-        // Extract the byte array
-        byte[] modelSer = baos.toByteArray();
-
-        // read model from byte array
-        try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(modelSer)))) {
-            Model<?> deserializedModel = (Model<?>) ois.readObject();
-            // check provenance is equal
-            assertEquals(model.getProvenance(), deserializedModel.getProvenance());
-            // validate that the model is still of the right type
-            assertTrue(deserializedModel.validate(outputClazz));
-            if (deserializedModel instanceof AutoCloseable) {
-                try {
-                    ((AutoCloseable) deserializedModel).close();
-                } catch (Exception ex) {
-                    logger.severe("Exception thrown when closing model");
-                    Assertions.fail("Failed to close deserialized model " + model.getClass().toString(),ex);
-                }
-            }
-        } catch (IOException ex) {
-            logger.severe("IOException when reading in model");
-            Assertions.fail("Failed to deserialize model class " + model.getClass().toString(), ex);
-        } catch (ClassNotFoundException ex) {
-            logger.severe("ClassNotFoundException when reading in model");
-            Assertions.fail("Failed to deserialize model class " + model.getClass().toString(), ex);
-        }
-    }
-
-    public static <T extends Output<T>> void testSequenceModelSerialization(SequenceModel<T> model, Class<T> outputClazz) {
-        // write to byte array
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(baos))) {
-            oos.writeObject(model);
-        } catch (IOException ex) {
-            logger.severe("IOException when writing out model");
-            Assertions.fail("Failed to serialize sequence model class " + model.getClass().toString(), ex);
-        }
-
-        // Extract the byte array
-        byte[] modelSer = baos.toByteArray();
-
-        // read model from byte array
-        try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(modelSer)))) {
-            SequenceModel<?> deserializedModel = (SequenceModel<?>) ois.readObject();
-            // check provenance is equal
-            assertEquals(model.getProvenance(), deserializedModel.getProvenance());
-            // validate that the model is still of the right type
-            assertTrue(deserializedModel.validate(outputClazz));
-            if (deserializedModel instanceof AutoCloseable) {
-                try {
-                    ((AutoCloseable) deserializedModel).close();
-                } catch (Exception ex) {
-                    logger.severe("Exception thrown when closing model");
-                    Assertions.fail("Failed to close deserialized model " + model.getClass().toString(),ex);
-                }
-            }
-        } catch (IOException ex) {
-            logger.severe("IOException when reading in model");
-            Assertions.fail("Failed to deserialize sequence model class " + model.getClass().toString(), ex);
-        } catch (ClassNotFoundException ex) {
-            logger.severe("ClassNotFoundException when reading in model");
-            Assertions.fail("Failed to deserialize sequence model class " + model.getClass().toString(), ex);
-        }
     }
 
     /**

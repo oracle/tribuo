@@ -20,8 +20,6 @@ import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputProto;
 
-import java.io.Serializable;
-
 /**
  * Output is the root interface for the supported prediction types.
  * <p>
@@ -36,7 +34,7 @@ import java.io.Serializable;
  * Equals and hashcode are defined to only look at the strings stored in an Output, not any score
  * values. For equality that takes into account the scores, use {@link Output#fullEquals}.
  */
-public interface Output<T extends Output<T>> extends ProtoSerializable<OutputProto>, Serializable {
+public interface Output<T extends Output<T>> extends ProtoSerializable<OutputProto> {
 
     /**
      * Deep copy of the output up to its immutable state.

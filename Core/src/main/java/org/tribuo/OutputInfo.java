@@ -21,7 +21,6 @@ import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputDomainProto;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -30,7 +29,7 @@ import java.util.Set;
  * Can generate a {@link ImmutableOutputInfo} which contains id numbers, and
  * a {@link MutableOutputInfo} for repeated training with more data.
  */
-public interface OutputInfo<T extends Output<T>> extends ProtoSerializable<OutputDomainProto>, Serializable {
+public interface OutputInfo<T extends Output<T>> extends ProtoSerializable<OutputDomainProto> {
 
     /**
      * Returns a set of {@link Output} which represent the space of possible

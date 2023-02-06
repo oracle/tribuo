@@ -15,7 +15,6 @@
  */
 package org.tribuo.util;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 /**
@@ -24,7 +23,7 @@ import java.util.Objects;
  * <p>
  * Note this class is not thread safe.
  */
-public final class MeanVarianceAccumulator implements Serializable {
+public final class MeanVarianceAccumulator {
     private static final long serialVersionUID = 1L;
 
     private double max = Double.NEGATIVE_INFINITY;

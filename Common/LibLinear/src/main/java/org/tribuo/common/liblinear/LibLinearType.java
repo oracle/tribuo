@@ -22,8 +22,6 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Output;
 import de.bwaldvogel.liblinear.SolverType;
 
-import java.io.Serializable;
-
 /**
  * A carrier type for the liblinear algorithm type. It really wants to be a set of enums with
  * different type parameters, but it's encoded as an interface where each
@@ -45,7 +43,7 @@ import java.io.Serializable;
  * <li>L2R_L1LOSS_SVR_DUAL - L2-regularized L1-loss support vector regression (dual)</li>
  * </ul>
  */
-public interface LibLinearType<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface LibLinearType<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance> {
     /*
     // L2-regularized logistic regression (primal)
     L2R_LR,

@@ -79,7 +79,7 @@ public class TestMNB {
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
         Model<Label> model = testMNB(p);
-        Helpers.testModelSerialization(model, Label.class);
+        Helpers.testModelProtoSerialization(model, Label.class);
         Model<Label> m = Helpers.testModelProtoSerialization(model, Label.class, p.getB());
         m.predict(p.getB());
     }

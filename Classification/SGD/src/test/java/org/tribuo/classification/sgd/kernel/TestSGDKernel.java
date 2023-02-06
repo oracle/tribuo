@@ -74,7 +74,6 @@ public class TestSGDKernel {
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testSGDKernel(p);
-        Helpers.testModelSerialization(model,Label.class);
         Helpers.testModelProtoSerialization(model, Label.class, p.getB());
     }
 

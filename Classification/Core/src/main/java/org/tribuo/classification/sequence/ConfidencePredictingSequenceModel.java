@@ -24,7 +24,6 @@ import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.sequence.SequenceExample;
 import org.tribuo.sequence.SequenceModel;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +36,6 @@ import java.util.List;
  * in a SequenceExample.
  */
 public abstract class ConfidencePredictingSequenceModel extends SequenceModel<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a ConfidencePredictingSequenceModel with the supplied parameters.
@@ -86,8 +84,7 @@ public abstract class ConfidencePredictingSequenceModel extends SequenceModel<La
     /**
      * A range class used to define a subsequence of a SequenceExample.
      */
-    public static class Subsequence implements Serializable {
-        private static final long serialVersionUID = 1L;
+    public static class Subsequence {
         /**
          * The subsequence start index.
          */

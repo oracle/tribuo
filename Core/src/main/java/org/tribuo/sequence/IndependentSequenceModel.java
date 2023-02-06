@@ -39,7 +39,6 @@ import java.util.logging.Logger;
  */
 public class IndependentSequenceModel<T extends Output<T>> extends SequenceModel<T> {
     private static final Logger logger = Logger.getLogger(IndependentSequenceModel.class.getName());
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

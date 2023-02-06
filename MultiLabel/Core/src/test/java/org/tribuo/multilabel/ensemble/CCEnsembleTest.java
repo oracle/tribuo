@@ -74,7 +74,7 @@ public class CCEnsembleTest {
         MultiLabel trueLabel = factory.generateOutput("MONKEY,PUZZLE,TREE");
         assertEquals(trueLabel, first.getOutput(), "Predicted labels not equal");
 
-        Helpers.testModelSerialization(model,MultiLabel.class);
+        Helpers.testModelProtoSerialization(model,MultiLabel.class);
     }
 
 }

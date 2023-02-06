@@ -27,7 +27,6 @@ import org.tribuo.Prediction;
 import org.tribuo.interop.onnx.protos.OutputTransformerProto;
 import org.tribuo.protos.ProtoSerializable;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -35,7 +34,7 @@ import java.util.List;
  * <p>
  * N.B. ONNX support is experimental, and may change without a major version bump.
  */
-public interface OutputTransformer<T extends Output<T>> extends Configurable, ProtoSerializable<OutputTransformerProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface OutputTransformer<T extends Output<T>> extends Configurable, ProtoSerializable<OutputTransformerProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Converts a {@link OnnxValue} into a {@link Prediction}.

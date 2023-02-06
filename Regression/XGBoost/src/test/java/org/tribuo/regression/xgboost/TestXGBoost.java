@@ -60,7 +60,6 @@ public class TestXGBoost {
     public void testMultiDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
         Model<Regressor> model = testXGBoost(p);
-        Helpers.testModelSerialization(model,Regressor.class);
         Helpers.testModelProtoSerialization(model, Regressor.class, p.getB());
     }
 

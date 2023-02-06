@@ -127,7 +127,7 @@ public class VotingCombinerTest {
         assertEquals(prediction.getOutput(),dishwasher);
         modelList.clear();
 
-        Helpers.testModelSerialization(ensemble,Label.class);
+        Helpers.testModelProtoSerialization(ensemble,Label.class);
     }
 
     @Test

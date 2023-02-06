@@ -71,7 +71,6 @@ public class TestXGBoostExternalModel {
         assertEquals(1.0, evaluation.accuracy(), 1e-6);
         assertEquals(0.0, evaluation.balancedErrorRate(), 1e-6);
 
-        Helpers.testModelSerialization(transposedMNISTXGB,Label.class);
         Helpers.testModelProtoSerialization(transposedMNISTXGB, Label.class, transposedMNIST);
     }
 

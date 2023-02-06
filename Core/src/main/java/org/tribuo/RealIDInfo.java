@@ -29,7 +29,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = RealIDInfo.CURRENT_VERSION, serializedDataClass = RealIDInfoProto.class)
 public class RealIDInfo extends RealInfo implements VariableIDInfo {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.
