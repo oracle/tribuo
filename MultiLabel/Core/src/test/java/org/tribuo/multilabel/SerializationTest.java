@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@ import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
 import org.tribuo.classification.Label;
+import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.multilabel.ensemble.MultiLabelVotingCombiner;
+import org.tribuo.protos.core.EnsembleCombinerProto;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.protos.core.OutputProto;
@@ -88,15 +91,15 @@ public class SerializationTest {
 
     @Test
     public void load431Protobufs() throws URISyntaxException, IOException {
-        // ClusterID
-        Path clusteridPath = Paths.get(SerializationTest.class.getResource("multilabel-431.tribuo").toURI());
-        try (InputStream fis = Files.newInputStream(clusteridPath)) {
+        // MultiLabel
+        Path multiLabelPath = Paths.get(SerializationTest.class.getResource("multilabel-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(multiLabelPath)) {
             OutputProto proto = OutputProto.parseFrom(fis);
             MultiLabel multilabel = (MultiLabel) Output.deserialize(proto);
             assertEquals(ONE, multilabel);
         }
 
-        // ClusteringFactory
+        // MultiLabelFactory
         Path factoryPath = Paths.get(SerializationTest.class.getResource("factory-multilabel-431.tribuo").toURI());
         try (InputStream fis = Files.newInputStream(factoryPath)) {
             OutputFactoryProto proto = OutputFactoryProto.parseFrom(fis);
@@ -128,6 +131,14 @@ public class SerializationTest {
             MultiLabelInfo deserInfo = (MultiLabelInfo) OutputInfo.deserialize(proto);
             assertEquals(imInfo, deserInfo);
         }
+        // MultiLabelVotingCombiner
+        MultiLabelVotingCombiner comb = new MultiLabelVotingCombiner();
+        Path combinerPath = Paths.get(SerializationTest.class.getResource("combiner-multilabel-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(combinerPath)) {
+            EnsembleCombinerProto proto = EnsembleCombinerProto.parseFrom(fis);
+            MultiLabelVotingCombiner deserComb = (MultiLabelVotingCombiner) EnsembleCombiner.deserialize(proto);
+            assertEquals(comb, deserComb);
+        }
     }
 
     public void generateProtobufs() throws IOException {
@@ -144,6 +155,7 @@ public class SerializationTest {
         Helpers.writeProtobuf(info, Paths.get("src","test","resources","org","tribuo","multilabel","mutableinfo-multilabel-431.tribuo"));
         ImmutableMultiLabelInfo imInfo = (ImmutableMultiLabelInfo) info.generateImmutableOutputInfo();
         Helpers.writeProtobuf(imInfo, Paths.get("src","test","resources","org","tribuo","multilabel","immutableinfo-multilabel-431.tribuo"));
+        Helpers.writeProtobuf(new MultiLabelVotingCombiner(), Paths.get("src","test","resources","org","tribuo","multilabel","combiner-multilabel-431.tribuo"));
     }
 
 }
