@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@ package org.tribuo.regression.rtree;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
+import org.tribuo.SparseModel;
 import org.tribuo.Trainer;
 import org.tribuo.common.tree.TreeModel;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -30,6 +33,12 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.regression.rtree.impurity.MeanSquaredError;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -256,5 +265,39 @@ public class TestCARTJointRegressionTrainer {
         assertEquals(expectedDim3, llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName, Double.NaN)), 1e-6);
         assertEquals(expectedAve, llEval.averageR2(), 1e-6);
 
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestCARTJointRegressionTrainer.class.getResource("joint-cart-reg-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            SparseModel<Regressor> deserModel = (SparseModel<Regressor>) Model.deserialize(proto);
+
+            assertEquals("4.3.1", deserModel.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+
+            List<Prediction<Regressor>> deserOutput = deserModel.predict(p.getB());
+
+            CARTJointRegressionTrainer trainer = new CARTJointRegressionTrainer();
+            TreeModel<Regressor> model = trainer.train(p.getA());
+            List<Prediction<Regressor>> output = model.predict(p.getB());
+
+            assertEquals(deserOutput.size(), p.getB().size());
+            assertEquals(deserOutput, output);
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generateModel() throws IOException {
+        Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
+        CARTJointRegressionTrainer trainer = new CARTJointRegressionTrainer();
+        TreeModel<Regressor> model = trainer.train(p.getA());
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","regression","rtree","joint-cart-reg-431.tribuo"));
     }
 }
