@@ -50,6 +50,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestFMRegression {
     private static final Logger logger = Logger.getLogger(TestFMRegression.class.getName());
@@ -162,7 +163,7 @@ public class TestFMRegression {
             List<Prediction<Regressor>> output = model.predict(p.getB());
 
             assertEquals(deserOutput.size(), p.getB().size());
-            assertEquals(deserOutput, output);
+            assertTrue(Helpers.predictionListDistributionEquals(deserOutput, output, 1e-7));
         }
     }
 

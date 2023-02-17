@@ -44,6 +44,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestCARTJointRegressionTrainer {
 
@@ -286,7 +287,7 @@ public class TestCARTJointRegressionTrainer {
             List<Prediction<Regressor>> output = model.predict(p.getB());
 
             assertEquals(deserOutput.size(), p.getB().size());
-            assertEquals(deserOutput, output);
+            assertTrue(Helpers.predictionListDistributionEquals(deserOutput, output));
         }
     }
 

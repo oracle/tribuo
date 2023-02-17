@@ -49,10 +49,11 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -392,9 +393,28 @@ public final class Helpers {
         }
     }
 
+    public static <T extends Output<T>> boolean predictionListDistributionEquals(List<Prediction<T>> first, List<Prediction<T>> second) {
+        return predictionListDistributionEquals(first, second, 1e-14);
+    }
+
+    public static <T extends Output<T>> boolean predictionListDistributionEquals(List<Prediction<T>> first, List<Prediction<T>> second, double threshold) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+        boolean equal = true;
+
+        for (int i = 0; i < first.size(); i++) {
+            equal &= first.get(i).distributionEquals(second.get(i), threshold);
+        }
+
+        return equal;
+    }
+
     public static void writeProtobuf(ProtoSerializable<?> obj, Path path) throws IOException {
         Message proto = obj.serialize();
-        try (FileOutputStream os = new FileOutputStream(path.toFile())) {
+        Path dir = path.getParent();
+        Files.createDirectories(dir);
+        try (OutputStream os = Files.newOutputStream(path)) {
             proto.writeTo(os);
         }
     }

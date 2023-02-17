@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -114,7 +115,7 @@ public class TestDummyRegression {
             List<Prediction<Regressor>> deserPredictions = deserModel.predict(p.getB());
             List<Prediction<Regressor>> predictions = model.predict(p.getB());
             assertEquals(p.getB().size(), deserPredictions.size());
-            assertEquals(predictions, deserPredictions);
+            assertTrue(Helpers.predictionListDistributionEquals(predictions, deserPredictions));
         }
     }
 

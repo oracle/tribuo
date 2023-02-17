@@ -52,6 +52,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSLM {
@@ -335,7 +336,7 @@ public class TestSLM {
             List<Prediction<Regressor>> output = model.predict(p.getB());
 
             assertEquals(deserOutput.size(), p.getB().size());
-            assertEquals(deserOutput, output);
+            assertTrue(Helpers.predictionListDistributionEquals(deserOutput, output));
         }
     }
 
