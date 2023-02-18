@@ -45,13 +45,7 @@ import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.sequence.SequenceDataset;
 import org.tribuo.sequence.SequenceModel;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;

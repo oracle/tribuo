@@ -54,7 +54,6 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -301,16 +300,13 @@ public class TestHdbscan {
         URL serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename);
 
         HdbscanModel model = null;
-        try (ObjectInputStream oin = new ObjectInputStream(serializedModelPath.openStream())) {
-            Object data = oin.readObject();
-            model = (HdbscanModel) data;
+        try (InputStream is = serializedModelPath.openStream()) {
+            model = (HdbscanModel) Model.deserializeFromStream(is);
             if (!model.validate(ClusterID.class)) {
                 fail("This is not a Clustering model.");
             }
         } catch (IOException e) {
             fail("There is a problem accessing the serialized model file " + serializedModelPath);
-        } catch (ClassNotFoundException e) {
-            fail("There is a problem deserializing the model file " + serializedModelPath);
         }
 
         // In v4.2 models this value is unset and defaults to negative infinity.

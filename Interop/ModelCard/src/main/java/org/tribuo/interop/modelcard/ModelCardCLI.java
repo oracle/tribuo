@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2023 Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,8 @@ import com.oracle.labs.mlrg.olcut.config.Options;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import org.tribuo.Model;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -93,32 +89,18 @@ public class ModelCardCLI implements CommandGroup {
      * Loads in a model and builds a partial model card from the provenance.
      * @param ci The command shell.
      * @param path The path to load.
-     * @param protobuf Is the model a protobuf?
      * @return A status string.
      */
     @Command(usage = "<path> <is-protobuf> - Loads a model in and builds a partial model card from the provenance.")
-    public String loadModel(CommandInterpreter ci, File path, boolean protobuf) {
+    public String loadModel(CommandInterpreter ci, File path) {
         String output = "Failed to load model";
-        if (protobuf) {
-            try {
-                model = Model.deserializeFromFile(path.toPath());
-                output = "Loaded model from path " + path.getAbsolutePath();
-            } catch (IllegalStateException e) {
-                logger.log(Level.SEVERE, "Failed to deserialize protobuf when reading from file " + path.getAbsolutePath(), e);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
-            }
-        } else {
-            try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
-                model = (Model<?>) ois.readObject();
-                output = "Loaded model from path " + path.getAbsolutePath();
-            } catch (ClassNotFoundException e) {
-                logger.log(Level.SEVERE, "Failed to load class from stream " + path.getAbsolutePath(), e);
-            } catch (FileNotFoundException e) {
-                logger.log(Level.SEVERE, "Failed to open file " + path.getAbsolutePath(), e);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
-            }
+        try {
+            model = Model.deserializeFromFile(path.toPath());
+            output = "Loaded model from path " + path.getAbsolutePath();
+        } catch (IllegalStateException e) {
+            logger.log(Level.SEVERE, "Failed to deserialize protobuf when reading from file " + path.getAbsolutePath(), e);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
         }
 
         modelCard = new ModelCard(model);
@@ -519,12 +501,6 @@ public class ModelCardCLI implements CommandGroup {
          */
         @Option(charName = 'f', longName = "filename", usage = "Model file to load. Optional.")
         public String modelFilename;
-
-        /**
-         * Load the model from a protobuf. Optional.
-         */
-        @Option(charName = 'p', longName = "protobuf-model", usage = "Load the model from a protobuf. Optional")
-        public boolean protobufFormat;
     }
 
     /**
@@ -536,7 +512,7 @@ public class ModelCardCLI implements CommandGroup {
         ConfigurationManager cm = new ConfigurationManager(args,options,false);
         ModelCardCLI driver = new ModelCardCLI();
         if (options.modelFilename != null) {
-            logger.log(Level.INFO,driver.loadModel(driver.shell, new File(options.modelFilename), options.protobufFormat));
+            logger.log(Level.INFO,driver.loadModel(driver.shell, new File(options.modelFilename)));
         }
         driver.startShell();
     }
