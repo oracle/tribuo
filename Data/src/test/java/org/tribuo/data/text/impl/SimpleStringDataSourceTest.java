@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,12 @@
 
 package org.tribuo.data.text.impl;
 
+import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
+import com.oracle.labs.mlrg.olcut.provenance.io.MarshalledProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.io.ObjectMarshalledProvenance;
 import org.tribuo.data.text.TextFeatureExtractor;
+import org.tribuo.provenance.DataProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
 import org.junit.jupiter.api.Test;
@@ -26,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
@@ -36,6 +42,18 @@ public class SimpleStringDataSourceTest {
         List<String> rawLines = new ArrayList<>();
         SimpleStringDataSource<MockOutput> src = new SimpleStringDataSource<>(rawLines, new MockOutputFactory(), getFeatureExtractor());
         assertThrows(IllegalStateException.class, src::iterator);
+    }
+
+    @Test
+    public void provenanceSerializationTest() {
+        List<String> rawLines = new ArrayList<>();
+        rawLines.add("things ## stuff");
+        rawLines.add("other ## objects");
+        SimpleStringDataSource<MockOutput> src = new SimpleStringDataSource<>(rawLines, new MockOutputFactory(), getFeatureExtractor());
+        DataProvenance p = src.getProvenance();
+        List<ObjectMarshalledProvenance> marshalledProvenance = ProvenanceUtil.marshalProvenance(p);
+        Provenance unMarshalledProv = ProvenanceUtil.unmarshalProvenance(marshalledProvenance);
+        assertEquals(p, unMarshalledProv);
     }
 
     public static TextFeatureExtractor<MockOutput> getFeatureExtractor() {
