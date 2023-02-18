@@ -74,6 +74,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestLibSVM {
     private static final Logger logger = Logger.getLogger(TestLibSVM.class.getName());
@@ -148,14 +149,28 @@ public class TestLibSVM {
         //System.out.println("*** PASSED: " + prefix);
     }
 
-
     private LibSVMModel<Label> loadModel(SVMClassificationType.SVMMode modelType, KernelType kernelType, boolean multiclass) throws IOException, ClassNotFoundException {
         String modelPath = "/models/" + modelType + "_" + kernelType;
         if (multiclass) {
             modelPath += "_multiclass";
         }
         modelPath += ".model";
-        return (LibSVMClassificationModel) Model.deserializeFromFile(Path.of(modelPath));
+        return loadModel(modelPath);
+    }
+
+    private LibSVMModel<Label> loadModel(String path) throws IOException {
+        URL modelFile = this.getClass().getResource(path);
+        try (InputStream is = modelFile.openStream()) {
+            @SuppressWarnings("unchecked") // checked by validate call.
+            LibSVMModel<Label> model = (LibSVMModel<Label>) Model.deserializeFromStream(is);
+            if (!model.validate(Label.class)) {
+                fail(String.format("model for %s is not a classification model.",path));
+            }
+            return model;
+        } catch (NullPointerException e) {
+            fail(String.format("model for %s does not exist", path));
+            throw e;
+        }
     }
 
     private Dataset<Label> loadTestDataset(LibSVMModel<Label> model) throws IOException {

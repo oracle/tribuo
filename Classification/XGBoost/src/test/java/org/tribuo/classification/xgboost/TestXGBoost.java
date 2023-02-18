@@ -152,7 +152,7 @@ public class TestXGBoost {
         return loadModel(modelPath);
     }
 
-    private XGBoostModel<Label> loadModel(String path) throws IOException, ClassNotFoundException {
+    private XGBoostModel<Label> loadModel(String path) throws IOException {
         URL modelFile = this.getClass().getResource(path);
         try (InputStream is = modelFile.openStream()) {
             @SuppressWarnings("unchecked") // checked by validate call.
