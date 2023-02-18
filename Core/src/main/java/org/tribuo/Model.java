@@ -332,11 +332,6 @@ public abstract class Model<T extends Output<T>> implements ProtoSerializable<Mo
         }
     }
 
-    @Override
-    public ModelProto serialize() {
-        throw new UnsupportedOperationException("The default implementation of Model.serialize() must be overridden to support protobuf serialization.");
-    }
-
     /**
      * Serializes this model to a {@link ModelProto} and writes it to the supplied path.
      * @param path The path to write to.

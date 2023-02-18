@@ -186,11 +186,6 @@ public abstract class SequenceModel<T extends Output<T>> implements ProtoSeriali
         return predictions;
     }
 
-    @Override
-    public SequenceModelProto serialize() {
-        throw new UnsupportedOperationException("The default implementation of SequenceModel.serialize() must be overridden to support protobuf serialization.");
-    }
-
     /**
      * Serializes this model to a {@link SequenceModelProto} and writes it to the supplied path.
      * @param path The path to write to.

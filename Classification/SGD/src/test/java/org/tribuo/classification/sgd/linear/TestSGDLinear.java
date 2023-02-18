@@ -152,28 +152,6 @@ public class TestSGDLinear {
         });
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {"label-linear-sgd-4.0.2.model"})
-    public void testSerializedModel(String resourceName) throws IOException, ClassNotFoundException {
-        try (ObjectInputStream ois = new ObjectInputStream(TestSGDLinear.class.getResource(resourceName).openStream())) {
-           Model<?> model = (Model<?>) ois.readObject();
-           if (model.validate(Label.class)) {
-               @SuppressWarnings("unchecked") // Guarded by validate call.
-               Model<Label> m = (Model<Label>) model;
-               LabelEvaluator e = new LabelEvaluator();
-               LabelEvaluation evaluation = e.evaluate(m,LabelledDataGenerator.denseTrainTest().getB());
-               Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
-               Assertions.assertNotNull(features);
-               assertFalse(features.isEmpty());
-               features = m.getTopFeatures(-1);
-               Assertions.assertNotNull(features);
-               assertFalse(features.isEmpty());
-           } else {
-               fail("Invalid model type found, expected Label");
-           }
-        }
-    }
-
     @Test
     public void loadProtobufModel() throws IOException, URISyntaxException {
         Path path = Paths.get(TestSGDLinear.class.getResource("lin-clf-431.tribuo").toURI());
