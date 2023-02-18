@@ -56,7 +56,6 @@ import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -75,7 +74,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestLibSVM {
     private static final Logger logger = Logger.getLogger(TestLibSVM.class.getName());
@@ -157,18 +155,7 @@ public class TestLibSVM {
             modelPath += "_multiclass";
         }
         modelPath += ".model";
-        return loadModel(modelPath);
-    }
-
-    private LibSVMModel<Label> loadModel(String path) throws IOException, ClassNotFoundException {
-        URL modelFile = this.getClass().getResource(path);
-        try (ObjectInputStream ois = new ObjectInputStream(modelFile.openStream())) {
-            Object data = ois.readObject();
-            return (LibSVMClassificationModel) data;
-        } catch (NullPointerException e) {
-            fail(String.format("model for %s does not exist", path));
-            throw e;
-        }
+        return (LibSVMClassificationModel) Model.deserializeFromFile(Path.of(modelPath));
     }
 
     private Dataset<Label> loadTestDataset(LibSVMModel<Label> model) throws IOException {

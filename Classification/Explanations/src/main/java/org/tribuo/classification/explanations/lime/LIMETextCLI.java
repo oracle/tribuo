@@ -41,12 +41,8 @@ import org.jline.reader.impl.completer.NullCompleter;
 import org.tribuo.util.tokens.Tokenizer;
 import org.tribuo.util.tokens.universal.UniversalTokenizer;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.SplittableRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -115,34 +111,19 @@ public class LIMETextCLI implements CommandGroup {
      * Loads a model in from disk.
      * @param ci The command interpreter.
      * @param path The path to load the model from.
-     * @param protobuf Load the model from protobuf?
      * @return A status message.
      */
     @Command(usage = "<filename> <load-protobuf> - Load a model from disk.", completers="fileCompleter")
-    public String loadModel(CommandInterpreter ci, File path, boolean protobuf) {
+    public String loadModel(CommandInterpreter ci, File path) {
         String output = "Failed to load model";
-        if (protobuf) {
-            try {
-                Model<?> tmpModel = Model.deserializeFromFile(path.toPath());
-                model = tmpModel.castModel(Label.class);
-                output = "Loaded model from path " + path.getAbsolutePath();
-            } catch (IllegalStateException e) {
-                logger.log(Level.SEVERE, "Failed to deserialize protobuf when reading from file " + path.getAbsolutePath(), e);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
-            }
-        } else {
-            try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(path)))) {
-                Model<?> tmpModel = (Model<?>) ois.readObject();
-                model = tmpModel.castModel(Label.class);
-                output = "Loaded model from path " + path.getAbsolutePath();
-            } catch (ClassNotFoundException e) {
-                logger.log(Level.SEVERE, "Failed to load class from stream " + path.getAbsolutePath(), e);
-            } catch (FileNotFoundException e) {
-                logger.log(Level.SEVERE, "Failed to open file " + path.getAbsolutePath(), e);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
-            }
+        try {
+            Model<?> tmpModel = Model.deserializeFromFile(path.toPath());
+            model = tmpModel.castModel(Label.class);
+            output = "Loaded model from path " + path.getAbsolutePath();
+        } catch (IllegalStateException e) {
+            logger.log(Level.SEVERE, "Failed to deserialize protobuf when reading from file " + path.getAbsolutePath(), e);
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, "IOException when reading from file " + path.getAbsolutePath(), e);
         }
 
         limeText = new LIMEText(new SplittableRandom(1),model,limeTrainer,numSamples,extractor,tokenizer);
@@ -304,12 +285,6 @@ public class LIMETextCLI implements CommandGroup {
          */
         @Option(charName = 'f', longName = "filename", usage = "Model file to load. Optional.")
         public String modelFilename;
-
-        /**
-         * Load the model from a protobuf. Optional.
-         */
-        @Option(charName = 'p', longName = "protobuf-model", usage = "Load the model from a protobuf. Optional")
-        public boolean protobufFormat;
     }
 
     /**
@@ -322,7 +297,7 @@ public class LIMETextCLI implements CommandGroup {
             ConfigurationManager cm = new ConfigurationManager(args, options, false);
             LIMETextCLI driver = new LIMETextCLI();
             if (options.modelFilename != null) {
-                logger.log(Level.INFO, driver.loadModel(driver.shell, new File(options.modelFilename), options.protobufFormat));
+                logger.log(Level.INFO, driver.loadModel(driver.shell, new File(options.modelFilename)));
             }
             driver.startShell();
         } catch (UsageException e) {

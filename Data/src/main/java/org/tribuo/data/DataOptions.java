@@ -41,10 +41,7 @@ import org.tribuo.transform.TransformerMap;
 import org.tribuo.transform.transformations.LinearScalingTransformation;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -66,10 +63,6 @@ public final class DataOptions implements Options {
          * Serialized Tribuo datasets.
          */
         SERIALIZED,
-        /**
-         * Protobuf serialized Tribuo datasets.
-         */
-        SERIALIZED_PROTOBUF,
         /**
          * LibSVM/svm-light format data.
          */
@@ -217,30 +210,6 @@ public final class DataOptions implements Options {
         char separator;
         switch (inputFormat) {
             case SERIALIZED:
-                //
-                // Load Tribuo serialised datasets.
-                logger.info("Deserialising dataset from " + trainingPath);
-                try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(trainingPath.toFile())));
-                     ObjectInputStream oits = new ObjectInputStream(new BufferedInputStream(new FileInputStream(testingPath.toFile())))) {
-                    @SuppressWarnings("unchecked")
-                    Dataset<T> tmp = (Dataset<T>) ois.readObject();
-                    train = tmp;
-                    if (minCount > 0) {
-                        logger.info("Found " + train.getFeatureIDMap().size() + " features");
-                        logger.info("Removing features that occur fewer than " + minCount + " times.");
-                        train = new MinimumCardinalityDataset<>(train, minCount);
-                    }
-                    logger.info(String.format("Loaded %d training examples for %s", train.size(), train.getOutputs().toString()));
-                    logger.info("Found " + train.getFeatureIDMap().size() + " features, and " + train.getOutputInfo().size() + " response dimensions");
-                    logger.info("Deserialising dataset from " + testingPath);
-                    @SuppressWarnings("unchecked")
-                    Dataset<T> deserTest = (Dataset<T>) oits.readObject();
-                    test = new ImmutableDataset<>(deserTest, deserTest.getSourceProvenance(), deserTest.getOutputFactory(), train.getFeatureIDMap(), train.getOutputIDInfo(), true);
-                } catch (ClassNotFoundException e) {
-                    throw new IllegalArgumentException("Unknown class in serialised files", e);
-                }
-                break;
-            case SERIALIZED_PROTOBUF:
                 //
                 // Load Tribuo protobuf serialised datasets.
                 logger.info("Deserialising protobuf dataset from " + trainingPath);
