@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.tribuo.clustering.hdbscan;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
@@ -893,8 +894,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         public Double getMaxDistToEdge() {
             if (maxDistToEdge != null) {
                 return maxDistToEdge;
-            }
-            else {
+            } else {
                 return Double.NEGATIVE_INFINITY;
             }
         }
@@ -932,7 +932,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             builder.setLabel(label);
             builder.setOutlierScore(outlierScore);
             builder.setFeatures(features.serialize());
-            builder.setMaxDistToEdge(maxDistToEdge);
+            builder.setMaxDistToEdge(getMaxDistToEdge());
 
             return builder.build();
         }
