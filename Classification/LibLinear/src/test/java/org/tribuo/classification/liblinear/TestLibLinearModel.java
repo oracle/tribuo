@@ -70,6 +70,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestLibLinearModel {
     private static final Logger logger = Logger.getLogger(TestLibLinearModel.class.getName());
@@ -113,7 +114,7 @@ public class TestLibLinearModel {
     @Test
     public void testMulticlass() throws IOException {
         String prefix = "L2R_LR_multiclass";
-        LibLinearClassificationModel model =  (LibLinearClassificationModel) Model.deserializeFromFile(Path.of("/models/L2R_LR_multiclass.model"));
+        LibLinearClassificationModel model = loadModel("/models/L2R_LR_multiclass.model");
         Dataset<Label> examples = loadMulticlassTestDataset(model);
         assertNotNull(model, prefix);
         List<Prediction<Label>> predictions = model.predict(examples);
@@ -127,7 +128,7 @@ public class TestLibLinearModel {
         }
     }
 
-    private void checkModelType(LinearType modelType) throws IOException, ClassNotFoundException {
+    private void checkModelType(LinearType modelType) throws IOException {
         String prefix = String.format("model %s", modelType);
         LibLinearClassificationModel model = loadModel(modelType);
         Dataset<Label> examples = loadTestDataset(model);
@@ -143,10 +144,21 @@ public class TestLibLinearModel {
         }
     }
 
-
     private LibLinearClassificationModel loadModel(LinearType modelType) throws IOException {
         String modelPath = "/models/" + modelType + ".model";
-        return (LibLinearClassificationModel) Model.deserializeFromFile(Path.of(modelPath));
+        return loadModel(modelPath);
+    }
+
+    private LibLinearClassificationModel loadModel(String path) throws IOException {
+        URL modelFile = this.getClass().getResource(path);
+        try (InputStream is = modelFile.openStream()) {
+            @SuppressWarnings("unchecked") // checked by validate call.
+            LibLinearClassificationModel model = (LibLinearClassificationModel) Model.deserializeFromStream(is);
+            return model;
+        } catch (NullPointerException e) {
+            fail(String.format("model for %s does not exist", path));
+            throw e;
+        }
     }
 
     private Dataset<Label> loadTestDataset(LibLinearClassificationModel model) throws IOException {
