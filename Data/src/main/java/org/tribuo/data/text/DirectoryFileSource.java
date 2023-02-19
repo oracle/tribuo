@@ -287,6 +287,7 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, DirectoryFileSourceProvenance.class.getSimpleName()).getValue();
+            // This is relaxed as before v4.3.2 this field is left out of marshalled provenances due to a bug in getinstanceValues.
             String hostTypeStringName;
             Optional<StringProvenance> optHostName = ObjectProvenance.maybeExtractProvenance(configuredParameters,HOST_SHORT_NAME,StringProvenance.class, DirectoryFileSourceProvenance.class.getSimpleName());
             if (optHostName.isPresent()) {
