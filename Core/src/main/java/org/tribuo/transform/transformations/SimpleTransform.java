@@ -51,7 +51,6 @@ import java.util.function.DoubleUnaryOperator;
  */
 @ProtoSerializableClass(version = SimpleTransform.CURRENT_VERSION, serializedDataClass = SimpleTransformProto.class)
 public final class SimpleTransform implements Transformer, Transformation, TransformStatistics {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

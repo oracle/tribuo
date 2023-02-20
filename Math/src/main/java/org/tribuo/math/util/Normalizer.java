@@ -31,7 +31,6 @@ import java.util.Collections;
  * Normalizes, but first subtracts the minimum value (to ensure positivity).
  */
 public class Normalizer implements VectorNormalizer {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

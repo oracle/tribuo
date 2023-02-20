@@ -32,7 +32,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(serializedDataClass=MockOutputProto.class, version=0)
 public class MockOutput implements Output<MockOutput> {
-    private static final long serialVersionUID = 1L;
 
     @ProtoSerializableField
     public final String label;

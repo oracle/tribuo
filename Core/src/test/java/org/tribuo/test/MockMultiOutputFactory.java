@@ -37,8 +37,6 @@ import java.util.Set;
 
 public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
 
-    private static final long serialVersionUID = 1L;
-
     public static final MockMultiOutput UNKNOWN_MULTILABEL = new MockMultiOutput("unk");
 
     public MockMultiOutputFactory() {}

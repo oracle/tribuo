@@ -66,7 +66,6 @@ import java.util.logging.Logger;
  * </pre>
  */
 public class LibLinearAnomalyModel extends LibLinearModel<Event> {
-    private static final long serialVersionUID = 3L;
 
     private static final Logger logger = Logger.getLogger(LibLinearAnomalyModel.class.getName());
 

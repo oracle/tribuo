@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
  * A dense matrix, backed by a primitive array.
  */
 public class DenseMatrix implements Matrix {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(DenseMatrix.class.getName());
 
     /**

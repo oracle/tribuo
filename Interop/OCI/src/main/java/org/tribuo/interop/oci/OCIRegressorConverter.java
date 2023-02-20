@@ -39,7 +39,6 @@ import java.util.List;
  */
 @ProtoSerializableClass(version = OCIRegressorConverter.CURRENT_VERSION)
 public final class OCIRegressorConverter implements OCIOutputConverter<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

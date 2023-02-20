@@ -36,7 +36,6 @@ import java.util.Set;
  * The base class for tracking anomalous events.
  */
 public abstract class AnomalyInfo implements OutputInfo<Event>  {
-    private static final long serialVersionUID = 1L;
 
     private static final Set<Event> DOMAIN = makeDomain();
 

@@ -28,7 +28,6 @@ import org.tribuo.common.libsvm.SVMType;
  * Supports ONE_CLASS. Yes it's a single value enum.
  */
 public class SVMAnomalyType implements SVMType<Event> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Valid SVM modes for anomaly detection.

@@ -35,7 +35,6 @@ import java.util.Map;
  * A factory for generating events.
  */
 public final class AnomalyFactory implements OutputFactory<Event> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The unknown event. Used at inference time.

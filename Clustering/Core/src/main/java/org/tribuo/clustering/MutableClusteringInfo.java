@@ -32,7 +32,6 @@ import java.util.Map;
  */
 @ProtoSerializableClass(serializedDataClass = ClusteringInfoProto.class, version = 0)
 public class MutableClusteringInfo extends ClusteringInfo implements MutableOutputInfo<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     MutableClusteringInfo() {
         super();

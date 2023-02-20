@@ -54,7 +54,6 @@ import java.util.Set;
  * </p>
  */
 public class Regressor implements Output<Regressor>, Iterable<Regressor.DimensionTuple> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The tolerance value for determining if two regressed values are equal.
@@ -548,7 +547,6 @@ public class Regressor implements Output<Regressor>, Iterable<Regressor.Dimensio
      * regression outputs.
      */
     public final static class DimensionTuple extends Regressor {
-        private static final long serialVersionUID = 1L;
 
         private final String name;
         private final double value;

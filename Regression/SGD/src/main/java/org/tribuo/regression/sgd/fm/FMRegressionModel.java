@@ -51,7 +51,6 @@ import java.util.Arrays;
  * </pre>
  */
 public class FMRegressionModel extends AbstractFMModel<Regressor> implements ONNXExportable {
-    private static final long serialVersionUID = 3L;
 
     /**
      * Protobuf serialization version.

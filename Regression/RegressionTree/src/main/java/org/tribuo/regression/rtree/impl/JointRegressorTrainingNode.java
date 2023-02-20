@@ -48,7 +48,6 @@ import java.util.logging.Logger;
  * the current impurity and a bunch of other statistics.
  */
 public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(JointRegressorTrainingNode.class.getName());
 

@@ -35,7 +35,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = RBF.CURRENT_VERSION, serializedDataClass = RBFKernelProto.class)
 public class RBF implements Kernel {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

@@ -71,7 +71,6 @@ import static org.tribuo.multilabel.baseline.ClassifierChainTrainer.CC_SEPARATOR
  * </pre>
  */
 public final class ClassifierChainModel extends Model<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

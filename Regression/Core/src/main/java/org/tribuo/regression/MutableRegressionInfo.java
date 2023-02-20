@@ -34,7 +34,6 @@ import java.util.TreeMap;
  * contain the same named dimensions.
  */
 public class MutableRegressionInfo extends RegressionInfo implements MutableOutputInfo<Regressor> {
-    private static final long serialVersionUID = 2L;
 
     MutableRegressionInfo() {
         super();

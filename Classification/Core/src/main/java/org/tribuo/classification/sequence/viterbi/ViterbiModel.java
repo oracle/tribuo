@@ -47,8 +47,6 @@ import java.util.stream.Collectors;
  */
 public class ViterbiModel extends SequenceModel<Label> {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Protobuf serialization version.
      */

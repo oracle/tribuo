@@ -44,8 +44,6 @@ import java.util.logging.Logger;
 public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo<Label> {
     private static final Logger logger = Logger.getLogger(ImmutableLabelInfo.class.getName());
 
-    private static final long serialVersionUID = 1L;
-
     private final Map<Integer,String> idLabelMap;
 
     private final Map<String,Integer> labelIDMap;

@@ -50,7 +50,6 @@ import java.util.logging.Logger;
  */
 @ProtoSerializableClass(version = LabelOneVOneTransformer.CURRENT_VERSION)
 public final class LabelOneVOneTransformer extends LabelTransformer {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
 
     /**

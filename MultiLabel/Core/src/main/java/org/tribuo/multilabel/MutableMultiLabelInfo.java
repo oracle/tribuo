@@ -33,7 +33,6 @@ import java.util.Map;
  */
 @ProtoSerializableClass(serializedDataClass=MutableMultiLabelInfoProto.class, version=0)
 public class MutableMultiLabelInfo extends MultiLabelInfo implements MutableOutputInfo<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Package private constructor for building MutableMultiLabelInfo, used by {@link MultiLabelFactory}.

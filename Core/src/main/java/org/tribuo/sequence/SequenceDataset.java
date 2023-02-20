@@ -311,8 +311,6 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
     }
 
     private static class FlatDataset<T extends Output<T>> extends ImmutableDataset<T> {
-        private static final long serialVersionUID = 1L;
-
         FlatDataset(SequenceDataset<T> sequenceDataset) {
             super(sequenceDataset.sourceProvenance, sequenceDataset.outputFactory, sequenceDataset.getFeatureIDMap(), sequenceDataset.getOutputIDInfo());
             for (SequenceExample<T> seq : sequenceDataset) {

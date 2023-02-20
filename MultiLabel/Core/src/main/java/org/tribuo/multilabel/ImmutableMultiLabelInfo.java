@@ -40,8 +40,6 @@ import java.util.logging.Logger;
 public class ImmutableMultiLabelInfo extends MultiLabelInfo implements ImmutableOutputInfo<MultiLabel> {
     private static final Logger logger = Logger.getLogger(ImmutableMultiLabelInfo.class.getName());
 
-    private static final long serialVersionUID = 1L;
-
     private final Map<Integer,String> idLabelMap;
 
     private final Map<String,Integer> labelIDMap;

@@ -35,7 +35,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = Sigmoid.CURRENT_VERSION, serializedDataClass = SigmoidKernelProto.class)
 public class Sigmoid implements Kernel {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

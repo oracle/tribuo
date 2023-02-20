@@ -33,7 +33,6 @@ import java.util.Objects;
  * do support training from anomalous and expected data.
  */
 public final class Event implements Output<Event> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The default score of events.

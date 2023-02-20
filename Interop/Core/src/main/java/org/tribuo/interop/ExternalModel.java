@@ -48,7 +48,6 @@ import java.util.Set;
  * @param <V> The internal representation of outputs.
  */
 public abstract class ExternalModel<T extends Output<T>,U,V> extends Model<T> {
-    private static final long serialVersionUID = 1L;
     /**
      * Default batch size for external model batch predictions.
      */

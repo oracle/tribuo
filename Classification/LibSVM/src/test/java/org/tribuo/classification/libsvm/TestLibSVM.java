@@ -418,7 +418,6 @@ public class TestLibSVM {
     }
 
     private static class TestMap extends ImmutableFeatureMap {
-        private static final long serialVersionUID = 1L;
 
         public TestMap() {
             super();

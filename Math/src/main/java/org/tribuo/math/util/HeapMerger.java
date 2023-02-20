@@ -36,7 +36,6 @@ import java.util.logging.Logger;
  * Relies upon {@link VectorIterator#compareTo(VectorIterator)}.
  */
 public class HeapMerger implements Merger {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(HeapMerger.class.getName());
 
     /**

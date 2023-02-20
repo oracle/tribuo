@@ -38,7 +38,6 @@ import org.tribuo.provenance.ModelProvenance;
  * </pre>
  */
 public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The weights for this model.

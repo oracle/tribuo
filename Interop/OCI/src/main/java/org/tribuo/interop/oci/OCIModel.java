@@ -78,7 +78,6 @@ import java.util.stream.Collectors;
  * converts the output into a Tribuo prediction.
  */
 public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseMatrix, DenseMatrix> implements AutoCloseable {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(OCIModel.class.getName());
 

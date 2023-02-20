@@ -24,7 +24,6 @@ import java.util.Objects;
  * Note this class is not thread safe.
  */
 public final class MeanVarianceAccumulator {
-    private static final long serialVersionUID = 1L;
 
     private double max = Double.NEGATIVE_INFINITY;
     private double min = Double.POSITIVE_INFINITY;

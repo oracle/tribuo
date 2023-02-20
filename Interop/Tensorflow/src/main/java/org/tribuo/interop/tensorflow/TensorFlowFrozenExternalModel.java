@@ -59,12 +59,9 @@ import java.util.stream.Collectors;
 /**
  * A Tribuo wrapper around a TensorFlow frozen model.
  * <p>
- * The model's serialVersionUID is set to the major Tensorflow version number times 100.
- * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public final class TensorFlowFrozenExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, Tensor> implements Closeable {
-    private static final long serialVersionUID = 200L;
 
     /**
      * Protobuf serialization version.

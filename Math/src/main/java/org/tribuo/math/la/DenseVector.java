@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
  * A dense vector, backed by a double array.
  */
 public class DenseVector implements SGDVector {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.
