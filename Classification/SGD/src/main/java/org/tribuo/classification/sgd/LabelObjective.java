@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.tribuo.classification.sgd;
 
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.common.sgd.SGDObjective;
-import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.VectorNormalizer;
 
 /**
@@ -28,22 +26,6 @@ import org.tribuo.math.util.VectorNormalizer;
  * and what kind of normalization needs to be applied to produce probability values.
  */
 public interface LabelObjective extends SGDObjective<Integer> {
-
-    /**
-     * Scores a prediction, returning the loss and a vector of per label gradients.
-     *
-     * @deprecated In 4.1, to migrate to the new name {@link #lossAndGradient}.
-     * @param truth      The true label id.
-     * @param prediction The prediction for each label id.
-     * @return The score and per label gradient.
-     */
-    @Deprecated
-    Pair<Double, SGDVector> valueAndGradient(int truth, SGDVector prediction);
-
-    @Override
-    default Pair<Double, SGDVector> lossAndGradient(Integer truth, SGDVector prediction) {
-        return valueAndGradient(truth, prediction);
-    }
 
     /**
      * Generates a new {@link VectorNormalizer} which normalizes the predictions into [0,1].
