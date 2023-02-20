@@ -35,7 +35,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(serializedDataClass=MutableLabelInfoProto.class, version=0)
 public class MutableLabelInfo extends LabelInfo implements MutableOutputInfo<Label> {
-    private static final long serialVersionUID = 1L;
 
     MutableLabelInfo() {
         super();

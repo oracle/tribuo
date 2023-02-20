@@ -75,8 +75,6 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     private static final Logger logger = Logger.getLogger(KNNModel.class.getName());
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Protobuf serialization version.
      */

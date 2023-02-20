@@ -58,7 +58,6 @@ import java.util.Set;
  * to generate independent predictions for each dimension in a regression.
  */
 public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

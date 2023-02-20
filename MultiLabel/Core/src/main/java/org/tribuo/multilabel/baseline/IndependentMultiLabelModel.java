@@ -55,7 +55,6 @@ import java.util.Set;
  * the multi-label classification literature.
  */
 public class IndependentMultiLabelModel extends Model<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

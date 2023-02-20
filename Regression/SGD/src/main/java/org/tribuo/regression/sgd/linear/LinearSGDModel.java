@@ -50,7 +50,6 @@ import java.util.Arrays;
  * </pre>
  */
 public class LinearSGDModel extends AbstractLinearSGDModel<Regressor> implements ONNXExportable {
-    private static final long serialVersionUID = 3L;
 
     /**
      * Protobuf serialization version.

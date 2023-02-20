@@ -351,7 +351,6 @@ public class TestLibLinearModel {
     }
 
     private static class TestMap extends ImmutableFeatureMap {
-        private static final long serialVersionUID = 1L;
         public TestMap() {
             super();
             CategoricalIDInfo foo = (new CategoricalInfo("FOO")).makeIDInfo(0);

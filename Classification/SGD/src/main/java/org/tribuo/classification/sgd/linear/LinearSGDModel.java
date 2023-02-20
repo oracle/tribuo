@@ -51,7 +51,6 @@ import java.util.Map;
  * </pre>
  */
 public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONNXExportable {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.

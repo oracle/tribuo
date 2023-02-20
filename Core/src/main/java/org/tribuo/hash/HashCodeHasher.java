@@ -38,7 +38,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = HashCodeHasher.CURRENT_VERSION)
 public final class HashCodeHasher extends Hasher {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.

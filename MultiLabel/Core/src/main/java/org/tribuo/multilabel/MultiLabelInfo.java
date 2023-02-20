@@ -37,7 +37,6 @@ import java.util.Set;
  * The base class for information about {@link MultiLabel} outputs.
  */
 public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The map of label occurrence counts.

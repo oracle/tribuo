@@ -62,7 +62,6 @@ import java.util.Optional;
  * </pre>
  */
 public final class HdbscanModel extends Model<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

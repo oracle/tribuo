@@ -73,7 +73,6 @@ import java.util.stream.Collectors;
  * N.B. ONNX support is experimental, and may change without a major version bump.
  */
 public final class ONNXExternalModel<T extends Output<T>> extends ExternalModel<T, OnnxTensor, List<OnnxValue>> implements AutoCloseable {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ONNXExternalModel.class.getName());
 

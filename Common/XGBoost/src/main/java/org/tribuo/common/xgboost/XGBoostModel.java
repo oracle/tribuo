@@ -80,7 +80,6 @@ import java.util.stream.Collectors;
  * OpenMP support after installing libomp from homebrew if necessary.
  */
 public final class XGBoostModel<T extends Output<T>> extends Model<T> {
-    private static final long serialVersionUID = 4L;
 
     private static final Logger logger = Logger.getLogger(XGBoostModel.class.getName());
 

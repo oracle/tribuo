@@ -49,7 +49,6 @@ import java.util.function.Supplier;
  */
 @ProtoSerializableClass(version = MessageDigestHasher.CURRENT_VERSION, serializedDataClass = MessageDigestHasherProto.class)
 public final class MessageDigestHasher extends Hasher {
-    private static final long serialVersionUID = 3L;
 
     /**
      * Protobuf serialization version.

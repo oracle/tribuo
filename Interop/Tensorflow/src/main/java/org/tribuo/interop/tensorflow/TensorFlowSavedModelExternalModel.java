@@ -58,12 +58,9 @@ import java.util.stream.Collectors;
 /**
  * A Tribuo wrapper around a TensorFlow saved model bundle.
  * <p>
- * The model's serialVersionUID is set to the major TensorFlow version number times 100.
- * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extends ExternalModel<T, TensorMap, TensorMap> implements Closeable {
-    private static final long serialVersionUID = 200L;
 
     /**
      * Protobuf serialization version.

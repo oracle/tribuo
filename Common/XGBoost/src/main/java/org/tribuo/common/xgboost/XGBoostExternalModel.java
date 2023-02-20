@@ -92,7 +92,6 @@ import java.util.logging.Logger;
  * OpenMP support after installing libomp from homebrew if necessary.
  */
 public final class XGBoostExternalModel<T extends Output<T>> extends ExternalModel<T,DMatrix,float[][]> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(XGBoostExternalModel.class.getName());
 

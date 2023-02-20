@@ -45,12 +45,9 @@ import java.util.Map;
  * This model's serialized form stores the weights and is entirely self contained.
  * If you wish to convert it into a model which uses checkpoints then call {@link #convertToCheckpointModel}.
  * <p>
- * The model's serialVersionUID is set to the major TensorFlow version number times 100.
- * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public final class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<T> {
-    private static final long serialVersionUID = 200L;
 
     /**
      * Protobuf serialization version.

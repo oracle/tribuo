@@ -51,8 +51,6 @@ import java.util.Map;
  */
 public class TensorFlowSequenceModel<T extends Output<T>> extends SequenceModel<T> implements AutoCloseable {
 
-    private static final long serialVersionUID = 200L;
-
     /**
      * Protobuf serialization version.
      */

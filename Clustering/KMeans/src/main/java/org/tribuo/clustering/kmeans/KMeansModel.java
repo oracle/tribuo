@@ -62,7 +62,6 @@ import java.util.Optional;
  * </pre>
  */
 public class KMeansModel extends Model<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

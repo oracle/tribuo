@@ -51,7 +51,6 @@ import java.util.Set;
  * This class is stateless and thread safe.
  */
 public final class MultiLabelVotingCombiner implements EnsembleCombiner<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

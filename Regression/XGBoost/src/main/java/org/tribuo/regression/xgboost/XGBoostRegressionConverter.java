@@ -37,7 +37,6 @@ import java.util.List;
  */
 @ProtoSerializableClass(version = XGBoostRegressionConverter.CURRENT_VERSION)
 public final class XGBoostRegressionConverter implements XGBoostOutputConverter<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

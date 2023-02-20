@@ -52,7 +52,6 @@ import java.util.Set;
  * </pre>
  */
 public class LinearSGDModel extends AbstractLinearSGDModel<MultiLabel> implements ONNXExportable {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.

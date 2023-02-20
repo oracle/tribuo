@@ -27,7 +27,6 @@ import org.tribuo.math.protos.DistanceProto;
  * Cosine similarity used as a distance measure.
  */
 public final class CosineDistance implements Distance {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

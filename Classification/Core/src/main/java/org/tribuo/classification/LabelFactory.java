@@ -38,7 +38,6 @@ import java.util.Map;
  * Label factories have no state, and are all equal to each other.
  */
 public final class LabelFactory implements OutputFactory<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The singleton unknown label, used for unlablled examples.

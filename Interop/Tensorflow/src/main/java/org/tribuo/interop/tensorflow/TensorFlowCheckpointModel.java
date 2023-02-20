@@ -55,14 +55,10 @@ import java.util.logging.Logger;
  * It accepts an {@link FeatureConverter} that converts an example's features into a {@link TensorMap}, and an
  * {@link OutputConverter} that converts a {@link Tensor} into a {@link Prediction}.
  * <p>
- * The model's serialVersionUID is set to the major TensorFlow version number times 100.
- * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public final class TensorFlowCheckpointModel<T extends Output<T>> extends TensorFlowModel<T> implements Closeable {
     private static final Logger logger = Logger.getLogger(TensorFlowCheckpointModel.class.getName());
-
-    private static final long serialVersionUID = 200L;
 
     /**
      * Protobuf serialization version.
