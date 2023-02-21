@@ -5,7 +5,7 @@ We welcome your contributions! There are multiple ways to contribute.
 ## Issues
 For bugs or enhancement requests, please file a GitHub issue unless it's security related. When filing a bug remember that the better written the bug is, the more likely it is to be fixed. If you think you've found a security vulnerability, do not raise a GitHub issue and follow the instructions on our [Security Policy](./SECURITY.md). 
 
-## Contributing Code
+## Contributing code
 
 We welcome your code contributions. To get started, you will need to sign the [Oracle Contributor Agreement](https://oca.opensource.oracle.com/) (OCA).
 
@@ -25,7 +25,7 @@ git commit --signoff
 Only pull requests from committers that can be verified as having
 signed the OCA can be accepted.
 
-### Pull request process
+## Pull request process
 
 1. Fork this repository
 1. Create a branch in your fork to implement the changes. We recommend using
@@ -38,5 +38,5 @@ your changes. Ensure that you reference the issue you created as well. The PR
 name will be the name of the squashed commit to main.
 1. We will assign the pull request to be reviewed before it is merged.
 
-## Code of Conduct
+## Code of conduct
 Follow the [Golden Rule](https://en.wikipedia.org/wiki/Golden_Rule). More specific guidelines are in the [Contributor Covenant Code of Conduct](./CODE_OF_CONDUCT.md)
