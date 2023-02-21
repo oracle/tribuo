@@ -257,7 +257,9 @@ different options for real time chat, check back in the future. For bug
 reports, feature requests or other issues, please file a [Github
 Issue](https://github.com/oracle/tribuo/issues).
 
-Security issues should follow our [reporting guidelines](./SECURITY.md).
+## Security
+
+Please consult the [security guide](./SECURITY.md) for our responsible security vulnerability disclosure process.
 
 ## License
 
