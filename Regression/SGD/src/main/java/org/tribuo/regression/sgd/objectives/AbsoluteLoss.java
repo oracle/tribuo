@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.regression.sgd.RegressionObjective;
 
@@ -36,12 +37,19 @@ public class AbsoluteLoss implements RegressionObjective {
     @Override
     public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
         DenseVector difference = truth.subtract(prediction);
-        DenseVector absoluteDifference = difference.copy();
-        absoluteDifference.foreachInPlace(Math::abs);
-
-        double loss = absoluteDifference.sum() - 0.5*absoluteDifference.size();
+        double startValue = - (0.5 * difference.size());
+        double loss = difference.reduce(startValue, Math::abs, Double::sum);
         difference.foreachInPlace((a) -> Double.compare(a,0.0));
         return new Pair<>(loss,difference);
+    }
+
+    @Override
+    public Pair<double[], Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
+        Matrix difference = truth.subtract(prediction);
+        double startValue = - (0.5 * difference.getDimension2Size());
+        double[] loss = difference.rowReduce(startValue, (double a) -> Math.abs(a), Double::sum);
+        difference.foreachInPlace((a) -> Double.compare(a,0.0));
+        return new Pair<>(loss, difference);
     }
 
     @Override

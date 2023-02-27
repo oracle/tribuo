@@ -25,7 +25,7 @@ import org.tribuo.math.util.VectorNormalizer;
  * An objective knows if it generates a probabilistic model or not,
  * and what kind of normalization needs to be applied to produce probability values.
  */
-public interface LabelObjective extends SGDObjective<Integer> {
+public interface LabelObjective extends SGDObjective<Integer, int[]> {
 
     /**
      * Generates a new {@link VectorNormalizer} which normalizes the predictions into [0,1].

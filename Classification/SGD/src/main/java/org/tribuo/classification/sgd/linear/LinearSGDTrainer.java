@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Label,Integer,LinearSGDModel> {
+public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Label,Integer,LinearSGDModel,int[]> {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(description = "The classification objective function to use.")
@@ -103,8 +103,17 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Label,Integer,Lin
     }
 
     @Override
-    protected SGDObjective<Integer> getObjective() {
+    protected LabelObjective getObjective() {
         return objective;
+    }
+
+    @Override
+    protected int[] getTargetBatch(Integer[] outputs, int start, int size) {
+        int[] output = new int[size];
+        for (int i = start; i < start+size; i++) {
+            output[i - start] = outputs[i];
+        }
+        return output;
     }
 
     @Override

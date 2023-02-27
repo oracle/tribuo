@@ -22,20 +22,30 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
+import org.tribuo.Example;
+import org.tribuo.Feature;
 import org.tribuo.Model;
+import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.classification.Label;
+import org.tribuo.classification.example.InterlockingCrescentsDataSource;
+import org.tribuo.classification.example.NoisyInterlockingCrescentsDataSource;
 import org.tribuo.common.sgd.AbstractLinearSGDModel;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.datasource.ListDataSource;
+import org.tribuo.impl.ArrayExample;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.multilabel.MultiLabel;
+import org.tribuo.multilabel.MultiLabelFactory;
 import org.tribuo.multilabel.evaluation.MultiLabelEvaluation;
 import org.tribuo.multilabel.example.MultiLabelDataGenerator;
 import org.tribuo.multilabel.sgd.objectives.Hinge;
 import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.protos.core.ModelProto;
+import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
@@ -44,6 +54,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -64,6 +75,41 @@ public class TestSGDLinear {
             Logger logger = Logger.getLogger(c.getName());
             logger.setLevel(Level.WARNING);
         }
+    }
+
+    @Test
+    public void testEquivalence() {
+        MultiLabelFactory factory = new MultiLabelFactory();
+        // Make classification data
+        NoisyInterlockingCrescentsDataSource trainSource = new NoisyInterlockingCrescentsDataSource(100, 42, 0.1);
+        Dataset<Label> lblDataset = new MutableDataset<>(trainSource);
+
+        // Make multilabel version
+        List<Example<MultiLabel>> list = new ArrayList<>();
+        for (Example<Label> e : lblDataset.getData()) {
+            MultiLabel output = new MultiLabel(e.getOutput());
+            ArrayExample<MultiLabel> example = new ArrayExample<>(output);
+            for (Feature f : e) {
+                example.add(f);
+            }
+            list.add(example);
+        }
+        ListDataSource<MultiLabel> mlSource = new ListDataSource<>(list,factory, new SimpleDataSourceProvenance("test", factory));
+        Dataset<MultiLabel> mlDataset = new MutableDataset<>(mlSource);
+
+        // test log loss
+        org.tribuo.classification.sgd.linear.LinearSGDTrainer logTrainer = new org.tribuo.classification.sgd.linear.LinearSGDTrainer(new org.tribuo.classification.sgd.objectives.LogMulticlass(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
+        LinearSGDTrainer logMLTrainer = new LinearSGDTrainer(new BinaryCrossEntropy(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
+        AbstractLinearSGDModel<Label> logModel = logTrainer.train(lblDataset);
+        AbstractLinearSGDModel<MultiLabel> logMLModel = logMLTrainer.train(mlDataset);
+        assertEquals(logModel.getWeightsCopy(), logMLModel.getWeightsCopy());
+
+        // test hinge loss
+        org.tribuo.classification.sgd.linear.LinearSGDTrainer hingeTrainer = new org.tribuo.classification.sgd.linear.LinearSGDTrainer(new org.tribuo.classification.sgd.objectives.Hinge(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
+        LinearSGDTrainer hingeMLTrainer = new LinearSGDTrainer(new Hinge(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
+        AbstractLinearSGDModel<Label> hingeModel = hingeTrainer.train(lblDataset);
+        AbstractLinearSGDModel<MultiLabel> hingeMLModel = hingeMLTrainer.train(mlDataset);
+        assertEquals(hingeModel.getWeightsCopy(), hingeMLModel.getWeightsCopy());
     }
 
     @Test

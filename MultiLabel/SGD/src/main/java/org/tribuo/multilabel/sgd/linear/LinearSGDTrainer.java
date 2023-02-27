@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,10 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
-import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
+import org.tribuo.math.la.ArrayMatrix;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.multilabel.MultiLabel;
@@ -42,7 +43,7 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDTrainer extends AbstractLinearSGDTrainer<MultiLabel,SGDVector,LinearSGDModel> {
+public class LinearSGDTrainer extends AbstractLinearSGDTrainer<MultiLabel, SGDVector, LinearSGDModel, Matrix> {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(description="The classification objective function to use.")
@@ -102,8 +103,15 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<MultiLabel,SGDVec
     }
 
     @Override
-    protected SGDObjective<SGDVector> getObjective() {
+    protected MultiLabelObjective getObjective() {
         return objective;
+    }
+
+    @Override
+    protected Matrix getTargetBatch(SGDVector[] outputs, int start, int size) {
+        SGDVector[] output = new SGDVector[size];
+        System.arraycopy(outputs, start, output, 0,  size);
+        return new ArrayMatrix(output, size);
     }
 
     @Override

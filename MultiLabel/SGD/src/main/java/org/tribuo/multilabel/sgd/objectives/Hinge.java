@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,10 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseMatrix;
+import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.multilabel.sgd.MultiLabelObjective;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
@@ -84,6 +87,46 @@ public final class Hinge implements MultiLabelObjective {
                densePred.set(i, 0.0);
            }
            loss += Math.max(0.0,margin - score);
+        }
+        return new Pair<>(loss,densePred);
+    }
+
+    /**
+     * Returns a {@link Pair} of {@link Double} and {@link SGDVector} representing the loss
+     * and per label gradients respectively.
+     * <p>
+     * The prediction vector is transformed to produce the per label gradient and returned.
+     * @param truth The true label id
+     * @param prediction The prediction for each label id
+     * @return A Pair of the score and per label gradient.
+     */
+    @Override
+    public Pair<double[],Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
+        DenseMatrix labels, densePred;
+        if (truth instanceof DenseSparseMatrix) {
+            labels = ((DenseSparseMatrix) truth).densify();
+        } else {
+            labels = (DenseMatrix) truth;
+        }
+        if (prediction instanceof DenseSparseMatrix) {
+            densePred = ((DenseSparseMatrix) prediction).densify();
+        } else {
+            densePred = (DenseMatrix) prediction;
+        }
+
+        double[] loss = new double[prediction.getDimension1Size()];
+        for (int i = 0; i < prediction.getDimension1Size(); i++) {
+            for (int j = 0; j < prediction.getDimension2Size(); j++) {
+                double lbl = labels.get(i,j) == 0.0 ? -1 : 1.0;
+                double pred = densePred.get(i,j);
+                double score = lbl * pred;
+                if (score < margin) {
+                    densePred.set(i, j, lbl);
+                } else {
+                    densePred.set(i, j, 0.0);
+                }
+                loss[i] += Math.max(0.0,margin - score);
+            }
         }
         return new Pair<>(loss,densePred);
     }

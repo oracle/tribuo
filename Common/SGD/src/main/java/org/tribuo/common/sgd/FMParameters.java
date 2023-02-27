@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -225,6 +225,43 @@ public final class FMParameters implements FeedForwardParameters {
     }
 
     /**
+     * Generates an unnormalised prediction by matrix multiplying the weights with the incoming feature batch.
+     * @param batch A feature matrix
+     * @return A {@link DenseMatrix} containing a score for each output dimension and each batch member.
+     */
+    @Override
+    public DenseMatrix predict(Matrix batch) {
+        // Linear part of the prediction
+        DenseMatrix pred = weightMatrix.matrixMultiply(batch);
+
+        // Add in the label biases
+        pred.rowIntersectAndAddInPlace(biasVector);
+
+        // Compute the contribution of the feature factors
+        for (int i = 2; i < weights.length; i++) {
+            DenseMatrix curMatrix = (DenseMatrix) weights[i];
+            for (int j = 0; j < batch.getDimension1Size(); j++) {
+                double curValue = 0.0;
+                for (int k = 0; k < numFactors; k++) {
+                    double sumOfSquares = 0.0;
+                    double sum = 0.0;
+                    for (VectorTuple v : batch.getRow(j)) {
+                        double curWeight = curMatrix.get(k, v.index);
+                        double value = curWeight * v.value;
+                        sum += value;
+                        sumOfSquares += value * value;
+                    }
+                    curValue += (sum * sum) - sumOfSquares;
+                }
+                curValue = curValue / 2;
+                pred.add(j, i - 2, curValue);
+            }
+        }
+
+        return pred;
+    }
+
+    /**
      * Generate the gradients for a particular feature vector given
      * the loss and the per output gradients.
      * <p>
@@ -296,6 +333,94 @@ public final class FMParameters implements FeedForwardParameters {
 
         return gradients;
     }
+    @Override
+    public Tensor[] gradients(Pair<double[], Matrix> score, Matrix featureBatch) {
+        Tensor[] gradients = new Tensor[weights.length];
+
+        Matrix outputGradient = score.getB();
+        // Bias gradient
+        gradients[0] = outputGradient.columnSum();
+
+        // Feature gradients
+        gradients[1] = outputGradient.matrixMultiply(featureBatch);
+
+        boolean allSparse = true;
+        for (int i = 0; i < featureBatch.getDimension1Size(); i++) {
+            allSparse &= featureBatch.getRow(i).numActiveElements() == featureBatch.getDimension2Size();
+        }
+
+        // factorised representation gradients
+        // per label
+        for (int i = 2; i < weights.length; i++) {
+            DenseMatrix curFactors = (DenseMatrix) weights[i];
+            if (allSparse) {
+                DenseSparseMatrix[] factorGradients = new DenseSparseMatrix[featureBatch.getDimension1Size()];
+
+                for (int f = 0; f < featureBatch.getDimension1Size(); f++) {
+                    SparseVector features = (SparseVector) featureBatch.getRow(f);
+                    // compute /sum_j v_{j,f}x_j
+                    SGDVector factorSum = curFactors.leftMultiply(features);
+
+                    // grad_f: dy/d0 * (x_i * factorSum_f - v_{i,f} * x_i * x_i)
+                    List<SparseVector> vectors = new ArrayList<>(numFactors);
+                    for (int j = 0; j < numFactors; j++) {
+                        vectors.add(features.copy());
+                    }
+                    DenseSparseMatrix factorGradMatrix = new DenseSparseMatrix(vectors);
+
+                    double curOutputGradient = outputGradient.get(f, i - 2);
+                    for (int j = 0; j < numFactors; j++) {
+                        // This gets a mutable view of the row
+                        SGDVector curFactorGrad = factorGradMatrix.getRow(j);
+                        double curFactorSum = factorSum.get(j);
+                        final int jFinal = j;
+
+                        // Compute the gradient for this element of the factor vector
+                        curFactorGrad.foreachIndexedInPlace((Integer idx, Double a) -> a * curFactorSum - curFactors.get(jFinal, idx) * a * a);
+
+                        // Multiply by the output gradient
+                        curFactorGrad.scaleInPlace(curOutputGradient);
+                    }
+                    factorGradients[f] = factorGradMatrix;
+                }
+                gradients[i] = merger.merge(factorGradients);
+            } else {
+                DenseMatrix factorGradients = new DenseMatrix(numFactors, featureBatch.getDimension2Size());
+
+                for (int f = 0; f < featureBatch.getDimension1Size(); f++) {
+                    SGDVector features = featureBatch.getRow(f);
+                    // compute /sum_j v_{j,f}x_j
+                    SGDVector factorSum = curFactors.leftMultiply(features);
+
+                    // grad_f: dy/d0 * (x_i * factorSum_f - v_{i,f} * x_i * x_i)
+                    DenseMatrix factorGradMatrix = new DenseMatrix(numFactors, features.size());
+                    for (int j = 0; j < numFactors; j++) {
+                        for (int k = 0; k < features.size(); k++) {
+                            factorGradMatrix.set(j, k, features.get(k));
+                        }
+                    }
+
+                    double curOutputGradient = outputGradient.get(f, i - 2);
+                    for (int j = 0; j < numFactors; j++) {
+                        // This gets a mutable view of the row
+                        SGDVector curFactorGrad = factorGradMatrix.getRow(j);
+                        double curFactorSum = factorSum.get(j);
+                        final int jFinal = j;
+
+                        // Compute the gradient for this element of the factor vector
+                        curFactorGrad.foreachIndexedInPlace((Integer idx, Double a) -> a * curFactorSum - curFactors.get(jFinal, idx) * a * a);
+
+                        // Multiply by the output gradient
+                        curFactorGrad.scaleInPlace(curOutputGradient);
+                    }
+                    factorGradients.intersectAndAddInPlace(factorGradMatrix);
+                }
+                gradients[i] = factorGradients;
+            }
+        }
+
+        return gradients;
+    }
 
     /**
      * This returns a {@link DenseMatrix} the same size as the Parameters.
@@ -352,7 +477,7 @@ public final class FMParameters implements FeedForwardParameters {
             } else if (gradients[0][i] instanceof DenseSparseMatrix) {
                 DenseSparseMatrix[] updates = new DenseSparseMatrix[size];
                 for (int j = 0; j < updates.length; j++) {
-                    updates[j] = (DenseSparseMatrix) gradients[j][0];
+                    updates[j] = (DenseSparseMatrix) gradients[j][i];
                 }
 
                 DenseSparseMatrix update = merger.merge(updates);

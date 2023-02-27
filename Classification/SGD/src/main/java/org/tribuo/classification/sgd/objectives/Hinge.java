@@ -21,6 +21,8 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.classification.sgd.LabelObjective;
+import org.tribuo.math.la.DenseSparseMatrix;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.util.NoopNormalizer;
@@ -84,6 +86,39 @@ public class Hinge implements LabelObjective {
             double loss = prediction.get(truth) - prediction.get(predIndex);
             return new Pair<>(loss,output);
         }
+    }
+
+    @Override
+    public Pair<double[], Matrix> batchLossAndGradient(int[] truth, Matrix prediction) {
+        for (int i = 0; i < truth.length; i++) {
+            prediction.add(i, truth[i], -margin);
+        }
+        int[] predIndex = prediction.indexOfMax();
+
+        double[] loss = new double[truth.length];
+        SparseVector[] vectors = new SparseVector[truth.length];
+        for (int i = 0; i < truth.length; i++) {
+            if (truth == predIndex) {
+                vectors[i] = SparseVector.createSparseVector(prediction.getDimension2Size(), new int[0], new double[0]));
+            } else {
+                int[] indices = new int[2];
+                double[] values = new double[2];
+                if (truth[i] < predIndex[i]) {
+                    indices[0] = truth[i];
+                    values[0] = margin;
+                    indices[1] = predIndex[i];
+                    values[1] = -margin;
+                } else {
+                    indices[0] = predIndex[i];
+                    values[0] = -margin;
+                    indices[1] = truth[i];
+                    values[1] = margin;
+                }
+                loss[i] = prediction.get(i, truth[i]) - prediction.get(i, predIndex[i]);
+                vectors[i] = SparseVector.createSparseVector(prediction.getDimension2Size(), indices, values);
+            }
+        }
+        return new Pair<>(loss, DenseSparseMatrix.createFromSparseVectors(vectors));
     }
 
     /**

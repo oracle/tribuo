@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,10 @@ package org.tribuo.multilabel.sgd.objectives;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseMatrix;
+import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.util.SigmoidNormalizer;
 import org.tribuo.multilabel.sgd.MultiLabelObjective;
@@ -71,6 +74,43 @@ public final class BinaryCrossEntropy implements MultiLabelObjective {
             // numerically stable form of loss computation
             loss += Math.max(pred, 0) - (pred * label) + Math.log1p(Math.exp(-Math.abs(pred)));
             densePred.set(i,-(yhat - label));
+        }
+        return new Pair<>(loss,densePred);
+    }
+
+    /**
+     * Returns a {@link Pair} of {@link Double} and {@link SGDVector} representing the loss
+     * and per label gradients respectively.
+     * <p>
+     * The prediction vector is transformed to produce the per label gradient and returned.
+     * @param truth The true label id
+     * @param prediction The prediction for each label id
+     * @return A Pair of the score and per label gradient.
+     */
+    @Override
+    public Pair<double[],Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
+        DenseMatrix labels, densePred;
+        if (truth instanceof DenseSparseMatrix) {
+            labels = ((DenseSparseMatrix) truth).densify();
+        } else {
+            labels = (DenseMatrix) truth;
+        }
+        if (prediction instanceof DenseSparseMatrix) {
+            densePred = ((DenseSparseMatrix) prediction).densify();
+        } else {
+            densePred = (DenseMatrix) prediction;
+        }
+
+        double[] loss = new double[prediction.getDimension1Size()];
+        for (int i = 0; i < prediction.getDimension1Size(); i++) {
+            for (int j = 0; j < prediction.getDimension2Size(); j++) {
+                double label = labels.get(i,j);
+                double pred = densePred.get(i,j);
+                double yhat = SigmoidNormalizer.sigmoid(pred);
+                // numerically stable form of loss computation
+                loss[i] += Math.max(pred, 0) - (pred * label) + Math.log1p(Math.exp(-Math.abs(pred)));
+                densePred.set(i, j, -(yhat - label));
+            }
         }
         return new Pair<>(loss,densePred);
     }

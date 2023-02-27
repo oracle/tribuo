@@ -22,10 +22,9 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.regression.sgd.RegressionObjective;
-
-import java.util.function.DoubleUnaryOperator;
 
 /**
  * Huber loss, i.e., a mixture of l2 and l1 losses.
@@ -39,8 +38,6 @@ public class Huber implements RegressionObjective {
 
     @Config(description="Cost beyond which the loss function is linear.")
     private double cost = DEFAULT_COST;
-
-    private DoubleUnaryOperator lossFunc;
 
     /**
      * Huber Loss using the default cost {@link #DEFAULT_COST}.
@@ -66,24 +63,38 @@ public class Huber implements RegressionObjective {
         if (cost <= 0) {
             throw new PropertyException("","cost","Cost must be a positive value, found " + cost);
         }
-        lossFunc = (a) -> {
-            if (a > cost) {
-                return (cost * a) - (0.5 * cost * cost);
-            } else {
-                return 0.5 * a * a;
-            }
-        };
     }
 
     @Override
     public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
         DenseVector difference = truth.subtract(prediction);
-        DenseVector absoluteDifference = difference.copy();
-        absoluteDifference.foreachInPlace(Math::abs);
-
-        double loss = absoluteDifference.reduce(0.0,lossFunc,Double::sum);
-        difference.foreachInPlace((a) -> {if (Math.abs(a) > cost) { return Double.compare(a,0.0)*cost; } else { return a; }});
+        double loss = difference.reduce(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
+        difference.foreachInPlace(this::gradient);
         return new Pair<>(loss,difference);
+    }
+
+    @Override
+    public Pair<double[], Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
+        Matrix difference = truth.subtract(prediction);
+        double[] loss = difference.rowReduce(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
+        difference.foreachInPlace(this::gradient);
+        return new Pair<>(loss, difference);
+    }
+
+    private double gradient(double input) {
+        if (Math.abs(input) > cost) {
+            return Double.compare(input,0.0) * cost;
+        } else {
+            return input;
+        }
+    }
+
+    private double lossFunc(double input) {
+        if (input > cost) {
+            return (cost * input) - (0.5 * cost * cost);
+        } else {
+            return 0.5 * input * input;
+        }
     }
 
     @Override
