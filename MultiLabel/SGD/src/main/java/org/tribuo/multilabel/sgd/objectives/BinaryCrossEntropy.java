@@ -88,31 +88,26 @@ public final class BinaryCrossEntropy implements MultiLabelObjective {
      * @return A Pair of the score and per label gradient.
      */
     @Override
-    public Pair<double[],Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
-        DenseMatrix labels, densePred;
+    public Pair<double[],Matrix> batchLossAndGradient(Matrix truth, DenseMatrix prediction) {
+        DenseMatrix labels;
         if (truth instanceof DenseSparseMatrix) {
             labels = ((DenseSparseMatrix) truth).densify();
         } else {
             labels = (DenseMatrix) truth;
-        }
-        if (prediction instanceof DenseSparseMatrix) {
-            densePred = ((DenseSparseMatrix) prediction).densify();
-        } else {
-            densePred = (DenseMatrix) prediction;
         }
 
         double[] loss = new double[prediction.getDimension1Size()];
         for (int i = 0; i < prediction.getDimension1Size(); i++) {
             for (int j = 0; j < prediction.getDimension2Size(); j++) {
                 double label = labels.get(i,j);
-                double pred = densePred.get(i,j);
+                double pred = prediction.get(i,j);
                 double yhat = SigmoidNormalizer.sigmoid(pred);
                 // numerically stable form of loss computation
                 loss[i] += Math.max(pred, 0) - (pred * label) + Math.log1p(Math.exp(-Math.abs(pred)));
-                densePred.set(i, j, -(yhat - label));
+                prediction.set(i, j, -(yhat - label));
             }
         }
-        return new Pair<>(loss,densePred);
+        return new Pair<>(loss,prediction);
     }
 
     @Override

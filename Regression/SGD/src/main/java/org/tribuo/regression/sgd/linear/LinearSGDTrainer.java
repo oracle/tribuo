@@ -23,8 +23,8 @@ import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.ArrayMatrix;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
-import org.tribuo.math.la.Matrix;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.sgd.RegressionObjective;
@@ -44,7 +44,7 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor, DenseVector, LinearSGDModel, Matrix> {
+public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor, DenseVector, LinearSGDModel, DenseMatrix> {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(mandatory = true,description="The regression objective to use.")
@@ -114,7 +114,7 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor, DenseV
     }
 
     @Override
-    protected Matrix getTargetBatch(DenseVector[] outputs, int start, int size) {
+    protected DenseMatrix getTargetBatch(DenseVector[] outputs, int start, int size) {
         return new ArrayMatrix(Arrays.copyOfRange(outputs, start, start+size), size);
     }
 

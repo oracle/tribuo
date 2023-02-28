@@ -26,6 +26,7 @@ import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.util.Util;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -714,6 +716,27 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * Returns a new matrix representing {@code this} subtract {@code other}.
+     * <p>
+     * The two matrices must be the same size.
+     * @param other The other matrix.
+     * @return A new matrix representing the difference between the two matrices.
+     */
+    public DenseMatrix subtract(Matrix other) {
+        if ((dim1 != other.getDimension1Size()) || (dim2 != other.getDimension2Size())) {
+            throw new IllegalArgumentException("Invalid input, dimension mismatch, this ["+dim1+","+dim2+"], other ["+other.getDimension1Size()+","+other.getDimension2Size()+"]");
+        }
+        DenseMatrix output = new DenseMatrix(this);
+
+        for (int i = 0; i < dim1; i++) {
+            // getRow is a view on the data
+            getRow(i).subtract(other.getRow(i));
+        }
+
+        return output;
+    }
+
     @Override
     public void intersectAndAddInPlace(Tensor other, DoubleUnaryOperator f) {
         if (other instanceof Matrix) {
@@ -860,6 +883,22 @@ public class DenseMatrix implements Matrix {
             output[i] = get(i,index);
         }
         return new DenseVector(output);
+    }
+
+    @Override
+    public int[] indexOfRowMax() {
+        int[] output = new int[dim1];
+        for (int i = 0; i < dim1; i++) {
+            double max = Double.NEGATIVE_INFINITY;
+            for (int j = 0; j < dim2; j++) {
+                double tmp = get(i,j);
+                if (tmp > max) {
+                    max = tmp;
+                    output[i] = j;
+                }
+            }
+        }
+        return output;
     }
 
     /**
@@ -1394,6 +1433,7 @@ public class DenseMatrix implements Matrix {
      * Returns a dense vector containing each column sum.
      * @return The column sums.
      */
+    @Override
     public DenseVector columnSum() {
         double[] columnSum = new double[dim2];
         for (int i = 0; i < dim1; i++) {
@@ -1454,6 +1494,28 @@ public class DenseMatrix implements Matrix {
         }
 
         return returnVal;
+    }
+
+    /**
+     * Reduces the rows of this matrix from left to right, producing a column vector.
+     * <p>
+     * The first argument to the reducer is the transformed element, the second is the state.
+     * @param initialValue The initial value for the reduction.
+     * @param op An operation to apply to each value.
+     * @param reduction The reduction operation.
+     * @return A vector containing the reduced values.
+     */
+    @Override
+    public DenseVector reduceRows(double initialValue, DoubleUnaryOperator op, DoubleBinaryOperator reduction) {
+        double[] output = new double[dim1];
+        Arrays.fill(output, initialValue);
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                double transformed = op.applyAsDouble(get(i, j));
+                output[i] = reduction.applyAsDouble(transformed, output[i]);
+            }
+        }
+        return new DenseVector(output);
     }
 
     private class DenseMatrixIterator implements MatrixIterator {
@@ -1892,7 +1954,7 @@ public class DenseMatrix implements Matrix {
          */
         @Override
         public double determinant() {
-            return eigenvalues.reduce(1.0,DoubleUnaryOperator.identity(), (a,b) -> a*b);
+            return eigenvalues.reduce(1.0, java.util.function.DoubleUnaryOperator.identity(), (a, b) -> a*b);
         }
 
         /**
@@ -1900,7 +1962,7 @@ public class DenseMatrix implements Matrix {
          * @return True if the eigenvalues are positive.
          */
         public boolean positiveEigenvalues() {
-            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
+            return eigenvalues.reduce(true, java.util.function.DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
         }
 
         /**
@@ -1908,7 +1970,7 @@ public class DenseMatrix implements Matrix {
          * @return True if the eigenvalues are non-zero (i.e. the matrix is not singular).
          */
         public boolean nonSingular() {
-            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value != 0.0);
+            return eigenvalues.reduce(true, java.util.function.DoubleUnaryOperator.identity(),(value, bool) -> bool && value != 0.0);
         }
 
         /**

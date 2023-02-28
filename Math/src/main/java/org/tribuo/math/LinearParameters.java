@@ -144,9 +144,8 @@ public class LinearParameters implements FeedForwardParameters {
      */
     @Override
     public Tensor[] gradients(Pair<Double, SGDVector> score, SGDVector features) {
-        Tensor[] output = new Tensor[1];
-        output[0] = score.getB().outer(features);
-        return output;
+        Matrix gradient = score.getB().outer(features);
+        return new Tensor[]{gradient};
     }
 
     @Override

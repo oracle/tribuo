@@ -19,6 +19,7 @@ package org.tribuo.regression.sgd.objectives;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
@@ -42,9 +43,9 @@ public class SquaredLoss implements RegressionObjective {
     }
 
     @Override
-    public Pair<double[], Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
-        Matrix difference = truth.subtract(prediction);
-        double[] loss = difference.rowReduce(0.0, (double a) -> 0.5*a*a, Double::sum);
+    public Pair<double[], Matrix> batchLossAndGradient(DenseMatrix truth, DenseMatrix prediction) {
+        DenseMatrix difference = truth.subtract(prediction);
+        DenseVector loss = difference.reduceRows(0.0, (double a) -> 0.5*a*a, Double::sum);
         return new Pair<>(loss, difference);
     }
 

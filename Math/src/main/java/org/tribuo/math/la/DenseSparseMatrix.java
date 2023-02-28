@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Collectors;
 
@@ -440,6 +441,15 @@ public class DenseSparseMatrix implements Matrix {
     }
 
     @Override
+    public int[] indexOfRowMax() {
+        int[] output = new int[dim1];
+        for (int i = 0; i < dim1; i++) {
+            output[i] = values[i].indexOfMax();
+        }
+        return output;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other instanceof Matrix) {
             Iterator<MatrixTuple> ourItr = iterator();
@@ -658,6 +668,15 @@ public class DenseSparseMatrix implements Matrix {
     }
 
     @Override
+    public DenseVector columnSum() {
+        DenseVector output = new DenseVector(dim2);
+        for (int i = 0; i < dim1; i++) {
+            output.intersectAndAddInPlace(values[i]);
+        }
+        return output;
+    }
+
+    @Override
     public DenseVector rowSum() {
         double[] rowSum = new double[dim1];
         for (int i = 0; i < dim1; i++) {
@@ -671,6 +690,24 @@ public class DenseSparseMatrix implements Matrix {
         for (int i = 0; i < dim1; i++) {
             values[i].scaleInPlace(scalingCoefficients.get(i));
         }
+    }
+
+    /**
+     * Reduces the rows of this matrix from left to right, producing a column vector.
+     * <p>
+     * The first argument to the reducer is the transformed element, the second is the state.
+     * @param initialValue The initial value for the reduction.
+     * @param op An operation to apply to each value.
+     * @param reduction The reduction operation.
+     * @return A vector containing the reduced values.
+     */
+    @Override
+    public DenseVector reduceRows(double initialValue, DoubleUnaryOperator op, DoubleBinaryOperator reduction) {
+        double[] output = new double[dim1];
+        for (int i = 0; i < dim1; i++) {
+            output[i] = values[i].reduce(initialValue, op, reduction);
+        }
+        return new DenseVector(output);
     }
 
     @Override
@@ -691,6 +728,20 @@ public class DenseSparseMatrix implements Matrix {
     @Override
     public MatrixIterator iterator() {
         return new DenseSparseMatrixIterator(this);
+    }
+
+    /**
+     * Returns a dense copy of this matrix.
+     * @return A dense copy of this matrix.
+     */
+    public DenseMatrix densify() {
+        double[][] output = new double[dim1][];
+
+        for (int i = 0; i < dim1; i++) {
+            output[i] = values[i].toArray();
+        }
+
+        return new DenseMatrix(output);
     }
 
     private static class DenseSparseMatrixIterator implements MatrixIterator {

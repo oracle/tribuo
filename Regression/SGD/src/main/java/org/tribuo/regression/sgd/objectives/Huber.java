@@ -21,6 +21,7 @@ import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
@@ -74,9 +75,9 @@ public class Huber implements RegressionObjective {
     }
 
     @Override
-    public Pair<double[], Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
-        Matrix difference = truth.subtract(prediction);
-        double[] loss = difference.rowReduce(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
+    public Pair<double[], Matrix> batchLossAndGradient(DenseMatrix truth, DenseMatrix prediction) {
+        DenseMatrix difference = truth.subtract(prediction);
+        DenseVector loss = difference.reduceRows(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
         difference.foreachInPlace(this::gradient);
         return new Pair<>(loss, difference);
     }

@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 
@@ -47,5 +48,5 @@ public interface SGDObjective<T,U> extends Configurable, Provenancable<Configure
      * @param prediction The prediction matrix.
      * @return The score and per dimension gradient.
      */
-    Pair<double[], Matrix> batchLossAndGradient(U truth, Matrix prediction);
+    Pair<double[], Matrix> batchLossAndGradient(U truth, DenseMatrix prediction);
 }

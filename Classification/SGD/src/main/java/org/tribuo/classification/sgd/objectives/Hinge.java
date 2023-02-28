@@ -21,6 +21,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.classification.sgd.LabelObjective;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
@@ -89,17 +90,17 @@ public class Hinge implements LabelObjective {
     }
 
     @Override
-    public Pair<double[], Matrix> batchLossAndGradient(int[] truth, Matrix prediction) {
+    public Pair<double[], Matrix> batchLossAndGradient(int[] truth, DenseMatrix prediction) {
         for (int i = 0; i < truth.length; i++) {
             prediction.add(i, truth[i], -margin);
         }
-        int[] predIndex = prediction.indexOfMax();
+        int[] predIndex = prediction.indexOfRowMax();
 
         double[] loss = new double[truth.length];
         SparseVector[] vectors = new SparseVector[truth.length];
         for (int i = 0; i < truth.length; i++) {
             if (truth == predIndex) {
-                vectors[i] = SparseVector.createSparseVector(prediction.getDimension2Size(), new int[0], new double[0]));
+                vectors[i] = SparseVector.createSparseVector(prediction.getDimension2Size(), new int[0], new double[0]);
             } else {
                 int[] indices = new int[2];
                 double[] values = new double[2];

@@ -23,6 +23,7 @@ import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.ArrayMatrix;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.provenance.ModelProvenance;
@@ -45,7 +46,7 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVector, FMRegressionModel, Matrix> {
+public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVector, FMRegressionModel, DenseMatrix> {
     private static final Logger logger = Logger.getLogger(FMRegressionTrainer.class.getName());
 
     @Config(mandatory = true, description = "The regression objective to use.")
@@ -141,7 +142,7 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVecto
     }
 
     @Override
-    protected Matrix getTargetBatch(DenseVector[] outputs, int start, int size) {
+    protected DenseMatrix getTargetBatch(DenseVector[] outputs, int start, int size) {
         return new ArrayMatrix(Arrays.copyOfRange(outputs, start, start+size), size);
     }
 

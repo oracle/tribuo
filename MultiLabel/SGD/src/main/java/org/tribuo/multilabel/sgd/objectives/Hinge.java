@@ -101,34 +101,29 @@ public final class Hinge implements MultiLabelObjective {
      * @return A Pair of the score and per label gradient.
      */
     @Override
-    public Pair<double[],Matrix> batchLossAndGradient(Matrix truth, Matrix prediction) {
-        DenseMatrix labels, densePred;
+    public Pair<double[],Matrix> batchLossAndGradient(Matrix truth, DenseMatrix prediction) {
+        DenseMatrix labels;
         if (truth instanceof DenseSparseMatrix) {
             labels = ((DenseSparseMatrix) truth).densify();
         } else {
             labels = (DenseMatrix) truth;
-        }
-        if (prediction instanceof DenseSparseMatrix) {
-            densePred = ((DenseSparseMatrix) prediction).densify();
-        } else {
-            densePred = (DenseMatrix) prediction;
         }
 
         double[] loss = new double[prediction.getDimension1Size()];
         for (int i = 0; i < prediction.getDimension1Size(); i++) {
             for (int j = 0; j < prediction.getDimension2Size(); j++) {
                 double lbl = labels.get(i,j) == 0.0 ? -1 : 1.0;
-                double pred = densePred.get(i,j);
+                double pred = prediction.get(i,j);
                 double score = lbl * pred;
                 if (score < margin) {
-                    densePred.set(i, j, lbl);
+                    prediction.set(i, j, lbl);
                 } else {
-                    densePred.set(i, j, 0.0);
+                    prediction.set(i, j, 0.0);
                 }
                 loss[i] += Math.max(0.0,margin - score);
             }
         }
-        return new Pair<>(loss,densePred);
+        return new Pair<>(loss,prediction);
     }
 
     /**

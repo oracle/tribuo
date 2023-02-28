@@ -17,10 +17,10 @@
 package org.tribuo.regression.sgd;
 
 import org.tribuo.common.sgd.SGDObjective;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
-import org.tribuo.math.la.Matrix;
 
 /**
  * An interface for regression objectives.
  */
-public interface RegressionObjective extends SGDObjective<DenseVector, Matrix> { }
+public interface RegressionObjective extends SGDObjective<DenseVector, DenseMatrix> { }

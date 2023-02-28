@@ -30,6 +30,7 @@ import org.tribuo.WeightedExamples;
 import org.tribuo.math.FeedForwardParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.ArrayMatrix;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
@@ -220,12 +221,13 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
                     System.arraycopy(sgdFeatures, j, batch, 0, bound - j);
                     Matrix featureBatch = new ArrayMatrix(batch, bound - j);
                     Y curBatchTargets = getTargetBatch(sgdTargets, j, minibatchSize);
-                    Matrix predictions = parameters.predict(featureBatch);
+                    DenseMatrix predictions = parameters.predict(featureBatch);
                     Pair<double[], Matrix> output = objective.batchLossAndGradient(curBatchTargets, predictions);
                     Tensor[] gradients = parameters.gradients(output, featureBatch);
+                    double[] lossArr = output.getA();
                     for (int k = j; k < bound; k++) {
                         tempWeight += weights[k];
-                        loss += output.getA()[k] * weights[k];
+                        loss += lossArr[k] * weights[k];
                     }
                     for (int k = 0; k < gradients.length; k++) {
                         gradients[k].scaleInPlace(minibatchSize);

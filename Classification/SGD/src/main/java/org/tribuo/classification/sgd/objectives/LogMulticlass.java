@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.classification.sgd.LabelObjective;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.ExpNormalizer;
@@ -58,8 +59,8 @@ public class LogMulticlass implements LabelObjective {
     }
 
     @Override
-    public Pair<double[], Matrix> batchLossAndGradient(int[] truth, Matrix prediction) {
-        prediction.rowNormalize(normalizer);
+    public Pair<double[], Matrix> batchLossAndGradient(int[] truth, DenseMatrix prediction) {
+        prediction.normalizeRows(normalizer);
         prediction.scaleInPlace(-1.0);
         double[] loss = new double[truth.length];
         for (int i = 0; i < truth.length; i++) {

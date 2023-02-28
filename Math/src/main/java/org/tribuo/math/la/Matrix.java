@@ -16,6 +16,9 @@
 
 package org.tribuo.math.la;
 
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleUnaryOperator;
+
 /**
  * Interface for 2 dimensional {@link Tensor}s.
  * <p>
@@ -115,6 +118,12 @@ public interface Matrix extends Tensor, Iterable<MatrixTuple> {
     public Matrix matrixMultiply(Matrix input, boolean transposeThis, boolean transposeOther);
 
     /**
+     * Generates a {@link DenseVector} representing the sum of each column.
+     * @return A new {@link DenseVector} of size {@link Matrix#getDimension2Size()}.
+     */
+    public DenseVector columnSum();
+
+    /**
      * Generates a {@link DenseVector} representing the sum of each row.
      * @return A new {@link DenseVector} of size {@link Matrix#getDimension1Size()}.
      */
@@ -125,6 +134,17 @@ public interface Matrix extends Tensor, Iterable<MatrixTuple> {
      * @param scalingCoefficients A {@link DenseVector} with size {@link Matrix#getDimension1Size()}.
      */
     public void rowScaleInPlace(DenseVector scalingCoefficients);
+
+    /**
+     * Reduces the rows of this matrix from left to right, producing a column vector.
+     * <p>
+     * The first argument to the reducer is the transformed element, the second is the state.
+     * @param initialValue The initial value for the reduction.
+     * @param op An operation to apply to each value.
+     * @param reduction The reduction operation.
+     * @return A vector containing the reduced values.
+     */
+    public DenseVector reduceRows(double initialValue, DoubleUnaryOperator op, DoubleBinaryOperator reduction);
 
     /**
      * An {@link SGDVector} view of the row.
@@ -141,6 +161,12 @@ public interface Matrix extends Tensor, Iterable<MatrixTuple> {
      * @return A copy of the column.
      */
     public SGDVector getColumn(int index);
+
+    /**
+     * Returns the index of the maximum element in each row.
+     * @return The index of the row wise maximum elements.
+     */
+    int[] indexOfRowMax();
 
     /**
      * Interface for matrix factorizations.
