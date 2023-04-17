@@ -155,7 +155,7 @@ public abstract class ClusteringInfo implements OutputInfo<ClusterID> {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || !(o instanceof ClusteringInfo)) return false;
+        if (!(o instanceof ClusteringInfo)) return false;
         ClusteringInfo clusterInfo = (ClusteringInfo) o;
         if (unknownCount == clusterInfo.unknownCount && clusterCounts.size() == clusterInfo.clusterCounts.size()) {
             for (Map.Entry<Integer,MutableLong> e : clusterCounts.entrySet()) {
