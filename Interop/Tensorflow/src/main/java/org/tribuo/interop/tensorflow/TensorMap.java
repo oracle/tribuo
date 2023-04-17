@@ -16,9 +16,11 @@
 
 package org.tribuo.interop.tensorflow;
 
+import org.tensorflow.Result;
 import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,6 +48,19 @@ public final class TensorMap implements AutoCloseable {
      */
     public TensorMap(Map<String, Tensor> map) {
         this.map = Collections.unmodifiableMap(map);
+        this.isClosed = false;
+    }
+
+    /**
+     * Creates a new TensorMap wrapping the supplied result object.
+     * @param result The TF result.
+     */
+    public TensorMap(Result result) {
+        LinkedHashMap<String, Tensor> tmp = new LinkedHashMap<>();
+        for (Map.Entry<String, Tensor> e : result) {
+            tmp.put(e.getKey(),e.getValue());
+        }
+        this.map = Collections.unmodifiableMap(tmp);
         this.isClosed = false;
     }
 
