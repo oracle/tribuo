@@ -92,7 +92,7 @@ final class ExtendedMinimumSpanningTree {
     /**
      * Encapsulate the vertices and the edge weight together.
      */
-    final private static class EMSTTriple implements Comparable<EMSTTriple> {
+    private static final class EMSTTriple implements Comparable<EMSTTriple> {
         final int firstVertex;
         final int secondVertex;
         final double edgeWeight;

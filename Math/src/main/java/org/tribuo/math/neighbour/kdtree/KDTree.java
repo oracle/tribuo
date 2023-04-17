@@ -446,9 +446,9 @@ public final class KDTree implements NeighboursQuery {
      */
     private final class SingleQueryRunnable implements Runnable {
 
-        final private SGDVector point;
-        final private int k;
-        final private int index;
+        private final SGDVector point;
+        private final int k;
+        private final int index;
         final List<Pair<Integer, Double>>[] indexDistancePairListArray;
 
         SingleQueryRunnable(int index, SGDVector point, int k, List<Pair<Integer, Double>>[] indexDistancePairListArray) {

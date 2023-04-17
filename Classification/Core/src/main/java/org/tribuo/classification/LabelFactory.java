@@ -144,7 +144,7 @@ public final class LabelFactory implements OutputFactory<Label> {
     /**
      * Provenance for {@link LabelFactory}.
      */
-    public final static class LabelFactoryProvenance implements OutputFactoryProvenance {
+    public static final class LabelFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 
         LabelFactoryProvenance() {}

@@ -177,7 +177,7 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
      * @param other The other vector.
      * @return The l2 norm of the difference between the two vectors.
      */
-    default public double l2Distance(SGDVector other) {
+    default double l2Distance(SGDVector other) {
         return euclideanDistance(other);
     }
 
@@ -201,7 +201,7 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
      * @param other The other vector.
      * @return 1 - cosine similarity (this,other)
      */
-    default public double cosineDistance(SGDVector other) {
+    default double cosineDistance(SGDVector other) {
         return 1 - cosineSimilarity(other);
     }
 
@@ -211,7 +211,7 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
      * @param other The other vector.
      * @return cosine similarity (this,other)
      */
-    default public double cosineSimilarity(SGDVector other) {
+    default double cosineSimilarity(SGDVector other) {
         double numerator = dot(other);
         double output = 0.0;
         if (numerator != 0.0) {
@@ -224,7 +224,7 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
      * Calculates the variance of this vector.
      * @return The variance of the vector.
      */
-    default public double variance() {
+    default double variance() {
         double mean = sum() / size();
         return variance(mean);
     }

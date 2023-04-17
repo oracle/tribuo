@@ -96,7 +96,7 @@ public interface Tensor extends ProtoSerializable<TensorProto>, Serializable {
      * Each value is updated as value += otherValue.
      * @param other The other {@link Tensor}.
      */
-    default public void intersectAndAddInPlace(Tensor other) {
+    default void intersectAndAddInPlace(Tensor other) {
         intersectAndAddInPlace(other, DoubleUnaryOperator.identity());
     }
 
@@ -118,7 +118,7 @@ public interface Tensor extends ProtoSerializable<TensorProto>, Serializable {
      * Each value is updated as value *= otherValue.
      * @param other The other {@link Tensor}.
      */
-    default public void hadamardProductInPlace(Tensor other) {
+    default void hadamardProductInPlace(Tensor other) {
         hadamardProductInPlace(other, DoubleUnaryOperator.identity());
     }
 
@@ -132,7 +132,7 @@ public interface Tensor extends ProtoSerializable<TensorProto>, Serializable {
      * Scales each element of this {@link Tensor} by {@code coefficient}.
      * @param coefficient The coefficient of scaling.
      */
-    default public void scaleInPlace(double coefficient) {
+    default void scaleInPlace(double coefficient) {
         foreachInPlace(d -> d * coefficient);
     }
 
@@ -140,7 +140,7 @@ public interface Tensor extends ProtoSerializable<TensorProto>, Serializable {
      * Adds {@code scalar} to each element of this {@link Tensor}.
      * @param scalar The scalar to add.
      */
-    default public void scalarAddInPlace(double scalar) {
+    default void scalarAddInPlace(double scalar) {
         foreachInPlace(d -> d + scalar);
     }
 
