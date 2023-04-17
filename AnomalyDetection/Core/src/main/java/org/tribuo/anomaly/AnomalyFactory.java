@@ -149,7 +149,7 @@ public final class AnomalyFactory implements OutputFactory<Event> {
     /**
      * Provenance for {@link AnomalyFactory}.
      */
-    public final static class AnomalyFactoryProvenance implements OutputFactoryProvenance {
+    public static final class AnomalyFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 
         /**
