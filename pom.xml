@@ -51,7 +51,7 @@
         <liblinear.version>2.44</liblinear.version>
         <libsvm.version>3.25</libsvm.version>
         <onnxruntime.version>1.12.1</onnxruntime.version>
-        <tensorflow.version>0.4.2</tensorflow.version>
+        <tensorflow.version>0.5.0</tensorflow.version>
         <xgboost.version>1.6.2</xgboost.version>
 
         <!-- 3rd party other dependencies -->
@@ -364,7 +364,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>enforce</id>
@@ -372,7 +372,7 @@
                             <rules>
                                 <dependencyConvergence/>
                                 <requireMavenVersion>
-                                    <version>3.6</version>
+                                    <version>3.8</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
