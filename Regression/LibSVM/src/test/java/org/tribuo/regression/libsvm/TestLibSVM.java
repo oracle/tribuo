@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.tribuo.common.libsvm.SVMParameters;
 import org.tribuo.interop.onnx.DenseTransformer;
 import org.tribuo.interop.onnx.ONNXExternalModel;
 import org.tribuo.interop.onnx.RegressorTransformer;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
@@ -45,10 +46,13 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -314,4 +318,31 @@ public class TestLibSVM {
 
         onnxFile.toFile().delete();
     }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestLibSVM.class.getResource("libsvm-reg-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            LibSVMRegressionModel model = (LibSVMRegressionModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+            List<Prediction<Regressor>> output = model.predict(p.getB());
+            assertEquals(output.size(), p.getB().size());
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generateModel() throws IOException {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        LibSVMRegressionTrainer trainer = new LibSVMRegressionTrainer(linearParams);
+        LibSVMModel<Regressor> model = trainer.train(p.getA());
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","regression","libsvm","libsvm-reg-431.tribuo"));
+    }
+
 }
