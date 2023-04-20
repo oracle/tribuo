@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,27 @@ package org.tribuo.regression.baseline;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.regression.Regressor;
-import org.tribuo.regression.baseline.DummyRegressionTrainer;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.junit.jupiter.api.Test;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -88,5 +97,34 @@ public class TestDummyRegression {
     public void testSparseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
         testDummyRegression(p,false);
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestDummyRegression.class.getResource("dummyreg-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            DummyRegressionModel deserModel = (DummyRegressionModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", deserModel.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+            DummyRegressionTrainer trainer = DummyRegressionTrainer.createMeanTrainer();
+            Model<Regressor> model = trainer.train(p.getA());
+
+            List<Prediction<Regressor>> deserPredictions = deserModel.predict(p.getB());
+            List<Prediction<Regressor>> predictions = model.predict(p.getB());
+            assertEquals(p.getB().size(), deserPredictions.size());
+            assertTrue(Helpers.predictionListDistributionEquals(predictions, deserPredictions));
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+
+        DummyRegressionTrainer trainer = DummyRegressionTrainer.createMeanTrainer();
+        Model<Regressor> model = trainer.train(p.getA());
+
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","regression","baseline","dummyreg-431.tribuo"));
     }
 }
