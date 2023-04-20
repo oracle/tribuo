@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -54,6 +55,11 @@ public class IndependentSequenceTrainer<T extends Output<T>> implements Sequence
      * For olcut.
      */
     private IndependentSequenceTrainer() { }
+
+    @Override
+    public IndependentSequenceModel<T> train(SequenceDataset<T> examples) {
+        return train(examples, Collections.emptyMap());
+    }
 
     @Override
     public IndependentSequenceModel<T> train(SequenceDataset<T> sequenceExamples, Map<String, Provenance> runProvenance) {
