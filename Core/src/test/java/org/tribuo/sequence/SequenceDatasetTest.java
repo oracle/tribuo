@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,8 +52,7 @@ public class SequenceDatasetTest {
         logger.setLevel(Level.WARNING);
     }
 
-    @Test
-    public void testBasic() {
+    static MutableSequenceDataset<MockOutput> makeDataset() {
         MutableSequenceDataset<MockOutput> dataset = new MutableSequenceDataset<>(new MockDataSourceProvenance(),
                 new MockOutputFactory());
 
@@ -79,6 +78,13 @@ public class SequenceDatasetTest {
         seqEx = new SequenceExample<>(Arrays.asList(ex1, ex2));
         dataset.add(seqEx);
 
+        return dataset;
+    }
+
+    @Test
+    public void testBasic() {
+        MutableSequenceDataset<MockOutput> dataset = makeDataset();
+
         FeatureMap infoMap = dataset.getFeatureIDMap();
         assertEquals(4, infoMap.get("f1").getCount());
         assertEquals(0, infoMap.get("f2").getCount());
@@ -99,8 +105,8 @@ public class SequenceDatasetTest {
         assertNull(infoMap.get("f4"));
         assertNull(infoMap.get("f5"));
 
-        seqEx = prunedDataset.getExample(1);
-        ex2 = seqEx.get(1);
+        SequenceExample<MockOutput> seqEx = prunedDataset.getExample(1);
+        Example<MockOutput> ex2 = seqEx.get(1);
         Feature f1 = ex2.lookup("f1");
         assertEquals(1.0, f1.getValue(), 1e-5);
         assertNull(ex2.lookup("f5"));

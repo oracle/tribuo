@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.tribuo.transform;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
@@ -24,6 +26,9 @@ import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
+import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.core.ModelProto;
+import org.tribuo.protos.core.TransformedModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.util.ArrayList;
@@ -44,16 +49,25 @@ import java.util.Optional;
 public class TransformedModel<T extends Output<T>> extends Model<T> {
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Protobuf serialization version.
+     */
+    public static final int CURRENT_VERSION = 0;
+
     private final Model<T> innerModel;
 
     private final TransformerMap transformerMap;
 
     private final boolean densify;
 
-    private ArrayList<String> featureNames;
+    private final ArrayList<String> featureNames;
 
     TransformedModel(ModelProvenance modelProvenance, Model<T> innerModel, TransformerMap transformerMap, boolean densify) {
-        super(innerModel.getName(),
+        this(innerModel.getName(), modelProvenance, innerModel, transformerMap, densify);
+    }
+
+    private TransformedModel(String name, ModelProvenance modelProvenance, Model<T> innerModel, TransformerMap transformerMap, boolean densify) {
+        super(name,
               modelProvenance,
               innerModel.getFeatureIDMap(),
               innerModel.getOutputIDInfo(),
@@ -63,6 +77,29 @@ public class TransformedModel<T extends Output<T>> extends Model<T> {
         this.densify = densify;
         this.featureNames = new ArrayList<>(featureIDMap.keySet());
         Collections.sort(featureNames);
+    }
+
+    /**
+     * Deserialization factory.
+     * @param version The serialized object version.
+     * @param className The class name.
+     * @param message The serialized data.
+     * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+     * @return The deserialized object.
+     */
+    @SuppressWarnings({"unchecked","rawtypes"})
+    public static TransformedModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        if (version < 0 || version > CURRENT_VERSION) {
+            throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+        }
+        TransformedModelProto proto = message.unpack(TransformedModelProto.class);
+
+        // We discard the output domain and feature domain from the carrier and use the ones in the inner model.
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        Model<?> model = Model.deserialize(proto.getModel());
+        TransformerMap transformerMap = TransformerMap.deserialize(proto.getTransformerMap());
+
+        return new TransformedModel(carrier.name(), carrier.provenance(), model, transformerMap, proto.getDensify());
     }
 
     /**
@@ -134,5 +171,23 @@ public class TransformedModel<T extends Output<T>> extends Model<T> {
     @Override
     protected TransformedModel<T> copy(String name, ModelProvenance newProvenance) {
         return new TransformedModel<>(newProvenance,innerModel,transformerMap,densify);
+    }
+
+    @Override
+    public ModelProto serialize() {
+        ModelDataCarrier<T> carrier = createDataCarrier();
+
+        TransformedModelProto.Builder modelBuilder = TransformedModelProto.newBuilder();
+        modelBuilder.setMetadata(carrier.serialize());
+        modelBuilder.setModel(innerModel.serialize());
+        modelBuilder.setTransformerMap(transformerMap.serialize());
+        modelBuilder.setDensify(densify);
+
+        ModelProto.Builder builder = ModelProto.newBuilder();
+        builder.setSerializedData(Any.pack(modelBuilder.build()));
+        builder.setClassName(TransformedModel.class.getName());
+        builder.setVersion(CURRENT_VERSION);
+
+        return builder.build();
     }
 }

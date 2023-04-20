@@ -179,6 +179,16 @@ public final class TribuoCoreImpl {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_core_SelectedFeatureDatasetProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_TransformedModelProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_TransformedModelProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_IndependentSequenceModelProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_IndependentSequenceModelProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -302,8 +312,16 @@ public final class TribuoCoreImpl {
       "o.core.ExampleProto\022\t\n\001k\030\003 \001(\005\0221\n\013featur" +
       "e_set\030\004 \001(\0132\034.tribuo.core.FeatureSetProt" +
       "o\022\031\n\021selected_features\030\005 \003(\t\022\034\n\024num_exam" +
-      "ples_removed\030\006 \001(\005B\032\n\026org.tribuo.protos." +
-      "coreP\001b\006proto3"
+      "ples_removed\030\006 \001(\005\"\321\001\n\025TransformedModelP" +
+      "roto\022-\n\010metadata\030\001 \001(\0132\033.tribuo.core.Mod" +
+      "elDataProto\022&\n\005model\030\002 \001(\0132\027.tribuo.core" +
+      ".ModelProto\0229\n\017transformer_map\030\003 \001(\0132 .t" +
+      "ribuo.core.TransformerMapProto\022\017\n\007densif" +
+      "y\030\004 \001(\010\022\025\n\rfeature_names\030\005 \003(\t\"v\n\035Indepe" +
+      "ndentSequenceModelProto\022-\n\010metadata\030\001 \001(" +
+      "\0132\033.tribuo.core.ModelDataProto\022&\n\005model\030" +
+      "\002 \001(\0132\027.tribuo.core.ModelProtoB\032\n\026org.tr" +
+      "ibuo.protos.coreP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -509,6 +527,18 @@ public final class TribuoCoreImpl {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_SelectedFeatureDatasetProto_descriptor,
         new java.lang.String[] { "Metadata", "Examples", "K", "FeatureSet", "SelectedFeatures", "NumExamplesRemoved", });
+    internal_static_tribuo_core_TransformedModelProto_descriptor =
+      getDescriptor().getMessageTypes().get(29);
+    internal_static_tribuo_core_TransformedModelProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_TransformedModelProto_descriptor,
+        new java.lang.String[] { "Metadata", "Model", "TransformerMap", "Densify", "FeatureNames", });
+    internal_static_tribuo_core_IndependentSequenceModelProto_descriptor =
+      getDescriptor().getMessageTypes().get(30);
+    internal_static_tribuo_core_IndependentSequenceModelProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_IndependentSequenceModelProto_descriptor,
+        new java.lang.String[] { "Metadata", "Model", });
     com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor();
     org.tribuo.protos.core.TribuoCore.getDescriptor();
   }

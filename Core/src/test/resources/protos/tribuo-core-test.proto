@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 syntax = "proto3";
 
 /*
- * Protos for serializing Tribuo core types and interfaces.
+ * Protos for serializing Tribuo test types and interfaces.
  */
 package tribuo.core;
 
@@ -75,4 +75,12 @@ message MockMultiOutputInfoProto {
   repeated int32 id = 3;
   int32 unknownCount = 4;
   int32 labelCounter = 5;
+}
+
+/*
+MockModel proto
+ */
+message MockModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  string constantOutput = 2;
 }
