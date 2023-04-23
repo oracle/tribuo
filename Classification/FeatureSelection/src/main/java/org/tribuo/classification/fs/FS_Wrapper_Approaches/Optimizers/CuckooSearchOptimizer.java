@@ -107,7 +107,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
         SelectedFeatureSet selectedFeatureSet = null;
 
         for (int i = 0; i < maxIteration; i++) {
-            IntStream.range(0, setOfSolutions.length).parallel().forEach(subSet -> {
+            for (int subSet = 0; subSet < setOfSolutions.length; subSet++) {
                 AtomicInteger currentIter = new AtomicInteger(subSet);
                 int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet]).map(x -> Binarizing.discreteValue(transferFunction, x + stepSizeScaling * Math.pow(currentIter.get() + 1, -lambda))).toArray();
                 int[] randomCuckoo = setOfSolutions[new Random().nextInt(setOfSolutions.length)];
@@ -123,7 +123,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                         System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
                 }
                 subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], evaluateSolution(dataset, FMap, setOfSolutions[subSet])));
-            });
+            }
             subSet_fScores.sort(Comparator.comparing(FeatureSet_FScore_Container::score).reversed());
             selectedFeatureSet = getSFS(dataset, FMap, subSet_fScores.get(0).subSet);
         }
