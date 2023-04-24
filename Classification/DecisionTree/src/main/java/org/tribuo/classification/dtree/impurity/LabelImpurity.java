@@ -42,7 +42,7 @@ public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObj
      * @param input The input counts.
      * @return The impurity.
      */
-    default double impurityWeighted(double[] input) {
+    default public double impurityWeighted(double[] input) {
         double[] prob = new double[input.length];
 
         double sum = 0.0;
@@ -62,7 +62,7 @@ public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObj
      * @param input The input counts.
      * @return The impurity.
      */
-    default double impurity(double[] input) {
+    default public double impurity(double[] input) {
         double[] prob = new double[input.length];
 
         double sum = 0.0;
@@ -83,7 +83,7 @@ public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObj
      * @param input The input counts.
      * @return The impurity.
      */
-    default double impurityWeighted(float[] input) {
+    default public double impurityWeighted(float[] input) {
         double[] prob = new double[input.length];
 
         double sum = 0.0;
@@ -104,7 +104,7 @@ public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObj
      * @param input The input counts.
      * @return The impurity.
      */
-    default double impurity(float[] input) {
+    default public double impurity(float[] input) {
         double[] prob = new double[input.length];
 
         double sum = 0.0;
@@ -124,7 +124,7 @@ public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObj
      * @param input The input counts.
      * @return The impurity.
      */
-    default double impurity(int[] input) {
+    default public double impurity(int[] input) {
         double[] prob = new double[input.length];
 
         int sum = 0;
@@ -145,7 +145,7 @@ public interface LabelImpurity extends Configurable, Provenancable<ConfiguredObj
      * @param counts A map from instances to weighted counts.
      * @return The impurity score.
      */
-    default double impurity(Map<String,Double> counts) {
+    default public double impurity(Map<String,Double> counts) {
         double[] prob = new double[counts.size()];
 
         double sum = 0.0;

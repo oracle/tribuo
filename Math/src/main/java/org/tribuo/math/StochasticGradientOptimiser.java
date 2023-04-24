@@ -43,7 +43,7 @@ public interface StochasticGradientOptimiser extends Configurable, Provenancable
      * Configures any learning rate parameters.
      * @param parameters The parameters to optimise.
      */
-    default void initialise(Parameters parameters) {}
+    default public void initialise(Parameters parameters) {}
 
     /**
      * Take a {@link Tensor} array of gradients and transform them
@@ -60,7 +60,7 @@ public interface StochasticGradientOptimiser extends Configurable, Provenancable
      * Finalises the gradient optimisation, setting the parameters to their correct values.
      * Used for {@link ParameterAveraging} amongst others.
      */
-    default void finalise() {}
+    default public void finalise() {}
 
     /**
      * Resets the optimiser so it's ready to optimise a new {@link Parameters}.

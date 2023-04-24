@@ -139,7 +139,7 @@ public interface ConfusionMatrix<T extends Classifiable<T>> {
      * in a future major release. It defaults to returning the output domain.
      * @return The set of observed outputs.
      */
-    default Set<T> observed() {
+    default public Set<T> observed() {
         return getDomain().getDomain();
     }
 
