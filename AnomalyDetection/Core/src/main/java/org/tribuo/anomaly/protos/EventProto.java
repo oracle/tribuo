@@ -167,7 +167,11 @@ private static final long serialVersionUID = 0L;
     }
     private static final com.google.protobuf.Internal.EnumLiteMap<
         EventType> internalValueMap =
-            EventType::forNumber;
+          new com.google.protobuf.Internal.EnumLiteMap<EventType>() {
+            public EventType findValueByNumber(int number) {
+              return EventType.forNumber(number);
+            }
+          };
 
     public final com.google.protobuf.Descriptors.EnumValueDescriptor
         getValueDescriptor() {
