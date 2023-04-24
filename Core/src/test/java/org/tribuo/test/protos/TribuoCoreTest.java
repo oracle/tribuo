@@ -39,6 +39,11 @@ public final class TribuoCoreTest {
   static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_tribuo_core_MockMultiOutputInfoProto_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_tribuo_core_MockModelProto_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_tribuo_core_MockModelProto_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -60,8 +65,10 @@ public final class TribuoCoreTest {
       "(\005\022\024\n\014labelCounter\030\005 \001(\005\"q\n\030MockMultiOut" +
       "putInfoProto\022\r\n\005label\030\001 \003(\t\022\016\n\006counts\030\002 " +
       "\003(\003\022\n\n\002id\030\003 \003(\005\022\024\n\014unknownCount\030\004 \001(\005\022\024\n" +
-      "\014labelCounter\030\005 \001(\005B\032\n\026org.tribuo.test.p" +
-      "rotosP\001b\006proto3"
+      "\014labelCounter\030\005 \001(\005\"W\n\016MockModelProto\022-\n" +
+      "\010metadata\030\001 \001(\0132\033.tribuo.core.ModelDataP" +
+      "roto\022\026\n\016constantOutput\030\002 \001(\tB\032\n\026org.trib" +
+      "uo.test.protosP\001b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -99,6 +106,12 @@ public final class TribuoCoreTest {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_tribuo_core_MockMultiOutputInfoProto_descriptor,
         new java.lang.String[] { "Label", "Counts", "Id", "UnknownCount", "LabelCounter", });
+    internal_static_tribuo_core_MockModelProto_descriptor =
+      getDescriptor().getMessageTypes().get(5);
+    internal_static_tribuo_core_MockModelProto_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_tribuo_core_MockModelProto_descriptor,
+        new java.lang.String[] { "Metadata", "ConstantOutput", });
     org.tribuo.protos.core.TribuoCore.getDescriptor();
     com.oracle.labs.mlrg.olcut.config.protobuf.protos.OlcutProto.getDescriptor();
   }

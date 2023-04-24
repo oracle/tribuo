@@ -19,6 +19,7 @@ package org.tribuo.interop.tensorflow;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tensorflow.Result;
 import org.tensorflow.SavedModelBundle;
 import org.tensorflow.Tensor;
 import org.tensorflow.exceptions.TensorFlowException;
@@ -160,7 +161,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
      */
     @Override
     protected TensorMap externalPrediction(TensorMap input) {
-        Map<String,Tensor> output = bundle.call(input.getMap());
+        Result output = bundle.call(input.getMap());
         input.close();
         return new TensorMap(output);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -325,3 +325,20 @@ message SelectedFeatureDatasetProto {
   int32 num_examples_removed = 6;
 }
 
+/*
+TransformedModel proto
+ */
+message TransformedModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  tribuo.core.ModelProto model = 2;
+  tribuo.core.TransformerMapProto transformer_map = 3;
+  bool densify = 4;
+}
+
+/*
+IndependentSequenceModel proto
+ */
+message IndependentSequenceModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  tribuo.core.ModelProto model = 2;
+}

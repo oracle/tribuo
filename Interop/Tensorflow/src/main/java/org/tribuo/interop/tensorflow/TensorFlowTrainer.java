@@ -487,7 +487,7 @@ public final class TensorFlowTrainer<T extends Output<T>> implements Trainer<T> 
             Operand<TNumber> lossOp = outputConverter.loss().apply(tf,new Pair<>(targetPlaceholder,intermediateOutputOp));
             Op optimiser = optimiserEnum.applyOptimiser(graph,lossOp,gradientParams);
 
-            // Initalise all the things
+            // Initialise all the things
             session.initialize();
 
             logger.info("Initialised the model parameters");
