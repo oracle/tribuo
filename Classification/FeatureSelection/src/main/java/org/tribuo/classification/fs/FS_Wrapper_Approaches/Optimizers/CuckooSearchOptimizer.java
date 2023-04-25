@@ -76,7 +76,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
      * @param totalNumberOfFeatures The number of features in the given dataset
      * @return The population of subsets of selected features
      */
-    private int[][] generatePopulation(int totalNumberOfFeatures) {
+    private int[][] GeneratePopulation(int totalNumberOfFeatures) {
         setOfSolutions = new int[this.populationSize][totalNumberOfFeatures];
         for (int[] subSet : setOfSolutions)
             System.arraycopy(new Random().ints(totalNumberOfFeatures, 0, 2).toArray(), 0, subSet, 0, setOfSolutions[0].length);
@@ -102,7 +102,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
     @Override
     public SelectedFeatureSet select(Dataset<Label> dataset) {
         ImmutableFeatureMap FMap = new ImmutableFeatureMap(dataset.getFeatureMap());
-        setOfSolutions = generatePopulation(dataset.getFeatureMap().size());
+        setOfSolutions = GeneratePopulation(dataset.getFeatureMap().size());
         List<FeatureSet_FScore_Container> subSet_fScores = new ArrayList<>();
         SelectedFeatureSet selectedFeatureSet = null;
 
@@ -111,7 +111,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                 AtomicInteger currentIter = new AtomicInteger(subSet);
                 int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet]).map(x -> Binarizing.discreteValue(transferFunction, x + stepSizeScaling * Math.pow(currentIter.get() + 1, -lambda))).toArray();
                 int[] randomCuckoo = setOfSolutions[new Random().nextInt(setOfSolutions.length)];
-                if (evaluateSolution(dataset, FMap, evolvedSolution) > evaluateSolution(dataset, FMap, randomCuckoo))
+                if (EvaluateSolution(dataset, FMap, evolvedSolution) > EvaluateSolution(dataset, FMap, randomCuckoo))
                     System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
 
                 if (new Random().nextDouble() < worstNestProbability) {
@@ -119,10 +119,10 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                     int r2 = new Random().nextInt(setOfSolutions.length);
                     for (var j = 0; j < setOfSolutions[subSet].length; j++)
                         evolvedSolution[j] = Binarizing.discreteValue(transferFunction, setOfSolutions[subSet][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
-                    if (evaluateSolution(dataset, FMap, evolvedSolution) > evaluateSolution(dataset, FMap, setOfSolutions[subSet]))
+                    if (EvaluateSolution(dataset, FMap, evolvedSolution) > EvaluateSolution(dataset, FMap, setOfSolutions[subSet]))
                         System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
                 }
-                subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], evaluateSolution(dataset, FMap, setOfSolutions[subSet])));
+                subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], EvaluateSolution(dataset, FMap, setOfSolutions[subSet])));
             });
             subSet_fScores.sort(Comparator.comparing(FeatureSet_FScore_Container::score).reversed());
             selectedFeatureSet = getSFS(dataset, FMap, subSet_fScores.get(0).subSet);
