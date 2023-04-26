@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.logging.Logger;
 
@@ -286,7 +287,14 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
         protected static ExtractedInfo extractProvenanceInfo(Map<String,Provenance> map) {
             Map<String,Provenance> configuredParameters = new HashMap<>(map);
             String className = ObjectProvenance.checkAndExtractProvenance(configuredParameters,CLASS_NAME, StringProvenance.class, DirectoryFileSourceProvenance.class.getSimpleName()).getValue();
-            String hostTypeStringName = ObjectProvenance.checkAndExtractProvenance(configuredParameters,HOST_SHORT_NAME, StringProvenance.class, DirectoryFileSourceProvenance.class.getSimpleName()).getValue();
+            // This is relaxed as before v4.3.2 this field is left out of marshalled provenances due to a bug in getinstanceValues.
+            String hostTypeStringName;
+            Optional<StringProvenance> optHostName = ObjectProvenance.maybeExtractProvenance(configuredParameters,HOST_SHORT_NAME,StringProvenance.class, DirectoryFileSourceProvenance.class.getSimpleName());
+            if (optHostName.isPresent()) {
+                hostTypeStringName = optHostName.get().getValue();
+            } else {
+                hostTypeStringName = "DataSource";
+            }
 
             Map<String,PrimitiveProvenance<?>> instanceParameters = new HashMap<>();
             instanceParameters.put(DATASOURCE_CREATION_TIME,ObjectProvenance.checkAndExtractProvenance(configuredParameters,DATASOURCE_CREATION_TIME,DateTimeProvenance.class, DirectoryFileSourceProvenance.class.getSimpleName()));
@@ -296,7 +304,7 @@ public class DirectoryFileSource<T extends Output<T>> implements ConfigurableDat
 
         @Override
         public Map<String, PrimitiveProvenance<?>> getInstanceValues() {
-            Map<String,PrimitiveProvenance<?>> map = new HashMap<>();
+            Map<String,PrimitiveProvenance<?>> map = super.getInstanceValues();
 
             map.put(FILE_MODIFIED_TIME,fileModifiedTime);
             map.put(DATASOURCE_CREATION_TIME,dataSourceCreationTime);
