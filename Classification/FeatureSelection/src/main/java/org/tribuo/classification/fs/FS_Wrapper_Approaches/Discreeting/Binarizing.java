@@ -18,6 +18,10 @@ public interface Binarizing {
             case V2 -> Math.abs(Math.tan(Value)) >= 0.5 ? 1 : 0;
             case V3 -> Math.abs(Value / Math.abs(1 + Math.pow(Value, 2))) >= 0.5 ? 1 : 0;
             case V4 -> Math.abs(2 / Math.PI * Math.atan(Math.PI / 2 * Value)) >= 0.5 ? 1 : 0;
+            case S1 -> 1 / (1 + Math.pow(Math.E, - 2 * Value)) >= 0.5 ? 1 : 0;
+            case S2 -> 1 / (1 + Math.pow(Math.E, - Value)) >= 0.5 ? 1 : 0;
+            case S3 -> 1 / (1 + Math.pow(Math.E, - Value / 2)) >= 0.5 ? 1 : 0;
+            case S4 -> 1 / (1 + Math.pow(Math.E, - Value / 3)) >= 0.5 ? 1 : 0;
         };
     }
 }
