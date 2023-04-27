@@ -52,6 +52,22 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
         this.delta = 1.5D;
         this.maxIteration = 30;
     }
+    
+    /**
+     * Constructs the wrapper feature selection based on cuckoo search algorithm
+     * @param transferFunction The transfer function to convert continuous values to binary ones
+     * @param populationSize The size of the solution in the initial population
+     * @param maxIteration The number of times that is used to enhance generation
+     */
+    public CuckooSearchOptimizer(TransferFunction transferFunction, int populationSize, int maxIteration) {
+        this.transferFunction = transferFunction;
+        this.populationSize = populationSize;
+        this.stepSizeScaling = 2D;
+        this.lambda = 2D;
+        this.worstNestProbability = 1.5D;
+        this.delta = 1.5D;
+        this.maxIteration = maxIteration;
+    }
 
     /**
      * @param transferFunction The transfer function to convert continuous values to binary ones
