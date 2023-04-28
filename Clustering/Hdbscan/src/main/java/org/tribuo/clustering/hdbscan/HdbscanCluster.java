@@ -43,7 +43,7 @@ final class HdbscanCluster implements Comparable<HdbscanCluster> {
 
     private boolean hasChildren;
 
-    final private List<HdbscanCluster> propagatedDescendants;
+    private final List<HdbscanCluster> propagatedDescendants;
 
     private int hierarchyLevel = 0;
 

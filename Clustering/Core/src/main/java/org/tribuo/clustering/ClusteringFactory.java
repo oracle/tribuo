@@ -145,7 +145,7 @@ public final class ClusteringFactory implements OutputFactory<ClusterID> {
     /**
      * Provenance for {@link ClusteringFactory}.
      */
-    public final static class ClusteringFactoryProvenance implements OutputFactoryProvenance {
+    public static final class ClusteringFactoryProvenance implements OutputFactoryProvenance {
         private static final long serialVersionUID = 1L;
 
         /**
