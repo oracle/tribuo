@@ -127,7 +127,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                 AtomicInteger currentIter = new AtomicInteger(subSet);
                 int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet]).map(x -> Binarizing.discreteValue(transferFunction, x + stepSizeScaling * Math.pow(currentIter.get() + 1, -lambda))).toArray();
                 int[] randomCuckoo = setOfSolutions[new Random().nextInt(setOfSolutions.length)];
-                if (EvaluateSolution(dataset, FMap, evolvedSolution) > EvaluateSolution(dataset, FMap, randomCuckoo))
+                if (FitnessFunction.EvaluateSolution(dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(dataset, FMap, randomCuckoo))
                     System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
 
                 if (new Random().nextDouble() < worstNestProbability) {
@@ -135,55 +135,17 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                     int r2 = new Random().nextInt(setOfSolutions.length);
                     for (var j = 0; j < setOfSolutions[subSet].length; j++)
                         evolvedSolution[j] = Binarizing.discreteValue(transferFunction, setOfSolutions[subSet][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
-                    if (EvaluateSolution(dataset, FMap, evolvedSolution) > EvaluateSolution(dataset, FMap, setOfSolutions[subSet]))
+                    if (FitnessFunction.EvaluateSolution(dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(dataset, FMap, setOfSolutions[subSet]))
                         System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
                 }
-                subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], EvaluateSolution(dataset, FMap, setOfSolutions[subSet])));
+                subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], FitnessFunction.EvaluateSolution(dataset, FMap, setOfSolutions[subSet])));
             });
             subSet_fScores.sort(Comparator.comparing(FeatureSet_FScore_Container::score).reversed());
-            selectedFeatureSet = getSFS(dataset, FMap, subSet_fScores.get(0).subSet);
+            selectedFeatureSet = FitnessFunction.getSFS(dataset, FMap, subSet_fScores.get(0).subSet);
         }
         return selectedFeatureSet;
     }
-
-    /**
-     * This method is used to compute the fitness score of each solution of the population
-     * @param dataset The dataset to use
-     * @param Fmap The dataset feature map
-     * @param solution The current subset of features
-     * @return The fitness score of the given subset
-     */
-    private double evaluateSolution(Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
-        SelectedFeatureDataset<Label> selectedFeatureDataset = new SelectedFeatureDataset<>(dataset,getSFS(dataset, Fmap, solution));
-        KNNClassifierOptions classifier = new KNNClassifierOptions();
-        CrossValidation<Label, LabelEvaluation> crossValidation = new CrossValidation<>(classifier.getTrainer(), selectedFeatureDataset, new LabelEvaluator(), 10);
-        double avgAccuracy = 0D;
-        for (Pair<LabelEvaluation, Model<Label>> ACC : crossValidation.evaluate())
-            avgAccuracy += ACC.getA().accuracy();
-
-        return avgAccuracy + 0.0001 * (1 - ((double) selectedFeatureDataset.getSelectedFeatures().size() / Fmap.size()));
-    }
-
-    /**
-     * @param dataset The dataset to use
-     * @param Fmap The dataset feature map
-     * @param solution The current subset of featurs
-     * @return The selected feature set
-     */
-    private SelectedFeatureSet getSFS(Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
-        List<String> names = new ArrayList<>();
-        List<Double> scores = new ArrayList<>();
-        for (int i = 0; i < solution.length; i++) {
-            if (solution[i] == 1) {
-                names.add(Fmap.get(i).getName());
-                scores.add(1D);
-            }
-        }
-        FeatureSetProvenance provenance = new FeatureSetProvenance(SelectedFeatureSet.class.getName(),dataset.getProvenance(),getProvenance());
-
-        return new SelectedFeatureSet(names,scores,isOrdered(),provenance);
-    }
-
+    
     @Override
     public FeatureSelectorProvenance getProvenance() {
         return new FeatureSelectorProvenanceImpl(this);
