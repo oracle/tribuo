@@ -111,7 +111,6 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
 
     /**
      * Selects features according to this selection algorithm from the specified dataset.
-     *
      * @param dataset The dataset to use.
      * @return A selected feature set.
      */
@@ -127,7 +126,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                 AtomicInteger currentIter = new AtomicInteger(subSet);
                 int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet]).map(x -> Binarizing.discreteValue(transferFunction, x + stepSizeScaling * Math.pow(currentIter.get() + 1, -lambda))).toArray();
                 int[] randomCuckoo = setOfSolutions[new Random().nextInt(setOfSolutions.length)];
-                if (FitnessFunction.EvaluateSolution(dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(dataset, FMap, randomCuckoo))
+                if (FitnessFunction.EvaluateSolution(this, dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(this, dataset, FMap, randomCuckoo))
                     System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
 
                 if (new Random().nextDouble() < worstNestProbability) {
@@ -135,13 +134,13 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                     int r2 = new Random().nextInt(setOfSolutions.length);
                     for (var j = 0; j < setOfSolutions[subSet].length; j++)
                         evolvedSolution[j] = Binarizing.discreteValue(transferFunction, setOfSolutions[subSet][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
-                    if (FitnessFunction.EvaluateSolution(dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(dataset, FMap, setOfSolutions[subSet]))
+                    if (FitnessFunction.EvaluateSolution(this, dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(this, dataset, FMap, setOfSolutions[subSet]))
                         System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
                 }
-                subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], FitnessFunction.EvaluateSolution(dataset, FMap, setOfSolutions[subSet])));
+                subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], FitnessFunction.EvaluateSolution(this, dataset, FMap, setOfSolutions[subSet])));
             });
             subSet_fScores.sort(Comparator.comparing(FeatureSet_FScore_Container::score).reversed());
-            selectedFeatureSet = FitnessFunction.getSFS(dataset, FMap, subSet_fScores.get(0).subSet);
+            selectedFeatureSet = FitnessFunction.getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
         }
         return selectedFeatureSet;
     }
