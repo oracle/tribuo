@@ -24,13 +24,14 @@ import java.util.List;
 public interface FitnessFunction {
     /**
      * This method is used to compute the fitness score of each solution of the population
+     * @param optimizer The optimizer that is used for FS
      * @param dataset The dataset to use
      * @param Fmap The dataset feature map
      * @param solution The current subset of features
      * @return The fitness score of the given subset
      */
-    static double EvaluateSolution(Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
-        SelectedFeatureDataset<Label> selectedFeatureDataset = new SelectedFeatureDataset<>(dataset,getSFS(dataset, Fmap, solution));
+    static <T extends FeatureSelector<Label>> double EvaluateSolution(T optimizer, Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
+        SelectedFeatureDataset<Label> selectedFeatureDataset = new SelectedFeatureDataset<>(dataset,getSFS(optimizer, dataset, Fmap, solution));
         KNNClassifierOptions classifier = new KNNClassifierOptions();
         CrossValidation<Label, LabelEvaluation> crossValidation = new CrossValidation<>(classifier.getTrainer(), selectedFeatureDataset, new LabelEvaluator(), 10);
         double avgAccuracy = 0D;
@@ -41,12 +42,14 @@ public interface FitnessFunction {
     }
 
     /**
+     * This methid is used to return the selected subset of features
+     * @param optimizer The optimizer that is used for FS
      * @param dataset The dataset to use
      * @param Fmap The dataset feature map
      * @param solution The current subset of featurs
      * @return The selected feature set
      */
-    static SelectedFeatureSet getSFS(Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
+    static <T extends FeatureSelector<Label>> SelectedFeatureSet getSFS(T optimizer, Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
         List<String> names = new ArrayList<>();
         List<Double> scores = new ArrayList<>();
         for (int i = 0; i < solution.length; i++) {
@@ -55,8 +58,8 @@ public interface FitnessFunction {
                 scores.add(1D);
             }
         }
-        FeatureSetProvenance provenance = new FeatureSetProvenance(SelectedFeatureSet.class.getName(), dataset.getProvenance(), new CuckooSearchOptimizer().getProvenance());
+        FeatureSetProvenance provenance = new FeatureSetProvenance(SelectedFeatureSet.class.getName(), dataset.getProvenance(), optimizer.getProvenance());
 
-        return new SelectedFeatureSet(names, scores, new CuckooSearchOptimizer().isOrdered(), provenance);
+        return new SelectedFeatureSet(names, scores, optimizer.isOrdered(), provenance);
     }
 }
