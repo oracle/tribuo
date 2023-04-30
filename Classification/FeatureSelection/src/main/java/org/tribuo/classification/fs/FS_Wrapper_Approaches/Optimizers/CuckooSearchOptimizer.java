@@ -120,7 +120,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
         setOfSolutions = GeneratePopulation(dataset.getFeatureMap().size());
         List<FeatureSet_FScore_Container> subSet_fScores = new ArrayList<>();
         SelectedFeatureSet selectedFeatureSet = null;
-
+        // Update the solution based on the levy flight function
         for (int i = 0; i < maxIteration; i++) {
             IntStream.range(0, setOfSolutions.length).parallel().forEach(subSet -> {
                 AtomicInteger currentIter = new AtomicInteger(subSet);
@@ -128,7 +128,7 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
                 int[] randomCuckoo = setOfSolutions[new Random().nextInt(setOfSolutions.length)];
                 if (FitnessFunction.EvaluateSolution(this, dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(this, dataset, FMap, randomCuckoo))
                     System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
-
+                // Update the solution based on the abandone nest function
                 if (new Random().nextDouble() < worstNestProbability) {
                     int r1 = new Random().nextInt(setOfSolutions.length);
                     int r2 = new Random().nextInt(setOfSolutions.length);
