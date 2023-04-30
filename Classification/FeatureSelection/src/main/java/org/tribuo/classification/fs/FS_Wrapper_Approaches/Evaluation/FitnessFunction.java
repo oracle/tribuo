@@ -52,12 +52,11 @@ public interface FitnessFunction {
     static <T extends FeatureSelector<Label>> SelectedFeatureSet getSFS(T optimizer, Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
         List<String> names = new ArrayList<>();
         List<Double> scores = new ArrayList<>();
-        for (int i = 0; i < solution.length; i++) {
+        for (int i = 0; i < solution.length; i++)
             if (solution[i] == 1) {
                 names.add(Fmap.get(i).getName());
                 scores.add(1D);
             }
-        }
         FeatureSetProvenance provenance = new FeatureSetProvenance(SelectedFeatureSet.class.getName(), dataset.getProvenance(), optimizer.getProvenance());
 
         return new SelectedFeatureSet(names, scores, optimizer.isOrdered(), provenance);
