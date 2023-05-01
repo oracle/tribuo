@@ -33,7 +33,6 @@ public interface FitnessFunction {
     static <T extends FeatureSelector<Label>> double EvaluateSolution(T optimizer, Dataset<Label> dataset, ImmutableFeatureMap Fmap, int[] solution) {
         SelectedFeatureDataset<Label> selectedFeatureDataset = new SelectedFeatureDataset<>(dataset,getSFS(optimizer, dataset, Fmap, solution));
         KNNClassifierOptions classifier = new KNNClassifierOptions();
-        classifier.knnK = 5;
         CrossValidation<Label, LabelEvaluation> crossValidation = new CrossValidation<>(classifier.getTrainer(), selectedFeatureDataset, new LabelEvaluator(), 10);
         double avgAccuracy = 0D;
         for (Pair<LabelEvaluation, Model<Label>> ACC : crossValidation.evaluate())
