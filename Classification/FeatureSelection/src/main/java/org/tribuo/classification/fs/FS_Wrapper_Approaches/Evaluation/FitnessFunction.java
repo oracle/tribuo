@@ -37,6 +37,7 @@ public interface FitnessFunction {
         double avgAccuracy = 0D;
         for (Pair<LabelEvaluation, Model<Label>> ACC : crossValidation.evaluate())
             avgAccuracy += ACC.getA().accuracy();
+        avgAccuracy /= crossValidation.getK();
 
         return avgAccuracy + 0.0001 * (1 - ((double) selectedFeatureDataset.getSelectedFeatures().size() / Fmap.size()));
     }
