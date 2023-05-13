@@ -46,10 +46,10 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
     public CuckooSearchOptimizer() {
         this.transferFunction = TransferFunction.TFunction_V2;
         this.populationSize = 50;
-        this.stepSizeScaling = 2D;
-        this.lambda = 2D;
-        this.worstNestProbability = 0.1D;
-        this.delta = 1.5D;
+        this.stepSizeScaling = 2d;
+        this.lambda = 2d;
+        this.worstNestProbability = 0.1d;
+        this.delta = 1.5d;
         this.maxIteration = 30;
     }
     
@@ -62,10 +62,10 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
     public CuckooSearchOptimizer(TransferFunction transferFunction, int populationSize, int maxIteration) {
         this.transferFunction = transferFunction;
         this.populationSize = populationSize;
-        this.stepSizeScaling = 2D;
-        this.lambda = 2D;
-        this.worstNestProbability = 1.5D;
-        this.delta = 1.5D;
+        this.stepSizeScaling = 2d;
+        this.lambda = 2d;
+        this.worstNestProbability = 1.5d;
+        this.delta = 1.5d;
         this.maxIteration = maxIteration;
     }
 
