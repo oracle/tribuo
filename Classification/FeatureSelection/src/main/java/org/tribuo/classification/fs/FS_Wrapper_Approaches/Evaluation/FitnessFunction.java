@@ -34,7 +34,7 @@ public interface FitnessFunction {
         SelectedFeatureDataset<Label> selectedFeatureDataset = new SelectedFeatureDataset<>(dataset,getSFS(optimizer, dataset, Fmap, solution));
         KNNClassifierOptions classifier = new KNNClassifierOptions();
         CrossValidation<Label, LabelEvaluation> crossValidation = new CrossValidation<>(classifier.getTrainer(), selectedFeatureDataset, new LabelEvaluator(), 10);
-        double avgAccuracy = 0D;
+        double avgAccuracy = 0d;
         for (Pair<LabelEvaluation, Model<Label>> ACC : crossValidation.evaluate())
             avgAccuracy += ACC.getA().accuracy();
         avgAccuracy /= crossValidation.getK();
