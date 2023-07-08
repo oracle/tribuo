@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.tribuo.classification.sgd.kernel;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.LabelEvaluation;
@@ -28,8 +29,15 @@ import org.tribuo.math.kernel.RBF;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -37,6 +45,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestSGDKernel {
 
@@ -137,4 +146,37 @@ public class TestSGDKernel {
         });
     }
 
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestSGDKernel.class.getResource("rbf-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            Model<Label> deserModel = (Model<Label>) Model.deserialize(proto);
+
+            assertEquals("4.3.1", deserModel.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+
+            List<Prediction<Label>> deserOutput = deserModel.predict(p.getB());
+
+            KernelSVMTrainer trainer = new KernelSVMTrainer(new RBF(1.0),1,5,1000, Trainer.DEFAULT_SEED);
+            Model<Label> model = trainer.train(p.getA());
+            List<Prediction<Label>> output = model.predict(p.getB());
+
+            assertEquals(deserOutput.size(), p.getB().size());
+            assertTrue(Helpers.predictionListDistributionEquals(deserOutput, output, 1e-7));
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generateModel() throws IOException {
+        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        KernelSVMTrainer trainer = new KernelSVMTrainer(new RBF(1.0),1,5,1000, Trainer.DEFAULT_SEED);
+        Model<Label> model = trainer.train(p.getA());
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","classification","sgd","kernel","rbf-clf-431.tribuo"));
+    }
 }

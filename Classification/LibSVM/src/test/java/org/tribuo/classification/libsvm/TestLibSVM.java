@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,10 +50,12 @@ import org.tribuo.data.text.impl.TextFeatureExtractorImpl;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.impl.ListExample;
 import org.tribuo.interop.onnx.OnnxTestUtils;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -78,6 +80,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestLibSVM {
     private static final Logger logger = Logger.getLogger(TestLibSVM.class.getName());
 
+    private static final SVMParameters<Label> linearParams = new SVMParameters<>(new SVMClassificationType(SVMMode.C_SVC), KernelType.LINEAR);
     private static final LibSVMClassificationTrainer C_RBF = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.C_SVC), KernelType.RBF));
     private static final LibSVMClassificationTrainer NU_RBF = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.NU_SVC), KernelType.RBF));
     private static final LibSVMClassificationTrainer C_LINEAR = new LibSVMClassificationTrainer(new SVMParameters<>(new SVMClassificationType(SVMMode.C_SVC), KernelType.LINEAR));
@@ -356,6 +359,32 @@ public class TestLibSVM {
             Model<Label> m = C_RBF.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestLibSVM.class.getResource("libsvm-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            LibSVMClassificationModel model = (LibSVMClassificationModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+            List<Prediction<Label>> output = model.predict(p.getB());
+            assertEquals(output.size(), p.getB().size());
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generateModel() throws IOException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        LibSVMClassificationTrainer trainer = new LibSVMClassificationTrainer(linearParams);
+        LibSVMModel<Label> model = trainer.train(p.getA());
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","classification","libsvm","libsvm-clf-431.tribuo"));
     }
 
     private static int[] getIndices(svm_node[] nodes) {
