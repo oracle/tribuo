@@ -1,101 +1,124 @@
 package FS_Wrapper_Approaches.Optimizers;
 
-import FS_Wrapper_Approaches.Discreeting.Binarizing;
-import FS_Wrapper_Approaches.Discreeting.TransferFunction;
+import FS.Discreeting.TransferFunction;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.tribuo.*;
+import org.tribuo.Dataset;
+import org.tribuo.FeatureSelector;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.Model;
+import org.tribuo.SelectedFeatureSet;
 import org.tribuo.classification.Label;
+import org.tribuo.classification.ensemble.VotingCombiner;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
-import org.tribuo.common.nearest.KNNClassifierOptions;
+import org.tribuo.common.nearest.KNNModel;
+import org.tribuo.common.nearest.KNNTrainer;
 import org.tribuo.dataset.SelectedFeatureDataset;
 import org.tribuo.evaluation.CrossValidation;
+import org.tribuo.math.distance.L1Distance;
+import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.provenance.FeatureSelectorProvenance;
 import org.tribuo.provenance.FeatureSetProvenance;
 import org.tribuo.provenance.impl.FeatureSelectorProvenanceImpl;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+import java.util.SplittableRandom;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * Select features based on Cuckoo Search algorithm with binary transfer functions, KNN classifier and 10-fold cross validation
- * <p>
- * see:
- * <pre>
- * Xin-She Yang and Suash Deb.
- * "Cuckoo Search via L´evy Flights", 2010.
- *
- * L. A. M. Pereira et al.
- * "A Binary Cuckoo Search and its Application for Feature Selection", 2014.
- * </pre>
- */
-public class CuckooSearchOptimizer implements FeatureSelector<Label> {
+public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
     private final TransferFunction transferFunction;
+    private final int populationSize;
     private final double stepSizeScaling;
     private final double lambda;
     private final double worstNestProbability;
     private final double delta;
-    private final int populationSize;
+    private final double mutationRate;
     private int [][] setOfSolutions;
     private final int maxIteration;
+    private final SplittableRandom rng;
+    private final int seed;
 
     /**
      * The default constructor for feature selection based on Cuckoo Search Algorithm
      */
     public CuckooSearchOptimizer() {
-        this.transferFunction = TransferFunction.TFunction_V2;
+        this.transferFunction = TransferFunction.V2;
         this.populationSize = 50;
         this.stepSizeScaling = 2d;
         this.lambda = 2d;
         this.worstNestProbability = 0.1d;
         this.delta = 1.5d;
+        this.mutationRate = 0.2d;
         this.maxIteration = 30;
+        this.seed = 12345;
+        this.rng = new SplittableRandom(seed);
     }
-    
+
     /**
      * Constructs the wrapper feature selection based on cuckoo search algorithm
      * @param transferFunction The transfer function to convert continuous values to binary ones
      * @param populationSize The size of the solution in the initial population
      * @param maxIteration The number of times that is used to enhance generation
+     * @param seed This seed is required for the SplittableRandom
      */
-    public CuckooSearchOptimizer(TransferFunction transferFunction, int populationSize, int maxIteration) {
+    public CuckooSearchOptimizer(TransferFunction transferFunction, int populationSize, int maxIteration, int seed) {
         this.transferFunction = transferFunction;
         this.populationSize = populationSize;
         this.stepSizeScaling = 2d;
         this.lambda = 2d;
         this.worstNestProbability = 1.5d;
         this.delta = 1.5d;
+        this.mutationRate = 0.2d;
         this.maxIteration = maxIteration;
+        this.seed = seed;
+        this.rng = new SplittableRandom(seed);
     }
 
     /**
+     * Constructs the wrapper feature selection based on cuckoo search algorithm
      * @param transferFunction The transfer function to convert continuous values to binary ones
      * @param populationSize The size of the solution in the initial population
      * @param stepSizeScaling The cuckoo step size
      * @param lambda The lambda of the levy flight function
      * @param worstNestProbability The fraction of the nests to be abandoned
      * @param delta The delta that is used in the abandon nest function
+     * @param mutationRate The proportion to apply the mutation operator
      * @param maxIteration The number of times that is used to enhance generation
+     * @param seed This seed is required for the SplittableRandom
      */
-    public CuckooSearchOptimizer(TransferFunction transferFunction, int populationSize, double stepSizeScaling, double lambda, double worstNestProbability, double delta, int maxIteration) {
+    public CuckooSearchOptimizer(TransferFunction transferFunction, int populationSize, double stepSizeScaling, double lambda, double worstNestProbability, double delta, double mutationRate, int maxIteration, int seed) {
         this.transferFunction = transferFunction;
         this.populationSize = populationSize;
         this.stepSizeScaling = stepSizeScaling;
         this.lambda = lambda;
         this.worstNestProbability = worstNestProbability;
         this.delta = delta;
+        this.mutationRate = mutationRate;
         this.maxIteration = maxIteration;
+        this.seed = seed;
+        this.rng = new SplittableRandom(seed);
     }
 
     /**
+     * This method is used to generate the initial population (set of solutions)
      * @param totalNumberOfFeatures The number of features in the given dataset
      * @return The population of subsets of selected features
      */
     private int[][] GeneratePopulation(int totalNumberOfFeatures) {
         setOfSolutions = new int[this.populationSize][totalNumberOfFeatures];
-        for (int[] subSet : setOfSolutions)
-            System.arraycopy(new Random().ints(totalNumberOfFeatures, 0, 2).toArray(), 0, subSet, 0, setOfSolutions[0].length);
+        for (int[] subSet : setOfSolutions) {
+            int[] values = new int[subSet.length];
+            for (int i = 0; i < values.length; i++) {
+                values[i] = rng.nextInt(2);
+            }
+            System.arraycopy(values, 0, subSet, 0, setOfSolutions[0].length);
+        }
         return setOfSolutions;
     }
 
@@ -118,40 +141,140 @@ public class CuckooSearchOptimizer implements FeatureSelector<Label> {
     public SelectedFeatureSet select(Dataset<Label> dataset) {
         ImmutableFeatureMap FMap = new ImmutableFeatureMap(dataset.getFeatureMap());
         setOfSolutions = GeneratePopulation(dataset.getFeatureMap().size());
-        List<FeatureSet_FScore_Container> subSet_fScores = new ArrayList<>();
+        List<CuckooSearchFeatureSet> subSet_fScores = Arrays.stream(setOfSolutions).map(setOfSolution -> new CuckooSearchFeatureSet(setOfSolution, evaluateSolution(this, dataset, FMap, setOfSolution))).sorted(Comparator.comparing(CuckooSearchFeatureSet::score).reversed()).collect(Collectors.toList());
         SelectedFeatureSet selectedFeatureSet = null;
-        // Update the solution based on the levy flight function
         for (int i = 0; i < maxIteration; i++) {
             IntStream.range(0, setOfSolutions.length).parallel().forEach(subSet -> {
-                AtomicInteger currentIter = new AtomicInteger(subSet);
-                int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet]).map(x -> Binarizing.discreteValue(transferFunction, x + stepSizeScaling * Math.pow(currentIter.get() + 1, -lambda))).toArray();
-                int[] randomCuckoo = setOfSolutions[new Random().nextInt(setOfSolutions.length)];
-                if (FitnessFunction.EvaluateSolution(this, dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(this, dataset, FMap, randomCuckoo))
-                    System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
+                // Update the solution based on the levy flight function
+                int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet]).map(x -> (int) transferFunction.applyAsDouble(x + stepSizeScaling * Math.pow(subSet + 1, -lambda))).toArray();
+                int[] randomCuckoo = setOfSolutions[rng.nextInt(setOfSolutions.length)];
+                keepBestAfterEvaluation(dataset, FMap, evolvedSolution, randomCuckoo);
                 // Update the solution based on the abandone nest function
                 if (new Random().nextDouble() < worstNestProbability) {
-                    int r1 = new Random().nextInt(setOfSolutions.length);
-                    int r2 = new Random().nextInt(setOfSolutions.length);
-                    for (var j = 0; j < setOfSolutions[subSet].length; j++)
-                        evolvedSolution[j] = Binarizing.discreteValue(transferFunction, setOfSolutions[subSet][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
-                    if (FitnessFunction.EvaluateSolution(this, dataset, FMap, evolvedSolution) > FitnessFunction.EvaluateSolution(this, dataset, FMap, setOfSolutions[subSet]))
-                        System.arraycopy(evolvedSolution, 0, setOfSolutions[subSet], 0, evolvedSolution.length);
+                    int r1 = rng.nextInt(setOfSolutions.length);
+                    int r2 = rng.nextInt(setOfSolutions.length);
+                    for (int j = 0; j < setOfSolutions[subSet].length; j++) {
+                        evolvedSolution[j] = (int) transferFunction.applyAsDouble(setOfSolutions[subSet][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
+                    }
+                    keepBestAfterEvaluation(dataset, FMap, evolvedSolution, setOfSolutions[subSet]);
                 }
-                subSet_fScores.add(new FeatureSet_FScore_Container(setOfSolutions[subSet], FitnessFunction.EvaluateSolution(this, dataset, FMap, setOfSolutions[subSet])));
+                // Update the solution based on mutation operator
+                int[] mutedSolution = mutation(setOfSolutions[subSet]);
+                keepBestAfterEvaluation(dataset, FMap, mutedSolution, setOfSolutions[subSet]);
+                // Update the solution based on inversion mutation
+                mutedSolution = inversionMutation(setOfSolutions[subSet]);
+                keepBestAfterEvaluation(dataset, FMap, mutedSolution, setOfSolutions[subSet]);
+                // Updata the solution based on mutation operator
+                int[] jayaSolution = jayaOperator(setOfSolutions[subSet], subSet_fScores.get(0).subSet(), subSet_fScores.get(subSet_fScores.size() - 1).subSet());
+                keepBestAfterEvaluation(dataset, FMap, jayaSolution, setOfSolutions[subSet]);
             });
-            subSet_fScores.sort(Comparator.comparing(FeatureSet_FScore_Container::score).reversed());
-            selectedFeatureSet = FitnessFunction.getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
+            Arrays.stream(setOfSolutions).map(subSet -> new CuckooSearchFeatureSet(subSet, evaluateSolution(this, dataset, FMap, subSet))).forEach(subSet_fScores::add);
+            subSet_fScores.sort(Comparator.comparing(CuckooSearchFeatureSet::score).reversed());
+            selectedFeatureSet = getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
         }
         return selectedFeatureSet;
     }
-    
+
     @Override
     public FeatureSelectorProvenance getProvenance() {
         return new FeatureSelectorProvenanceImpl(this);
     }
 
     /**
+     * This method is used to compute the fitness score of each solution of the population
+     * @param optimizer The optimizer that is used for FS
+     * @param dataset The dataset to use
+     * @param Fmap The dataset feature map
+     * @param solution The current subset of features
+     * @return The fitness score of the given subset*/
+
+    private  <T extends FeatureSelector<Label>> double evaluateSolution(T optimizer, Dataset<Label> dataset, ImmutableFeatureMap Fmap, int... solution) {
+        SelectedFeatureDataset<Label> selectedFeatureDataset = new SelectedFeatureDataset<>(dataset,getSFS(optimizer, dataset, Fmap, solution));
+        KNNTrainer<Label> KnnTrainer =  new KNNTrainer<>(1, new L1Distance(), Runtime.getRuntime().availableProcessors(), new VotingCombiner(), KNNModel.Backend.THREADPOOL, NeighboursQueryFactoryType.BRUTE_FORCE);
+        CrossValidation<Label, LabelEvaluation> crossValidation = new CrossValidation<>(KnnTrainer, selectedFeatureDataset, new LabelEvaluator(), 10);
+        double avgAccuracy = 0d;
+        for (Pair<LabelEvaluation, Model<Label>> ACC : crossValidation.evaluate()) {
+            avgAccuracy += ACC.getA().accuracy();
+        }
+        avgAccuracy /= crossValidation.getK();
+
+        return avgAccuracy + 0.001 * (1 - ((double) selectedFeatureDataset.getSelectedFeatures().size() / Fmap.size()));
+    }
+
+    /**
+     * This methid is used to return the selected subset of features
+     * @param optimizer The optimizer that is used for FS
+     * @param dataset The dataset to use
+     * @param featureMap The dataset feature map
+     * @param solution The current subset of featurs
+     * @return The selected feature set*/
+
+    private  <T extends FeatureSelector<Label>> SelectedFeatureSet getSFS(T optimizer, Dataset<Label> dataset, ImmutableFeatureMap featureMap, int... solution) {
+        List<String> names = new ArrayList<>();
+        List<Double> scores = new ArrayList<>();
+        for (int i = 0; i < solution.length; i++) {
+            if (solution[i] == 1) {
+                names.add(featureMap.get(i).getName());
+                scores.add(1d);
+            }
+        }
+        FeatureSetProvenance provenance = new FeatureSetProvenance(SelectedFeatureSet.class.getName(), dataset.getProvenance(), optimizer.getProvenance());
+
+        return new SelectedFeatureSet(names, scores, optimizer.isOrdered(), provenance);
+    }
+
+    /**
+     * @param dataset The dataset to use
+     * @param FMap The map of selected features
+     * @param alteredSolution The modified solution
+     * @param oldSolution The old solution
+     */
+    private void keepBestAfterEvaluation(Dataset<Label> dataset, ImmutableFeatureMap FMap, int[] alteredSolution, int[] oldSolution) {
+        if (evaluateSolution(this, dataset, FMap, alteredSolution) > evaluateSolution(this, dataset, FMap, oldSolution)) {
+            System.arraycopy(alteredSolution, 0, oldSolution, 0, alteredSolution.length);
+        }
+    }
+
+    /**
+     * @param currentSolution The solution to be altered by the mutation operator
+     * @return The altered solution after mutation
+     */
+    private int[] mutation(int[] currentSolution) {
+        return Arrays.stream(currentSolution).map(x -> ThreadLocalRandom.current().nextDouble() < mutationRate ? 1 - x : x).toArray();
+    }
+
+    /**
+     * @param currentSolution The solution to be altered by the mutation operator
+     * @return The altered solution after inversion mutation
+     */
+    private int[] inversionMutation(int[] currentSolution) {
+        int rand1 = new Random().nextInt(currentSolution.length);
+        int rand2 = new Random().nextInt(currentSolution.length);
+        while (rand1 >= rand2) {
+            rand1 = new Random().nextInt(currentSolution.length);
+            rand2 = new Random().nextInt(currentSolution.length);
+        }
+        for (; rand1 < rand2; rand1++) {
+            currentSolution[rand1] = 1 - currentSolution[rand1];
+        }
+        return currentSolution;
+    }
+
+    /**
+     * @param currentSolution The solution to be altered by the jaya operator
+     * @param currentBest The best solution in the current generation
+     * @param currentWorst The worst solution in the current generation
+     * @return The altered solution after appling jaya operator
+     */
+    private int[] jayaOperator(int[] currentSolution, int[] currentBest, int[] currentWorst) {
+        int[] newSolution = new int[currentSolution.length];
+        Arrays.setAll(newSolution, i -> (int) transferFunction.applyAsDouble(currentSolution[i] + new Random().nextDouble() * (currentBest[i] - currentSolution[i]) -
+                new Random().nextDouble() * (currentWorst[i] - currentSolution[i])));
+        return newSolution;
+    }
+
+    /**
      * This record is used to hold subset of features with its corresponding fitness score
      */
-    record FeatureSet_FScore_Container(int[] subSet, double score) { }
+    record CuckooSearchFeatureSet(int[] subSet, double score) { }
 }
