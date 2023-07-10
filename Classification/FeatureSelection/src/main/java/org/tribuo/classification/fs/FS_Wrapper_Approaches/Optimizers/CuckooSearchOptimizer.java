@@ -157,30 +157,31 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
         List<CuckooSearchFeatureSet> subSet_fScores = Arrays.stream(setOfSolutions).map(setOfSolution -> new CuckooSearchFeatureSet(setOfSolution, evaluateSolution(this, dataset, FMap, setOfSolution))).sorted(Comparator.comparing(CuckooSearchFeatureSet::score).reversed()).collect(Collectors.toList());
         SelectedFeatureSet selectedFeatureSet = null;
         for (int i = 0; i < maxIteration; i++) {
-            IntStream.range(0, setOfSolutions.length).parallel().forEach(subSet -> {
+            for (int solution = 0; solution < populationSize; solution++) {
+                AtomicInteger subSet = new AtomicInteger(solution);
                 // Update the solution based on the levy flight function
-                int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet]).map(x -> (int) transferFunction.applyAsDouble(x + stepSizeScaling * Math.pow(subSet + 1, -lambda))).toArray();
+                int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet.get()]).map(x -> (int) transferFunction.applyAsDouble(x + stepSizeScaling * Math.pow(subSet.get() + 1, -lambda))).toArray();
                 int[] randomCuckoo = setOfSolutions[rng.nextInt(setOfSolutions.length)];
                 keepBestAfterEvaluation(dataset, FMap, evolvedSolution, randomCuckoo);
                 // Update the solution based on the abandone nest function
                 if (new Random().nextDouble() < worstNestProbability) {
                     int r1 = rng.nextInt(setOfSolutions.length);
                     int r2 = rng.nextInt(setOfSolutions.length);
-                    for (int j = 0; j < setOfSolutions[subSet].length; j++) {
-                        evolvedSolution[j] = (int) transferFunction.applyAsDouble(setOfSolutions[subSet][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
+                    for (int j = 0; j < setOfSolutions[subSet.get()].length; j++) {
+                        evolvedSolution[j] = (int) transferFunction.applyAsDouble(setOfSolutions[subSet.get()][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
                     }
-                    keepBestAfterEvaluation(dataset, FMap, evolvedSolution, setOfSolutions[subSet]);
+                    keepBestAfterEvaluation(dataset, FMap, evolvedSolution, setOfSolutions[subSet.get()]);
                 }
                 // Update the solution based on mutation operator
-                int[] mutedSolution = mutation(setOfSolutions[subSet]);
-                keepBestAfterEvaluation(dataset, FMap, mutedSolution, setOfSolutions[subSet]);
+                int[] mutedSolution = mutation(setOfSolutions[subSet.get()]);
+                keepBestAfterEvaluation(dataset, FMap, mutedSolution, setOfSolutions[subSet.get()]);
                 // Update the solution based on inversion mutation
-                mutedSolution = inversionMutation(setOfSolutions[subSet]);
-                keepBestAfterEvaluation(dataset, FMap, mutedSolution, setOfSolutions[subSet]);
+                mutedSolution = inversionMutation(setOfSolutions[subSet.get()]);
+                keepBestAfterEvaluation(dataset, FMap, mutedSolution, setOfSolutions[subSet.get()]);
                 // Updata the solution based on mutation operator
-                int[] jayaSolution = jayaOperator(setOfSolutions[subSet], subSet_fScores.get(0).subSet(), subSet_fScores.get(subSet_fScores.size() - 1).subSet());
-                keepBestAfterEvaluation(dataset, FMap, jayaSolution, setOfSolutions[subSet]);
-            });
+                int[] jayaSolution = jayaOperator(setOfSolutions[subSet.get()], subSet_fScores.get(0).subSet(), subSet_fScores.get(subSet_fScores.size() - 1).subSet());
+                keepBestAfterEvaluation(dataset, FMap, jayaSolution, setOfSolutions[subSet.get()]);
+            }
             Arrays.stream(setOfSolutions).map(subSet -> new CuckooSearchFeatureSet(subSet, evaluateSolution(this, dataset, FMap, subSet))).forEach(subSet_fScores::add);
             subSet_fScores.sort(Comparator.comparing(CuckooSearchFeatureSet::score).reversed());
             selectedFeatureSet = getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
