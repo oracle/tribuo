@@ -31,6 +31,19 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Select features based on Cuckoo Search algorithm with binary transfer functions, KNN classifier and 10-fold cross validation
+ * <p>
+ * see:
+ * <pre>
+ * Xin-She Yang and Suash Deb.
+ * "Cuckoo Search via L´evy Flights", 2010.
+ *
+ * L. A. M. Pereira et al.
+ * "A Binary Cuckoo Search and its Application for Feature Selection", 2014.
+ * </pre>
+ */
+
 public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
     private final TransferFunction transferFunction;
     private final int populationSize;
@@ -236,6 +249,13 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
     }
 
     /**
+     * The simple mutation method of Genetic algorithm
+     * <p>
+     * see:
+     * <pre>
+     * Steven Bayer and Lui Wang.
+     * "A Genetic Algorithm Programming Environment: Splicer", 1991.
+     * </pre>
      * @param currentSolution The solution to be altered by the mutation operator
      * @return The altered solution after mutation
      */
@@ -244,6 +264,13 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
     }
 
     /**
+     * The inversion mutation
+     * <p>
+     * see:
+     * <pre>
+     * Nitashs Soni and Tapsa Kumar.
+     * "Study of Various Mutation Operators in Genetic Algorithms", 2014.
+     * </pre>
      * @param currentSolution The solution to be altered by the mutation operator
      * @return The altered solution after inversion mutation
      */
@@ -261,6 +288,13 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
     }
 
     /**
+     * The main equation of Jaya optimization algorithm
+     * <p>
+     * see:
+     * <pre>
+     * Venkata Rao.
+     * "Jaya: A simple and new optimization algorithm for solving constrained and unconstrained optimization problems", 2016.
+     * </pre>
      * @param currentSolution The solution to be altered by the jaya operator
      * @param currentBest The best solution in the current generation
      * @param currentWorst The worst solution in the current generation
