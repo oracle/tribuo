@@ -76,6 +76,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
 
     /**
      * Constructs the wrapper feature selection based on cuckoo search algorithm
+     * @param trainer The used trainer in the evaluation process
      * @param transferFunction The transfer function to convert continuous values to binary ones
      * @param populationSize The size of the solution in the initial population
      * @param maxIteration The number of times that is used to enhance generation
@@ -97,13 +98,13 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
 
     /**
      * Constructs the wrapper feature selection based on cuckoo search algorithm
+     * @param trainer The used trainer in the evaluation process
      * @param transferFunction The transfer function to convert continuous values to binary ones
      * @param populationSize The size of the solution in the initial population
      * @param stepSizeScaling The cuckoo step size
      * @param lambda The lambda of the levy flight function
      * @param worstNestProbability The fraction of the nests to be abandoned
      * @param delta The delta that is used in the abandon nest function
-     * @param mutationRate The proportion to apply the mutation operator
      * @param maxIteration The number of times that is used to enhance generation
      * @param seed This seed is required for the SplittableRandom
      */
@@ -199,6 +200,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
     /**
      * This method is used to compute the fitness score of each solution of the population
      * @param optimizer The optimizer that is used for FS
+     * @param trainer The used trainer in the evaluation process
      * @param dataset The dataset to use
      * @param Fmap The dataset feature map
      * @param solution The current subset of features
@@ -240,6 +242,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
 
     /**
      * @param dataset The dataset to use
+     * @param trainer The used trainer in the evaluation process
      * @param FMap The map of selected features
      * @param alteredSolution The modified solution
      * @param oldSolution The old solution
