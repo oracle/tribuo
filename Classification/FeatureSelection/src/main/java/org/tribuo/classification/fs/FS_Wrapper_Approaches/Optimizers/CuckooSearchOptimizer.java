@@ -69,7 +69,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
         this.worstNestProbability = 0.1d;
         this.delta = 1.5d;
         this.mutationRate = 0.2d;
-        this.maxIteration = 30;
+        this.maxIteration = 3;
         this.seed = 12345;
         this.rng = new SplittableRandom(seed);
     }
@@ -105,6 +105,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
      * @param lambda The lambda of the levy flight function
      * @param worstNestProbability The fraction of the nests to be abandoned
      * @param delta The delta that is used in the abandon nest function
+     * @param mutationRate The proportion to apply the mutation operator
      * @param maxIteration The number of times that is used to enhance generation
      * @param seed This seed is required for the SplittableRandom
      */
@@ -167,7 +168,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
                 int[] randomCuckoo = setOfSolutions[rng.nextInt(setOfSolutions.length)];
                 keepBestAfterEvaluation(dataset, trainer, FMap, evolvedSolution, randomCuckoo);
                 // Update the solution based on the abandone nest function
-                if (new Random().nextDouble() < worstNestProbability) {
+                if (rng.nextDouble() < worstNestProbability) {
                     int r1 = rng.nextInt(setOfSolutions.length);
                     int r2 = rng.nextInt(setOfSolutions.length);
                     for (int j = 0; j < setOfSolutions[subSet.get()].length; j++) {
@@ -181,7 +182,10 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
                 // Update the solution based on inversion mutation
                 mutedSolution = inversionMutation(setOfSolutions[subSet.get()]);
                 keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
-                // Updata the solution based on mutation operator
+                // Update the solution based on swapped mutation
+                mutedSolution = swappedMutation(setOfSolutions[subSet.get()]);
+                keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
+                // Updata the solution based on Jaya operator
                 int[] jayaSolution = jayaOperator(setOfSolutions[subSet.get()], subSet_fScores.get(0).subSet(), subSet_fScores.get(subSet_fScores.size() - 1).subSet());
                 keepBestAfterEvaluation(dataset, trainer, FMap, jayaSolution, setOfSolutions[subSet.get()]);
             }
@@ -264,7 +268,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
      * @param currentSolution The solution to be altered by the mutation operator
      * @return The altered solution after mutation
      */
-    private int[] mutation(int[] currentSolution) {
+    private int[] mutation(int... currentSolution) {
         return Arrays.stream(currentSolution).map(x -> ThreadLocalRandom.current().nextDouble() < mutationRate ? 1 - x : x).toArray();
     }
 
@@ -279,7 +283,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
      * @param currentSolution The solution to be altered by the mutation operator
      * @return The altered solution after inversion mutation
      */
-    private int[] inversionMutation(int[] currentSolution) {
+    private int[] inversionMutation(int... currentSolution) {
         int rand1 = new Random().nextInt(currentSolution.length);
         int rand2 = new Random().nextInt(currentSolution.length);
         while (rand1 >= rand2) {
@@ -289,6 +293,26 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
         for (; rand1 < rand2; rand1++) {
             currentSolution[rand1] = 1 - currentSolution[rand1];
         }
+        return currentSolution;
+    }
+
+    /**
+     * Sswapped mutation
+     * <p>
+     * see:
+     * <pre>
+     * Ming-Wen Tsai et al.
+     * "A Two-Dimensional Genetic Algorithm and Its Application to Aircraft Scheduling Problem", 2015.
+     * </pre>
+     * @param currentSolution The solution to be altered by the mutation operator
+     * @return The altered solution after swapped mutation
+     */
+    private int[] swappedMutation(int... currentSolution) {
+        int firstGeneIndex = new Random().nextInt(currentSolution.length);
+        int secondGeneIndex = new Random().nextInt(currentSolution.length);
+        int secondGene = currentSolution[secondGeneIndex];
+        currentSolution[secondGeneIndex] = currentSolution[firstGeneIndex];
+        currentSolution[firstGeneIndex] = secondGene;
         return currentSolution;
     }
 
@@ -307,8 +331,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
      */
     private int[] jayaOperator(int[] currentSolution, int[] currentBest, int[] currentWorst) {
         int[] newSolution = new int[currentSolution.length];
-        Arrays.setAll(newSolution, i -> (int) transferFunction.applyAsDouble(currentSolution[i] + new Random().nextDouble() * (currentBest[i] - currentSolution[i]) -
-                new Random().nextDouble() * (currentWorst[i] - currentSolution[i])));
+        Arrays.setAll(newSolution, i -> (int) transferFunction.applyAsDouble(currentSolution[i] + new Random().nextDouble() * (currentBest[i] - currentSolution[i]) - new Random().nextDouble() * (currentWorst[i] - currentSolution[i])));
         return newSolution;
     }
 
