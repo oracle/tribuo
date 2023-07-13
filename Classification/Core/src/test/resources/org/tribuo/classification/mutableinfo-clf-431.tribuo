@@ -1,0 +1,4 @@
+*org.tribuo.classification.MutableLabelInfoV
+?type.googleapis.com/tribuo.classification.MutableLabelInfoProto
+OTHER
+TEST

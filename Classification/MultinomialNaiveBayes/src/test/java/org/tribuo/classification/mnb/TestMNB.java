@@ -123,7 +123,7 @@ public class TestMNB {
 
             assertEquals("4.3.1", deserModel.getProvenance().getTribuoVersion());
 
-            Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+            Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
             Trainer<Label> trainer = new MultinomialNaiveBayesTrainer();
             Model<Label> model = trainer.train(p.getA());
 
@@ -135,7 +135,7 @@ public class TestMNB {
     }
 
     public void generateProtobuf() throws IOException {
-        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
 
         Trainer<Label> trainer = new MultinomialNaiveBayesTrainer();
         Model<Label> model = trainer.train(p.getA());
