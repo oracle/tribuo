@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,21 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
+import org.tribuo.classification.ensemble.FullyWeightedVotingCombiner;
+import org.tribuo.classification.ensemble.VotingCombiner;
+import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.protos.core.EnsembleCombinerProto;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.protos.core.OutputProto;
+import org.tribuo.test.Helpers;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -70,4 +82,85 @@ public class SerializationTest {
         assertEquals(immutableInfo,deserImInfo);
     }
 
+    @Test
+    public void load431Protobufs() throws URISyntaxException, IOException {
+        Label test = new Label("TEST",1.0);
+        Label other = new Label("OTHER",1.0);
+        // Label
+        Path eventPath = Paths.get(SerializationTest.class.getResource("label-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(eventPath)) {
+            OutputProto proto = OutputProto.parseFrom(fis);
+            Label lbl = (Label) Output.deserialize(proto);
+            assertEquals(test, lbl);
+        }
+
+        // LabelFactory
+        Path factoryPath = Paths.get(SerializationTest.class.getResource("factory-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(factoryPath)) {
+            OutputFactoryProto proto = OutputFactoryProto.parseFrom(fis);
+            LabelFactory factory = (LabelFactory) OutputFactory.deserialize(proto);
+            assertEquals(new LabelFactory(), factory);
+        }
+
+        MutableLabelInfo info = new MutableLabelInfo();
+        for (int i = 0; i < 5; i++) {
+            info.observe(test);
+            info.observe(other);
+        }
+        for (int i = 0; i < 2; i++) {
+            info.observe(LabelFactory.UNKNOWN_LABEL);
+        }
+        ImmutableLabelInfo imInfo = (ImmutableLabelInfo) info.generateImmutableOutputInfo();
+
+        // MutableLabelInfo
+        Path mutablePath = Paths.get(SerializationTest.class.getResource("mutableinfo-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(mutablePath)) {
+            OutputDomainProto proto = OutputDomainProto.parseFrom(fis);
+            LabelInfo deserInfo = (LabelInfo) OutputInfo.deserialize(proto);
+            assertEquals(info, deserInfo);
+        }
+        // ImmutableLabelInfo
+        Path immutablePath = Paths.get(SerializationTest.class.getResource("immutableinfo-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(immutablePath)) {
+            OutputDomainProto proto = OutputDomainProto.parseFrom(fis);
+            LabelInfo deserInfo = (LabelInfo) OutputInfo.deserialize(proto);
+            assertEquals(imInfo, deserInfo);
+        }
+        // VotingCombiner
+        VotingCombiner comb = new VotingCombiner();
+        Path combinerPath = Paths.get(SerializationTest.class.getResource("vote-combiner-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(combinerPath)) {
+            EnsembleCombinerProto proto = EnsembleCombinerProto.parseFrom(fis);
+            VotingCombiner deserComb = (VotingCombiner) EnsembleCombiner.deserialize(proto);
+            assertEquals(comb, deserComb);
+        }
+        // MultiLabelVotingCombiner
+        FullyWeightedVotingCombiner fvComb = new FullyWeightedVotingCombiner();
+        Path fvCombinerPath = Paths.get(SerializationTest.class.getResource("fullvote-combiner-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(fvCombinerPath)) {
+            EnsembleCombinerProto proto = EnsembleCombinerProto.parseFrom(fis);
+            FullyWeightedVotingCombiner deserComb = (FullyWeightedVotingCombiner) EnsembleCombiner.deserialize(proto);
+            assertEquals(fvComb, deserComb);
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        Label test = new Label("TEST",1.0);
+        Label other = new Label("OTHER",1.0);
+        Helpers.writeProtobuf(new LabelFactory(), Paths.get("src","test","resources","org","tribuo","classification","factory-clf-431.tribuo"));
+        Helpers.writeProtobuf(test, Paths.get("src","test","resources","org","tribuo","classification","label-clf-431.tribuo"));
+        MutableLabelInfo info = new MutableLabelInfo();
+        for (int i = 0; i < 5; i++) {
+            info.observe(test);
+            info.observe(other);
+        }
+        for (int i = 0; i < 2; i++) {
+            info.observe(LabelFactory.UNKNOWN_LABEL);
+        }
+        Helpers.writeProtobuf(info, Paths.get("src","test","resources","org","tribuo","classification","mutableinfo-clf-431.tribuo"));
+        ImmutableLabelInfo imInfo = (ImmutableLabelInfo) info.generateImmutableOutputInfo();
+        Helpers.writeProtobuf(imInfo, Paths.get("src","test","resources","org","tribuo","classification","immutableinfo-clf-431.tribuo"));
+        Helpers.writeProtobuf(new VotingCombiner(), Paths.get("src","test","resources","org","tribuo","classification","vote-combiner-clf-431.tribuo"));
+        Helpers.writeProtobuf(new FullyWeightedVotingCombiner(), Paths.get("src","test","resources","org","tribuo","classification","fullvote-combiner-clf-431.tribuo"));
+    }
 }
