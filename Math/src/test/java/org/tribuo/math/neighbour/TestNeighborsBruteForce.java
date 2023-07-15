@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,14 @@ import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForce;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.math.protos.NeighbourFactoryProto;
 import org.tribuo.protos.ProtoUtil;
+import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -108,5 +115,21 @@ public class TestNeighborsBruteForce {
         NeighbourFactoryProto proto = factory.serialize();
         NeighboursQueryFactory deser = ProtoUtil.deserialize(proto);
         assertEquals(factory,deser);
+    }
+
+    @Test
+    public void load431Protobufs() throws URISyntaxException, IOException {
+        Path normalizerPath = Paths.get(TestNeighborsBruteForce.class.getResource("brute-factory-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(normalizerPath)) {
+            NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 4);
+            NeighbourFactoryProto proto = NeighbourFactoryProto.parseFrom(fis);
+            NeighboursQueryFactory deser = ProtoUtil.deserialize(proto);
+            assertEquals(factory, deser);
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        NeighboursBruteForceFactory factory = new NeighboursBruteForceFactory(DistanceType.L2.getDistance(), 4);
+        Helpers.writeProtobuf(factory, Paths.get("src","test","resources","org","tribuo","math","neighbour","brute-factory-431.tribuo"));
     }
 }

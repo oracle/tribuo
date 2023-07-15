@@ -17,11 +17,28 @@
 package org.tribuo.math;
 
 import org.junit.jupiter.api.Test;
+import org.tribuo.Output;
+import org.tribuo.OutputFactory;
+import org.tribuo.OutputInfo;
+import org.tribuo.math.kernel.Kernel;
 import org.tribuo.math.kernel.Linear;
 import org.tribuo.math.kernel.Polynomial;
 import org.tribuo.math.kernel.RBF;
 import org.tribuo.math.kernel.Sigmoid;
+import org.tribuo.math.protos.KernelProto;
+import org.tribuo.protos.core.OutputDomainProto;
+import org.tribuo.protos.core.OutputFactoryProto;
+import org.tribuo.protos.core.OutputProto;
+import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.test.Helpers.testProtoSerialization;
 
 public class KernelTest {
@@ -50,4 +67,27 @@ public class KernelTest {
         testProtoSerialization(lin);
     }
 
+    private void testProto(String name, Kernel actualKernel) throws URISyntaxException, IOException {
+        Path kernelPath = Paths.get(KernelTest.class.getResource(name).toURI());
+        try (InputStream fis = Files.newInputStream(kernelPath)) {
+            KernelProto proto = KernelProto.parseFrom(fis);
+            Kernel kernel = Kernel.deserialize(proto);
+            assertEquals(actualKernel, kernel);
+        }
+    }
+
+    @Test
+    public void load431Protobufs() throws URISyntaxException, IOException {
+        testProto("linear-kernel-431.tribuo", new Linear());
+        testProto("poly-kernel-431.tribuo", new Polynomial(1,2,3));
+        testProto("rbf-kernel-431.tribuo", new RBF(1.0));
+        testProto("sigmoid-kernel-431.tribuo", new Sigmoid(1,2));
+    }
+
+    public void generateProtobufs() throws IOException {
+        Helpers.writeProtobuf(new Linear(), Paths.get("src","test","resources","org","tribuo","math","linear-kernel-431.tribuo"));
+        Helpers.writeProtobuf(new Polynomial(1,2,3), Paths.get("src","test","resources","org","tribuo","math","poly-kernel-431.tribuo"));
+        Helpers.writeProtobuf(new RBF(1.0), Paths.get("src","test","resources","org","tribuo","math","rbf-kernel-431.tribuo"));
+        Helpers.writeProtobuf(new Sigmoid(1,2), Paths.get("src","test","resources","org","tribuo","math","sigmoid-kernel-431.tribuo"));
+    }
 }
