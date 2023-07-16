@@ -190,9 +190,9 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
                 keepBestAfterEvaluation(dataset, trainer, FMap, jayaSolution, setOfSolutions[subSet.get()]);
             }
             Arrays.stream(setOfSolutions).map(subSet -> new CuckooSearchFeatureSet(subSet, evaluateSolution(this, trainer, dataset, FMap, subSet))).forEach(subSet_fScores::add);
-            subSet_fScores.sort(Comparator.comparing(CuckooSearchFeatureSet::score).reversed());
-            selectedFeatureSet = getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
         }
+         subSet_fScores.sort(Comparator.comparing(CuckooSearchFeatureSet::score).reversed());
+         selectedFeatureSet = getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
         return selectedFeatureSet;
     }
 
