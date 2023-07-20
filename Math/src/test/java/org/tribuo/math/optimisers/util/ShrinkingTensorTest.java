@@ -60,10 +60,10 @@ public class ShrinkingTensorTest {
     public void generateProtobuf() throws IOException {
         DenseMatrix aMatrix = DenseMatrixTest.generateA();
         ShrinkingMatrix shMatrix = new ShrinkingMatrix(aMatrix,0.1,true);
-        Helpers.writeProtobuf(shMatrix, Paths.get("src","test","resources","org","tribuo","math","optimizers","util","shrinking-matrix-431.tribuo"));
+        Helpers.writeProtobuf(shMatrix, Paths.get("src","test","resources","org","tribuo","math","optimisers","util","shrinking-matrix-431.tribuo"));
         DenseVector aVec = DenseVectorTest.generateVectorA();
         ShrinkingVector shVec = new ShrinkingVector(aVec,0.1,true);
-        Helpers.writeProtobuf(shVec, Paths.get("src","test","resources","org","tribuo","math","optimizers","util","shrinking-vector-431.tribuo"));
+        Helpers.writeProtobuf(shVec, Paths.get("src","test","resources","org","tribuo","math","optimisers","util","shrinking-vector-431.tribuo"));
     }
 
     @Test
