@@ -210,8 +210,8 @@ public class MergerTest {
         Path mergerPath = Paths.get(MergerTest.class.getResource(name).toURI());
         try (InputStream fis = Files.newInputStream(mergerPath)) {
             MergerProto proto = MergerProto.parseFrom(fis);
-            Merger kernel = ProtoUtil.deserialize(proto);
-            assertEquals(actualMerger, kernel);
+            Merger merger = ProtoUtil.deserialize(proto);
+            assertEquals(actualMerger, merger);
         }
     }
 

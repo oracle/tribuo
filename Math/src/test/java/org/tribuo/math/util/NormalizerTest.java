@@ -61,8 +61,8 @@ public class NormalizerTest {
         Path normalizerPath = Paths.get(NormalizerTest.class.getResource(name).toURI());
         try (InputStream fis = Files.newInputStream(normalizerPath)) {
             NormalizerProto proto = NormalizerProto.parseFrom(fis);
-            VectorNormalizer kernel = ProtoUtil.deserialize(proto);
-            assertEquals(actualNormalizer, kernel);
+            VectorNormalizer normalizer = ProtoUtil.deserialize(proto);
+            assertEquals(actualNormalizer, normalizer);
         }
     }
 

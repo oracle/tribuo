@@ -36,8 +36,8 @@ public class DistanceTest {
         Path distancePath = Paths.get(DistanceTest.class.getResource(name).toURI());
         try (InputStream fis = Files.newInputStream(distancePath)) {
             DistanceProto proto = DistanceProto.parseFrom(fis);
-            Distance kernel = ProtoUtil.deserialize(proto);
-            assertEquals(actualDistance, kernel);
+            Distance distance = ProtoUtil.deserialize(proto);
+            assertEquals(actualDistance, distance);
         }
     }
 
