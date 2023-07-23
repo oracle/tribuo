@@ -284,16 +284,18 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
      * @return The altered solution after inversion mutation
      */
     private int[] inversionMutation(int... currentSolution) {
-        int rand1 = new Random().nextInt(currentSolution.length);
-        int rand2 = new Random().nextInt(currentSolution.length);
+        int[] solution = new int[currentSolution.length];
+        System.arraycopy(currentSolution, 0, solution, 0, solution.length);
+        int rand1 = new Random().nextInt(solution.length);
+        int rand2 = new Random().nextInt(solution.length);
         while (rand1 >= rand2) {
-            rand1 = new Random().nextInt(currentSolution.length);
-            rand2 = new Random().nextInt(currentSolution.length);
+            rand1 = new Random().nextInt(solution.length);
+            rand2 = new Random().nextInt(solution.length);
         }
         for (; rand1 < rand2; rand1++) {
-            currentSolution[rand1] = 1 - currentSolution[rand1];
+            solution[rand1] = 1 - solution[rand1];
         }
-        return currentSolution;
+        return solution;
     }
 
     /**
@@ -308,12 +310,14 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
      * @return The altered solution after swapped mutation
      */
     private int[] swappedMutation(int... currentSolution) {
+        int[] solution = new int[currentSolution.length];
+        System.arraycopy(currentSolution, 0, solution, 0, solution.length);
         int firstGeneIndex = new Random().nextInt(currentSolution.length);
         int secondGeneIndex = new Random().nextInt(currentSolution.length);
-        int secondGene = currentSolution[secondGeneIndex];
-        currentSolution[secondGeneIndex] = currentSolution[firstGeneIndex];
-        currentSolution[firstGeneIndex] = secondGene;
-        return currentSolution;
+        int secondGene = solution[secondGeneIndex];
+        solution[secondGeneIndex] = solution[firstGeneIndex];
+        solution[firstGeneIndex] = secondGene;
+        return solution;
     }
 
     /**
