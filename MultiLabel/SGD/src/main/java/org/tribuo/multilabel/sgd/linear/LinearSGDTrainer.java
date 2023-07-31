@@ -98,6 +98,11 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<MultiLabel, SGDVe
     }
 
     @Override
+    protected SparseVector[] createTargetArray(int size) {
+        return new SparseVector[size];
+    }
+
+    @Override
     protected SparseVector getTarget(ImmutableOutputInfo<MultiLabel> outputInfo, MultiLabel output) {
         return output.convertToSparseVector(outputInfo);
     }

@@ -109,6 +109,11 @@ public class FMClassificationTrainer extends AbstractFMTrainer<Label, Integer, F
     }
 
     @Override
+    protected Integer[] createTargetArray(int size) {
+        return new Integer[size];
+    }
+
+    @Override
     protected Integer getTarget(ImmutableOutputInfo<Label> outputInfo, Label output) {
         return outputInfo.getID(output);
     }

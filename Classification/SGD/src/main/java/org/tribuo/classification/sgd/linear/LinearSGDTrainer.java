@@ -98,6 +98,11 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Label,Integer,Lin
     }
 
     @Override
+    protected Integer[] createTargetArray(int size) {
+        return new Integer[size];
+    }
+
+    @Override
     protected Integer getTarget(ImmutableOutputInfo<Label> outputInfo, Label output) {
         return outputInfo.getID(output);
     }

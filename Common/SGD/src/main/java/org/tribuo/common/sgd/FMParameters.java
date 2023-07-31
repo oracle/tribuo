@@ -232,7 +232,7 @@ public final class FMParameters implements FeedForwardParameters {
     @Override
     public DenseMatrix predict(Matrix batch) {
         // Linear part of the prediction
-        DenseMatrix pred = weightMatrix.matrixMultiply(batch);
+        DenseMatrix pred = (DenseMatrix) batch.matrixMultiply(weightMatrix, false, true);
 
         // Add in the label biases
         pred.rowIntersectAndAddInPlace(biasVector);
@@ -342,11 +342,11 @@ public final class FMParameters implements FeedForwardParameters {
         gradients[0] = outputGradient.columnSum();
 
         // Feature gradients
-        gradients[1] = outputGradient.matrixMultiply(featureBatch);
+        gradients[1] = outputGradient.matrixMultiply(featureBatch, true, false);
 
         boolean allSparse = true;
         for (int i = 0; i < featureBatch.getDimension1Size(); i++) {
-            allSparse &= featureBatch.getRow(i).numActiveElements() == featureBatch.getDimension2Size();
+            allSparse &= featureBatch.getRow(i).numActiveElements() != featureBatch.getDimension2Size();
         }
 
         // factorised representation gradients

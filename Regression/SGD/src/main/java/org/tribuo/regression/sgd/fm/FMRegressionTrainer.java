@@ -121,6 +121,11 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVecto
     }
 
     @Override
+    protected DenseVector[] createTargetArray(int size) {
+        return new DenseVector[size];
+    }
+
+    @Override
     protected DenseVector getTarget(ImmutableOutputInfo<Regressor> outputInfo, Regressor output) {
         ImmutableRegressionInfo regressionInfo = (ImmutableRegressionInfo) outputInfo;
         double[] regressorsBuffer = new double[outputInfo.size()];

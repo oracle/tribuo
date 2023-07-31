@@ -130,7 +130,7 @@ public class LinearParameters implements FeedForwardParameters {
      */
     @Override
     public DenseMatrix predict(Matrix batch) {
-        return weightMatrix.matrixMultiply(batch);
+        return (DenseMatrix) batch.matrixMultiply(weightMatrix, false, true);
     }
 
     /**
@@ -150,7 +150,7 @@ public class LinearParameters implements FeedForwardParameters {
 
     @Override
     public Tensor[] gradients(Pair<double[], Matrix> score, Matrix featureBatch) {
-        Matrix gradient = score.getB().matrixMultiply(featureBatch);
+        Matrix gradient = score.getB().matrixMultiply(featureBatch, true, false);
         return new Tensor[]{gradient};
     }
 

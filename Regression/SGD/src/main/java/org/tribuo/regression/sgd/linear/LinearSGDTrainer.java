@@ -25,6 +25,7 @@ import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
+import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.sgd.RegressionObjective;
@@ -96,6 +97,11 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor, DenseV
      */
     private LinearSGDTrainer() {
         super();
+    }
+
+    @Override
+    protected DenseVector[] createTargetArray(int size) {
+        return new DenseVector[size];
     }
 
     @Override
