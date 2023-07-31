@@ -22,7 +22,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
-import org.tribuo.math.la.ArrayMatrix;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
@@ -143,7 +142,7 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVecto
 
     @Override
     protected DenseMatrix getTargetBatch(DenseVector[] outputs, int start, int size) {
-        return new ArrayMatrix(Arrays.copyOfRange(outputs, start, start+size), size);
+        return (DenseMatrix) Matrix.aggregate(Arrays.copyOfRange(outputs, start, start+size), size, false);
     }
 
     @Override

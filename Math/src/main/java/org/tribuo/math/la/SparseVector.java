@@ -189,13 +189,13 @@ public non-sealed class SparseVector implements SGDVector {
     }
 
     /**
-     * Returns a deep copy of the supplied sparse vector.
+     * Returns a deep copy of the supplied vector.
      * <p>
      * Copies the value by iterating its VectorTuple.
-     * @param other The SparseVector to copy.
+     * @param other The SGDVector to copy.
      */
-    private SparseVector(SparseVector other) {
-        this.size = other.size;
+    SparseVector(SGDVector other) {
+        this.size = other.size();
         int numActiveElements = other.numActiveElements();
         this.indices = new int[numActiveElements];
         this.values = new double[numActiveElements];

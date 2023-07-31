@@ -22,7 +22,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.FMParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
-import org.tribuo.math.la.ArrayMatrix;
 import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
@@ -31,6 +30,7 @@ import org.tribuo.multilabel.sgd.MultiLabelObjective;
 import org.tribuo.multilabel.sgd.objectives.BinaryCrossEntropy;
 import org.tribuo.provenance.ModelProvenance;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -123,9 +123,7 @@ public class FMMultiLabelTrainer extends AbstractFMTrainer<MultiLabel, SGDVector
 
     @Override
     protected Matrix getTargetBatch(SGDVector[] outputs, int start, int size) {
-        SGDVector[] output = new SGDVector[size];
-        System.arraycopy(outputs, start, output, 0,  size);
-        return new ArrayMatrix(output, size);
+        return Matrix.aggregate(Arrays.copyOfRange(outputs, start, start+size), size, false);
     }
 
     @Override

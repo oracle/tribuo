@@ -21,17 +21,20 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
+import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
+import org.tribuo.classification.example.InterlockingCrescentsDataSource;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.classification.sgd.objectives.Hinge;
 import org.tribuo.classification.sgd.objectives.LogMulticlass;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
 import org.tribuo.dataset.DatasetView;
+import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.junit.jupiter.api.Assertions;
@@ -146,6 +149,25 @@ public class TestSGDLinear {
             Model<Label> m = t.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
+    }
+
+    @Test
+    public void testBatching() {
+        LabelEvaluator eval = new LabelEvaluator();
+        InterlockingCrescentsDataSource source = new InterlockingCrescentsDataSource(100);
+        TrainTestSplitter<Label> split = new TrainTestSplitter<>(source);
+        Dataset<Label> train = new MutableDataset<>(split.getTrain());
+        Dataset<Label> test = new MutableDataset<>(split.getTest());
+
+        LinearSGDTrainer batch = new LinearSGDTrainer(new LogMulticlass(),new AdaGrad(0.1,0.1),5,1000, 10, Trainer.DEFAULT_SEED);
+        Model<Label> batchModel = batch.train(train);
+        LabelEvaluation batchEval = eval.evaluate(batchModel, test);
+
+        LinearSGDTrainer single = new LinearSGDTrainer(new LogMulticlass(),new AdaGrad(0.1,0.1),2,1000, 1, Trainer.DEFAULT_SEED);
+        Model<Label> singleModel = single.train(train);
+        LabelEvaluation singleEval = eval.evaluate(singleModel, test);
+
+        assertEquals(batchEval.accuracy(), singleEval.accuracy());
     }
 
     @Test

@@ -26,7 +26,6 @@ import org.tribuo.math.util.VectorNormalizer;
 import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.util.Util;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
@@ -735,6 +734,33 @@ public class DenseMatrix implements Matrix {
         }
 
         return output;
+    }
+
+    /**
+     * Adds the vector to each row of this matrix.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     */
+    public void rowIntersectAndAddInPlace(SGDVector vector) {
+        rowIntersectAndAddInPlace(vector, DoubleUnaryOperator.identity());
+    }
+
+    /**
+     * Adds the vector to each row of this matrix, applying the operator {@code f} to each element.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     * @param f The operator to use.
+     */
+    public void rowIntersectAndAddInPlace(SGDVector vector, DoubleUnaryOperator f) {
+        if (vector.size() != dim2) {
+            throw new IllegalArgumentException("Expected same number of dimensions as this matrix has columns, dim 2 = " + dim2 + ", vector.size " + vector.size() );
+        }
+        for (int i = 0; i < dim1; i++) {
+            DenseVector tmp = new DenseVector(values[i]);
+            tmp.intersectAndAddInPlace(vector, f);
+        }
     }
 
     @Override

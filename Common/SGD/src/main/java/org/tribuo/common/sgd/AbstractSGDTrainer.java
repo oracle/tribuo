@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import org.tribuo.Trainer;
 import org.tribuo.WeightedExamples;
 import org.tribuo.math.FeedForwardParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
-import org.tribuo.math.la.ArrayMatrix;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
@@ -219,7 +218,7 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
                     double tempWeight = 0.0;
                     final int bound = Math.min(j+minibatchSize, sgdFeatures.length);
                     System.arraycopy(sgdFeatures, j, batch, 0, bound - j);
-                    Matrix featureBatch = new ArrayMatrix(batch, bound - j);
+                    Matrix featureBatch = Matrix.aggregate(batch, bound - j, false);
                     Y curBatchTargets = getTargetBatch(sgdTargets, j, minibatchSize);
                     DenseMatrix predictions = parameters.predict(featureBatch);
                     Pair<double[], Matrix> output = objective.batchLossAndGradient(curBatchTargets, predictions);
