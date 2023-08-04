@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.classification.liblinear.LinearClassificationType.LinearType;
+import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.data.text.TextDataSource;
 import org.tribuo.data.text.TextFeatureExtractor;
 import org.tribuo.data.text.impl.BasicPipeline;
@@ -45,12 +46,12 @@ import de.bwaldvogel.liblinear.FeatureNode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.tribuo.interop.onnx.OnnxTestUtils;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -292,6 +293,33 @@ public class TestLibLinearModel {
         OnnxTestUtils.onnxLabelComparison(model,onnxFile,p.getB(),1e-6);
 
         onnxFile.toFile().delete();
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestLibLinearModel.class.getResource("liblinear-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            LibLinearClassificationModel model = (LibLinearClassificationModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", model.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+            List<Prediction<Label>> output = model.predict(p.getB());
+            assertEquals(output.size(), p.getB().size());
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generateModel() throws IOException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
+        LinearClassificationType type = new LinearClassificationType(LinearType.L2R_L2LOSS_SVC);
+        LibLinearClassificationTrainer trainer = new LibLinearClassificationTrainer(type,1.0,1000,0.01);
+        LibLinearModel<Label> model = trainer.train(p.getA());
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","classification","liblinear","liblinear-clf-431.tribuo"));
     }
 
     private static int[] getIndices(FeatureNode[] nodes) {
