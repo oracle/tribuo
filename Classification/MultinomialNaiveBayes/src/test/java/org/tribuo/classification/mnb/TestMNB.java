@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
+import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
@@ -27,13 +29,21 @@ import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.dataset.DatasetView;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestMNB {
 
@@ -102,5 +112,34 @@ public class TestMNB {
             Model<Label> m = t.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
+    }
+
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestMNB.class.getResource("mnb-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            MultinomialNaiveBayesModel deserModel = (MultinomialNaiveBayesModel) Model.deserialize(proto);
+
+            assertEquals("4.3.1", deserModel.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
+            Trainer<Label> trainer = new MultinomialNaiveBayesTrainer();
+            Model<Label> model = trainer.train(p.getA());
+
+            List<Prediction<Label>> deserPredictions = deserModel.predict(p.getB());
+            List<Prediction<Label>> predictions = model.predict(p.getB());
+            assertEquals(p.getB().size(), deserPredictions.size());
+            assertTrue(Helpers.predictionListDistributionEquals(predictions, deserPredictions));
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
+
+        Trainer<Label> trainer = new MultinomialNaiveBayesTrainer();
+        Model<Label> model = trainer.train(p.getA());
+
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","classification","mnb","mnb-431.tribuo"));
     }
 }
