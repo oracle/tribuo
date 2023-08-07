@@ -21,11 +21,50 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseMatrixTest;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.DenseVectorTest;
+import org.tribuo.math.la.Tensor;
+import org.tribuo.math.protos.TensorProto;
+import org.tribuo.test.Helpers;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.test.Helpers.testProtoSerialization;
 
 public class ShrinkingTensorTest {
+
+    @Test
+    public void serialization431Test() throws URISyntaxException, IOException {
+        Path matrixPath = Paths.get(ShrinkingTensorTest.class.getResource("shrinking-matrix-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(matrixPath)) {
+            TensorProto proto = TensorProto.parseFrom(fis);
+            Tensor matrix = Tensor.deserialize(proto);
+            DenseMatrix a = DenseMatrixTest.generateA();
+            ShrinkingMatrix sh = new ShrinkingMatrix(a,0.1,true);
+            assertEquals(sh, matrix);
+        }
+        Path vectorPath = Paths.get(ShrinkingTensorTest.class.getResource("shrinking-vector-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(vectorPath)) {
+            TensorProto proto = TensorProto.parseFrom(fis);
+            Tensor vector = Tensor.deserialize(proto);
+            DenseVector a = DenseVectorTest.generateVectorA();
+            ShrinkingVector sh = new ShrinkingVector(a,0.1,true);
+            assertEquals(sh, vector);
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        DenseMatrix aMatrix = DenseMatrixTest.generateA();
+        ShrinkingMatrix shMatrix = new ShrinkingMatrix(aMatrix,0.1,true);
+        Helpers.writeProtobuf(shMatrix, Paths.get("src","test","resources","org","tribuo","math","optimisers","util","shrinking-matrix-431.tribuo"));
+        DenseVector aVec = DenseVectorTest.generateVectorA();
+        ShrinkingVector shVec = new ShrinkingVector(aVec,0.1,true);
+        Helpers.writeProtobuf(shVec, Paths.get("src","test","resources","org","tribuo","math","optimisers","util","shrinking-vector-431.tribuo"));
+    }
 
     @Test
     public void matrixSerializationTest() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.tribuo.math.la.DenseVectorTest.makeMalformedProto;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 import org.tribuo.math.protos.TensorProto;
+import org.tribuo.test.Helpers;
 
 /**
  * Matrices used -
@@ -1442,6 +1449,20 @@ public class DenseMatrixTest {
         matrixMatrixOutput = c.matrixMultiply(oneDimMatrix).getColumn(0);
         matrixVectorOutput = c.leftMultiply(vector);
         assertEquals(matrixMatrixOutput,matrixVectorOutput);
+    }
+
+    @Test
+    public void serialization431Test() throws URISyntaxException, IOException {
+        Path matrixPath = Paths.get(DenseMatrixTest.class.getResource("dense-matrix-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(matrixPath)) {
+            TensorProto proto = TensorProto.parseFrom(fis);
+            Tensor matrix = Tensor.deserialize(proto);
+            assertEquals(generateA(), matrix);
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        Helpers.writeProtobuf(generateA(), Paths.get("src","test","resources","org","tribuo","math","la","dense-matrix-431.tribuo"));
     }
 
     @Test

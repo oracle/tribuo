@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,20 @@ package org.tribuo.math.util;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.tribuo.math.protos.MergerProto;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.test.Helpers;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.test.Helpers.testProtoSerialization;
@@ -196,4 +210,25 @@ public class MergerTest {
         assertEquals(output,merged, "Merge A - B - A - B unsuccessful");
     }
 
+    @ParameterizedTest
+    @MethodSource("load431Protobufs")
+    public void testProto(String name, Merger actualMerger) throws URISyntaxException, IOException {
+        Path mergerPath = Paths.get(MergerTest.class.getResource(name).toURI());
+        try (InputStream fis = Files.newInputStream(mergerPath)) {
+            MergerProto proto = MergerProto.parseFrom(fis);
+            Merger merger = ProtoUtil.deserialize(proto);
+            assertEquals(actualMerger, merger);
+        }
+    }
+
+    private static Stream<Arguments> load431Protobufs() throws URISyntaxException, IOException {
+    	return Stream.of(
+    		      Arguments.of("heap-merger-431.tribuo", new HeapMerger()),
+    		      Arguments.of("matrix-merger-431.tribuo", new MatrixHeapMerger()));
+    }
+
+    public void generateProtobufs() throws IOException {
+        Helpers.writeProtobuf(new HeapMerger(), Paths.get("src","test","resources","org","tribuo","math","util","heap-merger-431.tribuo"));
+        Helpers.writeProtobuf(new MatrixHeapMerger(), Paths.get("src","test","resources","org","tribuo","math","util","matrix-merger-431.tribuo"));
+    }
 }
