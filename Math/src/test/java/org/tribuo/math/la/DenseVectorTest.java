@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,9 +30,15 @@ import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
 import org.tribuo.util.MeanVarianceAccumulator;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.DoubleBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.function.BiFunction;
 import java.util.function.DoubleUnaryOperator;
@@ -300,6 +306,20 @@ public class DenseVectorTest {
         assertEquals(bSubC, b.subtract(c), "B - C");
         assertEquals(cSubA, c.subtract(a), "C - A");
         assertEquals(cSubB, c.subtract(b), "C - B");
+    }
+
+    @Test
+    public void serialization431Test() throws URISyntaxException, IOException {
+        Path vectorPath = Paths.get(DenseVectorTest.class.getResource("dense-vector-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(vectorPath)) {
+            TensorProto proto = TensorProto.parseFrom(fis);
+            Tensor vector = Tensor.deserialize(proto);
+            assertEquals(generateVectorA(), vector);
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        Helpers.writeProtobuf(generateVectorA(), Paths.get("src","test","resources","org","tribuo","math","la","dense-vector-431.tribuo"));
     }
 
     @Test

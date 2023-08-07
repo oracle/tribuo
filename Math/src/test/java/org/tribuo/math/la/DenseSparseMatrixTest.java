@@ -18,6 +18,14 @@ package org.tribuo.math.la;
 
 import org.junit.jupiter.api.Test;
 import org.tribuo.math.protos.TensorProto;
+import org.tribuo.test.Helpers;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,6 +59,22 @@ public class DenseSparseMatrixTest {
         assertEquals(0, column.get(0));
         assertEquals(Math.E, column.get(1));
         assertEquals(0, column.get(2));
+    }
+
+    @Test
+    public void serialization431Test() throws URISyntaxException, IOException {
+        Path matrixPath = Paths.get(DenseSparseMatrixTest.class.getResource("densesparse-matrix-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(matrixPath)) {
+            TensorProto proto = TensorProto.parseFrom(fis);
+            Tensor matrix = Tensor.deserialize(proto);
+            DenseSparseMatrix a = DenseSparseMatrix.createDiagonal(new DenseVector(new double[]{1,2,3,4,5,6}));
+            assertEquals(a, matrix);
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        DenseSparseMatrix a = DenseSparseMatrix.createDiagonal(new DenseVector(new double[]{1,2,3,4,5,6}));
+        Helpers.writeProtobuf(a, Paths.get("src","test","resources","org","tribuo","math","la","densesparse-matrix-431.tribuo"));
     }
 
     @Test
