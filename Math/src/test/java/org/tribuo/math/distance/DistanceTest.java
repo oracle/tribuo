@@ -16,10 +16,7 @@
 
 package org.tribuo.math.distance;
 
-import org.junit.jupiter.api.Test;
-import org.tribuo.math.protos.DistanceProto;
-import org.tribuo.protos.ProtoUtil;
-import org.tribuo.test.Helpers;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,12 +24,20 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.tribuo.math.protos.DistanceProto;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.test.Helpers;
 
 public class DistanceTest {
 
-    private void testProto(String name, Distance actualDistance) throws URISyntaxException, IOException {
+    @ParameterizedTest
+    @MethodSource("load431Protobufs")
+    public void testProto(String name, Distance actualDistance) throws URISyntaxException, IOException {
         Path distancePath = Paths.get(DistanceTest.class.getResource(name).toURI());
         try (InputStream fis = Files.newInputStream(distancePath)) {
             DistanceProto proto = DistanceProto.parseFrom(fis);
@@ -40,12 +45,12 @@ public class DistanceTest {
             assertEquals(actualDistance, distance);
         }
     }
-
-    @Test
-    public void load431Protobufs() throws URISyntaxException, IOException {
-        testProto("cosine-distance-431.tribuo", new CosineDistance());
-        testProto("l1-distance-431.tribuo", new L1Distance());
-        testProto("l2-distance-431.tribuo", new L2Distance());
+    
+    private static Stream<Arguments> load431Protobufs() throws URISyntaxException, IOException {
+    	return Stream.of(
+  		      Arguments.of("cosine-distance-431.tribuo", new CosineDistance()),
+  		      Arguments.of("l1-distance-431.tribuo", new L1Distance()),
+  		      Arguments.of("l2-distance-431.tribuo", new L2Distance()));
     }
 
     public void generateProtobufs() throws IOException {

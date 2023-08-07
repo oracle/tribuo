@@ -17,6 +17,9 @@
 package org.tribuo.math.util;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.tribuo.math.protos.NormalizerProto;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.test.Helpers;
@@ -27,6 +30,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.test.Helpers.testProtoSerialization;
@@ -57,7 +61,9 @@ public class NormalizerTest {
         testProtoSerialization(n);
     }
 
-    private void testProto(String name, VectorNormalizer actualNormalizer) throws URISyntaxException, IOException {
+    @ParameterizedTest
+    @MethodSource("load431Protobufs")
+    public void testProto(String name, VectorNormalizer actualNormalizer) throws URISyntaxException, IOException {
         Path normalizerPath = Paths.get(NormalizerTest.class.getResource(name).toURI());
         try (InputStream fis = Files.newInputStream(normalizerPath)) {
             NormalizerProto proto = NormalizerProto.parseFrom(fis);
@@ -66,12 +72,12 @@ public class NormalizerTest {
         }
     }
 
-    @Test
-    public void load431Protobufs() throws URISyntaxException, IOException {
-        testProto("normalizer-431.tribuo", new Normalizer());
-        testProto("noop-normalizer-431.tribuo", new NoopNormalizer());
-        testProto("exp-normalizer-431.tribuo", new ExpNormalizer());
-        testProto("sigmoid-normalizer-431.tribuo", new SigmoidNormalizer());
+    private static Stream<Arguments> load431Protobufs() throws URISyntaxException, IOException {
+    	return Stream.of(
+  		      Arguments.of("normalizer-431.tribuo", new Normalizer()),
+  		      Arguments.of("noop-normalizer-431.tribuo", new NoopNormalizer()),
+  		      Arguments.of("exp-normalizer-431.tribuo", new ExpNormalizer()),
+  		      Arguments.of("sigmoid-normalizer-431.tribuo", new SigmoidNormalizer()));
     }
 
     public void generateProtobufs() throws IOException {

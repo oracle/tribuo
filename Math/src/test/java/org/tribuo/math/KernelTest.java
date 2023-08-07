@@ -16,20 +16,8 @@
 
 package org.tribuo.math;
 
-import org.junit.jupiter.api.Test;
-import org.tribuo.Output;
-import org.tribuo.OutputFactory;
-import org.tribuo.OutputInfo;
-import org.tribuo.math.kernel.Kernel;
-import org.tribuo.math.kernel.Linear;
-import org.tribuo.math.kernel.Polynomial;
-import org.tribuo.math.kernel.RBF;
-import org.tribuo.math.kernel.Sigmoid;
-import org.tribuo.math.protos.KernelProto;
-import org.tribuo.protos.core.OutputDomainProto;
-import org.tribuo.protos.core.OutputFactoryProto;
-import org.tribuo.protos.core.OutputProto;
-import org.tribuo.test.Helpers;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.tribuo.test.Helpers.testProtoSerialization;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,9 +25,19 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.tribuo.test.Helpers.testProtoSerialization;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.tribuo.math.kernel.Kernel;
+import org.tribuo.math.kernel.Linear;
+import org.tribuo.math.kernel.Polynomial;
+import org.tribuo.math.kernel.RBF;
+import org.tribuo.math.kernel.Sigmoid;
+import org.tribuo.math.protos.KernelProto;
+import org.tribuo.test.Helpers;
 
 public class KernelTest {
 
@@ -67,7 +65,9 @@ public class KernelTest {
         testProtoSerialization(lin);
     }
 
-    private void testProto(String name, Kernel actualKernel) throws URISyntaxException, IOException {
+    @ParameterizedTest
+    @MethodSource("load431Protobufs")
+    public void testProto(String name, Kernel actualKernel) throws URISyntaxException, IOException {
         Path kernelPath = Paths.get(KernelTest.class.getResource(name).toURI());
         try (InputStream fis = Files.newInputStream(kernelPath)) {
             KernelProto proto = KernelProto.parseFrom(fis);
@@ -76,12 +76,13 @@ public class KernelTest {
         }
     }
 
-    @Test
-    public void load431Protobufs() throws URISyntaxException, IOException {
-        testProto("linear-kernel-431.tribuo", new Linear());
-        testProto("poly-kernel-431.tribuo", new Polynomial(1,2,3));
-        testProto("rbf-kernel-431.tribuo", new RBF(1.0));
-        testProto("sigmoid-kernel-431.tribuo", new Sigmoid(1,2));
+   
+    private static Stream<Arguments> load431Protobufs() throws URISyntaxException, IOException {
+    	return Stream.of(
+    		      Arguments.of("linear-kernel-431.tribuo", new Linear()),
+    		      Arguments.of("poly-kernel-431.tribuo", new Polynomial(1,2,3)),
+    		      Arguments.of("rbf-kernel-431.tribuo", new RBF(1.0)),
+    		      Arguments.of("sigmoid-kernel-431.tribuo", new Sigmoid(1,2)));
     }
 
     public void generateProtobufs() throws IOException {

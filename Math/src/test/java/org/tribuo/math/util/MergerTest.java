@@ -19,6 +19,9 @@ package org.tribuo.math.util;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.SparseVector;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.tribuo.math.protos.MergerProto;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.test.Helpers;
@@ -29,6 +32,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.tribuo.test.Helpers.testProtoSerialization;
@@ -206,7 +210,9 @@ public class MergerTest {
         assertEquals(output,merged, "Merge A - B - A - B unsuccessful");
     }
 
-    private void testProto(String name, Merger actualMerger) throws URISyntaxException, IOException {
+    @ParameterizedTest
+    @MethodSource("load431Protobufs")
+    public void testProto(String name, Merger actualMerger) throws URISyntaxException, IOException {
         Path mergerPath = Paths.get(MergerTest.class.getResource(name).toURI());
         try (InputStream fis = Files.newInputStream(mergerPath)) {
             MergerProto proto = MergerProto.parseFrom(fis);
@@ -215,10 +221,10 @@ public class MergerTest {
         }
     }
 
-    @Test
-    public void load431Protobufs() throws URISyntaxException, IOException {
-        testProto("heap-merger-431.tribuo", new HeapMerger());
-        testProto("matrix-merger-431.tribuo", new MatrixHeapMerger());
+    private static Stream<Arguments> load431Protobufs() throws URISyntaxException, IOException {
+    	return Stream.of(
+    		      Arguments.of("heap-merger-431.tribuo", new HeapMerger()),
+    		      Arguments.of("matrix-merger-431.tribuo", new MatrixHeapMerger()));
     }
 
     public void generateProtobufs() throws IOException {
