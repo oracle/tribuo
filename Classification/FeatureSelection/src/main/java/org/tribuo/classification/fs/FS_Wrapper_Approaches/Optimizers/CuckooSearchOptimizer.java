@@ -157,42 +157,45 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
     @Override
     public SelectedFeatureSet select(Dataset<Label> dataset) {
         ImmutableFeatureMap FMap = new ImmutableFeatureMap(dataset.getFeatureMap());
-        setOfSolutions = GeneratePopulation(dataset.getFeatureMap().size());
-        List<CuckooSearchFeatureSet> subSet_fScores = Arrays.stream(setOfSolutions).map(setOfSolution -> new CuckooSearchFeatureSet(setOfSolution, evaluateSolution(this, trainer,dataset, FMap, setOfSolution))).sorted(Comparator.comparing(CuckooSearchFeatureSet::score).reversed()).collect(Collectors.toList());
-        SelectedFeatureSet selectedFeatureSet = null;
-        for (int i = 0; i < maxIteration; i++) {
-            for (int solution = 0; solution < populationSize; solution++) {
+        setOfSolutions = generatePopulation(FMap.size());
+        List<CuckooSearchFeatureSet> subSet_fScores = new ArrayList<>();
+        SelectedFeatureSet selectedFeatureSet;
+        for (int iter = 0; iter < maxIteration; iter++) {
+            for (int solution = 0; solution < setOfSolutions.length; solution++) {
                 AtomicInteger subSet = new AtomicInteger(solution);
+                int[] evolvedSolution = new int[setOfSolutions[0].length];
                 // Update the solution based on the levy flight function
-                int[] evolvedSolution = Arrays.stream(setOfSolutions[subSet.get()]).map(x -> (int) transferFunction.applyAsDouble(x + stepSizeScaling * Math.pow(subSet.get() + 1, -lambda))).toArray();
+                for (int i = 0; i < setOfSolutions[0].length; i++) {
+                    evolvedSolution[i] = (int) transferFunction.applyAsDouble(setOfSolutions[subSet.get()][i] + stepSizeScaling * Math.pow(subSet.get() + 1, -lambda));
+                }
                 int[] randomCuckoo = setOfSolutions[rng.nextInt(setOfSolutions.length)];
-                keepBestAfterEvaluation(dataset, trainer, FMap, evolvedSolution, randomCuckoo);
+                setOfSolutions[subSet.get()] = keepBestAfterEvaluation(dataset, FMap, evolvedSolution, randomCuckoo);
                 // Update the solution based on the abandone nest function
-                if (rng.nextDouble() < worstNestProbability) {
+                if (new Random().nextDouble() < worstNestProbability) {
                     int r1 = rng.nextInt(setOfSolutions.length);
                     int r2 = rng.nextInt(setOfSolutions.length);
-                    for (int j = 0; j < setOfSolutions[subSet.get()].length; j++) {
+                    for (int j = 0; j < setOfSolutions[0].length; j++) {
                         evolvedSolution[j] = (int) transferFunction.applyAsDouble(setOfSolutions[subSet.get()][j] + delta * (setOfSolutions[r1][j] - setOfSolutions[r2][j]));
                     }
-                    keepBestAfterEvaluation(dataset, trainer, FMap, evolvedSolution, setOfSolutions[subSet.get()]);
+                    setOfSolutions[subSet.get()] = keepBestAfterEvaluation(dataset, FMap, evolvedSolution, setOfSolutions[subSet.get()]);
                 }
                 // Update the solution based on mutation operator
                 int[] mutedSolution = mutation(setOfSolutions[subSet.get()]);
-                keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
+                 setOfSolutions[subSet.get()] = keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
                 // Update the solution based on inversion mutation
                 mutedSolution = inversionMutation(setOfSolutions[subSet.get()]);
-                keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
+                setOfSolutions[subSet.get()] = keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
                 // Update the solution based on swapped mutation
                 mutedSolution = swappedMutation(setOfSolutions[subSet.get()]);
-                keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
+                setOfSolutions[subSet.get()] = keepBestAfterEvaluation(dataset, trainer, FMap, mutedSolution, setOfSolutions[subSet.get()]);
                 // Updata the solution based on Jaya operator
                 int[] jayaSolution = jayaOperator(setOfSolutions[subSet.get()], subSet_fScores.get(0).subSet(), subSet_fScores.get(subSet_fScores.size() - 1).subSet());
-                keepBestAfterEvaluation(dataset, trainer, FMap, jayaSolution, setOfSolutions[subSet.get()]);
+                setOfSolutions[subSet.get()] = keepBestAfterEvaluation(dataset, trainer, FMap, jayaSolution, setOfSolutions[subSet.get()]);
             }
-            Arrays.stream(setOfSolutions).map(subSet -> new CuckooSearchFeatureSet(subSet, evaluateSolution(this, trainer, dataset, FMap, subSet))).forEach(subSet_fScores::add);
+            Arrays.stream(setOfSolutions).map(subSet -> new CuckooSearchFeatureSet(subSet, FN.EvaluateSolution(this, dataset, FMap, subSet))).forEach(subSet_fScores::add);
         }
-         subSet_fScores.sort(Comparator.comparing(CuckooSearchFeatureSet::score).reversed());
-         selectedFeatureSet = getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
+        subSet_fScores.sort(Comparator.comparing(CuckooSearchFeatureSet::score).reversed());
+        selectedFeatureSet = FN.getSFS(this, dataset, FMap, subSet_fScores.get(0).subSet);
         return selectedFeatureSet;
     }
 
@@ -251,10 +254,12 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
      * @param alteredSolution The modified solution
      * @param oldSolution The old solution
      */
-    private void keepBestAfterEvaluation(Dataset<Label> dataset, Trainer<Label> trainer, ImmutableFeatureMap FMap, int[] alteredSolution, int[] oldSolution) {
-        if (evaluateSolution(this, trainer, dataset, FMap, alteredSolution) > evaluateSolution(this, trainer, dataset, FMap, oldSolution)) {
-            System.arraycopy(alteredSolution, 0, oldSolution, 0, alteredSolution.length);
+   public int[] keepBestAfterEvaluation(Dataset<Label> dataset, ImmutableFeatureMap FMap, int[] alteredSolution, int... oldSolution) {
+        if (FN.EvaluateSolution(this, dataset, FMap, alteredSolution) > FN.EvaluateSolution(this, dataset, FMap, oldSolution)) {
+            return alteredSolution;
         }
+        else
+            return oldSolution;
     }
 
     /**
