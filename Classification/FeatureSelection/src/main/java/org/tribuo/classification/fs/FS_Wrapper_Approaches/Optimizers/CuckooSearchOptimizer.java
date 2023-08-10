@@ -163,7 +163,7 @@ public  final class CuckooSearchOptimizer implements FeatureSelector<Label> {
         for (int iter = 0; iter < maxIteration; iter++) {
             for (int solution = 0; solution < setOfSolutions.length; solution++) {
                 int[] evolvedSolution = new int[setOfSolutions[0].length];
-                // Update the solution based on the levy flight function 0.5 + 0.8 * (new Random().nextGaussian() / Math.pow(Math.abs(new Random().nextGaussian()), 1.0 / 3.0))
+                // Update the solution based on the levy flight function
                 for (int i = 0; i < setOfSolutions[0].length; i++) {
                     evolvedSolution[i] = (int) transferFunction.applyAsDouble(setOfSolutions[solution][i] + stepSizeScaling * Math.pow(solution + 1, -lambda));
                 }
