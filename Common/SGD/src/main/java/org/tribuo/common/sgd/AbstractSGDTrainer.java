@@ -216,9 +216,10 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
                 for (int j = 0; j < sgdFeatures.length; j += minibatchSize) {
                     double tempWeight = 0.0;
                     final int bound = Math.min(j+minibatchSize, sgdFeatures.length);
-                    System.arraycopy(sgdFeatures, j, batch, 0, bound - j);
-                    Matrix featureBatch = Matrix.aggregate(batch, bound - j, false);
-                    Y curBatchTargets = getTargetBatch(sgdTargets, j, minibatchSize);
+                    final int batchSize = bound - j;
+                    System.arraycopy(sgdFeatures, j, batch, 0, batchSize);
+                    Matrix featureBatch = Matrix.aggregate(batch, batchSize, false);
+                    Y curBatchTargets = getTargetBatch(sgdTargets, j, batchSize);
                     DenseMatrix predictions = parameters.predict(featureBatch);
                     Pair<double[], Matrix> output = objective.batchLossAndGradient(curBatchTargets, predictions);
                     Tensor[] gradients = parameters.gradients(output, featureBatch);
@@ -228,9 +229,9 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
                         loss += lossArr[k-j] * weights[k];
                     }
                     for (int k = 0; k < gradients.length; k++) {
-                        gradients[k].scaleInPlace(minibatchSize);
+                        gradients[k].scaleInPlace(batchSize);
                     }
-                    tempWeight /= minibatchSize;
+                    tempWeight /= batchSize;
                     gradients = localOptimiser.step(gradients,tempWeight);
                     parameters.update(gradients);
 

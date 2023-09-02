@@ -193,6 +193,11 @@ public final class DataOptions implements Options {
      */
     @Option(longName="scale-including-zeros",usage="Includes implicit zeros in the scale range calculation.")
     public boolean scaleIncZeros;
+    /**
+     * Makes the training and test datasets dense.
+     */
+    @Option(longName="densify-datasets",usage="Makes the training and test datasets dense.")
+    public boolean densify;
 
     /**
      * Loads the training and testing data from {@link #trainingPath} and {@link #testingPath}
@@ -312,10 +317,16 @@ public final class DataOptions implements Options {
             TransformationMap map = new TransformationMap(Collections.singletonList(new LinearScalingTransformation()));
             TransformerMap transformers = train.createTransformers(map,scaleIncZeros);
             logger.info("Applying scaling to training dataset");
-            train = transformers.transformDataset(train);
+            train = transformers.transformDataset(train, densify);
             logger.info("Applying scaling to testing dataset");
-            test = transformers.transformDataset(test);
+            test = transformers.transformDataset(test, densify);
+        } else if (densify) {
+            train = MutableDataset.createDeepCopy(train);
+            ((MutableDataset<?>) train).densify();
+            test = MutableDataset.createDeepCopy(test);
+            ((MutableDataset<?>) test).densify();
         }
+
         return new Pair<>(train,test);
     }
 
