@@ -28,20 +28,6 @@
     <artifactId>tribuo-onnx</artifactId>
     <packaging>jar</packaging>
 
-    <!-- staging repo for ORT release candidates -->
-    <repositories>
-        <repository>
-            <id>ORT-Nightly</id>
-            <url>https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/ORT-Nightly/maven/v1</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
