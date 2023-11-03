@@ -43,22 +43,8 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -821,7 +807,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                     // To determine the remaining exemplars, the best thing to do is randomly sample them from all the
                     // points in this cluster. This could introduce duplicate exemplar points, but that is safer than
                     // reducing the number of exemplars.
-                    Random rand = new Random();
+                    SplittableRandom rand = new SplittableRandom(12345L);
                     int numSamples = numExemplarsThisCluster - outlierScoreTreeSize;
                     Stream<Integer> intStreamSamples = rand.ints(numSamples, 0, outlierScoreIndexList.size()).boxed();
                     intStreamSamples.forEach((i) -> partialClusterExemplarsList.add(outlierScoreIndexList.get(i)));
