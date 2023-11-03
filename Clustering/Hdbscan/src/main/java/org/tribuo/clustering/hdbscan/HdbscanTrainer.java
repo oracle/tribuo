@@ -779,8 +779,8 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 if (numExemplarsThisCluster == 0) {
                     numExemplarsThisCluster = 1;
                 }
-                // In the most common situation, the number of exemplars is less than or equal the size of the tree
-                if (numExemplarsThisCluster <= outlierScoreIndexTree.size()) {
+                // In the most common situation, the number of exemplars is less than the size of the tree
+                if (numExemplarsThisCluster < outlierScoreIndexTree.size()) {
                     // First, get the entries that will be used for cluster exemplars.
                     // The first node is polled from the tree, which has the lowest outlier score out of the remaining
                     // points assigned this cluster.
