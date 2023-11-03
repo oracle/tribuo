@@ -43,21 +43,8 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.PriorityQueue;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
@@ -778,31 +765,68 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                 if (numExemplarsThisCluster == 0) {
                     numExemplarsThisCluster = 1;
                 }
-                else if (numExemplarsThisCluster > outlierScoreIndexTree.size()) {
-                    numExemplarsThisCluster = outlierScoreIndexTree.size();
-                }
+                // In the most common situation, the number of exemplars is less than or equal the size of the tree
+                if (numExemplarsThisCluster <= outlierScoreIndexTree.size()) {
+                    // First, get the entries that will be used for cluster exemplars.
+                    // The first node is polled from the tree, which has the lowest outlier score out of the remaining
+                    // points assigned this cluster.
+                    List<Entry<Double, Integer>> partialClusterExemplars = new ArrayList<>();
+                    Stream<Integer> intStream = IntStream.range(0, numExemplarsThisCluster).boxed();
+                    intStream.forEach((i) -> partialClusterExemplars.add(outlierScoreIndexTree.pollFirstEntry()));
 
-                // First, get the entries that will be used for cluster exemplars.
-                // The first node is polled from the tree, which has the lowest outlier score out of the remaining
-                // points assigned this cluster.
-                List<Entry<Double, Integer>> partialClusterExemplars = new ArrayList<>();
-                Stream<Integer> intStream = IntStream.range(0, numExemplarsThisCluster).boxed();
-                intStream.forEach((i) -> partialClusterExemplars.add(outlierScoreIndexTree.pollFirstEntry()));
-
-                // For each of the partial exemplars in this cluster, iterate the remaining nodes in the tree to find
-                // the maximum distance between the exemplar and the members of the cluster. The other exemplars don't
-                // need to be checked here since they won't be on the fringe of the cluster.
-                for (Entry<Double, Integer> partialClusterExemplar : partialClusterExemplars) {
-                    SGDVector features = data[partialClusterExemplar.getValue()];
-                    double maxInnerDist = Double.NEGATIVE_INFINITY;
-                    for (Entry<Double, Integer> entry : outlierScoreIndexTree.entrySet()) {
-                        double distance = dist.computeDistance(features, data[entry.getValue()]);
-                        if (distance > maxInnerDist){
-                            maxInnerDist = distance;
+                    // For each of the partial exemplars in this cluster, iterate the remaining nodes in the tree to find
+                    // the maximum distance between the exemplar and the members of the cluster. The other exemplars don't
+                    // need to be checked here since they won't be on the fringe of the cluster.
+                    for (Entry<Double, Integer> partialClusterExemplar : partialClusterExemplars) {
+                        SGDVector features = data[partialClusterExemplar.getValue()];
+                        double maxInnerDist = Double.NEGATIVE_INFINITY;
+                        for (Entry<Double, Integer> entry : outlierScoreIndexTree.entrySet()) {
+                            double distance = dist.computeDistance(features, data[entry.getValue()]);
+                            if (distance > maxInnerDist) {
+                                maxInnerDist = distance;
+                            }
                         }
+                        clusterExemplars.add(new ClusterExemplar(clusterLabel, partialClusterExemplar.getKey(), features,
+                                maxInnerDist));
                     }
-                    clusterExemplars.add(new ClusterExemplar(clusterLabel, partialClusterExemplar.getKey(), features,
-                                                             maxInnerDist));
+                }
+                // Otherwise, the number of exemplars is greater than the size of the tree, which is most likely to occur
+                // with a contrived dataset. This indicates that there were several points in this cluster with non-unique
+                // outlier scores.
+                else {
+                    int outlierScoreTreeSize = outlierScoreIndexTree.size();
+                    List<Pair<Double, Integer>> partialClusterExemplarsList = new ArrayList<>();
+                    // When many points in the cluster have non-unique outlier scores, first we'll collect the items from
+                    // the tree.
+                    Stream<Integer> intStreamTree = IntStream.range(0, outlierScoreTreeSize).boxed();
+                    intStreamTree.forEach((i) -> {
+                        Entry<Double, Integer> treeEntry = outlierScoreIndexTree.pollFirstEntry();
+                        partialClusterExemplarsList.add(new Pair<>(treeEntry.getKey(), treeEntry.getValue()));
+                    });
+
+                    // To determine the remaining exemplars, the best thing to do is randomly sample them from all the
+                    // points in this cluster. This could introduce duplicate exemplar points, but that is safer than
+                    // reducing the number of exemplars.
+                    Random rand = new Random();
+                    int numSamples = numExemplarsThisCluster - outlierScoreTreeSize;
+                    Stream<Integer> intStreamSamples = rand.ints(numSamples, 0, outlierScoreIndexList.size()).boxed();
+                    intStreamSamples.forEach((i) -> partialClusterExemplarsList.add(outlierScoreIndexList.get(i)));
+
+                    // For each of the partial exemplars in this cluster, iterate the nodes in the list to find the
+                    // maximum distance between the exemplar and the members of the cluster. This exhaustive search
+                    // ensures we always reach the fringe of the cluster.
+                    for (Pair<Double, Integer> partialClusterExemplar : partialClusterExemplarsList) {
+                        SGDVector features = data[partialClusterExemplar.getB()];
+                        double maxInnerDist = Double.NEGATIVE_INFINITY;
+                        for (Pair<Double, Integer> outlierScorePair : outlierScoreIndexList) {
+                            double distance = dist.computeDistance(features, data[outlierScorePair.getB()]);
+                            if (distance > maxInnerDist){
+                                maxInnerDist = distance;
+                            }
+                        }
+                        clusterExemplars.add(new ClusterExemplar(clusterLabel, partialClusterExemplar.getA(), features,
+                                maxInnerDist));
+                    }
                 }
             }
         }
