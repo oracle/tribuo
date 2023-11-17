@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
+import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
@@ -37,6 +38,7 @@ import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.data.columnar.processors.field.DoubleFieldProcessor;
 import org.tribuo.data.columnar.processors.response.EmptyResponseProcessor;
 import org.tribuo.data.csv.CSVDataSource;
+import org.tribuo.datasource.ListDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.math.distance.DistanceType;
@@ -45,6 +47,8 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.math.neighbour.kdtree.KDTreeFactory;
+import org.tribuo.provenance.DataSourceProvenance;
+import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
@@ -57,6 +61,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -404,6 +409,49 @@ public class TestHdbscan {
     @Test
     public void testSparseData() {
         runSparseData(t);
+    }
+
+    @Test
+    public void testContrivedDataset() {
+        final HdbscanTrainer trainer = new HdbscanTrainer(100, DistanceType.L2.getDistance(),
+                10,1, NeighboursQueryFactoryType.BRUTE_FORCE);
+
+        ClusteringFactory outputFactory = new ClusteringFactory();
+        DataSourceProvenance dataProvenance = new SimpleDataSourceProvenance("test", outputFactory);
+
+        List<Example<ClusterID>> dataList = new ArrayList<>();
+        for (int n = 0; n < 10; n++) {
+            for (double i = 1.0; i <= 2.0; i += 0.1) {
+                dataList.add(createClusterExample("A", i));
+            }
+            for (double i = 10.0; i <= 19.0; i += 0.1) {
+                dataList.add(createClusterExample("B", i));
+            }
+        }
+
+        DataSource<ClusterID> dataSource = new ListDataSource<>(dataList, outputFactory, dataProvenance);
+        Dataset<ClusterID> trainData = new MutableDataset<>(dataSource);
+
+        HdbscanModel model = trainer.train(trainData);
+        assertEquals(new HashSet<>(model.getClusterLabels()).size(), 2);
+
+        // Predict on the same training data. A good confirmation to make, but don't do this to evaluate a model.
+        List<Prediction<ClusterID>> predictions = model.predict(trainData);
+
+        int i = 0;
+        for (Prediction<ClusterID> prediction : predictions) {
+            if (i % 100 < 10) {
+                assertEquals(2, prediction.getOutput().getID());
+            }
+            else {
+                assertEquals(3, prediction.getOutput().getID());
+            }
+            i++;
+        }
+    }
+
+    private Example<ClusterID> createClusterExample(String name, double value) {
+        return new ArrayExample<>(ClusteringFactory.UNASSIGNED_CLUSTER_ID, new String[]{name}, new double[]{value});
     }
 
     @Test
