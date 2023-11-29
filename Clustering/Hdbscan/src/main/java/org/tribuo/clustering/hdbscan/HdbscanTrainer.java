@@ -153,7 +153,9 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
 
     @Config(description = "The seed to use in the event cluster exemplars need to be determined with random samples " +
         "from the members of a cluster.")
-    private long exemplarSampleSeed = 12345L;
+    private long exemplarSampleSeed = Trainer.DEFAULT_SEED;
+
+    private SplittableRandom rng = new SplittableRandom(exemplarSampleSeed);
 
     private int trainInvocationCounter;
 
@@ -225,6 +227,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         this.numThreads = numThreads;
         this.neighboursQueryFactory = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, dist, numThreads);
         this.exemplarSampleSeed = exemplarSampleSeed;
+        this.rng = new SplittableRandom(exemplarSampleSeed);
     }
 
     /**
@@ -271,9 +274,11 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     public HdbscanModel train(Dataset<ClusterID> examples, Map<String, Provenance> runProvenance) {
         // increment the invocation count.
         TrainerProvenance trainerProvenance;
+        SplittableRandom localRNG;
         synchronized (this) {
             trainerProvenance = getProvenance();
             trainInvocationCounter++;
+            localRNG = rng.split();
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
@@ -309,7 +314,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         ImmutableOutputInfo<ClusterID> outputMap = new ImmutableClusteringInfo(counts);
 
         // Compute the cluster exemplars.
-        List<ClusterExemplar> clusterExemplars = computeExemplars(data, clusterAssignments, dist);
+        List<ClusterExemplar> clusterExemplars = computeExemplars(data, clusterAssignments, dist, localRNG);
 
         // Get the outlier score value for points that are predicted as noise points.
         double noisePointsOutlierScore = getNoisePointsOutlierScore(clusterAssignments);
@@ -337,8 +342,10 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     public void setInvocationCount(int newInvocationCount) {
         if(newInvocationCount < 0){
             throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
-        } else {
-            trainInvocationCounter = newInvocationCount;
+        }
+
+        for (trainInvocationCounter = 0; trainInvocationCounter < newInvocationCount; trainInvocationCounter++){
+            SplittableRandom localRNG = rng.split();
         }
     }
 
@@ -780,10 +787,11 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @param data An array of {@link DenseVector} containing the data.
      * @param clusterAssignments A map of the cluster labels, and the points assigned to them.
      * @param dist The distance metric to employ.
+     * @param rng The RNG to use.
      * @return A list of {@link ClusterExemplar}s which are used for predictions.
      */
     private List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments,
-                                                          org.tribuo.math.distance.Distance dist) {
+                                                          org.tribuo.math.distance.Distance dist, SplittableRandom rng) {
         List<ClusterExemplar> clusterExemplars = new ArrayList<>();
         // The formula to calculate the exemplar number. This calculates the number of exemplars to be used for this
         // configuration. The appropriate number of exemplars is important for prediction. At the time, this
@@ -846,9 +854,8 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
                     // To determine the remaining exemplars, the best thing to do is randomly sample them from all the
                     // points in this cluster. This could introduce duplicate exemplar points, but that is safer than
                     // reducing the number of exemplars.
-                    SplittableRandom rand = new SplittableRandom(exemplarSampleSeed);
                     int numSamples = numExemplarsThisCluster - outlierScoreTreeSize;
-                    Stream<Integer> intStreamSamples = rand.ints(numSamples, 0, outlierScoreIndexList.size()).boxed();
+                    Stream<Integer> intStreamSamples = rng.ints(numSamples, 0, outlierScoreIndexList.size()).boxed();
                     intStreamSamples.forEach((i) -> partialClusterExemplarsList.add(outlierScoreIndexList.get(i)));
 
                     // For each of the partial exemplars in this cluster, iterate the nodes in the list to find the
