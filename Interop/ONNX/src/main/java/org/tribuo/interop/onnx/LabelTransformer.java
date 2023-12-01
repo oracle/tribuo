@@ -17,6 +17,7 @@
 package org.tribuo.interop.onnx;
 
 import ai.onnxruntime.OnnxJavaType;
+import ai.onnxruntime.OnnxMap;
 import ai.onnxruntime.OnnxSequence;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OnnxValue;
@@ -184,8 +185,9 @@ public class LabelTransformer implements OutputTransformer<Label> {
                         float[][] outputArray = new float[output.size()][outputIDInfo.size()];
                         int i = 0;
                         for (Object o : output) {
+                            OnnxMap onnxMap = (OnnxMap) o;
                             @SuppressWarnings("unchecked") // guarded by the if on the mapInfo above.
-                            Map<Long,Float> map = (Map<Long,Float>) o;
+                            Map<Long,Float> map = (Map<Long,Float>) onnxMap.getValue();
                             if (map.size() == outputIDInfo.size()) {
                                 for (Map.Entry<Long,Float> e : map.entrySet()) {
                                     Long key = e.getKey();
