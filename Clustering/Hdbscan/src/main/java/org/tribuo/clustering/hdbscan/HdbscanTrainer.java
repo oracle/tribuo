@@ -155,7 +155,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         "from the members of a cluster.")
     private long exemplarSampleSeed = Trainer.DEFAULT_SEED;
 
-    private SplittableRandom rng = new SplittableRandom(exemplarSampleSeed);
+    private SplittableRandom rng;
 
     private int trainInvocationCounter;
 
@@ -207,6 +207,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         this.k = k;
         this.numThreads = numThreads;
         this.neighboursQueryFactory = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, dist, numThreads);
+        postConfig();
     }
 
     /**
@@ -227,7 +228,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         this.numThreads = numThreads;
         this.neighboursQueryFactory = NeighboursQueryFactoryType.getNeighboursQueryFactory(nqFactoryType, dist, numThreads);
         this.exemplarSampleSeed = exemplarSampleSeed;
-        this.rng = new SplittableRandom(exemplarSampleSeed);
+        postConfig();
     }
 
     /**
@@ -242,6 +243,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         this.dist = neighboursQueryFactory.getDistance();
         this.k = k;
         this.neighboursQueryFactory = neighboursQueryFactory;
+        postConfig();
     }
 
     /**
@@ -268,6 +270,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
             }
         }
 
+        this.rng = new SplittableRandom(exemplarSampleSeed);
     }
 
     @Override
@@ -790,7 +793,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
      * @param rng The RNG to use.
      * @return A list of {@link ClusterExemplar}s which are used for predictions.
      */
-    private List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments,
+    private static List<ClusterExemplar> computeExemplars(SGDVector[] data, Map<Integer, List<Pair<Double, Integer>>> clusterAssignments,
                                                           org.tribuo.math.distance.Distance dist, SplittableRandom rng) {
         List<ClusterExemplar> clusterExemplars = new ArrayList<>();
         // The formula to calculate the exemplar number. This calculates the number of exemplars to be used for this
