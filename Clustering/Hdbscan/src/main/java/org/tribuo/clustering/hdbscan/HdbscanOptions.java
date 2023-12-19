@@ -18,6 +18,7 @@ package org.tribuo.clustering.hdbscan;
 
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
+import org.tribuo.Trainer;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 
@@ -65,12 +66,20 @@ public final class HdbscanOptions implements Options {
     @Option(longName = "hdbscan-neighbour-query-factory-type", usage = "The nearest neighbour implementation factory to use.")
     public NeighboursQueryFactoryType nqFactoryType = NeighboursQueryFactoryType.KD_TREE;
 
+    /*
+     * The seed to use when sampling cluster exemplars at random from members of a cluster. Defaults to 12345L.
+     */
+    @Option(longName = "hdbscan-exemplar-sample-seed", usage = "The seed to use when sampling cluster exemplars at " +
+        "random from members of a cluster.")
+    public long exemplarSampleSeed = Trainer.DEFAULT_SEED;
+
     /**
      * Gets the configured HdbscanTrainer using the options in this object.
      * @return A HdbscanTrainer.
      */
     public HdbscanTrainer getTrainer() {
         logger.info("Configuring Hdbscan Trainer");
-        return new HdbscanTrainer(minClusterSize, distType.getDistance(), k, numThreads, nqFactoryType);
+        return new HdbscanTrainer(minClusterSize, distType.getDistance(), k, numThreads, nqFactoryType, exemplarSampleSeed);
     }
+
 }
