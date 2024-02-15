@@ -30,6 +30,13 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.FileProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -50,13 +57,6 @@ import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -245,24 +245,28 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     protected DenseMatrix externalPrediction(DenseMatrix features) {
         Invocation.Builder ib = modelEndpoint.request();
         ib.accept(MediaType.APPLICATION_JSON);
-        Response response = ib.buildPost(Entity.entity(formatMatrix(features), MediaType.APPLICATION_JSON)).invoke();
-
-        String json;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader((InputStream) response.getEntity(), StandardCharsets.UTF_8))) {
-            StringBuilder jsonBody = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                jsonBody.append(line);
+        try (Response response = ib.buildPost(Entity.entity(formatMatrix(features), MediaType.APPLICATION_JSON)).invoke()) {
+            String json;
+            try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader((InputStream) response.getEntity(),
+                    StandardCharsets.UTF_8))) {
+                StringBuilder jsonBody = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonBody.append(line);
+                }
+                json = jsonBody.toString();
+            } catch (IOException e) {
+                throw new IllegalStateException("Failed to read response from input stream", e);
             }
-            json = jsonBody.toString();
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to read response from input stream", e);
-        }
-        try {
-            PredictionJson predJson = mapper.readValue(json, OCIModel.PredictionJson.class);
-            return DenseMatrix.createDenseMatrix(predJson.prediction);
-        } catch (JsonProcessingException e) {
-            throw new IllegalStateException("Failed to parse json from deployed model endpoint, received '" + json + "'", e);
+            try {
+                PredictionJson predJson = mapper.readValue(json, OCIModel.PredictionJson.class);
+                return DenseMatrix.createDenseMatrix(predJson.prediction);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(
+                    "Failed to parse json from deployed model endpoint, received '" + json + "'",
+                    e);
+            }
         }
     }
 
