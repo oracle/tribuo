@@ -33,7 +33,7 @@ import com.oracle.bmc.datascience.requests.CreateModelArtifactRequest;
 import com.oracle.bmc.datascience.requests.CreateModelDeploymentRequest;
 import com.oracle.bmc.datascience.requests.CreateModelRequest;
 import com.oracle.bmc.datascience.responses.CreateModelArtifactResponse;
-import com.oracle.bmc.http.internal.ExplicitlySetFilter;
+import com.oracle.bmc.serialization.jackson.internal.ExplicitlySetFilter;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import org.tribuo.Model;
 import org.tribuo.Output;
@@ -60,6 +60,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import static com.oracle.bmc.http.client.internal.ExplicitlySetBmcModel.EXPLICITLY_SET_FILTER_NAME;
 
 /**
  * Utils for uploading and deploying models to OCI Data Science.
@@ -323,7 +325,7 @@ public abstract class OCIUtil {
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         FilterProvider filters =
                 new SimpleFilterProvider()
-                        .addFilter(ExplicitlySetFilter.NAME, ExplicitlySetFilter.INSTANCE);
+                        .addFilter(EXPLICITLY_SET_FILTER_NAME, ExplicitlySetFilter.INSTANCE);
         mapper.setFilterProvider(filters);
 
         return mapper;

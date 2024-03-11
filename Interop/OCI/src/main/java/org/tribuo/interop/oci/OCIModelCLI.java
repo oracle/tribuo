@@ -17,11 +17,7 @@
 package org.tribuo.interop.oci;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.oracle.bmc.datascience.DataScienceClient;
-import com.oracle.bmc.http.internal.ExplicitlySetFilter;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
@@ -100,11 +96,7 @@ public abstract class OCIModelCLI {
         DataScienceClient client = options.makeClient();
 
         // Setup object mapper for writing to the terminal
-        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-        FilterProvider filters =
-                new SimpleFilterProvider()
-                        .addFilter(ExplicitlySetFilter.NAME, ExplicitlySetFilter.INSTANCE);
-        mapper.setFilterProvider(filters);
+        ObjectMapper mapper = OCIUtil.createObjectMapper();
 
         OCIUtil.OCIDSConfig dsConfig = new OCIUtil.OCIDSConfig(options.compartmentID,options.projectID);
         OCIUtil.OCIModelDeploymentConfig config = new OCIUtil.OCIModelDeploymentConfig(dsConfig,options.modelId,options.modelDisplayName,options.instanceShape,options.bandwidth,options.instanceCount);
@@ -316,7 +308,7 @@ public abstract class OCIModelCLI {
          * @throws IOException If the config file could not be read.
          */
         DataScienceClient makeClient() throws IOException {
-            return new DataScienceClient(OCIModel.makeAuthProvider(ociConfigFile, ociConfigProfile));
+            return DataScienceClient.builder().build(OCIModel.makeAuthProvider(ociConfigFile, ociConfigProfile));
         }
 
     }
