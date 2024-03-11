@@ -308,7 +308,7 @@ public abstract class OCIModelCLI {
          * @throws IOException If the config file could not be read.
          */
         DataScienceClient makeClient() throws IOException {
-            return new DataScienceClient(OCIModel.makeAuthProvider(ociConfigFile, ociConfigProfile));
+            return DataScienceClient.builder().build(OCIModel.makeAuthProvider(ociConfigFile, ociConfigProfile));
         }
 
     }
