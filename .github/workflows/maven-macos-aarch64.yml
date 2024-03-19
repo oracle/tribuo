@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup Oracle Java SE
-        uses: oracle-actions/setup-java@v1
+        uses: oracle-actions/setup-java@master
         with:
           website: oracle.com
           release: ${{ matrix.java }}
