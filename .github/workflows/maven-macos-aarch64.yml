@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Tribuo CI (macOS x86_64, Java SE 17, 21)
+name: Tribuo CI (macOS aarch64, Java SE 17, 21, 22)
 
 on:
   push:
@@ -11,18 +11,18 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-14
     strategy:
       matrix:
         # test against supported LTS versions and latest
-        java: [ 17, 21 ]
+        java: [ 17, 21, 22 ]
     name: macOS Java SE ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Oracle Java SE
-        uses: oracle-actions/setup-java@v1
+        uses: oracle-actions/setup-java@main
         with:
           website: oracle.com
           release: ${{ matrix.java }}
       - name: Build with Maven
-        run: mvn -B package --file pom.xml
+        run: mvn -B package --file pom.xml -Parm
