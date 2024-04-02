@@ -395,7 +395,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
             }
             // Add the queue to the map for that feature
             featureStats.put(entry.getKey(),l);
-            sparseCount.put(entry.getKey(), new MutableLong(data.size()));
+            sparseCount.put(entry.getKey(), new MutableLong(size()));
         }
         if (!transformations.getGlobalTransformations().isEmpty()) {
             // Append all the global transformations
@@ -411,7 +411,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
                 // Add the queue to the map for that feature
                 featureStats.put(v, l);
                 // Generate the sparse count initialised to the number of features.
-                sparseCount.putIfAbsent(v, new MutableLong(data.size()));
+                sparseCount.putIfAbsent(v, new MutableLong(size()));
                 ndone++;
                 if(logger.isLoggable(Level.FINE) && ndone % 10000 == 0) {
                     logger.fine(String.format("Completed %,d of %,d global transformations", ndone, ntransform));
@@ -424,7 +424,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
         boolean initialisedSparseCounts = false;
         // Iterate through the dataset max(transformations.length) times.
         while (!featureStats.isEmpty()) {
-            for (Example<T> example : data) {
+            for (Example<T> example : this) {
                 for (Feature f : example) {
                     if (featureStats.containsKey(f.getName())) {
                         if (!initialisedSparseCounts) {
