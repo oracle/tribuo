@@ -73,7 +73,7 @@ public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T
     /**
      * Users of this RNG should synchronize on the Dataset to prevent replicability issues.
      */
-    private static final SplittableRandom rng = new SplittableRandom(Trainer.DEFAULT_SEED);
+    protected static final SplittableRandom rng = new SplittableRandom(Trainer.DEFAULT_SEED);
 
     /**
      * The data in this data set.
