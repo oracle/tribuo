@@ -29,6 +29,7 @@ import java.util.SplittableRandom;
 import java.util.function.ToIntFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.random.RandomGenerator;
 
 /**
  * Ye olde util class.
@@ -505,6 +506,25 @@ public final class Util {
      * @return A sample.
      */
     public static int sampleFromCDF(double[] cdf, Random rng) {
+        if (Math.abs(cdf[cdf.length-1] - 1.0) > 1e-6) {
+            throw new IllegalStateException("Weights do not sum to 1, cdf[cdf.length-1] = " + cdf[cdf.length-1]);
+        }
+        double uniform = rng.nextDouble();
+        int searchVal = Arrays.binarySearch(cdf, uniform);
+        if (searchVal < 0) {
+            return - 1 - searchVal;
+        } else {
+            return searchVal;
+        }
+    }
+
+    /**
+     * Samples an index from the supplied cdf.
+     * @param cdf The cdf to sample from.
+     * @param rng The rng to use.
+     * @return A sample.
+     */
+    public static int sampleFromCDF(double[] cdf, RandomGenerator rng) {
         if (Math.abs(cdf[cdf.length-1] - 1.0) > 1e-6) {
             throw new IllegalStateException("Weights do not sum to 1, cdf[cdf.length-1] = " + cdf[cdf.length-1]);
         }
