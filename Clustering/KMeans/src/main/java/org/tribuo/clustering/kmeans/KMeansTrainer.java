@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
+import org.tribuo.WeightedExamples;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
 import org.tribuo.math.distance.DistanceType;
@@ -90,7 +91,7 @@ import java.util.stream.Stream;
  * <a href="https://theory.stanford.edu/~sergei/papers/kMeansPP-soda">PDF</a>
  * </pre>
  */
-public class KMeansTrainer implements Trainer<ClusterID> {
+public class KMeansTrainer implements Trainer<ClusterID>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(KMeansTrainer.class.getName());
 
     // Thread factory for the FJP, to allow use with OpenSearch's SecureSM
@@ -300,17 +301,10 @@ public class KMeansTrainer implements Trainer<ClusterID> {
             n++;
         }
 
-        DenseVector[] centroidVectors;
-        switch (initialisationType) {
-            case RANDOM:
-                centroidVectors = initialiseRandomCentroids(centroids, featureMap, localRNG);
-                break;
-            case PLUSPLUS:
-                centroidVectors = initialisePlusPlusCentroids(centroids, data, localRNG, dist);
-                break;
-            default:
-                throw new IllegalStateException("Unknown initialisation" + initialisationType);
-        }
+        DenseVector[] centroidVectors = switch (initialisationType) {
+            case RANDOM -> initialiseRandomCentroids(centroids, featureMap, localRNG);
+            case PLUSPLUS -> initialisePlusPlusCentroids(centroids, data, localRNG, dist);
+        };
 
         Map<Integer, List<Integer>> clusterAssignments = new HashMap<>();
         boolean parallel = numThreads > 1;
@@ -364,9 +358,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
                 Stream<Integer> intStream = IntStream.range(0, data.length).boxed();
                 Stream<IntAndVector> zipStream = StreamUtil.zip(intStream, vecStream, IntAndVector::new);
                 if (parallel) {
-                    Stream<IntAndVector> parallelZipStream = StreamUtil.boundParallelism(zipStream.parallel());
                     try {
-                        fjp.submit(() -> parallelZipStream.forEach(eStepFunc)).get();
+                        fjp.submit(() -> zipStream.parallel().forEach(eStepFunc)).get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException("Parallel execution failed", e);
                     }
@@ -550,9 +543,8 @@ public class KMeansTrainer implements Trainer<ClusterID> {
 
         Stream<Entry<Integer, List<Integer>>> mStream = clusterAssignments.entrySet().stream();
         if (fjp != null) {
-            Stream<Entry<Integer, List<Integer>>> parallelMStream = StreamUtil.boundParallelism(mStream.parallel());
             try {
-                fjp.submit(() -> parallelMStream.forEach(mStepFunc)).get();
+                fjp.submit(() -> mStream.parallel().forEach(mStepFunc)).get();
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Parallel execution failed", e);
             }
@@ -574,20 +566,7 @@ public class KMeansTrainer implements Trainer<ClusterID> {
     /**
      * Tuple of index and position. One day it'll be a record, but not today.
      */
-    static class IntAndVector {
-        final int idx;
-        final SGDVector vector;
-
-        /**
-         * Constructs an index and vector tuple.
-         * @param idx The index.
-         * @param vector The vector.
-         */
-        public IntAndVector(int idx, SGDVector vector) {
-            this.idx = idx;
-            this.vector = vector;
-        }
-    }
+    record IntAndVector(int idx, SGDVector vector) { }
 
     /**
      * Used to allow FJPs to work with OpenSearch's SecureSM.
