@@ -260,6 +260,22 @@ public class DenseVector implements SGDVector {
     }
 
     /**
+     * Gets the index of the maximum element.
+     * @return The index of the maximum element.
+     */
+    public int argmax() {
+        int idx = -1;
+        double value = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < elements.length; i++) {
+            if (value < get(i)) {
+                idx = i;
+                value = get(i);
+            }
+        }
+        return idx;
+    }
+
+    /**
      * Performs a reduction from left to right of this vector.
      * <p>
      * The first argument to the reducer is the transformed element, the second is the state.

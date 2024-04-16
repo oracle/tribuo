@@ -26,8 +26,10 @@ import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
+import org.tribuo.WeightedExamples;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
+import org.tribuo.math.distance.L2Distance;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
@@ -37,10 +39,7 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.util.Util;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,8 +49,6 @@ import java.util.Map.Entry;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,10 +69,6 @@ import java.util.stream.Stream;
  * <p>
  * The train method will instantiate dense examples as dense vectors, speeding up the computation.
  * <p>
- * Note parallel training uses a {@link ForkJoinPool} which requires that the Tribuo codebase
- * is given the "modifyThread" and "modifyThreadGroup" privileges when running under a
- * {@link SecurityManager}.
- * <p>
  * See:
  * <pre>
  * J. Friedman, T. Hastie, &amp; R. Tibshirani.
@@ -90,11 +83,8 @@ import java.util.stream.Stream;
  * <a href="https://theory.stanford.edu/~sergei/papers/kMeansPP-soda">PDF</a>
  * </pre>
  */
-public class GMMTrainer implements Trainer<ClusterID> {
+public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(GMMTrainer.class.getName());
-
-    // Thread factory for the FJP, to allow use with OpenSearch's SecureSM
-    private static final CustomForkJoinWorkerThreadFactory THREAD_FACTORY = new CustomForkJoinWorkerThreadFactory();
 
     public enum CovarianceType {
         /**
@@ -150,6 +140,8 @@ public class GMMTrainer implements Trainer<ClusterID> {
     private SplittableRandom rng;
 
     private int trainInvocationCounter;
+
+    private static final L2Distance plusPlusDistance = new L2Distance();
 
     /**
      * for olcut.
@@ -234,82 +226,66 @@ public class GMMTrainer implements Trainer<ClusterID> {
         }
 
         DenseMatrix responsibilities = new DenseMatrix(examples.size(), centroids);
-        DenseVector[] centroidVectors = switch (initialisationType) {
+        DenseVector[] meanVectors = switch (initialisationType) {
             case RANDOM -> initialiseRandomCentroids(centroids, featureMap, localRNG);
-            case PLUSPLUS -> initialisePlusPlusCentroids(centroids, data, localRNG, dist);
+            case PLUSPLUS -> initialisePlusPlusCentroids(centroids, data, localRNG);
         };
+        DenseMatrix[] covarianceMatrices = new DenseMatrix[centroids];
+        DenseMatrix.CholeskyFactorization[] precisionFactorizations = new DenseMatrix.CholeskyFactorization[centroids];
+        DenseVector mixingDistribution = new DenseVector(centroids);
 
-        Map<Integer, List<Integer>> clusterAssignments = new HashMap<>();
         boolean parallel = numThreads > 1;
-        for (int i = 0; i < centroids; i++) {
-            clusterAssignments.put(i, parallel ? Collections.synchronizedList(new ArrayList<>()) : new ArrayList<>());
-        }
 
-        AtomicInteger changeCounter = new AtomicInteger(0);
-        Consumer<IntAndVector> eStepFunc = (IntAndVector e) -> {
+        Consumer<SGDVector> eStepFunc = (SGDVector e) -> {
             double minDist = Double.POSITIVE_INFINITY;
-            int clusterID = -1;
-            int id = e.idx;
-            SGDVector vector = e.vector;
             for (int j = 0; j < centroids; j++) {
-                DenseVector cluster = centroidVectors[j];
-                double distance = dist.computeDistance(cluster, vector);
+                DenseVector cluster = meanVectors[j];
+                double distance = dist.computeDistance(cluster, e);
                 if (distance < minDist) {
                     minDist = distance;
-                    clusterID = j;
                 }
-            }
-
-            clusterAssignments.get(clusterID).add(id);
-            if (oldCentre[id] != clusterID) {
-                // Changed the centroid of this vector.
-                oldCentre[id] = clusterID;
-                changeCounter.incrementAndGet();
             }
         };
 
+        double oldLowerBound = Double.NEGATIVE_INFINITY;
+        double newLowerBound;
         boolean converged = false;
         ForkJoinPool fjp = null;
         try {
             if (parallel) {
-                if (System.getSecurityManager() == null) {
-                    fjp = new ForkJoinPool(numThreads);
-                } else {
-                    fjp = new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
-                }
+                fjp = new ForkJoinPool(numThreads);
             }
             for (int i = 0; (i < iterations) && !converged; i++) {
                 logger.log(Level.FINE,"Beginning iteration " + i);
-                changeCounter.set(0);
-
-                for (Entry<Integer, List<Integer>> e : clusterAssignments.entrySet()) {
-                    e.getValue().clear();
-                }
 
                 // E step
                 Stream<SGDVector> vecStream = Arrays.stream(data);
-                Stream<Integer> intStream = IntStream.range(0, data.length).boxed();
-                Stream<IntAndVector> zipStream = StreamUtil.zip(intStream, vecStream, IntAndVector::new);
                 if (parallel) {
-                    Stream<IntAndVector> parallelZipStream = StreamUtil.boundParallelism(zipStream.parallel());
                     try {
-                        fjp.submit(() -> parallelZipStream.forEach(eStepFunc)).get();
+                        fjp.submit(() -> vecStream.parallel().forEach(eStepFunc)).get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException("Parallel execution failed", e);
                     }
                 } else {
-                    zipStream.forEach(eStepFunc);
+                    vecStream.forEach(eStepFunc);
                 }
-                logger.log(Level.FINE, "E step completed. " + changeCounter.get() + " words updated.");
+                logger.log(Level.FINE, i + "th e step completed.");
 
-                mStep(fjp, centroidVectors, clusterAssignments, data, weights);
+                // M step
+                mStep(fjp, responsibilities, meanVectors, covarianceMatrices, mixingDistribution, precisionFactorizations, data, weights);
+                logger.log(Level.FINE, i + "th m step completed.");
 
-                logger.log(Level.INFO, "Iteration " + i + " completed. " + changeCounter.get() + " examples updated.");
+                // Compute log likelihood bound
+                newLowerBound = computeLowerBound();
 
-                if (changeCounter.get() == 0) {
+                logger.log(Level.INFO, "Iteration " + i + " completed.");
+
+                if (newLowerBound - oldLowerBound < convergenceTolerance) {
                     converged = true;
-                    logger.log(Level.INFO, "K-Means converged at iteration " + i);
+                    logger.log(Level.INFO, "GMM converged at iteration " + i);
                 }
+
+                oldLowerBound = newLowerBound;
             }
         } finally {
             if (fjp != null) {
@@ -318,8 +294,10 @@ public class GMMTrainer implements Trainer<ClusterID> {
         }
 
         Map<Integer, MutableLong> counts = new HashMap<>();
-        for (Entry<Integer, List<Integer>> e : clusterAssignments.entrySet()) {
-            counts.put(e.getKey(), new MutableLong(e.getValue().size()));
+        for (int i = 0; i < examples.size(); i++) {
+            int idx = responsibilities.getRow(i).argmax();
+            var count = counts.computeIfAbsent(idx, k -> new MutableLong());
+            count.increment();
         }
 
         ImmutableOutputInfo<ClusterID> outputMap = new ImmutableClusteringInfo(counts);
@@ -327,7 +305,8 @@ public class GMMTrainer implements Trainer<ClusterID> {
         ModelProvenance provenance = new ModelProvenance(GaussianMixtureModel.class.getName(), OffsetDateTime.now(),
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
-        return new GaussianMixtureModel("gaussian-mixture-model", provenance, featureMap, outputMap, centroidVectors, dist);
+        return new GaussianMixtureModel("gaussian-mixture-model", provenance, featureMap, outputMap,
+                meanVectors, covarianceMatrices, mixingDistribution);
     }
 
     @Override
@@ -351,7 +330,6 @@ public class GMMTrainer implements Trainer<ClusterID> {
         for (trainInvocationCounter = 0; trainInvocationCounter < invocationCount; trainInvocationCounter++){
             SplittableRandom localRNG = rng.split();
         }
-
     }
 
     /**
@@ -385,11 +363,9 @@ public class GMMTrainer implements Trainer<ClusterID> {
      * @param centroids The number of centroids to create.
      * @param data The dataset of {@link SGDVector} to use.
      * @param rng The RNG to use.
-     * @param dist The distance function.
      * @return A {@link DenseVector} array of centroids.
      */
-    private static DenseVector[] initialisePlusPlusCentroids(int centroids, SGDVector[] data, SplittableRandom rng,
-                                                             org.tribuo.math.distance.Distance dist) {
+    private static DenseVector[] initialisePlusPlusCentroids(int centroids, SGDVector[] data, SplittableRandom rng) {
         if (centroids > data.length) {
             throw new IllegalArgumentException("The number of centroids may not exceed the number of samples.");
         }
@@ -411,7 +387,7 @@ public class GMMTrainer implements Trainer<ClusterID> {
             // go through every vector and see if the min distance to the
             // newest centroid is smaller than previous min distance for vec
             for (int j = 0; j < data.length; j++) {
-                double tempDistance = dist.computeDistance(prevCentroid, data[j]);
+                double tempDistance = plusPlusDistance.computeDistance(prevCentroid, data[j]);
                 minDistancePerVector[j] = Math.min(minDistancePerVector[j], tempDistance);
             }
 
@@ -450,13 +426,13 @@ public class GMMTrainer implements Trainer<ClusterID> {
     /**
      * Runs the mStep, writing to the {@code centroidVectors} array.
      * @param fjp The ForkJoinPool to run the computation in if it should be executed in parallel.
-     *            If the fjp is null then the computation is executed sequentially on the main thread.
+     *            If the fjp is null then the computation is executed sequentially.
      * @param centroidVectors The centroid vectors to write out.
-     * @param clusterAssignments The current cluster assignments.
      * @param data The data points.
      * @param weights The example weights.
      */
-    protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, Map<Integer, List<Integer>> clusterAssignments, SGDVector[] data, double[] weights) {
+    protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, DenseMatrix[] covarianceMatrices,
+                         DenseMatrix.CholeskyFactorization[] precisionFactorizations, DenseVector mixingDistribution, SGDVector[] data, double[] weights) {
         // M step
         Consumer<Entry<Integer, List<Integer>>> mStepFunc = (e) -> {
             DenseVector newCentroid = centroidVectors[e.getKey()];
@@ -474,9 +450,8 @@ public class GMMTrainer implements Trainer<ClusterID> {
 
         Stream<Entry<Integer, List<Integer>>> mStream = clusterAssignments.entrySet().stream();
         if (fjp != null) {
-            Stream<Entry<Integer, List<Integer>>> parallelMStream = StreamUtil.boundParallelism(mStream.parallel());
             try {
-                fjp.submit(() -> parallelMStream.forEach(mStepFunc)).get();
+                fjp.submit(() -> mStream.parallel().forEach(mStepFunc)).get();
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException("Parallel execution failed", e);
             }
@@ -495,17 +470,4 @@ public class GMMTrainer implements Trainer<ClusterID> {
         return new TrainerProvenanceImpl(this);
     }
 
-    /**
-     * Tuple of index and position.
-     */
-    record IntAndVector(int idx, SGDVector vector) { }
-
-    /**
-     * Used to allow FJPs to work with OpenSearch's SecureSM.
-     */
-    private static final class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
-        public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-            return AccessController.doPrivileged((PrivilegedAction<ForkJoinWorkerThread>) () -> new ForkJoinWorkerThread(pool) {});
-        }
-    }
 }
