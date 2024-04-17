@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -623,6 +623,43 @@ public class DenseVector implements SGDVector {
     public void expNormalize(double total) {
         for (int i = 0; i < elements.length; i++) {
             elements[i] = Math.exp(elements[i] - total);
+        }
+    }
+
+    /**
+     * Sums log probabilities.
+     * @return log sum exp input[i].
+     */
+    public double logSumExp() {
+        final double LOG_TOLERANCE = 30.0;
+
+        double maxValue = get(0);
+        int maxIdx = 0;
+        for (int i = 1; i < elements.length; i++) {
+            double value = get(i);
+            if (value > maxValue) {
+                maxValue = value;
+                maxIdx = i;
+            }
+        }
+        if (maxValue == Double.NEGATIVE_INFINITY) {
+            return maxValue;
+        }
+
+        boolean anyAdded = false;
+        double intermediate = 0.0;
+        double cutoff = maxValue - LOG_TOLERANCE;
+        for (int i = 0; i < elements.length; i++) {
+            double value = get(i);
+            if (value >= cutoff && i != maxIdx && !Double.isInfinite(value)) {
+                anyAdded = true;
+                intermediate += Math.exp(value - maxValue);
+            }
+        }
+        if (anyAdded) {
+            return maxValue + Math.log1p(intermediate);
+        } else {
+            return maxValue;
         }
     }
 
