@@ -34,8 +34,14 @@ import "tribuo-math.proto";
 GaussianMixtureModel proto
  */
 message GaussianMixtureModelProto {
+ enum CovarianceTypeProto {
+  FULL = 0;
+  DIAGONAL = 1;
+  SPHERICAL = 2;
+ }
  tribuo.core.ModelDataProto metadata = 1;
  tribuo.math.TensorProto mixing_distribution = 2;
  repeated tribuo.math.TensorProto mean_vectors = 3;
  repeated tribuo.math.TensorProto covariance_matrices = 4;
+ CovarianceTypeProto covariance_type = 5;
 }

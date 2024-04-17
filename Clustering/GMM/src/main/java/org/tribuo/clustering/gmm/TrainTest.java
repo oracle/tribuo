@@ -27,9 +27,9 @@ import org.tribuo.Model;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ClusteringFactory;
 import org.tribuo.clustering.evaluation.ClusteringEvaluation;
-import org.tribuo.clustering.gmm.GMMTrainer.CovarianceType;
 import org.tribuo.clustering.gmm.GMMTrainer.Initialisation;
 import org.tribuo.data.DataOptions;
+import org.tribuo.math.distributions.MultivariateNormalDistribution;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -70,7 +70,7 @@ public class TrainTest {
          * The covariance type of the gaussians.
          */
         @Option(charName = 'v', longName = "covariance-type", usage = "Set the covariance type.")
-        public CovarianceType covarianceType = CovarianceType.DIAGONAL;
+        public MultivariateNormalDistribution.CovarianceType covarianceType = MultivariateNormalDistribution.CovarianceType.DIAGONAL;
         /**
          * Type of initialisation to use for centroids.
          */

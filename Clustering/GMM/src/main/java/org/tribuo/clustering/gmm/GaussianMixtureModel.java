@@ -29,6 +29,7 @@ import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.distributions.MultivariateNormalDistribution;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
@@ -38,10 +39,12 @@ import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
+import org.tribuo.util.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -72,17 +75,30 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
     private final DenseVector[] meanVectors;
 
-    private final DenseMatrix[] covarianceMatrices;
+    private final Tensor[] covarianceMatrices;
 
     private final DenseVector mixingDistribution;
 
+    private final MultivariateNormalDistribution.CovarianceType covarianceType;
+
+    private final MultivariateNormalDistribution[] distributions;
+
     GaussianMixtureModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                          ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] meanVectors,
-                         DenseMatrix[] covarianceMatrices, DenseVector mixingDistribution) {
-        super(name,description,featureIDMap,outputIDInfo,false);
+                         Tensor[] covarianceMatrices, DenseVector mixingDistribution,
+                         MultivariateNormalDistribution.CovarianceType covarianceType) {
+        super(name,description,featureIDMap,outputIDInfo,true);
         this.meanVectors = meanVectors;
         this.covarianceMatrices = covarianceMatrices;
         this.mixingDistribution = mixingDistribution;
+        this.covarianceType = covarianceType;
+        this.distributions = new MultivariateNormalDistribution[meanVectors.length];
+        for (int i = 0; i < meanVectors.length; i++) {
+            // seed is 1 as we call the sample method which uses the supplied RNG, and no eigen decomposition
+            // because we use the cholesky to fit the GMM.
+            distributions[i] = new MultivariateNormalDistribution(meanVectors[i], covarianceMatrices[i],
+                    covarianceType, 1L, false);
+        }
     }
 
     /**
@@ -108,6 +124,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
         ImmutableFeatureMap featureDomain = carrier.featureDomain();
 
+        MultivariateNormalDistribution.CovarianceType covarianceType = MultivariateNormalDistribution.CovarianceType.fromValue(proto.getCovarianceTypeValue());
         final int means = proto.getMeanVectorsCount();
 
         if (means == 0) {
@@ -128,18 +145,31 @@ public class GaussianMixtureModel extends Model<ClusterID> {
                 throw new IllegalStateException("Invalid protobuf, expected centroid to be a dense vector, found " + centroidTensor.getClass());
             }
         }
-        DenseMatrix[] covariances = new DenseMatrix[means];
+        Tensor[] covariances = new Tensor[means];
         List<TensorProto> covarianceProtos = proto.getCovarianceMatricesList();
         for (int i = 0; i < covariances.length; i++) {
             Tensor covarianceTensor = Tensor.deserialize(covarianceProtos.get(i));
-            if (covarianceTensor instanceof DenseMatrix covariance) {
+            if (covarianceType == MultivariateNormalDistribution.CovarianceType.FULL
+                    && covarianceTensor instanceof DenseMatrix covariance) {
                 if (covariance.getDimension1Size() != featureDomain.size() || covariance.getDimension2Size() != featureDomain.size()) {
                     throw new IllegalStateException("Invalid protobuf, covariance was not square or did not contain all " +
-                            "the features, found " + Arrays.toString(covariance.getShape()) + " expected [" + featureDomain.size() + ", " + featureDomain.size() +"]");
+                            "the features, found " + Arrays.toString(covariance.getShape()) + " expected [" + featureDomain.size() + ", " + featureDomain.size() + "]");
+                }
+                covariances[i] = covariance;
+            } else if (covarianceType == MultivariateNormalDistribution.CovarianceType.DIAGONAL
+                    && covarianceTensor instanceof DenseVector covariance) {
+                    if (covariance.size() != featureDomain.size()) {
+                        throw new IllegalStateException("Invalid protobuf, covariance was not diagonal, found " + covariance.size() + " elements not " + featureDomain.size() + ".");
+                    }
+                    covariances[i] = covariance;
+            } else if (covarianceType == MultivariateNormalDistribution.CovarianceType.SPHERICAL
+                    && covarianceTensor instanceof DenseVector covariance) {
+                if (covariance.size() != 1) {
+                    throw new IllegalStateException("Invalid protobuf, covariance was not spherical, found " + covariance.size() + " elements not 1.");
                 }
                 covariances[i] = covariance;
             } else {
-                throw new IllegalStateException("Invalid protobuf, expected covariance to be a dense matrix, found " + covarianceTensor.getClass());
+                throw new IllegalStateException("Invalid protobuf, expected covariance to match covarianceType, found " + covarianceTensor.getClass() + " for type " + covarianceType);
             }
         }
         Tensor mixing = Tensor.deserialize(proto.getMixingDistribution());
@@ -154,7 +184,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
             throw new IllegalStateException("Invalid protobuf, expected mixing distribution to be a dense vector, found " + mixing.getClass());
         }
 
-        return new GaussianMixtureModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain, centroids, covariances, mixingVec);
+        return new GaussianMixtureModel(carrier.name(), carrier.provenance(), featureDomain, outputDomain, centroids, covariances, mixingVec, covarianceType);
     }
 
     /**
@@ -181,13 +211,13 @@ public class GaussianMixtureModel extends Model<ClusterID> {
     /**
      * Returns a copy of the covariances.
      * <p>
-     * This method provides direct access to the covariance matrices
+     * This method provides direct access to the covariances
      * for use in downstream processing, users need to map the indices using
      * Tribuo's internal ids themselves.
      * @return The covariances.
      */
-    public DenseMatrix[] getCovariances() {
-        DenseMatrix[] copies = new DenseMatrix[covarianceMatrices.length];
+    public Tensor[] getCovariances() {
+        Tensor[] copies = new Tensor[covarianceMatrices.length];
 
         for (int i = 0; i < copies.length; i++) {
             copies[i] = covarianceMatrices[i].copy();
@@ -235,8 +265,32 @@ public class GaussianMixtureModel extends Model<ClusterID> {
         }
 
         // generate cluster responsibilities and normalize into a distribution
+        DenseVector responsibilities = new DenseVector(meanVectors[0].size());
 
-        return new Prediction<>(new ClusterID(id),vector.size(),example);
+        // compute log probs
+        for (int i = 0; i < distributions.length; i++) {
+            responsibilities.set(i, distributions[i].logProbability(vector));
+        }
+
+        // add mixing distribution
+        responsibilities.intersectAndAddInPlace(mixingDistribution, Math::log);
+
+        // convert from log space into probabilities
+        double sum = responsibilities.logSumExp();
+        responsibilities.scalarAddInPlace(-sum);
+        responsibilities.foreachInPlace(Math::exp);
+
+        // compute output prediction
+        ClusterID max = null;
+        Map<String, ClusterID> scores = new HashMap<>();
+        for (int i = 0; i < distributions.length; i++) {
+            ClusterID tmp = new ClusterID(i, responsibilities.get(i));
+            if (max == null || tmp.getScore() > max.getScore()) {
+                max = tmp;
+            }
+        }
+
+        return new Prediction<>(max,scores,vector.size(),example,generatesProbabilities);
     }
 
     @Override
@@ -257,11 +311,18 @@ public class GaussianMixtureModel extends Model<ClusterID> {
      */
     public List<Pair<Integer, DenseVector>> sample(int numSamples, RandomGenerator rng) {
         // Convert mixing distribution into CDF
+        double[] cdf = Util.generateCDF(mixingDistribution.toArray());
 
-        // Sample from mixing distribution
+        List<Pair<Integer, DenseVector>> output = new ArrayList<>();
+        for (int i = 0; i < numSamples; i++) {
+            // Sample from mixing distribution
+            int dist = Util.sampleFromCDF(cdf, rng);
 
-        // Sample from appropriate MultivariateNormalDistribution
+            // Sample from appropriate MultivariateNormalDistribution
 
+        }
+
+        return output;
     }
 
     /**
@@ -299,10 +360,11 @@ public class GaussianMixtureModel extends Model<ClusterID> {
         for (DenseVector e : meanVectors) {
             modelBuilder.addMeanVectors(e.serialize());
         }
-        for (DenseMatrix e : covarianceMatrices) {
+        for (Tensor e : covarianceMatrices) {
             modelBuilder.addCovarianceMatrices(e.serialize());
         }
         modelBuilder.setMixingDistribution(mixingDistribution.serialize());
+        modelBuilder.setCovarianceTypeValue(covarianceType.value());
 
         ModelProto.Builder builder = ModelProto.newBuilder();
         builder.setSerializedData(Any.pack(modelBuilder.build()));
@@ -315,13 +377,13 @@ public class GaussianMixtureModel extends Model<ClusterID> {
     @Override
     protected GaussianMixtureModel copy(String newName, ModelProvenance newProvenance) {
         DenseVector[] newCentroids = new DenseVector[meanVectors.length];
-        DenseMatrix[] newCovariance = new DenseMatrix[meanVectors.length];
+        Tensor[] newCovariance = new Tensor[meanVectors.length];
         for (int i = 0; i < meanVectors.length; i++) {
             newCentroids[i] = meanVectors[i].copy();
             newCovariance[i] = covarianceMatrices[i].copy();
         }
 
         return new GaussianMixtureModel(newName,newProvenance,featureIDMap,outputIDInfo,
-                newCentroids,newCovariance,mixingDistribution.copy());
+                newCentroids,newCovariance,mixingDistribution.copy(),covarianceType);
     }
 }

@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
-import com.oracle.labs.mlrg.olcut.util.StreamUtil;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -30,6 +29,7 @@ import org.tribuo.WeightedExamples;
 import org.tribuo.clustering.ClusterID;
 import org.tribuo.clustering.ImmutableClusteringInfo;
 import org.tribuo.math.distance.L2Distance;
+import org.tribuo.math.distributions.MultivariateNormalDistribution;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
@@ -52,7 +52,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -86,21 +85,6 @@ import java.util.stream.Stream;
 public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(GMMTrainer.class.getName());
 
-    public enum CovarianceType {
-        /**
-         * Full covariance.
-         */
-        FULL,
-        /**
-         * Diagonal covariance.
-         */
-        DIAGONAL,
-        /**
-         * Spherical covariance.
-         */
-        SPHERICAL
-    }
-
     /**
      * Possible initialization functions.
      */
@@ -126,7 +110,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
     private double convergenceTolerance = 1e-3f;
 
     @Config(description = "The type of covariance matrix to fit.")
-    private CovarianceType covarianceType = CovarianceType.DIAGONAL;
+    private MultivariateNormalDistribution.CovarianceType covarianceType = MultivariateNormalDistribution.CovarianceType.DIAGONAL;
 
     @Config(description = "The centroid initialisation method to use.")
     private Initialisation initialisationType = Initialisation.RANDOM;
@@ -157,7 +141,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
      * @param seed The random seed.
      */
     public GMMTrainer(int centroids, int iterations, int numThreads, long seed) {
-        this(centroids,iterations,CovarianceType.DIAGONAL,Initialisation.RANDOM,1e-3,numThreads,seed);
+        this(centroids,iterations, MultivariateNormalDistribution.CovarianceType.DIAGONAL,Initialisation.RANDOM,1e-3,numThreads,seed);
     }
 
     /**
@@ -169,7 +153,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
-    public GMMTrainer(int centroids, int iterations, CovarianceType covarianceType, Initialisation initialisationType, double tolerance, int numThreads, long seed) {
+    public GMMTrainer(int centroids, int iterations, MultivariateNormalDistribution.CovarianceType covarianceType, Initialisation initialisationType, double tolerance, int numThreads, long seed) {
         this.centroids = centroids;
         this.iterations = iterations;
         this.covarianceType = covarianceType;
@@ -306,7 +290,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
         return new GaussianMixtureModel("gaussian-mixture-model", provenance, featureMap, outputMap,
-                meanVectors, covarianceMatrices, mixingDistribution);
+                meanVectors, covarianceMatrices, mixingDistribution, covarianceType);
     }
 
     @Override

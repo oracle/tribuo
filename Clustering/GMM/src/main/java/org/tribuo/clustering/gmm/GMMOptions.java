@@ -20,7 +20,8 @@ import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
 import org.tribuo.Trainer;
 import org.tribuo.clustering.gmm.GMMTrainer.Initialisation;
-import org.tribuo.clustering.gmm.GMMTrainer.CovarianceType;
+import org.tribuo.math.distributions.MultivariateNormalDistribution.CovarianceType;
+import org.tribuo.math.distributions.MultivariateNormalDistribution;
 
 import java.util.logging.Logger;
 
@@ -44,7 +45,7 @@ public class GMMOptions implements Options {
      * The covariance type of the Gaussians.
      */
     @Option(charName = 'v', longName = "covariance-type", usage = "Set the covariance type.")
-    public CovarianceType covarianceType = CovarianceType.DIAGONAL;
+    public CovarianceType covarianceType = MultivariateNormalDistribution.CovarianceType.DIAGONAL;
     /**
      * Initialisation function in GMM. Defaults to RANDOM.
      */
