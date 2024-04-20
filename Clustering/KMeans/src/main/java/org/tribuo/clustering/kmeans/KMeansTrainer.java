@@ -564,7 +564,7 @@ public class KMeansTrainer implements Trainer<ClusterID>, WeightedExamples {
     }
 
     /**
-     * Tuple of index and position. One day it'll be a record, but not today.
+     * Tuple of index and position.
      */
     record IntAndVector(int idx, SGDVector vector) { }
 

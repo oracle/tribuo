@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
+import com.oracle.labs.mlrg.olcut.util.StreamUtil;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
@@ -34,6 +35,8 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.Tensor;
+import org.tribuo.math.la.VectorTuple;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -43,15 +46,14 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.Consumer;
+import java.util.function.ToDoubleFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -62,9 +64,8 @@ import java.util.stream.Stream;
  * It's slightly contorted to fit the Tribuo Trainer and Model API, as the cluster assignments
  * can only be retrieved from the model after training, and require re-evaluating each example.
  * <p>
- * The Trainer has a parameterised distance function, and a selectable number
- * of threads used in the training step. The thread pool is local to an invocation of train,
- * so there can be multiple concurrent trainings.
+ * The Trainer has a selectable number of threads used in the training step.
+ * The thread pool is local to an invocation of train, so there can be multiple concurrent trainings.
  * <p>
  * The train method will instantiate dense examples as dense vectors, speeding up the computation.
  * <p>
@@ -100,8 +101,8 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
         PLUSPLUS
     }
 
-    @Config(mandatory = true, description = "Number of centroids.")
-    private int centroids;
+    @Config(mandatory = true, description = "Number of Gaussians to fit.")
+    private int numGaussians;
 
     @Config(mandatory = true, description = "The number of iterations to run.")
     private int iterations;
@@ -112,7 +113,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
     @Config(description = "The type of covariance matrix to fit.")
     private MultivariateNormalDistribution.CovarianceType covarianceType = MultivariateNormalDistribution.CovarianceType.DIAGONAL;
 
-    @Config(description = "The centroid initialisation method to use.")
+    @Config(description = "The cluster initialisation method to use.")
     private Initialisation initialisationType = Initialisation.RANDOM;
 
     @Config(description = "The number of threads to use for training.")
@@ -133,28 +134,28 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
     private GMMTrainer() { }
 
     /**
-     * Constructs a K-Means trainer using the supplied parameters and the default random initialisation.
+     * Constructs a Gaussian Mixture Model trainer using the supplied parameters and the default random initialisation.
      *
-     * @param centroids The number of centroids to use.
+     * @param numGaussians The number of centroids to use.
      * @param iterations The maximum number of iterations.
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
-    public GMMTrainer(int centroids, int iterations, int numThreads, long seed) {
-        this(centroids,iterations, MultivariateNormalDistribution.CovarianceType.DIAGONAL,Initialisation.RANDOM,1e-3,numThreads,seed);
+    public GMMTrainer(int numGaussians, int iterations, int numThreads, long seed) {
+        this(numGaussians,iterations, MultivariateNormalDistribution.CovarianceType.DIAGONAL,Initialisation.RANDOM,1e-3,numThreads,seed);
     }
 
     /**
-     * Constructs a K-Means trainer using the supplied parameters.
+     * Constructs a Gaussian Mixture Model trainer using the supplied parameters.
      *
-     * @param centroids The number of centroids to use.
+     * @param numGaussians The number of centroids to use.
      * @param iterations The maximum number of iterations.
      * @param initialisationType The centroid initialization method.
      * @param numThreads The number of threads.
      * @param seed The random seed.
      */
-    public GMMTrainer(int centroids, int iterations, MultivariateNormalDistribution.CovarianceType covarianceType, Initialisation initialisationType, double tolerance, int numThreads, long seed) {
-        this.centroids = centroids;
+    public GMMTrainer(int numGaussians, int iterations, MultivariateNormalDistribution.CovarianceType covarianceType, Initialisation initialisationType, double tolerance, int numThreads, long seed) {
+        this.numGaussians = numGaussians;
         this.iterations = iterations;
         this.covarianceType = covarianceType;
         this.initialisationType = initialisationType;
@@ -171,8 +172,8 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
     public synchronized void postConfig() {
         this.rng = new SplittableRandom(seed);
 
-        if (centroids < 1) {
-            throw new PropertyException("centroids", "Centroids must be positive, found " + centroids);
+        if (numGaussians < 1) {
+            throw new PropertyException("centroids", "Centroids must be positive, found " + numGaussians);
         }
     }
 
@@ -196,6 +197,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
 
+        DenseVector[] responsibilities = new DenseVector[examples.size()];
         SGDVector[] data = new SGDVector[examples.size()];
         double[] weights = new double[examples.size()];
         int n = 0;
@@ -206,29 +208,38 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
             } else {
                 data[n] = SparseVector.createSparseVector(example, featureMap, false);
             }
+            responsibilities[n] = new DenseVector(numGaussians);
             n++;
         }
 
-        DenseMatrix responsibilities = new DenseMatrix(examples.size(), centroids);
-        DenseVector[] meanVectors = switch (initialisationType) {
-            case RANDOM -> initialiseRandomCentroids(centroids, featureMap, localRNG);
-            case PLUSPLUS -> initialisePlusPlusCentroids(centroids, data, localRNG);
+        final DenseVector[] meanVectors = switch (initialisationType) {
+            case RANDOM -> initialiseRandomCentroids(numGaussians, featureMap, localRNG);
+            case PLUSPLUS -> initialisePlusPlusCentroids(numGaussians, data, localRNG);
         };
-        DenseMatrix[] covarianceMatrices = new DenseMatrix[centroids];
-        DenseMatrix.CholeskyFactorization[] precisionFactorizations = new DenseMatrix.CholeskyFactorization[centroids];
-        DenseVector mixingDistribution = new DenseVector(centroids);
+        final Tensor[] covarianceMatrices = new Tensor[numGaussians];
+        DenseMatrix.CholeskyFactorization[] precisionFactorizations = new DenseMatrix.CholeskyFactorization[numGaussians];
+        final DenseVector mixingDistribution = new DenseVector(numGaussians);
 
         boolean parallel = numThreads > 1;
 
-        Consumer<SGDVector> eStepFunc = (SGDVector e) -> {
-            double minDist = Double.POSITIVE_INFINITY;
-            for (int j = 0; j < centroids; j++) {
-                DenseVector cluster = meanVectors[j];
-                double distance = dist.computeDistance(cluster, e);
-                if (distance < minDist) {
-                    minDist = distance;
-                }
+        ToDoubleFunction<IntAndVector> eStepFunc = (IntAndVector e) -> {
+            DenseVector curResponsibilities = responsibilities[e.idx];
+            // compute log probs
+            for (int i = 0; i < meanVectors.length; i++) {
+                curResponsibilities.set(i, MultivariateNormalDistribution.logProbability(e.vector, meanVectors[i], covarianceMatrices[i], precisionFactorizations[i], covarianceType));
             }
+
+            // add mixing distribution
+            curResponsibilities.intersectAndAddInPlace(mixingDistribution, Math::log);
+
+            // normalize log probabilities
+            double sum = curResponsibilities.logSumExp();
+            curResponsibilities.scalarAddInPlace(-sum);
+
+            // exponentiate them
+            curResponsibilities.foreachInPlace(Math::exp);
+
+            return sum;
         };
 
         double oldLowerBound = Double.NEGATIVE_INFINITY;
@@ -243,28 +254,75 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                 logger.log(Level.FINE,"Beginning iteration " + i);
 
                 // E step
+                double normSum;
                 Stream<SGDVector> vecStream = Arrays.stream(data);
+                Stream<Integer> intStream = IntStream.range(0, data.length).boxed();
+                Stream<IntAndVector> zipStream = StreamUtil.zip(intStream, vecStream, IntAndVector::new);
                 if (parallel) {
                     try {
-                        fjp.submit(() -> vecStream.parallel().forEach(eStepFunc)).get();
+                        normSum = fjp.submit(() -> zipStream.parallel().mapToDouble(eStepFunc).sum()).get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException("Parallel execution failed", e);
                     }
                 } else {
-                    vecStream.forEach(eStepFunc);
+                    normSum = zipStream.mapToDouble(eStepFunc).sum();
                 }
                 logger.log(Level.FINE, i + "th e step completed.");
 
-                // M step
-                mStep(fjp, responsibilities, meanVectors, covarianceMatrices, mixingDistribution, precisionFactorizations, data, weights);
-                logger.log(Level.FINE, i + "th m step completed.");
+                // compute lower bound
+                newLowerBound = normSum / examples.size();
 
-                // Compute log likelihood bound
-                newLowerBound = computeLowerBound();
+                // M step
+                // compute new mixing distribution
+                DenseVector zeroVector = new DenseVector(numGaussians);
+                Stream<DenseVector> resStream = Arrays.stream(responsibilities);
+                DenseVector newMixingDistribution;
+                if (parallel) {
+                    try {
+                        newMixingDistribution = fjp.submit(() -> resStream.parallel().reduce(zeroVector, DenseVector::add)).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException("Parallel execution failed", e);
+                    }
+                } else {
+                    newMixingDistribution = resStream.parallel().reduce(zeroVector, DenseVector::add);
+                }
+                // add minimum value to ensure all values are positive
+                newMixingDistribution.scalarAddInPlace(2e-15);
+
+                // compute new means based on mixing distribution & positions
+                for (int j = 0; j < numGaussians; j++) {
+                    meanVectors[j].set(0);
+                }
+                // Manual matrix multiply here as things are stored as arrays of vectors
+                // responsibilities[examples, gaussians], data[examples, features], means[gaussians, features]
+                for (int j = 0; j < examples.size(); j++) {
+                    DenseVector curResp = responsibilities[j];
+                    SGDVector curExample = data[j];
+                    for (VectorTuple v : curExample) {
+                        for (int k = 0; k < numGaussians; k++) {
+                            DenseVector curMean = meanVectors[k];
+                            curMean.set(v.index, curMean.get(v.index) + v.value * curResp.get(k));
+                        }
+                    }
+                }
+                for (int j = 0; j < numGaussians; j++) {
+                    meanVectors[j].scaleInPlace(newMixingDistribution.get(j));
+                }
+
+                // compute new covariances
+
+                // renormalize mixing distribution
+                double mixingSum = newMixingDistribution.sum();
+                newMixingDistribution.scaleInPlace(1/mixingSum);
+                mixingDistribution.setElements(newMixingDistribution);
+
+                // factorize covariances
+
+                logger.log(Level.FINE, i + "th m step completed.");
 
                 logger.log(Level.INFO, "Iteration " + i + " completed.");
 
-                if (newLowerBound - oldLowerBound < convergenceTolerance) {
+                if ((newLowerBound - oldLowerBound) < convergenceTolerance) {
                     converged = true;
                     logger.log(Level.INFO, "GMM converged at iteration " + i);
                 }
@@ -279,7 +337,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
 
         Map<Integer, MutableLong> counts = new HashMap<>();
         for (int i = 0; i < examples.size(); i++) {
-            int idx = responsibilities.getRow(i).argmax();
+            int idx = responsibilities[i].argmax();
             var count = counts.computeIfAbsent(idx, k -> new MutableLong());
             count.increment();
         }
@@ -330,13 +388,13 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
         DenseVector[] centroidVectors = new DenseVector[centroids];
         int numFeatures = featureMap.size();
         for (int i = 0; i < centroids; i++) {
-            double[] newCentroid = new double[numFeatures];
+            DenseVector newCentroid = new DenseVector(numFeatures);
 
             for (int j = 0; j < numFeatures; j++) {
-                newCentroid[j] = featureMap.get(j).uniformSample(rng);
+                newCentroid.set(j, featureMap.get(j).uniformSample(rng));
             }
 
-            centroidVectors[i] = DenseVector.createDenseVector(newCentroid);
+            centroidVectors[i] = newCentroid;
         }
         return centroidVectors;
     }
@@ -407,46 +465,9 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
         return DenseVector.createDenseVector(data[randIdx].toArray());
     }
 
-    /**
-     * Runs the mStep, writing to the {@code centroidVectors} array.
-     * @param fjp The ForkJoinPool to run the computation in if it should be executed in parallel.
-     *            If the fjp is null then the computation is executed sequentially.
-     * @param centroidVectors The centroid vectors to write out.
-     * @param data The data points.
-     * @param weights The example weights.
-     */
-    protected void mStep(ForkJoinPool fjp, DenseVector[] centroidVectors, DenseMatrix[] covarianceMatrices,
-                         DenseMatrix.CholeskyFactorization[] precisionFactorizations, DenseVector mixingDistribution, SGDVector[] data, double[] weights) {
-        // M step
-        Consumer<Entry<Integer, List<Integer>>> mStepFunc = (e) -> {
-            DenseVector newCentroid = centroidVectors[e.getKey()];
-            newCentroid.fill(0.0);
-
-            double weightSum = 0.0;
-            for (Integer idx : e.getValue()) {
-                newCentroid.intersectAndAddInPlace(data[idx], (double f) -> f * weights[idx]);
-                weightSum += weights[idx];
-            }
-            if (weightSum != 0.0) {
-                newCentroid.scaleInPlace(1.0 / weightSum);
-            }
-        };
-
-        Stream<Entry<Integer, List<Integer>>> mStream = clusterAssignments.entrySet().stream();
-        if (fjp != null) {
-            try {
-                fjp.submit(() -> mStream.parallel().forEach(mStepFunc)).get();
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException("Parallel execution failed", e);
-            }
-        } else {
-            mStream.forEach(mStepFunc);
-        }
-    }
-
     @Override
     public String toString() {
-        return "GMMTrainer(centroids=" + centroids + ",seed=" + seed + ",numThreads=" + numThreads + ", initialisationType=" + initialisationType + ")";
+        return "GMMTrainer(numGaussians=" + numGaussians + ",seed=" + seed + ",numThreads=" + numThreads + ", initialisationType=" + initialisationType + ")";
     }
 
     @Override
@@ -454,4 +475,8 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
         return new TrainerProvenanceImpl(this);
     }
 
+    /**
+     * Tuple of index and position.
+     */
+    record IntAndVector(int idx, SGDVector vector) { }
 }

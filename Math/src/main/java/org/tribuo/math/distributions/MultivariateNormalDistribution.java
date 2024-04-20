@@ -19,6 +19,7 @@ package org.tribuo.math.distributions;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 
@@ -98,6 +99,26 @@ public final class MultivariateNormalDistribution {
      */
     public MultivariateNormalDistribution(DenseVector means, DenseMatrix covariance, long seed, boolean eigenDecomposition) {
         this(means, covariance, CovarianceType.FULL, seed, eigenDecomposition);
+    }
+
+    /**
+     * Constructs a multivariate normal distribution that can be sampled from using a spherical covariance.
+     * @param means The mean vector.
+     * @param sphericalCovariance The spherical covariance matrix, stored as a single double.
+     * @param seed The RNG seed.
+     */
+    public MultivariateNormalDistribution(DenseVector means, double sphericalCovariance, long seed) {
+        this(means,new DenseVector(1,sphericalCovariance),CovarianceType.SPHERICAL,seed,false);
+    }
+
+    /**
+     * Constructs a multivariate normal distribution that can be sampled from using a diagonal covariance matrix.
+     * @param means The mean vector.
+     * @param diagonalCovariance The diagonal covariance matrix, stored as a vector.
+     * @param seed The RNG seed.
+     */
+    public MultivariateNormalDistribution(DenseVector means, DenseVector diagonalCovariance, long seed) {
+        this(means,diagonalCovariance,CovarianceType.DIAGONAL,seed,false);
     }
 
     /**
@@ -227,6 +248,10 @@ public final class MultivariateNormalDistribution {
      * @return The log probability.
      */
     public double logProbability(SGDVector input) {
+        return logProbability(input, means, covariance(), samplingCovariance, type);
+    }
+
+    public static double logProbability(SGDVector input, DenseVector mean, Tensor covariance, Matrix.Factorization factorization, CovarianceType type) {
 
     }
 

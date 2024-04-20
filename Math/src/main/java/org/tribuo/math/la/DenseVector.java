@@ -432,6 +432,17 @@ public class DenseVector implements SGDVector {
         }
     }
 
+    /**
+     * Applies the function {@code f} to each element of this vector returning a new vector.
+     * @param f The function to apply.
+     * @return A copy of this vector with {@code f} applied to each element.
+     */
+    public DenseVector foreach(DoubleUnaryOperator f) {
+        DenseVector output = new DenseVector(this);
+        output.foreachInPlace(f);
+        return output;
+    }
+
     @Override
     public void foreachInPlace(DoubleUnaryOperator f) {
         for (int i = 0; i < elements.length; i++) {
@@ -550,6 +561,14 @@ public class DenseVector implements SGDVector {
     @Override
     public void set(int index, double value) {
         elements[index] = value;
+    }
+
+    /**
+     * Sets all elements of this vector to {@code value}.
+     * @param value The value to set things to.
+     */
+    public void set(double value) {
+        Arrays.fill(elements, 0);
     }
 
     /**
