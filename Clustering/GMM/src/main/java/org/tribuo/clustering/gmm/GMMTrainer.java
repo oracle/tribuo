@@ -47,6 +47,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -217,7 +218,8 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
             case PLUSPLUS -> initialisePlusPlusCentroids(numGaussians, data, localRNG);
         };
         final Tensor[] covarianceMatrices = new Tensor[numGaussians];
-        DenseMatrix.CholeskyFactorization[] precisionFactorizations = new DenseMatrix.CholeskyFactorization[numGaussians];
+        final Tensor[] precision = new Tensor[numGaussians];
+        final double[] determinant = new double[numGaussians];
         final DenseVector mixingDistribution = new DenseVector(numGaussians);
 
         boolean parallel = numThreads > 1;
@@ -226,7 +228,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
             DenseVector curResponsibilities = responsibilities[e.idx];
             // compute log probs
             for (int i = 0; i < meanVectors.length; i++) {
-                curResponsibilities.set(i, MultivariateNormalDistribution.logProbability(e.vector, meanVectors[i], covarianceMatrices[i], precisionFactorizations[i], covarianceType));
+                curResponsibilities.set(i, MultivariateNormalDistribution.logProbability(e.vector, meanVectors[i], precision[i], determinant[i], covarianceType));
             }
 
             // add mixing distribution
@@ -316,7 +318,35 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                 newMixingDistribution.scaleInPlace(1/mixingSum);
                 mixingDistribution.setElements(newMixingDistribution);
 
-                // factorize covariances
+                // compute precisions
+                switch (covarianceType) {
+                    case FULL -> {
+                        for (int j = 0; j < covarianceMatrices.length; j++) {
+                            DenseMatrix covMax = (DenseMatrix) covarianceMatrices[j];
+                            Optional<DenseMatrix.CholeskyFactorization> optFact = covMax.choleskyFactorization();
+                            if (optFact.isPresent()) {
+                                DenseMatrix.CholeskyFactorization fact = optFact.get();
+                                precision[j] = fact.inverse();
+                                determinant[j] = fact.determinant();
+                            } else {
+                                throw new IllegalStateException("Failed to invert covariance matrix, cholesky didn't complete.");
+                            }
+                        }
+                    }
+                    case DIAGONAL, SPHERICAL -> {
+                        for (int j = 0; j < covarianceMatrices.length; j++) {
+                            DenseVector covVec = (DenseVector) covarianceMatrices[j];
+                            DenseVector preVec = (DenseVector) precision[j];
+                            double tmp = 1;
+                            for (int k = 0; k < preVec.size(); k++) {
+                                double curVal = 1/Math.sqrt(covVec.get(k));
+                                preVec.set(k, curVal);
+                                tmp *= curVal;
+                            }
+                            determinant[j] = tmp;
+                        }
+                    }
+                }
 
                 logger.log(Level.FINE, i + "th m step completed.");
 

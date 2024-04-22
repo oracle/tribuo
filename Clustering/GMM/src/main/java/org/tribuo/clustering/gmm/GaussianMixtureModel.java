@@ -319,7 +319,8 @@ public class GaussianMixtureModel extends Model<ClusterID> {
             int dist = Util.sampleFromCDF(cdf, rng);
 
             // Sample from appropriate MultivariateNormalDistribution
-
+            DenseVector sample = distributions[dist].sampleVector(rng);
+            output.add(new Pair<>(dist, sample));
         }
 
         return output;

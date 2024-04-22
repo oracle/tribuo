@@ -19,7 +19,6 @@ package org.tribuo.math.distributions;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
-import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 
@@ -40,6 +39,8 @@ public final class MultivariateNormalDistribution {
     private final DenseVector covarianceVector;
     private final DenseMatrix covarianceMatrix;
     private final DenseMatrix samplingCovariance;
+    private final Tensor precision;
+    private final double determinant;
     private final boolean eigenDecomposition;
     private final CovarianceType type;
 
@@ -159,6 +160,8 @@ public final class MultivariateNormalDistribution {
                         eigenvalues.foreachInPlace(Math::sqrt);
                         DenseSparseMatrix diagonal = DenseSparseMatrix.createDiagonal(eigenvalues);
                         this.samplingCovariance = eigenvectors.matrixMultiply(diagonal).matrixMultiply(eigenvectors,false,true);
+                        this.determinant = factorization.get().determinant();
+                        this.precision = factorization.get().inverse();
                     } else {
                         throw new IllegalArgumentException("Covariance matrix is not positive definite.");
                     }
@@ -166,6 +169,8 @@ public final class MultivariateNormalDistribution {
                     Optional<DenseMatrix.CholeskyFactorization> factorization = this.covarianceMatrix.choleskyFactorization();
                     if (factorization.isPresent()) {
                         this.samplingCovariance = factorization.get().lMatrix();
+                        this.determinant = factorization.get().determinant();
+                        this.precision = factorization.get().inverse();
                     } else {
                         throw new IllegalArgumentException("Covariance matrix is not positive definite.");
                     }
@@ -183,6 +188,14 @@ public final class MultivariateNormalDistribution {
                     throw new IllegalArgumentException("Covariance must be a vector and the same dimension as the mean vector. Mean vector size = " + means.size() + ", covariance size = " + this.covarianceVector.size());
                 }
 
+                double tmp = 1;
+                for (int i = 0; i < this.covarianceVector.size(); i++) {
+                    tmp *= this.covarianceVector.get(i);
+                }
+                this.determinant = tmp;
+                this.precision = this.covarianceVector.copy();
+                this.precision.foreachInPlace(a -> 1.0/a);
+
                 // set unused variables.
                 this.covarianceMatrix = null;
                 this.samplingCovariance = null;
@@ -190,13 +203,20 @@ public final class MultivariateNormalDistribution {
             }
             case SPHERICAL -> {
                 if (covariance instanceof DenseVector vec) {
-                    if (vec.size() != 1) {
+                    if ((vec.size() != 1) && (vec.size() != means.size())) {
                         throw new IllegalArgumentException("Covariance must be a single element vector for spherical covariance. Found " + vec.size());
                     }
                 } else {
                     throw new IllegalArgumentException("Covariance must be a single element vector for spherical covariance, found " + covariance.getClass());
                 }
-                this.variance = Double.NaN;
+                this.variance = vec.get(0);
+
+                double tmp = 1;
+                for (int i = 0; i < means.size(); i++) {
+                    tmp *= this.variance;
+                }
+                this.determinant = tmp;
+                this.precision = new DenseVector(1, 1.0 / variance);
 
                 // set unused variables.
                 this.covarianceVector = null;
@@ -231,7 +251,9 @@ public final class MultivariateNormalDistribution {
             case SPHERICAL -> sampled.scaleInPlace(variance);
         }
 
-        return means.add(sampled);
+        sampled.intersectAndAddInPlace(means);
+
+        return sampled;
     }
 
     /**
@@ -243,16 +265,61 @@ public final class MultivariateNormalDistribution {
     }
 
     /**
+     * Gets a copy of the mean vector.
+     * @return A copy of the mean vector.
+     */
+    public DenseVector means() {
+        return means.copy();
+    }
+
+    /**
+     * Gets a copy of the covariance, either a {@link DenseMatrix} if it's full rank,
+     * or a {@link DenseVector} if it's diagonal or spherical.
+     * @return The covariance.
+     */
+    public Tensor covariance() {
+        return switch (type) {
+            case FULL -> covarianceMatrix.copy();
+            case DIAGONAL -> covarianceVector.copy();
+            case SPHERICAL -> new DenseVector(means.size(), variance);
+        };
+    }
+
+    /**
      * Compute the log probability of the input under this multivariate normal distribution.
      * @param input The input to compute.
      * @return The log probability.
      */
     public double logProbability(SGDVector input) {
-        return logProbability(input, means, covariance(), samplingCovariance, type);
+        return logProbability(input, means, precision, determinant, type);
     }
 
-    public static double logProbability(SGDVector input, DenseVector mean, Tensor covariance, Matrix.Factorization factorization, CovarianceType type) {
-
+    public static double logProbability(SGDVector input, DenseVector mean, Tensor precision, double determinant, CovarianceType type) {
+        // p(input|mean, variance) = \frac{1}{(2\pi)^{d/2} determinant^{1/2}} e^{-1/2 * (input - mean)^T * precision * (input - mean)}
+        // log p(i|mu,sigma) = - log ({2\pi}^{d/2}) - log (determinant^{1/2}) + (-1/2 * (i - mu)^T * precision * (i - mu))
+        double scalar = (- (mean.size() / 2.0) * Math.log(2 * Math.PI)) - (Math.log(determinant) / 2.0);
+        DenseVector diff = (DenseVector) input.subtract(mean);
+        double distance = switch (type) {
+            case FULL -> {
+                DenseMatrix precMat = (DenseMatrix) precision;
+                yield precMat.leftMultiply(diff).dot(diff);
+            }
+            case DIAGONAL -> {
+                // diff^T * diagonal precision * diff
+                // = diff.hadamard(precision).dot(diff)
+                // = diff.square().dot(precision)
+                DenseVector precVec = (DenseVector) precision;
+                diff.foreachInPlace(a -> a * a);
+                yield diff.dot(precVec);
+            }
+            case SPHERICAL -> {
+                double precVal = ((DenseVector) precision).get(0);
+                diff.foreachInPlace(a -> a * a);
+                diff.scaleInPlace(precVal);
+                yield diff.sum();
+            }
+        };
+        return scalar + (0.5 * distance);
     }
 
     @Override
