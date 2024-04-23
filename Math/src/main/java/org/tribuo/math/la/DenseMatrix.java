@@ -304,6 +304,24 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
+     * Adds {@code other} to this matrix, producing a new {@link DenseMatrix}.
+     * @param other The matrix to add.
+     * @return A new {@link DenseMatrix} where each element value = this.get(i,j) + other.get(i,j).
+     */
+    public DenseMatrix add(DenseMatrix other) {
+        if (dim1 != other.dim1 || dim2 != other.dim2) {
+            throw new IllegalArgumentException("Can't add matrices of different sizes, this " + Arrays.toString(shape) + ", other " + Arrays.toString(other.shape));
+        }
+        double[][] output = new double[dim1][dim2];
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                output[i][j] = get(i,j) + other.get(i,j);
+            }
+        }
+        return new DenseMatrix(output);
+    }
+
+    /**
      * Constructs a dense vector by gathering values across dimension 1.
      * @param elements The indices to gather.
      * @return A dense vector.

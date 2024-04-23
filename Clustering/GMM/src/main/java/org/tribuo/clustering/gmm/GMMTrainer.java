@@ -51,6 +51,8 @@ import java.util.Optional;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -217,18 +219,18 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
             case RANDOM -> initialiseRandomCentroids(numGaussians, featureMap, localRNG);
             case PLUSPLUS -> initialisePlusPlusCentroids(numGaussians, data, localRNG);
         };
-        final Tensor[] covarianceMatrices = new Tensor[numGaussians];
+        Tensor[] covariances = new Tensor[numGaussians];
         final Tensor[] precision = new Tensor[numGaussians];
         final double[] determinant = new double[numGaussians];
         final DenseVector mixingDistribution = new DenseVector(numGaussians);
 
         boolean parallel = numThreads > 1;
 
-        ToDoubleFunction<IntAndVector> eStepFunc = (IntAndVector e) -> {
-            DenseVector curResponsibilities = responsibilities[e.idx];
+        ToDoubleFunction<Vectors> eStepFunc = (Vectors e) -> {
+            DenseVector curResponsibilities = e.responsibility;
             // compute log probs
             for (int i = 0; i < meanVectors.length; i++) {
-                curResponsibilities.set(i, MultivariateNormalDistribution.logProbability(e.vector, meanVectors[i], precision[i], determinant[i], covarianceType));
+                curResponsibilities.set(i, MultivariateNormalDistribution.logProbability(e.data, meanVectors[i], precision[i], determinant[i], covarianceType));
             }
 
             // add mixing distribution
@@ -257,17 +259,17 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
 
                 // E step
                 double normSum;
-                Stream<SGDVector> vecStream = Arrays.stream(data);
-                Stream<Integer> intStream = IntStream.range(0, data.length).boxed();
-                Stream<IntAndVector> zipStream = StreamUtil.zip(intStream, vecStream, IntAndVector::new);
+                Stream<SGDVector> dataEStream = Arrays.stream(data);
+                Stream<DenseVector> resEStream = Arrays.stream(responsibilities);
+                Stream<Vectors> zipEStream = StreamUtil.zip(dataEStream, resEStream, Vectors::new);
                 if (parallel) {
                     try {
-                        normSum = fjp.submit(() -> zipStream.parallel().mapToDouble(eStepFunc).sum()).get();
+                        normSum = fjp.submit(() -> zipEStream.parallel().mapToDouble(eStepFunc).sum()).get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException("Parallel execution failed", e);
                     }
                 } else {
-                    normSum = zipStream.mapToDouble(eStepFunc).sum();
+                    normSum = zipEStream.mapToDouble(eStepFunc).sum();
                 }
                 logger.log(Level.FINE, i + "th e step completed.");
 
@@ -312,6 +314,50 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                 }
 
                 // compute new covariances
+                Stream<SGDVector> dataMStream = Arrays.stream(data);
+                Stream<DenseVector> resMStream = Arrays.stream(responsibilities);
+                Stream<Vectors> zipMStream = StreamUtil.zip(dataMStream, resMStream, Vectors::new);
+                Tensor[] zeroTensorArr = switch (covarianceType) {
+                    case FULL -> {
+                        Tensor[] output = new Tensor[numGaussians];
+                        for (int j = 0; j < numGaussians; j++) {
+                            output[i] = new DenseMatrix(featureMap.size(), featureMap.size());
+                        }
+                        yield output;
+                    }
+                    case DIAGONAL, SPHERICAL -> {
+                        Tensor[] output = new Tensor[numGaussians];
+                        for (int j = 0; j < numGaussians; j++) {
+                            output[i] = new DenseVector(featureMap.size());
+                        }
+                        yield output;
+                    }
+                };
+                Function<Vectors, Tensor[]> mStep = (Vectors v) -> {
+
+                };
+                BinaryOperator<Tensor[]> combineTensor = (Tensor[] a, Tensor[] b) -> {
+                    Tensor[] output = new Tensor[a.length];
+                    for (int j = 0; j < a.length; j++) {
+                        if (a[j] instanceof DenseMatrix aMat && b[j] instanceof DenseMatrix bMat) {
+                            output[j] = aMat.add(bMat);
+                        } else if (a[j] instanceof DenseVector aVec && b[j] instanceof DenseVector bVec) {
+                            output[j] = aVec.add(bVec);
+                        } else {
+                            throw new IllegalStateException("Invalid types in reduce, expected both DenseMatrix or DenseVector, found " + a[j].getClass() + " and " + b[j].getClass());
+                        }
+                    }
+                    return output;
+                };
+                if (parallel) {
+                    try {
+                        covariances = fjp.submit(() -> zipMStream.parallel().map(mStep).reduce(zeroTensorArr, combineTensor)).get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException("Parallel execution failed", e);
+                    }
+                } else {
+                    covariances = zipMStream.parallel().map(mStep).reduce(zeroTensorArr, combineTensor);
+                }
 
                 // renormalize mixing distribution
                 double mixingSum = newMixingDistribution.sum();
@@ -321,8 +367,8 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                 // compute precisions
                 switch (covarianceType) {
                     case FULL -> {
-                        for (int j = 0; j < covarianceMatrices.length; j++) {
-                            DenseMatrix covMax = (DenseMatrix) covarianceMatrices[j];
+                        for (int j = 0; j < covariances.length; j++) {
+                            DenseMatrix covMax = (DenseMatrix) covariances[j];
                             Optional<DenseMatrix.CholeskyFactorization> optFact = covMax.choleskyFactorization();
                             if (optFact.isPresent()) {
                                 DenseMatrix.CholeskyFactorization fact = optFact.get();
@@ -334,8 +380,8 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                         }
                     }
                     case DIAGONAL, SPHERICAL -> {
-                        for (int j = 0; j < covarianceMatrices.length; j++) {
-                            DenseVector covVec = (DenseVector) covarianceMatrices[j];
+                        for (int j = 0; j < covariances.length; j++) {
+                            DenseVector covVec = (DenseVector) covariances[j];
                             DenseVector preVec = (DenseVector) precision[j];
                             double tmp = 1;
                             for (int k = 0; k < preVec.size(); k++) {
@@ -378,7 +424,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                 examples.getProvenance(), trainerProvenance, runProvenance);
 
         return new GaussianMixtureModel("gaussian-mixture-model", provenance, featureMap, outputMap,
-                meanVectors, covarianceMatrices, mixingDistribution, covarianceType);
+                meanVectors, covariances, mixingDistribution, covarianceType);
     }
 
     @Override
@@ -506,7 +552,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
     }
 
     /**
-     * Tuple of index and position.
+     * Tuple of data and responsibility vectors.
      */
-    record IntAndVector(int idx, SGDVector vector) { }
+    record Vectors(SGDVector data, DenseVector responsibility) { }
 }
