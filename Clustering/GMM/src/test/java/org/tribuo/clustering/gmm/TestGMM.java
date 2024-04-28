@@ -39,14 +39,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
- * Smoke tests for k-means.
+ * Smoke tests for GMM.
  */
 public class TestGMM {
 
-    private static final GMMTrainer t = new GMMTrainer(4, 10, MultivariateNormalDistribution.CovarianceType.DIAGONAL,
+    private static final GMMTrainer t = new GMMTrainer(5, 10, MultivariateNormalDistribution.CovarianceType.DIAGONAL,
             GMMTrainer.Initialisation.RANDOM, 1e-3, 1, 1);
 
-    private static final GMMTrainer plusPlus = new GMMTrainer(4, 10, MultivariateNormalDistribution.CovarianceType.FULL,
+    private static final GMMTrainer plusPlus = new GMMTrainer(5, 10, MultivariateNormalDistribution.CovarianceType.FULL,
             GMMTrainer.Initialisation.PLUSPLUS, 1e-3, 1, 1);
 
     @BeforeAll

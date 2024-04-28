@@ -27,6 +27,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
+import org.tribuo.clustering.gmm.protos.GaussianMixtureModelProto;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distributions.MultivariateNormalDistribution;
@@ -81,7 +82,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
     private final MultivariateNormalDistribution.CovarianceType covarianceType;
 
-    private final MultivariateNormalDistribution[] distributions;
+    private transient MultivariateNormalDistribution[] distributions;
 
     GaussianMixtureModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                          ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] meanVectors,
@@ -265,7 +266,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
         }
 
         // generate cluster responsibilities and normalize into a distribution
-        DenseVector responsibilities = new DenseVector(meanVectors[0].size());
+        DenseVector responsibilities = new DenseVector(distributions.length);
 
         // compute log probs
         for (int i = 0; i < distributions.length; i++) {

@@ -51,6 +51,7 @@ import java.util.Optional;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
@@ -61,8 +62,8 @@ import java.util.stream.Stream;
 
 /**
  * A Gaussian Mixture Model trainer, which generates a GMM clustering of the supplied
- * data. The model finds the centres, and then predict needs to be
- * called to infer the centre assignments for the input data.
+ * data. The model finds the Gaussians, and then predict needs to be
+ * called to infer the cluster assignments for the input data.
  * <p>
  * It's slightly contorted to fit the Tribuo Trainer and Model API, as the cluster assignments
  * can only be retrieved from the model after training, and require re-evaluating each example.
@@ -86,7 +87,7 @@ import java.util.stream.Stream;
  * <a href="https://theory.stanford.edu/~sergei/papers/kMeansPP-soda">PDF</a>
  * </pre>
  */
-public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
+public class GMMTrainer implements Trainer<ClusterID> {
     private static final Logger logger = Logger.getLogger(GMMTrainer.class.getName());
 
     /**
@@ -124,6 +125,9 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
 
     @Config(mandatory = true, description = "The seed to use for the RNG.")
     private long seed;
+
+    @Config(description = "Jitter to add to the covariance diagonal.")
+    private double covJitter = 1e-6;
 
     private SplittableRandom rng;
 
@@ -199,14 +203,13 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
             trainInvocationCounter++;
         }
         ImmutableFeatureMap featureMap = examples.getFeatureIDMap();
+        final int numFeatures = featureMap.size();
 
         DenseVector[] responsibilities = new DenseVector[examples.size()];
         SGDVector[] data = new SGDVector[examples.size()];
-        double[] weights = new double[examples.size()];
         int n = 0;
         for (Example<ClusterID> example : examples) {
-            weights[n] = example.getWeight();
-            if (example.size() == featureMap.size()) {
+            if (example.size() == numFeatures) {
                 data[n] = DenseVector.createDenseVector(example, featureMap, false);
             } else {
                 data[n] = SparseVector.createSparseVector(example, featureMap, false);
@@ -222,7 +225,29 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
         Tensor[] covariances = new Tensor[numGaussians];
         final Tensor[] precision = new Tensor[numGaussians];
         final double[] determinant = new double[numGaussians];
-        final DenseVector mixingDistribution = new DenseVector(numGaussians);
+        final DenseVector mixingDistribution = new DenseVector(numGaussians, 1.0/numGaussians);
+
+        final Tensor covarianceJitter;
+        if (covarianceType == MultivariateNormalDistribution.CovarianceType.FULL) {
+            covarianceJitter = DenseMatrix.createIdentity(numFeatures);
+            covarianceJitter.scaleInPlace(covJitter);
+        } else {
+            covarianceJitter = new DenseVector(numFeatures, covJitter);
+        }
+
+        for (int i = 0; i < numGaussians; i++) {
+            determinant[i] = 1.0;
+            switch (covarianceType) {
+                case FULL -> {
+                    covariances[i] = DenseMatrix.createIdentity(numFeatures);
+                    precision[i] = DenseMatrix.createIdentity(numFeatures);
+                }
+                case DIAGONAL, SPHERICAL -> {
+                    covariances[i] = new DenseVector(numFeatures, 1.0);
+                    precision[i] = new DenseVector(numFeatures, 1.0);
+                }
+            }
+        }
 
         boolean parallel = numThreads > 1;
 
@@ -310,7 +335,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                     }
                 }
                 for (int j = 0; j < numGaussians; j++) {
-                    meanVectors[j].scaleInPlace(newMixingDistribution.get(j));
+                    meanVectors[j].scaleInPlace(1.0/newMixingDistribution.get(j));
                 }
 
                 // compute new covariances
@@ -321,20 +346,68 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                     case FULL -> {
                         Tensor[] output = new Tensor[numGaussians];
                         for (int j = 0; j < numGaussians; j++) {
-                            output[i] = new DenseMatrix(featureMap.size(), featureMap.size());
+                            output[j] = new DenseMatrix(numFeatures, numFeatures);
                         }
                         yield output;
                     }
                     case DIAGONAL, SPHERICAL -> {
                         Tensor[] output = new Tensor[numGaussians];
                         for (int j = 0; j < numGaussians; j++) {
-                            output[i] = new DenseVector(featureMap.size());
+                            output[j] = new DenseVector(numFeatures);
                         }
                         yield output;
                     }
                 };
-                Function<Vectors, Tensor[]> mStep = (Vectors v) -> {
+                // Fix parallel behaviour
+                BiFunction<Tensor[], Vectors, Tensor[]> mStep = switch (covarianceType) {
+                    case FULL -> (Tensor[] input, Vectors v) -> {
+                        for (int j = 0; j < numGaussians; j++) {
+                            // Compute covariance contribution from current input
+                            DenseMatrix curCov = (DenseMatrix) input[j];
 
+                            DenseVector diff = (DenseVector) v.data.subtract(meanVectors[j]);
+                            diff.scaleInPlace(v.responsibility.get(j) / newMixingDistribution.get(j));
+                            curCov.intersectAndAddInPlace(diff.outer(diff));
+                        }
+                        return input;
+                    };
+                    case DIAGONAL -> (Tensor[] input, Vectors v) -> {
+                        for (int j = 0; j < numGaussians; j++) {
+                            // Compute covariance contribution from current input
+                            DenseVector curCov = (DenseVector) input[j];
+                            double curResp = v.responsibility.get(j);
+                            for (int k = 0; k < numFeatures; k++) {
+                                double currentCovValue = curCov.get(k);
+                                double curMean = meanVectors[j].get(k);
+                                double curData = v.data.get(k);
+                                double dataSq = curResp * curData * curData / newMixingDistribution.get(j);
+                                double meanSq = curMean * curMean;
+                                double dataMean = 2 * curResp * curData * curMean / newMixingDistribution.get(j);
+                                double update = currentCovValue + dataSq - dataMean + meanSq;
+                                curCov.set(k, update);
+                            }
+                        }
+                        return input;
+                    };
+                    case SPHERICAL -> (Tensor[] input, Vectors v) -> {
+                        for (int j = 0; j < numGaussians; j++) {
+                            // Compute covariance contribution from current input
+                            DenseVector curCov = (DenseVector) input[j];
+                            double curResp = v.responsibility.get(j);
+                            double update = 0;
+                            for (int k = 0; k < numFeatures; k++) {
+                                double curMean = meanVectors[j].get(k);
+                                double curData = v.data.get(k);
+                                double dataSq = curResp * curData * curData / newMixingDistribution.get(j);
+                                double meanSq = curMean * curMean;
+                                double dataMean = 2 * curResp * curData * curMean / newMixingDistribution.get(j);
+                                update += dataSq - dataMean + meanSq;
+                            }
+                            update = update / numFeatures;
+                            curCov.scalarAddInPlace(update);
+                        }
+                        return input;
+                    };
                 };
                 BinaryOperator<Tensor[]> combineTensor = (Tensor[] a, Tensor[] b) -> {
                     Tensor[] output = new Tensor[a.length];
@@ -350,13 +423,16 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                     return output;
                 };
                 if (parallel) {
+                    throw new RuntimeException("Parallel mstep not implemented");
+                    /*
                     try {
-                        covariances = fjp.submit(() -> zipMStream.parallel().map(mStep).reduce(zeroTensorArr, combineTensor)).get();
+                        covariances = fjp.submit(() -> zipMStream.parallel().reduce(zeroTensorArr, mStep, combineTensor)).get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException("Parallel execution failed", e);
                     }
+                     */
                 } else {
-                    covariances = zipMStream.parallel().map(mStep).reduce(zeroTensorArr, combineTensor);
+                    covariances = zipMStream.reduce(zeroTensorArr, mStep, combineTensor);
                 }
 
                 // renormalize mixing distribution
@@ -368,8 +444,9 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                 switch (covarianceType) {
                     case FULL -> {
                         for (int j = 0; j < covariances.length; j++) {
-                            DenseMatrix covMax = (DenseMatrix) covariances[j];
-                            Optional<DenseMatrix.CholeskyFactorization> optFact = covMax.choleskyFactorization();
+                            DenseMatrix covMat = (DenseMatrix) covariances[j];
+                            covMat.intersectAndAddInPlace(covarianceJitter);
+                            Optional<DenseMatrix.CholeskyFactorization> optFact = covMat.choleskyFactorization();
                             if (optFact.isPresent()) {
                                 DenseMatrix.CholeskyFactorization fact = optFact.get();
                                 precision[j] = fact.inverse();
@@ -382,6 +459,7 @@ public class GMMTrainer implements Trainer<ClusterID>, WeightedExamples {
                     case DIAGONAL, SPHERICAL -> {
                         for (int j = 0; j < covariances.length; j++) {
                             DenseVector covVec = (DenseVector) covariances[j];
+                            covVec.intersectAndAddInPlace(covarianceJitter);
                             DenseVector preVec = (DenseVector) precision[j];
                             double tmp = 1;
                             for (int k = 0; k < preVec.size(); k++) {

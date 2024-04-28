@@ -186,6 +186,19 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
+     * Creates an identity matrix of the specified size.
+     * @param dimension The matrix dimension.
+     * @return The identity matrix.
+     */
+    public static DenseMatrix createIdentity(int dimension) {
+        double[][] newValues = new double[dimension][dimension];
+        for (int i = 0; i < dimension; i++) {
+            newValues[i][i] = 1.0;
+        }
+        return new DenseMatrix(newValues);
+    }
+
+    /**
      * Deserialization factory.
      * @param version The serialized object version.
      * @param className The class name.
