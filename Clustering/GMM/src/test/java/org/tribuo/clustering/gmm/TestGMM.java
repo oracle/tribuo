@@ -43,10 +43,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 public class TestGMM {
 
-    private static final GMMTrainer t = new GMMTrainer(5, 10, MultivariateNormalDistribution.CovarianceType.DIAGONAL,
+    private static final GMMTrainer diagonal = new GMMTrainer(5, 50, MultivariateNormalDistribution.CovarianceType.DIAGONAL,
             GMMTrainer.Initialisation.RANDOM, 1e-3, 1, 1);
 
-    private static final GMMTrainer plusPlus = new GMMTrainer(5, 10, MultivariateNormalDistribution.CovarianceType.FULL,
+    private static final GMMTrainer plusPlusFull = new GMMTrainer(5, 50, MultivariateNormalDistribution.CovarianceType.FULL,
+            GMMTrainer.Initialisation.PLUSPLUS, 1e-3, 1, 1);
+
+    private static final GMMTrainer plusPlusSpherical = new GMMTrainer(5, 50, MultivariateNormalDistribution.CovarianceType.SPHERICAL,
             GMMTrainer.Initialisation.PLUSPLUS, 1e-3, 1, 1);
 
     @BeforeAll
@@ -59,12 +62,17 @@ public class TestGMM {
 
     @Test
     public void testEvaluation() {
-        runEvaluation(t);
+        runEvaluation(diagonal);
     }
 
     @Test
-    public void testPlusPlusEvaluation() {
-        runEvaluation(plusPlus);
+    public void testPlusPlusSphericalEvaluation() {
+        runEvaluation(plusPlusSpherical);
+    }
+
+    @Test
+    public void testPlusPlusFullEvaluation() {
+        runEvaluation(plusPlusFull);
     }
 
     public static void runEvaluation(GMMTrainer trainer) {
@@ -100,13 +108,13 @@ public class TestGMM {
 
     @Test
     public void testDenseData() {
-        Model<ClusterID> model = runDenseData(t);
+        Model<ClusterID> model = runDenseData(diagonal);
         Helpers.testModelSerialization(model,ClusterID.class);
     }
 
     @Test
     public void testPlusPlusDenseData() {
-        runDenseData(plusPlus);
+        runDenseData(plusPlusFull);
     }
 
     public void runSparseData(GMMTrainer trainer) {
@@ -116,12 +124,12 @@ public class TestGMM {
 
     @Test
     public void testSparseData() {
-        runSparseData(t);
+        runSparseData(diagonal);
     }
 
     @Test
     public void testPlusPlusSparseData() {
-        runSparseData(plusPlus);
+        runSparseData(plusPlusFull);
     }
 
     public void runInvalidExample(GMMTrainer trainer) {
@@ -134,12 +142,12 @@ public class TestGMM {
 
     @Test
     public void testInvalidExample() {
-        runInvalidExample(t);
+        runInvalidExample(diagonal);
     }
 
     @Test
     public void testPlusPlusInvalidExample() {
-        runInvalidExample(plusPlus);
+        runInvalidExample(plusPlusFull);
     }
 
 
@@ -153,19 +161,19 @@ public class TestGMM {
 
     @Test
     public void testEmptyExample() {
-        runEmptyExample(t);
+        runEmptyExample(diagonal);
     }
 
     @Test
     public void testPlusPlusEmptyExample() {
-        runEmptyExample(plusPlus);
+        runEmptyExample(plusPlusFull);
     }
 
     @Test
     public void testPlusPlusTooManyCentroids() {
         assertThrows(IllegalArgumentException.class, () -> {
             Dataset<ClusterID> data = ClusteringDataGenerator.gaussianClusters(3, 1L);
-            plusPlus.train(data);
+            plusPlusFull.train(data);
         });
     }
 

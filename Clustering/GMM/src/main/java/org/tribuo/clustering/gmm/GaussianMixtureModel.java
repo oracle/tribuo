@@ -165,8 +165,11 @@ public class GaussianMixtureModel extends Model<ClusterID> {
                     covariances[i] = covariance;
             } else if (covarianceType == MultivariateNormalDistribution.CovarianceType.SPHERICAL
                     && covarianceTensor instanceof DenseVector covariance) {
-                if (covariance.size() != 1) {
-                    throw new IllegalStateException("Invalid protobuf, covariance was not spherical, found " + covariance.size() + " elements not 1.");
+                double tmp = covariance.get(0);
+                for (int j = 0; j < covariance.size(); j++) {
+                    if (Math.abs(tmp - covariance.get(j)) > 1e-5) {
+                        throw new IllegalStateException("Invalid protobuf, covariance was not spherical, diagonal elements not all equal, found " + covariance + ".");
+                    }
                 }
                 covariances[i] = covariance;
             } else {

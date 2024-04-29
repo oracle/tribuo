@@ -376,13 +376,14 @@ public class GMMTrainer implements Trainer<ClusterID> {
                             // Compute covariance contribution from current input
                             DenseVector curCov = (DenseVector) input[j];
                             double curResp = v.responsibility.get(j);
+                            double mixing = newMixingDistribution.get(j);
                             for (int k = 0; k < numFeatures; k++) {
                                 double currentCovValue = curCov.get(k);
                                 double curMean = meanVectors[j].get(k);
                                 double curData = v.data.get(k);
-                                double dataSq = curResp * curData * curData / newMixingDistribution.get(j);
+                                double dataSq = curResp * curData * curData / mixing;
                                 double meanSq = curMean * curMean;
-                                double dataMean = 2 * curResp * curData * curMean / newMixingDistribution.get(j);
+                                double dataMean = 2 * curResp * curData * curMean / mixing;
                                 double update = currentCovValue + dataSq - dataMean + meanSq;
                                 curCov.set(k, update);
                             }
@@ -394,14 +395,15 @@ public class GMMTrainer implements Trainer<ClusterID> {
                             // Compute covariance contribution from current input
                             DenseVector curCov = (DenseVector) input[j];
                             double curResp = v.responsibility.get(j);
+                            double mixing = newMixingDistribution.get(j);
                             double update = 0;
                             for (int k = 0; k < numFeatures; k++) {
                                 double curMean = meanVectors[j].get(k);
                                 double curData = v.data.get(k);
-                                double dataSq = curResp * curData * curData / newMixingDistribution.get(j);
+                                double dataSq = curResp * curData * curData / mixing;
                                 double meanSq = curMean * curMean;
-                                double dataMean = 2 * curResp * curData * curMean / newMixingDistribution.get(j);
-                                update += dataSq - dataMean + meanSq;
+                                double dataMean = 2 * curResp * curData * curMean / mixing;
+                                update += dataSq + meanSq - dataMean;
                             }
                             update = update / numFeatures;
                             curCov.scalarAddInPlace(update);
@@ -465,7 +467,7 @@ public class GMMTrainer implements Trainer<ClusterID> {
                             for (int k = 0; k < preVec.size(); k++) {
                                 double curVal = 1/Math.sqrt(covVec.get(k));
                                 preVec.set(k, curVal);
-                                tmp *= curVal;
+                                tmp *= covVec.get(k);
                             }
                             determinant[j] = tmp;
                         }
@@ -476,7 +478,7 @@ public class GMMTrainer implements Trainer<ClusterID> {
 
                 logger.log(Level.INFO, "Iteration " + i + " completed.");
 
-                if ((newLowerBound - oldLowerBound) < convergenceTolerance) {
+                if (Math.abs(newLowerBound - oldLowerBound) < convergenceTolerance) {
                     converged = true;
                     logger.log(Level.INFO, "GMM converged at iteration " + i);
                 }
