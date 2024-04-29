@@ -361,6 +361,13 @@ public final class MultivariateNormalDistribution {
             return value;
         }
 
+        /**
+         * Convert enum value into enum instance, used for serialization.
+         * <p>
+         * Throws {@link IllegalArgumentException} if the enum value is out of range.
+         * @param value The enum value.
+         * @return The enum type.
+         */
         public static CovarianceType fromValue(int value) {
             CovarianceType[] values = CovarianceType.values();
             for (CovarianceType t : values) {
@@ -369,7 +376,7 @@ public final class MultivariateNormalDistribution {
                 }
             }
             // Failed to find the enum.
-            throw new IllegalStateException("Invalid CovarianceType enum value, found " + value);
+            throw new IllegalArgumentException("Invalid CovarianceType enum value, found " + value);
         }
     }
 }

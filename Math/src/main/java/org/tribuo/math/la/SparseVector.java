@@ -469,7 +469,7 @@ public class SparseVector implements SGDVector {
             DenseVector output = ((DenseVector)other).copy();
             output.scaleInPlace(-1.0);
             for (VectorTuple tuple : this) {
-                output.set(tuple.index,tuple.value+output.get(tuple.index));
+                output.set(tuple.index, tuple.value + output.get(tuple.index));
             }
             return output;
         } else if (other instanceof SparseVector) {

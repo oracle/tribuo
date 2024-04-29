@@ -580,7 +580,7 @@ public class DenseVector implements SGDVector {
      * @param value The value to set things to.
      */
     public void set(double value) {
-        Arrays.fill(elements, 0);
+        Arrays.fill(elements, value);
     }
 
     /**
