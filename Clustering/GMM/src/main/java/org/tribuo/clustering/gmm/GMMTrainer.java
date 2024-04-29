@@ -375,18 +375,10 @@ public class GMMTrainer implements Trainer<ClusterID> {
                         for (int j = 0; j < numGaussians; j++) {
                             // Compute covariance contribution from current input
                             DenseVector curCov = (DenseVector) input[j];
-                            double curResp = v.responsibility.get(j);
-                            double mixing = newMixingDistribution.get(j);
-                            for (int k = 0; k < numFeatures; k++) {
-                                double currentCovValue = curCov.get(k);
-                                double curMean = meanVectors[j].get(k);
-                                double curData = v.data.get(k);
-                                double dataSq = curResp * curData * curData / mixing;
-                                double meanSq = curMean * curMean;
-                                double dataMean = 2 * curResp * curData * curMean / mixing;
-                                double update = currentCovValue + dataSq - dataMean + meanSq;
-                                curCov.set(k, update);
-                            }
+                            DenseVector diff = (DenseVector) v.data.subtract(meanVectors[j]);
+                            diff.foreachInPlace(a -> a * a);
+                            diff.scaleInPlace(v.responsibility.get(j) / newMixingDistribution.get(j));
+                            curCov.intersectAndAddInPlace(diff);
                         }
                         return input;
                     };
@@ -394,19 +386,12 @@ public class GMMTrainer implements Trainer<ClusterID> {
                         for (int j = 0; j < numGaussians; j++) {
                             // Compute covariance contribution from current input
                             DenseVector curCov = (DenseVector) input[j];
-                            double curResp = v.responsibility.get(j);
-                            double mixing = newMixingDistribution.get(j);
-                            double update = 0;
-                            for (int k = 0; k < numFeatures; k++) {
-                                double curMean = meanVectors[j].get(k);
-                                double curData = v.data.get(k);
-                                double dataSq = curResp * curData * curData / mixing;
-                                double meanSq = curMean * curMean;
-                                double dataMean = 2 * curResp * curData * curMean / mixing;
-                                update += dataSq + meanSq - dataMean;
-                            }
-                            update = update / numFeatures;
-                            curCov.scalarAddInPlace(update);
+                            DenseVector diff = (DenseVector) v.data.subtract(meanVectors[j]);
+                            diff.foreachInPlace(a -> a * a);
+                            diff.scaleInPlace(v.responsibility.get(j) / newMixingDistribution.get(j));
+                            double mean = diff.sum() / numFeatures;
+                            diff.set(mean);
+                            curCov.intersectAndAddInPlace(diff);
                         }
                         return input;
                     };
