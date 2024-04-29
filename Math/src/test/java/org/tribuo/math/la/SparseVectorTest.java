@@ -91,6 +91,11 @@ public class SparseVectorTest {
         return SparseVector.createSparseVector(10,indices,values);
     }
 
+    private DenseVector generateVectorASubOnes() {
+        double[] values = new double[]{0.0, 1.0, -1.0, -1.0, 2.0, 3.0, -1.0, -1.0, 4.0, -1.0};
+        return DenseVector.createDenseVector(values);
+    }
+
     private SparseVector generateVectorBSubA() {
         int[] indices = new int[]{0,1,4,5,8};
         double[] values = new double[]{-2.0,0.0,-6.0,0.0,-10.0};
@@ -290,6 +295,9 @@ public class SparseVectorTest {
         assertEquals(bSubC, b.subtract(c), "B - C");
         assertEquals(cSubA, c.subtract(a), "C - A");
         assertEquals(cSubB, c.subtract(b), "C - B");
+
+        DenseVector ones = new DenseVector(10, 1.0);
+        assertEquals(generateVectorASubOnes(), a.subtract(ones), "A - Ones");
     }
 
     public static SparseVector invert(SparseVector input) {

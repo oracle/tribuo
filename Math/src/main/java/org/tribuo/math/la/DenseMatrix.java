@@ -1540,7 +1540,7 @@ public class DenseMatrix implements Matrix {
          */
         @Override
         public double determinant() {
-            double det = 0.0;
+            double det = 1.0;
             for (int i = 0; i < lMatrix.dim1; i++) {
                 det *= lMatrix.values[i][i] * lMatrix.values[i][i];
             }
@@ -1711,7 +1711,7 @@ public class DenseMatrix implements Matrix {
          */
         @Override
         public double determinant() {
-            double det = 0.0;
+            double det = 1.0;
             for (int i = 0; i < upper.dim1; i++) {
                 det *= upper.values[i][i];
             }

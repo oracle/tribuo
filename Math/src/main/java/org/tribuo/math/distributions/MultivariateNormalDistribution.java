@@ -319,7 +319,7 @@ public final class MultivariateNormalDistribution {
                 yield diff.sum();
             }
         };
-        return scalar + (0.5 * distance);
+        return scalar - (0.5 * distance);
     }
 
     @Override
