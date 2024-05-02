@@ -30,7 +30,7 @@ import java.util.random.RandomGenerator;
 /**
  * A class for sampling from multivariate normal distributions.
  */
-public final class MultivariateNormalDistribution {
+public final class MultivariateNormalDistribution implements Distribution {
 
     private final long seed;
     private final Random rng;
@@ -231,6 +231,7 @@ public final class MultivariateNormalDistribution {
      * Sample a vector from this multivariate normal distribution.
      * @return A sample from this distribution.
      */
+    @Override
     public DenseVector sampleVector() {
         return sampleVector(rng);
     }
@@ -239,6 +240,7 @@ public final class MultivariateNormalDistribution {
      * Sample a vector from this multivariate normal distribution.
      * @return A sample from this distribution.
      */
+    @Override
     public DenseVector sampleVector(RandomGenerator otherRNG) {
         DenseVector sampled = new DenseVector(means.size());
         for (int i = 0; i < means.size(); i++) {
@@ -254,14 +256,6 @@ public final class MultivariateNormalDistribution {
         sampled.intersectAndAddInPlace(means);
 
         return sampled;
-    }
-
-    /**
-     * Sample a vector from this multivariate normal distribution.
-     * @return A sample from this distribution.
-     */
-    public double[] sampleArray() {
-        return sampleVector().toArray();
     }
 
     /**

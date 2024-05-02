@@ -430,6 +430,25 @@ public final class Util {
     }
 
     /**
+     * Validates that the supplied double array is a probability mass function.
+     * <p>
+     * That is, each element is bounded 0,1 and all elements sum to 1.
+     * @param pmf The PMF to check.
+     * @return True if it's a valid pmf.
+     */
+    public static boolean validatePMF(double[] pmf) {
+        double total = 0.0;
+        for (double v : pmf) {
+            if ((v < 0) || (v > 1.0)) {
+                return false;
+            } else {
+                total += v;
+            }
+        }
+        return !(Math.abs(total - 1.0) > 1e-10);
+    }
+
+    /**
      * Produces a cumulative sum array.
      * @param input The input to sum.
      * @return The cumulative sum.
