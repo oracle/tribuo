@@ -46,6 +46,9 @@ public class TestGMM {
     private static final GMMTrainer diagonal = new GMMTrainer(5, 50, MultivariateNormalDistribution.CovarianceType.DIAGONAL,
             GMMTrainer.Initialisation.RANDOM, 1e-3, 1, 1);
 
+    private static final GMMTrainer fullParallel = new GMMTrainer(5, 50, MultivariateNormalDistribution.CovarianceType.FULL,
+            GMMTrainer.Initialisation.PLUSPLUS, 1e-3, 4, 1);
+
     private static final GMMTrainer plusPlusFull = new GMMTrainer(5, 50, MultivariateNormalDistribution.CovarianceType.FULL,
             GMMTrainer.Initialisation.PLUSPLUS, 1e-3, 1, 1);
 
@@ -73,6 +76,11 @@ public class TestGMM {
     @Test
     public void testPlusPlusFullEvaluation() {
         runEvaluation(plusPlusFull);
+    }
+
+    @Test
+    public void testParallelEvaluation() {
+        runEvaluation(fullParallel);
     }
 
     public static void runEvaluation(GMMTrainer trainer) {
@@ -150,7 +158,6 @@ public class TestGMM {
         runInvalidExample(plusPlusFull);
     }
 
-
     public void runEmptyExample(GMMTrainer trainer) {
         assertThrows(IllegalArgumentException.class, () -> {
             Pair<Dataset<ClusterID>, Dataset<ClusterID>> p = ClusteringDataGenerator.denseTrainTest();
@@ -186,7 +193,7 @@ public class TestGMM {
 
         // The number of times to call train before final training.
         // Original trainer will be trained numOfInvocations + 1 times
-        // New trainer will have it's invocation count set to numOfInvocations then trained once
+        // New trainer will have its invocation count set to numOfInvocations then trained once
         int numOfInvocations = 2;
 
         // Create the first model and train it numOfInvocations + 1 times

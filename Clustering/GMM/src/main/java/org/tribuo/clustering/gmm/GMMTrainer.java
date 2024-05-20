@@ -51,9 +51,11 @@ import java.util.Optional;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.ToDoubleFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -342,24 +344,24 @@ public class GMMTrainer implements Trainer<ClusterID> {
                 Stream<SGDVector> dataMStream = Arrays.stream(data);
                 Stream<DenseVector> resMStream = Arrays.stream(responsibilities);
                 Stream<Vectors> zipMStream = StreamUtil.zip(dataMStream, resMStream, Vectors::new);
-                Tensor[] zeroTensorArr = switch (covarianceType) {
-                    case FULL -> {
+                Supplier<Tensor[]> zeroTensor = switch (covarianceType) {
+                    case FULL -> () -> {
                         Tensor[] output = new Tensor[numGaussians];
                         for (int j = 0; j < numGaussians; j++) {
                             output[j] = new DenseMatrix(numFeatures, numFeatures);
                         }
-                        yield output;
-                    }
-                    case DIAGONAL, SPHERICAL -> {
+                        return output;
+                    };
+                    case DIAGONAL, SPHERICAL -> () -> {
                         Tensor[] output = new Tensor[numGaussians];
                         for (int j = 0; j < numGaussians; j++) {
                             output[j] = new DenseVector(numFeatures);
                         }
-                        yield output;
-                    }
+                        return output;
+                    };
                 };
                 // Fix parallel behaviour
-                BiFunction<Tensor[], Vectors, Tensor[]> mStep = switch (covarianceType) {
+                BiConsumer<Tensor[], Vectors> mStep = switch (covarianceType) {
                     case FULL -> (Tensor[] input, Vectors v) -> {
                         for (int j = 0; j < numGaussians; j++) {
                             // Compute covariance contribution from current input
@@ -369,7 +371,6 @@ public class GMMTrainer implements Trainer<ClusterID> {
                             diff.scaleInPlace(v.responsibility.get(j) / newMixingDistribution.get(j));
                             curCov.intersectAndAddInPlace(diff.outer(diff));
                         }
-                        return input;
                     };
                     case DIAGONAL -> (Tensor[] input, Vectors v) -> {
                         for (int j = 0; j < numGaussians; j++) {
@@ -380,7 +381,6 @@ public class GMMTrainer implements Trainer<ClusterID> {
                             diff.scaleInPlace(v.responsibility.get(j) / newMixingDistribution.get(j));
                             curCov.intersectAndAddInPlace(diff);
                         }
-                        return input;
                     };
                     case SPHERICAL -> (Tensor[] input, Vectors v) -> {
                         for (int j = 0; j < numGaussians; j++) {
@@ -393,33 +393,27 @@ public class GMMTrainer implements Trainer<ClusterID> {
                             diff.set(mean);
                             curCov.intersectAndAddInPlace(diff);
                         }
-                        return input;
                     };
                 };
-                BinaryOperator<Tensor[]> combineTensor = (Tensor[] a, Tensor[] b) -> {
-                    Tensor[] output = new Tensor[a.length];
+                BiConsumer<Tensor[], Tensor[]> combineTensor = (Tensor[] a, Tensor[] b) -> {
                     for (int j = 0; j < a.length; j++) {
                         if (a[j] instanceof DenseMatrix aMat && b[j] instanceof DenseMatrix bMat) {
-                            output[j] = aMat.add(bMat);
+                            aMat.intersectAndAddInPlace(bMat);
                         } else if (a[j] instanceof DenseVector aVec && b[j] instanceof DenseVector bVec) {
-                            output[j] = aVec.add(bVec);
+                            aVec.intersectAndAddInPlace(bVec);
                         } else {
                             throw new IllegalStateException("Invalid types in reduce, expected both DenseMatrix or DenseVector, found " + a[j].getClass() + " and " + b[j].getClass());
                         }
                     }
-                    return output;
                 };
                 if (parallel) {
-                    throw new RuntimeException("Parallel mstep not implemented");
-                    /*
                     try {
-                        covariances = fjp.submit(() -> zipMStream.parallel().reduce(zeroTensorArr, mStep, combineTensor)).get();
+                        covariances = fjp.submit(() -> zipMStream.parallel().collect(zeroTensor, mStep, combineTensor)).get();
                     } catch (InterruptedException | ExecutionException e) {
                         throw new RuntimeException("Parallel execution failed", e);
                     }
-                     */
                 } else {
-                    covariances = zipMStream.reduce(zeroTensorArr, mStep, combineTensor);
+                    covariances = zipMStream.collect(zeroTensor, mStep, combineTensor);
                 }
 
                 // renormalize mixing distribution
