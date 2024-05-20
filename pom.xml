@@ -57,8 +57,8 @@
 
         <!-- 3rd party other dependencies -->
         <junit.version>5.9.1</junit.version>
-        <opencsv.version>5.7.1</opencsv.version>
-        <protobuf.version>3.19.6</protobuf.version>
+        <opencsv.version>5.9</opencsv.version>
+        <protobuf.version>3.25.3</protobuf.version>
         <jackson.version>2.14.3</jackson.version>
 
         <!-- Other properties -->
@@ -82,12 +82,6 @@
         <developer>
             <name>Adam Pocock</name>
             <email>adam.pocock@oracle.com</email>
-            <organization>Oracle Labs</organization>
-            <organizationUrl>https://labs.oracle.com</organizationUrl>
-        </developer>
-        <developer>
-            <name>Kate Silverstein</name>
-            <email>kate.silverstein@oracle.com</email>
             <organization>Oracle Labs</organization>
             <organizationUrl>https://labs.oracle.com</organizationUrl>
         </developer>
@@ -154,58 +148,57 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>3.2.5</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <!-- Pinned to 2.7 due to a bug in symlink handling which is fixed in the upcoming 3.3.0 release -->
-                    <version>2.7</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <version>3.3.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.4.1</version>
+                    <version>3.6.3</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
-                    <version>3.0.0-M4</version>
+                    <version>3.0.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.6.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>3.0.0-M1</version>
+                    <version>3.1.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>3.3.0</version>
+                    <version>3.7.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>3.4.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.9.1</version>
+                    <version>3.12.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-install-plugin</artifactId>
-                    <version>3.0.0-M1</version>
+                    <version>3.1.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -213,7 +206,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.4.1</version>
                 <configuration>
                     <additionalJOptions>
                         <additionalJOption>-Xmaxerrs</additionalJOption>
@@ -245,7 +237,7 @@
                         </tag>
                     </tags>
                     <overview>./Core/src/main/javadoc/overview.html</overview>
-                    <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
+                    <bottom>Copyright &#169; 2015&#x2013;2024 Oracle and/or its affiliates. All rights reserved.</bottom>
                     <groups>
                         <group>
                             <title>Core Packages</title>
@@ -308,7 +300,7 @@
                             <linksource>false</linksource>
                             <nohelp>true</nohelp>
                             <overview>./Core/src/main/javadoc/overview.html</overview>
-                            <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
+                            <bottom>Copyright &#169; 2015&#x2013;2024 Oracle and/or its affiliates. All rights reserved.</bottom>
                             <groups>
                                 <group>
                                     <title>Core Packages</title>
@@ -357,14 +349,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
                     <release>17</release>
-                    <source>17</source>
-                    <target>17</target>
                     <testRelease>17</testRelease>
-                    <testSource>17</testSource>
-                    <testTarget>17</testTarget>
                     <compilerArgument>
                         -Xlint:all
                     </compilerArgument>
@@ -373,7 +361,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>enforce</id>
@@ -394,14 +381,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
         <profile>
-            <!-- Turn off ONNX, XGBoost and TF tests on ARM platforms as the binaries are not available -->
+            <!-- Turn off XGBoost and TF tests on ARM platforms as the binaries are not available -->
             <id>arm</id>
             <properties>
                 <skipXGBoostTests>true</skipXGBoostTests>
@@ -415,7 +401,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
-                        <version>3.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -436,9 +421,8 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.4.1</version>
                         <configuration>
-                            <bottom>Copyright &#169; 2015&#x2013;2022 Oracle and/or its affiliates. All rights reserved.</bottom>
+                            <bottom>Copyright &#169; 2015&#x2013;2024 Oracle and/or its affiliates. All rights reserved.</bottom>
                         </configuration>
                         <executions>
                             <execution>

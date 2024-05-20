@@ -55,8 +55,11 @@ public class KMeansOptions implements Options {
      */
     @Option(longName = "kmeans-num-threads", usage = "Number of computation threads in K-Means. Defaults to 4.")
     public int numThreads = 4;
+    /**
+     * The RNG seed.
+     */
     @Option(longName = "kmeans-seed", usage = "Sets the random seed for K-Means.")
-    private long seed = Trainer.DEFAULT_SEED;
+    public long seed = Trainer.DEFAULT_SEED;
 
     /**
      * Gets the configured KMeansTrainer using the options in this object.
