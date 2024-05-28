@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@ package org.tribuo.interop.onnx;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.tribuo.DataSource;
 import org.tribuo.Dataset;
 import org.tribuo.MutableDataset;
@@ -27,15 +30,21 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.datasource.LibSVMDataSource;
 import org.junit.jupiter.api.Test;
+import org.tribuo.interop.onnx.protos.ExampleTransformerProto;
+import org.tribuo.interop.onnx.protos.OutputTransformerProto;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -170,6 +179,53 @@ public class TestOnnxRuntime {
             assertEquals(0.967741, evaluation.accuracy(), 1e-6);
             assertEquals(0.024285, evaluation.balancedErrorRate(), 1e-6);
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("load431ExampleProtobufs")
+    public void testExampleProto(String name, ExampleTransformer actualTransformer) throws URISyntaxException, IOException {
+        Path distancePath = Paths.get(TestOnnxRuntime.class.getResource(name).toURI());
+        try (InputStream fis = Files.newInputStream(distancePath)) {
+            ExampleTransformerProto proto = ExampleTransformerProto.parseFrom(fis);
+            ExampleTransformer distance = ProtoUtil.deserialize(proto);
+            assertEquals(actualTransformer, distance);
+        }
+    }
+
+    private static Stream<Arguments> load431ExampleProtobufs() {
+        return Stream.of(
+                Arguments.of("dense-431.tribuo", new DenseTransformer()),
+                Arguments.of("image-431.tribuo", new ImageTransformer(3,64,64))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("load431OutputProtobufs")
+    public void testOutputProto(String name, OutputTransformer<?> actualTransformer) throws URISyntaxException, IOException {
+        Path distancePath = Paths.get(TestOnnxRuntime.class.getResource(name).toURI());
+        try (InputStream fis = Files.newInputStream(distancePath)) {
+            OutputTransformerProto proto = OutputTransformerProto.parseFrom(fis);
+            OutputTransformer<?> distance = ProtoUtil.deserialize(proto);
+            assertEquals(actualTransformer, distance);
+        }
+    }
+
+    private static Stream<Arguments> load431OutputProtobufs() {
+        return Stream.of(
+                Arguments.of("lovo-431.tribuo", new LabelOneVOneTransformer()),
+                Arguments.of("label-431.tribuo", new LabelTransformer()),
+                Arguments.of("multilabel-431.tribuo", new MultiLabelTransformer()),
+                Arguments.of("regressor-431.tribuo", new RegressorTransformer())
+        );
+    }
+
+    public void generateProtobufs() throws IOException {
+        Helpers.writeProtobuf(new DenseTransformer(), Paths.get("src","test","resources","org","tribuo","interop","onnx","dense-431.tribuo"));
+        Helpers.writeProtobuf(new ImageTransformer(3,64,64), Paths.get("src","test","resources","org","tribuo","interop","onnx","image-431.tribuo"));
+        Helpers.writeProtobuf(new LabelOneVOneTransformer(), Paths.get("src","test","resources","org","tribuo","interop","onnx","lovo-431.tribuo"));
+        Helpers.writeProtobuf(new LabelTransformer(), Paths.get("src","test","resources","org","tribuo","interop","onnx","label-431.tribuo"));
+        Helpers.writeProtobuf(new MultiLabelTransformer(), Paths.get("src","test","resources","org","tribuo","interop","onnx","multilabel-431.tribuo"));
+        Helpers.writeProtobuf(new RegressorTransformer(), Paths.get("src","test","resources","org","tribuo","interop","onnx","regressor-431.tribuo"));
     }
 
 }

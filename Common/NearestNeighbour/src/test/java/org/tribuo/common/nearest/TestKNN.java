@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,20 @@ import org.tribuo.Dataset;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
+import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.ensemble.VotingCombiner;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.example.DemoLabelDataSource;
+import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.classification.example.NoisyInterlockingCrescentsDataSource;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.math.distance.DistanceType;
+import org.tribuo.math.distance.L2Distance;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
@@ -40,8 +44,13 @@ import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.test.Helpers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,6 +60,7 @@ import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -228,4 +238,35 @@ public class TestKNN {
         assertEquals(50.0, predictions.get(3).getOutput().getValues()[0]);
     }
 
+    @Test
+    public void loadProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestKNN.class.getResource("knn-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            KNNModel<Label> deserModel = (KNNModel<Label>) Model.deserialize(proto);
+
+            assertEquals("4.3.1", deserModel.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
+            Trainer<Label> trainer = new KNNTrainer<>(3, new L2Distance(), 1, new VotingCombiner(),
+                    KNNModel.Backend.STREAMS, NeighboursQueryFactoryType.BRUTE_FORCE);
+            Model<Label> model = trainer.train(p.getA());
+
+            List<Prediction<Label>> deserPredictions = deserModel.predict(p.getB());
+            List<Prediction<Label>> predictions = model.predict(p.getB());
+            assertEquals(p.getB().size(), deserPredictions.size());
+            assertTrue(Helpers.predictionListDistributionEquals(predictions, deserPredictions));
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
+
+        Trainer<Label> trainer = new KNNTrainer<>(3, new L2Distance(), 1, new VotingCombiner(),
+                KNNModel.Backend.STREAMS, NeighboursQueryFactoryType.BRUTE_FORCE);
+        Model<Label> model = trainer.train(p.getA());
+
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","common","knn","knn-431.tribuo"));
+    }
 }
