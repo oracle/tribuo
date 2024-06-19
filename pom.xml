@@ -22,6 +22,14 @@
     <artifactId>tribuo</artifactId>
     <version>5.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
+
+  <distributionManagement>
+    <repository>
+      <id>maven-central</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/releases/</url>
+    </repository>
+  </distributionManagement>
+
     <modules>
         <module>Core</module>
         <module>Data</module>
