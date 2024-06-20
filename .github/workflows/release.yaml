@@ -24,6 +24,7 @@ jobs:
       with:
         fetch-depth: 0
 
+    # Use actions/setup-java to handle credentials and create the settings.xml file.
     - name: Set up Apache Maven Central
       uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
       with: # Running setup-java again overwrites the settings.xml
@@ -34,9 +35,19 @@ jobs:
         server-password: MAVEN_CENTRAL_TOKEN # env variable for token in deploy
         gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
         gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+        settings-path: ${{ github.workspace }} # location to store the settings.xml file
 
+    # Use Oracle Java SE for compiling the artifact.
+    - name: Setup Oracle Java SE
+      uses: oracle-actions/setup-java@83e2004a40aaa491fbc6b4697353b9a75b095efb # v1.3.4
+      with:
+        website: oracle.com
+        release: '17'
+
+    # Use Maven to publish to Apache Maven Central.
+    # Note that the settings.xml file is prepared by actions/setup-java.
     - name: Publish to Apache Maven Central
-      run: mvn javadoc:jar source:jar deploy
+      run: mvn javadoc:jar source:jar deploy -s "$GITHUB_WORKSPACE"/settings.xml
       env:
         MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
         MAVEN_CENTRAL_TOKEN: ${{ secrets.MAVEN_CENTRAL_TOKEN }}
