@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2023. Oracle and/or its affiliates.
+  -->
+
+<!--OLCUT configuration file-->
+<config>
+  <component name="minilm" type="org.tribuo.util.embeddings.OnnxFeatureExtractor">
+    <property name="intraOpThreads" value="0"/>
+    <property name="interOpThreads" value="0"/>
+    <property name="useCUDA" value="false"/>
+    <property name="modelPath" value="all-MiniLM-L6-v2-onnx/model.onnx"/>
+    <property name="inputProcessor" value="minilm-input"/>
+    <property name="outputProcessor" value="minilm-output"/>
+  </component>
+
+  <component name="minilm-input" type="org.tribuo.util.embeddings.processors.BERTInputProcessor">
+    <property name="tokenizerPath" value="all-MiniLM-L6-v2-onnx/tokenizer.json"/>
+    <property name="maxLength" value="512"/>
+    <property name="useTokenType" value="False"/>
+  </component>
+
+  <component name="minilm-output" type="org.tribuo.util.embeddings.processors.SentenceTransformersOutputProcessor">
+    <property name="embeddingDimension" value="384"/>
+    <property name="pooling" value="SENTENCE"/>
+    <property name="useAllTokens" value="true"/>
+    <property name="normalize" value="true"/>
+  </component>
+</config>

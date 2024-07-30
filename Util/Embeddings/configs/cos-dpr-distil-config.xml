@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2024. Oracle and/or its affiliates.
+  -->
+
+<!--OLCUT configuration file-->
+<config>
+  <component name="cos-dpr-distil" type="org.tribuo.util.embeddings.OnnxFeatureExtractor">
+    <property name="intraOpThreads" value="0"/>
+    <property name="interOpThreads" value="0"/>
+    <property name="useCUDA" value="false"/>
+    <property name="modelPath" value="cos-dpr-distil-onnx/cos-dpr-distil-optimized.onnx"/>
+    <property name="inputProcessor" value="cos-dpr-distil-input"/>
+    <property name="outputProcessor" value="cos-dpr-distil-output"/>
+  </component>
+
+  <component name="cos-dpr-distil-input" type="org.tribuo.util.embeddings.processors.BERTInputProcessor">
+    <property name="tokenizerPath" value="cos-dpr-distil-onnx/tokenizer.json"/>
+    <property name="maxLength" value="512"/>
+    <property name="useTokenType" value="False"/>
+    <property name="useMask" value="False"/>
+  </component>
+
+  <component name="cos-dpr-distil-output" type="org.tribuo.util.embeddings.processors.BERTOutputProcessor">
+    <property name="embeddingDimension" value="768"/>
+    <property name="pooling" value="POOLER"/>
+    <property name="useAllTokens" value="false"/>
+    <property name="normalize" value="true"/>
+    <property name="tokenOutput" value="pooler_output"/>
+  </component>
+</config>

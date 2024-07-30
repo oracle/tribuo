@@ -79,6 +79,11 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>tribuo-util-embeddings</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-util-tokenization</artifactId>
             <version>${project.version}</version>
         </dependency>
