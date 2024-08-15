@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.SkeletalConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.data.columnar.ColumnarDataSource;
@@ -30,6 +31,7 @@ import org.tribuo.data.columnar.ColumnarIterator;
 import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.provenance.ConfiguredDataSourceProvenance;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.OffsetDateTime;
@@ -64,7 +66,7 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
     @Config(mandatory = true,description="SQL query to run.")
     private String sqlString;
 
-    private final Set<Statement> statements = new HashSet<>();
+    private final Set<Pair<Statement, Connection>> statementsAndConnections = new HashSet<>();
 
     /**
      * For OLCUT.
@@ -94,9 +96,9 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
     @Override
     public ColumnarIterator rowIterator() {
         try {
-            Statement stmt = sqlConfig.getStatement();
-            statements.add(stmt);
-            return new ResultSetIterator(stmt.executeQuery(sqlString), stmt.getFetchSize());
+            Pair<Statement, Connection> stmtAndConn = sqlConfig.getStatementAndConnection();
+            statementsAndConnections.add(stmtAndConn);
+            return new ResultSetIterator(stmtAndConn.getA().executeQuery(sqlString), stmtAndConn.getA().getFetchSize());
         } catch (SQLException e) {
             throw new IllegalArgumentException("Error Processing SQL", e);
         }
@@ -104,14 +106,20 @@ public class SQLDataSource<T extends Output<T>> extends ColumnarDataSource<T> im
 
     @Override
     public void close() {
-        for (Statement statement: statements) {
+        for (Pair<Statement, Connection> statementsAndConnection : statementsAndConnections) {
             try {
-                statement.close();
+                statementsAndConnection.getA().close();
             } catch (SQLException e) {
                 logger.log(Level.WARNING, "Error closing statement", e);
             }
+
+            try {
+                statementsAndConnection.getB().close();
+            } catch (SQLException e) {
+                logger.log(Level.WARNING, "Error closing connection", e);
+            }
         }
-        statements.clear();
+        statementsAndConnections.clear();
     }
 
     @Override
