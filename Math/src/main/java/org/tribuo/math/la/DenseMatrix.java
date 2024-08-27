@@ -186,6 +186,19 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
+     * Creates an identity matrix of the specified size.
+     * @param dimension The matrix dimension.
+     * @return The identity matrix.
+     */
+    public static DenseMatrix createIdentity(int dimension) {
+        double[][] newValues = new double[dimension][dimension];
+        for (int i = 0; i < dimension; i++) {
+            newValues[i][i] = 1.0;
+        }
+        return new DenseMatrix(newValues);
+    }
+
+    /**
      * Deserialization factory.
      * @param version The serialized object version.
      * @param className The class name.
@@ -301,6 +314,24 @@ public class DenseMatrix implements Matrix {
     @Override
     public double get(int i, int j) {
         return values[i][j];
+    }
+
+    /**
+     * Adds {@code other} to this matrix, producing a new {@link DenseMatrix}.
+     * @param other The matrix to add.
+     * @return A new {@link DenseMatrix} where each element value = this.get(i,j) + other.get(i,j).
+     */
+    public DenseMatrix add(DenseMatrix other) {
+        if (dim1 != other.dim1 || dim2 != other.dim2) {
+            throw new IllegalArgumentException("Can't add matrices of different sizes, this " + Arrays.toString(shape) + ", other " + Arrays.toString(other.shape));
+        }
+        double[][] output = new double[dim1][dim2];
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                output[i][j] = get(i,j) + other.get(i,j);
+            }
+        }
+        return new DenseMatrix(output);
     }
 
     /**
@@ -1509,7 +1540,7 @@ public class DenseMatrix implements Matrix {
          */
         @Override
         public double determinant() {
-            double det = 0.0;
+            double det = 1.0;
             for (int i = 0; i < lMatrix.dim1; i++) {
                 det *= lMatrix.values[i][i] * lMatrix.values[i][i];
             }
@@ -1680,7 +1711,7 @@ public class DenseMatrix implements Matrix {
          */
         @Override
         public double determinant() {
-            double det = 0.0;
+            double det = 1.0;
             for (int i = 0; i < upper.dim1; i++) {
                 det *= upper.values[i][i];
             }
