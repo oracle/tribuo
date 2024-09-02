@@ -33,6 +33,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.ojalgo</groupId>
+            <artifactId>ojalgo</artifactId>
+            <version>53.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>tribuo-core</artifactId>
             <version>${project.version}</version>
