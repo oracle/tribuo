@@ -524,7 +524,7 @@ XGBoost 1.6.2 - Apache 2.0
    limitations under the License.
 
 
-OpenCSV 5.7.1 - Apache 2.0
+OpenCSV 5.9 - Apache 2.0
 
                                  Apache License
                            Version 2.0, January 2004
@@ -728,7 +728,7 @@ OpenCSV 5.7.1 - Apache 2.0
    See the License for the specific language governing permissions and
    limitations under the License.
 
-junit 5.9.1 - Eclipse Public License 2.0
+junit 5.10.2 - Eclipse Public License 2.0
 
 Eclipse Public License - v 2.0
 ==============================
@@ -829,7 +829,7 @@ If it is not possible or desirable to put the notice in a particular file, then 
 
 You may add additional accurate notices of copyright ownership.
 
-Apache Maven 3.6.3 - Apache 2.0
+Apache Maven 3.9.8 - Apache 2.0
 
                                  Apache License
                            Version 2.0, January 2004
@@ -1432,7 +1432,7 @@ ONNX v1.9.0 - Apache 2.0
       the brackets!)  The text should be enclosed in the appropriate
       comment syntax for the file format. We also recommend that a
       file or class name and description of purpose be included on the
-      same "printed page" as the copyright notice for easier
+      same "print2d page" as the copyright notice for easier
       identification within third-party archives.
 
    Copyright [yyyy] [name of copyright owner]
@@ -1484,9 +1484,9 @@ of the input file used when generating it.  This code is not
 standalone and requires a support library to be linked with it.  This
 support library is itself covered by the above license.
 
-oci-java-sdk 2.46.0 - Dual licensed UPL/Apache 2.0
+oci-java-sdk 3.43.2 - Dual licensed UPL/Apache 2.0
 
-Copyright (c) 2016, 2022, Oracle and/or its affiliates.  All rights reserved.
+Copyright (c) 2016, 2024, Oracle and/or its affiliates.  All rights reserved.
 
 This software is dual-licensed to you under the Universal Permissive License (UPL) 1.0 as shown at https://oss.oracle.com/licenses/upl
 or Apache License 2.0 as shown at http://www.apache.org/licenses/LICENSE-2.0. You may choose either license.
