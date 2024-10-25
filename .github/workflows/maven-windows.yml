@@ -28,7 +28,7 @@ jobs:
         run: mvn -B package --file pom.xml
   build-17:
     runs-on: windows-latest
-    name: macOS Java SE 17
+    name: Windows Java SE 17
     steps:
       - uses: actions/checkout@v4
       - name: Setup Oracle Java SE

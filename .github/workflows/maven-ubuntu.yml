@@ -28,7 +28,7 @@ jobs:
         run: mvn -B package --file pom.xml
   build-17:
     runs-on: ubuntu-latest
-    name: macOS Java SE 17
+    name: Ubuntu Java SE 17
     steps:
       - uses: actions/checkout@v4
       - name: Setup Oracle Java SE

@@ -16,7 +16,7 @@ jobs:
       matrix:
         # test against supported LTS versions and latest
         java: [ 21, 23 ]
-    name: macOS Java SE ${{ matrix.java }}
+    name: macOS aarch64 Java SE ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v4
       - name: Setup Oracle Java SE
@@ -28,7 +28,7 @@ jobs:
         run: mvn -B package --file pom.xml -Parm
   build-17:
     runs-on: macos-14
-    name: macOS Java SE 17
+    name: macOS aarch64 Java SE 17
     steps:
       - uses: actions/checkout@v4
       - name: Setup Oracle Java SE
