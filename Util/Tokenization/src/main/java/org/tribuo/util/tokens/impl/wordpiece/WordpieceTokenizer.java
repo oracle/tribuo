@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
  * and Chinese characters. The resulting tokens are then applied to the
  * wordpiece algorithm implemented in {@link Wordpiece} which is driven by an
  * input vocabulary which matches tokens and token suffixes as it can. Any
- * tokens that are not found in the input vocbulary are marked as "unknown".
+ * tokens that are not found in the input vocabulary are marked as "unknown".
  */
 public class WordpieceTokenizer implements Tokenizer {
 
@@ -133,7 +133,7 @@ public class WordpieceTokenizer implements Tokenizer {
             currentToken = this.whitespaceTokenizer.getToken();
             getWordpieceTokens();
             currentWordpieceIndex = 0;
-            if (currentWordpieceTokens.size() == 0) {
+            if (currentWordpieceTokens.isEmpty()) {
                 return advance();
             }
             return true;
@@ -181,7 +181,7 @@ public class WordpieceTokenizer implements Tokenizer {
     
             List<String> wordpieces = wordpiece.wordpiece(text);
     
-            if (wordpieces.size() == 0) {
+            if (wordpieces.isEmpty()) {
                 return;
             } else if (wordpieces.size() == 1) {
                 String wp = wordpieces.get(0);
@@ -245,7 +245,7 @@ public class WordpieceTokenizer implements Tokenizer {
           copy.basicTokenizer = basicTokenizer.clone();
           copy.reset = false;
           copy.currentToken = null;
-          copy.currentWordpieceTokens.clear();
+          copy.currentWordpieceTokens = new ArrayList<>();
           copy.currentWordpieceIndex = -1;
           return copy;
       } catch (CloneNotSupportedException e) {
