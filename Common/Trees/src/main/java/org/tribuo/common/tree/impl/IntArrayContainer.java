@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,7 +141,6 @@ public class IntArrayContainer {
             }
         }
         output.size = k;
-        assert(k == newSize);
         //logger.info("output = " + Arrays.toString(outputArray));
     }
 
@@ -154,9 +153,9 @@ public class IntArrayContainer {
      * @return A sorted array containing all the elements from the input.
      */
     public static int[] merge(List<int[]> input, IntArrayContainer firstBuffer, IntArrayContainer secondBuffer) {
-        if (input.size() > 0) {
+        if (!input.isEmpty()) {
             firstBuffer.fill(input.get(0));
-            for (int i = 0; i < input.size(); i++) {
+            for (int i = 1; i < input.size(); i++) {
                 merge(firstBuffer,input.get(i),secondBuffer);
                 IntArrayContainer tmp = secondBuffer;
                 secondBuffer = firstBuffer;
