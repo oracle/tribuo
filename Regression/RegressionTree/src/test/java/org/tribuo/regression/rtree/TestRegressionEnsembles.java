@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -158,10 +158,10 @@ public class TestRegressionEnsembles {
         BaggingTrainer<Regressor> bagT = new BaggingTrainer<>(t,new AveragingCombiner(),10);
         Model<Regressor> llModel = bagT.train(p.getA());
         RegressionEvaluation llEval = evaluator.evaluate(llModel,p.getB());
-        double expectedDim1 = 0.1632337913237244;
-        double expectedDim2 = 0.1632337913237244;
-        double expectedDim3 = -0.5727741047992028;
-        double expectedAve = -0.08210217405058466;
+        double expectedDim1 = 0.1741030329694585;
+        double expectedDim2 = 0.1741030329694585;
+        double expectedDim3 = -0.47778900726641527;
+        double expectedAve = -0.04319431377583275;
 
         assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);

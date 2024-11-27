@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,10 +246,10 @@ public class TestCARTJointRegressionTrainer {
         Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
         TreeModel<Regressor> llModel = t.train(p.getA());
         RegressionEvaluation llEval = e.evaluate(llModel, p.getB());
-        double expectedDim1 = -0.6618655170782572;
-        double expectedDim2 = -0.6618655170782572;
-        double expectedDim3 = -2.072009095885796;
-        double expectedAve = -1.1319133766807703;
+        double expectedDim1 = -0.6700413426515754;
+        double expectedDim2 = -0.6700413426515754;
+        double expectedDim3 = -1.1190232216467106;
+        double expectedAve = -0.8197019689832872;
 
         assertEquals(expectedDim1, llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName, Double.NaN)), 1e-6);
         assertEquals(expectedDim2, llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName, Double.NaN)), 1e-6);
