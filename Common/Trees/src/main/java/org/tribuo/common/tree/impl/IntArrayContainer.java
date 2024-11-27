@@ -88,7 +88,7 @@ public class IntArrayContainer {
      * @param other The array to copy from.
      */
     public void fill(IntArrayContainer other) {
-        if (other.array.length > array.length) {
+        if (other.size > array.length) {
             array = Arrays.copyOf(other.array,other.size);
         } else {
             System.arraycopy(other.array,0,array,0,other.size);

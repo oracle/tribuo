@@ -58,7 +58,7 @@ public class IntArrayContainerTest {
 
     @Test
     public void fillTest() {
-        IntArrayContainer first = new IntArrayContainer(10);
+        IntArrayContainer first = new IntArrayContainer(5);
         IntArrayContainer second = new IntArrayContainer(10);
         int[] expected = new int[]{1,2,3,5,7,9};
         first.fill(expected);
@@ -66,6 +66,10 @@ public class IntArrayContainerTest {
 
         second.fill(first);
         Assertions.assertArrayEquals(expected, second.copy());
+
+        IntArrayContainer third = new IntArrayContainer(3);
+        third.fill(first);
+        Assertions.assertArrayEquals(expected, third.copy());
     }
 
     @Test
@@ -84,13 +88,13 @@ public class IntArrayContainerTest {
     public void removeOtherTest() {
         IntArrayContainer first = new IntArrayContainer(10);
         IntArrayContainer second = new IntArrayContainer(10);
-        first.fill(new int[]{1,2,3,5,7,9});
+        first.fill(new int[]{1,2,3,5,7,9,10});
 
         int[] removed = new int[]{2,6,8,9};
 
         IntArrayContainer.removeOther(first, removed, second);
 
-        int[] expected = new int[]{1,3,5,7};
+        int[] expected = new int[]{1,3,5,7,10};
 
         Assertions.assertArrayEquals(expected, second.copy());
     }
