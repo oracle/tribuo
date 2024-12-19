@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.SplittableRandom;
 import java.util.function.ToIntFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.random.RandomGenerator;
 
 /**
  * Ye olde util class.
@@ -429,6 +430,25 @@ public final class Util {
     }
 
     /**
+     * Validates that the supplied double array is a probability mass function.
+     * <p>
+     * That is, each element is bounded 0,1 and all elements sum to 1 (with epsilon 1e-10).
+     * @param pmf The PMF to check.
+     * @return True if it's a valid pmf.
+     */
+    public static boolean validatePMF(double[] pmf) {
+        double total = 0.0;
+        for (double v : pmf) {
+            if ((v < 0) || (v > 1.0)) {
+                return false;
+            } else {
+                total += v;
+            }
+        }
+        return !(Math.abs(total - 1.0) > 1e-10);
+    }
+
+    /**
      * Produces a cumulative sum array.
      * @param input The input to sum.
      * @return The cumulative sum.
@@ -500,6 +520,9 @@ public final class Util {
 
     /**
      * Samples an index from the supplied cdf.
+     * <p>
+     * Validates that the CDF final value is approximately 1.0 (with epsilon 1e-6), if not
+     * throws {@link IllegalStateException}.
      * @param cdf The cdf to sample from.
      * @param rng The rng to use.
      * @return A sample.
@@ -519,6 +542,31 @@ public final class Util {
 
     /**
      * Samples an index from the supplied cdf.
+     * <p>
+     * Validates that the CDF final value is approximately 1.0 (with epsilon 1e-6), if not
+     * throws {@link IllegalStateException}.
+     * @param cdf The cdf to sample from.
+     * @param rng The rng to use.
+     * @return A sample.
+     */
+    public static int sampleFromCDF(double[] cdf, RandomGenerator rng) {
+        if (Math.abs(cdf[cdf.length-1] - 1.0) > 1e-6) {
+            throw new IllegalStateException("Weights do not sum to 1, cdf[cdf.length-1] = " + cdf[cdf.length-1]);
+        }
+        double uniform = rng.nextDouble();
+        int searchVal = Arrays.binarySearch(cdf, uniform);
+        if (searchVal < 0) {
+            return - 1 - searchVal;
+        } else {
+            return searchVal;
+        }
+    }
+
+    /**
+     * Samples an index from the supplied cdf.
+     * <p>
+     * Validates that the CDF final value is approximately 1.0 (with epsilon 1e-6), if not
+     * throws {@link IllegalStateException}.
      * @param cdf The cdf to sample from.
      * @param rng The rng to use.
      * @return A sample.
