@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -260,6 +260,22 @@ public class DenseVector implements SGDVector {
     }
 
     /**
+     * Gets the index of the maximum element.
+     * @return The index of the maximum element.
+     */
+    public int argmax() {
+        int idx = -1;
+        double value = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < elements.length; i++) {
+            if (value < get(i)) {
+                idx = i;
+                value = get(i);
+            }
+        }
+        return idx;
+    }
+
+    /**
      * Performs a reduction from left to right of this vector.
      * <p>
      * The first argument to the reducer is the transformed element, the second is the state.
@@ -347,8 +363,14 @@ public class DenseVector implements SGDVector {
             throw new IllegalArgumentException("Can't add two vectors of different dimension, this = " + elements.length + ", other = " + other.size());
         }
         double[] newValues = toArray();
-        for (VectorTuple tuple : other) {
-            newValues[tuple.index] += tuple.value;
+        if (other instanceof DenseVector otherDense) {
+            for (int i = 0; i < newValues.length; i++) {
+                newValues[i] += otherDense.get(i);
+            }
+        } else {
+            for (VectorTuple tuple : other) {
+                newValues[tuple.index] += tuple.value;
+            }
         }
         return new DenseVector(newValues);
     }
@@ -364,8 +386,14 @@ public class DenseVector implements SGDVector {
             throw new IllegalArgumentException("Can't subtract two vectors of different dimension, this = " + elements.length + ", other = " + other.size());
         }
         double[] newValues = toArray();
-        for (VectorTuple tuple : other) {
-            newValues[tuple.index] -= tuple.value;
+        if (other instanceof DenseVector otherDense) {
+            for (int i = 0; i < newValues.length; i++) {
+                newValues[i] -= otherDense.get(i);
+            }
+        } else {
+            for (VectorTuple tuple : other) {
+                newValues[tuple.index] -= tuple.value;
+            }
         }
         return new DenseVector(newValues);
     }
@@ -414,6 +442,17 @@ public class DenseVector implements SGDVector {
         } else {
             throw new IllegalArgumentException("Scaling a Vector by a non-Vector");
         }
+    }
+
+    /**
+     * Applies the function {@code f} to each element of this vector returning a new vector.
+     * @param f The function to apply.
+     * @return A copy of this vector with {@code f} applied to each element.
+     */
+    public DenseVector foreach(DoubleUnaryOperator f) {
+        DenseVector output = new DenseVector(this);
+        output.foreachInPlace(f);
+        return output;
     }
 
     @Override
@@ -537,6 +576,14 @@ public class DenseVector implements SGDVector {
     }
 
     /**
+     * Sets all elements of this vector to {@code value}.
+     * @param value The value to set things to.
+     */
+    public void set(double value) {
+        Arrays.fill(elements, value);
+    }
+
+    /**
      * Sets all the elements of this vector to be the same as {@code other}.
      * @param other The {@link DenseVector} to copy.
      */
@@ -607,6 +654,43 @@ public class DenseVector implements SGDVector {
     public void expNormalize(double total) {
         for (int i = 0; i < elements.length; i++) {
             elements[i] = Math.exp(elements[i] - total);
+        }
+    }
+
+    /**
+     * Sums log probabilities.
+     * @return log sum exp input[i].
+     */
+    public double logSumExp() {
+        final double LOG_TOLERANCE = 30.0;
+
+        double maxValue = get(0);
+        int maxIdx = 0;
+        for (int i = 1; i < elements.length; i++) {
+            double value = get(i);
+            if (value > maxValue) {
+                maxValue = value;
+                maxIdx = i;
+            }
+        }
+        if (maxValue == Double.NEGATIVE_INFINITY) {
+            return maxValue;
+        }
+
+        boolean anyAdded = false;
+        double intermediate = 0.0;
+        double cutoff = maxValue - LOG_TOLERANCE;
+        for (int i = 0; i < elements.length; i++) {
+            double value = get(i);
+            if (value >= cutoff && i != maxIdx && !Double.isInfinite(value)) {
+                anyAdded = true;
+                intermediate += Math.exp(value - maxValue);
+            }
+        }
+        if (anyAdded) {
+            return maxValue + Math.log1p(intermediate);
+        } else {
+            return maxValue;
         }
     }
 

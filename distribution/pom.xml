@@ -219,6 +219,11 @@
         </dependency>
         <dependency>
             <groupId>org.tribuo</groupId>
+            <artifactId>tribuo-clustering-gmm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tribuo</groupId>
             <artifactId>tribuo-clustering-kmeans</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -22,6 +22,7 @@ import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import com.oracle.labs.mlrg.olcut.util.Pair;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -167,14 +168,32 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
      * Constructs a statement based on the object fields. Uses fetchSize to determine fetch size and sets defaults
      * for querying data.
      *
+     * @deprecated because this leaks connections, use {{@link #getStatementAndConnection()}} instead.
+     *
      * @return A statement object for querying the database.
      * @throws SQLException If the connection failed.
      */
+    @Deprecated
     public Statement getStatement() throws SQLException {
         Statement stmt = getConnection().createStatement();
         stmt.setFetchSize(fetchSize);
         stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
         return stmt;
+    }
+
+    /**
+     * Creates a DB connection and constructs a statement based on the object fields. Uses fetchSize to determine fetch
+     * size and sets default for querying data.
+     *
+     * @return A pair of the statement object for querying the database, and the connection that it belongs to.
+     * @throws SQLException If the connection failed.
+     */
+    public Pair<Statement, Connection> getStatementAndConnection() throws SQLException {
+        Connection conn = getConnection();
+        Statement stmt = conn.createStatement();
+        stmt.setFetchSize(fetchSize);
+        stmt.setFetchDirection(ResultSet.FETCH_FORWARD);
+        return new Pair<>(stmt, conn);
     }
 
     @Override
