@@ -72,6 +72,8 @@ public class IntArrayContainer {
 
     /**
      * Overwrites values from the supplied array into this array.
+     * <p>
+     * Copies in all the other values and sets the length of this array to the length of the other array.
      * @param otherArray The array to copy from.
      */
     public void fill(int[] otherArray) {
@@ -85,6 +87,8 @@ public class IntArrayContainer {
 
     /**
      * Overwrites values in this array with the supplied array.
+     * <p>
+     * Copies in all the other values and sets the length of this array to the length of the other array.
      * @param other The array to copy from.
      */
     public void fill(IntArrayContainer other) {
