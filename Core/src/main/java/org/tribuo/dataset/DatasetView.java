@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -374,8 +374,21 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
     }
 
     @Override
+    public synchronized void shuffle(boolean shuffle) {
+        if (shuffle) {
+            indices = Util.randperm(size(), rng);
+        } else {
+            indices = null;
+        }
+    }
+
+    @Override
     public Iterator<Example<T>> iterator() {
-        return new ViewIterator<>(this);
+        if (indices != null) {
+            return new ShuffledViewIterator<>(this);
+        } else{
+            return new ViewIterator<>(this);
+        }
     }
 
     @Override
@@ -459,6 +472,29 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
         return valid;
     }
 
+    private static final class ShuffledViewIterator<T extends Output<T>> implements Iterator<Example<T>> {
+
+        private int counter = 0;
+        private final DatasetView<T> dataset;
+
+        ShuffledViewIterator(DatasetView<T> dataset) {
+            this.dataset = dataset;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return counter < dataset.size();
+        }
+
+        @Override
+        public Example<T> next() {
+            Example<T> example = dataset.getExample(dataset.indices[counter]);
+            counter++;
+            return example;
+        }
+
+    }
+
     private static final class ViewIterator<T extends Output<T>> implements Iterator<Example<T>> {
 
         private int counter = 0;
@@ -509,7 +545,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
             this.weighted = new BooleanProvenance(WEIGHTED,dataset.weighted);
             this.sampled = new BooleanProvenance(SAMPLED,dataset.sampled);
             this.tag = new StringProvenance(TAG,dataset.tag);
-            this.indices = storeIndices ? dataset.indices : new int[0];
+            this.indices = storeIndices ? dataset.exampleIndices : new int[0];
         }
 
         /**
@@ -525,7 +561,7 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
             this.sampled = ObjectProvenance.checkAndExtractProvenance(map,SAMPLED,BooleanProvenance.class, DatasetViewProvenance.class.getSimpleName());
             @SuppressWarnings("unchecked") // List provenance cast
             ListProvenance<IntProvenance> listIndices = ObjectProvenance.checkAndExtractProvenance(map,INDICES,ListProvenance.class, DatasetViewProvenance.class.getSimpleName());
-            if (listIndices.getList().size() > 0) {
+            if (!listIndices.getList().isEmpty()) {
                 try {
                     IntProvenance i = listIndices.getList().get(0);
                 } catch (ClassCastException e) {
