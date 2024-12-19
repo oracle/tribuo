@@ -445,9 +445,11 @@ public class GMMTrainer implements Trainer<ClusterID> {
                             double tmp = 1;
                             for (int k = 0; k < preVec.size(); k++) {
                                 double curVal = 1/Math.sqrt(covVec.get(k));
+                                // Sets the value in the precision array.
                                 preVec.set(k, curVal);
                                 tmp *= covVec.get(k);
                             }
+                            precision[j] = preVec;
                             determinant[j] = tmp;
                         }
                     }

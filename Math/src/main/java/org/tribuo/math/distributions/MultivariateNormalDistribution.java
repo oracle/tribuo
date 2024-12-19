@@ -205,6 +205,14 @@ public final class MultivariateNormalDistribution implements Distribution {
                 if (covariance instanceof DenseVector vec) {
                     if ((vec.size() != 1) && (vec.size() != means.size())) {
                         throw new IllegalArgumentException("Covariance must be a single element vector for spherical covariance. Found " + vec.size());
+                    } else if (vec.size() != 1) {
+                        // check all elements are the same
+                        double init = vec.get(0);
+                        for (int i = 1; i < vec.size(); i++) {
+                            if (init != vec.get(i)) {
+                                throw new IllegalArgumentException("Covariance values must be the same for spherical covariance, found " + init + " at position 0 and " + vec.get(i) + " at position " + i);
+                            }
+                        }
                     }
                 } else {
                     throw new IllegalArgumentException("Covariance must be a single element vector for spherical covariance, found " + covariance.getClass());
@@ -288,6 +296,21 @@ public final class MultivariateNormalDistribution implements Distribution {
         return logProbability(input, means, precision, determinant, type);
     }
 
+    /**
+     * Computes the log probability of the input under the supplied parameters for a multivariate
+     * normal distribution.
+     * <p>
+     * The parameters must be valid otherwise it will throw runtime exceptions.
+     * @param input The input point to compute the log probability of.
+     * @param mean The mean of the multivariate normal distribution.
+     * @param determinant The determinant of the precision matrix.
+     * @param type The covariance type.
+     * @param precision The precision matrix. If type is {@link CovarianceType#FULL} must be a
+     *                  {@link DenseMatrix}, if {@link CovarianceType#DIAGONAL} or
+     *                  {@link CovarianceType#SPHERICAL} must be a {@link DenseVector}. Spherical
+     *                  covariances should have a single element dense vector.
+     * @return The log probability of the input point under the supplied distribution parameters.
+     */
     public static double logProbability(SGDVector input, DenseVector mean, Tensor precision, double determinant, CovarianceType type) {
         // p(input|mean, variance) = \frac{1}{(2\pi)^{d/2} determinant^{1/2}} e^{-1/2 * (input - mean)^T * precision * (input - mean)}
         // log p(i|mu,sigma) = - log ({2\pi}^{d/2}) - log (determinant^{1/2}) + (-1/2 * (i - mu)^T * precision * (i - mu))

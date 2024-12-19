@@ -294,6 +294,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
             }
         }
 
+        // generatesProbabilities is always true, set in the constructor
         return new Prediction<>(max,scores,vector.size(),example,generatesProbabilities);
     }
 
