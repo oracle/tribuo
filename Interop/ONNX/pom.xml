@@ -28,6 +28,7 @@
     <artifactId>tribuo-onnx</artifactId>
     <packaging>jar</packaging>
 
+    <!--
     <repositories>
       <repository>
         <id>ORT-Nightly</id>
@@ -40,6 +41,7 @@
         </snapshots>
       </repository>
     </repositories>
+    -->
 
     <dependencies>
         <dependency>
