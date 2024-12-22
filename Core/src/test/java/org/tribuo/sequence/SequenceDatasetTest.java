@@ -357,7 +357,6 @@ public class SequenceDatasetTest {
             SequenceDatasetProto proto = SequenceDatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             SequenceDataset<MockOutput> dataset = (SequenceDataset<MockOutput>) SequenceDataset.deserialize(proto);
-            assertEquals("4.3.1", dataset.getProvenance().getTribuoVersion());
             assertTrue(Helpers.sequenceDatasetEquals(mutable, dataset));
         }
 

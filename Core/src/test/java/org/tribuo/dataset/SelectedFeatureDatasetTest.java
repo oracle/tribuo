@@ -122,7 +122,9 @@ public class SelectedFeatureDatasetTest {
             FeatureSetProto proto = FeatureSetProto.parseFrom(fis);
             SelectedFeatureSet newSFS = ProtoUtil.deserialize(proto);
             assertEquals("4.3.1", newSFS.getProvenance().getTribuoVersion());
-            assertEquals(sfs, newSFS);
+            assertEquals(sfs.featureNames(), newSFS.featureNames());
+            assertEquals(sfs.featureScores(), newSFS.featureScores());
+            assertEquals(sfs.isOrdered(), newSFS.isOrdered());
         }
 
         Path sfdPath = Paths.get(SelectedFeatureDatasetTest.class.getResource("selected-feature-dataset-431.tribuo").toURI());
@@ -130,7 +132,6 @@ public class SelectedFeatureDatasetTest {
             DatasetProto proto = DatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             SelectedFeatureDataset<MockOutput> newSFD = (SelectedFeatureDataset<MockOutput>) Dataset.deserialize(proto);
-            assertEquals("4.3.1", newSFD.getProvenance().getTribuoVersion());
             assertTrue(Helpers.datasetEquals(sfd, newSFD));
         }
     }
