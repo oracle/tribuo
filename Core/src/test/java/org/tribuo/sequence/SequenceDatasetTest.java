@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,12 +37,21 @@ import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.Dataset;
+import org.tribuo.DatasetTest;
 import org.tribuo.Example;
 import org.tribuo.Feature;
 import org.tribuo.FeatureMap;
+import org.tribuo.ImmutableDataset;
+import org.tribuo.MutableDataset;
+import org.tribuo.dataset.DatasetView;
+import org.tribuo.dataset.MinimumCardinalityDataset;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.BinaryFeaturesExample;
 import org.tribuo.impl.ListExample;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.SequenceDatasetProto;
+import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockDataSourceProvenance;
@@ -320,5 +335,57 @@ public class SequenceDatasetTest {
             example.add(new Feature(featureName, 1.0));
         }
         return example;
+    }
+
+    @Test
+    public void test431Protobufs() throws IOException, URISyntaxException {
+        MutableSequenceDataset<MockOutput> mutable = makeDataset();
+        SequenceExample<MockOutput> example = mutable.getExample(0);
+        ImmutableSequenceDataset<MockOutput> immutable = ImmutableSequenceDataset.copyDataset(mutable);
+        MinimumCardinalitySequenceDataset<MockOutput> minimum = new MinimumCardinalitySequenceDataset<>(mutable, 2);
+
+        Path examplePath = Paths.get(DatasetTest.class.getResource("sequence-example-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(examplePath)) {
+            SequenceExampleProto proto = SequenceExampleProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            SequenceExample<MockOutput> deserializedExample = (SequenceExample<MockOutput>) SequenceExample.deserialize(proto);
+            assertEquals(example,deserializedExample);
+        }
+
+        Path mutablePath = Paths.get(DatasetTest.class.getResource("mutable-sequence-dataset-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(mutablePath)) {
+            SequenceDatasetProto proto = SequenceDatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            SequenceDataset<MockOutput> dataset = (SequenceDataset<MockOutput>) SequenceDataset.deserialize(proto);
+            assertTrue(Helpers.sequenceDatasetEquals(mutable, dataset));
+        }
+
+        Path immutablePath = Paths.get(SequenceDatasetTest.class.getResource("immutable-sequence-dataset-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(immutablePath)) {
+            SequenceDatasetProto proto = SequenceDatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            SequenceDataset<MockOutput> dataset = (SequenceDataset<MockOutput>) SequenceDataset.deserialize(proto);
+            assertTrue(Helpers.sequenceDatasetEquals(immutable, dataset));
+        }
+
+        Path minimumPath = Paths.get(SequenceDatasetTest.class.getResource("minimum-cardinality-sequence-dataset-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(minimumPath)) {
+            SequenceDatasetProto proto = SequenceDatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            SequenceDataset<MockOutput> dataset = (SequenceDataset<MockOutput>) SequenceDataset.deserialize(proto);
+            assertTrue(Helpers.sequenceDatasetEquals(minimum, dataset));
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        MutableSequenceDataset<MockOutput> mutable = makeDataset();
+        SequenceExample<MockOutput> example = mutable.getExample(0);
+        ImmutableSequenceDataset<MockOutput> immutable = ImmutableSequenceDataset.copyDataset(mutable);
+        MinimumCardinalitySequenceDataset<MockOutput> minimum = new MinimumCardinalitySequenceDataset<>(mutable, 2);
+
+        Helpers.writeProtobuf(example, Paths.get("src","test","resources","org","tribuo","sequence","sequence-example-431.tribuo"));
+        Helpers.writeProtobuf(mutable, Paths.get("src","test","resources","org","tribuo","sequence","mutable-sequence-dataset-431.tribuo"));
+        Helpers.writeProtobuf(immutable, Paths.get("src","test","resources","org","tribuo","sequence","immutable-sequence-dataset-431.tribuo"));
+        Helpers.writeProtobuf(minimum, Paths.get("src","test","resources","org","tribuo","sequence","minimum-cardinality-sequence-dataset-431.tribuo"));
     }
 }

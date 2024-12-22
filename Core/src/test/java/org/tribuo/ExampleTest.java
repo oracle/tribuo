@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,36 @@
 
 package org.tribuo;
 
+import org.tribuo.hash.HashCodeHasher;
+import org.tribuo.hash.HashedFeatureMap;
+import org.tribuo.hash.Hasher;
+import org.tribuo.hash.HasherTests;
+import org.tribuo.hash.MessageDigestHasher;
+import org.tribuo.hash.ModHashCodeHasher;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.BinaryFeaturesExample;
+import org.tribuo.impl.IndexedArrayExample;
 import org.tribuo.impl.ListExample;
+import org.tribuo.protos.core.ExampleProto;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.test.Helpers;
 import org.tribuo.test.MockOutput;
+import org.tribuo.test.MockOutputInfo;
 import org.tribuo.util.Merger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -245,7 +264,7 @@ public class ExampleTest {
         assertEquals(1,test.getMetadata().size());
         // Check that the metadata grows appropriately
         test.setMetadataValue("Oranges","Orange");
-        assertEquals(test.getMetadataValue("Oranges").get(),"Orange");
+        assertEquals("Orange", test.getMetadataValue("Oranges").get());
         Map<String,Object> metadata = test.getMetadata();
         assertEquals(2,metadata.size());
         // Check that the metadata returned is a copy
@@ -254,13 +273,13 @@ public class ExampleTest {
         // Check that overwriting throws
         assertThrows(IllegalArgumentException.class,() -> test.setMetadataValue("Bananas","Pink"));
         assertEquals(2,test.getMetadata().size());
-        assertEquals(test.getMetadataValue("Bananas").get(),"Yellow");
-        assertEquals(test.getMetadataValue("Oranges").get(),"Orange");
+        assertEquals("Yellow", test.getMetadataValue("Bananas").get());
+        assertEquals("Orange", test.getMetadataValue("Oranges").get());
         // Check that the metadata is copied
         ArrayExample<MockOutput> copy = test.copy();
         assertEquals(2,copy.getMetadata().size());
-        assertEquals(copy.getMetadataValue("Bananas").get(),"Yellow");
-        assertEquals(copy.getMetadataValue("Oranges").get(),"Orange");
+        assertEquals("Yellow", copy.getMetadataValue("Bananas").get());
+        assertEquals("Orange", copy.getMetadataValue("Oranges").get());
         // Check that the copies are independent
         copy.setMetadataValue("Strawberries","Red");
         assertEquals(3,copy.getMetadata().size());
@@ -381,7 +400,7 @@ public class ExampleTest {
     @Test
     public void testBinaryFeaturesExample() {
         MockOutput output = new MockOutput("UNK");
-        Example<MockOutput> test = new BinaryFeaturesExample<>(output);
+        BinaryFeaturesExample<MockOutput> test = new BinaryFeaturesExample<>(output);
         // Empty examples are invalid.
         assertFalse(test.validateExample());
         testProtoSerialization(test);
@@ -408,11 +427,11 @@ public class ExampleTest {
         // Check that appends work
         test.setMetadataValue("Bananas","Yellow");
         assertTrue(test.containsMetadata("Bananas"));
-        assertEquals(test.getMetadataValue("Bananas").get(),"Yellow");
+        assertEquals("Yellow", test.getMetadataValue("Bananas").get());
         assertEquals(1,test.getMetadata().size());
         // Check that the metadata grows appropriately
         test.setMetadataValue("Oranges","Orange");
-        assertEquals(test.getMetadataValue("Oranges").get(),"Orange");
+        assertEquals("Orange", test.getMetadataValue("Oranges").get());
         Map<String,Object> metadata = test.getMetadata();
         assertEquals(2,metadata.size());
         // Check that the metadata returned is a copy
@@ -421,13 +440,13 @@ public class ExampleTest {
         // Check that overwriting throws
         assertThrows(IllegalArgumentException.class,() -> test.setMetadataValue("Bananas","Pink"));
         assertEquals(2,test.getMetadata().size());
-        assertEquals(test.getMetadataValue("Bananas").get(),"Yellow");
-        assertEquals(test.getMetadataValue("Oranges").get(),"Orange");
+        assertEquals("Yellow", test.getMetadataValue("Bananas").get());
+        assertEquals("Orange", test.getMetadataValue("Oranges").get());
         // Check that the metadata is copied
         Example<MockOutput> copy = test.copy();
         assertEquals(2,copy.getMetadata().size());
-        assertEquals(copy.getMetadataValue("Bananas").get(),"Yellow");
-        assertEquals(copy.getMetadataValue("Oranges").get(),"Orange");
+        assertEquals("Yellow", copy.getMetadataValue("Bananas").get());
+        assertEquals("Orange", copy.getMetadataValue("Oranges").get());
         // Check that the copies are independent
         copy.setMetadataValue("Strawberries","Red");
         assertEquals(3,copy.getMetadata().size());
@@ -438,7 +457,7 @@ public class ExampleTest {
         assertEquals("test-2", lookup.name);
         assertEquals(1.0, lookup.value);
         assertTrue(BinaryFeaturesExample.isBinary(lookup));
-        ((BinaryFeaturesExample<MockOutput>) test).add("f3");
+        test.add("f3");
         assertThrows(IllegalArgumentException.class, () -> BinaryFeaturesExample.checkIsBinary(new Feature("f4", 2.0)));
         
         int count = 0;
@@ -447,5 +466,88 @@ public class ExampleTest {
             count++;
         }
         assertEquals(3, count);
+    }
+
+    @Test
+    public void load431Protobufs() throws URISyntaxException, IOException {
+        // Comparison objects
+        MockOutput outputA = new MockOutput("a");
+        MockOutput outputB = new MockOutput("b");
+        HashMap<String,Object> metaMap = new HashMap<>();
+        metaMap.put("metadata", "stuff");
+        ArrayExample<MockOutput> array = new ArrayExample<>(outputA, new String[]{"foo", "bar", "baz", "quux"}, new double[]{1,10,-1,0.1}, metaMap);
+        ListExample<MockOutput> list = new ListExample<>(outputB, new String[]{"foo", "bar", "quux"}, new double[]{2,20,0.2});
+        BinaryFeaturesExample<MockOutput> bin = new BinaryFeaturesExample<>(outputB, new String[]{"foo", "quux"});
+        MutableFeatureMap fmap = new MutableFeatureMap();
+        for (Feature f : array) {
+            fmap.add(f.name, f.value);
+        }
+        for (Feature f : list) {
+            fmap.add(f.name, f.value);
+        }
+        for (Feature f : bin) {
+            fmap.add(f.name, f.value);
+        }
+        ImmutableFeatureMap ifmap = new ImmutableFeatureMap(fmap);
+        MockOutputInfo omap = new MockOutputInfo();
+        omap.observe(outputA);
+        omap.observe(outputB);
+        omap.observe(outputB);
+        IndexedArrayExample<MockOutput> indexed = new IndexedArrayExample<>(array, ifmap, omap);
+
+        Path arrayPath = Paths.get(ExampleTest.class.getResource("array-example-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(arrayPath)) {
+            ExampleProto proto = ExampleProto.parseFrom(fis);
+            Example<?> ex = Example.deserialize(proto);
+            assertEquals(array, ex);
+        }
+        Path listPath = Paths.get(ExampleTest.class.getResource("list-example-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(listPath)) {
+            ExampleProto proto = ExampleProto.parseFrom(fis);
+            Example<?> ex = Example.deserialize(proto);
+            assertEquals(list, ex);
+        }
+        Path binPath = Paths.get(ExampleTest.class.getResource("binary-example-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(binPath)) {
+            ExampleProto proto = ExampleProto.parseFrom(fis);
+            Example<?> ex = Example.deserialize(proto);
+            assertEquals(bin, ex);
+        }
+        Path indexedPath = Paths.get(ExampleTest.class.getResource("indexed-example-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(indexedPath)) {
+            ExampleProto proto = ExampleProto.parseFrom(fis);
+            Example<?> ex = Example.deserialize(proto);
+            assertEquals(indexed, ex);
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        MockOutput outputA = new MockOutput("a");
+        MockOutput outputB = new MockOutput("b");
+        HashMap<String,Object> metaMap = new HashMap<>();
+        metaMap.put("metadata", "stuff");
+        ArrayExample<MockOutput> array = new ArrayExample<>(outputA, new String[]{"foo", "bar", "baz", "quux"}, new double[]{1,10,-1,0.1}, metaMap);
+        ListExample<MockOutput> list = new ListExample<>(outputB, new String[]{"foo", "bar", "quux"}, new double[]{2,20,0.2});
+        BinaryFeaturesExample<MockOutput> bin = new BinaryFeaturesExample<>(outputB, new String[]{"foo", "quux"});
+        MutableFeatureMap fmap = new MutableFeatureMap();
+        for (Feature f : array) {
+            fmap.add(f.name, f.value);
+        }
+        for (Feature f : list) {
+            fmap.add(f.name, f.value);
+        }
+        for (Feature f : bin) {
+            fmap.add(f.name, f.value);
+        }
+        ImmutableFeatureMap ifmap = new ImmutableFeatureMap(fmap);
+        MockOutputInfo omap = new MockOutputInfo();
+        omap.observe(outputA);
+        omap.observe(outputB);
+        omap.observe(outputB);
+        IndexedArrayExample<MockOutput> indexed = new IndexedArrayExample<>(array, ifmap, omap);
+        Helpers.writeProtobuf(array, Paths.get("src","test","resources","org","tribuo","array-example-431.tribuo"));
+        Helpers.writeProtobuf(list, Paths.get("src","test","resources","org","tribuo","list-example-431.tribuo"));
+        Helpers.writeProtobuf(bin, Paths.get("src","test","resources","org","tribuo","binary-example-431.tribuo"));
+        Helpers.writeProtobuf(indexed, Paths.get("src","test","resources","org","tribuo","indexed-example-431.tribuo"));
     }
 }

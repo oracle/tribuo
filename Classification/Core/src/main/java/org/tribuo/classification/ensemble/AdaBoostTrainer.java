@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.tribuo.util.Util;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.SplittableRandom;
@@ -136,12 +137,24 @@ public class AdaBoostTrainer implements Trainer<Label> {
      * @return A {@link WeightedEnsembleModel}.
      */
     @Override
-    public Model<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
+    public WeightedEnsembleModel<Label> train(Dataset<Label> examples) {
+        return train(examples, Collections.emptyMap(), INCREMENT_INVOCATION_COUNT);
+    }
+
+    /**
+     * If the trainer implements {@link WeightedExamples} then do boosting by weighting,
+     * otherwise do boosting by sampling.
+     * @param examples the data set containing the examples.
+     * @param runProvenance Provenance information specific to this run.
+     * @return A {@link WeightedEnsembleModel}.
+     */
+    @Override
+    public WeightedEnsembleModel<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
         return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
     }
 
     @Override
-    public Model<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance, int invocationCount) {
+    public WeightedEnsembleModel<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance, int invocationCount) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }

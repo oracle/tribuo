@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.tribuo.test.Helpers.mkExample;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -34,13 +40,15 @@ import org.tribuo.dataset.DatasetView;
 import org.tribuo.dataset.MinimumCardinalityDataset;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
+import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
 
 /**
- **/
+ *
+ */
 public class DatasetTest {
 
     @BeforeAll
@@ -229,5 +237,76 @@ public class DatasetTest {
         }
 
         Helpers.testDatasetSerialization(dataset);
+    }
+
+    private MutableDataset<MockOutput> makeDataset() {
+        MockOutputFactory mockFactory = new MockOutputFactory();
+        MockDataSourceProvenance mockProvenance = new MockDataSourceProvenance();
+        MockOutput mockOutput = new MockOutput("test");
+        MutableDataset<MockOutput> dataset = new MutableDataset<>(mockProvenance, mockFactory);
+
+        ArrayExample<MockOutput> first = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{1,1,1});
+        ArrayExample<MockOutput> second = new ArrayExample<>(mockOutput,new String[]{"a","b","c","d"},new double[]{1,1,1,1});
+        ArrayExample<MockOutput> third = new ArrayExample<>(mockOutput,new String[]{"a","b","c"},new double[]{3,3,3});
+        ArrayExample<MockOutput> fourth = new ArrayExample<>(mockOutput,new String[]{"b","c"},new double[]{1,1});
+
+        dataset.add(first);
+        dataset.add(second);
+        dataset.add(third);
+        dataset.add(fourth);
+
+        return dataset;
+    }
+
+    @Test
+    public void test431Protobufs() throws IOException, URISyntaxException {
+        MutableDataset<MockOutput> mutable = makeDataset();
+        ImmutableDataset<MockOutput> immutable = ImmutableDataset.copyDataset(mutable);
+        DatasetView<MockOutput> view = DatasetView.createView(mutable, (Example<MockOutput> e) -> e.lookup("a") != null, "contains-a");
+        MinimumCardinalityDataset<MockOutput> minimum = new MinimumCardinalityDataset<>(mutable, 4);
+
+        Path mutablePath = Paths.get(DatasetTest.class.getResource("mutable-dataset-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(mutablePath)) {
+            DatasetProto proto = DatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertTrue(Helpers.datasetEquals(mutable, dataset));
+        }
+
+        Path immutablePath = Paths.get(DatasetTest.class.getResource("immutable-dataset-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(immutablePath)) {
+            DatasetProto proto = DatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertTrue(Helpers.datasetEquals(immutable, dataset));
+        }
+
+        Path viewPath = Paths.get(DatasetTest.class.getResource("dataset-view-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(viewPath)) {
+            DatasetProto proto = DatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertTrue(Helpers.datasetEquals(view, dataset));
+        }
+
+        Path minimumPath = Paths.get(DatasetTest.class.getResource("minimum-cardinality-dataset-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(minimumPath)) {
+            DatasetProto proto = DatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertTrue(Helpers.datasetEquals(minimum, dataset));
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        MutableDataset<MockOutput> mutable = makeDataset();
+        ImmutableDataset<MockOutput> immutable = ImmutableDataset.copyDataset(mutable);
+        DatasetView<MockOutput> view = DatasetView.createView(mutable, (Example<MockOutput> e) -> e.lookup("a") != null, "contains-a");
+        MinimumCardinalityDataset<MockOutput> minimum = new MinimumCardinalityDataset<>(mutable, 4);
+
+        Helpers.writeProtobuf(mutable, Paths.get("src","test","resources","org","tribuo","mutable-dataset-431.tribuo"));
+        Helpers.writeProtobuf(immutable, Paths.get("src","test","resources","org","tribuo","immutable-dataset-431.tribuo"));
+        Helpers.writeProtobuf(view, Paths.get("src","test","resources","org","tribuo","dataset-view-431.tribuo"));
+        Helpers.writeProtobuf(minimum, Paths.get("src","test","resources","org","tribuo","minimum-cardinality-dataset-431.tribuo"));
     }
 }

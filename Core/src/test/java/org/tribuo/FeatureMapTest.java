@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,18 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.hash.HashCodeHasher;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.hash.Hasher;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.PredictionProto;
+import org.tribuo.test.Helpers;
+import org.tribuo.test.MockOutput;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.SplittableRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -111,4 +121,31 @@ public class FeatureMapTest {
         assertEquals(hfm, deserHfm);
     }
 
+    @Test
+    public void test431Protobufs() throws IOException, URISyntaxException {
+        FeatureMap fm = buildMap();
+        ImmutableFeatureMap ifm = new ImmutableFeatureMap(fm);
+
+        Path fmPath = Paths.get(ExampleTest.class.getResource("feature-map-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(fmPath)) {
+            FeatureDomainProto proto = FeatureDomainProto.parseFrom(fis);
+            FeatureMap newFM = FeatureMap.deserialize(proto);
+            assertEquals(fm, newFM);
+        }
+
+        Path ifmPath = Paths.get(ExampleTest.class.getResource("immutable-feature-map-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(ifmPath)) {
+            FeatureDomainProto proto = FeatureDomainProto.parseFrom(fis);
+            FeatureMap newFM = FeatureMap.deserialize(proto);
+            assertEquals(ifm, newFM);
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        FeatureMap fm = buildMap();
+        ImmutableFeatureMap ifm = new ImmutableFeatureMap(fm);
+
+        Helpers.writeProtobuf(fm, Paths.get("src","test","resources","org","tribuo","feature-map-431.tribuo"));
+        Helpers.writeProtobuf(ifm, Paths.get("src","test","resources","org","tribuo","immutable-feature-map-431.tribuo"));
+    }
 }
