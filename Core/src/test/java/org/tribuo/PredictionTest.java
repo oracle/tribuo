@@ -46,8 +46,8 @@ public class PredictionTest {
         ArrayExample<MockOutput> example = new ArrayExample<>(MockOutputFactory.UNKNOWN_TEST_OUTPUT, new String[]{"a", "b", "c"}, new double[]{1,2,3,});
         Prediction<MockOutput> prediction = new Prediction<>(output, scores, 3, example, false);
 
-        Path realPath = Paths.get(PredictionTest.class.getResource("prediction-431.tribuo").toURI());
-        try (InputStream fis = Files.newInputStream(realPath)) {
+        Path predictionPath = Paths.get(PredictionTest.class.getResource("prediction-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(predictionPath)) {
             PredictionProto proto = PredictionProto.parseFrom(fis);
             Prediction<MockOutput> newPred = ProtoUtil.deserialize(proto);
             assertEquals(prediction, newPred);
