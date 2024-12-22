@@ -134,7 +134,6 @@ public class SelectedFeatureDatasetTest {
         }
     }
 
-    @Test
     public void generateProtobuf() throws IOException {
         Dataset<MockOutput> data = createDataset();
         MockFeatureSelector f = new MockFeatureSelector(Arrays.asList("A","B","E"));
