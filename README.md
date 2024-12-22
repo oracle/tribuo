@@ -177,7 +177,7 @@ Currently we have interfaces to:
 * [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) (v2.44).
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.25).
 * [ONNX Runtime](https://onnxruntime.ai) - via the Java API contributed by our group (v1.12.1).
-* [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v0.4.2 (based on TensorFlow v2.7.4). This allows the training and deployment of TensorFlow models entirely in Java.
+* [TensorFlow](https://tensorflow.org) - Using [TensorFlow Java](https://github.com/tensorflow/java) v1.0.0 (based on TensorFlow v2.16.2). This allows the training and deployment of TensorFlow models entirely in Java.
 * [XGBoost](https://xgboost.ai) - via the built in XGBoost4J API (v1.6.2).
 
 ## Binaries
@@ -191,13 +191,13 @@ Maven:
 <dependency>
     <groupId>org.tribuo</groupId>
     <artifactId>tribuo-all</artifactId>
-    <version>4.3.1</version>
+    <version>4.3.2</version>
     <type>pom</type>
 </dependency>
 ```
 or from Gradle:
 ```groovy
-implementation ("org.tribuo:tribuo-all:4.3.1@pom") {
+implementation ("org.tribuo:tribuo-all:4.3.2@pom") {
     transitive = true // for build.gradle (i.e., Groovy)
     // isTransitive = true // for build.gradle.kts (i.e., Kotlin)
 }
@@ -214,11 +214,11 @@ respective published binaries, and Tribuo has no control over which binaries
 are supplied. If you need support for a specific platform, reach out to the
 maintainers of those projects. As of the 4.1 release these native packages all
 provide x86\_64 binaries for Windows, macOS and Linux. It is also possible to
-compile each package for macOS ARM64 (i.e., Apple Silicon), though there are no
-binaries available on Maven Central for that platform for TensorFlow or
-XGBoost. As of the 4.3 release Tribuo now depends on a version of ONNX Runtime
-which includes support for macOS ARM64 and Linux aarch64 platforms.  When
-developing on an ARM platform you can select the `arm` profile in Tribuo's
+compile each package for macOS ARM64 (i.e., Apple Silicon), though we have not 
+updated XGBoost to a version with macOS ARM64 support. 
+As of the 4.3.2 release Tribuo now depends on versions of ONNX Runtime
+and TensorFlow which include support for macOS ARM64 and Linux aarch64 platforms.
+When developing on an ARM platform you can select the `arm` profile in Tribuo's
 `pom.xml` to disable the native library tests.
 
 Individual jars are published for each Tribuo module. It is preferable to
@@ -267,6 +267,7 @@ Tribuo is licensed under the [Apache 2.0 License](./LICENSE.txt).
 
 ## Release Notes:
 
+- [v4.3.2](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-3-2-release-notes.md) - Small bug fixes, notably to HDBSCAN, DatasetView, CART trees, matrix factorizations, and protobuf serialization, bumps dependencies to more secure versions.
 - [v4.3.1](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-3-1-release-notes.md) - Small bug fixes, notably to CART trees and Example.densify, bumps dependencies to more secure versions.
 - [v4.3.0](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-3-release-notes.md) - Model card support, feature selection for classification, protobuf serialization format, kd-tree for distance computations, speed improvements for sparse linear models. Version bumps for most dependencies, and various other small fixes and improvements.
 - [v4.2.2](https://github.com/oracle/tribuo/blob/main/docs/release-notes/tribuo-v4-2-2-release-notes.md) - Small bug fixes, bump TF-Java to 0.4.2, jackson to 2.13.4, protobuf-java to 3.19.6, OpenCSV to 5.7.1.
