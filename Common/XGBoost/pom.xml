@@ -74,6 +74,10 @@
                     <artifactId>scala-java8-compat_2.12</artifactId>
                 </exclusion>
                 <exclusion>
+                    <groupId>org.scala-lang.modules</groupId>
+                    <artifactId>scala-collection-compat_2.12</artifactId>
+                </exclusion>
+                <exclusion>
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-compiler</artifactId>
                 </exclusion>

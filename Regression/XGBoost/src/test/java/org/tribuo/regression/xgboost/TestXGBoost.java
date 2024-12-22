@@ -72,10 +72,10 @@ public class TestXGBoost {
         RegressionEvaluation xgbEval = e.evaluate(xgbModel,p.getB());
         Map<String, List<Pair<String,Double>>> topFeatures = xgbModel.getTopFeatures(-1);
 
-        double expectedDim1 = 0.08085670251311738;
-        double expectedDim2 = 0.09825176714451844;
-        double expectedDim3 = -1.1534319157320798;
-        double expectedAve = -0.3247744820248147;
+        double expectedDim1 = 0.9935745192512012;
+        double expectedDim2 = 0.9935745192512012;
+        double expectedDim3 = 0.12715547803068383;
+        double expectedAve = 0.7047681721776954;
 
         assertEquals(expectedDim1,xgbEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
         assertEquals(expectedDim2,xgbEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);

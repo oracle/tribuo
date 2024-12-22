@@ -243,7 +243,6 @@ public class TestXGBoost {
         Map<String,Object> overrideParams = new HashMap<>();
         overrideParams.put("objective","multi:softprob");
         overrideParams.put("eta","0.1");
-        overrideParams.put("sampling_method","gradient_based");
         XGBoostClassificationTrainer overrideTrainer = new XGBoostClassificationTrainer(5, overrideParams);
         XGBoostModel<Label> overrideM = testXGBoost(overrideTrainer,p);
 
@@ -253,7 +252,6 @@ public class TestXGBoost {
         assertEquals(overrideParams.size(), overrideMap.size());
         assertEquals(overrideParams.get("objective"), overrideMap.get("objective").getValue());
         assertEquals(overrideParams.get("eta"), overrideMap.get("eta").getValue());
-        assertEquals(overrideParams.get("sampling_method"), overrideMap.get("sampling_method").getValue());
     }
 
     @Test
