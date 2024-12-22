@@ -130,6 +130,7 @@ public class SelectedFeatureDatasetTest {
             DatasetProto proto = DatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             SelectedFeatureDataset<MockOutput> newSFD = (SelectedFeatureDataset<MockOutput>) Dataset.deserialize(proto);
+            assertEquals("4.3.1", newSFD.getProvenance().getTribuoVersion());
             assertTrue(Helpers.datasetEquals(sfd, newSFD));
         }
     }
