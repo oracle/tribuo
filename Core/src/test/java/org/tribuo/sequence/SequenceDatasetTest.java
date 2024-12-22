@@ -344,7 +344,7 @@ public class SequenceDatasetTest {
         ImmutableSequenceDataset<MockOutput> immutable = ImmutableSequenceDataset.copyDataset(mutable);
         MinimumCardinalitySequenceDataset<MockOutput> minimum = new MinimumCardinalitySequenceDataset<>(mutable, 2);
 
-        Path examplePath = Paths.get(DatasetTest.class.getResource("sequence-example-431.tribuo").toURI());
+        Path examplePath = Paths.get(SequenceDatasetTest.class.getResource("sequence-example-431.tribuo").toURI());
         try (InputStream fis = Files.newInputStream(examplePath)) {
             SequenceExampleProto proto = SequenceExampleProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
@@ -352,11 +352,12 @@ public class SequenceDatasetTest {
             assertEquals(example,deserializedExample);
         }
 
-        Path mutablePath = Paths.get(DatasetTest.class.getResource("mutable-sequence-dataset-431.tribuo").toURI());
+        Path mutablePath = Paths.get(SequenceDatasetTest.class.getResource("mutable-sequence-dataset-431.tribuo").toURI());
         try (InputStream fis = Files.newInputStream(mutablePath)) {
             SequenceDatasetProto proto = SequenceDatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             SequenceDataset<MockOutput> dataset = (SequenceDataset<MockOutput>) SequenceDataset.deserialize(proto);
+            assertEquals("4.3.1", dataset.getProvenance().getTribuoVersion());
             assertTrue(Helpers.sequenceDatasetEquals(mutable, dataset));
         }
 

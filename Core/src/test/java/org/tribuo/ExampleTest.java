@@ -469,6 +469,26 @@ public class ExampleTest {
     }
 
     @Test
+    public void indexedExampleTest() {
+        MockOutput outputA = new MockOutput("a");
+        MockOutput outputB = new MockOutput("b");
+        HashMap<String,Object> metaMap = new HashMap<>();
+        metaMap.put("metadata", "stuff");
+        ArrayExample<MockOutput> array = new ArrayExample<>(outputA, new String[]{"foo", "bar", "baz", "quux"}, new double[]{1,10,-1,0.1}, metaMap);
+        MutableFeatureMap fmap = new MutableFeatureMap();
+        for (Feature f : array) {
+            fmap.add(f.name, f.value);
+        }
+        ImmutableFeatureMap ifmap = new ImmutableFeatureMap(fmap);
+        MockOutputInfo omap = new MockOutputInfo();
+        omap.observe(outputA);
+        omap.observe(outputB);
+        omap.observe(outputB);
+        IndexedArrayExample<MockOutput> indexed = new IndexedArrayExample<>(array, ifmap, omap);
+        Helpers.testProtoSerialization(indexed);
+    }
+
+    @Test
     public void load431Protobufs() throws URISyntaxException, IOException {
         // Comparison objects
         MockOutput outputA = new MockOutput("a");

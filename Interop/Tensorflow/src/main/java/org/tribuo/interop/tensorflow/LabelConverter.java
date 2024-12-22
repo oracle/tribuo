@@ -89,6 +89,16 @@ public class LabelConverter implements OutputConverter<Label> {
         return ProtoUtil.serialize(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof LabelConverter;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+
     /**
      * Returns a cross-entropy loss.
      * @return The cross-entropy loss.

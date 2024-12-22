@@ -270,6 +270,7 @@ public class DatasetTest {
             DatasetProto proto = DatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertEquals("4.3.1", dataset.getProvenance().getTribuoVersion());
             assertTrue(Helpers.datasetEquals(mutable, dataset));
         }
 
@@ -278,6 +279,7 @@ public class DatasetTest {
             DatasetProto proto = DatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertEquals("4.3.1", dataset.getProvenance().getTribuoVersion());
             assertTrue(Helpers.datasetEquals(immutable, dataset));
         }
 
@@ -286,6 +288,7 @@ public class DatasetTest {
             DatasetProto proto = DatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertEquals("4.3.1", dataset.getProvenance().getTribuoVersion());
             assertTrue(Helpers.datasetEquals(view, dataset));
         }
 
@@ -294,6 +297,7 @@ public class DatasetTest {
             DatasetProto proto = DatasetProto.parseFrom(fis);
             @SuppressWarnings("unchecked")
             Dataset<MockOutput> dataset = (Dataset<MockOutput>) Dataset.deserialize(proto);
+            assertEquals("4.3.1", dataset.getProvenance().getTribuoVersion());
             assertTrue(Helpers.datasetEquals(minimum, dataset));
         }
     }

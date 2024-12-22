@@ -44,6 +44,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SelectedFeatureDatasetTest {
 
@@ -120,17 +121,20 @@ public class SelectedFeatureDatasetTest {
         try (InputStream fis = Files.newInputStream(sfsPath)) {
             FeatureSetProto proto = FeatureSetProto.parseFrom(fis);
             SelectedFeatureSet newSFS = ProtoUtil.deserialize(proto);
+            assertEquals("4.3.1", newSFS.getProvenance().getTribuoVersion());
             assertEquals(sfs, newSFS);
         }
 
         Path sfdPath = Paths.get(SelectedFeatureDatasetTest.class.getResource("selected-feature-dataset-431.tribuo").toURI());
         try (InputStream fis = Files.newInputStream(sfdPath)) {
             DatasetProto proto = DatasetProto.parseFrom(fis);
-            SelectedFeatureDataset<?> newSFD = (SelectedFeatureDataset<?>) Dataset.deserialize(proto);
-            assertEquals(sfd, newSFD);
+            @SuppressWarnings("unchecked")
+            SelectedFeatureDataset<MockOutput> newSFD = (SelectedFeatureDataset<MockOutput>) Dataset.deserialize(proto);
+            assertTrue(Helpers.datasetEquals(sfd, newSFD));
         }
     }
 
+    @Test
     public void generateProtobuf() throws IOException {
         Dataset<MockOutput> data = createDataset();
         MockFeatureSelector f = new MockFeatureSelector(Arrays.asList("A","B","E"));

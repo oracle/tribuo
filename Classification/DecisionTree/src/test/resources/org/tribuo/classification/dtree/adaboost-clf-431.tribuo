@@ -1,0 +1,1486 @@
+)org.tribuo.ensemble.WeightedEnsembleModel©Ò
+:type.googleapis.com/tribuo.core.WeightedEnsembleModelProtoéÑ
+Úƒ
+boosted-ensemble¬û
+™weightedensemblemodel-0)org.tribuo.ensemble.WeightedEnsembleModel"-org.tribuo.provenance.EnsembleModelProvenance*
+instance-values*
+member-provenance*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name
+úimmutabledataset-33org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+adaboosttrainer-22org.tribuo.classification.ensemble.AdaBoostTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+seed *
+tribuo-version!*
+train-invocation-count"*
+is-sequence#*
+innerTrainer$*
+host-short-name%*
+
+class-name&*
+
+numMembers'
+ç(treemodel-3 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values)*
+tribuo-version**
+java-version+*
+trainer,*
+os-arch-*
+
+trained-at.*
+os-name/*
+dataset0*
+
+class-name1
+ç2treemodel-4 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values3*
+tribuo-version4*
+java-version5*
+trainer6*
+os-arch7*
+
+trained-at8*
+os-name9*
+dataset:*
+
+class-name;
+ç<treemodel-5 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values=*
+tribuo-version>*
+java-version?*
+trainer@*
+os-archA*
+
+trained-atB*
+os-nameC*
+datasetD*
+
+class-nameE
+çFtreemodel-6 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-valuesG*
+tribuo-versionH*
+java-versionI*
+trainerJ*
+os-archK*
+
+trained-atL*
+os-nameM*
+datasetN*
+
+class-nameO
+çPtreemodel-7 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-valuesQ*
+tribuo-versionR*
+java-versionS*
+trainerT*
+os-archU*
+
+trained-atV*
+os-nameW*
+datasetX*
+
+class-nameY
+çZtreemodel-8 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values[*
+tribuo-version\*
+java-version]*
+trainer^*
+os-arch_*
+
+trained-at`*
+os-namea*
+datasetb*
+
+class-namec
+çdtreemodel-9 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-valuese*
+tribuo-versionf*
+java-versiong*
+trainerh*
+os-archi*
+
+trained-atj*
+os-namek*
+datasetl*
+
+class-namem
+èntreemodel-10 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-valueso*
+tribuo-versionp*
+java-versionq*
+trainerr*
+os-archs*
+
+trained-att*
+os-nameu*
+datasetv*
+
+class-namew
+êxtreemodel-11 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-valuesy*
+tribuo-versionz*
+java-version{*
+trainer|*
+os-arch}*
+
+trained-at~*
+os-name*
+dataset€*
+
+class-name
+ò‚treemodel-12 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-valuesƒ*
+tribuo-version„*
+java-version…*
+trainer†*
+os-arch‡*
+
+trained-atˆ*
+os-name‰*
+datasetŠ*
+
+class-name‹
+€Œmutabledataset-55org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource‘*
+transformations’*
+is-sequence“*
+is-dense”*
+
+class-name•
+Š–cartclassificationtrainer-169org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth—*
+impurity˜*
+useRandomSplitPoints™*
+minImpurityDecreaseš*	
+seed›*
+tribuo-versionœ*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequenceŸ*
+minChildWeight *
+host-short-name¡*
+
+class-name¢
+Š£cartclassificationtrainer-189org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth¤*
+impurity¥*
+useRandomSplitPoints¦*
+minImpurityDecrease§*	
+seed¨*
+tribuo-version©*
+fractionFeaturesInSplitª*
+train-invocation-count«*
+is-sequence¬*
+minChildWeight­*
+host-short-name®*
+
+class-name¯
+Š°cartclassificationtrainer-209org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth±*
+impurity²*
+useRandomSplitPoints³*
+minImpurityDecrease´*	
+seedµ*
+tribuo-version¶*
+fractionFeaturesInSplit·*
+train-invocation-count¸*
+is-sequence¹*
+minChildWeightº*
+host-short-name»*
+
+class-name¼
+Š½cartclassificationtrainer-229org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth¾*
+impurity¿*
+useRandomSplitPointsÀ*
+minImpurityDecreaseÁ*	
+seedÂ*
+tribuo-versionÃ*
+fractionFeaturesInSplitÄ*
+train-invocation-countÅ*
+is-sequenceÆ*
+minChildWeightÇ*
+host-short-nameÈ*
+
+class-nameÉ
+ŠÊcartclassificationtrainer-249org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepthË*
+impurityÌ*
+useRandomSplitPointsÍ*
+minImpurityDecreaseÎ*	
+seedÏ*
+tribuo-versionĞ*
+fractionFeaturesInSplitÑ*
+train-invocation-countÒ*
+is-sequenceÓ*
+minChildWeightÔ*
+host-short-nameÕ*
+
+class-nameÖ
+Š×cartclassificationtrainer-269org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepthØ*
+impurityÙ*
+useRandomSplitPointsÚ*
+minImpurityDecreaseÛ*	
+seedÜ*
+tribuo-versionİ*
+fractionFeaturesInSplitŞ*
+train-invocation-countß*
+is-sequenceà*
+minChildWeightá*
+host-short-nameâ*
+
+class-nameã
+Šäcartclassificationtrainer-289org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepthå*
+impurityæ*
+useRandomSplitPointsç*
+minImpurityDecreaseè*	
+seedé*
+tribuo-versionê*
+fractionFeaturesInSplitë*
+train-invocation-countì*
+is-sequenceí*
+minChildWeightî*
+host-short-nameï*
+
+class-nameğ
+Šñcartclassificationtrainer-309org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepthò*
+impurityó*
+useRandomSplitPointsô*
+minImpurityDecreaseõ*	
+seedö*
+tribuo-version÷*
+fractionFeaturesInSplitø*
+train-invocation-countù*
+is-sequenceú*
+minChildWeightû*
+host-short-nameü*
+
+class-nameı
+Šşcartclassificationtrainer-329org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepthÿ*
+impurity€*
+useRandomSplitPoints*
+minImpurityDecrease‚*	
+seedƒ*
+tribuo-version„*
+fractionFeaturesInSplit…*
+train-invocation-count†*
+is-sequence‡*
+minChildWeightˆ*
+host-short-name‰*
+
+class-nameŠ
+Š‹cartclassificationtrainer-349org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepthŒ*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*	
+seed*
+tribuo-version‘*
+fractionFeaturesInSplit’*
+train-invocation-count“*
+is-sequence”*
+minChildWeight•*
+host-short-name–*
+
+class-name—
+ ˜datasource-67org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time™*
+descriptionš*
+outputFactory›
+·œginiindex-562org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name*
+
+class-name
+ŒŸlabelfactory-77&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name Kmember-provenancetreemodel-3*%org.tribuo.provenance.ModelProvenance0Kmember-provenancetreemodel-4*%org.tribuo.provenance.ModelProvenance0Kmember-provenancetreemodel-5*%org.tribuo.provenance.ModelProvenance0Kmember-provenancetreemodel-6*%org.tribuo.provenance.ModelProvenance0Kmember-provenancetreemodel-7*%org.tribuo.provenance.ModelProvenance0Kmember-provenancetreemodel-8*%org.tribuo.provenance.ModelProvenance0K	member-provenancetreemodel-9*%org.tribuo.provenance.ModelProvenance0L
+member-provenancetreemodel-10*%org.tribuo.provenance.ModelProvenance0Lmember-provenancetreemodel-11*%org.tribuo.provenance.ModelProvenance0Lmember-provenancetreemodel-12*%org.tribuo.provenance.ModelProvenance0\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceRtraineradaboosttrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.669345-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceKdatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0|
+class-name)org.tribuo.ensemble.WeightedEnsembleModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceL
+datasourcemutabledataset-55*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP seed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\!tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]"train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZ#is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceb$innerTrainercartclassificationtrainer-16*0org.tribuo.provenance.impl.TrainerProvenanceImpl0_%host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…&
+class-name2org.tribuo.classification.ensemble.AdaBoostTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceR'
+numMembers10*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\*tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\+java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance],trainercartclassificationtrainer-16*0org.tribuo.provenance.impl.TrainerProvenanceImpl0W-os-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu.
+trained-at 2024-12-22T14:27:26.665358-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceX/os-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK0datasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0s1
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\4tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\5java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]6trainercartclassificationtrainer-18*0org.tribuo.provenance.impl.TrainerProvenanceImpl0W7os-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu8
+trained-at 2024-12-22T14:27:26.666805-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceX9os-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK:datasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0s;
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\>tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\?java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]@trainercartclassificationtrainer-20*0org.tribuo.provenance.impl.TrainerProvenanceImpl0WAos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceuB
+trained-at 2024-12-22T14:27:26.667102-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXCos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceKDdatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0sE
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\Htribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\Ijava-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]Jtrainercartclassificationtrainer-22*0org.tribuo.provenance.impl.TrainerProvenanceImpl0WKos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceuL
+trained-at 2024-12-22T14:27:26.667417-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXMos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceKNdatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0sO
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\Rtribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\Sjava-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]Ttrainercartclassificationtrainer-24*0org.tribuo.provenance.impl.TrainerProvenanceImpl0WUos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceuV
+trained-at 2024-12-22T14:27:26.667753-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXWos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceKXdatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0sY
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\]java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]^trainercartclassificationtrainer-26*0org.tribuo.provenance.impl.TrainerProvenanceImpl0W_os-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu`
+trained-at 2024-12-22T14:27:26.667984-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXaos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceKbdatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0sc
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\ftribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\gjava-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]htrainercartclassificationtrainer-28*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wios-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceuj
+trained-at 2024-12-22T14:27:26.668212-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXkos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceKldatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0sm
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\ptribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\qjava-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]rtrainercartclassificationtrainer-30*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wsos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceut
+trained-at 2024-12-22T14:27:26.668416-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXuos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceKvdatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0sw
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\ztribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\{java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]|trainercartclassificationtrainer-32*0org.tribuo.provenance.impl.TrainerProvenanceImpl0W}os-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu~
+trained-at 2024-12-22T14:27:26.668820-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceL€datasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0t
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]„tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]…java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance^†trainercartclassificationtrainer-34*0org.tribuo.provenance.impl.TrainerProvenanceImpl0X‡os-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancevˆ
+trained-at 2024-12-22T14:27:26.669024-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceY‰os-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceLŠdatasetimmutabledataset-33*'org.tribuo.provenance.DatasetProvenance0t‹
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceTnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceUnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceSnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance]tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceR‘
+datasourcedatasource-67*0org.tribuo.provenance.SimpleDataSourceProvenance0[“is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceW”is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancem•
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceY—maxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceh˜impurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0d™useRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_šminImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQ›seed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]œtribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancecfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[Ÿis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZ minChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`¡host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance¢
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceY¤maxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceh¥impurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0d¦useRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_§minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQ¨seed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]©tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancecªfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^«train-invocation-count1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[¬is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZ­minChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`®host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance¯
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceY±maxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceh²impurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0d³useRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_´minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQµseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]¶tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancec·fractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^¸train-invocation-count2*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[¹is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZºminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`»host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance¼
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceY¾maxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceh¿impurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0dÀuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_ÁminImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQÂseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]Ãtribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancecÄfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^Åtrain-invocation-count3*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[Æis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZÇminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`Èhost-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceÉ
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceYËmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancehÌimpurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0dÍuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_ÎminImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQÏseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]Ğtribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancecÑfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^Òtrain-invocation-count4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[Óis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZÔminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`Õhost-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceÖ
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceYØmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancehÙimpurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0dÚuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_ÛminImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQÜseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]İtribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancecŞfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^ßtrain-invocation-count5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[àis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZáminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`âhost-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceã
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceYåmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancehæimpurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0dçuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_èminImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQéseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]êtribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancecëfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^ìtrain-invocation-count6*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[íis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZîminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`ïhost-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceğ
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceYòmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancehóimpurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0dôuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_õminImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQöseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]÷tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancecøfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^ùtrain-invocation-count7*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[úis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZûminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`ühost-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceı
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceYÿmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceh€impurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0duseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_‚minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQƒseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]„tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancec…fractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^†train-invocation-count8*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[‡is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZˆminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`‰host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŠ
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceYŒmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancehimpurityginiindex-56*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0duseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenanceQseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance]‘tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancec’fractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance^“train-invocation-count9*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance[”is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceZ•minChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance`–host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance—
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance„™datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceašdescriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanced›outputFactorylabelfactory-77*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0fhost-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance†
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancez 
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance)3=GQ[eoyƒ"
+	
+""’"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1õ: org.tribuo.common.tree.TreeModelĞ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto–:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.665358-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1©org.tribuo.common.tree.LeafNode…
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoÌÿÿÿÿÿÿÿÿÿ      è?"jorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux      Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux      Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar      Ğ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo      Ğ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz      Ğ?0ô: org.tribuo.common.tree.TreeModelÏ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto•:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.666805-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1¨org.tribuo.common.tree.LeafNode„
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoËÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿç?"iorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar    Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+QuuxúÿÿçÿÿÏ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar    Ğ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo    Ğ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz    Ğ?0ô: org.tribuo.common.tree.TreeModelÏ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto•:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.667102-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count2*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1¨org.tribuo.common.tree.LeafNode„
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoËÿÿÿÿÿÿÿÿÿşÿÿÿÿÿç?"iorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo    Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+QuuxøÿÿïÿÿÏ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+BarøÿÿïÿÿÏ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo    Ğ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz    Ğ?0ô: org.tribuo.common.tree.TreeModelÏ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto•:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.667417-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count3*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1¨org.tribuo.common.tree.LeafNode„
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoËÿÿÿÿÿÿÿÿÿîÿÿÿÿÿç?"iorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz$    Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux    Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar    Ğ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Fooˆÿÿ¯ÿÿÏ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz$    Ğ?0õ: org.tribuo.common.tree.TreeModelĞ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto–:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.667753-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1©org.tribuo.common.tree.LeafNode…
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoÌÿÿÿÿÿÿÿÿÿîÿÿÿÿÿç?"jorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quuxôÿÿ  Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quuxôÿÿ  Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Barôÿÿ  Ğ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo  ĞÿÿÏ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz  ĞÿÿÏ?0ô: org.tribuo.common.tree.TreeModelÏ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto•:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.667984-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1¨org.tribuo.common.tree.LeafNode„
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoËÿÿÿÿÿÿÿÿÿôÿÿÿÿÿç?"iorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar      Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux      Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar      Ğ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo   àÿÿÏ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz   àÿÿÏ?0õ: org.tribuo.common.tree.TreeModelĞ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto–:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.668212-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count6*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1©org.tribuo.common.tree.LeafNode…
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoÌÿÿÿÿÿÿÿÿÿ÷ÿÿÿÿÿç?"jorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux-    Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux-    Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar‚ÿÿÇÿÿÏ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo	    Ğ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz	    Ğ?0õ: org.tribuo.common.tree.TreeModelĞ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto–:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.668416-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count7*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1©org.tribuo.common.tree.LeafNode…
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoÌÿÿÿÿÿÿÿÿÿúÿÿÿÿÿç?"jorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quuxôÿÿ  Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quuxôÿÿ  Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+BarH  ĞÿÿÏ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Fooôÿÿ  Ğ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bazôÿÿ  Ğ?0õ: org.tribuo.common.tree.TreeModelĞ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto–:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.668820-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count8*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1©org.tribuo.common.tree.LeafNode…
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoÌÿÿÿÿÿÿÿÿÿîÿÿÿÿÿç?"jorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux  (  Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quux  (  Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+BarèÿÿÏÿÿÏ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+FooøÿÿïÿÿÏ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+BazøÿÿïÿÿÏ?0õ: org.tribuo.common.tree.TreeModelĞ:
+5type.googleapis.com/tribuo.common.tree.TreeModelProto–:
+ç4
+	cart-treeÃ,
+åtreemodel-0 org.tribuo.common.tree.TreeModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+ù
+immutabledataset-1org.tribuo.ImmutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ücartclassificationtrainer-29org.tribuo.classification.dtree.CARTClassificationTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+maxDepth*
+impurity*
+useRandomSplitPoints*
+minImpurityDecrease*
+seed*
+tribuo-version*
+fractionFeaturesInSplit*
+train-invocation-count*
+is-sequence*
+minChildWeight*
+host-short-name*
+
+class-name 
+õ!mutabledataset-3org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features"*
+num-examples#*
+num-outputs$*
+tribuo-version%*
+
+datasource&*
+transformations'*
+is-sequence(*
+is-dense)*
+
+class-name*
+³+giniindex-42org.tribuo.classification.dtree.impurity.GiniIndex"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+host-short-name,*
+
+class-name-
+›.datasource-5org.tribuo.DataSource"0org.tribuo.provenance.SimpleDataSourceProvenance*
+datasource-creation-time/*
+description0*
+outputFactory1
+‰2labelfactory-6&org.tribuo.classification.LabelFactory"=org.tribuo.classification.LabelFactory$LabelFactoryProvenance*
+
+class-name3\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\trainercartclassificationtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T14:27:26.669024-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceJdatasetimmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0s	
+class-name org.tribuo.common.tree.TreeModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-3*'org.tribuo.provenance.DatasetProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceWis-densefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancen
+class-nameorg.tribuo.ImmutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXmaxDepth
+2147483647*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancefimpurityginiindex-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0cuseRandomSplitPointsfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance^minImpurityDecrease0.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenancePseed12345*?com.oracle.labs.mlrg.olcut.provenance.primitives.LongProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancebfractionFeaturesInSplit1.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance]train-invocation-count9*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceYminChildWeight5.0*@com.oracle.labs.mlrg.olcut.provenance.primitives.FloatProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ 
+class-name9org.tribuo.classification.dtree.CARTClassificationTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS"num-features4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT#num-examples12*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR$num-outputs4*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\%tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceP&
+datasourcedatasource-5*0org.tribuo.provenance.SimpleDataSourceProvenance0Z(is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV)is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel*
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancee,host-short-nameLabelImpurity*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance…-
+class-name2org.tribuo.classification.dtree.impurity.GiniIndex*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceƒ/datasource-creation-time 2024-12-22T14:27:26.654322-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenance`0descriptionTrainingData*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceb1outputFactorylabelfactory-6*=org.tribuo.classification.LabelFactory$LabelFactoryProvenance0y3
+class-name&org.tribuo.classification.LabelFactory*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""'"óorg.tribuo.ImmutableFeatureMapĞ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto“
+µorg.tribuo.CategoricalIDInfo”
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoZ
+AR@ffffffö?333333ó?      ğ?X9´Èv¾û?ffffffş?      ø?X9´Èv¾ó?š™™™™™ñ?Za      ø
+·org.tribuo.CategoricalIDInfo–
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto\
+BR@      Ğ?      à?ffffffÖ?ÍÌÌÌÌÌÜ?      @      @š™™™™™á?X9´Èv~@Za      ø
+Éorg.tribuo.CategoricalIDInfo¨
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProton
+CRP      à?      ğ?+‡ÙÎ÷ñ?      @¢´7øÂdà?V-²¿?      ø?ÍÌÌÌÌÌô?š™™™™™@š™™™™™@Z
+a      ø
+Òorg.tribuo.CategoricalIDInfo±
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtow
+DRX      À?      à?      ğ?333333ó?      @      $@      @      (@      @°rh‘í|¿?      .@Za      ø*–,org.tribuo.classification.ImmutableLabelInfof
+Atype.googleapis.com/tribuo.classification.ImmutableLabelInfoProto!
+Quux
+Bar
+Foo
+Baz 24.3.1©org.tribuo.common.tree.LeafNode…
+4type.googleapis.com/tribuo.common.tree.LeafNodeProtoÌÿÿÿÿÿÿÿÿÿ÷ÿÿÿÿÿç?"jorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quuxùÿÿ  Ğ?*r
+Quuxjorg.tribuo.classification.LabelG
+4type.googleapis.com/tribuo.classification.LabelProto
+Quuxùÿÿ  Ğ?*p
+Bariorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Bar
+  ØÿÿÏ?*p
+Fooiorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Foo  øÿÿÏ?*p
+Baziorg.tribuo.classification.LabelF
+4type.googleapis.com/tribuo.classification.LabelProto
+Baz  øÿÿÏ?0(ÿÿÿ3ÿÿÿ3şÿŸ4şÿŸ4ÿÿÿ3şÿŸ4ÿÿÿ3  ´ÿÿÿ3ÿÿÿ3"31org.tribuo.classification.ensemble.VotingCombiner

@@ -19,7 +19,6 @@ package org.tribuo.interop.tensorflow;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.tribuo.data.text.FeatureTransformer;
 import org.tribuo.interop.tensorflow.protos.FeatureConverterProto;
 import org.tribuo.interop.tensorflow.protos.OutputConverterProto;
 import org.tribuo.protos.ProtoUtil;
@@ -75,10 +74,10 @@ public class ConverterTest {
     }
 
     public void generateProtobufs() throws IOException {
-        Helpers.writeProtobuf(new DenseFeatureConverter("foo"), Paths.get("src","test","resources","org","tribuo","interop","onnx","dense-431.tribuo"));
-        Helpers.writeProtobuf(new ImageConverter("foo",64,64,3), Paths.get("src","test","resources","org","tribuo","interop","onnx","image-431.tribuo"));
-        Helpers.writeProtobuf(new LabelConverter(), Paths.get("src","test","resources","org","tribuo","interop","onnx","label-431.tribuo"));
-        Helpers.writeProtobuf(new MultiLabelConverter(), Paths.get("src","test","resources","org","tribuo","interop","onnx","multilabel-431.tribuo"));
-        Helpers.writeProtobuf(new RegressorConverter(), Paths.get("src","test","resources","org","tribuo","interop","onnx","regressor-431.tribuo"));
+        Helpers.writeProtobuf(new DenseFeatureConverter("foo"), Paths.get("src","test","resources","org","tribuo","interop","tensorflow","dense-431.tribuo"));
+        Helpers.writeProtobuf(new ImageConverter("foo",64,64,3), Paths.get("src","test","resources","org","tribuo","interop","tensorflow","image-431.tribuo"));
+        Helpers.writeProtobuf(new LabelConverter(), Paths.get("src","test","resources","org","tribuo","interop","tensorflow","label-431.tribuo"));
+        Helpers.writeProtobuf(new MultiLabelConverter(), Paths.get("src","test","resources","org","tribuo","interop","tensorflow","multilabel-431.tribuo"));
+        Helpers.writeProtobuf(new RegressorConverter(), Paths.get("src","test","resources","org","tribuo","interop","tensorflow","regressor-431.tribuo"));
     }
 }

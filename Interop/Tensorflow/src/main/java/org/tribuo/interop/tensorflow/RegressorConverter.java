@@ -87,6 +87,16 @@ public class RegressorConverter implements OutputConverter<Regressor> {
         return ProtoUtil.serialize(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof RegressorConverter;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+
     /**
      * Returns a mean squared error loss.
      * @return The mse loss.

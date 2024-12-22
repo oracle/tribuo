@@ -1,0 +1,2 @@
+(org.tribuo.interop.onnx.LabelTransformerC
+=type.googleapis.com/tribuo.interop.onnx.LabelTransformerProto

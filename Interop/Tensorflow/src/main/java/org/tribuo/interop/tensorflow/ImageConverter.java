@@ -39,6 +39,7 @@ import org.tribuo.protos.ProtoUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -139,6 +140,18 @@ public class ImageConverter implements FeatureConverter {
     @Override
     public FeatureConverterProto serialize() {
         return ProtoUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        ImageConverter that = (ImageConverter) o;
+        return width == that.width && height == that.height && channels == that.channels && Objects.equals(inputName, that.inputName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(inputName, width, height, channels);
     }
 
     @Override

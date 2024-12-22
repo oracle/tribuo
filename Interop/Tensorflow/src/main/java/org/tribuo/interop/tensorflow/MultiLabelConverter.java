@@ -103,6 +103,16 @@ public class MultiLabelConverter implements OutputConverter<MultiLabel> {
         return ProtoUtil.serialize(this);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof MultiLabelConverter;
+    }
+
+    @Override
+    public int hashCode() {
+        return 31;
+    }
+
     /**
      * Returns a sigmoid cross-entropy loss.
      * @return The sigmoid cross-entropy loss.

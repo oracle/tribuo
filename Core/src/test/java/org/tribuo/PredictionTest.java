@@ -32,7 +32,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PredictionTest {
 
@@ -50,7 +50,7 @@ public class PredictionTest {
         try (InputStream fis = Files.newInputStream(predictionPath)) {
             PredictionProto proto = PredictionProto.parseFrom(fis);
             Prediction<MockOutput> newPred = ProtoUtil.deserialize(proto);
-            assertEquals(prediction, newPred);
+            assertTrue(prediction.distributionEquals(newPred));
         }
     }
 

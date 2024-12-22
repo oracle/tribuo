@@ -267,6 +267,6 @@ public class TestKNN {
                 KNNModel.Backend.STREAMS, NeighboursQueryFactoryType.BRUTE_FORCE);
         Model<Label> model = trainer.train(p.getA());
 
-        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","common","knn","knn-431.tribuo"));
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","common","nearest","knn-431.tribuo"));
     }
 }
