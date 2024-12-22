@@ -5,7 +5,7 @@
     <parent>
         <artifactId>tribuo-interop</artifactId>
         <groupId>org.tribuo</groupId>
-        <version>4.3.1</version>
+        <version>4.3.2-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <name>ModelCard</name>
