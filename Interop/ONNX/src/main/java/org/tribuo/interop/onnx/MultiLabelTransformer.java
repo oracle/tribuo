@@ -34,6 +34,7 @@ import org.tribuo.interop.onnx.protos.MultiLabelTransformerProto;
 import org.tribuo.interop.onnx.protos.OutputTransformerProto;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
@@ -71,9 +72,11 @@ public class MultiLabelTransformer implements OutputTransformer<MultiLabel> {
     public static final double DEFAULT_THRESHOLD = 0.5;
 
     @Config(description = "The threshold for determining if a label is present.")
+    @ProtoSerializableField
     private double threshold = DEFAULT_THRESHOLD;
 
     @Config(description = "Does this transformer produce probabilistic outputs.")
+    @ProtoSerializableField
     private boolean generatesProbabilities = true;
 
     /**

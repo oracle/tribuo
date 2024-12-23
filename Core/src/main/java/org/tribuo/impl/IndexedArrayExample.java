@@ -444,6 +444,7 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
         IndexedArrayExampleProto.Builder exampleBuilder = IndexedArrayExampleProto.newBuilder();
         exampleBuilder.setWeight(weight);
         exampleBuilder.setOutput(output.serialize());
+        exampleBuilder.setOutputIdx(outputID);
         for (int i = 0; i < size; i++) {
             exampleBuilder.addFeatureName(featureNames[i]);
             exampleBuilder.addFeatureIdx(featureIDs[i]);
@@ -457,6 +458,8 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
                 exampleBuilder.putMetadata(e.getKey(), e.getValue().toString());
             }
         }
+        exampleBuilder.setFeatureDomain(featureMap.serialize());
+        exampleBuilder.setOutputDomain(outputMap.serialize());
 
         builder.setSerializedData(Any.pack(exampleBuilder.build()));
 

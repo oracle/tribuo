@@ -1,0 +1,3 @@
+#org.tribuo.hash.MessageDigestHasherE
+8type.googleapis.com/tribuo.core.MessageDigestHasherProto	
+SHA-256

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.protos.ProtoSerializable;
+import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.HasherProto;
 
 import java.io.Serializable;
@@ -69,4 +70,15 @@ public abstract class Hasher implements Configurable, Provenancable<ConfiguredOb
         return salt.length() > MIN_LENGTH;
     }
 
+    /**
+     * Deserializes a {@link HasherProto} into a {@link Hasher} subclass.
+     * @param proto The proto to deserialize.
+     * @param salt The salt to insert into the deserialized Hasher.
+     * @return The deserialized Hasher.
+     */
+    public static Hasher deserialize(HasherProto proto, String salt) {
+        Hasher hsh = ProtoUtil.deserialize(proto);
+        hsh.setSalt(salt);
+        return hsh;
+    }
 }

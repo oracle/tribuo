@@ -47,7 +47,7 @@ public final class MockFeatureSelector implements FeatureSelector<MockOutput> {
     public void postConfig() {
         this.featureValues = new ArrayList<>();
         for (int i = 0; i < featureNames.size(); i++) {
-            featureValues.add(Double.NaN);
+            featureValues.add((double)i);
         }
     }
 

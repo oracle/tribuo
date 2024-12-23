@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
+import org.tribuo.Prediction;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.dtree.impurity.GiniIndex;
@@ -36,14 +37,23 @@ import org.tribuo.ensemble.BaggingTrainer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.tribuo.ensemble.WeightedEnsembleModel;
+import org.tribuo.protos.core.ModelProto;
 import org.tribuo.test.Helpers;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -192,5 +202,39 @@ public class TestClassificationEnsembles {
             new RandomForestTrainer<>(randomTree,new VotingCombiner(),
                     10);
         });
+    }
+
+    @Test
+    public void load431ProtobufModel() throws IOException, URISyntaxException {
+        Path path = Paths.get(TestCART.class.getResource("adaboost-clf-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(path)) {
+            ModelProto proto = ModelProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            WeightedEnsembleModel<Label> deserModel = (WeightedEnsembleModel<Label>) Model.deserialize(proto);
+
+            assertEquals("4.3.1", deserModel.getProvenance().getTribuoVersion());
+
+            Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
+
+            List<Prediction<Label>> deserOutput = deserModel.predict(p.getB());
+
+            AdaBoostTrainer trainer = new AdaBoostTrainer(t,10);
+            WeightedEnsembleModel<Label> model = trainer.train(p.getA());
+            List<Prediction<Label>> output = model.predict(p.getB());
+
+            assertEquals(deserOutput.size(), p.getB().size());
+            assertTrue(Helpers.predictionListDistributionEquals(deserOutput, output));
+        }
+    }
+
+    /**
+     * Test protobuf generation method.
+     * @throws IOException If the write failed.
+     */
+    public void generate431Model() throws IOException {
+        Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest(1.0);
+        AdaBoostTrainer trainer = new AdaBoostTrainer(t,10);
+        WeightedEnsembleModel<Label> model = trainer.train(p.getA());
+        Helpers.writeProtobuf(model, Paths.get("src","test","resources","org","tribuo","classification","dtree","adaboost-clf-431.tribuo"));
     }
 }

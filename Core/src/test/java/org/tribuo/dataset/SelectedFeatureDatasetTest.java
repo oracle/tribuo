@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,27 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.MutableDataset;
 import org.tribuo.SelectedFeatureSet;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoUtil;
+import org.tribuo.protos.core.DatasetProto;
+import org.tribuo.protos.core.FeatureSetProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockFeatureSelector;
 import org.tribuo.test.MockOutput;
 import org.tribuo.test.MockOutputFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SelectedFeatureDatasetTest {
 
@@ -98,6 +108,42 @@ public class SelectedFeatureDatasetTest {
 
         SelectedFeatureDataset<MockOutput> deser = (SelectedFeatureDataset<MockOutput>) Helpers.testDatasetSerialization(selected);
         assertEquals(sfs, deser.getFeatureSet());
+    }
+
+    @Test
+    public void test431Protobufs() throws IOException, URISyntaxException {
+        Dataset<MockOutput> data = createDataset();
+        MockFeatureSelector f = new MockFeatureSelector(Arrays.asList("A","B","E"));
+        SelectedFeatureSet sfs = f.select(data);
+        SelectedFeatureDataset<MockOutput> sfd = new SelectedFeatureDataset<>(data,sfs);
+
+        Path sfsPath = Paths.get(SelectedFeatureDatasetTest.class.getResource("selected-feature-set-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(sfsPath)) {
+            FeatureSetProto proto = FeatureSetProto.parseFrom(fis);
+            SelectedFeatureSet newSFS = ProtoUtil.deserialize(proto);
+            assertEquals("4.3.1", newSFS.getProvenance().getTribuoVersion());
+            assertEquals(sfs.featureNames(), newSFS.featureNames());
+            assertEquals(sfs.featureScores(), newSFS.featureScores());
+            assertEquals(sfs.isOrdered(), newSFS.isOrdered());
+        }
+
+        Path sfdPath = Paths.get(SelectedFeatureDatasetTest.class.getResource("selected-feature-dataset-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(sfdPath)) {
+            DatasetProto proto = DatasetProto.parseFrom(fis);
+            @SuppressWarnings("unchecked")
+            SelectedFeatureDataset<MockOutput> newSFD = (SelectedFeatureDataset<MockOutput>) Dataset.deserialize(proto);
+            assertTrue(Helpers.datasetEquals(sfd, newSFD));
+        }
+    }
+
+    public void generateProtobuf() throws IOException {
+        Dataset<MockOutput> data = createDataset();
+        MockFeatureSelector f = new MockFeatureSelector(Arrays.asList("A","B","E"));
+        SelectedFeatureSet sfs = f.select(data);
+        SelectedFeatureDataset<MockOutput> sfd = new SelectedFeatureDataset<>(data,sfs);
+
+        Helpers.writeProtobuf(sfs, Paths.get("src","test","resources","org","tribuo","dataset","selected-feature-set-431.tribuo"));
+        Helpers.writeProtobuf(sfd, Paths.get("src","test","resources","org","tribuo","dataset","selected-feature-dataset-431.tribuo"));
     }
 
 }

@@ -39,6 +39,7 @@ import org.tribuo.protos.ProtoUtil;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -103,6 +104,18 @@ public class DenseFeatureConverter implements FeatureConverter {
     @Override
     public FeatureConverterProto serialize() {
         return ProtoUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        DenseFeatureConverter that = (DenseFeatureConverter) o;
+        return Objects.equals(inputName, that.inputName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(inputName);
     }
 
     float[] innerTransform(Example<?> example, ImmutableFeatureMap featureIDMap) {

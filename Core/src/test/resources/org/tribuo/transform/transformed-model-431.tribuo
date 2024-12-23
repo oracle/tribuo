@@ -1,0 +1,451 @@
+%org.tribuo.transform.TransformedModelø˜
+5type.googleapis.com/tribuo.core.TransformedModelProto½˜
+Ül
+constant-modelÞd
+ñtransformedmodel-0%org.tribuo.transform.TransformedModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+õ
+mutabledataset-1org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+ªtransformtrainer-2%org.tribuo.transform.TransformTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+includeImplicitZeroFeatures*
+tribuo-version*
+transformations*
+train-invocation-count*
+is-sequence*
+densify*
+innerTrainer*
+host-short-name*
+
+class-name
+õmutabledataset-9org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features *
+num-examples!*
+num-outputs"*
+tribuo-version#*
+
+datasource$*
+transformations%*
+is-sequence&*
+is-dense'*
+
+class-name(
+¬)transformermap-4#org.tribuo.transform.TransformerMap"<org.tribuo.transform.TransformerMap$TransformerMapProvenance*
+transformation-map**
+dataset+*
+
+class-name,
+é-transformationmap-8&org.tribuo.transform.TransformationMap"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+featureTransformationList.*
+globalTransformations4*
+host-short-name5*
+
+class-name6
+Ú7mocktrainer-6org.tribuo.test.MockTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+constantOutput8*
+tribuo-version9*
+train-invocation-count:*
+is-sequence;*
+host-short-name<*
+
+class-name=
+>mockdatasourceprovenance-20(org.tribuo.test.MockDataSourceProvenance"(org.tribuo.test.MockDataSourceProvenance*
+
+source?*
+
+class-name@
+àA'transformationmap$transformationlist-159org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listB*
+host-short-nameD*
+
+class-nameE
+àF'transformationmap$transformationlist-169org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listG*
+host-short-nameI*
+
+class-nameJ
+àK'transformationmap$transformationlist-179org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listL*
+host-short-nameN*
+
+class-nameO
+àP'transformationmap$transformationlist-189org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listQ*
+host-short-nameS*
+
+class-nameT
+àU'transformationmap$transformationlist-199org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listV*
+host-short-nameX*
+
+class-nameY
+ÛZbinningtransformation-26:org.tribuo.transform.transformations.BinningTransformation"Zorg.tribuo.transform.transformations.BinningTransformation$BinningTransformationProvenance*
+numBins[*
+type\*
+
+class-name]
+´^idftransformation-276org.tribuo.transform.transformations.IDFTransformation"Rorg.tribuo.transform.transformations.IDFTransformation$IDFTransformationProvenance*
+
+class-name_
+ú`linearscalingtransformation-28@org.tribuo.transform.transformations.LinearScalingTransformation"forg.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformationProvenance*
+	targetMaxa*
+	targetMinb*
+
+class-namec
+òdmeanstddevtransformation-29=org.tribuo.transform.transformations.MeanStdDevTransformation"`org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformationProvenance*
+targetStdDeve*
+
+targetMeanf*
+
+class-nameg
+Ôhsimpletransform-304org.tribuo.transform.transformations.SimpleTransform"Norg.tribuo.transform.transformations.SimpleTransform$SimpleTransformProvenance*
+opi*
+secondOperandj*
+operandk*
+
+class-namel\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceStrainertransformtrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T13:51:55.355758-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceHdatasetmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0x	
+class-name%org.tribuo.transform.TransformedModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples10*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-9*'org.tribuo.provenance.DatasetProvenance0etransformationstransformermap-4*<org.tribuo.transform.TransformerMap$TransformerMapProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceVis-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancejincludeImplicitZeroFeaturesfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceutransformationstransformationmap-8*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0]train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceVdensifyfalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceSinnerTrainermocktrainer-6*0org.tribuo.provenance.impl.TrainerProvenanceImpl0_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancex
+class-name%org.tribuo.transform.TransformTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceS num-features5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceT!num-examples10*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceR"num-outputs1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\#tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceW$
+datasourcemockdatasourceprovenance-20*(org.tribuo.test.MockDataSourceProvenance0Z&is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV'is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel(
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancex*transformation-maptransformationmap-8*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0H+datasetmutabledataset-9*'org.tribuo.provenance.DatasetProvenance0v,
+class-name#org.tribuo.transform.TransformerMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance|/F0'transformationmap$transformationlist-15*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0|0F1'transformationmap$transformationlist-16*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0|1F2'transformationmap$transformationlist-17*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0|2F3'transformationmap$transformationlist-18*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0|3F4'transformationmap$transformationlist-19*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0i5host-short-nameTransformationMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancey6
+class-name&org.tribuo.transform.TransformationMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceZ8constantOutputUNK*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\9tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]:train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZ;is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_<host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancen=
+class-nameorg.tribuo.test.MockTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceX?source	test-data*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance{@
+class-name(org.tribuo.test.MockDataSourceProvenance*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance€Clistbinningtransformation-26*Zorg.tribuo.transform.transformations.BinningTransformation$BinningTransformationProvenance0jDhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒE
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancetHlistidftransformation-27*Rorg.tribuo.transform.transformations.IDFTransformation$IDFTransformationProvenance0jIhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒJ
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance’Mlistlinearscalingtransformation-28*forg.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformationProvenance0jNhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒO
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance‰Rlistmeanstddevtransformation-29*`org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformationProvenance0jShost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒT
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancenWlistsimpletransform-30*Norg.tribuo.transform.transformations.SimpleTransform$SimpleTransformProvenance0jXhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒY
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceN[numBins3*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancež\typeEQUAL_WIDTH"Forg.tribuo.transform.transformations.BinningTransformation$BinningType*?com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance]
+class-name:org.tribuo.transform.transformations.BinningTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance‰_
+class-name6org.tribuo.transform.transformations.IDFTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceVa	targetMax10.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUb	targetMin1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance“c
+class-name@org.tribuo.transform.transformations.LinearScalingTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXetargetStdDev5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceVf
+targetMean1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceg
+class-name=org.tribuo.transform.transformations.MeanStdDevTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒiopmul">org.tribuo.transform.transformations.SimpleTransform$Operation*?com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenanceYjsecondOperandNaN*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceSkoperand5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance‡l
+class-name4org.tribuo.transform.transformations.SimpleTransform*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance*.
+F0/
+F10
+F21
+F32
+F43""%"4"BC"GH"LM"QR"VW"ùorg.tribuo.ImmutableFeatureMapÖ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto™
+ˆorg.tribuo.CategoricalIDInfoh
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto.
+F0
+R       @      ð?      @Za      ø
+morg.tribuo.CategoricalIDInfoM
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto
+F1a      øh
+¸org.tribuo.CategoricalIDInfo—
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto]
+F2
+R@ffffff@      ð?      $@333333÷?      @ffffff @š™™™™™@ffffffþ?Za      ø
+¸org.tribuo.CategoricalIDInfo—
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto]
+F3
+R@Tf}Ö«ý?’½aapÀ‘ï"âsÀ(~à³ûY&@¾>_P–C@úÇ+×
+ô¿ó*Ðtv@\5sˆì©ÀZa      ø
+¦org.tribuo.CategoricalIDInfo…
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoK
+F4	R0      $@      @      @      I@      9@      >@Za      ø*forg.tribuo.test.MockOutputInfoD
+3type.googleapis.com/tribuo.core.MockOutputInfoProto
+UNK (24.3.1Ücorg.tribuo.test.MockModel¾c
+.type.googleapis.com/tribuo.core.MockModelProto‹c
+ƒc
+constant-model…[
+Þmockmodel-0org.tribuo.test.MockModel"%org.tribuo.provenance.ModelProvenance*
+instance-values*
+tribuo-version*
+java-version*
+trainer*
+os-arch*
+
+trained-at*
+os-name*
+dataset*
+
+class-name	
+õ
+mutabledataset-1org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name
+Úmocktrainer-2org.tribuo.test.MockTrainer"0org.tribuo.provenance.impl.TrainerProvenanceImpl*
+constantOutput*
+tribuo-version*
+train-invocation-count*
+is-sequence*
+host-short-name*
+
+class-name
+õmutabledataset-7org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version *
+
+datasource!*
+transformations"*
+is-sequence#*
+is-dense$*
+
+class-name%
+¬&transformermap-4#org.tribuo.transform.TransformerMap"<org.tribuo.transform.TransformerMap$TransformerMapProvenance*
+transformation-map'*
+dataset(*
+
+class-name)
+*mockdatasourceprovenance-13(org.tribuo.test.MockDataSourceProvenance"(org.tribuo.test.MockDataSourceProvenance*
+
+source+*
+
+class-name,
+é-transformationmap-6&org.tribuo.transform.TransformationMap"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+featureTransformationList.*
+globalTransformations4*
+host-short-name5*
+
+class-name6
+ß7&transformationmap$transformationlist-89org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+list8*
+host-short-name:*
+
+class-name;
+ß<&transformationmap$transformationlist-99org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+list=*
+host-short-name?*
+
+class-name@
+àA'transformationmap$transformationlist-109org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listB*
+host-short-nameD*
+
+class-nameE
+àF'transformationmap$transformationlist-119org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listG*
+host-short-nameI*
+
+class-nameJ
+àK'transformationmap$transformationlist-129org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+listL*
+host-short-nameN*
+
+class-nameO
+ÛPbinningtransformation-14:org.tribuo.transform.transformations.BinningTransformation"Zorg.tribuo.transform.transformations.BinningTransformation$BinningTransformationProvenance*
+numBinsQ*
+typeR*
+
+class-nameS
+´Tidftransformation-156org.tribuo.transform.transformations.IDFTransformation"Rorg.tribuo.transform.transformations.IDFTransformation$IDFTransformationProvenance*
+
+class-nameU
+úVlinearscalingtransformation-16@org.tribuo.transform.transformations.LinearScalingTransformation"forg.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformationProvenance*
+	targetMaxW*
+	targetMinX*
+
+class-nameY
+òZmeanstddevtransformation-17=org.tribuo.transform.transformations.MeanStdDevTransformation"`org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformationProvenance*
+targetStdDev[*
+
+targetMean\*
+
+class-name]
+Ô^simpletransform-184org.tribuo.transform.transformations.SimpleTransform"Norg.tribuo.transform.transformations.SimpleTransform$SimpleTransformProvenance*
+op_*
+secondOperand`*
+operanda*
+
+class-nameb\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\java-version17.0.13*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceNtrainermocktrainer-2*0org.tribuo.provenance.impl.TrainerProvenanceImpl0Wos-archaarch64*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceu
+trained-at 2024-12-22T13:51:55.353817-05:00*Ccom.oracle.labs.mlrg.olcut.provenance.primitives.DateTimeProvenanceXos-nameMac OS X*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceHdatasetmutabledataset-1*'org.tribuo.provenance.DatasetProvenance0l	
+class-nameorg.tribuo.test.MockModel*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples10*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceK
+datasourcemutabledataset-7*'org.tribuo.provenance.DatasetProvenance0etransformationstransformermap-4*<org.tribuo.transform.TransformerMap$TransformerMapProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceVis-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceZconstantOutputUNK*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance]train-invocation-count0*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceZis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenance_host-short-nameTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancen
+class-nameorg.tribuo.test.MockTrainer*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceSnum-features5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples10*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\ tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceW!
+datasourcemockdatasourceprovenance-13*(org.tribuo.test.MockDataSourceProvenance0Z#is-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceV$is-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel%
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancex'transformation-maptransformationmap-6*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0H(datasetmutabledataset-7*'org.tribuo.provenance.DatasetProvenance0v)
+class-name#org.tribuo.transform.TransformerMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceX+source	test-data*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance{,
+class-name(org.tribuo.test.MockDataSourceProvenance*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance{/F0&transformationmap$transformationlist-8*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0{0F1&transformationmap$transformationlist-9*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0|1F2'transformationmap$transformationlist-10*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0|2F3'transformationmap$transformationlist-11*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0|3F4'transformationmap$transformationlist-12*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0i5host-short-nameTransformationMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancey6
+class-name&org.tribuo.transform.TransformationMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance€9listbinningtransformation-14*Zorg.tribuo.transform.transformations.BinningTransformation$BinningTransformationProvenance0j:host-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ;
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancet>listidftransformation-15*Rorg.tribuo.transform.transformations.IDFTransformation$IDFTransformationProvenance0j?host-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ@
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance’Clistlinearscalingtransformation-16*forg.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformationProvenance0jDhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒE
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance‰Hlistmeanstddevtransformation-17*`org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformationProvenance0jIhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒJ
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancenMlistsimpletransform-18*Norg.tribuo.transform.transformations.SimpleTransform$SimpleTransformProvenance0jNhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒO
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceNQnumBins3*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancežRtypeEQUAL_WIDTH"Forg.tribuo.transform.transformations.BinningTransformation$BinningType*?com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenanceS
+class-name:org.tribuo.transform.transformations.BinningTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance‰U
+class-name6org.tribuo.transform.transformations.IDFTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceVW	targetMax10.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceUX	targetMin1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance“Y
+class-name@org.tribuo.transform.transformations.LinearScalingTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceX[targetStdDev5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceV\
+targetMean1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance]
+class-name=org.tribuo.transform.transformations.MeanStdDevTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ_opmul">org.tribuo.transform.transformations.SimpleTransform$Operation*?com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenanceY`secondOperandNaN*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceSaoperand5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance‡b
+class-name4org.tribuo.transform.transformations.SimpleTransform*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance*.
+F0/
+F10
+F21
+F32
+F43""""4"89"=>"BC"GH"LM"ùorg.tribuo.ImmutableFeatureMapÖ
+8type.googleapis.com/tribuo.core.ImmutableFeatureMapProto™
+ˆorg.tribuo.CategoricalIDInfoh
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto.
+F0
+R       @      ð?      @Za      ø
+morg.tribuo.CategoricalIDInfoM
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto
+F1a      øh
+¸org.tribuo.CategoricalIDInfo—
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto]
+F2
+R@ffffff@      ð?      $@333333÷?      @ffffff @š™™™™™@ffffffþ?Za      ø
+¸org.tribuo.CategoricalIDInfo—
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProto]
+F3
+R@Tf}Ö«ý?’½aapÀ‘ï"âsÀ(~à³ûY&@¾>_P–C@úÇ+×
+ô¿ó*Ðtv@\5sˆì©ÀZa      ø
+¦org.tribuo.CategoricalIDInfo…
+6type.googleapis.com/tribuo.core.CategoricalIDInfoProtoK
+F4	R0      $@      @      @      I@      9@      >@Za      ø*forg.tribuo.test.MockOutputInfoD
+3type.googleapis.com/tribuo.core.MockOutputInfoProto
+UNK (24.3.1UNKüG×
+F0Ð
+ÍMorg.tribuo.transform.transformations.BinningTransformation$BinningTransformer|
+7type.googleapis.com/tribuo.core.BinningTransformerProtoA
+EQUAL_WIDTH«ªªªªª
+@«ªªªªª@      $@      ð?       @      @œ
+F1•
+’Eorg.tribuo.transform.transformations.IDFTransformation$IDFTransformerI
+3type.googleapis.com/tribuo.core.IDFTransformerProto	      $@      $@Ã
+F2¼
+¹Yorg.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformer\
+=type.googleapis.com/tribuo.core.LinearScalingTransformerProto      $@      ð?!      $@Ã
+F3¼
+¹Sorg.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformerb
+:type.googleapis.com/tribuo.core.MeanStdDevTransformerProto$	š™™™™™@e+,Ÿ[¿	@      ð?!      @‘
+F4Š
+‡4org.tribuo.transform.transformations.SimpleTransformO
+4type.googleapis.com/tribuo.core.SimpleTransformProto
+mul      @      ø¹
+
+ómutabledataset-0org.tribuo.MutableDataset"'org.tribuo.provenance.DatasetProvenance*
+num-features*
+num-examples*
+num-outputs*
+tribuo-version*
+
+datasource*
+transformations*
+is-sequence*
+is-dense*
+
+class-name	
+Ž
+mockdatasourceprovenance-1(org.tribuo.test.MockDataSourceProvenance"(org.tribuo.test.MockDataSourceProvenance*
+
+source*
+
+class-nameSnum-features5*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceTnum-examples10*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenanceRnum-outputs1*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance\tribuo-version4.3.1*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceV
+datasourcemockdatasourceprovenance-1*(org.tribuo.test.MockDataSourceProvenance0Zis-sequencefalse*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenanceVis-densetrue*Bcom.oracle.labs.mlrg.olcut.provenance.primitives.BooleanProvenancel	
+class-nameorg.tribuo.MutableDataset*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceXsource	test-data*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance{
+class-name(org.tribuo.test.MockDataSourceProvenance*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance""¤6
+çtransformationmap-0&org.tribuo.transform.TransformationMap"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+featureTransformationList*
+globalTransformations*
+host-short-name*
+
+class-name	
+ß
+&transformationmap$transformationlist-19org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+list*
+host-short-name*
+
+class-name
+ß&transformationmap$transformationlist-29org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+list*
+host-short-name*
+
+class-name
+ß&transformationmap$transformationlist-39org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+list*
+host-short-name*
+
+class-name
+ß&transformationmap$transformationlist-49org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+list*
+host-short-name*
+
+class-name
+ß&transformationmap$transformationlist-59org.tribuo.transform.TransformationMap$TransformationList"Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl*
+list*
+host-short-name!*
+
+class-name"
+Ú#binningtransformation-6:org.tribuo.transform.transformations.BinningTransformation"Zorg.tribuo.transform.transformations.BinningTransformation$BinningTransformationProvenance*
+numBins$*
+type%*
+
+class-name&
+³'idftransformation-76org.tribuo.transform.transformations.IDFTransformation"Rorg.tribuo.transform.transformations.IDFTransformation$IDFTransformationProvenance*
+
+class-name(
+ù)linearscalingtransformation-8@org.tribuo.transform.transformations.LinearScalingTransformation"forg.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformationProvenance*
+	targetMax**
+	targetMin+*
+
+class-name,
+ñ-meanstddevtransformation-9=org.tribuo.transform.transformations.MeanStdDevTransformation"`org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformationProvenance*
+targetStdDev.*
+
+targetMean/*
+
+class-name0
+Ô1simpletransform-104org.tribuo.transform.transformations.SimpleTransform"Norg.tribuo.transform.transformations.SimpleTransform$SimpleTransformProvenance*
+op2*
+secondOperand3*
+operand4*
+
+class-name5{F0&transformationmap$transformationlist-1*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0{F1&transformationmap$transformationlist-2*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0{F2&transformationmap$transformationlist-3*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0{F3&transformationmap$transformationlist-4*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0{F4&transformationmap$transformationlist-5*Icom.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl0ihost-short-nameTransformationMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancey	
+class-name&org.tribuo.transform.TransformationMap*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancelistbinningtransformation-6*Zorg.tribuo.transform.transformations.BinningTransformation$BinningTransformationProvenance0jhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceslistidftransformation-7*Rorg.tribuo.transform.transformations.IDFTransformation$IDFTransformationProvenance0jhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance‘listlinearscalingtransformation-8*forg.tribuo.transform.transformations.LinearScalingTransformation$LinearScalingTransformationProvenance0jhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceˆlistmeanstddevtransformation-9*`org.tribuo.transform.transformations.MeanStdDevTransformation$MeanStdDevTransformationProvenance0jhost-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenancen listsimpletransform-10*Norg.tribuo.transform.transformations.SimpleTransform$SimpleTransformProvenance0j!host-short-nameTransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ"
+class-name9org.tribuo.transform.TransformationMap$TransformationList*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceN$numBins3*>com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenancež%typeEQUAL_WIDTH"Forg.tribuo.transform.transformations.BinningTransformation$BinningType*?com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance&
+class-name:org.tribuo.transform.transformations.BinningTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance‰(
+class-name6org.tribuo.transform.transformations.IDFTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceV*	targetMax10.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceU+	targetMin1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance“,
+class-name@org.tribuo.transform.transformations.LinearScalingTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceX.targetStdDev5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceV/
+targetMean1.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance0
+class-name=org.tribuo.transform.transformations.MeanStdDevTransformation*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenanceŒ2opmul">org.tribuo.transform.transformations.SimpleTransform$Operation*?com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenanceY3secondOperandNaN*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenanceS4operand5.0*Acom.oracle.labs.mlrg.olcut.provenance.primitives.DoubleProvenance‡5
+class-name4org.tribuo.transform.transformations.SimpleTransform*Acom.oracle.labs.mlrg.olcut.provenance.primitives.StringProvenance*
+F0
+F1
+F2
+F3
+F4"""""" 

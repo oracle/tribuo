@@ -32,6 +32,7 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.protos.ProtoSerializableClass;
+import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
@@ -63,9 +64,11 @@ public final class OCIMultiLabelConverter implements OCIOutputConverter<MultiLab
     public static final double DEFAULT_THRESHOLD = 0.5;
 
     @Config(mandatory = true, description = "Does this converter produce probabilistic outputs.")
+    @ProtoSerializableField
     private boolean generatesProbabilities;
 
     @Config(description = "Threshold for generating a label.")
+    @ProtoSerializableField
     private double threshold = DEFAULT_THRESHOLD;
 
     /**

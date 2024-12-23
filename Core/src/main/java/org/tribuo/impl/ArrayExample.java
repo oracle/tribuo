@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -144,6 +144,26 @@ public class ArrayExample<T extends Output<T>> extends Example<T> {
      */
     public ArrayExample(T output, String[] names, double[] values) {
         super(output);
+        if (names.length != values.length) {
+            throw new IllegalArgumentException("names.length != values.length, names = " + names.length + ", values = " + values.length);
+        }
+
+        size = names.length;
+        featureNames = Arrays.copyOf(names,names.length);
+        featureValues = Arrays.copyOf(values,values.length);
+
+        sort();
+    }
+
+    /**
+     * Constructs an example from an output, an array of names and an array of values.
+     * @param output The output.
+     * @param names The feature names.
+     * @param values The feature values.
+     * @param metadata The example metadata.
+     */
+    public ArrayExample(T output, String[] names, double[] values, Map<String, Object> metadata) {
+        super(output, metadata);
         if (names.length != values.length) {
             throw new IllegalArgumentException("names.length != values.length, names = " + names.length + ", values = " + values.length);
         }
