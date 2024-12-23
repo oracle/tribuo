@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,17 @@ package org.tribuo.hash;
 
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import org.junit.jupiter.api.Test;
+import org.tribuo.MutableFeatureMap;
+import org.tribuo.protos.core.FeatureDomainProto;
+import org.tribuo.protos.core.HasherProto;
+import org.tribuo.test.Helpers;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -84,5 +95,79 @@ public class HasherTests {
     public void modHashCodeHasherSetSaltThrows() {
         Hasher hasher = new ModHashCodeHasher(VALID_SALT);
         assertThrows(IllegalArgumentException.class, () -> hasher.setSalt(ANOTHER_INVALID_SALT));
+    }
+
+    @Test
+    public void load431Protobufs() throws URISyntaxException, IOException {
+        // Comparison objects
+        Hasher hcHasher = new HashCodeHasher(VALID_SALT);
+        Hasher mdHasher = new MessageDigestHasher("SHA-256", VALID_SALT);
+        Hasher modHasher = new ModHashCodeHasher(VALID_SALT);
+        MutableFeatureMap fmap = new MutableFeatureMap();
+        fmap.add("foo", 1.0);
+        fmap.add("foo", 2.0);
+        fmap.add("foo", 4.0);
+        fmap.add("bar", 10.0);
+        fmap.add("bar", 20.0);
+        fmap.add("bar", 40.0);
+        fmap.add("baz", -1.0);
+        fmap.add("baz", -4.0);
+        fmap.add("quux", 0.1);
+        fmap.add("quux", 0.2);
+        fmap.add("quux", 0.4);
+        HashedFeatureMap hashedFmap = HashedFeatureMap.generateHashedFeatureMap(fmap, hcHasher);
+
+        // Hashers
+        Path hcPath = Paths.get(HasherTests.class.getResource("hc-hasher-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(hcPath)) {
+            HasherProto proto = HasherProto.parseFrom(fis);
+            Hasher hsh = Hasher.deserialize(proto, VALID_SALT);
+            assertEquals(hcHasher, hsh);
+        }
+        Path mdPath = Paths.get(HasherTests.class.getResource("md-hasher-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(mdPath)) {
+            HasherProto proto = HasherProto.parseFrom(fis);
+            Hasher hsh = Hasher.deserialize(proto, VALID_SALT);
+            assertEquals(mdHasher, hsh);
+        }
+        Path modPath = Paths.get(HasherTests.class.getResource("mod-hasher-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(modPath)) {
+            HasherProto proto = HasherProto.parseFrom(fis);
+            Hasher hsh = Hasher.deserialize(proto, VALID_SALT);
+            assertEquals(modHasher, hsh);
+        }
+
+        // HashedFeatureMap
+        Path fmapPath = Paths.get(HasherTests.class.getResource("hashed-feature-map-431.tribuo").toURI());
+        try (InputStream fis = Files.newInputStream(fmapPath)) {
+            FeatureDomainProto proto = FeatureDomainProto.parseFrom(fis);
+            HashedFeatureMap newFmap = (HashedFeatureMap) HashedFeatureMap.deserialize(proto);
+            newFmap.setSalt(VALID_SALT);
+            assertEquals(hashedFmap, newFmap);
+        }
+    }
+
+    public void generateProtobufs() throws IOException {
+        Hasher hcHasher = new HashCodeHasher(VALID_SALT);
+        Hasher mdHasher = new MessageDigestHasher("SHA-256", VALID_SALT);
+        Hasher modHasher = new ModHashCodeHasher(VALID_SALT);
+        Helpers.writeProtobuf(hcHasher, Paths.get("src","test","resources","org","tribuo","hash","hc-hasher-431.tribuo"));
+        Helpers.writeProtobuf(mdHasher, Paths.get("src","test","resources","org","tribuo","hash","md-hasher-431.tribuo"));
+        Helpers.writeProtobuf(modHasher, Paths.get("src","test","resources","org","tribuo","hash","mod-hasher-431.tribuo"));
+
+        MutableFeatureMap fmap = new MutableFeatureMap();
+        fmap.add("foo", 1.0);
+        fmap.add("foo", 2.0);
+        fmap.add("foo", 4.0);
+        fmap.add("bar", 10.0);
+        fmap.add("bar", 20.0);
+        fmap.add("bar", 40.0);
+        fmap.add("baz", -1.0);
+        fmap.add("baz", -4.0);
+        fmap.add("quux", 0.1);
+        fmap.add("quux", 0.2);
+        fmap.add("quux", 0.4);
+        HashedFeatureMap hashedFmap = HashedFeatureMap.generateHashedFeatureMap(fmap, hcHasher);
+        Helpers.writeProtobuf(hashedFmap, Paths.get("src","test","resources","org","tribuo","hash","hashed-feature-map-431.tribuo"));
     }
 }

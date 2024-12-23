@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ public class VersionTest {
         int minorVersion = Tribuo.MINOR_VERSION;
         int pointVersion = Tribuo.POINT_VERSION;
 
-        assertTrue(majorVersion >= 3);
+        assertTrue(majorVersion >= 4);
         assertTrue(minorVersion >= 0);
         assertTrue(pointVersion >= 0);
     }
