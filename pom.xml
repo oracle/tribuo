@@ -42,7 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- MLRG dependencies -->
-        <olcut.version>5.2.1</olcut.version>
+        <olcut.version>5.3.1</olcut.version>
 
         <!-- Oracle dependencies -->
         <oci.sdk.version>3.43.2</oci.sdk.version>
