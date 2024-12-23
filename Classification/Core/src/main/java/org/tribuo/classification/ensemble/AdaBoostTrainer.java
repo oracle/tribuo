@@ -150,7 +150,7 @@ public class AdaBoostTrainer implements Trainer<Label> {
      */
     @Override
     public WeightedEnsembleModel<Label> train(Dataset<Label> examples, Map<String, Provenance> runProvenance) {
-        return(train(examples, runProvenance, INCREMENT_INVOCATION_COUNT));
+        return train(examples, runProvenance, INCREMENT_INVOCATION_COUNT);
     }
 
     @Override
