@@ -67,8 +67,6 @@ import java.util.random.RandomGenerator;
  * </pre>
  */
 public class GaussianMixtureModel extends Model<ClusterID> {
-    private static final long serialVersionUID = 1L;
-
     /**
      * Protobuf serialization version.
      */
