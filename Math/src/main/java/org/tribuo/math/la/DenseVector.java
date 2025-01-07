@@ -363,7 +363,8 @@ public class DenseVector implements SGDVector {
             throw new IllegalArgumentException("Can't add two vectors of different dimension, this = " + elements.length + ", other = " + other.size());
         }
         double[] newValues = toArray();
-        if (other instanceof DenseVector otherDense) {
+        if (other instanceof DenseVector) {
+            DenseVector otherDense = (DenseVector) other;
             for (int i = 0; i < newValues.length; i++) {
                 newValues[i] += otherDense.get(i);
             }
@@ -386,7 +387,8 @@ public class DenseVector implements SGDVector {
             throw new IllegalArgumentException("Can't subtract two vectors of different dimension, this = " + elements.length + ", other = " + other.size());
         }
         double[] newValues = toArray();
-        if (other instanceof DenseVector otherDense) {
+        if (other instanceof DenseVector) {
+            DenseVector otherDense = (DenseVector) other;
             for (int i = 0; i < newValues.length; i++) {
                 newValues[i] -= otherDense.get(i);
             }
