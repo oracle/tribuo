@@ -45,7 +45,7 @@
         <olcut.version>5.3.1</olcut.version>
 
         <!-- Oracle dependencies -->
-        <oci.sdk.version>3.43.2</oci.sdk.version>
+        <oci.sdk.version>3.48.0</oci.sdk.version>
 
         <!-- 3rd party backend dependencies -->
         <liblinear.version>2.44</liblinear.version>

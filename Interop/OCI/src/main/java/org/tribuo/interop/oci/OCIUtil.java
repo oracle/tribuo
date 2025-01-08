@@ -19,6 +19,7 @@ package org.tribuo.interop.oci;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.oracle.bmc.datascience.DataScienceClient;
 import com.oracle.bmc.datascience.model.CreateModelDeploymentDetails;
@@ -33,7 +34,6 @@ import com.oracle.bmc.datascience.requests.CreateModelArtifactRequest;
 import com.oracle.bmc.datascience.requests.CreateModelDeploymentRequest;
 import com.oracle.bmc.datascience.requests.CreateModelRequest;
 import com.oracle.bmc.datascience.responses.CreateModelArtifactResponse;
-import com.oracle.bmc.http.internal.ExplicitlySetFilter;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import org.tribuo.Model;
 import org.tribuo.Output;
@@ -323,7 +323,7 @@ public abstract class OCIUtil {
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         FilterProvider filters =
                 new SimpleFilterProvider()
-                        .addFilter(ExplicitlySetFilter.NAME, ExplicitlySetFilter.INSTANCE);
+                        .addFilter("explicitlySetFilter", SimpleBeanPropertyFilter.serializeAll());
         mapper.setFilterProvider(filters);
 
         return mapper;
