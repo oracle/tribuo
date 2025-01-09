@@ -23,14 +23,14 @@ import org.junit.jupiter.api.Test;
 /**
  *
  */
-public class FloatTensorTest {
+public class FloatTensorBufferTest {
 
     @Test
     public void l2Test() {
         float[] input = new float[]{0,1,2,3,4,5,6,7,8,9,10,11};
         FloatBuffer buf = FloatBuffer.allocate(input.length);
         buf.put(input);
-        FloatTensor tens = new FloatTensor(buf, new long[]{2,2,3});
+        FloatTensorBuffer tens = new FloatTensorBuffer(buf, new long[]{2,2,3});
         tens.l2InPlace();
         float[] firstRow = new float[]{tens.get(0,0,0), tens.get(0,0,1), tens.get(0,0,2)};
         Assertions.assertEquals(1.0, vecLength(firstRow), 1e-5);

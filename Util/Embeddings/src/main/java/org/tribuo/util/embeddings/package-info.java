@@ -15,6 +15,6 @@
  */
 
 /**
- * Code for running embedding models and producing outputs.
+ * Code for running embedding models using ONNX Runtime and producing outputs.
  */
 package org.tribuo.util.embeddings;

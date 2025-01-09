@@ -28,9 +28,11 @@ import java.util.Arrays;
  * Contains a buffer and a shape. Most of the mutation methods live on the subclasses
  * to allow them to use primitive types. This class is mutable and exposes the buffer for
  * mutation. Remember to rewind it whenever you operate on the buffer using the implicit position methods.
+ * <p>
+ * Note it does not implement {@code org.tribuo.la.Tensor}, though it may do in some future version.
  * @param <B> The buffer type.
  */
-public sealed abstract class Tensor<B extends Buffer> permits FloatTensor, LongTensor {
+public sealed abstract class TensorBuffer<B extends Buffer> permits FloatTensorBuffer, LongTensorBuffer {
 
     /**
      * The buffer holding the values.
@@ -51,11 +53,11 @@ public sealed abstract class Tensor<B extends Buffer> permits FloatTensor, LongT
     protected final int numElements;
 
     /**
-     * Creates a Tensor from the supplied buffer and shape.
+     * Creates a TensorBuffer from the supplied buffer and shape.
      * @param buffer The buffer containing the data.
      * @param shape The shape.
      */
-    public Tensor(B buffer, long[] shape) {
+    public TensorBuffer(B buffer, long[] shape) {
         this.buffer = buffer;
         this.shape = shape;
         this.strides = new long[shape.length];
@@ -89,7 +91,7 @@ public sealed abstract class Tensor<B extends Buffer> permits FloatTensor, LongT
      * Deep copy of this tensor.
      * @return A copy of the tensor.
      */
-    public abstract Tensor<B> copy();
+    public abstract TensorBuffer<B> copy();
 
     /**
      * Wraps this tensor into an {@code OnnxTensor} for passing into ORT.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.util.embeddings.BERTTokenizerConfig;
 import org.tribuo.util.embeddings.InputProcessor;
-import org.tribuo.util.embeddings.LongTensor;
+import org.tribuo.util.embeddings.LongTensorBuffer;
 import org.tribuo.util.embeddings.TokenizerConfig;
 import org.tribuo.util.tokens.Tokenizer;
 
@@ -43,7 +43,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 /**
- *
+ * An input processor which produces BERT style inputs, with input_ids, attention_mask and token_type_ids.
  */
 public class BERTInputProcessor implements InputProcessor {
     private static final Logger logger = Logger.getLogger(BERTInputProcessor.class.getName());
@@ -102,26 +102,59 @@ public class BERTInputProcessor implements InputProcessor {
      */
     public static final long TOKEN_TYPE_VALUE = 0;
 
+    /**
+     * Path to the tokenizer config.
+     */
     @Config(mandatory=true,description="Path to the tokenizer config")
     protected Path tokenizerPath;
+    /**
+     * Maximum length of a token sequence.
+     */
     @Config(mandatory=true,description="Maximum length of a token sequence")
     protected int maxLength;
-    @Config(description="Tokenizer config class")
+    /**
+     * Fully qualified tokenizer config class name.
+     */
+    @Config(description="Fully qualified tokenizer config class name")
     protected String configClass = BERTTokenizerConfig.class.getName();
+    /**
+     * Token id input name, defaults to {@link #INPUT_IDS}.
+     */
     @Config(description="Token id input name")
     protected String inputIdsName = INPUT_IDS;
+    /**
+     * Is the attention mask input required?
+     */
     @Config(description = "Is the attention_mask input required?")
     protected boolean useMask = true;
+    /**
+     * Attention mask input name, defaults to {@link #ATTENTION_MASK}.
+     */
     @Config(description="Attention mask input name")
     protected String maskName = ATTENTION_MASK;
+    /**
+     * Value of the attention mask for tokens which should be attended to.
+     */
     @Config(description = "Attention mask value")
     protected long maskValue = MASK_VALUE;
+    /**
+     * Value of the attention mask for tokens which should not be attended to.
+     */
     @Config(description = "Negative attention maks value")
     protected long negativeMaskValue = NEGATIVE_MASK_VALUE;
+    /**
+     * Is the token type input required?
+     */
     @Config(description = "Is the token_type input required?")
     protected boolean useTokenType = true;
+    /**
+     * Name of the token type input, defaults to {@link #TOKEN_TYPE_IDS}.
+     */
     @Config(description="Token type input name")
     protected String tokenTypeName = TOKEN_TYPE_IDS;
+    /**
+     * Value of the token type ids for the first type.
+     */
     @Config(description = "Token type value")
     protected long tokenTypeValue = TOKEN_TYPE_VALUE;
 
@@ -139,8 +172,17 @@ public class BERTInputProcessor implements InputProcessor {
     // Tokenizer
     protected Tokenizer tokenizer;
 
+    /**
+     * For OLCUT.
+     */
     protected BERTInputProcessor() {}
 
+    /**
+     * Constructor which builds an input processor using the supplied tokenizer JSON, max length and tokenizer config class.
+     * @param tokenizerPath The path to the tokenizer JSON.
+     * @param maxLength The maximum number of tokens this input processor should produce.
+     * @param configClass The tokenizer configuration class.
+     */
     public BERTInputProcessor(Path tokenizerPath, int maxLength, Class<? extends TokenizerConfig> configClass) {
         this.tokenizerPath = tokenizerPath;
         this.maxLength = maxLength;
@@ -148,6 +190,19 @@ public class BERTInputProcessor implements InputProcessor {
         postConfig();
     }
 
+    /**
+     * Constructor which builds an input processor using the supplied tokenizer JSON, max length and tokenizer config class.
+     * @param tokenizerPath The path to the tokenizer JSON.
+     * @param maxLength The maximum number of tokens this input processor should produce.
+     * @param configClass The tokenizer configuration class.
+     * @param inputIdsName Name for the input ids input.
+     * @param useMask Should this processor produce an attention mask?
+     * @param maskName The name for the attention mask input.
+     * @param maskValue Value for tokens which should be attended to.
+     * @param useTokenType Should this processor produce a token type ids?
+     * @param tokenTypeName The name for the token type ids input.
+     * @param tokenTypeValue Value for the token type ids first input.
+     */
     public BERTInputProcessor(Path tokenizerPath, int maxLength, Class<? extends TokenizerConfig> configClass,
                               String inputIdsName, boolean useMask, String maskName, long maskValue, boolean useTokenType,
                               String tokenTypeName, long tokenTypeValue) {
@@ -204,7 +259,7 @@ public class BERTInputProcessor implements InputProcessor {
     }
 
     /**
-     * Returns the vocabulary that this BERTFeatureExtractor understands.
+     * Returns the vocabulary that this BERTInputProcessor understands.
      * @return The vocabulary.
      */
     @Override
@@ -214,7 +269,7 @@ public class BERTInputProcessor implements InputProcessor {
 
     @Override
     public long getTokenId(String token) {
-        return tokenIDs.get(token);
+        return tokenIDs.getOrDefault(token,unkTokenId);
     }
 
     @Override
@@ -233,16 +288,16 @@ public class BERTInputProcessor implements InputProcessor {
             OnnxTensor tokenIds = OnnxTensor.createTensor(env,buf,shape);
             inputs.put(inputIdsName, tokenIds);
             if (useMask) {
-                OnnxTensor mask = new LongTensor(shape, maskValue).wrapForORT(env);
+                OnnxTensor mask = new LongTensorBuffer(shape, maskValue).wrapForORT(env);
                 // TODO: we should be setting the rest of this tensor to use the negativeMaskValue rather than accepting the zero default
                 inputs.put(maskName, mask);
             }
             if (useTokenType) {
-                OnnxTensor tokenTypes = new LongTensor(shape, tokenTypeValue).wrapForORT(env);
+                OnnxTensor tokenTypes = new LongTensorBuffer(shape, tokenTypeValue).wrapForORT(env);
                 inputs.put(tokenTypeName, tokenTypes);
             }
             buf.rewind();
-            return new ProcessedInput(inputs, new long[]{tokens.size()+2}, new LongTensor(buf, shape));
+            return new ProcessedInput(inputs, new long[]{tokens.size()+2}, new LongTensorBuffer(buf, shape));
         } else if (!useMask) {
             // If we're not masking, then we can't pad the input without affecting the embedding
             // so it goes bang.
@@ -264,8 +319,8 @@ public class BERTInputProcessor implements InputProcessor {
             long[] shape = new long[] {input.size(), length};
             long[] lengths = new long[input.size()];
             // create and fill the ids.
-            LongTensor tokenIdsBuf = new LongTensor(shape);
-            LongTensor maskBuf = new LongTensor(shape);
+            LongTensorBuffer tokenIdsBuf = new LongTensorBuffer(shape);
+            LongTensorBuffer maskBuf = new LongTensorBuffer(shape);
             int idx = 0;
             for (var list : tokens) {
                 tokenIdsBuf.buffer().put(bosTokenId);
@@ -296,7 +351,7 @@ public class BERTInputProcessor implements InputProcessor {
 
             tokenIdsBuf.buffer().rewind();
             if (useTokenType) {
-                OnnxTensor tokenTypes = new LongTensor(shape, tokenTypeValue).wrapForORT(env);
+                OnnxTensor tokenTypes = new LongTensorBuffer(shape, tokenTypeValue).wrapForORT(env);
                 return new ProcessedInput(Map.of(inputIdsName, tokenIds, maskName, mask, tokenTypeName, tokenTypes), lengths, tokenIdsBuf);
             } else {
                 return new ProcessedInput(Map.of(inputIdsName, tokenIds, maskName, mask), lengths, tokenIdsBuf);

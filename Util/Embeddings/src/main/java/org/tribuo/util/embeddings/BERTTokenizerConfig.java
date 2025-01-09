@@ -42,6 +42,10 @@ public record BERTTokenizerConfig(Map<String, Integer> tokenIDs, String unknownT
                            String separatorToken, String padToken, boolean lowercase, boolean stripAccents, int maxInputCharsPerWord) implements
     TokenizerConfig {
 
+    /**
+     * Instantiates a tokenizer using this configuration.
+     * @return A tokenizer instance.
+     */
     public Tokenizer get() {
         Wordpiece wordpiece = new Wordpiece(tokenIDs().keySet(),unknownToken(),maxInputCharsPerWord());
         return new WordpieceTokenizer(wordpiece,new WordpieceBasicTokenizer(),lowercase(),stripAccents(),

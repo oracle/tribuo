@@ -50,33 +50,54 @@ import java.util.logging.Logger;
  * Runs text through an ONNX model to extract features as tensors
  * <p>
  * Works with the provided {@link InputProcessor} and {@link OutputProcessor} to get data in and out of the model.
- * Model data is returned as a map from model output name to {@link FloatTensor}. For models, or more
+ * Model data is returned as a map from model output name to {@link FloatTensorBuffer}. For models, or more
  * specifically, OutputProcessors that return a single output, the name in the map can be ignored
  * and the value for the only entry in the map can be used.
  */
 public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Provenancable<ConfiguredObjectProvenance> {
     private static final Logger logger = Logger.getLogger(OnnxFeatureExtractor.class.getName());
 
+    /**
+     * Path to the model in ONNX format.
+     */
     @Config(mandatory=true,description="Path to the model in ONNX format")
     private Path modelPath;
 
+    /**
+     * The input processor object.
+     */
     @Config(mandatory = true, description = "Input processing including the tokenizer.")
     private InputProcessor inputProcessor;
 
+    /**
+     * The output processor object.
+     */
     @Config(mandatory = true, description = "Output processing.")
     private OutputProcessor outputProcessor;
 
+    /**
+     * Should the computation use CUDA GPUs?
+     */
     @Config(description = "Use CUDA")
     private boolean useCUDA = false;
 
+    /**
+     * Inter-op thread count, can be set to 0 to let ORT decide.
+     */
     @Config(description = "Inter-op thread count, can set to 0 to let ORT decide")
     private int interOpThreads = 1;
 
+    /**
+     * Intra-op thread count, can be set to 0 to let ORT decide.
+     */
     @Config(description = "Intra-op thread count, can set to 0 to let ORT decide")
     private int intraOpThreads = 1;
 
+    /**
+     * Custom op library load path.
+     */
     @Config(description = "Custom op library load path.")
-    private Path customOpLibraryPath;
+    private Path customOpLibraryPath = null;
 
     // ONNX Runtime variables
     private OrtEnvironment env;
@@ -84,7 +105,12 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     private OrtSession.SessionOptions sessionOptions;
     private boolean closed = false;
 
-    public record VerboseProcessResult(Map<String,FloatTensor> modelOutput, LongTensor tokenizationOutput) {};
+    /**
+     * The model output plus the input tokens.
+     * @param modelOutput The model output.
+     * @param tokenizationOutput The tokens.
+     */
+    public record VerboseProcessResult(Map<String, FloatTensorBuffer> modelOutput, LongTensorBuffer tokenizationOutput) {};
 
     /**
      * For OLCUT
@@ -92,23 +118,21 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     private OnnxFeatureExtractor() { }
 
     /**
-     * Constructs a BERTFeatureExtractor.
-     * @param modelPath The path to BERT in onnx format.
+     * Constructs a ONNXFeatureExtractor.
+     * @param modelPath The path to an embedding model in ONNX format.
      * @param inputProcessor The input processor.
      * @param outputProcessor The output processor.
      */
     public OnnxFeatureExtractor(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor) {
-        this.modelPath = modelPath;
-        this.inputProcessor = inputProcessor;
-        this.outputProcessor = outputProcessor;
-        postConfig();
+        this(modelPath, inputProcessor, outputProcessor, null);
     }
 
     /**
-     * Constructs a BERTFeatureExtractor.
-     * @param modelPath The path to BERT in onnx format.
+     * Constructs a ONNXFeatureExtractor.
+     * @param modelPath The path to an embedding model in ONNX format.
      * @param inputProcessor The input processor.
      * @param outputProcessor The output processor.
+     * @param customOpLibraryPath The path to the custom op library required by this ONNX model.
      */
     public OnnxFeatureExtractor(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor, Path customOpLibraryPath) {
         this.modelPath = modelPath;
@@ -119,18 +143,24 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     }
 
     /**
-     * Constructs a BERTFeatureExtractor.
-     * @param modelPath The path to BERT in onnx format.
+     * Constructs a ONNXFeatureExtractor.
+     * @param modelPath The path to an embedding model in ONNX format.
+     * @param inputProcessor The input processor.
+     * @param outputProcessor The output processor.
      * @param useCUDA Set to true to enable CUDA.
+     * @param interOpThreads The number of inter-op CPU threads to use.
+     * @param intraOpThreads The number of intra-op CPU threads to use.
+     * @param customOpLibraryPath The path to the custom op library required by this ONNX model.
      */
     public OnnxFeatureExtractor(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor,
-                                boolean useCUDA, int interOpThreads, int intraOpThreads) {
+                                Path customOpLibraryPath, boolean useCUDA, int interOpThreads, int intraOpThreads) {
         this.modelPath = modelPath;
         this.inputProcessor = inputProcessor;
         this.outputProcessor = outputProcessor;
         this.useCUDA = useCUDA;
         this.interOpThreads = interOpThreads;
         this.intraOpThreads = intraOpThreads;
+        this.customOpLibraryPath = customOpLibraryPath;
         postConfig();
     }
 
@@ -181,12 +211,16 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
         sessionOptions = options;
     }
 
+    /**
+     * Returns the embedding dimension of this model if known.
+     * @return The embedding dimension.
+     */
     public int getEmbeddingDimension() {
         return outputProcessor.getEmbeddingDimension();
     }
 
     /**
-     * Returns the maximum length this BERT will accept.
+     * Returns the maximum length this model will accept.
      * @return The maximum number of tokens (including [CLS] and [SEP], so the maximum is effectively 2 less than this).
      */
     public int getMaxLength() {
@@ -202,7 +236,7 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     }
 
     /**
-     * Returns the vocabulary that this BERTFeatureExtractor understands.
+     * Returns the vocabulary that this ONNXFeatureExtractor understands.
      * @return The vocabulary.
      */
     public Set<String> getVocab() {
@@ -213,6 +247,7 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     public void close() throws OrtException {
         if (!closed) {
             session.close();
+            sessionOptions.close();
             env.close();
             closed = true;
         }
@@ -224,9 +259,9 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * for [CLS] and [SEP] tokens), and then passes the token
      * list to ONNX Runtime.
      * @param data The input text.
-     * @return The BERT features for the supplied data.
+     * @return The embeddings for the supplied data.
      */
-    public Map<String,FloatTensor> process(String data) {
+    public Map<String, FloatTensorBuffer> process(String data) {
         return process(List.of(data));
     }
 
@@ -236,9 +271,9 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * for [CLS] and [SEP] tokens), and then passes the token
      * list to ONNX Runtime.
      * @param data The input text.
-     * @return The BERT features for the supplied data.
+     * @return The embeddings for the supplied data.
      */
-    public Map<String,FloatTensor> process(List<String> data) {
+    public Map<String, FloatTensorBuffer> process(List<String> data) {
         Map<String, ? extends OnnxTensorLike> input = null;
         try {
             var pInput = inputProcessor.process(env, data);
@@ -283,7 +318,7 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
 
     }
 
-    static float[] extractArray(Map<String,FloatTensor> map) {
+    static float[] extractArray(Map<String, FloatTensorBuffer> map) {
         var buf = map.entrySet().stream().findFirst().get().getValue();
         float[] output = new float[buf.buffer.capacity()];
         buf.buffer.get(output);
@@ -291,11 +326,11 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     }
 
     /**
-     * CLI options for running BERT.
+     * CLI options for running an ONNX model.
      */
     public static class OnnxFeatureExtractorOptions implements Options {
         /**
-         * BERTFeatureExtractor instance
+         * ONNXFeatureExtractor instance
          */
         @Option(charName = 'e', longName = "extractor", usage = "OnnxFeatureExtractor instance")
         public OnnxFeatureExtractor extractor;
@@ -312,10 +347,10 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     }
 
     /**
-     * Test harness for running a BERT model and inspecting the output.
+     * Test harness for running an ONNX model and inspecting the output.
      * @param args The CLI arguments.
      * @throws IOException If the files couldn't be read or written to.
-     * @throws OrtException If the BERT model failed to load, or threw an exception during computation.
+     * @throws OrtException If the ONNX model failed to load, or threw an exception during computation.
      */
     public static void main(String[] args) throws IOException, OrtException {
         OnnxFeatureExtractorOptions opts = new OnnxFeatureExtractorOptions();

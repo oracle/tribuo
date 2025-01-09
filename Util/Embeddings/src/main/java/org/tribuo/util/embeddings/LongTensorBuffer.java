@@ -27,14 +27,14 @@ import java.util.Arrays;
 /**
  * A tensor containing primitive ints in a buffer.
  */
-public final class LongTensor extends Tensor<LongBuffer> {
+public final class LongTensorBuffer extends TensorBuffer<LongBuffer> {
 
     /**
      * Creates an int tensor from the supplied buffer and shape.
      * @param buffer The buffer.
      * @param shape The shape.
      */
-    public LongTensor(LongBuffer buffer, long[] shape) {
+    public LongTensorBuffer(LongBuffer buffer, long[] shape) {
         super(buffer, shape);
     }
 
@@ -42,7 +42,7 @@ public final class LongTensor extends Tensor<LongBuffer> {
      * Creates an empty int tensor of the supplied shape backed by a direct byte buffer.
      * @param shape The shape.
      */
-    public LongTensor(long[] shape) {
+    public LongTensorBuffer(long[] shape) {
         super(alloc(shape), shape);
     }
 
@@ -51,7 +51,7 @@ public final class LongTensor extends Tensor<LongBuffer> {
      * @param shape The shape.
      * @param value The value.
      */
-    public LongTensor(long[] shape, long value) {
+    public LongTensorBuffer(long[] shape, long value) {
         super(alloc(shape), shape);
 
         for (int i = 0; i < this.numElements; i++) {
@@ -61,12 +61,12 @@ public final class LongTensor extends Tensor<LongBuffer> {
     }
 
     @Override
-    public LongTensor copy() {
+    public LongTensorBuffer copy() {
         LongBuffer copy = alloc(shape);
         copy.put(buffer);
         copy.rewind();
         buffer.rewind();
-        return new LongTensor(copy, Arrays.copyOf(shape, shape.length));
+        return new LongTensorBuffer(copy, Arrays.copyOf(shape, shape.length));
     }
 
     @Override
@@ -98,7 +98,7 @@ public final class LongTensor extends Tensor<LongBuffer> {
     }
 
     /**
-     * Gets the internal buffer representing this Tensor. Use caution when
+     * Gets the internal buffer representing this TensorBuffer. Use caution when
      * manipulating this buffer as any changes to it will directly modify
      * the internal state of this class.
      *

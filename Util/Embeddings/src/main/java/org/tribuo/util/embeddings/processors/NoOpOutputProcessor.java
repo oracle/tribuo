@@ -23,7 +23,7 @@ import ai.onnxruntime.TensorInfo;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.util.embeddings.FloatTensor;
+import org.tribuo.util.embeddings.FloatTensorBuffer;
 import org.tribuo.util.embeddings.OutputProcessor;
 
 import java.nio.FloatBuffer;
@@ -40,22 +40,33 @@ public final class NoOpOutputProcessor implements OutputProcessor {
 
     public static final String DEFAULT_OUTPUT_NAME = "embedding";
 
+    /**
+     * Size of the embedding dimension.
+     */
     @Config(mandatory = true, description = "Size of the embedding dimension.")
     private int embeddingDimension;
 
+    /**
+     * Output name.
+     */
     @Config(description = "Output name")
     private String outputName = DEFAULT_OUTPUT_NAME;
 
     private NoOpOutputProcessor() {}
 
     /**
-     *
-     * @param embeddingDimension
+     * Constructs a NoOpOutputProcessor with the default name.
+     * @param embeddingDimension The embedding dimension.
      */
     public NoOpOutputProcessor(int embeddingDimension) {
         this(embeddingDimension, DEFAULT_OUTPUT_NAME);
     }
 
+    /**
+     * Constructs a NoOpOutputProcessor with the specified name and output dimension.
+     * @param embeddingDimension The embedding dimension.
+     * @param outputName The output name.
+     */
     public NoOpOutputProcessor(int embeddingDimension, String outputName) {
         this.embeddingDimension = embeddingDimension;
         this.outputName = outputName;
@@ -96,13 +107,13 @@ public final class NoOpOutputProcessor implements OutputProcessor {
     }
 
     @Override
-    public Map<String, FloatTensor> process(Result result, long[] inputLengths) {
-        Map<String,FloatTensor> outputs = new HashMap<>(result.size());
+    public Map<String, FloatTensorBuffer> process(Result result, long[] inputLengths) {
+        Map<String, FloatTensorBuffer> outputs = new HashMap<>(result.size());
         result.forEach(resultEntry -> {
             OnnxTensor tensor = (OnnxTensor) resultEntry.getValue();
             FloatBuffer buffer = tensor.getFloatBuffer();
             if (buffer != null) {
-                outputs.put(resultEntry.getKey(), new FloatTensor(buffer, tensor.getInfo().getShape()));
+                outputs.put(resultEntry.getKey(), new FloatTensorBuffer(buffer, tensor.getInfo().getShape()));
             } else {
                 throw new IllegalStateException("Expected a float tensor, found " + tensor.getInfo().toString());
             }

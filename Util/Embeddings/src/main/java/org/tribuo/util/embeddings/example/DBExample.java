@@ -23,7 +23,7 @@ import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
 import com.oracle.labs.mlrg.olcut.config.Option;
 import com.oracle.labs.mlrg.olcut.config.Options;
 import com.oracle.labs.mlrg.olcut.config.UsageException;
-import org.tribuo.util.embeddings.FloatTensor;
+import org.tribuo.util.embeddings.FloatTensorBuffer;
 import org.tribuo.util.embeddings.processors.NoOpInputProcessor;
 import org.tribuo.util.embeddings.processors.NoOpOutputProcessor;
 import org.tribuo.util.embeddings.OnnxFeatureExtractor;
@@ -75,7 +75,7 @@ public final class DBExample {
         public Path outputFile;
     }
 
-    static float[] extractArray(Map<String, FloatTensor> map) {
+    static float[] extractArray(Map<String, FloatTensorBuffer> map) {
         var buf = map.entrySet().stream().findFirst().get().getValue();
         return buf.getFlatArray();
     }
@@ -100,7 +100,7 @@ public final class DBExample {
             List<String> lines = Files.readAllLines(opts.inputFile, StandardCharsets.UTF_8);
 
             logger.info("Processing " + lines.size() + " lines with model");
-            List<?> results = lines.stream().map(extractor::process).map(OnnxFeatureExtractor::extractArray).toList();
+            List<?> results = lines.stream().map(extractor::process).map(DBExample::extractArray).toList();
 
             logger.info("Saving out json to " + opts.outputFile);
             ObjectMapper mapper = new ObjectMapper();

@@ -23,18 +23,63 @@ import java.util.function.Supplier;
 import org.tribuo.util.tokens.Tokenizer;
 
 /**
- *
+ * An interface for tokenizer configuration objects, typically loaded from JSON.
  */
 public interface TokenizerConfig extends Supplier<Tokenizer> {
+    /**
+     * The token vocab mapping.
+     * @return The token vocab.
+     */
     Map<String, Integer> tokenIDs();
+
+    /**
+     * The unknown token string.
+     * @return The unknown token.
+     */
     String unknownToken();
+
+    /**
+     * The equivalent of the {@code [CLS]} token, may be {@code [BOS]} in some models.
+     * @return The classification token.
+     */
     String classificationToken();
+
+    /**
+     * The equivalent of the {@code [SEP]} token, may be {@code [EOS]} in some models.
+     * @return The separator token.
+     */
     String separatorToken();
+
+    /**
+     * The pad token string.
+     * @return The pad token.
+     */
     String padToken();
+
+    /**
+     * Should this tokenizer lowercase all the inputs before executing the tokenization algorithm?
+     * @return Lowercase inputs.
+     */
     boolean lowercase();
+
+    /**
+     * Should this tokenizer strip off accent markers from characters?
+     * @return Strip accent markers.
+     */
     boolean stripAccents();
+
+    /**
+     * The maximum size of a token in characters.
+     * @return The maximum token length.
+     */
     int maxInputCharsPerWord();
 
+    /**
+     * Loads a tokenizer config instance from the supplied path.
+     * @param configClass The tokenizer configuration class.
+     * @param path The path to the config JSON.
+     * @return The loaded tokenizer config.
+     */
     public static TokenizerConfig loadTokenizer(Class<?> configClass, Path path) {
         try {
             var method = configClass.getDeclaredMethod("loadTokenizer", Path.class);

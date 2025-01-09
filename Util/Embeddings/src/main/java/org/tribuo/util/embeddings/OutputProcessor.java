@@ -24,14 +24,31 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import java.util.Map;
 
 /**
- *
+ * Interface for processing the outputs of a model execution into tensor buffers.
  */
 public interface OutputProcessor extends Configurable, Provenancable<ConfiguredObjectProvenance> {
 
+    /**
+     * Validates that the model and output processor are compatible.
+     * @param outputInfo The output information from the ONNX model.
+     * @return True if the model produces compatible outputs.
+     */
     boolean validate(Map<String, NodeInfo> outputInfo);
 
+    /**
+     * Returns the embedding dimension supported by this output processor.
+     * @return The embedding dimension.
+     */
     int getEmbeddingDimension();
 
-    Map<String,FloatTensor> process(OrtSession.Result result, long[] inputLengths);
+    /**
+     * Processes the session result into a map of tensor buffers suitable for downstream processing.
+     * <p>
+     * Does not close the {@code result} object.
+     * @param result The session output.
+     * @param inputLengths The lengths of each input element.
+     * @return The map of tensor buffers.
+     */
+    Map<String, FloatTensorBuffer> process(OrtSession.Result result, long[] inputLengths);
 
 }

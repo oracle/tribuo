@@ -27,7 +27,7 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.util.embeddings.InputProcessor;
-import org.tribuo.util.embeddings.LongTensor;
+import org.tribuo.util.embeddings.LongTensorBuffer;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +46,9 @@ public final class NoOpInputProcessor implements InputProcessor {
 
     public static final String DEFAULT_INPUT_NAME = "input";
 
+    /**
+     * String input name.
+     */
     @Config(description="String input name")
     private String inputName = DEFAULT_INPUT_NAME;
 
@@ -106,7 +109,7 @@ public final class NoOpInputProcessor implements InputProcessor {
         String[] strArray = input.toArray(new String[0]);
         long[] tokenLengths = new long[strArray.length];
 
-        return new ProcessedInput(Map.of(inputName,OnnxTensor.createTensor(env, strArray)), tokenLengths, new LongTensor(new long[]{1,1}));
+        return new ProcessedInput(Map.of(inputName,OnnxTensor.createTensor(env, strArray)), tokenLengths, new LongTensorBuffer(new long[]{1,1}));
     }
 
     @Override

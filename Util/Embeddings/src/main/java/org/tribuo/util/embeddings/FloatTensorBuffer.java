@@ -29,14 +29,14 @@ import java.util.List;
 /**
  * A tensor containing primitive floats in a buffer.
  */
-public final class FloatTensor extends Tensor<FloatBuffer> {
+public final class FloatTensorBuffer extends TensorBuffer<FloatBuffer> {
 
     /**
      * Creates a float tensor from the supplied buffer and shape.
      * @param buffer The buffer.
      * @param shape The shape.
      */
-    public FloatTensor(FloatBuffer buffer, long[] shape) {
+    public FloatTensorBuffer(FloatBuffer buffer, long[] shape) {
         super(buffer, shape);
     }
 
@@ -44,7 +44,7 @@ public final class FloatTensor extends Tensor<FloatBuffer> {
      * Creates an empty float tensor of the supplied shape backed by a direct byte buffer.
      * @param shape The shape.
      */
-    public FloatTensor(long[] shape) {
+    public FloatTensorBuffer(long[] shape) {
         this(shape, true);
     }
 
@@ -52,37 +52,37 @@ public final class FloatTensor extends Tensor<FloatBuffer> {
      * Creates an empty float tensor of the supplied shape backed by a byte buffer.
      * @param shape The shape.
      */
-    public FloatTensor(long[] shape, boolean direct) {
+    public FloatTensorBuffer(long[] shape, boolean direct) {
         super(alloc(shape, direct), shape);
     }
 
     @Override
-    public FloatTensor copy() {
+    public FloatTensorBuffer copy() {
         FloatBuffer copy = alloc(shape, buffer.isDirect());
         copy.put(buffer);
         copy.rewind();
         buffer.rewind();
-        return new FloatTensor(copy, Arrays.copyOf(shape, shape.length));
+        return new FloatTensorBuffer(copy, Arrays.copyOf(shape, shape.length));
     }
 
     /**
-     * Splits this tensor into a list of new {@code FloatTensor}s.
+     * Splits this tensor into a list of new {@code FloatTensorBuffer}s.
      * <p>
      * The tensors are split in linear row major order, partitioned on the leading dimension.
      * @throws IllegalArgumentException If the supplied shape does not split this tensor in equal chunks.
      * @param newShape The new shape for the tensors.
      * @return A list containing the new tensors.
      */
-    public List<FloatTensor> split(long[] newShape) {
+    public List<FloatTensorBuffer> split(long[] newShape) {
         int newNumElements = computeNumElements(newShape);
         if (numElements % newNumElements != 0) {
             throw new IllegalArgumentException("Invalid shape for splitting, expected to split in into equal chunks.");
         }
         int numTensors = numElements / newNumElements;
-        List<FloatTensor> output = new ArrayList<>();
+        List<FloatTensorBuffer> output = new ArrayList<>();
         int position = 0;
         for (int i = 0; i < numTensors; i++) {
-            FloatTensor tensor = new FloatTensor(newShape);
+            FloatTensorBuffer tensor = new FloatTensorBuffer(newShape);
             tensor.buffer.put(0, buffer, position, tensor.numElements);
             position += tensor.numElements;
             output.add(tensor);
@@ -124,7 +124,7 @@ public final class FloatTensor extends Tensor<FloatBuffer> {
      * @throws IllegalArgumentException If the other tensor is not the same shape as this one.
      * @param t The tensor to add.
      */
-    public void add(FloatTensor t) {
+    public void add(FloatTensorBuffer t) {
         if (!Arrays.equals(t.shape,shape)) {
             throw new IllegalArgumentException("Invalid shape. Expected " + Arrays.toString(shape) + ", found " + Arrays.toString(t.shape));
         }

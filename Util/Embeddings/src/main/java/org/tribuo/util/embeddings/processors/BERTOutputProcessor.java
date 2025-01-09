@@ -23,7 +23,7 @@ import ai.onnxruntime.TensorInfo;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.util.embeddings.FloatTensor;
+import org.tribuo.util.embeddings.FloatTensorBuffer;
 import org.tribuo.util.embeddings.OutputProcessor;
 
 import java.nio.FloatBuffer;
@@ -33,7 +33,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- *
+ * An output processor which operates on BERT style models which output "last_hidden_state" or its equivalent which
+ * contains all the token embeddings. It can optionally emit a pooled output state using the pooler built into
+ * the model.
  */
 public final class BERTOutputProcessor implements OutputProcessor {
     private static final Logger logger = Logger.getLogger(BERTOutputProcessor.class.getName());
@@ -70,21 +72,39 @@ public final class BERTOutputProcessor implements OutputProcessor {
      */
     public static final String TOKEN_OUTPUT = "last_hidden_state";
 
+    /**
+     * Size of the embedding dimension.
+     */
     @Config(mandatory = true, description = "Size of the embedding dimension.")
     private int embeddingDimension;
 
+    /**
+     * Type of pooling to use when returning a single embedding for the input sequence.
+     */
     @Config(description="Type of pooling to use when returning a single embedding for the input sequence")
     private BERTPooling pooling = BERTPooling.CLS;
 
+    /**
+     * Use all tokens to compute the aggregated token vector including [CLS] and [SEP]?
+     */
     @Config(description = "Use all tokens to compute the aggregated token vector including [CLS] and [SEP]?")
     private boolean useAllTokens = false;
 
+    /**
+     * L2 normalize the output?
+     */
     @Config(description = "L2 normalize the output")
     private boolean normalize = false;
 
+    /**
+     * Pooler output name.
+     */
     @Config(description = "Pooler output name")
     private String poolerOutput = POOLED_OUTPUT;
 
+    /**
+     * Output name.
+     */
     @Config(description = "Output name")
     private String tokenOutput = TOKEN_OUTPUT;
 
@@ -95,14 +115,29 @@ public final class BERTOutputProcessor implements OutputProcessor {
      */
     private boolean unspecifiedEmbeddingDimension = false;
 
+    /**
+     * For OLCUT.
+     */
     private BERTOutputProcessor() {}
 
-    public BERTOutputProcessor(BERTPooling pooling, int embeddingDimension, boolean normalize, boolean useAllTokens, String tokenOutput) {
+    /**
+     * Constructs a BERTOutputProcessor using the supplied arguments.
+     * @param pooling The type of pooling operation to apply to the model output.
+     * @param embeddingDimension The embedding dimension.
+     * @param normalize Should the output be normalized into a unit vector?
+     * @param useAllTokens Should the output include the BOS and EOS tokens if it uses average pooling?
+     * @param outputName The name of the model output to process.
+     */
+    public BERTOutputProcessor(BERTPooling pooling, int embeddingDimension, boolean normalize, boolean useAllTokens, String outputName) {
         this.pooling = pooling;
         this.embeddingDimension = embeddingDimension;
         this.normalize = normalize;
         this.useAllTokens = useAllTokens;
-        this.tokenOutput = tokenOutput;
+        if (pooling == BERTPooling.POOLER) {
+            this.poolerOutput = outputName;
+        } else {
+            this.tokenOutput = outputName;
+        }
     }
 
     @Override
@@ -191,9 +226,9 @@ public final class BERTOutputProcessor implements OutputProcessor {
     }
 
     @Override
-    public Map<String, FloatTensor> process(Result result, long[] inputLengths) {
+    public Map<String, FloatTensorBuffer> process(Result result, long[] inputLengths) {
         OnnxTensor value = (OnnxTensor) result.get(tokenOutput).orElseThrow(() -> new IllegalStateException("Failed to read " + tokenOutput + " from the BERT response"));
-        FloatTensor featureValues = switch (pooling) {
+        FloatTensorBuffer featureValues = switch (pooling) {
             case POOLER -> extractPooledVector((OnnxTensor)result.get(poolerOutput).orElseThrow(() -> new IllegalStateException("Failed to read " + poolerOutput + " from the BERT response")));
             case CLS -> extractCLSVector(value);
             case MEAN -> extractPooledTokenVector(value, inputLengths);
@@ -217,7 +252,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
      * @param tensor The hidden state tensor.
      * @return The pooler output vector in a float buffer.
      */
-    private FloatTensor extractPooledVector(OnnxTensor tensor) {
+    private FloatTensorBuffer extractPooledVector(OnnxTensor tensor) {
         FloatBuffer buffer = tensor.getFloatBuffer();
         if (buffer != null) {
             long[] shape = tensor.getInfo().getShape();
@@ -225,7 +260,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
                 throw new IllegalStateException("Expected embedding dimension " + embeddingDimension
                         + " but found " + shape[2]);
             }
-            FloatTensor output = new FloatTensor(new long[]{shape[0],embeddingDimension}, false);
+            FloatTensorBuffer output = new FloatTensorBuffer(new long[]{shape[0],embeddingDimension}, false);
             output.buffer().put(buffer);
             output.buffer().rewind();
             return output;
@@ -241,7 +276,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
      * @param tensor The hidden state tensor.
      * @return The cls vector in a float buffer.
      */
-    private FloatTensor extractCLSVector(OnnxTensor tensor) {
+    private FloatTensorBuffer extractCLSVector(OnnxTensor tensor) {
         FloatBuffer buffer = tensor.getFloatBuffer();
         if (buffer != null) {
             long[] shape = tensor.getInfo().getShape();
@@ -249,7 +284,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
                 throw new IllegalStateException("Expecting embedding dimension " + embeddingDimension
                         + " but found " + shape[2]);
             }
-            FloatTensor output = new FloatTensor(new long[]{shape[0],embeddingDimension}, false);
+            FloatTensorBuffer output = new FloatTensorBuffer(new long[]{shape[0],embeddingDimension}, false);
             for (int i = 0; i < (int) shape[0]; i++) {
                 int inputOffset = (int) (i * shape[1] * shape[2]);
                 int outputOffset = i * embeddingDimension;
@@ -269,7 +304,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
      * @param inputLengths The lengths of the unpadded input.
      * @return The aggregated token embeddings as a double array.
      */
-    private FloatTensor extractPooledTokenVector(OnnxTensor tensor, long[] inputLengths) {
+    private FloatTensorBuffer extractPooledTokenVector(OnnxTensor tensor, long[] inputLengths) {
         FloatBuffer buffer = tensor.getFloatBuffer();
         if (buffer != null) {
             long[] shape = tensor.getInfo().getShape();
@@ -277,7 +312,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
                 throw new IllegalStateException("Expecting embedding dimension " + embeddingDimension
                         + " but found " + shape[2]);
             }
-            FloatTensor output = new FloatTensor(new long[]{inputLengths.length, embeddingDimension}, false);
+            FloatTensorBuffer output = new FloatTensorBuffer(new long[]{inputLengths.length, embeddingDimension}, false);
             for (int i = 0; i < inputLengths.length; i++) {
                 int offset = embeddingDimension * (int)shape[1] * i;
                 int outputOffset = embeddingDimension * i;
@@ -306,7 +341,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
         }
     }
 
-    private FloatTensor extractTokens(OnnxTensor tensor) {
+    private FloatTensorBuffer extractTokens(OnnxTensor tensor) {
         FloatBuffer buffer = tensor.getFloatBuffer();
         if (buffer != null) {
             long[] shape = tensor.getInfo().getShape();
@@ -314,7 +349,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
                 throw new IllegalStateException("Expected embedding dimension " + embeddingDimension
                         + " but found " + shape[2]);
             }
-            return new FloatTensor(buffer, tensor.getInfo().getShape());
+            return new FloatTensorBuffer(buffer, tensor.getInfo().getShape());
         } else {
             throw new IllegalStateException("Expected a float tensor, found " + tensor.getInfo().toString());
         }
