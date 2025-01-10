@@ -30,7 +30,6 @@ import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.util.Merger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,9 +47,8 @@ import java.util.logging.Logger;
  * An example that's a simple list of features. It is not guaranteed that feature instances are preserved.
  * @param <T> the type of the features in this example.
  */
-public class ListExample<T extends Output<T>> extends Example<T> implements Serializable {
+public class ListExample<T extends Output<T>> extends Example<T> {
     private static final Logger logger = Logger.getLogger(ListExample.class.getName());
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

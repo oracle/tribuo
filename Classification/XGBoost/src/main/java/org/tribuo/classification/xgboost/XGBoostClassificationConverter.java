@@ -36,7 +36,6 @@ import java.util.List;
  */
 @ProtoSerializableClass(version = XGBoostClassificationConverter.CURRENT_VERSION)
 public final class XGBoostClassificationConverter implements XGBoostOutputConverter<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

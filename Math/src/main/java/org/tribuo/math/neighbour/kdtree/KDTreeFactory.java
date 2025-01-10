@@ -37,7 +37,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = KDTreeFactory.CURRENT_VERSION, serializedDataClass = KDTreeFactoryProto.class)
 public class KDTreeFactory implements NeighboursQueryFactory {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

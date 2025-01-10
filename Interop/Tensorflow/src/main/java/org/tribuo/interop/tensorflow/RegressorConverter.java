@@ -53,7 +53,6 @@ import java.util.function.BiFunction;
  */
 @ProtoSerializableClass(version = RegressorConverter.CURRENT_VERSION)
 public class RegressorConverter implements OutputConverter<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

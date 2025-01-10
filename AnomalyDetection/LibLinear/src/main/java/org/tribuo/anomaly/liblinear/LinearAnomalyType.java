@@ -23,20 +23,17 @@ import org.tribuo.anomaly.Event;
 import org.tribuo.common.liblinear.LibLinearType;
 import de.bwaldvogel.liblinear.SolverType;
 
-import java.io.Serializable;
-
 /**
  * The carrier type for liblinear anomaly detection modes.
  * <p>
  * Supports: ONECLASS_SVM
  */
 public final class LinearAnomalyType implements LibLinearType<Event> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The different model types available for classification.
      */
-    public enum LinearType implements Serializable {
+    public enum LinearType {
         /**
          * Linear one-class SVM
          */

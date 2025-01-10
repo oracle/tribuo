@@ -37,7 +37,6 @@ import java.util.SplittableRandom;
  */
 @ProtoSerializableClass(version = RealInfo.CURRENT_VERSION, serializedDataClass = RealInfoProto.class)
 public class RealInfo extends SkeletalVariableInfo {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

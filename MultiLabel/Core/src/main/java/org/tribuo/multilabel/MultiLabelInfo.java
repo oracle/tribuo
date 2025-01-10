@@ -26,7 +26,6 @@ import org.tribuo.classification.Label;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoSerializableKeysValuesField;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,7 +37,6 @@ import java.util.Set;
  * The base class for information about {@link MultiLabel} outputs.
  */
 public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The map of label occurrence counts.
@@ -53,7 +51,7 @@ public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
     /**
      * The label domain.
      */
-    protected transient Map<String,MultiLabel> labels;
+    protected final Map<String,MultiLabel> labels;
 
     /**
      * The total number of {@link MultiLabel} objects this object has seen.
@@ -207,11 +205,4 @@ public abstract class MultiLabelInfo implements OutputInfo<MultiLabel> {
         return Objects.hash(labelCounts, unknownCount, totalCount);
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        labels = new HashMap<>();
-        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
-            labels.put(e.getKey(),new MultiLabel(e.getKey()));
-        }
-    }
 }

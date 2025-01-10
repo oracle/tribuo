@@ -24,7 +24,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.multilabel.protos.ImmutableMultiLabelInfoProto;
 import org.tribuo.protos.core.OutputDomainProto;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,13 +40,11 @@ import java.util.logging.Logger;
 public class ImmutableMultiLabelInfo extends MultiLabelInfo implements ImmutableOutputInfo<MultiLabel> {
     private static final Logger logger = Logger.getLogger(ImmutableMultiLabelInfo.class.getName());
 
-    private static final long serialVersionUID = 1L;
-
     private final Map<Integer,String> idLabelMap;
 
     private final Map<String,Integer> labelIDMap;
 
-    private transient Set<MultiLabel> domain;
+    private final Set<MultiLabel> domain;
 
     private ImmutableMultiLabelInfo(ImmutableMultiLabelInfo info) {
         super(info);
@@ -301,8 +298,4 @@ public class ImmutableMultiLabelInfo extends MultiLabelInfo implements Immutable
         }
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
-    }
 }

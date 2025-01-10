@@ -89,7 +89,6 @@ public class TestFMMultiLabel {
 
         Assertions.assertEquals(1.0, evaluation.microAveragedRecall());
 
-        Helpers.testModelSerialization(model, MultiLabel.class);
         Helpers.testModelProtoSerialization(model, MultiLabel.class, test);
     }
 

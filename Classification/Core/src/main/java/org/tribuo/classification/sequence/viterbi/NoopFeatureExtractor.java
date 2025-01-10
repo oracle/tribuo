@@ -37,8 +37,6 @@ import java.util.List;
 @ProtoSerializableClass(version = NoopFeatureExtractor.CURRENT_VERSION)
 public class NoopFeatureExtractor implements LabelFeatureExtractor {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Protobuf serialization version.
      */

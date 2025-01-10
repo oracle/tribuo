@@ -23,20 +23,17 @@ import org.tribuo.common.liblinear.LibLinearType;
 import org.tribuo.regression.Regressor;
 import de.bwaldvogel.liblinear.SolverType;
 
-import java.io.Serializable;
-
 /**
  * The carrier type for liblinear linear regression modes.
  * <p>
  * Supports: L2R_L2LOSS_SVR, L2R_L2LOSS_SVR_DUAL, L2R_L1LOSS_SVR_DUAL.
  */
 public final class LinearRegressionType implements LibLinearType<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The type of linear regression algorithm.
      */
-    public enum LinearType implements Serializable {
+    public enum LinearType {
         /**
          * L2-regularized L2-loss support vector regression (primal)
          */

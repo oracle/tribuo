@@ -87,7 +87,6 @@ public class RegressionTest {
         Assertions.assertFalse(eval.r2().isEmpty());
 
         // Check Tribuo serialization
-        Helpers.testModelSerialization(model,Regressor.class);
         Helpers.testModelProtoSerialization(model, Regressor.class, testData);
 
         // Check saved model bundle export

@@ -16,7 +16,6 @@
 
 package org.tribuo;
 
-import java.io.Serializable;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,8 +27,7 @@ import java.util.logging.Logger;
  * to be long lived objects. They may be deconstructed when stored in an Example.
  * One day they should become value/inline types.
  */
-public class Feature implements Serializable, Cloneable, Comparable<Feature> {
-    private static final long serialVersionUID = 1L;
+public class Feature implements  Cloneable, Comparable<Feature> {
 
     private static final Logger logger = Logger.getLogger(Feature.class.getName());
 

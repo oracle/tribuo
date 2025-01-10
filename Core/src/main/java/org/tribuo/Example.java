@@ -24,7 +24,6 @@ import org.tribuo.transform.Transformer;
 import org.tribuo.transform.TransformerMap;
 import org.tribuo.util.Merger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,14 +43,12 @@ import java.util.Optional;
  * Examples have metadata associated with them, stored as a map from a String key, to
  * an Object value. This metadata is append only for any given example, and the metadata
  * values should be immutable (as they will be referenced rather than copied when an
- * example is copied). Values with are not {@link Serializable} will cause exceptions if
- * the example is serialized. Note protobuf serialization only supports string values, and will
+ * example is copied). Note protobuf serialization only supports string values, and will
  * coerce all values to strings before serialization. In a future release metadata will only
  * support {@link String} values.
  * @param <T> The type of output that this example contains.
  */
-public abstract class Example<T extends Output<T>> implements Iterable<Feature>, ProtoSerializable<ExampleProto>, Serializable {
-    private static final long serialVersionUID = 1L;
+public abstract class Example<T extends Output<T>> implements Iterable<Feature>, ProtoSerializable<ExampleProto> {
 
     /**
      * The default initial size of the metadata map.

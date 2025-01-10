@@ -45,7 +45,6 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -175,7 +174,6 @@ public class TestKNN {
         assertEquals(evaluation.recall(DemoLabelDataSource.SECOND_CLASS), 1.0);
 
         // Test serialization
-        Helpers.testModelSerialization(model, Label.class);
         Helpers.testModelProtoSerialization(model, Label.class, testingDataset);
     }
 
@@ -187,7 +185,6 @@ public class TestKNN {
         evaluator.evaluate(model, pair.getB());
 
         // Test serialization
-        Helpers.testModelSerialization(model,Regressor.class);
         Helpers.testModelProtoSerialization(model, Regressor.class, pair.getB());
     }
 
@@ -216,16 +213,13 @@ public class TestKNN {
         URL serializedModelPath = this.getClass().getClassLoader().getResource(serializedModelFilename);
 
         KNNModel<Regressor> model = null;
-        try (ObjectInputStream oin = new ObjectInputStream(serializedModelPath.openStream())) {
-            Object data = oin.readObject();
-            model = (KNNModel<Regressor>) data;
+        try (InputStream is = serializedModelPath.openStream()) {
+            model = (KNNModel<Regressor>) Model.deserializeFromStream(is);
             if (!model.validate(Regressor.class)) {
                 fail("This is not a Regression model.");
             }
         } catch (IOException e) {
             fail("There is a problem accessing the serialized model file " + serializedModelPath);
-        } catch (ClassNotFoundException e) {
-            fail("There is a problem deserializing the model file "  + serializedModelPath);
         }
 
         Pair<Dataset<Regressor>,Dataset<Regressor>> pair = RegressionDataGenerator.denseTrainTest();

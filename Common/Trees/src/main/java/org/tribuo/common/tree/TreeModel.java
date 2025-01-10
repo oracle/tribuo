@@ -56,7 +56,6 @@ import java.util.Set;
  * A {@link Model} wrapped around a decision tree root {@link Node}.
  */
 public class TreeModel<T extends Output<T>> extends SparseModel<T> {
-    private static final long serialVersionUID = 3L;
 
     /**
      * Protobuf serialization version.

@@ -447,7 +447,6 @@ public final class BinningTransformation implements Transformation {
      */
     @ProtoSerializableClass(version = BinningTransformer.CURRENT_VERSION, serializedDataClass = BinningTransformerProto.class)
     public static final class BinningTransformer implements Transformer {
-        private static final long serialVersionUID = 1L;
 
         /**
          * Protobuf serialization version.

@@ -62,7 +62,6 @@ import java.util.PriorityQueue;
  * </pre>
  */
 public abstract class AbstractLinearSGDModel<T extends Output<T>> extends AbstractSGDModel<T> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a linear model trained via SGD.

@@ -90,7 +90,6 @@ public class TestGMM {
 
         GaussianMixtureModel model = trainer.train(data);
 
-        Helpers.testModelSerialization(model, ClusterID.class);
         Helpers.testModelProtoSerialization(model, ClusterID.class, test);
 
         ClusteringEvaluation trainEvaluation = eval.evaluate(model,data);
@@ -117,7 +116,7 @@ public class TestGMM {
     @Test
     public void testDenseData() {
         Model<ClusterID> model = runDenseData(diagonal);
-        Helpers.testModelSerialization(model,ClusterID.class);
+        Helpers.testModelProtoSerialization(model, ClusterID.class);
     }
 
     @Test

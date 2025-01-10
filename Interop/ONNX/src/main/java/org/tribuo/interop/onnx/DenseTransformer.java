@@ -37,7 +37,6 @@ import java.util.logging.Logger;
  */
 @ProtoSerializableClass(version = DenseTransformer.CURRENT_VERSION)
 public class DenseTransformer implements ExampleTransformer {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(DenseTransformer.class.getName());
 
     /**

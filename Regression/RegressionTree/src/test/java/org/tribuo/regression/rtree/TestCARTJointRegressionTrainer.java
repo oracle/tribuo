@@ -72,7 +72,6 @@ public class TestCARTJointRegressionTrainer {
     public void testDenseData() {
         Pair<Dataset<Regressor>, Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> model = testJointRegressionTree(p, t);
-        Helpers.testModelSerialization(model, Regressor.class);
         Helpers.testModelProtoSerialization(model, Regressor.class, p.getB());
     }
 

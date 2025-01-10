@@ -101,7 +101,6 @@ public class IDFTransformation implements Transformation {
     
     @ProtoSerializableClass(version = IDFTransformer.CURRENT_VERSION, serializedDataClass = IDFTransformerProto.class)
     static class IDFTransformer implements Transformer {
-        private static final long serialVersionUID = 1L;
 
         /**
          * Protobuf serialization version.

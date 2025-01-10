@@ -44,7 +44,6 @@ import java.util.Map;
  * which uses the most likely prediction for each ensemble member.
  */
 public final class FullyWeightedVotingCombiner implements EnsembleCombiner<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

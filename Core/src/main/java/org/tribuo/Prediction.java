@@ -18,7 +18,6 @@ package org.tribuo;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -42,8 +41,7 @@ import org.tribuo.protos.core.PredictionProto;
  * and how many features originally existed in the {@link Example}.
  */
 @ProtoSerializableClass(version = Prediction.CURRENT_VERSION, serializedDataClass = PredictionImplProto.class)
-public class Prediction<T extends Output<T>> implements ProtoSerializable<PredictionProto>, Serializable {
-    private static final long serialVersionUID = 1L;
+public class Prediction<T extends Output<T>> implements ProtoSerializable<PredictionProto> {
 
     /**
      * The current protobuf serialization version of this class.

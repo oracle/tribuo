@@ -43,7 +43,6 @@ import java.util.TreeMap;
  */
 @ProtoSerializableClass(version = HashedFeatureMap.CURRENT_VERSION, serializedDataClass = HashedFeatureMapProto.class)
 public final class HashedFeatureMap extends ImmutableFeatureMap {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

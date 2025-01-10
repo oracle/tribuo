@@ -115,7 +115,7 @@ public class AveragingCombinerTest {
         assertArrayEquals(prediction.getOutput().getValues(),target.getValues());
         modelList.clear();
 
-        Helpers.testModelSerialization(ensemble,Regressor.class);
+        Helpers.testModelProtoSerialization(ensemble,Regressor.class);
     }
 
     @Test

@@ -24,14 +24,12 @@ import org.tribuo.math.protos.KernelProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.Serializable;
-
 /**
  * An interface for a Mercer kernel function.
  * <p>
  * It's preferable for kernels to override toString.
  */
-public interface Kernel extends Configurable, ProtoSerializable<KernelProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface Kernel extends Configurable, ProtoSerializable<KernelProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Calculates the similarity between two {@link SparseVector}s.

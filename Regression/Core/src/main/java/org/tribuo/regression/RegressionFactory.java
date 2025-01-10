@@ -49,7 +49,6 @@ import java.util.Objects;
  * In most cases the default {@link RegressionFactory#DEFAULT_SPLIT_CHAR} is fine.
  */
 public final class RegressionFactory implements OutputFactory<Regressor> {
-    private static final long serialVersionUID = 2L;
 
     /**
      * The default character to split the string form of a multidimensional regressor.

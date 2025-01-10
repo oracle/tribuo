@@ -32,7 +32,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = MutableFeatureMap.CURRENT_VERSION, serializedDataClass = MutableFeatureMapProto.class)
 public class MutableFeatureMap extends FeatureMap {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.
