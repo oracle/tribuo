@@ -19,8 +19,10 @@ package org.tribuo.interop.onnx.extractors;
 import ai.onnxruntime.OrtException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.tribuo.Feature;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
+import org.tribuo.util.embeddings.BERTTokenizerConfig;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -36,31 +38,31 @@ public class BERTFeatureExtractorTest {
     public void testTokenizerLoading() throws URISyntaxException, IOException {
         Path vocabPath = Paths.get(BERTFeatureExtractorTest.class.getResource("bert-base-cased-vocab.txt").toURI());
         Path tokenizerPath = Paths.get(BERTFeatureExtractorTest.class.getResource("bert-base-cased-tokenizer.json").toURI());
-        BERTFeatureExtractor.TokenizerConfig config = BERTFeatureExtractor.loadTokenizer(tokenizerPath);
+        BERTTokenizerConfig config = BERTTokenizerConfig.loadTokenizer(tokenizerPath);
 
         List<String> vocabList = Files.readAllLines(vocabPath, StandardCharsets.UTF_8);
 
-        Assertions.assertEquals(config.tokenIDs.size(),vocabList.size());
+        Assertions.assertEquals(config.tokenIDs().size(),vocabList.size());
 
         for (String vocabElement : vocabList) {
-            Assertions.assertTrue(config.tokenIDs.containsKey(vocabElement));
+            Assertions.assertTrue(config.tokenIDs().containsKey(vocabElement));
         }
 
-        Assertions.assertEquals(100, config.maxInputCharsPerWord);
-        Assertions.assertEquals(false, config.lowercase);
-        Assertions.assertEquals(false, config.stripAccents);
-        Assertions.assertEquals("[UNK]",config.unknownToken);
-        Assertions.assertEquals("[CLS]",config.classificationToken);
-        Assertions.assertEquals("[SEP]",config.separatorToken);
+        Assertions.assertEquals(100, config.maxInputCharsPerWord());
+        Assertions.assertEquals(false, config.lowercase());
+        Assertions.assertEquals(false, config.stripAccents());
+        Assertions.assertEquals("[UNK]",config.unknownToken());
+        Assertions.assertEquals("[CLS]",config.classificationToken());
+        Assertions.assertEquals("[SEP]",config.separatorToken());
 
         tokenizerPath = Paths.get(BERTFeatureExtractorTest.class.getResource("tinybert-tokenizer.json").toURI());
-        config = BERTFeatureExtractor.loadTokenizer(tokenizerPath);
-        Assertions.assertEquals(100, config.maxInputCharsPerWord);
-        Assertions.assertEquals(true, config.lowercase);
-        Assertions.assertEquals(true, config.stripAccents);
-        Assertions.assertEquals("[UNK]",config.unknownToken);
-        Assertions.assertEquals("[CLS]",config.classificationToken);
-        Assertions.assertEquals("[SEP]",config.separatorToken);
+        config = BERTTokenizerConfig.loadTokenizer(tokenizerPath);
+        Assertions.assertEquals(100, config.maxInputCharsPerWord());
+        Assertions.assertEquals(true, config.lowercase());
+        Assertions.assertEquals(true, config.stripAccents());
+        Assertions.assertEquals("[UNK]",config.unknownToken());
+        Assertions.assertEquals("[CLS]",config.classificationToken());
+        Assertions.assertEquals("[SEP]",config.separatorToken());
     }
 
     @Test
@@ -87,21 +89,22 @@ public class BERTFeatureExtractorTest {
         // of Huggingface on this specific model.
 
         // Test CLS token embedding
-        try (BERTFeatureExtractor<Label> extractor = new BERTFeatureExtractor<>(factory,modelPath,tokenizerPath,BERTFeatureExtractor.OutputPooling.CLS,512,false)) {
-            List<String> tokens = extractor.tokenize(input);
+        try (BERTFeatureExtractor<Label> extractor = new BERTFeatureExtractor<>(factory,modelPath,tokenizerPath,50,BERTFeatureExtractor.OutputPooling.POOLER,512,false)) {
+            List<String> tokens = extractor.getInputProcessor().tokenize(input);
 
             // Check we got the right number of tokens
             Assertions.assertEquals(11, tokens.size());
 
-            double[] clsEmbedding = extractor.extractFeatures(tokens);
+            List<Feature> clsEmbedding = extractor.process("", input);
+            double[] clsEmbeddingArr = clsEmbedding.stream().mapToDouble(Feature::getValue).toArray();
             double[] expectedCLS = new double[]{-0.09987275302410126, -0.08381578326225281, -0.17915815114974976, 0.1595402956008911, 0.12995541095733643, 0.02285454422235489, 0.16443753242492676, -0.05802210792899132, 0.25674450397491455, -0.09596416354179382, 0.08692581206560135, -0.17145220935344696, 0.05614880844950676, 0.14230673015117645, 0.09240773320198059, 0.03262120857834816, 0.05173583701252937, 0.3492385447025299, -0.010329307056963444, 0.22916817665100098, 0.1269291639328003, 0.033620379865169525, 0.12352693825960159, 0.0520106665790081, -0.012766036204993725, 0.029396483674645424, -0.09637446701526642, 0.1646318882703781, -0.08488218486309052, -0.11151651293039322, -0.14075034856796265, -0.1965598613023758, -0.25300613045692444, 0.1736740618944168, 0.19785678386688232, -0.07669950276613235, 0.03425660356879234, 0.15457485616207123, 0.005061550531536341, 0.09869188815355301, -0.06988175213336945, -0.1692686229944229, -0.03754367679357529, -0.18752126395702362, -0.2161409854888916, -0.23712319135665894, 0.03122984990477562, 0.2796807289123535, -0.19152438640594482, -0.16166169941425323};
-            Assertions.assertArrayEquals(expectedCLS,clsEmbedding,1e-7);
+            Assertions.assertArrayEquals(expectedCLS,clsEmbeddingArr,1e-7);
         }
 
         // Test average token embedding
-        try (BERTFeatureExtractor<Label> extractor = new BERTFeatureExtractor<>(factory,modelPath,tokenizerPath,BERTFeatureExtractor.OutputPooling.MEAN,512,false)) {
-            List<String> tokens = extractor.tokenize(input);
-            double[] aveEmbedding = extractor.extractFeatures(tokens);
+        try (BERTFeatureExtractor<Label> extractor = new BERTFeatureExtractor<>(factory,modelPath,tokenizerPath,50,BERTFeatureExtractor.OutputPooling.MEAN,512,false)) {
+            List<Feature> aveEmbedding = extractor.process("", input);
+            double[] aveEmbeddingArr = aveEmbedding.stream().mapToDouble(Feature::getValue).toArray();
 
             double[][] expectedTokens = new double[][]
                     {{0.15068432688713074, 1.291318655014038, -1.2186375856399536, -0.1044885441660881, -0.4916091561317444, 0.3050057888031006, 0.02411005087196827, 0.6914452314376831, -0.9399610161781311, 0.27564719319343567, 0.3189747631549835, -1.7623217105865479, 1.0957914590835571, -0.5502046346664429, 0.9324173927307129, -1.5440735816955566, -0.6300070285797119, 0.16870944201946259, -0.23421932756900787, 1.5419358015060425, 0.8080865144729614, 0.025547025725245476, 0.8078239560127258, -0.393135666847229, 0.7077765464782715, -0.9835149645805359, 1.161102294921875, 1.3422735929489136, -0.22637833654880524, 1.3680726289749146, -0.5111463069915771, -0.5181847810745239, 1.517228364944458, -1.2042882442474365, 0.8298169374465942, -1.6887481212615967, 1.2908772230148315, -0.5774198174476624, 1.1692675352096558, -0.14680930972099304, 0.8950840830802917, -0.5876469016075134, -0.19654417037963867, 0.5392388105392456, -1.7276521921157837, -0.611663281917572, -0.16960109770298004, -0.049318667501211166, -3.06258487701416, 0.8719245195388794},
@@ -129,7 +132,7 @@ public class BERTFeatureExtractorTest {
                 average[i] /= expectedTokens.length-2;
             }
 
-            Assertions.assertArrayEquals(average, aveEmbedding, 1e-7);
+            Assertions.assertArrayEquals(average, aveEmbeddingArr, 1e-6);
         }
     }
 

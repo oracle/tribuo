@@ -39,7 +39,8 @@ import java.util.logging.Logger;
 /**
  * A no-op input processor which works with models that build in the tokenization and averaging.
  * <p>
- * This input processor returns an empty set for the vocab and max length as it handled by the model.
+ * This input processor returns an empty set for the vocab and max length as it handled by the model, and the
+ * {@code processTokensBatch} method throws {@link UnsupportedOperationException}.
  */
 public final class NoOpInputProcessor implements InputProcessor {
     private static final Logger logger = Logger.getLogger(NoOpInputProcessor.class.getName());
@@ -110,6 +111,17 @@ public final class NoOpInputProcessor implements InputProcessor {
         long[] tokenLengths = new long[strArray.length];
 
         return new ProcessedInput(Map.of(inputName,OnnxTensor.createTensor(env, strArray)), tokenLengths, new LongTensorBuffer(new long[]{1,1}));
+    }
+
+    /**
+     * This method throws {@link UnsupportedOperationException} as this class does not contain a tokenizer.
+     * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
+     * @param tokens The pre-tokenized input to embed.
+     * @return No return.
+     */
+    @Override
+    public ProcessedInput processTokensBatch(OrtEnvironment env, List<List<String>> tokens) {
+        throw new UnsupportedOperationException("The NoOpInputProcessor doesn't support pre-tokenized inputs.");
     }
 
     @Override

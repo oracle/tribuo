@@ -227,17 +227,29 @@ public final class BERTOutputProcessor implements OutputProcessor {
 
     @Override
     public Map<String, FloatTensorBuffer> process(Result result, long[] inputLengths) {
-        OnnxTensor value = (OnnxTensor) result.get(tokenOutput).orElseThrow(() -> new IllegalStateException("Failed to read " + tokenOutput + " from the BERT response"));
         FloatTensorBuffer featureValues = switch (pooling) {
             case POOLER -> extractPooledVector((OnnxTensor)result.get(poolerOutput).orElseThrow(() -> new IllegalStateException("Failed to read " + poolerOutput + " from the BERT response")));
-            case CLS -> extractCLSVector(value);
-            case MEAN -> extractPooledTokenVector(value, inputLengths);
-            case TOKEN -> extractTokens(value);
+            case CLS -> {
+                OnnxTensor value = (OnnxTensor) result.get(tokenOutput).orElseThrow(() -> new IllegalStateException("Failed to read " + tokenOutput + " from the BERT response"));
+                yield extractCLSVector(value);
+            }
+            case MEAN -> {
+                OnnxTensor value = (OnnxTensor) result.get(tokenOutput).orElseThrow(() -> new IllegalStateException("Failed to read " + tokenOutput + " from the BERT response"));
+                yield extractPooledTokenVector(value, inputLengths);
+            }
+            case TOKEN -> {
+                OnnxTensor value = (OnnxTensor) result.get(tokenOutput).orElseThrow(() -> new IllegalStateException("Failed to read " + tokenOutput + " from the BERT response"));
+                yield extractTokens(value);
+            }
         };
         if (normalize) {
             featureValues.l2InPlace();
         }
-        return Collections.singletonMap(tokenOutput, featureValues);
+        if (pooling == BERTPooling.POOLER) {
+            return Collections.singletonMap(poolerOutput, featureValues);
+        } else {
+            return Collections.singletonMap(tokenOutput, featureValues);
+        }
     }
 
     @Override
@@ -318,7 +330,7 @@ public final class BERTOutputProcessor implements OutputProcessor {
                 int outputOffset = embeddingDimension * i;
                 int startPos = useAllTokens ? 0 : 1;
                 int endPos = (int) inputLengths[i] - (useAllTokens ? 0 : 1);
-                // iterate the tokens, creating new examples
+                // iterate the tokens, aggregating the embeddings
                 for (int j = startPos; j < endPos; j++) {
                     for (int k = 0; k < embeddingDimension; k++) {
                         float cur = output.buffer().get(outputOffset + k);
@@ -326,13 +338,15 @@ public final class BERTOutputProcessor implements OutputProcessor {
                         if (idx >= buffer.capacity()) {
                             throw new IndexOutOfBoundsException("Index " + idx + " is out of bounds for capacity " + buffer.capacity());
                         }
-                        float update = buffer.get(offset + (j * embeddingDimension) + k);
+                        float update = buffer.get(idx);
                         output.buffer().put(outputOffset + k, cur + update);
                     }
                 }
+                int normOffset = useAllTokens ? 0 : 2;
+                float normConstant = inputLengths[i] - normOffset;
                 for (int j = 0; j < embeddingDimension; j++) {
                     float tmp = output.buffer().get(outputOffset + j);
-                    output.buffer().put(outputOffset + j, tmp / inputLengths[i]);
+                    output.buffer().put(outputOffset + j, tmp / normConstant);
                 }
             }
             return output;

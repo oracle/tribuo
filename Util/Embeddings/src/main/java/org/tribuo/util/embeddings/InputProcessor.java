@@ -81,6 +81,27 @@ public interface InputProcessor extends Configurable, Provenancable<ConfiguredOb
     }
 
     /**
+     * Processes the input tokens into an input record.
+     * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
+     * @param tokens The pre-tokenized input to embed.
+     * @return A processed input record.
+     * @throws OrtException If tensor creation failed.
+     */
+    ProcessedInput processTokensBatch(OrtEnvironment env, List<List<String>> tokens)
+            throws OrtException;
+
+    /**
+     * Processes the input string into an input record.
+     * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
+     * @param tokens The pre-tokenized input to embed.
+     * @return A processed input record.
+     * @throws OrtException If tensor creation failed.
+     */
+    default ProcessedInput processTokens(OrtEnvironment env, List<String> tokens) throws OrtException {
+        return processTokensBatch(env, List.of(tokens));
+    }
+
+    /**
      * A record containing the inputs ready for ORT along with the example lengths before padding.
      * @param inputs The ORT inputs.
      * @param tokenLengths The example lengths before padding.

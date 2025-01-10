@@ -236,6 +236,14 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     }
 
     /**
+     * Gets the configured OutputProcessor
+     * @return the OutputProcessor instance used by this feature extractor
+     */
+    public OutputProcessor getOutputProcessor() {
+        return outputProcessor;
+    }
+
+    /**
      * Returns the vocabulary that this ONNXFeatureExtractor understands.
      * @return The vocabulary.
      */
@@ -277,6 +285,30 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
         Map<String, ? extends OnnxTensorLike> input = null;
         try {
             var pInput = inputProcessor.process(env, data);
+            input = pInput.inputs();
+            try (OrtSession.Result output = session.run(input)) {
+                return outputProcessor.process(output, pInput.tokenLengths());
+            }
+        } catch (OrtException e) {
+            throw new IllegalStateException("ORT failed to execute: ", e);
+        } finally {
+            if (input != null) {
+                OnnxValue.close(input);
+            }
+        }
+    }
+
+    /**
+     * Processes the supplied token list and generates embeddings.
+     * <p>
+     * Any tokens which are unknown to the tokenizer are replaced with the UNK token before embedding.
+     * @param tokens The tokens.
+     * @return The embeddings for the supplied data.
+     */
+    public Map<String, FloatTensorBuffer> processTokens(List<List<String>> tokens) {
+        Map<String, ? extends OnnxTensorLike> input = null;
+        try {
+            var pInput = inputProcessor.processTokensBatch(env, tokens);
             input = pInput.inputs();
             try (OrtSession.Result output = session.run(input)) {
                 return outputProcessor.process(output, pInput.tokenLengths());

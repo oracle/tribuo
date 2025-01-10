@@ -16,8 +16,6 @@
 
 package org.tribuo.interop.onnx.extractors;
 
-import ai.onnxruntime.OnnxTensor;
-import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.config.Config;
@@ -41,11 +39,12 @@ import java.nio.BufferUnderflowException;
 import java.nio.FloatBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import static org.tribuo.util.embeddings.processors.BERTInputProcessor.CLASSIFICATION_TOKEN;
+import static org.tribuo.util.embeddings.processors.BERTInputProcessor.SEPARATOR_TOKEN;
 
 /**
  * Builds examples and sequence examples using features from BERT.
@@ -83,6 +82,10 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * Output name for the token level outputs.
      */
     public static final String TOKEN_OUTPUT = "output_0";
+    /**
+     * Output name for the pooler output.
+     */
+    public static final String POOLER_OUTPUT = "output_1";
 
     // Metadata name for the token
     /**
@@ -115,6 +118,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     private String[] featureNames;
 
     private OnnxFeatureExtractor extractor;
+    private String outputName;
     private boolean closed = false;
 
     /**
@@ -165,8 +169,9 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
             case MEAN -> BERTOutputProcessor.BERTPooling.MEAN;
             case POOLER -> BERTOutputProcessor.BERTPooling.POOLER;
         };
-        BERTOutputProcessor outputProcessor = new BERTOutputProcessor(bertPooling, embeddingDim, false, true, TOKEN_OUTPUT);
-        extractor = new OnnxFeatureExtractor(modelPath, inputProcessor, outputProcessor, useCUDA, 1, 1);
+        outputName = pooling == OutputPooling.POOLER ? POOLER_OUTPUT : TOKEN_OUTPUT;
+        BERTOutputProcessor outputProcessor = new BERTOutputProcessor(bertPooling, embeddingDim, false, false, outputName);
+        extractor = new OnnxFeatureExtractor(modelPath, inputProcessor, outputProcessor, null, useCUDA, 1, 1);
         featureNames = generateFeatureNames(embeddingDim);
     }
 
@@ -203,6 +208,22 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     }
 
     /**
+     * Gets the input processor used by this extractor.
+     * @return The input processor.
+     */
+    public BERTInputProcessor getInputProcessor() {
+        return (BERTInputProcessor) extractor.getInputProcessor();
+    }
+
+    /**
+     * Gets the output processor used by this extractor.
+     * @return The output processor.
+     */
+    public BERTOutputProcessor getOutputProcessor() {
+        return (BERTOutputProcessor) extractor.getOutputProcessor();
+    }
+
+    /**
      * Generates the feature names in the range 0 to {@code bertDim}.
      * <p>
      * Feature names are of the form "D=id".
@@ -229,7 +250,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      * @param bertDim The number of values to read.
      * @return The features.
      */
-    private static double[] extractFeatures(FloatBuffer buffer, int bertDim) {
+    static double[] extractFeatures(FloatBuffer buffer, int bertDim) {
         double[] features = new double[bertDim];
         float[] floatArr = new float[bertDim];
         buffer.get(floatArr);
@@ -291,60 +312,41 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     public SequenceExample<T> extractSequenceExample(List<String> tokens, List<T> output, boolean stripSentenceMarkers) {
         if (tokens.size() > (maxLength - 2)) {
             throw new IllegalArgumentException("Too many tokens, expected " + (maxLength - 2) + " found " + tokens.size());
+        } else if (tokens.size() != output.size()) {
+            throw new IllegalArgumentException("Expected same number of tokens as labels, found " + tokens.size() + " tokens, and " + output.size() + " labels.");
         }
-        try (OnnxTensor tokenIds = convertTokens(tokens);
-             OnnxTensor mask = createTensor(tokens.size()+2,MASK_VALUE);
-             OnnxTensor tokenTypes = createTensor(tokens.size()+2,TOKEN_TYPE_VALUE)) {
-            Map<String,OnnxTensor> inputMap = new HashMap<>(3);
-            inputMap.put(INPUT_IDS,tokenIds);
-            inputMap.put(ATTENTION_MASK,mask);
-            inputMap.put(TOKEN_TYPE_IDS,tokenTypes);
-            try (OrtSession.Result bertOutput = session.run(inputMap)) {
-                OnnxValue value = bertOutput.get(TOKEN_OUTPUT).orElseThrow(() -> new IllegalStateException("Failed to read " + TOKEN_OUTPUT + " from the BERT response"));
-                if (value instanceof OnnxTensor) {
-                    OnnxTensor tensor = (OnnxTensor) value;
-                    FloatBuffer buffer = tensor.getFloatBuffer();
-                    if (buffer != null) {
-                        List<Example<T>> examples = new ArrayList<>();
+        var bertOutput = this.extractor.processTokens(List.of(tokens));
+        var tokenOutput = bertOutput.get(TOKEN_OUTPUT);
+        List<Example<T>> examples = new ArrayList<>();
 
-                        // Add the [CLS] token if necessary
-                        if (stripSentenceMarkers) {
-                            // throw away the features
-                            buffer.position(embeddingDim);
-                        } else {
-                            double[] featureValues = extractFeatures(buffer, embeddingDim);
-                            Example<T> tmp = new ArrayExample<>(outputFactory.getUnknownOutput(),featureNames,featureValues);
-                            tmp.setMetadataValue(TOKEN_METADATA,CLASSIFICATION_TOKEN);
-                            examples.add(tmp);
-                        }
-
-                        // iterate the tokens, creating new examples
-                        for (int i = 0; i < tokens.size(); i++) {
-                            double[] featureValues = extractFeatures(buffer, embeddingDim);
-                            Example<T> tmp = new ArrayExample<T>(output.get(i),featureNames,featureValues);
-                            tmp.setMetadataValue(TOKEN_METADATA,tokens.get(i));
-                            examples.add(tmp);
-                        }
-
-                        // Add the [SEP] token if necessary
-                        if (!stripSentenceMarkers) {
-                            double[] featureValues = extractFeatures(buffer, embeddingDim);
-                            Example<T> tmp = new ArrayExample<>(outputFactory.getUnknownOutput(),featureNames,featureValues);
-                            tmp.setMetadataValue(TOKEN_METADATA,SEPARATOR_TOKEN);
-                            examples.add(tmp);
-                        }
-
-                        return new SequenceExample<>(examples);
-                    } else {
-                        throw new IllegalStateException("Expected a float tensor, found " + tensor.getInfo().toString());
-                    }
-                } else {
-                    throw new IllegalStateException("Expected OnnxTensor, found " + value.getClass());
-                }
-            }
-        } catch (OrtException e) {
-            throw new IllegalStateException("ORT failed to execute: ", e);
+        // Add the [CLS] token if necessary
+        if (stripSentenceMarkers) {
+            // throw away the features
+            tokenOutput.buffer().position(embeddingDim);
+        } else {
+            double[] featureValues = extractFeatures(tokenOutput.buffer(), embeddingDim);
+            Example<T> tmp = new ArrayExample<>(outputFactory.getUnknownOutput(),featureNames,featureValues);
+            tmp.setMetadataValue(TOKEN_METADATA,CLASSIFICATION_TOKEN);
+            examples.add(tmp);
         }
+
+        // iterate the tokens, creating new examples
+        for (int i = 0; i < tokens.size(); i++) {
+            double[] featureValues = extractFeatures(tokenOutput.buffer(), embeddingDim);
+            Example<T> tmp = new ArrayExample<T>(output.get(i),featureNames,featureValues);
+            tmp.setMetadataValue(TOKEN_METADATA,tokens.get(i));
+            examples.add(tmp);
+        }
+
+        // Add the [SEP] token if necessary
+        if (!stripSentenceMarkers) {
+            double[] featureValues = extractFeatures(tokenOutput.buffer(), embeddingDim);
+            Example<T> tmp = new ArrayExample<>(outputFactory.getUnknownOutput(),featureNames,featureValues);
+            tmp.setMetadataValue(TOKEN_METADATA,SEPARATOR_TOKEN);
+            examples.add(tmp);
+        }
+
+        return new SequenceExample<>(examples);
     }
 
     @Override
@@ -356,18 +358,50 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     }
 
     /**
+     * Passes the tokens through BERT, replacing any unknown tokens with the [UNK] token.
+     * <p>
+     * The features of the returned example are dense, and come from the [CLS] token.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the list is longer than {@link #getMaxLength}.
+     * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
+     * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
+     * @return A dense example representing the pooled output from BERT for the input tokens.
+     */
+    public Example<T> extractExample(List<String> tokens) {
+        return extractExample(tokens,outputFactory.getUnknownOutput());
+    }
+
+    /**
+     * Passes the tokens through BERT, replacing any unknown tokens with the [UNK] token.
+     * <p>
+     * The features of the returned example are dense, and are controlled by the output pooling field.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the list is longer than {@link #getMaxLength}.
+     * Throws {@link IllegalStateException} if the BERT model failed to produce an output.
+     * @param tokens The input tokens. Should be tokenized using the Tokenizer this BERT expects.
+     * @param output The ground truth output for this example.
+     * @return A dense example representing the pooled output from BERT for the input tokens.
+     */
+    public Example<T> extractExample(List<String> tokens, T output) {
+        var bertOutput = extractor.processTokens(List.of(tokens));
+        double[] features = extractFeatures(bertOutput.get(TOKEN_OUTPUT).buffer(), embeddingDim);
+        return new ArrayExample<>(output,featureNames,features);
+    }
+
+    /**
      * Tokenizes the input using the loaded tokenizer, truncates the
      * token list if it's longer than {@code maxLength} - 2 (to account
      * for [CLS] and [SEP] tokens), and then passes the token
-     * list to {@link #extractExample}.
+     * list to the wrapped ONNX model.
      * @param output The output object.
      * @param data The input text.
      * @return An example containing BERT embedding features and the requested output.
      */
     @Override
     public Example<T> extract(T output, String data) {
-        List<String> tokens = tokenize(data);
-        return extractExample(tokens,output);
+        var bertOutput = extractor.process(data);
+        double[] features = extractFeatures(bertOutput.get(TOKEN_OUTPUT).buffer(), embeddingDim);
+        return new ArrayExample<>(output,featureNames,features);
     }
 
     /**
@@ -381,8 +415,8 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
      */
     @Override
     public List<Feature> process(String tag, String data) {
-        List<String> tokens = tokenize(data);
-        double[] featureValues = extractFeatures(tokens);
+        var bertOutput = extractor.process(data);
+        double[] featureValues = extractFeatures(bertOutput.get(outputName).buffer(), embeddingDim);
         List<Feature> features = new ArrayList<>(featureValues.length);
         for (int i = 0; i < featureValues.length; i++) {
             features.add(new Feature(tag + "-" + featureNames[i],featureValues[i]));
