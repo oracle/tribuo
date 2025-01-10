@@ -41,6 +41,10 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <tribuo.java.version>17</tribuo.java.version>
+        <maven.compiler.source>${tribuo.java.version}</maven.compiler.source>
+        <maven.compiler.target>${tribuo.java.version}</maven.compiler.target>
+        <maven.compiler.release>${tribuo.java.version}</maven.compiler.release>
 
         <!-- MLRG dependencies -->
         <olcut.version>5.3.1</olcut.version>
@@ -229,7 +233,7 @@
                         <additionalJOption>-Xmaxwarns</additionalJOption>
                         <additionalJOption>65536</additionalJOption>
                     </additionalJOptions>
-                    <source>17</source>
+                    <source>${tribuo.java.version}</source>
                     <show>protected</show>
                     <notimestamp>true</notimestamp>
                     <failOnError>false</failOnError>
@@ -367,8 +371,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <release>17</release>
-                    <testRelease>17</testRelease>
+                    <release>${tribuo.java.version}</release>
+                    <testRelease>${tribuo.java.version}</testRelease>
                     <compilerArgument>
                         -Xlint:all
                     </compilerArgument>

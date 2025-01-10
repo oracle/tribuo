@@ -27,10 +27,6 @@
     <name>InformationTheory</name>
     <artifactId>tribuo-util-infotheory</artifactId>
     <packaging>jar</packaging>
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
 
     <dependencies>
         <dependency>
