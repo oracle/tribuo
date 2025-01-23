@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@ package org.tribuo.classification.sgd.objectives;
 
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.classification.sgd.LabelObjective;
+import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
-import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.ExpNormalizer;
 import org.tribuo.math.util.VectorNormalizer;
@@ -41,25 +40,24 @@ public class LogMulticlass implements LabelObjective {
     public LogMulticlass() {}
 
     /**
-     * Returns a {@link Pair} of {@link Double} and {@link SGDVector} representing the loss
-     * and per label gradients respectively.
+     * Returns a {@link org.tribuo.math.Parameters.LossAndGrad} containing the loss and per label gradients.
      * <p>
      * The prediction vector is transformed to produce the per label gradient and returned.
      * @param truth The true label id
      * @param prediction The prediction for each label id
-     * @return A Pair of the score and per label gradient.
+     * @return The score and per label gradient.
      */
     @Override
-    public Pair<Double,SGDVector> lossAndGradient(Integer truth, SGDVector prediction) {
+    public Parameters.LossAndGrad lossAndGradient(Integer truth, SGDVector prediction) {
         prediction.normalize(normalizer);
         double loss = Math.log(prediction.get(truth));
         prediction.scaleInPlace(-1.0);
         prediction.add(truth,1.0);
-        return new Pair<>(loss,prediction);
+        return new Parameters.LossAndGrad(loss,prediction);
     }
 
     @Override
-    public Pair<double[], Matrix> batchLossAndGradient(int[] truth, DenseMatrix prediction) {
+    public Parameters.BatchLossAndGrad batchLossAndGradient(int[] truth, DenseMatrix prediction) {
         prediction.normalizeRows(normalizer);
         prediction.scaleInPlace(-1.0);
         double[] loss = new double[truth.length];
@@ -67,7 +65,23 @@ public class LogMulticlass implements LabelObjective {
             loss[i] = Math.log(prediction.get(i, truth[i]) * -1.0);
             prediction.add(i, truth[i], 1.0);
         }
-        return new Pair<>(loss,prediction);
+        return new Parameters.BatchLossAndGrad(loss,prediction);
+    }
+
+    @Override
+    public double loss(Integer truth, SGDVector prediction) {
+        prediction.normalize(normalizer);
+        return Math.log(prediction.get(truth));
+    }
+
+    @Override
+    public double[] batchLoss(int[] truth, DenseMatrix prediction) {
+        prediction.normalizeRows(normalizer);
+        double[] loss = new double[truth.length];
+        for (int i = 0; i < truth.length; i++) {
+            loss[i] = Math.log(prediction.get(i, truth[i]));
+        }
+        return loss;
     }
 
     @Override

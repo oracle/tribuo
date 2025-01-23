@@ -661,6 +661,34 @@ public non-sealed class DenseVector implements SGDVector {
     }
 
     /**
+     * Sets this vector to be the same as {@code other} copying from {@code thisStartPos} to {@code otherStartPos} for {@code length} elements.
+     * @param other The {@link DenseVector} to copy.
+     * @param thisStartPos The source start position.
+     * @param otherStartPos The destination start position.
+     * @param length The length to copy.
+     */
+    public void setElements(DenseVector other, int thisStartPos, int otherStartPos, int length) {
+        if (length > other.size()) {
+            throw new IllegalArgumentException("Invalid length argument, expected length <= " + other.size() + ", found " + length);
+        }
+        if (thisStartPos > elements.length) {
+            throw new IllegalArgumentException("Invalid start argument, expected start pos inside this vector, found " + thisStartPos);
+        }
+        if (otherStartPos > other.size()) {
+            throw new IllegalArgumentException("Invalid start argument, expected other start pos inside the other vector, found " + otherStartPos);
+        }
+        if (thisStartPos + length > elements.length) {
+            throw new IllegalArgumentException("Invalid arguments, startPos + length must be less than size, startPos " + thisStartPos + ", length " + length + ", size " + elements.length);
+        }
+        if (otherStartPos + length > other.elements.length) {
+            throw new IllegalArgumentException("Invalid arguments, destStartPos + length must be less than other.size, startPos " + otherStartPos + ", length " + length + ", size " + other.elements.length);
+        }
+        for (int i = 0; i < length; i++) {
+            elements[thisStartPos + i] = other.get(otherStartPos + i);
+        }
+    }
+
+    /**
      * Fills this {@link DenseVector} with {@code value}.
      * @param value The value to store in this vector.
      */

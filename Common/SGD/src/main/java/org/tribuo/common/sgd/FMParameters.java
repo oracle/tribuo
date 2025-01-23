@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.tribuo.common.sgd;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.common.sgd.protos.FMParametersProto;
 import org.tribuo.math.FeedForwardParameters;
 import org.tribuo.math.Parameters;
@@ -272,10 +271,10 @@ public final class FMParameters implements FeedForwardParameters {
      * @return A {@link Tensor} array containing all the gradients.
      */
     @Override
-    public Tensor[] gradients(Pair<Double, SGDVector> score, SGDVector features) {
+    public Tensor[] gradients(LossAndGrad score, SGDVector features) {
         Tensor[] gradients = new Tensor[weights.length];
 
-        SGDVector outputGradient = score.getB();
+        SGDVector outputGradient = score.gradient();
         // Bias gradient
         if (outputGradient instanceof SparseVector) {
             gradients[0] = ((SparseVector) outputGradient).densify();
@@ -334,10 +333,10 @@ public final class FMParameters implements FeedForwardParameters {
         return gradients;
     }
     @Override
-    public Tensor[] gradients(Pair<double[], Matrix> score, Matrix featureBatch) {
+    public Tensor[] gradients(BatchLossAndGrad score, Matrix featureBatch) {
         Tensor[] gradients = new Tensor[weights.length];
 
-        Matrix outputGradient = score.getB();
+        Matrix outputGradient = score.gradient();
         // Bias gradient
         gradients[0] = outputGradient.columnSum();
 

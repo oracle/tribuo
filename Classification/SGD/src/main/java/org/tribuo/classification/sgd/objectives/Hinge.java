@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,9 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.classification.sgd.LabelObjective;
+import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
-import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.util.NoopNormalizer;
@@ -56,19 +56,18 @@ public class Hinge implements LabelObjective {
     }
 
     /**
-     * Returns a {@link Pair} of {@link Double} and {@link SGDVector} representing the loss
-     * and per label gradients respectively.
+     * Returns a {@link org.tribuo.math.Parameters.LossAndGrad} containing the loss and per label gradients.
      * @param truth The true label id.
      * @param prediction The prediction for each label id.
      * @return The loss and per label gradient.
      */
     @Override
-    public Pair<Double,SGDVector> lossAndGradient(Integer truth, SGDVector prediction) {
+    public Parameters.LossAndGrad lossAndGradient(Integer truth, SGDVector prediction) {
         prediction.add(truth,-margin);
         int predIndex = prediction.indexOfMax();
 
         if (truth == predIndex) {
-            return new Pair<>(0.0, SparseVector.createSparseVector(prediction.size(),new int[0], new double[0]));
+            return new Parameters.LossAndGrad(0.0, SparseVector.createSparseVector(prediction.size(),new int[0], new double[0]));
         } else {
             int[] indices = new int[2];
             double[] values = new double[2];
@@ -85,12 +84,12 @@ public class Hinge implements LabelObjective {
             }
             SparseVector output = SparseVector.createSparseVector(prediction.size(),indices,values);
             double loss = prediction.get(truth) - prediction.get(predIndex);
-            return new Pair<>(loss,output);
+            return new Parameters.LossAndGrad(loss,output);
         }
     }
 
     @Override
-    public Pair<double[], Matrix> batchLossAndGradient(int[] truth, DenseMatrix prediction) {
+    public Parameters.BatchLossAndGrad batchLossAndGradient(int[] truth, DenseMatrix prediction) {
         for (int i = 0; i < truth.length; i++) {
             prediction.add(i, truth[i], -margin);
         }
@@ -119,7 +118,35 @@ public class Hinge implements LabelObjective {
                 vectors[i] = SparseVector.createSparseVector(prediction.getDimension2Size(), indices, values);
             }
         }
-        return new Pair<>(loss, DenseSparseMatrix.createFromSparseVectors(vectors));
+        return new Parameters.BatchLossAndGrad(loss, DenseSparseMatrix.createFromSparseVectors(vectors));
+    }
+
+    @Override
+    public double loss(Integer truth, SGDVector prediction) {
+        prediction.add(truth,-margin);
+        int predIndex = prediction.indexOfMax();
+
+        if (truth == predIndex) {
+            return 0.0;
+        } else {
+            return prediction.get(truth) - prediction.get(predIndex);
+        }
+    }
+
+    @Override
+    public double[] batchLoss(int[] truth, DenseMatrix prediction) {
+        for (int i = 0; i < truth.length; i++) {
+            prediction.add(i, truth[i], -margin);
+        }
+        int[] predIndex = prediction.indexOfRowMax();
+
+        double[] loss = new double[truth.length];
+        for (int i = 0; i < truth.length; i++) {
+            if (truth != predIndex) {
+                loss[i] = prediction.get(i, truth[i]) - prediction.get(i, predIndex[i]);
+            }
+        }
+        return loss;
     }
 
     /**

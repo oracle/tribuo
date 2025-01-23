@@ -18,7 +18,6 @@ package org.tribuo.math;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
@@ -143,14 +142,14 @@ public class LinearParameters implements FeedForwardParameters {
      * @return A {@link Tensor} array with a single {@link Matrix} containing all gradients.
      */
     @Override
-    public Tensor[] gradients(Pair<Double, SGDVector> score, SGDVector features) {
-        Matrix gradient = score.getB().outer(features);
+    public Tensor[] gradients(LossAndGrad score, SGDVector features) {
+        Matrix gradient = score.gradient().outer(features);
         return new Tensor[]{gradient};
     }
 
     @Override
-    public Tensor[] gradients(Pair<double[], Matrix> score, Matrix featureBatch) {
-        Matrix gradient = score.getB().matrixMultiply(featureBatch, true, false);
+    public Tensor[] gradients(BatchLossAndGrad score, Matrix featureBatch) {
+        Matrix gradient = score.gradient().matrixMultiply(featureBatch, true, false);
         return new Tensor[]{gradient};
     }
 

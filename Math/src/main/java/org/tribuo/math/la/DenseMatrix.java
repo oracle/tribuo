@@ -305,6 +305,22 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
+     * Returns a flattened copy of this matrix.
+     * @return A flattened copy.
+     */
+    public DenseVector ravel() {
+        double[] vector = new double[numElements];
+        int a = 0;
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                vector[a] = get(i,j);
+                a++;
+            }
+        }
+        return new DenseVector(vector);
+    }
+
+    /**
      * Copies the matrix.
      * @return A deep copy of the matrix.
      */
@@ -418,6 +434,43 @@ public class DenseMatrix implements Matrix {
     @Override
     public void set(int i, int j, double value) {
         values[i][j] = value;
+    }
+
+    /**
+     * Sets all the values of this dense matrix using the supplied values which are assumed to come from a
+     * {@link #ravel()} of the matrix.
+     * @param vec The values to set.
+     */
+    public void set(DenseVector vec) {
+       if (vec.size() != numElements) {
+           throw new IllegalArgumentException("Invalid vector, must have " + numElements + " elements, found " + vec.size());
+       }
+        int a = 0;
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                values[i][j] = vec.get(a);
+                a++;
+            }
+        }
+    }
+
+    /**
+     * Sets all the values of this dense matrix using the supplied values which are assumed to come from an aggregated
+     * {@link #ravel()} of the matrix.
+     * @param vec The values to set.
+     * @param startPos The start position in the supplied vector.
+     */
+    public void set(DenseVector vec, int startPos) {
+        if (vec.size() > numElements + startPos) {
+            throw new IllegalArgumentException("Invalid vector, must have " + numElements + " remaining elements, found " + (vec.size() - startPos));
+        }
+        int a = 0;
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                values[i][j] = vec.get(startPos + a);
+                a++;
+            }
+        }
     }
 
     @Override

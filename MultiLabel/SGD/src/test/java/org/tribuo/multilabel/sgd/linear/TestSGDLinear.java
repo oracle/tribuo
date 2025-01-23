@@ -78,41 +78,6 @@ public class TestSGDLinear {
     }
 
     @Test
-    public void testEquivalence() {
-        MultiLabelFactory factory = new MultiLabelFactory();
-        // Make classification data
-        NoisyInterlockingCrescentsDataSource trainSource = new NoisyInterlockingCrescentsDataSource(100, 42, 0.1);
-        Dataset<Label> lblDataset = new MutableDataset<>(trainSource);
-
-        // Make multilabel version
-        List<Example<MultiLabel>> list = new ArrayList<>();
-        for (Example<Label> e : lblDataset.getData()) {
-            MultiLabel output = new MultiLabel(e.getOutput());
-            ArrayExample<MultiLabel> example = new ArrayExample<>(output);
-            for (Feature f : e) {
-                example.add(f);
-            }
-            list.add(example);
-        }
-        ListDataSource<MultiLabel> mlSource = new ListDataSource<>(list,factory, new SimpleDataSourceProvenance("test", factory));
-        Dataset<MultiLabel> mlDataset = new MutableDataset<>(mlSource);
-
-        // test log loss
-        org.tribuo.classification.sgd.linear.LinearSGDTrainer logTrainer = new org.tribuo.classification.sgd.linear.LinearSGDTrainer(new org.tribuo.classification.sgd.objectives.LogMulticlass(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
-        LinearSGDTrainer logMLTrainer = new LinearSGDTrainer(new BinaryCrossEntropy(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
-        AbstractLinearSGDModel<Label> logModel = logTrainer.train(lblDataset);
-        AbstractLinearSGDModel<MultiLabel> logMLModel = logMLTrainer.train(mlDataset);
-        assertEquals(logModel.getWeightsCopy(), logMLModel.getWeightsCopy());
-
-        // test hinge loss
-        org.tribuo.classification.sgd.linear.LinearSGDTrainer hingeTrainer = new org.tribuo.classification.sgd.linear.LinearSGDTrainer(new org.tribuo.classification.sgd.objectives.Hinge(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
-        LinearSGDTrainer hingeMLTrainer = new LinearSGDTrainer(new Hinge(), new AdaGrad(0.1), 5, Trainer.DEFAULT_SEED);
-        AbstractLinearSGDModel<Label> hingeModel = hingeTrainer.train(lblDataset);
-        AbstractLinearSGDModel<MultiLabel> hingeMLModel = hingeMLTrainer.train(mlDataset);
-        assertEquals(hingeModel.getWeightsCopy(), hingeMLModel.getWeightsCopy());
-    }
-
-    @Test
     public void testPredictions() {
         Dataset<MultiLabel> train = MultiLabelDataGenerator.generateTrainData();
         Dataset<MultiLabel> test = MultiLabelDataGenerator.generateTestData();

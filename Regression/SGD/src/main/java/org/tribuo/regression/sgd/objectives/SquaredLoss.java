@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.tribuo.regression.sgd.objectives;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.Matrix;
@@ -36,17 +37,30 @@ public class SquaredLoss implements RegressionObjective {
     public SquaredLoss() {}
 
     @Override
-    public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
+    public Parameters.LossAndGrad lossAndGradient(DenseVector truth, SGDVector prediction) {
         DenseVector difference = truth.subtract(prediction);
         double loss = difference.reduce(0.0, (double a) -> 0.5*a*a, Double::sum);
-        return new Pair<>(loss, difference);
+        return new Parameters.LossAndGrad(loss, difference);
     }
 
     @Override
-    public Pair<double[], Matrix> batchLossAndGradient(DenseMatrix truth, DenseMatrix prediction) {
+    public Parameters.BatchLossAndGrad batchLossAndGradient(DenseMatrix truth, DenseMatrix prediction) {
         DenseMatrix difference = truth.subtract(prediction);
         DenseVector loss = difference.reduceRows(0.0, (double a) -> 0.5*a*a, Double::sum);
-        return new Pair<>(loss, difference);
+        return new Parameters.BatchLossAndGrad(loss.toArray(), difference);
+    }
+
+    @Override
+    public double loss(DenseVector truth, SGDVector prediction) {
+        DenseVector difference = truth.subtract(prediction);
+        return difference.reduce(0.0, (double a) -> 0.5*a*a, Double::sum);
+    }
+
+    @Override
+    public double[] batchLoss(DenseMatrix truth, DenseMatrix prediction) {
+        DenseMatrix difference = truth.subtract(prediction);
+        DenseVector loss = difference.reduceRows(0.0, (double a) -> 0.5*a*a, Double::sum);
+        return loss.toArray();
     }
 
     @Override

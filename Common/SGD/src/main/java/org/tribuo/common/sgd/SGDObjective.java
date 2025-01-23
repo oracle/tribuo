@@ -19,9 +19,8 @@ package org.tribuo.common.sgd;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
-import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
-import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 
 /**
@@ -39,7 +38,7 @@ public interface SGDObjective<T,U> extends Configurable, Provenancable<Configure
      * @param prediction The prediction for each dimension.
      * @return The score and per dimension gradient.
      */
-    Pair<Double, SGDVector> lossAndGradient(T truth, SGDVector prediction);
+    Parameters.LossAndGrad lossAndGradient(T truth, SGDVector prediction);
 
     /**
      * Scores a batch of predictions, returning the loss and a matrix of per output dimension gradients.
@@ -48,5 +47,9 @@ public interface SGDObjective<T,U> extends Configurable, Provenancable<Configure
      * @param prediction The prediction matrix.
      * @return The score and per dimension gradient.
      */
-    Pair<double[], Matrix> batchLossAndGradient(U truth, DenseMatrix prediction);
+    Parameters.BatchLossAndGrad batchLossAndGradient(U truth, DenseMatrix prediction);
+
+    double loss(T truth, SGDVector prediction);
+
+    double[] batchLoss(U truth, DenseMatrix prediction);
 }
