@@ -19,7 +19,6 @@ package org.tribuo.classification.sgd.objectives;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.classification.sgd.LabelObjective;
 import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
@@ -83,7 +82,7 @@ public class Hinge implements LabelObjective {
                 values[1] = margin;
             }
             SparseVector output = SparseVector.createSparseVector(prediction.size(),indices,values);
-            double loss = prediction.get(truth) - prediction.get(predIndex);
+            double loss = prediction.get(predIndex) - prediction.get(truth);
             return new Parameters.LossAndGrad(loss,output);
         }
     }
@@ -114,7 +113,7 @@ public class Hinge implements LabelObjective {
                     indices[1] = truth[i];
                     values[1] = margin;
                 }
-                loss[i] = prediction.get(i, truth[i]) - prediction.get(i, predIndex[i]);
+                loss[i] = prediction.get(i, predIndex[i]) - prediction.get(i, truth[i]);
                 vectors[i] = SparseVector.createSparseVector(prediction.getDimension2Size(), indices, values);
             }
         }
@@ -129,7 +128,7 @@ public class Hinge implements LabelObjective {
         if (truth == predIndex) {
             return 0.0;
         } else {
-            return prediction.get(truth) - prediction.get(predIndex);
+            return prediction.get(predIndex) - prediction.get(truth);
         }
     }
 
@@ -143,7 +142,7 @@ public class Hinge implements LabelObjective {
         double[] loss = new double[truth.length];
         for (int i = 0; i < truth.length; i++) {
             if (truth != predIndex) {
-                loss[i] = prediction.get(i, truth[i]) - prediction.get(i, predIndex[i]);
+                loss[i] = prediction.get(i, predIndex[i]) - prediction.get(i, truth[i]);
             }
         }
         return loss;

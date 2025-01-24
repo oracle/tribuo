@@ -50,7 +50,7 @@ public class LogMulticlass implements LabelObjective {
     @Override
     public Parameters.LossAndGrad lossAndGradient(Integer truth, SGDVector prediction) {
         prediction.normalize(normalizer);
-        double loss = Math.log(prediction.get(truth));
+        double loss = -Math.log(prediction.get(truth));
         prediction.scaleInPlace(-1.0);
         prediction.add(truth,1.0);
         return new Parameters.LossAndGrad(loss,prediction);
@@ -62,7 +62,7 @@ public class LogMulticlass implements LabelObjective {
         prediction.scaleInPlace(-1.0);
         double[] loss = new double[truth.length];
         for (int i = 0; i < truth.length; i++) {
-            loss[i] = Math.log(prediction.get(i, truth[i]) * -1.0);
+            loss[i] = -Math.log(prediction.get(i, truth[i]) * -1.0);
             prediction.add(i, truth[i], 1.0);
         }
         return new Parameters.BatchLossAndGrad(loss,prediction);
@@ -71,7 +71,7 @@ public class LogMulticlass implements LabelObjective {
     @Override
     public double loss(Integer truth, SGDVector prediction) {
         prediction.normalize(normalizer);
-        return Math.log(prediction.get(truth));
+        return -Math.log(prediction.get(truth));
     }
 
     @Override
@@ -79,7 +79,7 @@ public class LogMulticlass implements LabelObjective {
         prediction.normalizeRows(normalizer);
         double[] loss = new double[truth.length];
         for (int i = 0; i < truth.length; i++) {
-            loss[i] = Math.log(prediction.get(i, truth[i]));
+            loss[i] = -Math.log(prediction.get(i, truth[i]));
         }
         return loss;
     }
