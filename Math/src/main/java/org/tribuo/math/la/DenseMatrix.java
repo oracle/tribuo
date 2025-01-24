@@ -779,14 +779,13 @@ public class DenseMatrix implements Matrix {
         if ((dim1 != other.getDimension1Size()) || (dim2 != other.getDimension2Size())) {
             throw new IllegalArgumentException("Invalid input, dimension mismatch, this ["+dim1+","+dim2+"], other ["+other.getDimension1Size()+","+other.getDimension2Size()+"]");
         }
-        DenseMatrix output = new DenseMatrix(this);
+        double[][] output = new double[this.getDimension1Size()][];
 
         for (int i = 0; i < dim1; i++) {
-            // getRow is a view on the data
-            output.getRow(i).subtract(other.getRow(i));
+            output[i] = getRow(i).subtract(other.getRow(i)).elements;
         }
 
-        return output;
+        return new DenseMatrix(output);
     }
 
     /**
