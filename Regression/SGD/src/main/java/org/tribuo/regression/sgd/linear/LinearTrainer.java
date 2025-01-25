@@ -43,12 +43,11 @@ import java.util.logging.Logger;
  * Springer, 2006.
  * </pre>
  */
-public final class LinearTrainer  extends AbstractLinearTrainer<Regressor, DenseMatrix, LinearSGDModel> {
+public final class LinearTrainer extends AbstractLinearTrainer<Regressor, DenseMatrix, LinearSGDModel> {
     private static final Logger logger = Logger.getLogger(LinearTrainer.class.getName());
 
     @Config(description = "The regression objective function to use.")
     private RegressionObjective objective = new SquaredLoss();
-
 
     /**
      * Constructs a trainer for a linear model using L-BFGS.

@@ -41,7 +41,7 @@ import java.util.logging.Logger;
  * Springer, 2006.
  * </pre>
  */
-public final class LinearTrainer  extends AbstractLinearTrainer<Label, int[], LinearSGDModel> {
+public final class LinearTrainer extends AbstractLinearTrainer<Label, int[], LinearSGDModel> {
     private static final Logger logger = Logger.getLogger(LinearTrainer.class.getName());
 
     @Config(description = "The classification objective function to use.")

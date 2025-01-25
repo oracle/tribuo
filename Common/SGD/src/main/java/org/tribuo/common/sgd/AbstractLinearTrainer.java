@@ -36,6 +36,7 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
@@ -112,7 +113,12 @@ public abstract class AbstractLinearTrainer<T extends Output<T>, U, V extends Ab
     }
 
     @Override
-    public AbstractLinearSGDModel<T> train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
+    public V train(Dataset<T> examples) {
+        return train(examples, Collections.emptyMap());
+    }
+
+    @Override
+    public V train(Dataset<T> examples, Map<String, Provenance> runProvenance) {
         if (examples.getOutputInfo().getUnknownCount() > 0) {
             throw new IllegalArgumentException("The supplied Dataset contained unknown Outputs, and this Trainer is supervised.");
         }

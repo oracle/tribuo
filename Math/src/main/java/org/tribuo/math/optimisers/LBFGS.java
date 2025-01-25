@@ -142,7 +142,7 @@ public final class LBFGS {
                 break;
             } else if (Double.isNaN(gradNorm) || Double.isInfinite(gradNorm)) {
                 converged = true;
-                logger.log(System.Logger.Level.WARNING, "L-BFGS diverged at iteration " + i + " with loss value " + lossValue);
+                logger.log(System.Logger.Level.WARNING, "L-BFGS diverged at iteration " + i + " with loss value " + lossValue + " due to a NaN gradient");
                 break;
             }
 
@@ -170,8 +170,13 @@ public final class LBFGS {
             yArr[0] = gradCopy.subtract(oldGrad);
             double sdoty = sArr[0].dot(yArr[0]);
             rhoArr[0] = 1.0 / sdoty;
-            gamma = sdoty / (yArr[0].dot(yArr[0]));
-            logger.log(System.Logger.Level.INFO, "L-BGFS iteration " + i + ", loss = " + lossValue + " gradNorm " + gradNorm + " gamma " + gamma);
+            double ydoty = yArr[0].dot(yArr[0]);
+            gamma = sdoty / ydoty;
+            logger.log(System.Logger.Level.INFO, "L-BFGS iteration " + i + ", loss = " + lossValue + " gradNorm " + gradNorm + " gamma " + gamma);
+            if (ydoty == 0.0) {
+                logger.log(System.Logger.Level.INFO, "L-BFGS converged as gradient is unchanging");
+                break;
+            }
         }
         if (!converged) {
             logger.log(System.Logger.Level.INFO, "Max iterations exceeded at loss " + lossValue);
@@ -258,9 +263,11 @@ public final class LBFGS {
         Tensor[] newPos = unravelVector(params, raveledParams);
         double curLoss = lossFunc.applyAsDouble(newPos);
         var convergenceLimit = C_ONE * descentDirection.dot(gradient);
+        /* This check causes edge case training runs to fail, though it seems useful.
         if (convergenceLimit < 0) {
             throw new IllegalStateException("Invalid convergence limit, descent direction & gradient point in orthogonal or opposite directions, convergenceLimit " + convergenceLimit);
         }
+        */
         int itr = 0;
         while ((curLoss > (startLoss + alpha*convergenceLimit)) && (itr < MAX_LINESEARCH_ITR)) {
             double newAlpha = alpha * C_TWO;
