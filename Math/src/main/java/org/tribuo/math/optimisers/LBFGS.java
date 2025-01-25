@@ -258,15 +258,9 @@ public final class LBFGS {
         Tensor[] newPos = unravelVector(params, raveledParams);
         double curLoss = lossFunc.applyAsDouble(newPos);
         var convergenceLimit = C_ONE * descentDirection.dot(gradient);
-        /*
-        System.out.println("Descent direction " + descentDirection);
-        System.out.println("Gradient " + gradient);
-        System.out.println("Params " + params[0]);
-        System.out.println("New pos " + newPos[0]);
-        if (convergenceLimit >= 0) {
+        if (convergenceLimit < 0) {
             throw new IllegalStateException("Invalid convergence limit, descent direction & gradient point in orthogonal or opposite directions, convergenceLimit " + convergenceLimit);
         }
-         */
         int itr = 0;
         while ((curLoss > (startLoss + alpha*convergenceLimit)) && (itr < MAX_LINESEARCH_ITR)) {
             double newAlpha = alpha * C_TWO;
