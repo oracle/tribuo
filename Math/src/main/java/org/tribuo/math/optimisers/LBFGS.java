@@ -258,7 +258,7 @@ public final class LBFGS {
         Tensor[] newPos = unravelVector(params, raveledParams);
         double curLoss = lossFunc.applyAsDouble(newPos);
         var convergenceLimit = C_ONE * descentDirection.dot(gradient);
-        logger.log(System.Logger.Level.DEBUG, "Convergence limit " + convergenceLimit + " start loss " + startLoss + " curLoss " + curLoss);
+        logger.log(System.Logger.Level.INFO, "Convergence limit " + convergenceLimit + " start loss " + startLoss + " curLoss " + curLoss);
         /*
         System.out.println("Descent direction " + descentDirection);
         System.out.println("Gradient " + gradient);
