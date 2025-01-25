@@ -258,7 +258,6 @@ public final class LBFGS {
         Tensor[] newPos = unravelVector(params, raveledParams);
         double curLoss = lossFunc.applyAsDouble(newPos);
         var convergenceLimit = C_ONE * descentDirection.dot(gradient);
-        logger.log(System.Logger.Level.INFO, "Convergence limit " + convergenceLimit + " start loss " + startLoss + " curLoss " + curLoss);
         /*
         System.out.println("Descent direction " + descentDirection);
         System.out.println("Gradient " + gradient);
@@ -279,9 +278,9 @@ public final class LBFGS {
             itr++;
         }
         if (itr == MAX_LINESEARCH_ITR) {
-            logger.log(System.Logger.Level.INFO, "Exceeded line search iterations with alpha " + alpha);
+            logger.log(System.Logger.Level.INFO, "Exceeded line search iterations with alpha " + alpha + ", convergence limit " + convergenceLimit + ", start loss " + startLoss + ", end loss " + curLoss);
         } else {
-            logger.log(System.Logger.Level.INFO, "Line search terminated with alpha " + alpha + " at itr " + itr + " with loss " + curLoss);
+            logger.log(System.Logger.Level.INFO, "Line search terminated with alpha " + alpha + " at itr " + itr + " with end loss " + curLoss + ", start loss " + startLoss + ", convergence limit " + convergenceLimit);
         }
 
         return alpha;
