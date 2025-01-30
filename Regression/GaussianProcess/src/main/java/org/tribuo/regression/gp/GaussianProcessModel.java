@@ -78,7 +78,7 @@ public final class GaussianProcessModel extends Model<Regressor> {
     public Prediction<Regressor> predict(Example<Regressor> example) {
         SGDVector vec;
         if (example.size() == featureIDMap.size()) {
-            vec =  DenseVector.createDenseVector(example, featureIDMap, false);
+            vec = DenseVector.createDenseVector(example, featureIDMap, false);
         } else {
             vec = SparseVector.createSparseVector(example, featureIDMap, false);
         }
@@ -91,9 +91,25 @@ public final class GaussianProcessModel extends Model<Regressor> {
 
     @Override
     protected List<Prediction<Regressor>> innerPredict(Iterable<Example<Regressor>> examples) {
-        List<Prediction<Regressor>> predictions = new ArrayList<>();
+        List<Example<Regressor>> exampleList = new ArrayList<>();
+        List<SGDVector> vectors = new ArrayList<>();
         for (Example<Regressor> example : examples) {
-            predictions.add(predict(example));
+            if (example.size() == featureIDMap.size()) {
+                vectors.add(DenseVector.createDenseVector(example, featureIDMap, false));
+            } else {
+                vectors.add(SparseVector.createSparseVector(example, featureIDMap, false));
+            }
+            exampleList.add(example);
+        }
+        Matrix mat = Matrix.aggregate(vectors.toArray(new SGDVector[0]), vectors.size(), false);
+        DenseMatrix sim = kernel.computeSimilarityMatrix(mat, features);
+        DenseMatrix meanPred = sim.matrixMultiply(alpha);
+        meanPred.rowHadamardProductInPlace(outputVariances);
+        meanPred.rowIntersectAndAddInPlace(outputMeans);
+        List<Prediction<Regressor>> predictions = new ArrayList<>();
+        for (int i = 0; i < mat.getDimension1Size(); i++) {
+            var pred = new Prediction<>(new Regressor(dimensionNames,meanPred.getRow(i).toArray()), mat.getRow(i).numActiveElements(), exampleList.get(i));
+            predictions.add(pred);
         }
         return predictions;
     }
