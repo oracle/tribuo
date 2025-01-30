@@ -25,6 +25,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Trainer;
+import org.tribuo.WeightedExamples;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
@@ -52,7 +53,7 @@ import java.util.logging.Logger;
  * Springer, 2006.
  * </pre>
  */
-public abstract class AbstractLinearTrainer<T extends Output<T>, U, V extends AbstractLinearSGDModel<T>> implements Trainer<T> {
+public abstract class AbstractLinearTrainer<T extends Output<T>, U, V extends AbstractLinearSGDModel<T>> implements Trainer<T>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(AbstractLinearTrainer.class.getName());
 
     @Config(description="The number of optimization iterations.")
