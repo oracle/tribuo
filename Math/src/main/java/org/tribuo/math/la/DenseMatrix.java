@@ -841,6 +841,33 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * Adds the vector to each row of this matrix.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     */
+    public void rowHadamardProductInPlace(SGDVector vector) {
+        rowHadamardProductInPlace(vector, DoubleUnaryOperator.identity());
+    }
+
+    /**
+     * Adds the vector to each row of this matrix, applying the operator {@code f} to each element.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     * @param f The operator to use.
+     */
+    public void rowHadamardProductInPlace(SGDVector vector, DoubleUnaryOperator f) {
+        if (vector.size() != dim2) {
+            throw new IllegalArgumentException("Expected same number of dimensions as this matrix has columns, dim 2 = " + dim2 + ", vector.size " + vector.size() );
+        }
+        for (int i = 0; i < dim1; i++) {
+            DenseVector tmp = new DenseVector(values[i]);
+            tmp.hadamardProductInPlace(vector, f);
+        }
+    }
+
     @Override
     public void hadamardProductInPlace(Tensor other, DoubleUnaryOperator f) {
         if (other instanceof Matrix) {
@@ -1655,6 +1682,14 @@ public class DenseMatrix implements Matrix {
 
         CholeskyFactorization(DenseMatrix lMatrix) {
             this.lMatrix = lMatrix;
+        }
+
+        /**
+         * Returns a deep copy of this factorization.
+         * @return A copy of this factorization.
+         */
+        public CholeskyFactorization copy() {
+            return new CholeskyFactorization(lMatrix.copy());
         }
 
         /**

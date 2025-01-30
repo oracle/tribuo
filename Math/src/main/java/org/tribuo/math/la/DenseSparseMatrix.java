@@ -148,6 +148,20 @@ public class DenseSparseMatrix implements Matrix {
     }
 
     /**
+     * Creates a diagonal matrix using the supplied value.
+     * @param size The size of the matrix.
+     * @param value The value to use for the diagonal.
+     * @return A diagonal matrix.
+     */
+    public static DenseSparseMatrix createDiagonal(int size, double value) {
+        SparseVector[] newValues = new SparseVector[size];
+        for (int i = 0; i < size; i++) {
+            newValues[i] = new SparseVector(size, new int[]{i}, new double[]{value});
+        }
+        return new DenseSparseMatrix(newValues);
+    }
+
+    /**
      * Creates a diagonal matrix using the supplied values.
      * @param diagonal The values along the diagonal.
      * @return A diagonal matrix.
