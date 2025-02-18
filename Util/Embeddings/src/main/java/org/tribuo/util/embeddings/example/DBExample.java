@@ -26,7 +26,7 @@ import com.oracle.labs.mlrg.olcut.config.UsageException;
 import org.tribuo.util.embeddings.FloatTensorBuffer;
 import org.tribuo.util.embeddings.processors.NoOpInputProcessor;
 import org.tribuo.util.embeddings.processors.NoOpOutputProcessor;
-import org.tribuo.util.embeddings.OnnxFeatureExtractor;
+import org.tribuo.util.embeddings.OnnxTextEmbedder;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -89,7 +89,7 @@ public final class DBExample {
     public static void main(String[] args) throws IOException, OrtException {
         DBExampleOptions opts = new DBExampleOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args,opts)) {
-            OnnxFeatureExtractor extractor = new OnnxFeatureExtractor(
+            OnnxTextEmbedder extractor = new OnnxTextEmbedder(
                 opts.modelPath,
                 new NoOpInputProcessor(),
                 new NoOpOutputProcessor(opts.embeddingDimension),

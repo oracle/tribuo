@@ -22,6 +22,7 @@ import ai.onnxruntime.OrtException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,6 +39,21 @@ public final class FloatTensorBuffer extends TensorBuffer<FloatBuffer> {
      */
     public FloatTensorBuffer(FloatBuffer buffer, long[] shape) {
         super(buffer, shape);
+    }
+
+    /**
+     * Creates a float tensor from the supplied buffer and shape filled with the supplied value.
+     * @param buffer The buffer.
+     * @param shape The shape.
+     * @param value The value.
+     */
+    public FloatTensorBuffer(FloatBuffer buffer, long[] shape, float value) {
+        super(buffer, shape);
+
+        for (int i = 0; i < this.numElements; i++) {
+            buffer.put(value);
+        }
+        buffer.rewind();
     }
 
     /**

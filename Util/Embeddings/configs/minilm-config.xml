@@ -5,11 +5,11 @@
 
 <!--OLCUT configuration file-->
 <config>
-  <component name="minilm" type="org.tribuo.util.embeddings.OnnxFeatureExtractor">
+  <component name="minilm" type="org.tribuo.util.embeddings.OnnxTextEmbedder">
     <property name="intraOpThreads" value="0"/>
     <property name="interOpThreads" value="0"/>
     <property name="useCUDA" value="false"/>
-    <property name="modelPath" value="all-MiniLM-L6-v2-onnx/model.onnx"/>
+    <property name="modelPath" value="all-minilm-l6-v2.onnx"/>
     <property name="inputProcessor" value="minilm-input"/>
     <property name="outputProcessor" value="minilm-output"/>
   </component>

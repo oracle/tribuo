@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,23 @@
 package org.tribuo.util.embeddings.processors;
 
 import ai.onnxruntime.NodeInfo;
+import ai.onnxruntime.OnnxJavaType;
 import ai.onnxruntime.OnnxTensor;
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.TensorInfo;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.util.embeddings.BufferCache;
 import org.tribuo.util.embeddings.FloatTensorBuffer;
 import org.tribuo.util.embeddings.OutputProcessor;
 
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -52,6 +57,9 @@ public final class NoOpOutputProcessor implements OutputProcessor {
     @Config(description = "Output name")
     private String outputName = DEFAULT_OUTPUT_NAME;
 
+    /**
+     * For OLCUT.
+     */
     private NoOpOutputProcessor() {}
 
     /**
@@ -119,6 +127,21 @@ public final class NoOpOutputProcessor implements OutputProcessor {
             }
         });
         return outputs;
+    }
+
+    @Override
+    public BufferCache createOutputCache(int maxBatchSize, int maxNumTokens) {
+        List<BufferCache.TensorDescription> descriptions = List.of(
+                new BufferCache.TensorDescription(outputName, BufferCache.Shape.BATCH_EMBED, OnnxJavaType.FLOAT)
+        );
+        return new BufferCache(descriptions, maxBatchSize, maxNumTokens, embeddingDimension);
+    }
+
+    @Override
+    public Map<String, OnnxTensor> createOutputTensors(OrtEnvironment env, BufferCache cache, int batchSize, int numTokens) throws OrtException {
+        int outputSize = batchSize * embeddingDimension;
+        var outputTensor = new FloatTensorBuffer((FloatBuffer)cache.sliceOrThrow(outputName, outputSize), new long[]{batchSize, embeddingDimension}, 0.0f);
+        return Map.of(outputName, outputTensor.wrapForORT(env));
     }
 
     @Override

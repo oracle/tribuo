@@ -5,7 +5,7 @@
 
 <!--OLCUT configuration file-->
 <config>
-  <component name="cos-dpr-distil" type="org.tribuo.util.embeddings.OnnxFeatureExtractor">
+  <component name="cos-dpr-distil" type="org.tribuo.util.embeddings.OnnxTextEmbedder">
     <property name="intraOpThreads" value="0"/>
     <property name="interOpThreads" value="0"/>
     <property name="useCUDA" value="false"/>

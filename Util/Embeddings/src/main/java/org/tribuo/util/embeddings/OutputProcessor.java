@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 package org.tribuo.util.embeddings;
 
 import ai.onnxruntime.NodeInfo;
+import ai.onnxruntime.OnnxTensor;
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
@@ -51,4 +54,22 @@ public interface OutputProcessor extends Configurable, Provenancable<ConfiguredO
      */
     Map<String, FloatTensorBuffer> process(OrtSession.Result result, long[] inputLengths);
 
+    /**
+     * Create the output cache for this output processor.
+     * @param maxBatchSize The maximum batch size.
+     * @param maxNumTokens The maximum number of tokens.
+     * @return The output cache.
+     */
+    BufferCache createOutputCache(int maxBatchSize, int maxNumTokens);
+
+    /**
+     * Creates the output tensors from the supplied cache and parameters.
+     * @param env The OrtEnvironment which will own the tensors.
+     * @param cache The output cache.
+     * @param batchSize The batch size.
+     * @param numTokens The number of tokens.
+     * @return The prepared output tensors.
+     * @throws OrtException If the tensors could not be created.
+     */
+    Map<String, OnnxTensor> createOutputTensors(OrtEnvironment env, BufferCache cache, int batchSize, int numTokens) throws OrtException;
 }

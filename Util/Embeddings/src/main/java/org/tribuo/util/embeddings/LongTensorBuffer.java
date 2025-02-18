@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,21 @@ public final class LongTensorBuffer extends TensorBuffer<LongBuffer> {
      */
     public LongTensorBuffer(long[] shape) {
         super(alloc(shape), shape);
+    }
+
+    /**
+     * Creates a long tensor from the supplied buffer and shape filled with the supplied value.
+     * @param buffer The buffer.
+     * @param shape The shape.
+     * @param value The value.
+     */
+    public LongTensorBuffer(LongBuffer buffer, long[] shape, long value) {
+        super(buffer, shape);
+
+        for (int i = 0; i < this.numElements; i++) {
+            buffer.put(value);
+        }
+        buffer.rewind();
     }
 
     /**

@@ -17,18 +17,24 @@
 package org.tribuo.util.embeddings.processors;
 
 import ai.onnxruntime.NodeInfo;
+import ai.onnxruntime.OnnxJavaType;
 import ai.onnxruntime.OnnxTensor;
+import ai.onnxruntime.OrtEnvironment;
+import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.TensorInfo;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.util.embeddings.BufferCache;
 import org.tribuo.util.embeddings.FloatTensorBuffer;
 import org.tribuo.util.embeddings.OutputProcessor;
 
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -250,6 +256,24 @@ public final class BERTOutputProcessor implements OutputProcessor {
         } else {
             return Collections.singletonMap(tokenOutput, featureValues);
         }
+    }
+
+    @Override
+    public BufferCache createOutputCache(int maxBatchSize, int maxNumTokens) {
+        List<BufferCache.TensorDescription> descriptions = List.of(
+                new BufferCache.TensorDescription(poolerOutput, BufferCache.Shape.BATCH_EMBED, OnnxJavaType.FLOAT),
+                new BufferCache.TensorDescription(tokenOutput, BufferCache.Shape.BATCH_TOKEN_EMBED, OnnxJavaType.FLOAT)
+        );
+        return new BufferCache(descriptions, maxBatchSize, maxNumTokens, embeddingDimension);
+    }
+
+    @Override
+    public Map<String, OnnxTensor> createOutputTensors(OrtEnvironment env, BufferCache cache, int batchSize, int numTokens) throws OrtException {
+        int poolerSize = batchSize * embeddingDimension;
+        int tokenSize = batchSize * embeddingDimension * numTokens;
+        var poolerTensor = new FloatTensorBuffer((FloatBuffer)cache.sliceOrThrow(poolerOutput, poolerSize), new long[]{batchSize, embeddingDimension}, 0.0f);
+        var tokenTensor = new FloatTensorBuffer((FloatBuffer)cache.sliceOrThrow(tokenOutput, tokenSize), new long[]{batchSize, numTokens, embeddingDimension}, 0.0f);
+        return Map.of(poolerOutput, poolerTensor.wrapForORT(env), tokenOutput, tokenTensor.wrapForORT(env));
     }
 
     @Override

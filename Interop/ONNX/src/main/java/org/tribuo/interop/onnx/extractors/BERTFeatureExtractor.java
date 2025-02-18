@@ -31,7 +31,7 @@ import org.tribuo.data.text.TextPipeline;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.sequence.SequenceExample;
 import org.tribuo.util.embeddings.BERTTokenizerConfig;
-import org.tribuo.util.embeddings.OnnxFeatureExtractor;
+import org.tribuo.util.embeddings.OnnxTextEmbedder;
 import org.tribuo.util.embeddings.processors.BERTInputProcessor;
 import org.tribuo.util.embeddings.processors.BERTOutputProcessor;
 
@@ -53,7 +53,7 @@ import static org.tribuo.util.embeddings.processors.BERTInputProcessor.SEPARATOR
  * exported using their export tool.
  * <p>
  * The tokenizer is expected to be a HuggingFace Transformers tokenizer config json file.
- * @see OnnxFeatureExtractor
+ * @see OnnxTextEmbedder
  * @param <T> The output type.
  */
 public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable, TextFeatureExtractor<T>, TextPipeline {
@@ -117,7 +117,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
     // Cached feature names
     private String[] featureNames;
 
-    private OnnxFeatureExtractor extractor;
+    private OnnxTextEmbedder extractor;
     private String outputName;
     private boolean closed = false;
 
@@ -171,7 +171,7 @@ public class BERTFeatureExtractor<T extends Output<T>> implements AutoCloseable,
         };
         outputName = pooling == OutputPooling.POOLER ? POOLER_OUTPUT : TOKEN_OUTPUT;
         BERTOutputProcessor outputProcessor = new BERTOutputProcessor(bertPooling, embeddingDim, false, false, outputName);
-        extractor = new OnnxFeatureExtractor(modelPath, inputProcessor, outputProcessor, null, useCUDA, 1, 1);
+        extractor = new OnnxTextEmbedder(modelPath, inputProcessor, outputProcessor, null, useCUDA, 1, 1);
         featureNames = generateFeatureNames(embeddingDim);
     }
 

@@ -17,6 +17,7 @@
 package org.tribuo.util.embeddings.processors;
 
 import ai.onnxruntime.NodeInfo;
+import ai.onnxruntime.OnnxJavaType;
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
@@ -25,6 +26,7 @@ import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.util.embeddings.BERTTokenizerConfig;
+import org.tribuo.util.embeddings.BufferCache;
 import org.tribuo.util.embeddings.InputProcessor;
 import org.tribuo.util.embeddings.LongTensorBuffer;
 import org.tribuo.util.embeddings.TokenizerConfig;
@@ -279,10 +281,15 @@ public class BERTInputProcessor implements InputProcessor {
 
     @Override
     public ProcessedInput process(OrtEnvironment env, List<String> input) throws OrtException {
+        return process(env, input, null);
+    }
+
+    @Override
+    public ProcessedInput process(OrtEnvironment env, List<String> input, BufferCache cache) throws OrtException {
         if (input.size() == 1) {
             // no padding
             var tokens = tokenize(input.get(0));
-            return processTokens(env, tokens);
+            return processTokens(env, tokens, cache);
         } else if (!useMask) {
             // If we're not masking, then we can't pad the input without affecting the embedding
             // so it goes bang.
@@ -296,7 +303,7 @@ public class BERTInputProcessor implements InputProcessor {
                 tokens.add(t);
                 length = Math.max(length, t.size());
             }
-            return innerProcessTokensBatch(env, tokens, length);
+            return innerProcessTokensBatch(env, tokens, length, cache);
         }
     }
 
@@ -305,16 +312,25 @@ public class BERTInputProcessor implements InputProcessor {
      * @param env The ORT environment.
      * @param tokens The input tokens.
      * @param length The maximum length of the token lists.
+     * @param inputCache The input cache to use for the buffers, if null fresh buffers are created.
      * @return The processed input.
      * @throws OrtException If the native library throws an exception.
      */
-    private ProcessedInput innerProcessTokensBatch(OrtEnvironment env, List<List<String>> tokens, int length) throws OrtException {
+    private ProcessedInput innerProcessTokensBatch(OrtEnvironment env, List<List<String>> tokens, int length, BufferCache inputCache) throws OrtException {
         length += 2; // Adjust for special characters
-        long[] shape = new long[] {tokens.size(), length};
+        long[] shape = new long[]{tokens.size(), length};
         long[] lengths = new long[tokens.size()];
+        int bufSize = tokens.size() * length;
         // create and fill the ids.
-        LongTensorBuffer tokenIdsBuf = new LongTensorBuffer(shape);
-        LongTensorBuffer maskBuf = new LongTensorBuffer(shape);
+        LongTensorBuffer tokenIdsBuf;
+        LongTensorBuffer maskBuf;
+        if (inputCache == null) {
+            tokenIdsBuf = new LongTensorBuffer(shape);
+            maskBuf = new LongTensorBuffer(shape);
+        } else {
+            tokenIdsBuf = new LongTensorBuffer((LongBuffer) inputCache.sliceOrThrow(inputIdsName, bufSize), shape, 0);
+            maskBuf = new LongTensorBuffer((LongBuffer) inputCache.sliceOrThrow(maskName, bufSize), shape, 0);
+        }
         int idx = 0;
         for (var list : tokens) {
             tokenIdsBuf.buffer().put(bosTokenId);
@@ -345,7 +361,13 @@ public class BERTInputProcessor implements InputProcessor {
 
         tokenIdsBuf.buffer().rewind();
         if (useTokenType) {
-            OnnxTensor tokenTypes = new LongTensorBuffer(shape, tokenTypeValue).wrapForORT(env);
+            OnnxTensor tokenTypes;
+            if (inputCache == null) {
+                tokenTypes = new LongTensorBuffer(shape, tokenTypeValue).wrapForORT(env);
+            } else {
+                var tokenTypeBuf = (LongBuffer) inputCache.sliceOrThrow(tokenTypeName, bufSize);
+                tokenTypes = new LongTensorBuffer(tokenTypeBuf, shape, tokenTypeValue).wrapForORT(env);
+            }
             return new ProcessedInput(Map.of(inputIdsName, tokenIds, maskName, mask, tokenTypeName, tokenTypes), lengths, tokenIdsBuf);
         } else {
             return new ProcessedInput(Map.of(inputIdsName, tokenIds, maskName, mask), lengths, tokenIdsBuf);
@@ -354,6 +376,56 @@ public class BERTInputProcessor implements InputProcessor {
 
     @Override
     public ProcessedInput processTokensBatch(OrtEnvironment env, List<List<String>> tokens) throws OrtException {
+        return processTokensBatch(env, tokens, null);
+    }
+
+    /**
+     * Processes the input tokens into an input record.
+     * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
+     * @param tokens The pre-tokenized input to embed.
+     * @return A processed input record.
+     * @throws OrtException If tensor creation failed.
+     */
+    @Override
+    public ProcessedInput processTokens(OrtEnvironment env, List<String> tokens) throws OrtException {
+        return processTokens(env, tokens, null);
+    }
+
+    @Override
+    public ProcessedInput processTokens(OrtEnvironment env, List<String> tokens, BufferCache cache) throws OrtException {
+        int tokSize = tokens.size() + 2;
+        var shape = new long[]{1, tokSize};
+        Map<String, OnnxTensor> inputs = new HashMap<>(4);
+        LongBuffer buf = convertTokens(tokens, cache);
+        OnnxTensor tokenIds = OnnxTensor.createTensor(env,buf,shape);
+        inputs.put(inputIdsName, tokenIds);
+        if (useMask) {
+            OnnxTensor mask;
+            if (cache == null) {
+                mask = new LongTensorBuffer(shape, maskValue).wrapForORT(env);
+            } else {
+                // this is single element batch, so the space requirement is tokSize
+                var maskBuf = (LongBuffer) cache.sliceOrThrow(maskName, tokSize);
+                mask = new LongTensorBuffer(maskBuf, shape, maskValue).wrapForORT(env);
+            }
+            inputs.put(maskName, mask);
+        }
+        if (useTokenType) {
+            OnnxTensor tokenTypes;
+            if (cache == null) {
+                tokenTypes = new LongTensorBuffer(shape, tokenTypeValue).wrapForORT(env);
+            } else {
+                // this is single element batch, so the space requirement is tokSize
+                var tokenTypeBuf = (LongBuffer) cache.sliceOrThrow(tokenTypeName, tokSize);
+                tokenTypes = new LongTensorBuffer(tokenTypeBuf, shape, tokenTypeValue).wrapForORT(env);
+            }
+            inputs.put(tokenTypeName, tokenTypes);
+        }
+        return new ProcessedInput(inputs, new long[]{tokSize}, new LongTensorBuffer(buf, shape));
+    }
+
+    @Override
+    public ProcessedInput processTokensBatch(OrtEnvironment env, List<List<String>> tokens, BufferCache cache) throws OrtException {
         if (!useMask) {
             // If we're not masking, then we can't pad the input without affecting the embedding
             // so it goes bang.
@@ -367,32 +439,20 @@ public class BERTInputProcessor implements InputProcessor {
         if (length > maxLength-2) {
             throw new IllegalArgumentException("Tokens must be truncated to maxLength-2 to use this method, length = " + length + ", maxLength = " + maxLength);
         }
-        return innerProcessTokensBatch(env, tokens, length);
+        return innerProcessTokensBatch(env, tokens, length, cache);
     }
 
-    /**
-     * Processes the input tokens into an input record.
-     * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
-     * @param tokens The pre-tokenized input to embed.
-     * @return A processed input record.
-     * @throws OrtException If tensor creation failed.
-     */
-    public ProcessedInput processTokens(OrtEnvironment env, List<String> tokens) throws OrtException {
-        var shape = new long[]{1, tokens.size()+2};
-        Map<String, OnnxTensor> inputs = new HashMap<>(4);
-        LongBuffer buf = convertTokens(env, tokens);
-        OnnxTensor tokenIds = OnnxTensor.createTensor(env,buf,shape);
-        inputs.put(inputIdsName, tokenIds);
+    @Override
+    public BufferCache createInputCache(int maxBatchSize, int maxNumTokens) {
+        List<BufferCache.TensorDescription> descriptions = new ArrayList<>();
+        descriptions.add(new BufferCache.TensorDescription(inputIdsName, BufferCache.Shape.BATCH_TOKEN, OnnxJavaType.INT64));
         if (useMask) {
-            OnnxTensor mask = new LongTensorBuffer(shape, maskValue).wrapForORT(env);
-            // TODO: we should be setting the rest of this tensor to use the negativeMaskValue rather than accepting the zero default
-            inputs.put(maskName, mask);
+            descriptions.add(new BufferCache.TensorDescription(maskName, BufferCache.Shape.BATCH_TOKEN, OnnxJavaType.INT64));
         }
         if (useTokenType) {
-            OnnxTensor tokenTypes = new LongTensorBuffer(shape, tokenTypeValue).wrapForORT(env);
-            inputs.put(tokenTypeName, tokenTypes);
+            descriptions.add(new BufferCache.TensorDescription(tokenTypeName, BufferCache.Shape.BATCH_TOKEN, OnnxJavaType.INT64));
         }
-        return new ProcessedInput(inputs, new long[]{tokens.size()+2}, new LongTensorBuffer(buf, shape));
+        return new BufferCache(descriptions, maxBatchSize, maxNumTokens);
     }
 
     @Override
@@ -417,14 +477,18 @@ public class BERTInputProcessor implements InputProcessor {
     }
 
     /**
-     * Converts a token list into the appropriate tensor for ORT.
+     * Converts a token list into a buffer with the start & end tokens.
      * @param tokens The tokens to convert.
-     * @return An OnnxTensor representing the input, with the appropriate start and end tokens.
-     * @throws OrtException if it failed to create the tensor.
+     * @return An LongBuffer representing the input, with the appropriate start and end tokens.
      */
-    protected LongBuffer convertTokens(OrtEnvironment env, List<String> tokens) throws OrtException {
+    protected LongBuffer convertTokens(List<String> tokens, BufferCache inputCache) {
         int size = tokens.size() + 2; // for [CLS] and [SEP]
-        LongBuffer buf = ByteBuffer.allocateDirect(size*8).order(ByteOrder.nativeOrder()).asLongBuffer();
+        LongBuffer buf;
+        if (inputCache == null) {
+            buf = ByteBuffer.allocateDirect(size * 8).order(ByteOrder.nativeOrder()).asLongBuffer();
+        } else {
+            buf = (LongBuffer) inputCache.sliceOrThrow(inputIdsName, size);
+        }
 
         buf.put(bosTokenId);
         for (String token : tokens) {

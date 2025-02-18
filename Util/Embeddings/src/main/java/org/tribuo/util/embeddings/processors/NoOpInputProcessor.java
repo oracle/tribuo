@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import ai.onnxruntime.ValueInfo;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import org.tribuo.util.embeddings.BufferCache;
 import org.tribuo.util.embeddings.InputProcessor;
 import org.tribuo.util.embeddings.LongTensorBuffer;
 
@@ -114,6 +115,18 @@ public final class NoOpInputProcessor implements InputProcessor {
     }
 
     /**
+     * This method throws {@link UnsupportedOperationException} as this class does not support buffer caches.
+     * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
+     * @param input The input strings.
+     * @param cache The buffer cache.
+     * @return No return.
+     */
+    @Override
+    public ProcessedInput process(OrtEnvironment env, List<String> input, BufferCache cache) {
+        throw new UnsupportedOperationException("The NoOpInputProcessor doesn't support cached inputs as String OnnxTensors cannot be backed by byte buffers.");
+    }
+
+    /**
      * This method throws {@link UnsupportedOperationException} as this class does not contain a tokenizer.
      * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
      * @param tokens The pre-tokenized input to embed.
@@ -122,6 +135,29 @@ public final class NoOpInputProcessor implements InputProcessor {
     @Override
     public ProcessedInput processTokensBatch(OrtEnvironment env, List<List<String>> tokens) {
         throw new UnsupportedOperationException("The NoOpInputProcessor doesn't support pre-tokenized inputs.");
+    }
+
+    /**
+     * This method throws {@link UnsupportedOperationException} as this class does not contain a tokenizer.
+     * @param env The ONNX Runtime environment so it can construct the appropriate tensors.
+     * @param tokens The pre-tokenized input to embed.
+     * @param cache The buffer cache.
+     * @return No return.
+     */
+    @Override
+    public ProcessedInput processTokensBatch(OrtEnvironment env, List<List<String>> tokens, BufferCache cache) {
+        throw new UnsupportedOperationException("The NoOpInputProcessor doesn't support pre-tokenized inputs.");
+    }
+
+    /**
+     * Throws {@link UnsupportedOperationException} as this class does not support buffer caches.
+     * @param maxBatchSize The maximum batch size.
+     * @param maxNumTokens The maximum number of tokens.
+     * @return No return.
+     */
+    @Override
+    public BufferCache createInputCache(int maxBatchSize, int maxNumTokens) {
+        throw new UnsupportedOperationException("The NoOpInputProcessor doesn't support cached inputs as String OnnxTensors cannot be backed by byte buffers.");
     }
 
     @Override

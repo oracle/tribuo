@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,11 @@
 package org.tribuo.util.embeddings;
 
 import ai.onnxruntime.NodeInfo;
-import ai.onnxruntime.OnnxTensorLike;
 import ai.onnxruntime.OnnxValue;
 import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
+import ai.onnxruntime.OrtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oracle.labs.mlrg.olcut.config.ArgumentException;
 import com.oracle.labs.mlrg.olcut.config.Config;
@@ -38,9 +38,14 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,13 +59,13 @@ import java.util.logging.Logger;
  * specifically, OutputProcessors that return a single output, the name in the map can be ignored
  * and the value for the only entry in the map can be used.
  */
-public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Provenancable<ConfiguredObjectProvenance> {
-    private static final Logger logger = Logger.getLogger(OnnxFeatureExtractor.class.getName());
+public final class OnnxTextEmbedder implements AutoCloseable, Configurable, Provenancable<ConfiguredObjectProvenance> {
+    private static final Logger logger = Logger.getLogger(OnnxTextEmbedder.class.getName());
 
     /**
      * Path to the model in ONNX format.
      */
-    @Config(mandatory=true,description="Path to the model in ONNX format")
+    @Config(mandatory = true, description = "Path to the model in ONNX format.")
     private Path modelPath;
 
     /**
@@ -84,13 +89,13 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     /**
      * Inter-op thread count, can be set to 0 to let ORT decide.
      */
-    @Config(description = "Inter-op thread count, can set to 0 to let ORT decide")
+    @Config(description = "Inter-op thread count, can set to 0 to let ORT decide.")
     private int interOpThreads = 1;
 
     /**
      * Intra-op thread count, can be set to 0 to let ORT decide.
      */
-    @Config(description = "Intra-op thread count, can set to 0 to let ORT decide")
+    @Config(description = "Intra-op thread count, can set to 0 to let ORT decide.")
     private int intraOpThreads = 1;
 
     /**
@@ -115,7 +120,7 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     /**
      * For OLCUT
      */
-    private OnnxFeatureExtractor() { }
+    private OnnxTextEmbedder() { }
 
     /**
      * Constructs a ONNXFeatureExtractor.
@@ -123,7 +128,7 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * @param inputProcessor The input processor.
      * @param outputProcessor The output processor.
      */
-    public OnnxFeatureExtractor(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor) {
+    public OnnxTextEmbedder(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor) {
         this(modelPath, inputProcessor, outputProcessor, null);
     }
 
@@ -134,7 +139,7 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * @param outputProcessor The output processor.
      * @param customOpLibraryPath The path to the custom op library required by this ONNX model.
      */
-    public OnnxFeatureExtractor(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor, Path customOpLibraryPath) {
+    public OnnxTextEmbedder(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor, Path customOpLibraryPath) {
         this.modelPath = modelPath;
         this.inputProcessor = inputProcessor;
         this.outputProcessor = outputProcessor;
@@ -152,8 +157,8 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * @param intraOpThreads The number of intra-op CPU threads to use.
      * @param customOpLibraryPath The path to the custom op library required by this ONNX model.
      */
-    public OnnxFeatureExtractor(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor,
-                                Path customOpLibraryPath, boolean useCUDA, int interOpThreads, int intraOpThreads) {
+    public OnnxTextEmbedder(Path modelPath, InputProcessor inputProcessor, OutputProcessor outputProcessor,
+                            Path customOpLibraryPath, boolean useCUDA, int interOpThreads, int intraOpThreads) {
         this.modelPath = modelPath;
         this.inputProcessor = inputProcessor;
         this.outputProcessor = outputProcessor;
@@ -279,22 +284,56 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * for [CLS] and [SEP] tokens), and then passes the token
      * list to ONNX Runtime.
      * @param data The input text.
+     * @param inputCache The input buffer cache, constructed by the {@link InputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @param outputCache The output buffer cache, constructed by the {@link OutputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @return The embeddings for the supplied data.
+     */
+    public Map<String, FloatTensorBuffer> process(String data, BufferCache inputCache, BufferCache outputCache) {
+        return process(List.of(data), inputCache, outputCache);
+    }
+
+    /**
+     * Tokenizes the input using the loaded tokenizer, truncates the
+     * token list if it's longer than {@code maxLength} - 2 (to account
+     * for [CLS] and [SEP] tokens), and then passes the token
+     * list to ONNX Runtime.
+     * @param data The input text.
      * @return The embeddings for the supplied data.
      */
     public Map<String, FloatTensorBuffer> process(List<String> data) {
-        Map<String, ? extends OnnxTensorLike> input = null;
-        try {
-            var pInput = inputProcessor.process(env, data);
-            input = pInput.inputs();
+        try (var pInput = inputProcessor.process(env, data)) {
+            var input = pInput.inputs();
             try (OrtSession.Result output = session.run(input)) {
                 return outputProcessor.process(output, pInput.tokenLengths());
             }
         } catch (OrtException e) {
             throw new IllegalStateException("ORT failed to execute: ", e);
-        } finally {
-            if (input != null) {
-                OnnxValue.close(input);
+        }
+    }
+
+    /**
+     * Tokenizes the input using the loaded tokenizer, truncates the
+     * token list if it's longer than {@code maxLength} - 2 (to account
+     * for [CLS] and [SEP] tokens), and then passes the token
+     * list to ONNX Runtime.
+     * @param data The input text.
+     * @param inputCache The input buffer cache, constructed by the {@link InputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @param outputCache The output buffer cache, constructed by the {@link OutputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @return The embeddings for the supplied data.
+     */
+    public Map<String, FloatTensorBuffer> process(List<String> data, BufferCache inputCache, BufferCache outputCache) {
+        try (var pInput = inputProcessor.process(env, data, inputCache)) {
+            var input = pInput.inputs();
+            int batchSize = (int) pInput.tokenIds().shape()[0];
+            int numTokens = (int) pInput.tokenIds().shape()[1];
+            var outputBuffers = outputProcessor.createOutputTensors(env, outputCache, batchSize, numTokens);
+            try (OrtSession.Result output = session.run(input, outputBuffers)) {
+                return outputProcessor.process(output, pInput.tokenLengths());
+            } finally {
+                OnnxValue.close(outputBuffers);
             }
+        } catch (OrtException e) {
+            throw new IllegalStateException("ORT failed to execute: ", e);
         }
     }
 
@@ -306,19 +345,38 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * @return The embeddings for the supplied data.
      */
     public Map<String, FloatTensorBuffer> processTokens(List<List<String>> tokens) {
-        Map<String, ? extends OnnxTensorLike> input = null;
-        try {
-            var pInput = inputProcessor.processTokensBatch(env, tokens);
-            input = pInput.inputs();
+        try (var pInput = inputProcessor.processTokensBatch(env, tokens)) {
+            var input = pInput.inputs();
             try (OrtSession.Result output = session.run(input)) {
                 return outputProcessor.process(output, pInput.tokenLengths());
             }
         } catch (OrtException e) {
             throw new IllegalStateException("ORT failed to execute: ", e);
-        } finally {
-            if (input != null) {
-                OnnxValue.close(input);
+        }
+    }
+
+    /**
+     * Processes the supplied token list and generates embeddings.
+     * <p>
+     * Any tokens which are unknown to the tokenizer are replaced with the UNK token before embedding.
+     * @param tokens The tokens.
+     * @param inputCache The input buffer cache, constructed by the {@link InputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @param outputCache The output buffer cache, constructed by the {@link OutputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @return The embeddings for the supplied data.
+     */
+    public Map<String, FloatTensorBuffer> processTokens(List<List<String>> tokens, BufferCache inputCache, BufferCache outputCache) {
+        try (var pInput = inputProcessor.processTokensBatch(env, tokens, inputCache)) {
+            var input = pInput.inputs();
+            int batchSize = (int) pInput.tokenIds().shape()[0];
+            int numTokens = (int) pInput.tokenIds().shape()[1];
+            var outputBuffers = outputProcessor.createOutputTensors(env, outputCache, batchSize, numTokens);
+            try (OrtSession.Result output = session.run(input, outputBuffers)) {
+                return outputProcessor.process(output, pInput.tokenLengths());
+            } finally {
+                OnnxValue.close(outputBuffers);
             }
+        } catch (OrtException e) {
+            throw new IllegalStateException("ORT failed to execute: ", e);
         }
     }
 
@@ -332,22 +390,43 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * @return output from the process
      */
     public VerboseProcessResult processVerbose(List<String> data) {
-        Map<String, ? extends OnnxTensorLike> input = null;
-        try {
-            var pInput = inputProcessor.process(env, data);
-            input = pInput.inputs();
+        try (var pInput = inputProcessor.process(env, data)) {
+            var input = pInput.inputs();
             try (OrtSession.Result output = session.run(input)) {
                 var pOutput = outputProcessor.process(output, pInput.tokenLengths());
                 return new VerboseProcessResult(pOutput, pInput.tokenIds());
             }
         } catch (OrtException e) {
             throw new IllegalStateException("ORT failed to execute: ", e);
-        } finally {
-            if (input != null) {
-                OnnxValue.close(input);
-            }
         }
+    }
 
+    /**
+     * Processes text as with the {@link #process(List)} method, but is
+     * more verbose with its output. The current implementation provides
+     * not only the named model outputs, but also a tensor representing
+     * the tokenization output.
+     *
+     * @param data the data to encode
+     * @param inputCache The input buffer cache, constructed by the {@link InputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @param outputCache The output buffer cache, constructed by the {@link OutputProcessor}. Each cache must be used by at most one thread simultaneously.
+     * @return output from the process
+     */
+    public VerboseProcessResult processVerbose(List<String> data, BufferCache inputCache, BufferCache outputCache) {
+        try (var pInput = inputProcessor.process(env, data, inputCache)) {
+            var input = pInput.inputs();
+            int batchSize = (int) pInput.tokenIds().shape()[0];
+            int numTokens = (int) pInput.tokenIds().shape()[1];
+            var outputBuffers = outputProcessor.createOutputTensors(env, outputCache, batchSize, numTokens);
+            try (OrtSession.Result output = session.run(input, outputBuffers)) {
+                var pOutput = outputProcessor.process(output, pInput.tokenLengths());
+                return new VerboseProcessResult(pOutput, pInput.tokenIds());
+            } finally {
+                OnnxValue.close(outputBuffers);
+            }
+        } catch (OrtException e) {
+            throw new IllegalStateException("ORT failed to execute: ", e);
+        }
     }
 
     static float[] extractArray(Map<String, FloatTensorBuffer> map) {
@@ -360,22 +439,32 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
     /**
      * CLI options for running an ONNX model.
      */
-    public static class OnnxFeatureExtractorOptions implements Options {
+    public static class OnnxTextEmbedderOptions implements Options {
         /**
-         * ONNXFeatureExtractor instance
+         * OnnxTextEmbedder instance.
          */
-        @Option(charName = 'e', longName = "extractor", usage = "OnnxFeatureExtractor instance")
-        public OnnxFeatureExtractor extractor;
+        @Option(charName = 'e', longName = "extractor", usage = "OnnxTextEmbedder instance.")
+        public OnnxTextEmbedder extractor;
         /**
-         * Input file to read, one doc per line
+         * Input file to read, one doc per line.
          */
-        @Option(charName = 'i', longName = "input-file", usage = "Input file to read, one doc per line")
+        @Option(charName = 'i', longName = "input-file", usage = "Input file to read, one doc per line.")
         public Path inputFile;
         /**
          * Output json file.
          */
         @Option(charName = 'o', longName = "output-file", usage = "Output json file.")
         public Path outputFile;
+        /**
+         * Batch size for processing.
+         */
+        @Option(charName = 'b', longName = "batch-size", usage = "The batch size for processing.")
+        public int batchSize = 1;
+        /**
+         * Use caching?
+         */
+        @Option(charName = 'u', longName = "use-cache", usage = "Use the buffer cache.")
+        public boolean useCache;
     }
 
     /**
@@ -385,14 +474,59 @@ public class OnnxFeatureExtractor implements AutoCloseable, Configurable, Proven
      * @throws OrtException If the ONNX model failed to load, or threw an exception during computation.
      */
     public static void main(String[] args) throws IOException, OrtException {
-        OnnxFeatureExtractorOptions opts = new OnnxFeatureExtractorOptions();
+        OnnxTextEmbedderOptions opts = new OnnxTextEmbedderOptions();
         try (ConfigurationManager cm = new ConfigurationManager(args,opts)) {
-
             logger.info("Loading data from " + opts.inputFile);
             List<String> lines = Files.readAllLines(opts.inputFile, StandardCharsets.UTF_8);
 
             logger.info("Processing " + lines.size() + " lines with model");
-            List<?> results = lines.stream().map(opts.extractor::process).map(OnnxFeatureExtractor::extractArray).toList();
+            List<String> batch = new ArrayList<>(opts.batchSize);
+            List<float[]> results = new ArrayList<>(lines.size());
+            final Instant extractStart = Instant.now();
+            if (opts.useCache) {
+                var ip = opts.extractor.getInputProcessor();
+                var op = opts.extractor.getOutputProcessor();
+                BufferCache inputCache = ip.createInputCache(opts.batchSize, ip.getMaxLength());
+                BufferCache outputCache = op.createOutputCache(opts.batchSize, ip.getMaxLength());
+                for (var s : lines) {
+                    batch.add(s);
+                    if (batch.size() == opts.batchSize) {
+                        var output = opts.extractor.process(batch, inputCache, outputCache);
+                        float[] arr = extractArray(output);
+                        float[][] shaped = (float[][]) OrtUtil.reshape(arr, new long[]{arr.length / opts.batchSize, arr.length % opts.batchSize});
+                        results.addAll(Arrays.asList(shaped));
+                        batch.clear();
+                    }
+                }
+                if (!batch.isEmpty()) {
+                    var output = opts.extractor.process(batch, inputCache, outputCache);
+                    float[] arr = extractArray(output);
+                    float[][] shaped = (float[][]) OrtUtil.reshape(arr, new long[]{arr.length / opts.batchSize, arr.length % opts.batchSize});
+                    results.addAll(Arrays.asList(shaped));
+                }
+            } else if (opts.batchSize > 1) {
+                for (var s : lines) {
+                    batch.add(s);
+                    if (batch.size() == opts.batchSize) {
+                        var output = opts.extractor.process(batch);
+                        float[] arr = extractArray(output);
+                        float[][] shaped = (float[][]) OrtUtil.reshape(arr, new long[]{arr.length / opts.batchSize, arr.length % opts.batchSize});
+                        results.addAll(Arrays.asList(shaped));
+                        batch.clear();
+                    }
+                }
+                if (!batch.isEmpty()) {
+                    var output = opts.extractor.process(batch);
+                    float[] arr = extractArray(output);
+                    float[][] shaped = (float[][]) OrtUtil.reshape(arr, new long[]{arr.length / opts.batchSize, arr.length % opts.batchSize});
+                    results.addAll(Arrays.asList(shaped));
+                }
+            } else {
+                results = lines.stream().map(opts.extractor::process).map(OnnxTextEmbedder::extractArray).toList();
+            }
+            final Instant extractEnd = Instant.now();
+            var duration = Duration.between(extractStart, extractEnd);
+            logger.info("Feature extraction took " + duration);
 
             logger.info("Saving out json to " + opts.outputFile);
             ObjectMapper mapper = new ObjectMapper();

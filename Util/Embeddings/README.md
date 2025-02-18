@@ -31,4 +31,4 @@ For example, to download the sentence transformers version of MiniLM-L6-v2 use `
 The following command loads in a MiniLM prepared in the above way, then runs inference on each line of the text file `test.txt`
 generating a json array output in `minilm-output.json`.
 
-> mvn exec:run --args="-c configs/minilm-config.xml -e minilm -i test.txt -o minilm-output.json"
+> java -cp target/tribuo-util-embeddings-5.0.0-SNAPSHOT-jar-with-dependencies.jar org.tribuo.util.embeddings.OnnxTextEmbedder -c configs/minilm-config.xml -e minilm -i test.txt -o minilm-output.json"
