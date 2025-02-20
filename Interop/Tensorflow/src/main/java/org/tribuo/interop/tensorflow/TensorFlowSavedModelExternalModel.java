@@ -80,7 +80,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
 
     private final String outputName;
 
-    private final String[] tags;
+    private String[] tags;
 
     private TensorFlowSavedModelExternalModel(String name, ModelProvenance provenance,
                                               ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
@@ -330,6 +330,11 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
+        // For models before 4.3.2
+        if (tags == null) {
+            tags = new String[]{SavedModelBundle.DEFAULT_TAG};
+        }
+        loader.withTags(tags);
         bundle = loader.load();
     }
 
