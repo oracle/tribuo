@@ -36,12 +36,10 @@ PROTO_DEPS="
 "
 
 # Core
-
 $PROTOC $PROTO_DEPS --java_out=Core/src/main/java Core/src/main/resources/protos/tribuo-core.proto Core/src/main/resources/protos/tribuo-core-impl.proto
 $PROTOC $PROTO_DEPS --proto_path=Core/src/test/resources/protos --java_out=Core/src/test/java Core/src/test/resources/protos/tribuo-core-test.proto
 
 # Math
-
 $PROTOC $PROTO_DEPS --java_out=Math/src/main/java Math/src/main/resources/protos/tribuo-math.proto Math/src/main/resources/protos/tribuo-math-impl.proto
 
 # Common
