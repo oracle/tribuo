@@ -103,6 +103,7 @@ message TensorFlowSavedModelExternalModelProto {
   FeatureConverterProto feature_converter = 5;
   OutputConverterProto output_converter = 6;
   string output_name = 7;
+  repeated string tags = 8;
 }
 
 /*

@@ -80,17 +80,21 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
 
     private final String outputName;
 
+    private String[] tags;
+
     private TensorFlowSavedModelExternalModel(String name, ModelProvenance provenance,
                                               ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                               Map<String, Integer> featureMapping,
                                               String modelDirectory, String outputName,
-                                              FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
+                                              FeatureConverter featureConverter, OutputConverter<T> outputConverter, String[] tags) {
         super(name, provenance, featureIDMap, outputIDInfo, outputConverter.generatesProbabilities(), featureMapping);
         this.modelDirectory = modelDirectory;
         this.outputName = outputName;
         this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
+        this.tags = tags;
         SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
+        loader.withTags(tags);
         bundle = loader.load();
     }
 
@@ -98,14 +102,16 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                               ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
                                               int[] featureForwardMapping, int[] featureBackwardMapping,
                                               String modelDirectory, String outputName,
-                                              FeatureConverter featureConverter, OutputConverter<T> outputConverter) {
+                                              FeatureConverter featureConverter, OutputConverter<T> outputConverter, String[] tags) {
         super(name,provenance,featureIDMap,outputIDInfo,featureForwardMapping,featureBackwardMapping,
                 outputConverter.generatesProbabilities());
         this.modelDirectory = modelDirectory;
         this.outputName = outputName;
         this.featureConverter = featureConverter;
         this.outputConverter = outputConverter;
+        this.tags = tags;
         SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
+        loader.withTags(tags);
         bundle = loader.load();
     }
 
@@ -136,10 +142,19 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
         if (!validateFeatureMapping(featureForwardMapping,featureBackwardMapping,carrier.featureDomain())) {
             throw new IllegalStateException("Invalid protobuf, external<->Tribuo feature mapping does not form a bijection");
         }
+        String[] tags;
+        if (proto.getTagsCount() == 0) {
+            tags = new String[]{SavedModelBundle.DEFAULT_TAG};
+        } else {
+            tags = new String[proto.getTagsCount()];
+            for (int i = 0; i < tags.length; i++) {
+                tags[i] = proto.getTags(i);
+            }
+        }
 
         return new TensorFlowSavedModelExternalModel(carrier.name(), carrier.provenance(), carrier.featureDomain(),
                 carrier.outputDomain(), featureForwardMapping, featureBackwardMapping, proto.getModelDirectory(),
-                proto.getOutputName(), featureConverter, outputConverter);
+                proto.getOutputName(), featureConverter, outputConverter, tags);
     }
 
     @Override
@@ -217,7 +232,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
     protected Model<T> copy(String newName, ModelProvenance newProvenance) {
         return new TensorFlowSavedModelExternalModel<>(newName,newProvenance,featureIDMap,outputIDInfo,
                 featureForwardMapping,featureBackwardMapping,
-                modelDirectory,outputName,featureConverter, outputConverter);
+                modelDirectory,outputName,featureConverter, outputConverter, tags);
     }
 
     @Override
@@ -239,6 +254,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
         modelBuilder.addAllBackwardFeatureMapping(Arrays.stream(featureBackwardMapping).boxed().collect(Collectors.toList()));
         modelBuilder.setOutputConverter(outputConverter.serialize());
         modelBuilder.setFeatureConverter(featureConverter.serialize());
+        modelBuilder.addAllTags(Arrays.asList(tags));
 
         ModelProto.Builder builder = ModelProto.newBuilder();
         builder.setSerializedData(Any.pack(modelBuilder.build()));
@@ -249,7 +265,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
     }
 
     /**
-     * Creates a TensorflowSavedModelExternalModel by loading in a {@code SavedModelBundle}.
+     * Creates a TensorflowSavedModelExternalModel by loading in a {@code SavedModelBundle} with the default `serve` tag.
      * <p>
      * Throws {@link IllegalArgumentException} if the model bundle could not be loaded.
      * @param factory The output factory.
@@ -269,6 +285,32 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
                                                                                                    FeatureConverter featureConverter,
                                                                                                    OutputConverter<T> outputConverter,
                                                                                                    String bundleDirectory) {
+        return createTensorflowModel(factory, featureMapping, outputMapping, outputName, featureConverter, outputConverter, bundleDirectory,
+                new String[]{SavedModelBundle.DEFAULT_TAG});
+    }
+
+    /**
+     * Creates a TensorflowSavedModelExternalModel by loading in a {@code SavedModelBundle}.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the model bundle could not be loaded.
+     * @param factory The output factory.
+     * @param featureMapping The feature mapping between Tribuo's names and the TF integer ids.
+     * @param outputMapping The output mapping between Tribuo's names and the TF integer ids.
+     * @param outputName The name of the output tensor.
+     * @param featureConverter The feature transformation function.
+     * @param outputConverter The output transformation function.
+     * @param bundleDirectory The path to load the saved model bundle from.
+     * @param sessionTags The tags which specify a specific ConcreteFunction from the SavedModelBundle.
+     * @param <T> The type of the output.
+     * @return The TF model wrapped in a Tribuo {@link ExternalModel}.
+     */
+    public static <T extends Output<T>> TensorFlowSavedModelExternalModel<T> createTensorflowModel(OutputFactory<T> factory,
+                                                                                                   Map<String, Integer> featureMapping,
+                                                                                                   Map<T,Integer> outputMapping,
+                                                                                                   String outputName,
+                                                                                                   FeatureConverter featureConverter,
+                                                                                                   OutputConverter<T> outputConverter,
+                                                                                                   String bundleDirectory, String[] sessionTags) {
         try {
             Path path = Paths.get(bundleDirectory);
             URL provenanceLocation = path.toUri().toURL();
@@ -279,7 +321,7 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
             DatasetProvenance datasetProvenance = new ExternalDatasetProvenance("unknown-external-data", factory, false, featureMapping.size(), outputMapping.size());
             ModelProvenance provenance = new ModelProvenance(TensorFlowSavedModelExternalModel.class.getName(), now, datasetProvenance, trainerProvenance);
             return new TensorFlowSavedModelExternalModel<>("tf-saved-model-bundle", provenance, featureMap, outputInfo,
-                    featureMapping, bundleDirectory, outputName, featureConverter, outputConverter);
+                    featureMapping, bundleDirectory, outputName, featureConverter, outputConverter, sessionTags);
         } catch (IOException | TensorFlowException e) {
             throw new IllegalArgumentException("Unable to load model from path " + bundleDirectory, e);
         }
@@ -288,6 +330,11 @@ public final class TensorFlowSavedModelExternalModel<T extends Output<T>> extend
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         SavedModelBundle.Loader loader = SavedModelBundle.loader(modelDirectory);
+        // For models before 4.3.2
+        if (tags == null) {
+            tags = new String[]{SavedModelBundle.DEFAULT_TAG};
+        }
+        loader.withTags(tags);
         bundle = loader.load();
     }
 
