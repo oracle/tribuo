@@ -110,4 +110,29 @@ public interface TensorFlowSavedModelExternalModelProtoOrBuilder extends
    */
   com.google.protobuf.ByteString
       getOutputNameBytes();
+
+  /**
+   * <code>repeated string tags = 8;</code>
+   * @return A list containing the tags.
+   */
+  java.util.List<java.lang.String>
+      getTagsList();
+  /**
+   * <code>repeated string tags = 8;</code>
+   * @return The count of tags.
+   */
+  int getTagsCount();
+  /**
+   * <code>repeated string tags = 8;</code>
+   * @param index The index of the element to return.
+   * @return The tags at the given index.
+   */
+  java.lang.String getTags(int index);
+  /**
+   * <code>repeated string tags = 8;</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the tags at the given index.
+   */
+  com.google.protobuf.ByteString
+      getTagsBytes(int index);
 }
