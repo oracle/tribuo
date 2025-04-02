@@ -3,7 +3,7 @@
 Patch release to bring many dependencies up to the latest version, and integrate various small fixes. This release has protobuf support for all the main classes (two were accidentally missed from the earlier 4.3 releases), along with protobuf serialization tests. Tribuo v5 will remove support for `java.io.Serializable` and require protobuf serialization.
 
 ## Updates
-* Bumping OCI Java SDK to 3.43.2, junit to 5.11.3, Jackson to 2.18.0, OpenCSV to 5.9 by @craigacp in https://github.com/oracle/tribuo/pull/380
+* Bumping OCI Java SDK to 3.48.0, junit to 5.11.3, Jackson to 2.18.0, OpenCSV to 5.9 by @craigacp in https://github.com/oracle/tribuo/pull/380
 * Bumping to protobuf-java 3.25.6 and regenerating all the protobufs by @craigacp in https://github.com/oracle/tribuo/pull/381 and https://github.com/oracle/tribuo/pull/395
 * Moving to TF-Java 1.0.0 by @craigacp in https://github.com/oracle/tribuo/pull/367
 * Moving to OLCUT 5.3.1 by @craigacp in https://github.com/oracle/tribuo/pull/387
