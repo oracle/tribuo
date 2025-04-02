@@ -4,9 +4,10 @@ Patch release to bring many dependencies up to the latest version, and integrate
 
 ## Updates
 * Bumping OCI Java SDK to 3.43.2, junit to 5.11.3, Jackson to 2.18.0, OpenCSV to 5.9 by @craigacp in https://github.com/oracle/tribuo/pull/380
-* Bumping to protobuf-java 3.25.5 and regenerating all the protobufs by @craigacp in https://github.com/oracle/tribuo/pull/381
+* Bumping to protobuf-java 3.25.6 and regenerating all the protobufs by @craigacp in https://github.com/oracle/tribuo/pull/381 and https://github.com/oracle/tribuo/pull/395
 * Moving to TF-Java 1.0.0 by @craigacp in https://github.com/oracle/tribuo/pull/367
 * Moving to OLCUT 5.3.1 by @craigacp in https://github.com/oracle/tribuo/pull/387
+* Moving to ONNX Runtime 1.20.0 by @craigacp in https://github.com/oracle/pull/368
 
 ## Bug fixes
 * Improve the determination of cluster exemplars by @geoffreydstewart in https://github.com/oracle/tribuo/pull/356
@@ -15,6 +16,7 @@ Patch release to bring many dependencies up to the latest version, and integrate
 * Fixing a multithreading bug in WordpieceTokenizer by @craigacp in https://github.com/oracle/tribuo/pull/382
 * Fixing a bug in IntArrayContainer.merge and adding tests by @craigacp in https://github.com/oracle/tribuo/pull/384
 * Matrix Factorization determinant calculation & SparseVector.subtract fixes by @craigacp taken from https://github.com/oracle/tribuo/pull/369
+* Tag support for TensorFlowSavedModelExternalModel by @craigacp in https://github.com/oracle/tribuo/pull/393
 
 ## Protobuf serialization fixes & tests
 * Add deserialization tests for 4.3 protobufs in AnomalyDetection, Clustering, MultiLabel by @craigacp in https://github.com/oracle/tribuo/pull/318
