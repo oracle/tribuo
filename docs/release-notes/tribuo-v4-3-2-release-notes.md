@@ -7,7 +7,7 @@ Patch release to bring many dependencies up to the latest version, and integrate
 * Bumping to protobuf-java 3.25.6 and regenerating all the protobufs by @craigacp in https://github.com/oracle/tribuo/pull/381 and https://github.com/oracle/tribuo/pull/395
 * Moving to TF-Java 1.0.0 by @craigacp in https://github.com/oracle/tribuo/pull/367
 * Moving to OLCUT 5.3.1 by @craigacp in https://github.com/oracle/tribuo/pull/387
-* Moving to ONNX Runtime 1.20.0 by @craigacp in https://github.com/oracle/pull/368
+* Moving to ONNX Runtime 1.20.0 by @craigacp in https://github.com/oracle/tribuo/pull/368
 
 ## Bug fixes
 * Improve the determination of cluster exemplars by @geoffreydstewart in https://github.com/oracle/tribuo/pull/356
@@ -33,6 +33,6 @@ Patch release to bring many dependencies up to the latest version, and integrate
 - Jeffrey Alexander ([@jhalexand](https://github.com/jhalexand))
 - Jack Sullivan ([@JackSullivan](https://github.com/JackSullivan))
 - Philip Ogren ([@pogren](https://github.com/pogren))
-- Geoff Stewart ([@geoffreydstewart](https://github.com/geoffreydstewart)
+- Geoff Stewart ([@geoffreydstewart](https://github.com/geoffreydstewart))
 
 **Full Changelog**: https://github.com/oracle/tribuo/compare/v4.3.1...v.4.3.2
