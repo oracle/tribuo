@@ -25,7 +25,7 @@ import java.util.Arrays;
  * Internal datastructure for implementing a decision tree.
  * <p>
  * Represents a single value and feature tuple, with associated arrays for
- * the indicies where that combination occurs.
+ * the indices where that combination occurs.
  * <p>
  * Indices and values must be inserted in sorted ascending order or everything will break.
  * This code does not check that this invariant is maintained.

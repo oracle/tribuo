@@ -111,7 +111,7 @@ Mutual Information (JMI).
 To explain classifier predictions there is an implementation of the LIME
 algorithm. Tribuo's implementation allows the mixing of text and tabular data,
 along with the use of any sparse model as an explainer (e.g., regression trees,
-lasso etc), however it does not support images.
+lasso etc.), however it does not support images.
 
 ### Regression
 
@@ -172,7 +172,7 @@ also provides a common interface to popular ML tools on the JVM. If you're
 interested in contributing a new interface, open a GitHub Issue, and we can
 discuss how it would fit into Tribuo.
 
-Currently we have interfaces to:
+Currently, we have interfaces to:
 
 * [LibLinear](https://github.com/bwaldvogel/liblinear-java) - via the LibLinear-java port of the original [LibLinear](https://www.csie.ntu.edu.tw/~cjlin/liblinear/) (v2.44).
 * [LibSVM](https://www.csie.ntu.edu.tw/~cjlin/libsvm/) - using the pure Java transformed version of the C++ implementation (v3.25).
@@ -242,7 +242,7 @@ Development happens on the `main` branch, which has the version number of the
 next Tribuo release with "-SNAPSHOT" appended to it. Tribuo major and minor
 releases will be tagged on the `main` branch, and then have a branch named
 `vA.B.X-release-branch` (for release `vA.B.0`) branched from the tagged release
-commit for any point releases (i.e., `vA.B.1`, `vA.B.2` etc) following from
+commit for any point releases (i.e., `vA.B.1`, `vA.B.2` etc.) following from
 that major/minor release. Those point releases are tagged on the specific
 release branch e.g., `v4.0.2` is tagged on the `v4.0.X-release-branch`.
 
@@ -254,7 +254,7 @@ We have a discussion mailing list
 [tribuo-devel@oss.oracle.com](mailto:tribuo-devel@oss.oracle.com), archived
 [here](https://oss.oracle.com/pipermail/tribuo-devel/). We're investigating
 different options for real time chat, check back in the future. For bug
-reports, feature requests or other issues, please file a [Github
+reports, feature requests or other issues, please file a [GitHub
 Issue](https://github.com/oracle/tribuo/issues).
 
 ## Security

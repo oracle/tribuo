@@ -38,7 +38,7 @@ public class NeighbourQueryTestHelper {
     private static final int NUM_NEIGHBOURS_K = 4;
 
     static void neighboursQueryAll(NeighboursQueryFactory nqf) {
-        // Don't use the shuffled data. These assertions depend on points at specific indicies.
+        // Don't use the shuffled data. These assertions depend on points at specific indices.
         SGDVector[] data = getTestDataVectorArray();
 
         NeighboursQuery nq = nqf.createNeighboursQuery(data);
