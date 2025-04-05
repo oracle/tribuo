@@ -37,7 +37,6 @@ import java.util.logging.Logger;
  */
 @ProtoSerializableClass(serializedDataClass=AnomalyInfoProto.class, version=0)
 public final class ImmutableAnomalyInfo extends AnomalyInfo implements ImmutableOutputInfo<Event> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ImmutableAnomalyInfo.class.getName());
 

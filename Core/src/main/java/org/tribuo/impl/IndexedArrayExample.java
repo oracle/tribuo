@@ -53,7 +53,6 @@ import java.util.logging.Logger;
  * Other outputs may return -1 from {@link #getOutputID()}.
  */
 public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(IndexedArrayExample.class.getName());
 

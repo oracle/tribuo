@@ -35,7 +35,6 @@ import org.tribuo.protos.core.SequenceExampleImplProto;
 import org.tribuo.protos.core.SequenceExampleProto;
 import org.tribuo.util.Merger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -46,8 +45,7 @@ import java.util.logging.Logger;
  * A sequence of examples, used for sequence classification.
  */
 @ProtoSerializableClass(serializedDataClass = SequenceExampleImplProto.class, version = SequenceExample.CURRENT_VERSION)
-public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>>, ProtoSerializable<SequenceExampleProto>, Serializable {
-    private static final long serialVersionUID = 1L;
+public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>>, ProtoSerializable<SequenceExampleProto> {
 
     private static final Logger logger = Logger.getLogger(SequenceExample.class.getName());
 

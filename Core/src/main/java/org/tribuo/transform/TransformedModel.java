@@ -47,7 +47,6 @@ import java.util.Optional;
  * first call {@link MutableDataset#densify} on the datasets.
  */
 public class TransformedModel<T extends Output<T>> extends Model<T> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

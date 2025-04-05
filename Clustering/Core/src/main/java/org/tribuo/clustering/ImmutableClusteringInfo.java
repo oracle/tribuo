@@ -40,7 +40,6 @@ import java.util.Set;
  */
 @ProtoSerializableClass(serializedDataClass = ClusteringInfoProto.class, version = 0)
 public class ImmutableClusteringInfo extends ClusteringInfo implements ImmutableOutputInfo<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     private final Set<ClusterID> domain;
 

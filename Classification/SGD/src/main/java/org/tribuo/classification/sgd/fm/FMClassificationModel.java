@@ -49,7 +49,6 @@ import java.util.Map;
  * </pre>
  */
 public class FMClassificationModel extends AbstractFMModel<Label> implements ONNXExportable {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

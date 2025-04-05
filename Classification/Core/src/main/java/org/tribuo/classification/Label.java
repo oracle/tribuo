@@ -37,7 +37,6 @@ import org.tribuo.protos.core.OutputProto;
  */
 @ProtoSerializableClass(serializedDataClass=LabelProto.class, version=0)
 public final class Label implements Classifiable<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The name of the unknown label (i.e., an unlabelled output).

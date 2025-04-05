@@ -75,7 +75,6 @@ public class LibLinearAnomalyTrainerTest {
         logger.finer(output);
 
         // Test serialization
-        Helpers.testModelSerialization(model,Event.class);
         Helpers.testModelProtoSerialization(model,Event.class,testData);
     }
 

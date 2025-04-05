@@ -66,7 +66,6 @@ import java.util.stream.Collectors;
  * </pre>
  */
 public abstract class LibLinearModel<T extends Output<T>> extends Model<T> {
-    private static final long serialVersionUID = 3L;
 
     private static final Logger logger = Logger.getLogger(LibLinearModel.class.getName());
 

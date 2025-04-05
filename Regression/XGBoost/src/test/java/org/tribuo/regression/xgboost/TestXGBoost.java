@@ -31,9 +31,7 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -48,8 +46,6 @@ public class TestXGBoost {
 
     private static final RegressionEvaluator e = new RegressionEvaluator();
 
-    private static final URL TEST_REGRESSION_REORDER_MODEL = TestXGBoost.class.getResource("xgboost-4.1.0.model");
-
     public static Model<Regressor> testXGBoost(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
         Model<Regressor> m = t.train(p.getA());
         e.evaluate(m,p.getB());
@@ -60,7 +56,6 @@ public class TestXGBoost {
     public void testMultiDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.multiDimDenseTrainTest();
         Model<Regressor> model = testXGBoost(p);
-        Helpers.testModelSerialization(model,Regressor.class);
         Helpers.testModelProtoSerialization(model, Regressor.class, p.getB());
     }
 
@@ -128,25 +123,6 @@ public class TestXGBoost {
             Model<Regressor> m = t.train(p.getA());
             m.predict(RegressionDataGenerator.emptyExample());
         });
-    }
-
-    @Test
-    public void testRegressionReordering() throws IOException, ClassNotFoundException {
-        try (ObjectInputStream ois = new ObjectInputStream(TEST_REGRESSION_REORDER_MODEL.openStream())) {
-            @SuppressWarnings("unchecked")
-            Model<Regressor> serializedModel = (Model<Regressor>) ois.readObject();
-            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
-            RegressionEvaluation llEval = e.evaluate(serializedModel,p.getB());
-            double expectedDim1 = 0.08085670251311738;
-            double expectedDim2 = 0.09825176714451844;
-            double expectedDim3 = -1.1534319157320798;
-            double expectedAve = -0.3247744820248147;
-
-            assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
-            assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
-            assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
-            assertEquals(expectedAve,llEval.averageR2(),1e-6);
-        }
     }
 
     @Test

@@ -21,7 +21,6 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 
-import java.io.Serializable;
 import java.util.List;
 import org.tribuo.common.xgboost.protos.XGBoostOutputConverterProto;
 import org.tribuo.protos.ProtoSerializable;
@@ -30,7 +29,7 @@ import org.tribuo.protos.ProtoSerializable;
  * Converts the output of XGBoost into the appropriate prediction type.
  */
 public interface XGBoostOutputConverter<T extends Output<T>> extends
-    ProtoSerializable<XGBoostOutputConverterProto>, Serializable {
+    ProtoSerializable<XGBoostOutputConverterProto> {
 
     /**
      * Does this converter produce probabilities?

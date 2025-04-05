@@ -54,7 +54,6 @@ import java.util.Optional;
  * </pre>
  */
 public class KernelSVMModel extends Model<Label> {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.

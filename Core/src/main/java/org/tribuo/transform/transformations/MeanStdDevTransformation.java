@@ -210,7 +210,6 @@ public final class MeanStdDevTransformation implements Transformation {
 
     @ProtoSerializableClass(version = MeanStdDevTransformer.CURRENT_VERSION, serializedDataClass = MeanStdDevTransformerProto.class)
     static final class MeanStdDevTransformer implements Transformer {
-        private static final long serialVersionUID = 1L;
 
         /**
          * Protobuf serialization version.

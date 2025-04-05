@@ -27,7 +27,6 @@ import org.tribuo.math.protos.DistanceProto;
  * L2 (or Euclidean) distance.
  */
 public final class L2Distance implements Distance {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

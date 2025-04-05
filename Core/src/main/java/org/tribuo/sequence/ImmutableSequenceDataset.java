@@ -35,7 +35,6 @@ import org.tribuo.provenance.DataProvenance;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.util.Merger;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -45,8 +44,7 @@ import java.util.Set;
  * Whenever an example is added to this dataset it removes features that do not exist in the FeatureMap.
  * The dataset is immutable after construction (unless the examples are modified).
  */
-public class ImmutableSequenceDataset<T extends Output<T>> extends SequenceDataset<T> implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class ImmutableSequenceDataset<T extends Output<T>> extends SequenceDataset<T> {
 
     /**
      * Protobuf serialization version.

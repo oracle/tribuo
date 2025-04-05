@@ -20,8 +20,6 @@ import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.Serializable;
-
 /**
  * A fitted {@link Transformation} which can apply
  * a transform to the input value. Usually contains
@@ -30,7 +28,7 @@ import java.io.Serializable;
  * Transformers are serializable, and should only
  * be constructed by their {@link TransformStatistics}.
  */
-public interface Transformer extends ProtoSerializable<TransformerProto>, Serializable {
+public interface Transformer extends ProtoSerializable<TransformerProto> {
 
     /**
      * Applies the transformation to the supplied

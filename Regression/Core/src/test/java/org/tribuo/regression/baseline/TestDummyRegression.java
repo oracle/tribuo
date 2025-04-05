@@ -61,7 +61,6 @@ public class TestDummyRegression {
             RegressionEvaluator evaluator = new RegressionEvaluator();
             RegressionEvaluation evaluation = evaluator.evaluate(m,p.getB());
             if (testModelSave) {
-                Helpers.testModelSerialization(m,Regressor.class);
                 Helpers.testModelProtoSerialization(m, Regressor.class, p.getB());
             }
         }

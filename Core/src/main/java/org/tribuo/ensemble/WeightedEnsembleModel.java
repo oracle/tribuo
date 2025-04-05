@@ -58,7 +58,6 @@ import java.util.Set;
  * An ensemble model that uses weights to combine the ensemble member predictions.
  */
 public final class WeightedEnsembleModel<T extends Output<T>> extends EnsembleModel<T> implements ONNXExportable {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

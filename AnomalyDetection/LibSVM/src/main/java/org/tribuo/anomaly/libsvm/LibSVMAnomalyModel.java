@@ -55,7 +55,6 @@ import java.util.List;
  * </pre>
  */
 public class LibSVMAnomalyModel extends LibSVMModel<Event> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

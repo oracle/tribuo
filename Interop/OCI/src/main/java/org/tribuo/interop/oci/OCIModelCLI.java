@@ -35,8 +35,6 @@ import org.tribuo.ONNXExportable;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,16 +54,9 @@ public abstract class OCIModelCLI {
      */
     private OCIModelCLI() {}
 
-    private static void createModelAndDeploy(OCIModelOptions options) throws IOException, ClassNotFoundException {
+    private static void createModelAndDeploy(OCIModelOptions options) throws IOException {
         // Load the Tribuo model
-        Model<Label> model;
-        if (options.modelProtobuf) {
-            model = Model.deserializeFromFile(options.modelPath).castModel(Label.class);
-        } else {
-            try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(options.modelPath))) {
-                model = ((Model<?>)ois.readObject()).castModel(Label.class);
-            }
-        }
+        Model<Label> model = Model.deserializeFromFile(options.modelPath).castModel(Label.class);
         if (!(model instanceof ONNXExportable)) {
             throw new IllegalArgumentException("Model not ONNXExportable, received " + model.toString());
         }
@@ -113,16 +104,9 @@ public abstract class OCIModelCLI {
      * @throws IOException If the dataset could not be loaded, or the model deployment responded incorrectly.
      * @throws ClassNotFoundException If the dataset has an unknown class inside.
      */
-    private static void modelScoring(OCIModelOptions options) throws IOException, ClassNotFoundException {
+    private static void modelScoring(OCIModelOptions options) throws IOException {
         // Load the dataset
-        Dataset<Label> dataset;
-        if (options.datasetProtobuf) {
-            dataset = Dataset.castDataset(Dataset.deserializeFromFile(options.datasetPath), Label.class);
-        } else {
-            try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(options.datasetPath))) {
-                dataset = Dataset.castDataset((Dataset<?>) ois.readObject(), Label.class);
-            }
-        }
+        Dataset<Label> dataset = Dataset.castDataset(Dataset.deserializeFromFile(options.datasetPath), Label.class);
         ImmutableFeatureMap featureIDMap = dataset.getFeatureIDMap();
 
         // Prep mappings
@@ -231,11 +215,6 @@ public abstract class OCIModelCLI {
         @Option(charName='d',longName="deploy-model-path",usage="Path to the serialized model to deploy to OCI DS.")
         public Path modelPath;
         /**
-         * Is the model stored in protobuf format?
-         */
-        @Option(longName="model-protobuf",usage="Is the model stored in protobuf format?")
-        public boolean modelProtobuf;
-        /**
          * Model display name.
          */
         @Option(longName="model-display-name",usage="Model display name.")
@@ -266,11 +245,6 @@ public abstract class OCIModelCLI {
          */
         @Option(charName='s',longName="dataset-path",usage="Path to the serialized dataset to score.")
         public Path datasetPath;
-        /**
-         * Is the serialized dataset in protobuf format?
-         */
-        @Option(longName="dataset-protobuf",usage="Is the serialized dataset a protobuf?")
-        public boolean datasetProtobuf;
         /**
          * The id of the model deployment.
          */

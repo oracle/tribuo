@@ -134,8 +134,6 @@ public class TestOnnxRuntime {
             assertEquals(0.967741, evaluation.accuracy(), 1e-6);
             assertEquals(0.024285, evaluation.balancedErrorRate(), 1e-6);
 
-            Helpers.testModelSerialization(transposedMNISTLR,Label.class);
-
             Helpers.testModelProtoSerialization(transposedMNISTLR, Label.class, new MutableDataset<>(transposedMNIST), 1e-6);
         }
     }

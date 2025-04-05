@@ -21,8 +21,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
 import org.tribuo.Output;
 
-import java.io.Serializable;
-
 /**
  * A carrier type for the SVM type. It really wants to be a set of enums with
  * different type parameters, but it's encoded as an interface where each
@@ -38,7 +36,7 @@ import java.io.Serializable;
  * <li>NU_SVR(4) - nu-SVR, optimization in dual space.</li>
  * </ul>
  */
-public interface SVMType<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface SVMType<T extends Output<T>> extends Configurable, Provenancable<ConfiguredObjectProvenance> {
     /**
      * Is this a classification algorithm.
      * @return True if it's a classification algorithm.

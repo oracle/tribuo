@@ -36,7 +36,6 @@ import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.transform.TransformerMap.TransformerMapProvenance;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -59,12 +58,10 @@ import java.util.logging.Logger;
  * See {@link org.tribuo.transform} for a more detailed discussion of densify.
  */
 public final class TransformerMap implements ProtoSerializable<TransformerMapProto>,
-        Provenancable<TransformerMapProvenance>, Serializable {
+        Provenancable<TransformerMapProvenance> {
 
     private static final Logger logger = Logger.getLogger(TransformerMap.class.getName());
     
-    private static final long serialVersionUID = 2L;
-
     /**
      * Protobuf serialization version.
      */

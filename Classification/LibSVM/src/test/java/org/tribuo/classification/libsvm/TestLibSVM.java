@@ -56,7 +56,6 @@ import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -150,7 +149,6 @@ public class TestLibSVM {
         //System.out.println("*** PASSED: " + prefix);
     }
 
-
     private LibSVMModel<Label> loadModel(SVMClassificationType.SVMMode modelType, KernelType kernelType, boolean multiclass) throws IOException, ClassNotFoundException {
         String modelPath = "/models/" + modelType + "_" + kernelType;
         if (multiclass) {
@@ -160,11 +158,15 @@ public class TestLibSVM {
         return loadModel(modelPath);
     }
 
-    private LibSVMModel<Label> loadModel(String path) throws IOException, ClassNotFoundException {
+    private LibSVMModel<Label> loadModel(String path) throws IOException {
         URL modelFile = this.getClass().getResource(path);
-        try (ObjectInputStream ois = new ObjectInputStream(modelFile.openStream())) {
-            Object data = ois.readObject();
-            return (LibSVMClassificationModel) data;
+        try (InputStream is = modelFile.openStream()) {
+            @SuppressWarnings("unchecked") // checked by validate call.
+            LibSVMModel<Label> model = (LibSVMModel<Label>) Model.deserializeFromStream(is);
+            if (!model.validate(Label.class)) {
+                fail(String.format("model for %s is not a classification model.",path));
+            }
+            return model;
         } catch (NullPointerException e) {
             fail(String.format("model for %s does not exist", path));
             throw e;
@@ -305,7 +307,7 @@ public class TestLibSVM {
     public void testDenseData() {
         Pair<Dataset<Label>, Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testLibSVM(p);
-        Helpers.testModelSerialization(model, Label.class);
+        Helpers.testModelProtoSerialization(model, Label.class);
     }
 
     @Test
@@ -416,7 +418,6 @@ public class TestLibSVM {
     }
 
     private static class TestMap extends ImmutableFeatureMap {
-        private static final long serialVersionUID = 1L;
 
         public TestMap() {
             super();

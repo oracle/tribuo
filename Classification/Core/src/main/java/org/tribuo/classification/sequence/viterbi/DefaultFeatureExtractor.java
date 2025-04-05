@@ -41,8 +41,6 @@ import java.util.List;
 @ProtoSerializableClass(serializedDataClass = DefaultFeatureExtractorProto.class, version = DefaultFeatureExtractor.CURRENT_VERSION)
 public class DefaultFeatureExtractor implements LabelFeatureExtractor {
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Protobuf serialization version.
      */

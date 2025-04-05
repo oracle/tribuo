@@ -60,7 +60,6 @@ import java.util.function.Predicate;
  * @param <T> The output type of this dataset.
  */
 public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.
