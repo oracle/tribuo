@@ -47,9 +47,7 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,8 +81,6 @@ public class TestLibSVM {
         rbf = new LibSVMRegressionTrainer(rbfParams);
     }
 
-    private static final URL TEST_REGRESSION_REORDER_MODEL = TestLibSVM.class.getResource("libsvm-4.1.0.model");
-
     @BeforeAll
     public static void setup() {
         Logger logger = Logger.getLogger(LibSVMTrainer.class.getName());
@@ -103,7 +99,7 @@ public class TestLibSVM {
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> model = testLibSVM(p);
-        Helpers.testModelSerialization(model,Regressor.class);
+        Helpers.testModelProtoSerialization(model,Regressor.class);
     }
 
     @Test
@@ -217,26 +213,6 @@ public class TestLibSVM {
             m.predict(RegressionDataGenerator.emptyMultiDimExample());
         });
     }
-
-    @Test
-    public void testRegressionReordering() throws IOException, ClassNotFoundException {
-        try (ObjectInputStream ois = new ObjectInputStream(TEST_REGRESSION_REORDER_MODEL.openStream())) {
-            @SuppressWarnings("unchecked")
-            Model<Regressor> serializedModel = (Model<Regressor>) ois.readObject();
-            Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.threeDimDenseTrainTest(1.0, false);
-            RegressionEvaluation llEval = eval.evaluate(serializedModel,p.getB());
-            double expectedDim1 = 0.0038608193481045605;
-            double expectedDim2 = 0.0038608193481045605;
-            double expectedDim3 = -0.12392916600305548;
-            double expectedAve = -0.03873584243561545;
-
-            assertEquals(expectedDim1,llEval.r2(new Regressor(RegressionDataGenerator.firstDimensionName,Double.NaN)),1e-6);
-            assertEquals(expectedDim2,llEval.r2(new Regressor(RegressionDataGenerator.secondDimensionName,Double.NaN)),1e-6);
-            assertEquals(expectedDim3,llEval.r2(new Regressor(RegressionDataGenerator.thirdDimensionName,Double.NaN)),1e-6);
-            assertEquals(expectedAve,llEval.averageR2(),1e-6);
-        }
-    }
-
 
     @Test
     public void testOnnxSerialization() throws IOException, OrtException {

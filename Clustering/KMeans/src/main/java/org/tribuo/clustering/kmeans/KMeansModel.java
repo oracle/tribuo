@@ -27,9 +27,9 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
-import org.tribuo.clustering.kmeans.KMeansTrainer.Distance;
 import org.tribuo.clustering.kmeans.protos.KMeansModelProto;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
@@ -40,7 +40,6 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +62,6 @@ import java.util.Optional;
  * </pre>
  */
 public class KMeansModel extends Model<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.
@@ -72,15 +70,10 @@ public class KMeansModel extends Model<ClusterID> {
 
     private final DenseVector[] centroidVectors;
 
-    @Deprecated
-    private Distance distanceType;
-
-    // This is not final to support deserialization of older models. It will be final in a future version which doesn't
-    // maintain serialization compatibility with 4.X.
-    private org.tribuo.math.distance.Distance dist;
+    private final Distance dist;
 
     KMeansModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
-                ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] centroidVectors, org.tribuo.math.distance.Distance dist) {
+                ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] centroidVectors, Distance dist) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.centroidVectors = centroidVectors;
         this.dist = dist;
@@ -241,10 +234,4 @@ public class KMeansModel extends Model<ClusterID> {
         return new KMeansModel(newName,newProvenance,featureIDMap,outputIDInfo,newCentroids,dist);
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        if (dist == null) {
-            dist = distanceType.getDistanceType().getDistance();
-        }
-    }
 }

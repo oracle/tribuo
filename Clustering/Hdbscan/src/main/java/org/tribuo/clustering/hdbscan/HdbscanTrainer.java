@@ -42,7 +42,6 @@ import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 
-import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -917,8 +916,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
     /**
      * A cluster exemplar, with attributes for the point's label, outlier score and its features.
      */
-    public final static class ClusterExemplar implements Serializable {
-        private static final long serialVersionUID = 1L;
+    public final static class ClusterExemplar {
 
         private final Integer label;
         private final Double outlierScore;

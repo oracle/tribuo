@@ -49,7 +49,6 @@ import java.util.logging.Logger;
  * An {@link Example} backed by two arrays, one of String and one of double.
  */
 public class ArrayExample<T extends Output<T>> extends Example<T> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ArrayExample.class.getName());
 

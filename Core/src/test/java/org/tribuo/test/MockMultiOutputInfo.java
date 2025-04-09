@@ -27,7 +27,6 @@ import org.tribuo.OutputInfo;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.test.protos.MockOutputInfoProto;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,7 +42,7 @@ public class MockMultiOutputInfo implements OutputInfo<MockMultiOutput>, Immutab
 
     protected final Map<String, MutableLong> labelCounts;
     protected int unknownCount = 0;
-    protected transient Map<String,MockMultiOutput> labels;
+    protected Map<String,MockMultiOutput> labels;
 
     protected int totalCount = 0;
 
@@ -332,14 +331,6 @@ public class MockMultiOutputInfo implements OutputInfo<MockMultiOutput>, Immutab
         public Pair<Integer, MockMultiOutput> next() {
             Map.Entry<Integer,String> e = itr.next();
             return new Pair<>(e.getKey(),new MockMultiOutput(e.getValue()));
-        }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        labels = new HashMap<>();
-        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
-            labels.put(e.getKey(),new MockMultiOutput(e.getKey()));
         }
     }
 

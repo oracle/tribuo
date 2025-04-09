@@ -89,7 +89,6 @@ public class TestFMClassification {
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testFMClassification(p);
-        Helpers.testModelSerialization(model, Label.class);
         Helpers.testModelProtoSerialization(model, Label.class, p.getB());
     }
 

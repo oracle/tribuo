@@ -38,7 +38,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -64,8 +63,7 @@ import java.util.regex.Pattern;
  * @param <T> the type of the features in the data set.
  */
 public abstract class Dataset<T extends Output<T>> implements Iterable<Example<T>>, ProtoSerializable<DatasetProto>,
-    Provenancable<DatasetProvenance>, Serializable {
-    private static final long serialVersionUID = 2L;
+    Provenancable<DatasetProvenance> {
 
     private static final Logger logger = Logger.getLogger(Dataset.class.getName());
 

@@ -26,12 +26,10 @@ import org.tribuo.math.protos.NeighbourFactoryProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.Serializable;
-
 /**
  * An interface for factories which create nearest neighbour query objects.
  */
-public interface NeighboursQueryFactory extends Configurable, ProtoSerializable<NeighbourFactoryProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface NeighboursQueryFactory extends Configurable, ProtoSerializable<NeighbourFactoryProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Constructs a nearest neighbour query object using the supplied array of {@link SGDVector}.

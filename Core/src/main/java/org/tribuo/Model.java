@@ -32,7 +32,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -53,8 +52,7 @@ import java.util.Set;
  * of Tribuo.
  * @param <T> the type of prediction produced by the model.
  */
-public abstract class Model<T extends Output<T>> implements ProtoSerializable<ModelProto>, Provenancable<ModelProvenance>, Serializable {
-    private static final long serialVersionUID = 2L;
+public abstract class Model<T extends Output<T>> implements ProtoSerializable<ModelProto>, Provenancable<ModelProvenance> {
 
     /**
      * Used in getTopFeatures when the Model doesn't support per output feature lists.
@@ -332,11 +330,6 @@ public abstract class Model<T extends Output<T>> implements ProtoSerializable<Mo
         } else {
             throw new ClassCastException("Attempted to cast model to " + outputType.getName() + " which is not valid for model " + this.toString());
         }
-    }
-
-    @Override
-    public ModelProto serialize() {
-        throw new UnsupportedOperationException("The default implementation of Model.serialize() must be overridden to support protobuf serialization.");
     }
 
     /**

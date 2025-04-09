@@ -54,7 +54,6 @@ import java.util.logging.Logger;
  */
 @ProtoSerializableClass(version = LabelConverter.CURRENT_VERSION)
 public class LabelConverter implements OutputConverter<Label> {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelConverter.class.getName());
 
     /**

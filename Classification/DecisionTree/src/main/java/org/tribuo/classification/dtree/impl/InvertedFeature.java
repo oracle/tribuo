@@ -19,7 +19,6 @@ package org.tribuo.classification.dtree.impl;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.common.tree.impl.IntArrayContainer;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -33,9 +32,8 @@ import java.util.Objects;
  * This code does not check that this invariant is maintained.
  * <p>
  * Note: this class has a natural ordering that is inconsistent with equals.
- * While this class is serializable, it should not be serialized in most cases, as it's only used during training.
  */
-class InvertedFeature implements Comparable<InvertedFeature>, Serializable {
+class InvertedFeature implements Comparable<InvertedFeature> {
 
     private static final int DEFAULT_SIZE = 8;
 

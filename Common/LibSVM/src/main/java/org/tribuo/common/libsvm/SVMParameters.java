@@ -19,16 +19,14 @@ package org.tribuo.common.libsvm;
 import org.tribuo.Output;
 import libsvm.svm_parameter;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
  * A container for SVM parameters and the kernel.
  */
-public class SVMParameters<T extends Output<T>> implements Serializable {
-    private static final long serialVersionUID = 1L;
-    
+public class SVMParameters<T extends Output<T>> {
+
     private static final Logger logger = Logger.getLogger(SVMParameters.class.getName());
 
     /**

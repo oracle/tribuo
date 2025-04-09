@@ -47,7 +47,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(serializedDataClass = OCILabelConverterProto.class, version = OCILabelConverter.CURRENT_VERSION)
 public final class OCILabelConverter implements OCIOutputConverter<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

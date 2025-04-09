@@ -33,7 +33,6 @@ import org.tensorflow.Tensor;
 import org.tribuo.interop.tensorflow.protos.OutputConverterProto;
 import org.tribuo.protos.ProtoSerializable;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -48,7 +47,7 @@ import java.util.function.BiFunction;
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  * @param <T> The output type.
  */
-public interface OutputConverter<T extends Output<T>> extends Configurable, ProtoSerializable<OutputConverterProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface OutputConverter<T extends Output<T>> extends Configurable, ProtoSerializable<OutputConverterProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * The loss function associated with this prediction type.

@@ -20,7 +20,6 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.common.tree.impl.IntArrayContainer;
 import org.tribuo.util.Util;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,7 +31,7 @@ import java.util.Map;
  *
  * Can be split into two values based on an example index list.
  */
-class TreeFeature implements Iterable<InvertedFeature>, Serializable {
+class TreeFeature implements Iterable<InvertedFeature> {
 
     private final int id;
 

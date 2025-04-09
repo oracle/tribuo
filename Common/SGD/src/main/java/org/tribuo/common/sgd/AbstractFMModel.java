@@ -61,7 +61,6 @@ import java.util.PriorityQueue;
  * </pre>
  */
 public abstract class AbstractFMModel<T extends Output<T>> extends AbstractSGDModel<T> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Constructs a factorization machine model trained via SGD.

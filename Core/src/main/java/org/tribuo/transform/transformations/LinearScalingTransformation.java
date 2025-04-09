@@ -202,7 +202,6 @@ public final class LinearScalingTransformation implements Transformation {
 
     @ProtoSerializableClass(version = LinearScalingTransformer.CURRENT_VERSION, serializedDataClass = LinearScalingTransformerProto.class)
     static final class LinearScalingTransformer implements Transformer {
-        private static final long serialVersionUID = 1L;
 
         /**
          * Protobuf serialization version.

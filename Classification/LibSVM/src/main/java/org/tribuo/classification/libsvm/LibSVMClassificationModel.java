@@ -80,7 +80,6 @@ import java.util.stream.Collectors;
  * </pre>
  */
 public class LibSVMClassificationModel extends LibSVMModel<Label> implements ONNXExportable {
-    private static final long serialVersionUID = 3L;
 
     /**
      * Protobuf serialization version.

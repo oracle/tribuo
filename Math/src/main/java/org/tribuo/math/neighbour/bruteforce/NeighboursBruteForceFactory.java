@@ -37,7 +37,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = NeighboursBruteForceFactory.CURRENT_VERSION, serializedDataClass = BruteForceFactoryProto.class)
 public final class NeighboursBruteForceFactory implements NeighboursQueryFactory {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

@@ -33,7 +33,6 @@ import java.util.Arrays;
  * a single regression dimension.
  */
 public abstract class SkeletalIndependentRegressionModel extends Model<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The output dimension names.

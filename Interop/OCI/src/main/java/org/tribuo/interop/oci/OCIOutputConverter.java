@@ -28,14 +28,13 @@ import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.protos.ProtoSerializable;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * Converter for a {@link DenseMatrix} received from OCI Data Science Model Deployment.
  * @param <T> The output type.
  */
-public interface OCIOutputConverter<T extends Output<T>> extends Configurable, ProtoSerializable<OCIOutputConverterProto>, Provenancable<ConfiguredObjectProvenance>,  Serializable {
+public interface OCIOutputConverter<T extends Output<T>> extends Configurable, ProtoSerializable<OCIOutputConverterProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Converts a dense vector into a single prediction of the appropriate type.

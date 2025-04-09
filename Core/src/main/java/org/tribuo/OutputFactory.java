@@ -25,7 +25,6 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +36,7 @@ import java.util.Map;
  * <p>
  * Must be {@link Configurable} so it can be loaded from an olcut config file.
  */
-public interface OutputFactory<T extends Output<T>> extends Configurable, ProtoSerializable<OutputFactoryProto>, Provenancable<OutputFactoryProvenance>, Serializable {
+public interface OutputFactory<T extends Output<T>> extends Configurable, ProtoSerializable<OutputFactoryProto>, Provenancable<OutputFactoryProvenance> {
 
     /**
      * Parses the {@code V} and generates the appropriate {@link Output} value.
