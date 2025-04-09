@@ -5,7 +5,7 @@ Patch release to bring many dependencies up to the latest version, and integrate
 ## Updates
 * Bumping OCI Java SDK to 3.48.0, junit to 5.11.3, Jackson to 2.18.0, OpenCSV to 5.9 by @craigacp in https://github.com/oracle/tribuo/pull/380
 * Bumping to protobuf-java 3.25.6 and regenerating all the protobufs by @craigacp in https://github.com/oracle/tribuo/pull/381 and https://github.com/oracle/tribuo/pull/395
-* Moving to TF-Java 1.0.0 by @craigacp in https://github.com/oracle/tribuo/pull/367
+* Moving to TF-Java 1.0.0 by @craigacp in https://github.com/oracle/tribuo/pull/367. Note the TensorFlow interface requires Java 11, as TF-Java v1.0 requires Java 11.
 * Moving to OLCUT 5.3.1 by @craigacp in https://github.com/oracle/tribuo/pull/387
 * Moving to ONNX Runtime 1.20.0 by @craigacp in https://github.com/oracle/tribuo/pull/368
 
