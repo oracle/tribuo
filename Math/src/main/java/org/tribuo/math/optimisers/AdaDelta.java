@@ -19,6 +19,7 @@ package org.tribuo.math.optimisers;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
+import java.util.function.DoubleUnaryOperator;
 import org.tribuo.math.Parameters;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.Tensor;
@@ -79,13 +80,17 @@ public class AdaDelta implements StochasticGradientOptimiser {
 
     @Override
     public Tensor[] step(Tensor[] updates, double weight) {
+        // Lifting lambdas out of the for loop until JDK-8183316 is fixed.
+        DoubleUnaryOperator accumulatorScaling = (double a) -> a * a * (1.0 - rho);
+        DoubleUnaryOperator velocityScaling = (double a) -> Math.sqrt(a + epsilon);
+        DoubleUnaryOperator gradScaling = (double a) -> 1.0 / (Math.sqrt(a + epsilon));
         for (int i = 0; i < updates.length; i++) {
             gradsSquared[i].scaleInPlace(rho);
-            gradsSquared[i].intersectAndAddInPlace(updates[i],(double a) -> a * a * (1.0 - rho));
-            updates[i].hadamardProductInPlace(velocitySquared[i],(double a) -> Math.sqrt(a + epsilon));
-            updates[i].hadamardProductInPlace(gradsSquared[i],(double a) -> 1.0 / (Math.sqrt(a + epsilon)));
+            gradsSquared[i].intersectAndAddInPlace(updates[i], accumulatorScaling);
+            updates[i].hadamardProductInPlace(velocitySquared[i], velocityScaling);
+            updates[i].hadamardProductInPlace(gradsSquared[i], gradScaling);
             velocitySquared[i].scaleInPlace(rho);
-            velocitySquared[i].intersectAndAddInPlace(updates[i],(double a) -> a * a * (1.0 - rho));
+            velocitySquared[i].intersectAndAddInPlace(updates[i], accumulatorScaling);
         }
 
         return updates;

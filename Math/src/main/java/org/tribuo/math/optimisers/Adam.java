@@ -100,7 +100,7 @@ public class Adam implements StochasticGradientOptimiser {
         iterations++;
 
         double learningRate = initialLearningRate * Math.sqrt(1.0 - Math.pow(betaTwo,iterations)) / (1.0 - Math.pow(betaOne,iterations));
-        //lifting lambdas out of the for loop until JDK-8183316 is fixed.
+        // Lifting lambdas out of the for loop until JDK-8183316 is fixed.
         DoubleUnaryOperator scaleMomentum = (double a) -> a * learningRate;
         DoubleUnaryOperator scaleBetaOne = (double a) -> a * (1.0 - betaOne);
         DoubleUnaryOperator scaleBetaTwo = (double a) -> a * a * (1.0 - betaTwo);
