@@ -101,16 +101,19 @@ public class Adam implements StochasticGradientOptimiser {
 
         double learningRate = initialLearningRate * Math.sqrt(1.0 - Math.pow(betaTwo,iterations)) / (1.0 - Math.pow(betaOne,iterations));
         //lifting lambdas out of the for loop until JDK-8183316 is fixed.
-        DoubleUnaryOperator scale = (double a) -> a * learningRate;
+        DoubleUnaryOperator scaleMomentum = (double a) -> a * learningRate;
+        DoubleUnaryOperator scaleBetaOne = (double a) -> a * (1.0 - betaOne);
+        DoubleUnaryOperator scaleBetaTwo = (double a) -> a * a * (1.0 - betaTwo);
+        DoubleUnaryOperator scaleVariance = (double a) -> 1.0 / (Math.sqrt(a) + epsilon);
 
         for (int i = 0; i < updates.length; i++) {
             firstMoment[i].scaleInPlace(betaOne);
-            firstMoment[i].intersectAndAddInPlace(updates[i],(double a) -> a * (1.0 - betaOne));
+            firstMoment[i].intersectAndAddInPlace(updates[i],scaleBetaOne);
             secondMoment[i].scaleInPlace(betaTwo);
-            secondMoment[i].intersectAndAddInPlace(updates[i],(double a) -> a * a * (1.0 - betaTwo));
+            secondMoment[i].intersectAndAddInPlace(updates[i],scaleBetaTwo);
             updates[i].scaleInPlace(0.0); //scales everything to zero, but leaving the sparse presence
-            updates[i].intersectAndAddInPlace(firstMoment[i],scale); // add in the first moment
-            updates[i].hadamardProductInPlace(secondMoment[i],(double a) -> Math.sqrt(a) + epsilon); // scale by second moment
+            updates[i].intersectAndAddInPlace(firstMoment[i],scaleMomentum); // add in the first moment
+            updates[i].hadamardProductInPlace(secondMoment[i],scaleVariance); // scale by second moment
         }
 
         return updates;
