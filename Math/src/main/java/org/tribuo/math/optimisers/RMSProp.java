@@ -122,7 +122,7 @@ public class RMSProp implements StochasticGradientOptimiser {
     @Override
     public Tensor[] step(Tensor[] updates, double weight) {
         double learningRate = initialLearningRate / (1 + decay * iteration);
-        //lifting lambdas out of the for loop until JDK-8183316 is fixed.
+        // Lifting lambdas out of the for loop until JDK-8183316 is fixed.
         DoubleUnaryOperator scale = (double a) -> weight * learningRate / (epsilon + Math.sqrt(a));
         for (int i = 0; i < updates.length; i++) {
             Tensor curGradsSquared = gradsSquared[i];

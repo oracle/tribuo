@@ -102,7 +102,7 @@ public class AdaGrad implements StochasticGradientOptimiser {
 
     @Override
     public Tensor[] step(Tensor[] updates, double weight) {
-        //lifting lambdas out of the for loop until JDK-8183316 is fixed.
+        // Lifting lambdas out of the for loop until JDK-8183316 is fixed.
         DoubleUnaryOperator square = (double a) -> weight*weight*a*a;
         DoubleUnaryOperator scale = (double a) -> weight * initialLearningRate / (epsilon + Math.sqrt(a));
         for (int i = 0; i < updates.length; i++) {
