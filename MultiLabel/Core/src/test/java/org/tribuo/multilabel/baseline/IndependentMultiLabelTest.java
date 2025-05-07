@@ -62,7 +62,6 @@ public class IndependentMultiLabelTest {
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
 
-        Helpers.testModelSerialization(model,MultiLabel.class);
         Helpers.testModelProtoSerialization(model, MultiLabel.class, test);
     }
 

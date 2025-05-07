@@ -42,7 +42,6 @@ import java.util.List;
  */
 @ProtoSerializableClass(version = RegressorTransformer.CURRENT_VERSION)
 public class RegressorTransformer implements OutputTransformer<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

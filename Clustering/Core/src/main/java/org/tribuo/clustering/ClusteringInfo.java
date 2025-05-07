@@ -38,7 +38,6 @@ import java.util.Set;
  * The base class for a ClusterID OutputInfo.
  */
 public abstract class ClusteringInfo implements OutputInfo<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The cluster counts for each id.

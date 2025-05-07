@@ -90,17 +90,17 @@ public class TestRegressionEnsembles {
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
         Model<Regressor> bagging = testBagging(p);
-        Helpers.testModelSerialization(bagging,Regressor.class);
+        Helpers.testModelProtoSerialization(bagging,Regressor.class);
         Model<Regressor> mBagging = testMultiBagging(p);
-        Helpers.testModelSerialization(mBagging,Regressor.class);
+        Helpers.testModelProtoSerialization(mBagging,Regressor.class);
         Model<Regressor> rf = testRandomForest(p);
-        Helpers.testModelSerialization(rf,Regressor.class);
+        Helpers.testModelProtoSerialization(rf,Regressor.class);
         Model<Regressor> mRF = testMultiRandomForest(p);
-        Helpers.testModelSerialization(mRF,Regressor.class);
+        Helpers.testModelProtoSerialization(mRF,Regressor.class);
         Model<Regressor> extra = testExtraTrees(p);
-        Helpers.testModelSerialization(extra,Regressor.class);
+        Helpers.testModelProtoSerialization(extra,Regressor.class);
         Model<Regressor> mExtra = testMultiExtraTrees(p);
-        Helpers.testModelSerialization(mExtra,Regressor.class);
+        Helpers.testModelProtoSerialization(mExtra,Regressor.class);
     }
 
     @Test

@@ -51,7 +51,6 @@ import java.util.Map;
  * </pre>
  */
 public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONNXExportable {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.
@@ -171,14 +170,4 @@ public class LinearSGDModel extends AbstractLinearSGDModel<Label> implements ONN
         return "Classification-LinearSGDModel";
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        // Bounce old 4.0 style models into the new 4.1 style models
-        if (weights != null && modelParameters == null) {
-            modelParameters = new LinearParameters(weights);
-            weights = null;
-            addBias = true;
-        }
-    }
 }

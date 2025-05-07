@@ -55,7 +55,6 @@ import java.util.logging.Logger;
  */
 public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> implements AutoCloseable {
     private static final Logger logger = Logger.getLogger(TensorFlowModel.class.getName());
-    private static final long serialVersionUID = 200L;
 
     protected int batchSize;
     protected final String outputName;

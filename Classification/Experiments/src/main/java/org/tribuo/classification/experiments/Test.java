@@ -42,11 +42,8 @@ import org.tribuo.datasource.LibSVMDataSource;
 import org.tribuo.util.Util;
 import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -116,11 +113,6 @@ public class Test {
          */
         @Option(charName = 'v', longName = "testing-file", usage = "Path to the testing file.")
         public Path testingPath;
-        /**
-         * Load the model in protobuf format.
-         */
-        @Option(longName = "read-protobuf-model", usage = "Load the model in protobuf format.")
-        public boolean protobufModel;
     }
 
     /**
@@ -134,33 +126,12 @@ public class Test {
         Path modelPath = o.modelPath;
         Path datasetPath = o.testingPath;
         logger.info(String.format("Loading model from %s", modelPath));
-        Model<?> tmpModel;
-        if (o.protobufModel) {
-            tmpModel = Model.deserializeFromFile(modelPath);
-        } else {
-            try (ObjectInputStream mois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(modelPath.toFile())))) {
-                tmpModel = (Model<?>) mois.readObject();
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Unknown class in serialised model", e);
-            }
-        }
+        Model<?> tmpModel = Model.deserializeFromFile(modelPath);
         Model<Label> model = tmpModel.castModel(Label.class);
         logger.info(String.format("Loading data from %s", datasetPath));
         Dataset<Label> test;
         switch (o.inputFormat) {
             case SERIALIZED:
-                //
-                // Load Tribuo serialised datasets.
-                logger.info("Deserialising dataset from " + datasetPath);
-                try (ObjectInputStream oits = new ObjectInputStream(new BufferedInputStream(new FileInputStream(datasetPath.toFile())))) {
-                    Dataset<Label> deserTest = (Dataset<Label>) oits.readObject();
-                    test = ImmutableDataset.copyDataset(deserTest,model.getFeatureIDMap(),model.getOutputIDInfo());
-                    logger.info(String.format("Loaded %d testing examples for %s", test.size(), test.getOutputs().toString()));
-                } catch (ClassNotFoundException e) {
-                    throw new IllegalArgumentException("Unknown class in serialised dataset", e);
-                }
-                break;
-            case SERIALIZED_PROTOBUF:
                 //
                 // Load Tribuo protobuf serialised datasets.
                 Dataset<?> tmp = Dataset.deserializeFromFile(datasetPath);

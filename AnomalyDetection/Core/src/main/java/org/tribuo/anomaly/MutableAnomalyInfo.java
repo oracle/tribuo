@@ -35,7 +35,6 @@ import org.tribuo.protos.ProtoSerializableClass;
  */
 @ProtoSerializableClass(serializedDataClass=AnomalyInfoProto.class, version=0)
 public final class MutableAnomalyInfo extends AnomalyInfo implements MutableOutputInfo<Event> {
-    private static final long serialVersionUID = 1L;
 
     MutableAnomalyInfo() {
         super();

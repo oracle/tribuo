@@ -35,7 +35,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = Polynomial.CURRENT_VERSION, serializedDataClass = PolynomialKernelProto.class)
 public class Polynomial implements Kernel {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

@@ -25,7 +25,6 @@ import org.tribuo.interop.tensorflow.protos.FeatureConverterProto;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.protos.ProtoSerializable;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +35,7 @@ import java.util.Set;
  * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
-public interface FeatureConverter extends Configurable, ProtoSerializable<FeatureConverterProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface FeatureConverter extends Configurable, ProtoSerializable<FeatureConverterProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Converts an {@link Example} into a {@link TensorMap} suitable for supplying as an input to a graph.

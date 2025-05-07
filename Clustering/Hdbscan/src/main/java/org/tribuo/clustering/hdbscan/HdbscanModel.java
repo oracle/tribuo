@@ -27,10 +27,10 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.clustering.ClusterID;
-import org.tribuo.clustering.hdbscan.HdbscanTrainer.Distance;
 import org.tribuo.clustering.hdbscan.protos.ClusterExemplarProto;
 import org.tribuo.clustering.hdbscan.protos.HdbscanModelProto;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
@@ -62,7 +62,6 @@ import java.util.Optional;
  * </pre>
  */
 public final class HdbscanModel extends Model<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.
@@ -73,12 +72,7 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     private final DenseVector outlierScoresVector;
 
-    @Deprecated
-    private Distance distanceType;
-
-    // This is not final to support deserialization of older models. It will be final in a future version which doesn't
-    // maintain serialization compatibility with 4.X.
-    private org.tribuo.math.distance.Distance dist;
+    private final Distance dist;
 
     private final List<HdbscanTrainer.ClusterExemplar> clusterExemplars;
 
@@ -86,7 +80,7 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     HdbscanModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                  ImmutableOutputInfo<ClusterID> outputIDInfo, List<Integer> clusterLabels, DenseVector outlierScoresVector,
-                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, org.tribuo.math.distance.Distance dist, double noisePointsOutlierScore) {
+                 List<HdbscanTrainer.ClusterExemplar> clusterExemplars, Distance dist, double noisePointsOutlierScore) {
         super(name,description,featureIDMap,outputIDInfo,false);
         this.clusterLabels = Collections.unmodifiableList(clusterLabels);
         this.outlierScoresVector = outlierScoresVector;
@@ -293,10 +287,4 @@ public final class HdbscanModel extends Model<ClusterID> {
             copyOutlierScoresVector, copyExemplars, dist, noisePointsOutlierScore);
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        if (dist == null) {
-            dist = distanceType.getDistanceType().getDistance();
-        }
-    }
 }

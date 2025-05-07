@@ -47,7 +47,6 @@ import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -153,15 +152,15 @@ public class TestXGBoost {
         return loadModel(modelPath);
     }
 
-    private XGBoostModel<Label> loadModel(String path) throws IOException, ClassNotFoundException {
+    private XGBoostModel<Label> loadModel(String path) throws IOException {
         URL modelFile = this.getClass().getResource(path);
-        try (ObjectInputStream ois = new ObjectInputStream(modelFile.openStream())) {
+        try (InputStream is = modelFile.openStream()) {
             @SuppressWarnings("unchecked") // checked by validate call.
-            XGBoostModel<Label> data = (XGBoostModel<Label>) ois.readObject();
-            if (!data.validate(Label.class)) {
+            XGBoostModel<Label> model = (XGBoostModel<Label>) Model.deserializeFromStream(is);
+            if (!model.validate(Label.class)) {
                 fail(String.format("model for %s is not a classification model.",path));
             }
-            return data;
+            return model;
         } catch (NullPointerException e) {
             fail(String.format("model for %s does not exist", path));
             throw e;
@@ -230,7 +229,6 @@ public class TestXGBoost {
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testXGBoost(t,p);
-        Helpers.testModelSerialization(model,Label.class);
         Helpers.testModelProtoSerialization(model, Label.class, p.getB());
         testXGBoost(dart,p);
         testXGBoost(linear,p);

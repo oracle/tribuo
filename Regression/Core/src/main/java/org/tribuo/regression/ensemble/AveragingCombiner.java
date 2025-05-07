@@ -43,7 +43,6 @@ import java.util.Map;
  * regressors independently across the output dimensions.
  */
 public class AveragingCombiner implements EnsembleCombiner<Regressor> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

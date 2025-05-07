@@ -21,8 +21,6 @@ import org.tribuo.math.protos.ParametersProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.Serializable;
-
 /**
  * An interface to a {@link Tensor}[] array which accepts updates to the parameters.
  * <p>
@@ -33,7 +31,7 @@ import java.io.Serializable;
  * <p>
  * Implementations must be serializable.
  */
-public interface Parameters extends ProtoSerializable<ParametersProto>, Serializable {
+public interface Parameters extends ProtoSerializable<ParametersProto> {
 
     /**
      * Generates an empty copy of the underlying {@link Tensor} array.

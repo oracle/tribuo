@@ -20,14 +20,13 @@ import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.VariableInfoProto;
 
-import java.io.Serializable;
 import java.util.SplittableRandom;
 
 /**
  * A VariableInfo subclass contains information about a feature and
  * its observed values.
  */
-public interface VariableInfo extends Serializable, ProtoSerializable<VariableInfoProto>, Cloneable {
+public interface VariableInfo extends ProtoSerializable<VariableInfoProto>, Cloneable {
     /**
      * The name of this feature.
      * @return The feature name.

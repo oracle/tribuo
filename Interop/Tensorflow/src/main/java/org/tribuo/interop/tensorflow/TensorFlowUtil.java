@@ -31,7 +31,6 @@ import org.tensorflow.types.family.TType;
 import org.tribuo.interop.tensorflow.protos.TensorTupleProto;
 import org.tribuo.util.Util;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -205,8 +204,7 @@ public abstract class TensorFlowUtil {
      * <p>
      * It's almost a record.
      */
-    public static final class TensorTuple implements Serializable {
-        private static final long serialVersionUID = 1L;
+    public static final class TensorTuple {
 
         /**
          * The tensor class name.

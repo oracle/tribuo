@@ -36,7 +36,6 @@ import java.util.Set;
  * The base class for information about multi-class classification Labels.
  */
 public abstract class LabelInfo implements OutputInfo<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The occurrence counts of each label.
@@ -176,11 +175,4 @@ public abstract class LabelInfo implements OutputInfo<Label> {
     @Override
     public abstract LabelInfo copy();
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        labels = new HashMap<>();
-        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
-            labels.put(e.getKey(),new Label(e.getKey()));
-        }
-    }
 }

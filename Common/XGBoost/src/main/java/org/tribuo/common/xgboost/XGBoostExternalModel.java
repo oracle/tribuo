@@ -46,11 +46,8 @@ import org.tribuo.provenance.DatasetProvenance;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -95,7 +92,6 @@ import java.util.logging.Logger;
  * OpenMP support after installing libomp from homebrew if necessary.
  */
 public final class XGBoostExternalModel<T extends Output<T>> extends ExternalModel<T,DMatrix,float[][]> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(XGBoostExternalModel.class.getName());
 
@@ -106,10 +102,7 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
 
     private final XGBoostOutputConverter<T> converter;
 
-    /**
-     * Transient as we rely upon the native serialisation mechanism to bytes rather than Java serializing the Booster.
-     */
-    protected transient Booster model;
+    private final Booster model;
 
     private XGBoostExternalModel(String name, ModelProvenance provenance,
                                  ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
@@ -386,24 +379,4 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
                 featureMapping,model,outputFunc);
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        try {
-            byte[] serialisedBooster = model.toByteArray();
-            out.writeObject(serialisedBooster);
-        } catch (XGBoostError e) {
-            throw new IOException("Failed to serialize the XGBoost model",e);
-        }
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        try {
-            // Now read in the byte array and rebuild the Booster
-            byte[] serialisedBooster = (byte[]) in.readObject();
-            model = XGBoost.loadModel(new ByteArrayInputStream(serialisedBooster));
-        } catch (XGBoostError e) {
-            throw new IOException("Failed to deserialize the XGBoost model",e);
-        }
-    }
 }

@@ -38,12 +38,8 @@ import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
-import org.tribuo.provenance.TrainerProvenance;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -84,7 +80,6 @@ import java.util.stream.Collectors;
  * OpenMP support after installing libomp from homebrew if necessary.
  */
 public final class XGBoostModel<T extends Output<T>> extends Model<T> {
-    private static final long serialVersionUID = 4L;
 
     private static final Logger logger = Logger.getLogger(XGBoostModel.class.getName());
 
@@ -95,13 +90,10 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
 
     private final XGBoostOutputConverter<T> converter;
 
-    // Used to signal if the model has been rewritten to fix the issue with multidimensional XGBoost regression models in 4.0 and 4.1.0.
-    private boolean regression41MappingFix;
-
     /**
      * The XGBoost4J Boosters.
      */
-    protected transient List<Booster> models;
+    private final List<Booster> models;
 
     XGBoostModel(String name, ModelProvenance description,
                  ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> labelIDMap,
@@ -109,7 +101,6 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
         super(name,description,featureIDMap,labelIDMap,converter.generatesProbabilities());
         this.converter = converter;
         this.models = models;
-        this.regression41MappingFix = true;
     }
 
     /**
@@ -362,53 +353,4 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
         return builder.build();
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        try {
-            out.writeInt(models.size());
-            for (Booster model : models) {
-                byte[] serialisedBooster = model.toByteArray();
-                out.writeObject(serialisedBooster);
-            }
-        } catch (XGBoostError e) {
-            throw new IOException("Failed to serialize the XGBoost model",e);
-        }
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        try {
-            this.models = new ArrayList<>();
-            int numModels = in.readInt();
-            for (int i = 0; i < numModels; i++) {
-                // Now read in the byte array and rebuild each Booster
-                byte[] serialisedBooster = (byte[]) in.readObject();
-                this.models.add(XGBoost.loadModel(serialisedBooster));
-            }
-            try {
-                Class<?> regressionClass = Class.forName("org.tribuo.regression.ImmutableRegressionInfo");
-                String tribuoVersion = (String) provenance.getTrainerProvenance().getInstanceValues().get(TrainerProvenance.TRIBUO_VERSION_STRING).getValue();
-                if (regressionClass.isInstance(outputIDInfo) && !regression41MappingFix &&
-                        (tribuoVersion.startsWith("4.0.0") || tribuoVersion.startsWith("4.0.1") || tribuoVersion.startsWith("4.0.2") || tribuoVersion.startsWith("4.1.0")
-                                // This is explicit to catch the test model which has a 4.1.1-SNAPSHOT Tribuo version.
-                                || tribuoVersion.equals("4.1.1-SNAPSHOT"))) {
-                    // rewrite the model stream
-                    regression41MappingFix = true;
-                    int[] mapping = (int[]) regressionClass.getDeclaredMethod("getIDtoNaturalOrderMapping").invoke(outputIDInfo);
-                    List<Booster> copy = new ArrayList<>(models);
-                    for (int i = 0; i < mapping.length; i++) {
-                        copy.set(i,models.get(mapping[i]));
-                    }
-                    this.models = copy;
-                }
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException("Failed to rewrite 4.1.0 or earlier regression model due to a reflection failure.",e);
-            } catch (ClassNotFoundException e) {
-                // pass as this isn't a regression model as otherwise it would have thrown ClassNotFoundException
-                // during the reading of the input stream.
-            }
-        } catch (XGBoostError e) {
-            throw new IOException("Failed to deserialize the XGBoost model",e);
-        }
-    }
 }

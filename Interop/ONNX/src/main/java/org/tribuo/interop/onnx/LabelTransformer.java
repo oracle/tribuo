@@ -63,7 +63,6 @@ import java.util.logging.Logger;
  */
 @ProtoSerializableClass(serializedDataClass = LabelTransformerProto.class, version = LabelTransformer.CURRENT_VERSION)
 public class LabelTransformer implements OutputTransformer<Label> {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(LabelTransformer.class.getName());
 
     /**

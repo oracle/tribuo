@@ -41,7 +41,6 @@ import java.util.TreeSet;
  * Stores the observed min, max, mean and variance for each dimension.
  */
 public abstract class RegressionInfo implements OutputInfo<Regressor> {
-    private static final long serialVersionUID = 2L;
 
     private static final MutableDouble NAN = new MutableDouble(Double.NaN);
 
