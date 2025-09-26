@@ -232,6 +232,9 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             if (feature.size() == 1) {
                 continue;
             }
+            if (feature.isEmpty()) {
+                logger.warning("Invalid feature at idx " + i + ", depth " + depth + ", has no feature values.");
+            }
 
             int splitIdx = rng.nextInt(feature.size()-1);
 
@@ -249,7 +252,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             ImpurityTuple lessThanScore = impurity.impurityTuple(curLeftIndices,targets,weights);
             ImpurityTuple greaterThanScore = impurity.impurityTuple(curRightIndices,targets,weights);
             double score = (lessThanScore.impurity*lessThanScore.weight + greaterThanScore.impurity*greaterThanScore.weight) / weightSum;
-            if (score < bestScore) {
+            if ((score + IMPURITY_EPSILON) < bestScore) {
                 bestID = i;
                 bestScore = score;
                 bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
@@ -258,6 +261,16 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
                 bestLeftIndices.addAll(curLeftIndices);
                 bestRightIndices.clear();
                 bestRightIndices.addAll(curRightIndices);
+                if (bestLeftIndices.isEmpty()) {
+                    logger.warning("Left indices is empty, right indices is " + bestRightIndices.size() + ", how did this split?");
+                    logger.warning("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score + " orig impurity " + getImpurity());
+                    logger.warning("less score = " +lessThanScore+", less size = "+bestLeftIndices.size()+", greater score = " + greaterThanScore+", greater size = "+bestRightIndices.size());
+                }
+                if (bestRightIndices.isEmpty()) {
+                    logger.warning("Right indices is empty, left indices is " + bestLeftIndices.size() + ", how did this split?");
+                    logger.warning("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score + " orig impurity " + getImpurity());
+                    logger.warning("less score = " +lessThanScore+", less size = "+bestLeftIndices.size()+", greater score = " + greaterThanScore+", greater size = "+bestRightIndices.size());
+                }
                 //logger.info("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score);
                 //logger.info("less score = " +lessThanScore+", less size = "+lessThanIndices.size+", greater score = " + greaterThanScore+", greater size = "+greaterThanIndices.size);
             }
@@ -266,7 +279,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         List<AbstractTrainingNode<Regressor>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+        if ((bestID != -1) && (impurityDecrease >= (leafDeterminer.getScaledMinImpurityDecrease() + IMPURITY_EPSILON))) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
