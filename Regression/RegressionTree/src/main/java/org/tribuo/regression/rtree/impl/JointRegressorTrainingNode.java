@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -202,7 +202,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
                     greaterThanScore += right.impurity * right.weight;
                 }
                 double score = (lessThanScore + greaterThanScore) / (targets.length * weightSum);
-                if (score < bestScore) {
+                if ((score + IMPURITY_EPSILON) < bestScore) {
                     bestID = i;
                     bestScore = score;
                     bestSplitValue = (feature.get(j).value + feature.get(j + 1).value) / 2.0;
@@ -219,7 +219,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         List<AbstractTrainingNode<Regressor>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+        if ((bestID != -1) && (impurityDecrease >= (leafDeterminer.getScaledMinImpurityDecrease() + IMPURITY_EPSILON))) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
@@ -276,7 +276,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             }
 
             double score = (lessThanScore + greaterThanScore) / (targets.length * weightSum);
-            if (score < bestScore) {
+            if ((score + IMPURITY_EPSILON) < bestScore) {
                 bestID = i;
                 bestScore = score;
                 bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
@@ -293,7 +293,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
         List<AbstractTrainingNode<Regressor>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+        if ((bestID != -1) && (impurityDecrease >= (leafDeterminer.getScaledMinImpurityDecrease() + IMPURITY_EPSILON))) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
@@ -490,12 +490,12 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
                 // These two checks should never occur as SparseVector deals with
                 // collisions, and Dataset prevents repeated features.
                 // They are left in just to make sure.
-                if (lastID > curID) {
-                    logger.severe("Example = " + e.toString());
-                    throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
-                } else if (lastID-1 == curID) {
+                if (lastID-1 == curID) {
                     logger.severe("Example = " + e.toString());
                     throw new IllegalStateException("Features are repeated. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
+                } else if (lastID > curID) {
+                    logger.severe("Example = " + e.toString());
+                    throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
                 }
                 lastID = curID + 1;
             }

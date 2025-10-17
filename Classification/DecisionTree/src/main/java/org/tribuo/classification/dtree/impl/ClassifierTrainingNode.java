@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 double lessThanScore = impurity.impurityWeighted(lessThanCounts);
                 double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
                 double score = (lessThanScore + greaterThanScore) / weightSum;
-                if (score < bestScore) {
+                if ((score + IMPURITY_EPSILON) < bestScore) {
                     bestID = i;
                     bestScore = score;
                     System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
@@ -174,7 +174,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         List<AbstractTrainingNode<Label>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+        if ((bestID != -1) && (impurityDecrease >= (leafDeterminer.getScaledMinImpurityDecrease() + IMPURITY_EPSILON))) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, lessThanCountsOfBest, greaterThanCountsOfBest);
         } else {
             output = Collections.emptyList();
@@ -220,7 +220,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
             double lessThanScore = impurity.impurityWeighted(lessThanCounts);
             double greaterThanScore = impurity.impurityWeighted(greaterThanCounts);
             double score = (lessThanScore + greaterThanScore) / weightSum;
-            if (score < bestScore) {
+            if ((score + IMPURITY_EPSILON) < bestScore) {
                 bestID = i;
                 bestScore = score;
                 System.arraycopy(lessThanCounts,0,lessThanCountsOfBest,0,lessThanCounts.length);
@@ -232,7 +232,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         List<AbstractTrainingNode<Label>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+        if ((bestID != -1) && (impurityDecrease >= (leafDeterminer.getScaledMinImpurityDecrease() + IMPURITY_EPSILON))) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, lessThanCountsOfBest, greaterThanCountsOfBest);
         } else {
             output = Collections.emptyList();
@@ -369,7 +369,6 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         int numLabels = labelInfo.size();
         int numFeatures = featureInfos.size();
         int numExamples = examples.size();
-
         int[] labels = new int[numExamples];
         float[] weights = new float[numExamples];
 
@@ -401,12 +400,12 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
                 // These two checks should never occur as SparseVector deals with collisions, and Dataset prevents
                 // repeated features.
                 // They are left in just to make sure.
-                if (lastID > curID) {
-                    logger.severe("Example = " + e);
-                    throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
-                } else if (lastID-1 == curID) {
+                if (lastID-1 == curID) {
                     logger.severe("Example = " + e);
                     throw new IllegalStateException("Features are repeated. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
+                } else if (lastID > curID) {
+                    logger.severe("Example = " + e);
+                    throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
                 }
                 lastID = curID + 1;
             }
