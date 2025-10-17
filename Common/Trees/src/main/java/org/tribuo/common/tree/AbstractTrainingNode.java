@@ -32,6 +32,11 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
      */
     protected static final int DEFAULT_SIZE = 16;
 
+    /**
+     * Epsilon value for floating point impurity comparisons
+     */
+    protected static final double IMPURITY_EPSILON = 1e-12;
+
     protected final int depth;
 
     protected final int numExamples;

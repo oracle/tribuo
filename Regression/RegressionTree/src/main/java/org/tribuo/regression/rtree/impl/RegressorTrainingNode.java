@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,7 +183,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
                 ImpurityTuple lessThanScore = impurity.impurityTuple(curLeftIndices,targets,weights);
                 ImpurityTuple greaterThanScore = impurity.impurityTuple(curRightIndices,targets,weights);
                 double score = (lessThanScore.impurity*lessThanScore.weight + greaterThanScore.impurity*greaterThanScore.weight) / weightSum;
-                if (score < bestScore) {
+                if ((score + IMPURITY_EPSILON) < bestScore) {
                     bestID = i;
                     bestScore = score;
                     bestSplitValue = (feature.get(j).value + feature.get(j + 1).value) / 2.0;
@@ -200,7 +200,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         List<AbstractTrainingNode<Regressor>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+        if ((bestID != -1) && (impurityDecrease >= (leafDeterminer.getScaledMinImpurityDecrease() + IMPURITY_EPSILON))) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
@@ -232,6 +232,9 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             if (feature.size() == 1) {
                 continue;
             }
+            if (feature.isEmpty()) {
+                logger.warning("Invalid feature at idx " + i + ", depth " + depth + ", has no feature values.");
+            }
 
             int splitIdx = rng.nextInt(feature.size()-1);
 
@@ -249,7 +252,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             ImpurityTuple lessThanScore = impurity.impurityTuple(curLeftIndices,targets,weights);
             ImpurityTuple greaterThanScore = impurity.impurityTuple(curRightIndices,targets,weights);
             double score = (lessThanScore.impurity*lessThanScore.weight + greaterThanScore.impurity*greaterThanScore.weight) / weightSum;
-            if (score < bestScore) {
+            if ((score + IMPURITY_EPSILON) < bestScore) {
                 bestID = i;
                 bestScore = score;
                 bestSplitValue = (feature.get(splitIdx).value + feature.get(splitIdx + 1).value) / 2.0;
@@ -258,6 +261,16 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
                 bestLeftIndices.addAll(curLeftIndices);
                 bestRightIndices.clear();
                 bestRightIndices.addAll(curRightIndices);
+                if (bestLeftIndices.isEmpty()) {
+                    logger.warning("Left indices is empty, right indices is " + bestRightIndices.size() + ", how did this split?");
+                    logger.warning("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score + " orig impurity " + getImpurity());
+                    logger.warning("less score = " +lessThanScore+", less size = "+bestLeftIndices.size()+", greater score = " + greaterThanScore+", greater size = "+bestRightIndices.size());
+                }
+                if (bestRightIndices.isEmpty()) {
+                    logger.warning("Right indices is empty, left indices is " + bestLeftIndices.size() + ", how did this split?");
+                    logger.warning("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score + " orig impurity " + getImpurity());
+                    logger.warning("less score = " +lessThanScore+", less size = "+bestLeftIndices.size()+", greater score = " + greaterThanScore+", greater size = "+bestRightIndices.size());
+                }
                 //logger.info("id = " + featureIDs[i] + ", split = " + bestSplitValue + ", score = " + score);
                 //logger.info("less score = " +lessThanScore+", less size = "+lessThanIndices.size+", greater score = " + greaterThanScore+", greater size = "+greaterThanIndices.size);
             }
@@ -266,7 +279,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
         List<AbstractTrainingNode<Regressor>> output;
         double impurityDecrease = weightSum * (getImpurity() - bestScore);
         // If we found a split better than the current impurity.
-        if ((bestID != -1) && (impurityDecrease >= leafDeterminer.getScaledMinImpurityDecrease())) {
+        if ((bestID != -1) && (impurityDecrease >= (leafDeterminer.getScaledMinImpurityDecrease() + IMPURITY_EPSILON))) {
             output = splitAtBest(featureIDs, bestID, bestSplitValue, bestLeftIndices, bestRightIndices);
         } else {
             output = Collections.emptyList();
@@ -427,12 +440,12 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
                 // These two checks should never occur as SparseVector deals with
                 // collisions, and Dataset prevents repeated features.
                 // They are left in just to make sure.
-                if (lastID > curID) {
-                    logger.severe("Example = " + e.toString());
-                    throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
-                } else if (lastID-1 == curID) {
+                if (lastID-1 == curID) {
                     logger.severe("Example = " + e.toString());
                     throw new IllegalStateException("Features are repeated. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
+                } else if (lastID > curID) {
+                    logger.severe("Example = " + e.toString());
+                    throw new IllegalStateException("Features aren't ordered. At id " + i + ", lastID = " + lastID + ", curID = " + curID);
                 }
                 lastID = curID + 1;
             }
