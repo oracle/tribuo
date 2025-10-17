@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -275,6 +275,11 @@ public final class StripProvenance {
          */
         @Option(charName = 't', longName = "hash-type", usage = "The hash type to use.")
         public ProvenanceUtil.HashType hashType = ObjectProvenance.DEFAULT_HASH_TYPE;
+        /**
+         * No-op for backwards compatibility as all v5 models are protobuf only.
+         */
+        @Option(longName = "model-protobuf", usage = "No-op for compatibility as all models are now protobuf format.")
+        public boolean protobuf;
     }
 
     /**
