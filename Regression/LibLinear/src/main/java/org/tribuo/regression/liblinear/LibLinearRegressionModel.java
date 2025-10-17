@@ -79,14 +79,13 @@ import java.util.logging.Logger;
  * </pre>
  */
 public class LibLinearRegressionModel extends LibLinearModel<Regressor> implements ONNXExportable {
-    private static final long serialVersionUID = 2L;
 
     private static final Logger logger = Logger.getLogger(LibLinearRegressionModel.class.getName());
 
     private final String[] dimensionNames;
 
     // Not final as it doesn't exist in 4.0 or 4.1 and so must be created on deserialization.
-    private int[] mapping;
+    private final int[] mapping;
 
     LibLinearRegressionModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputInfo, List<de.bwaldvogel.liblinear.Model> models) {
         super(name, description, featureIDMap, outputInfo, false, models);
@@ -125,10 +124,10 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
             List<de.bwaldvogel.liblinear.Model> models = new ArrayList<>();
             for (ByteString modelArray : proto.getModelsList()) {
                 ByteArrayInputStream bais = new ByteArrayInputStream(modelArray.toByteArray());
-                ObjectInputStream ois = new ObjectInputStream(bais);
-                de.bwaldvogel.liblinear.Model model = (de.bwaldvogel.liblinear.Model) ois.readObject();
-                ois.close();
-                models.add(model);
+                try (ObjectInputStream ois = new ObjectInputStream(bais)) {
+                    de.bwaldvogel.liblinear.Model model = (de.bwaldvogel.liblinear.Model) ois.readObject();
+                    models.add(model);
+                }
             }
             return new LibLinearRegressionModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,Collections.unmodifiableList(models));
         } catch (IOException | ClassNotFoundException e) {
@@ -281,19 +280,4 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
         return input.apply(ONNXOperators.GEMM, Arrays.asList(onnxWeights, onnxBiases));
     }
 
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        // Add mapping field to 4.0, 4.1 models and rearrange the dimensions.
-        if (mapping == null) {
-            this.mapping = ((ImmutableRegressionInfo) outputIDInfo).getIDtoNaturalOrderMapping();
-            List<de.bwaldvogel.liblinear.Model> newModels = new ArrayList<>(this.models);
-
-            for (int i = 0; i < mapping.length; i++) {
-                newModels.set(i,this.models.get(mapping[i]));
-            }
-
-            this.models = Collections.unmodifiableList(newModels);
-        }
-    }
 }

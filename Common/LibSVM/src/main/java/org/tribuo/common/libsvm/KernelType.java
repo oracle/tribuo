@@ -16,12 +16,10 @@
 
 package org.tribuo.common.libsvm;
 
-import java.io.Serializable;
-
 /**
  * Kernel types from libsvm.
  */
-public enum KernelType implements Serializable {
+public enum KernelType {
     /**
      * A linear kernel function (i.e., a dot product).
      */

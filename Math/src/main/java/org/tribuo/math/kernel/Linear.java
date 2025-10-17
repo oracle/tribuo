@@ -27,7 +27,6 @@ import org.tribuo.math.protos.KernelProto;
  * A linear kernel, u.dot(v).
  */
 public class Linear implements Kernel {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

@@ -27,7 +27,6 @@ import org.tribuo.math.protos.DistanceProto;
  * L1 (or Manhattan) distance.
  */
 public final class L1Distance implements Distance {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

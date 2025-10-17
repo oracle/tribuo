@@ -76,7 +76,7 @@ public class TestCARTRegressionTrainer {
     @Test
     public void testDenseData() {
         Model<Regressor> model = runDenseData(t);
-        Helpers.testModelSerialization(model,Regressor.class);
+        Helpers.testModelProtoSerialization(model,Regressor.class);
     }
 
     @Test

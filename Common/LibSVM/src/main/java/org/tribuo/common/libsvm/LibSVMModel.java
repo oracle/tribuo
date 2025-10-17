@@ -32,7 +32,6 @@ import libsvm.svm_model;
 import libsvm.svm_node;
 import org.tribuo.util.Util;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,8 +64,7 @@ import java.util.stream.Collectors;
  * Machine Learning, 1995.
  * </pre>
  */
-public abstract class LibSVMModel<T extends Output<T>> extends Model<T> implements Serializable {
-    private static final long serialVersionUID = 3L;
+public abstract class LibSVMModel<T extends Output<T>> extends Model<T> {
 
     private static final Logger logger = Logger.getLogger(LibSVMModel.class.getName());
 

@@ -49,7 +49,6 @@ import java.util.logging.Logger;
  * the current impurity and a bunch of other statistics.
  */
 public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(ClassifierTrainingNode.class.getName());
 
@@ -432,8 +431,4 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
         return data;
     }
 
-    private void writeObject(java.io.ObjectOutputStream stream)
-            throws IOException {
-        throw new NotSerializableException("ClassifierTrainingNode is a runtime class only, and should not be serialized.");
-    }
 }

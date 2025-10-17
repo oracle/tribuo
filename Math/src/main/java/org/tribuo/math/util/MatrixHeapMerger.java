@@ -34,7 +34,6 @@ import java.util.logging.Logger;
  * Relies upon {@link MatrixIterator#compareTo(MatrixIterator)}.
  */
 public class MatrixHeapMerger implements Merger {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(MatrixHeapMerger.class.getName());
 

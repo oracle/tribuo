@@ -194,7 +194,7 @@ public class ClassificationTest {
         Assertions.assertTrue(eval.averageAUCROC(false) > 0.0);
 
         // Check Tribuo serialization
-        Helpers.testModelSerialization(model, Label.class);
+        Helpers.testModelProtoSerialization(model, Label.class);
 
         // Check saved model bundle export
         Path outputPath = Files.createTempDirectory("tf-classification-test");
@@ -354,7 +354,7 @@ public class ClassificationTest {
         Assertions.assertTrue(eval.accuracy() > 0.0);
 
         // Check Tribuo serialization
-        Helpers.testModelSerialization(model,Label.class);
+        Helpers.testModelProtoSerialization(model,Label.class);
 
         // Check saved model bundle export
         Path outputPath = Files.createTempDirectory("tf-classification-cnn-test");

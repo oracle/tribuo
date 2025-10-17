@@ -41,7 +41,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -58,9 +57,8 @@ import java.util.logging.Logger;
  *
  * @param <T> the type of the outputs in the data set.
  */
-public abstract class SequenceDataset<T extends Output<T>> implements Iterable<SequenceExample<T>>, ProtoSerializable<SequenceDatasetProto>, Provenancable<DatasetProvenance>, Serializable {
+public abstract class SequenceDataset<T extends Output<T>> implements Iterable<SequenceExample<T>>, ProtoSerializable<SequenceDatasetProto>, Provenancable<DatasetProvenance> {
     private static final Logger logger = Logger.getLogger(SequenceDataset.class.getName());
-    private static final long serialVersionUID = 2L;
 
     /**
      * A factory for making {@link OutputInfo} and {@link Output} of the appropriate type.
@@ -313,8 +311,6 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
     }
 
     private static class FlatDataset<T extends Output<T>> extends ImmutableDataset<T> {
-        private static final long serialVersionUID = 1L;
-
         FlatDataset(SequenceDataset<T> sequenceDataset) {
             super(sequenceDataset.sourceProvenance, sequenceDataset.outputFactory, sequenceDataset.getFeatureIDMap(), sequenceDataset.getOutputIDInfo());
             for (SequenceExample<T> seq : sequenceDataset) {

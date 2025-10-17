@@ -26,7 +26,6 @@ import org.tribuo.interop.onnx.protos.ExampleTransformerProto;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.protos.ProtoSerializable;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -36,7 +35,7 @@ import java.util.List;
  * <p>
  * N.B. ONNX support is experimental, and may change without a major version bump.
  */
-public interface ExampleTransformer extends Configurable, ProtoSerializable<ExampleTransformerProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface ExampleTransformer extends Configurable, ProtoSerializable<ExampleTransformerProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Converts a {@link SparseVector} representing the features into a {@link OnnxTensor}.

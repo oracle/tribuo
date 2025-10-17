@@ -44,7 +44,6 @@ import java.util.Set;
  * Whenever an {@link SequenceExample} is added to the dataset.
  */
 public class MutableSequenceDataset<T extends Output<T>> extends SequenceDataset<T> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

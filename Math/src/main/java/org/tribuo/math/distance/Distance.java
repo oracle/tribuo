@@ -23,14 +23,12 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.protos.DistanceProto;
 import org.tribuo.protos.ProtoSerializable;
 
-import java.io.Serializable;
-
 /**
  * Interface for distance functions.
  * <p>
  * Must be valid distance functions which are positive, symmetric, and obey the triangle inequality.
  */
-public interface Distance extends Configurable, ProtoSerializable<DistanceProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface Distance extends Configurable, ProtoSerializable<DistanceProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Computes the distance between the two vectors.

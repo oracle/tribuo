@@ -41,7 +41,6 @@ import java.util.Set;
  * A factory for generating MultiLabel objects and their associated OutputInfo and Evaluator objects.
  */
 public final class MultiLabelFactory implements OutputFactory<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The sentinel unknown multi-label output used to signal there is no ground truth value.

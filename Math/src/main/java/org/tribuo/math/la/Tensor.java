@@ -20,14 +20,13 @@ import org.tribuo.math.protos.TensorProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
 /**
  * An interface for Tensors, currently Vectors and Matrices.
  */
-public interface Tensor extends ProtoSerializable<TensorProto>, Serializable {
+public interface Tensor extends ProtoSerializable<TensorProto> {
 
     /**
      * The number of elements in this shape, i.e., the product of the shape array.

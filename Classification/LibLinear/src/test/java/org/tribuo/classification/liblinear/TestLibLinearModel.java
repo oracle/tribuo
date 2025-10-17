@@ -52,7 +52,6 @@ import org.tribuo.util.tokens.impl.BreakIteratorTokenizer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -71,6 +70,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestLibLinearModel {
     private static final Logger logger = Logger.getLogger(TestLibLinearModel.class.getName());
@@ -112,7 +112,7 @@ public class TestLibLinearModel {
     }
 
     @Test
-    public void testMulticlass() throws IOException, ClassNotFoundException {
+    public void testMulticlass() throws IOException {
         String prefix = "L2R_LR_multiclass";
         LibLinearClassificationModel model = loadModel("/models/L2R_LR_multiclass.model");
         Dataset<Label> examples = loadMulticlassTestDataset(model);
@@ -128,7 +128,7 @@ public class TestLibLinearModel {
         }
     }
 
-    private void checkModelType(LinearType modelType) throws IOException, ClassNotFoundException {
+    private void checkModelType(LinearType modelType) throws IOException {
         String prefix = String.format("model %s", modelType);
         LibLinearClassificationModel model = loadModel(modelType);
         Dataset<Label> examples = loadTestDataset(model);
@@ -144,18 +144,20 @@ public class TestLibLinearModel {
         }
     }
 
-
-    private LibLinearClassificationModel loadModel(LinearType modelType) throws IOException, ClassNotFoundException {
+    private LibLinearClassificationModel loadModel(LinearType modelType) throws IOException {
         String modelPath = "/models/" + modelType + ".model";
         return loadModel(modelPath);
     }
 
-    private LibLinearClassificationModel loadModel(String path) throws IOException, ClassNotFoundException {
+    private LibLinearClassificationModel loadModel(String path) throws IOException {
         URL modelFile = this.getClass().getResource(path);
-        assertNotNull(modelFile, String.format("model for %s does not exist", path));
-        try (ObjectInputStream oin = new ObjectInputStream(modelFile.openStream())) {
-            Object data = oin.readObject();
-            return (LibLinearClassificationModel) data;
+        try (InputStream is = modelFile.openStream()) {
+            @SuppressWarnings("unchecked") // checked by validate call.
+            LibLinearClassificationModel model = (LibLinearClassificationModel) Model.deserializeFromStream(is);
+            return model;
+        } catch (NullPointerException e) {
+            fail(String.format("model for %s does not exist", path));
+            throw e;
         }
     }
 
@@ -221,8 +223,6 @@ public class TestLibLinearModel {
         Model<Label> model = testLibLinear(p);
 
         // Test serialization
-        Helpers.testModelSerialization(model,Label.class);
-
         Helpers.testModelProtoSerialization(model, Label.class, p.getB());
     }
 
@@ -351,7 +351,6 @@ public class TestLibLinearModel {
     }
 
     private static class TestMap extends ImmutableFeatureMap {
-        private static final long serialVersionUID = 1L;
         public TestMap() {
             super();
             CategoricalIDInfo foo = (new CategoricalInfo("FOO")).makeIDInfo(0);

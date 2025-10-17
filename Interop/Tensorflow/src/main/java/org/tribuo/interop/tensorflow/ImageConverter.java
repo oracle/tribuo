@@ -51,7 +51,6 @@ import java.util.Set;
  */
 @ProtoSerializableClass(serializedDataClass = ImageConverterProto.class, version = ImageConverter.CURRENT_VERSION)
 public class ImageConverter implements FeatureConverter {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

@@ -19,8 +19,6 @@ package org.tribuo.interop.tensorflow;
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import org.tensorflow.Graph;
-import org.tensorflow.Session;
 import org.tensorflow.Tensor;
 import org.tensorflow.proto.GraphDef;
 import org.tribuo.ImmutableFeatureMap;
@@ -34,7 +32,6 @@ import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,12 +45,9 @@ import java.util.Map;
  * This model's serialized form stores the weights and is entirely self contained.
  * If you wish to convert it into a model which uses checkpoints then call {@link #convertToCheckpointModel}.
  * <p>
- * The model's serialVersionUID is set to the major TensorFlow version number times 100.
- * <p>
  * N.B. TensorFlow support is experimental and may change without a major version bump.
  */
 public final class TensorFlowNativeModel<T extends Output<T>> extends TensorFlowModel<T> {
-    private static final long serialVersionUID = 200L;
 
     /**
      * Protobuf serialization version.
@@ -122,6 +116,9 @@ public final class TensorFlowNativeModel<T extends Output<T>> extends TensorFlow
 
     @Override
     public ModelProto serialize() {
+        if (closed) {
+            throw new IllegalStateException("Can't serialize a closed model, the state has gone.");
+        }
         ModelDataCarrier<T> carrier = createDataCarrier();
         Map<String, TensorTupleProto> tensors = new HashMap<>();
         for (Map.Entry<String, TensorFlowUtil.TensorTuple> e : TensorFlowUtil.extractMarshalledVariables(modelGraph, session).entrySet()) {
@@ -145,25 +142,4 @@ public final class TensorFlowNativeModel<T extends Output<T>> extends TensorFlow
         return builder.build();
     }
 
-    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-        if (closed) {
-            throw new IllegalStateException("Can't serialize a closed model, the state has gone.");
-        }
-        out.defaultWriteObject();
-        byte[] modelBytes = modelGraph.toGraphDef().toByteArray();
-        out.writeObject(modelBytes);
-        Map<String, TensorFlowUtil.TensorTuple> tensorMap = TensorFlowUtil.extractMarshalledVariables(modelGraph, session);
-        out.writeObject(tensorMap);
-    }
-
-    @SuppressWarnings("unchecked") //deserialising a typed map
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        byte[] modelBytes = (byte[]) in.readObject();
-        Map<String, TensorFlowUtil.TensorTuple> tensorMap = (Map<String, TensorFlowUtil.TensorTuple>) in.readObject();
-        modelGraph = new Graph();
-        modelGraph.importGraphDef(GraphDef.parseFrom(modelBytes));
-        session = new Session(modelGraph);
-        TensorFlowUtil.restoreMarshalledVariables(session,tensorMap);
-    }
 }

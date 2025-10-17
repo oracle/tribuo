@@ -28,14 +28,13 @@ import org.tribuo.protos.core.EnsembleCombinerProto;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXRef;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.logging.Logger;
 
 /**
  * An interface for combining predictions. Implementations should be final and immutable.
  */
-public interface EnsembleCombiner<T extends Output<T>> extends Configurable, ProtoSerializable<EnsembleCombinerProto>, Provenancable<ConfiguredObjectProvenance>, Serializable {
+public interface EnsembleCombiner<T extends Output<T>> extends Configurable, ProtoSerializable<EnsembleCombinerProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
      * Combine the predictions.

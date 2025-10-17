@@ -38,7 +38,6 @@ import java.util.Map;
  * Parses the ClusterID by calling toString on the input then parsing it as an int.
  */
 public final class ClusteringFactory implements OutputFactory<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The sentinel unassigned cluster id, used when there is no ground truth clustering.

@@ -57,7 +57,6 @@ import java.util.stream.Collectors;
  * and will throw {@link IllegalArgumentException} if such an operation is tried.
  */
 public class SparseVector implements SGDVector {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

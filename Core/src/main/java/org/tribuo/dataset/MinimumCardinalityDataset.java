@@ -63,7 +63,6 @@ import java.util.logging.Logger;
  * @param <T> The type of the outputs in this {@link Dataset}.
  */
 public class MinimumCardinalityDataset<T extends Output<T>> extends ImmutableDataset<T> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(MinimumCardinalityDataset.class.getName());
 

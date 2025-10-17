@@ -19,12 +19,10 @@ package org.tribuo.common.tree;
 import org.tribuo.Output;
 import org.tribuo.math.la.SparseVector;
 
-import java.io.Serializable;
-
 /**
  * A node in a decision tree.
  */
-public interface Node<T extends Output<T>> extends Serializable {
+public interface Node<T extends Output<T>> {
 
     /**
      * Is it a leaf node?

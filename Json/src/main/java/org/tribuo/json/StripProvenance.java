@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.ProvenanceUtil;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.HashProvenance;
-import com.oracle.labs.mlrg.olcut.util.IOUtil;
 import com.oracle.labs.mlrg.olcut.util.LabsLogFormatter;
 import org.tribuo.Model;
 import org.tribuo.Output;
@@ -42,8 +41,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -221,22 +218,20 @@ public final class StripProvenance {
             EnsembleModelProvenance cleanedProvenance = cleanEnsembleProvenance(oldProvenance, listProv, provenanceHash, opt);
             Class<? extends Model> clazz = oldModel.getClass();
             Method copyMethod = clazz.getDeclaredMethod("copy", String.class, ModelProvenance.class, List.class);
-            boolean accessible = copyMethod.isAccessible();
             copyMethod.setAccessible(true);
             String newName = oldModel.getName().isEmpty() ? "deprovenanced" : oldModel.getName() + "-deprovenanced";
             EnsembleModel<T> output = (EnsembleModel<T>) copyMethod.invoke(oldModel, newName, cleanedProvenance, newModels);
-            copyMethod.setAccessible(accessible);
+            copyMethod.setAccessible(false);
             return new ModelTuple<>(output, cleanedProvenance);
         } else {
             ModelProvenance oldProvenance = oldModel.getProvenance();
             ModelProvenance cleanedProvenance = cleanProvenance(oldProvenance, provenanceHash, opt);
             Class<? extends Model> clazz = oldModel.getClass();
             Method copyMethod = clazz.getDeclaredMethod("copy", String.class, ModelProvenance.class);
-            boolean accessible = copyMethod.isAccessible();
             copyMethod.setAccessible(true);
             String newName = oldModel.getName().isEmpty() ? "deprovenanced" : oldModel.getName() + "-deprovenanced";
             Model<T> output = (Model<T>) copyMethod.invoke(oldModel, newName, cleanedProvenance);
-            copyMethod.setAccessible(accessible);
+            copyMethod.setAccessible(false);
             return new ModelTuple<>(output, cleanedProvenance);
         }
     }
@@ -281,9 +276,9 @@ public final class StripProvenance {
         @Option(charName = 't', longName = "hash-type", usage = "The hash type to use.")
         public ProvenanceUtil.HashType hashType = ObjectProvenance.DEFAULT_HASH_TYPE;
         /**
-         * Read and write protobuf formatted models.
+         * No-op for backwards compatibility as all v5 models are protobuf only.
          */
-        @Option(longName = "model-protobuf", usage = "Read and write protobuf formatted models.")
+        @Option(longName = "model-protobuf", usage = "No-op for compatibility as all models are now protobuf format.")
         public boolean protobuf;
     }
 
@@ -315,14 +310,7 @@ public final class StripProvenance {
 
         try {
             logger.info("Loading model from " + o.inputModel);
-            Model<?> model;
-            if (o.protobuf) {
-                model = Model.deserializeFromFile(o.inputModel.toPath());
-            } else {
-                try (ObjectInputStream ois = IOUtil.getObjectInputStream(o.inputModel)) {
-                    model = (Model<?>) ois.readObject();
-                }
-            }
+            Model<?> model = Model.deserializeFromFile(o.inputModel.toPath());
 
             ModelProvenance oldProvenance = model.getProvenance();
 
@@ -345,9 +333,7 @@ public final class StripProvenance {
 
             ModelTuple<?> tuple = convertModel(model, provenanceHash, o);
             logger.info("Writing model to " + o.outputModel);
-            try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(o.outputModel))) {
-                oos.writeObject(tuple.model);
-            }
+            tuple.model.serializeToFile(o.outputModel.toPath());
 
             ModelProvenance newProvenance = tuple.provenance;
             logger.info("Marshalling provenance and creating JSON.");
@@ -367,8 +353,6 @@ public final class StripProvenance {
             logger.log(Level.SEVERE, "Failed to find the input file.", e);
         } catch (IOException e) {
             logger.log(Level.SEVERE, "IO error when reading or writing a file.", e);
-        } catch (ClassNotFoundException e) {
-            logger.log(Level.SEVERE, "The model and/or provenance classes are not on the classpath.", e);
         }
 
     }

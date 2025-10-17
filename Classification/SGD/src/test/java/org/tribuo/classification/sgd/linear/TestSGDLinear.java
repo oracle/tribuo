@@ -18,8 +18,6 @@ package org.tribuo.classification.sgd.linear;
 
 import ai.onnxruntime.OrtException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.tribuo.Dataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
@@ -44,7 +42,6 @@ import org.tribuo.test.Helpers;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -58,7 +55,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSGDLinear {
     private static final Logger logger = Logger.getLogger(TestSGDLinear.class.getName());
@@ -119,7 +115,6 @@ public class TestSGDLinear {
     public void testDenseData() {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         Model<Label> model = testSGDLinear(p);
-        Helpers.testModelSerialization(model,Label.class);
         Helpers.testModelProtoSerialization(model, Label.class, p.getB());
     }
 
@@ -151,28 +146,6 @@ public class TestSGDLinear {
             Model<Label> m = t.train(p.getA());
             m.predict(LabelledDataGenerator.emptyExample());
         });
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"label-linear-sgd-4.0.2.model"})
-    public void testSerializedModel(String resourceName) throws IOException, ClassNotFoundException {
-        try (ObjectInputStream ois = new ObjectInputStream(TestSGDLinear.class.getResource(resourceName).openStream())) {
-           Model<?> model = (Model<?>) ois.readObject();
-           if (model.validate(Label.class)) {
-               @SuppressWarnings("unchecked") // Guarded by validate call.
-               Model<Label> m = (Model<Label>) model;
-               LabelEvaluator e = new LabelEvaluator();
-               LabelEvaluation evaluation = e.evaluate(m,LabelledDataGenerator.denseTrainTest().getB());
-               Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
-               Assertions.assertNotNull(features);
-               assertFalse(features.isEmpty());
-               features = m.getTopFeatures(-1);
-               Assertions.assertNotNull(features);
-               assertFalse(features.isEmpty());
-           } else {
-               fail("Invalid model type found, expected Label");
-           }
-        }
     }
 
     @Test

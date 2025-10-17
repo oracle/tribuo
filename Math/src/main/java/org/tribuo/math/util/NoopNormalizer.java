@@ -21,14 +21,12 @@ import com.google.protobuf.ByteString;
 import org.tribuo.math.protos.NormalizerProto;
 import org.tribuo.util.onnx.ONNXNode;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 /**
  * NoopNormalizer returns a copy in {@link NoopNormalizer#normalize} and is a no-op in place.
  */
-public class NoopNormalizer implements VectorNormalizer, Serializable {
-    private static final long serialVersionUID = 1L;
+public class NoopNormalizer implements VectorNormalizer {
 
     /**
      * Protobuf serialization version.

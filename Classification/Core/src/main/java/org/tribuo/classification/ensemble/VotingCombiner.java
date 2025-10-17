@@ -44,7 +44,6 @@ import java.util.Map;
  * which uses the full distribution of predictions for each ensemble member.
  */
 public final class VotingCombiner implements EnsembleCombiner<Label> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

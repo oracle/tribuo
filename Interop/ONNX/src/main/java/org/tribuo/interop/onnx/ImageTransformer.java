@@ -48,7 +48,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(serializedDataClass = ImageTransformerProto.class, version = ImageTransformer.CURRENT_VERSION)
 public class ImageTransformer implements ExampleTransformer {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

@@ -41,7 +41,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = LinearParameters.CURRENT_VERSION, serializedDataClass = LinearParametersProto.class)
 public class LinearParameters implements FeedForwardParameters {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

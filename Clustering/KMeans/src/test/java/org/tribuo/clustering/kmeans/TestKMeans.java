@@ -83,7 +83,6 @@ public class TestKMeans {
 
         KMeansModel model = trainer.train(data);
 
-        Helpers.testModelSerialization(model, ClusterID.class);
         Helpers.testModelProtoSerialization(model, ClusterID.class, test);
 
         ClusteringEvaluation trainEvaluation = eval.evaluate(model,data);
@@ -110,7 +109,7 @@ public class TestKMeans {
     @Test
     public void testDenseData() {
         Model<ClusterID> model = runDenseData(t);
-        Helpers.testModelSerialization(model,ClusterID.class);
+        Helpers.testModelProtoSerialization(model,ClusterID.class);
     }
 
     @Test

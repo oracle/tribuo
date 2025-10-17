@@ -32,7 +32,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(version = CategoricalIDInfo.CURRENT_VERSION, serializedDataClass = CategoricalIDInfoProto.class)
 public class CategoricalIDInfo extends CategoricalInfo implements VariableIDInfo {
-    private static final long serialVersionUID = 2L;
 
     /**
      * Protobuf serialization version.

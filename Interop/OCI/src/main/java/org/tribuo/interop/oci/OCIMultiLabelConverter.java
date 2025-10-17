@@ -51,7 +51,6 @@ import java.util.Set;
  */
 @ProtoSerializableClass(serializedDataClass = OCIMultiLabelConverterProto.class, version = OCIMultiLabelConverter.CURRENT_VERSION)
 public final class OCIMultiLabelConverter implements OCIOutputConverter<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

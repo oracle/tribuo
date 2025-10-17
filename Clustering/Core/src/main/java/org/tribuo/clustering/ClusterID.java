@@ -40,7 +40,6 @@ import java.util.Objects;
  */
 @ProtoSerializableClass(serializedDataClass = ClusterIDProto.class, version = 0)
 public class ClusterID implements Output<ClusterID> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The sentinel unassigned cluster ID.

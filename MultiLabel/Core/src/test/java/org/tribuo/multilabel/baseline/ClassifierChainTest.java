@@ -102,7 +102,7 @@ public class ClassifierChainTest {
         assertEquals(trueLabel, first.getOutput(), "Predicted labels not equal");
         assertEquals(3,model.getLabelOrder().size());
 
-        Helpers.testModelSerialization(model,MultiLabel.class);
+        Helpers.testModelProtoSerialization(model,MultiLabel.class);
 
         // Test ordered chain
         List<String> labelOrder = Arrays.asList("PUZZLE","MONKEY","TREE");
@@ -117,7 +117,6 @@ public class ClassifierChainTest {
         assertEquals(labelOrder.get(2),model.getLabelOrder().get(2).getLabel());
         assertEquals(3,model.getLabelOrder().size());
 
-        Helpers.testModelSerialization(model,MultiLabel.class);
         Helpers.testModelProtoSerialization(model, MultiLabel.class, test);
     }
 

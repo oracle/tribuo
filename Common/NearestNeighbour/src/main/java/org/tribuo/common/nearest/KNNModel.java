@@ -27,24 +27,22 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.common.nearest.KNNTrainer.Distance;
 import org.tribuo.common.nearest.protos.KNNModelProto;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
-import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -77,8 +75,6 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     private static final Logger logger = Logger.getLogger(KNNModel.class.getName());
 
-    private static final long serialVersionUID = 1L;
-
     /**
      * Protobuf serialization version.
      */
@@ -108,12 +104,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private final Pair<SGDVector,T>[] vectors;
 
     private final int k;
-    @Deprecated
-    private Distance distance;
-
-    // This is not final to support deserialization of older models. It will be final in a future version which doesn't
-    // maintain serialization compatibility with 4.X.
-    private org.tribuo.math.distance.Distance dist;
+    private final Distance dist;
 
     private final int numThreads;
 
@@ -128,7 +119,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private transient NeighboursQuery neighboursQuery;
 
     KNNModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
-             boolean generatesProbabilities, int k, org.tribuo.math.distance.Distance dist, int numThreads, EnsembleCombiner<T> combiner,
+             boolean generatesProbabilities, int k, Distance dist, int numThreads, EnsembleCombiner<T> combiner,
              Pair<SGDVector,T>[] vectors, Backend backend, NeighboursQueryFactory neighboursQueryFactory) {
         super(name,provenance,featureIDMap,outputIDInfo,generatesProbabilities);
         this.k = k;
@@ -521,17 +512,6 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         }
         return new KNNModel<>(newName,newProvenance,featureIDMap,outputIDInfo,generatesProbabilities,k,dist,
             numThreads,combiner,vectorCopy,parallelBackend,neighboursQueryFactory);
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        if (dist == null) {
-            dist = distance.getDistanceType().getDistance();
-        }
-        if (neighboursQueryFactory == null) {
-            neighboursQueryFactory = new NeighboursBruteForceFactory(dist, numThreads);
-        }
-        neighboursQuery = neighboursQueryFactory.createNeighboursQuery(getSGDVectorArr());
     }
 
     private SGDVector[] getSGDVectorArr() {

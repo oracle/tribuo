@@ -32,7 +32,6 @@ import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
 import org.tribuo.protos.ProtoUtil;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,8 +39,7 @@ import java.util.List;
 /**
  * A {@link Parameters} for training a CRF using SGD.
  */
-public class CRFParameters implements Parameters, Serializable {
-    private static final long serialVersionUID = 1L;
+public class CRFParameters implements Parameters {
 
     /**
      * Protobuf serialization version.

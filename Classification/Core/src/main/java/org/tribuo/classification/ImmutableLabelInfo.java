@@ -44,8 +44,6 @@ import java.util.logging.Logger;
 public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo<Label> {
     private static final Logger logger = Logger.getLogger(ImmutableLabelInfo.class.getName());
 
-    private static final long serialVersionUID = 1L;
-
     private final Map<Integer,String> idLabelMap;
 
     private final Map<String,Integer> labelIDMap;
@@ -302,11 +300,5 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
             Map.Entry<Integer,String> e = itr.next();
             return new Pair<>(e.getKey(),new Label(e.getValue()));
         }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
     }
 }

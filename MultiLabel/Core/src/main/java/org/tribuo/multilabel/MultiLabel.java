@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
  * common with ground-truth labels which usually do not supply scores.
  */
 public class MultiLabel implements Classifiable<MultiLabel> {
-    private static final long serialVersionUID = 1L;
 
     /**
      * The string for the binary negative label.

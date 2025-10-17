@@ -76,9 +76,6 @@ public class LibSVMAnomalyTrainerTest {
         logger.finer(confusion);
         logger.finer(output);
 
-        // Test serialization
-        Helpers.testModelSerialization(model,Event.class);
-
         // Test protobuf serialization
         Helpers.testModelProtoSerialization(model, Event.class, pair.getB());
     }

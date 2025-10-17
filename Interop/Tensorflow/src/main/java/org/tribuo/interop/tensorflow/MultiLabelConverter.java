@@ -63,7 +63,6 @@ import java.util.logging.Logger;
  */
 @ProtoSerializableClass(version = MultiLabelConverter.CURRENT_VERSION)
 public class MultiLabelConverter implements OutputConverter<MultiLabel> {
-    private static final long serialVersionUID = 1L;
     private static final Logger logger = Logger.getLogger(MultiLabelConverter.class.getName());
 
     /**

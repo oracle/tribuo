@@ -57,7 +57,6 @@ public class TestDummyClassifier {
             Evaluator<Label, LabelEvaluation> evaluator = new LabelEvaluator();
             LabelEvaluation evaluation = evaluator.evaluate(m,p.getB());
             if (testModelSave) {
-                Helpers.testModelSerialization(m,Label.class);
                 Helpers.testModelProtoSerialization(m, Label.class, p.getB());
             }
         }

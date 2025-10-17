@@ -29,7 +29,6 @@ import org.tribuo.protos.core.FeatureSetProto;
 import org.tribuo.protos.core.SelectedFeatureSetProto;
 import org.tribuo.provenance.FeatureSetProvenance;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -40,8 +39,7 @@ import java.util.Objects;
  * Uses record style accessors as it may be refactored into a record one day.
  */
 @ProtoSerializableClass(serializedDataClass = SelectedFeatureSetProto.class, version = SelectedFeatureSet.CURRENT_VERSION)
-public final class SelectedFeatureSet implements ProtoSerializable<FeatureSetProto>, Provenancable<FeatureSetProvenance>, Serializable {
-    private static final long serialVersionUID = 1L;
+public final class SelectedFeatureSet implements ProtoSerializable<FeatureSetProto>, Provenancable<FeatureSetProvenance> {
 
     /**
      * Protobuf serialization version.

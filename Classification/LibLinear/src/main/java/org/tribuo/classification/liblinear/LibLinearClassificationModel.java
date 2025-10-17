@@ -78,7 +78,6 @@ import java.util.logging.Logger;
  * </pre>
  */
 public class LibLinearClassificationModel extends LibLinearModel<Label> implements ONNXExportable {
-    private static final long serialVersionUID = 3L;
 
     private static final Logger logger = Logger.getLogger(LibLinearClassificationModel.class.getName());
 

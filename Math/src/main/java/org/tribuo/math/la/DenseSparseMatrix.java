@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
  * Backed by an array of {@link SparseVector}.
  */
 public class DenseSparseMatrix implements Matrix {
-    private static final long serialVersionUID = 1L;
 
     /**
      * Protobuf serialization version.

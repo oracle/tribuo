@@ -63,7 +63,6 @@ import com.oracle.labs.mlrg.olcut.util.SortUtil;
  * @param <T> The output type.
  */
 public final class BinaryFeaturesExample<T extends Output<T>> extends Example<T> {
-    private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(BinaryFeaturesExample.class.getName());
 
