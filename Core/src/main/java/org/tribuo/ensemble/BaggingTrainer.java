@@ -33,8 +33,14 @@ import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.SplittableRandom;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.logging.Logger;
 
 /**
@@ -52,8 +58,15 @@ import java.util.logging.Logger;
  * @param <T> The prediction type.
  */
 public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
-    
+
     private static final Logger logger = Logger.getLogger(BaggingTrainer.class.getName());
+
+    // Thread factory for ensemble training, uses low priority to avoid starving other operations
+    private static final ThreadFactory LOW_PRIORITY_THREAD_FACTORY = r -> {
+        Thread t = new Thread(r);
+        t.setPriority(Thread.MIN_PRIORITY);
+        return t;
+    };
 
     @Config(mandatory=true, description="The trainer to use for each ensemble member.")
     protected Trainer<T> innerTrainer;
@@ -66,6 +79,9 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
 
     @Config(mandatory=true, description="The combination function to aggregate each ensemble member's outputs.")
     protected EnsembleCombiner<T> combiner;
+
+    @Config(description="The number of threads to use for training. Defaults to 1 (single-threaded). Set to -1 to use all available processors.")
+    protected int numThreads = 1;
 
     protected SplittableRandom rng;
 
@@ -98,6 +114,24 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         this.combiner = combiner;
         this.numMembers = numMembers;
         this.seed = seed;
+        this.numThreads = 1;
+        postConfig();
+    }
+
+    /**
+     * Constructs a bagging trainer with the supplied parameters and thread count.
+     * @param trainer The ensemble member trainer.
+     * @param combiner The combination function.
+     * @param numMembers The number of ensemble members to train.
+     * @param seed The RNG seed used to bootstrap the datasets.
+     * @param numThreads The number of threads to use for parallel training. Set to -1 to use all available processors, 1 for single-threaded.
+     */
+    public BaggingTrainer(Trainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed, int numThreads) {
+        this.innerTrainer = trainer;
+        this.combiner = combiner;
+        this.numMembers = numMembers;
+        this.seed = seed;
+        this.numThreads = numThreads;
         postConfig();
     }
 
@@ -160,15 +194,92 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         }
         ImmutableFeatureMap featureIDs = examples.getFeatureIDMap();
         ImmutableOutputInfo<T> labelIDs = examples.getOutputIDInfo();
-        ArrayList<Model<T>> models = new ArrayList<>();
 
-        int initialInovcation = innerTrainer.getInvocationCount();
+        // Determine number of threads
+        int threads = (numThreads == -1) ? Runtime.getRuntime().availableProcessors() : numThreads;
+
+        // Pre-generate all random seeds - this maintains reproducibility
+        int[] seeds = new int[numMembers];
         for (int i = 0; i < numMembers; i++) {
-            logger.info("Building model " + i);
-            models.add(trainSingleModel(examples,featureIDs,labelIDs,localRNG.nextInt(),runProvenance, initialInovcation + i));
+            seeds[i] = localRNG.nextInt();
         }
+
+        // Train models either single-threaded or multi-threaded
+        ArrayList<Model<T>> models;
+        if (threads == 1 || numMembers == 1) {
+            models = trainModelsSequentially(examples, featureIDs, labelIDs, seeds, runProvenance);
+        } else {
+            models = trainModelsInParallel(examples, featureIDs, labelIDs, seeds, runProvenance, threads);
+        }
+
         EnsembleModelProvenance provenance = new EnsembleModelProvenance(WeightedEnsembleModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance, ListProvenance.createListProvenance(models));
         return new WeightedEnsembleModel<>(ensembleName(),provenance,featureIDs,labelIDs,models,combiner);
+    }
+
+    /**
+     * Trains models sequentially in a single thread.
+     * @param examples The training dataset.
+     * @param featureIDs The feature domain.
+     * @param labelIDs The output domain.
+     * @param seeds The random seeds for each model.
+     * @param runProvenance Provenance for this instance.
+     * @return The list of trained models.
+     */
+    private ArrayList<Model<T>> trainModelsSequentially(Dataset<T> examples, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, int[] seeds, Map<String,Provenance> runProvenance) {
+        ArrayList<Model<T>> models = new ArrayList<>();
+        int initialInvocation = innerTrainer.getInvocationCount();
+        for (int i = 0; i < numMembers; i++) {
+            logger.info("Building model " + i);
+            models.add(trainSingleModel(examples, featureIDs, labelIDs, seeds[i], runProvenance, initialInvocation + i));
+        }
+        return models;
+    }
+
+    /**
+     * Trains models in parallel using multiple threads.
+     * Each model is submitted as an individual task to the executor,
+     * allowing for optimal load balancing across threads.
+     * @param examples The training dataset.
+     * @param featureIDs The feature domain.
+     * @param labelIDs The output domain.
+     * @param seeds The random seeds for each model.
+     * @param runProvenance Provenance for this instance.
+     * @param threads The number of threads to use.
+     * @return The list of trained models.
+     */
+    private ArrayList<Model<T>> trainModelsInParallel(Dataset<T> examples, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, int[] seeds, Map<String,Provenance> runProvenance, int threads) {
+        // Use low priority threads so ensemble training doesn't prevent other operations from completing.
+        // Model training is typically a background batch operation and shouldn't starve interactive requests.
+        ExecutorService executor = Executors.newFixedThreadPool(threads, LOW_PRIORITY_THREAD_FACTORY);
+
+        List<Future<Model<T>>> futures = new ArrayList<>(numMembers);
+        int initialInvocation = innerTrainer.getInvocationCount();
+
+        try {
+            // Submit each model training as an individual task
+            for (int i = 0; i < numMembers; i++) {
+                final int idx = i;
+                Future<Model<T>> future = executor.submit(() -> {
+                    logger.info("Building model " + idx + " on thread " + Thread.currentThread().getName());
+                    return trainSingleModel(examples, featureIDs, labelIDs, seeds[idx], runProvenance, initialInvocation + idx);
+                });
+                futures.add(future);
+            }
+
+            // Collect results in order
+            ArrayList<Model<T>> models = new ArrayList<>(numMembers);
+            for (Future<Model<T>> future : futures) {
+                try {
+                    models.add(future.get());
+                } catch (InterruptedException | ExecutionException e) {
+                    executor.shutdownNow();
+                    throw new RuntimeException("Training failed", e);
+                }
+            }
+            return models;
+        } finally {
+            executor.shutdown();
+        }
     }
 
     /**
