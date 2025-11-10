@@ -31,6 +31,8 @@ jobs:
     name: macOS x86_64 Java SE 17
     steps:
       - uses: actions/checkout@v4
+      - name: Install libomp for XGBoost
+        run: brew install libomp
       - name: Setup Oracle Java SE
         uses: oracle-actions/setup-java@v1.4.1
         with:
