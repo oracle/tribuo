@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -266,7 +266,7 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
                     }
                 }
                 List<Pair<String,Double>> list = new ArrayList<>();
-                while(q.size() > 0) {
+                while(!q.isEmpty()) {
                     list.add(q.poll());
                 }
                 Collections.reverse(list);
@@ -314,7 +314,7 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
      */
     static Booster copyModel(Booster booster) {
         try {
-            byte[] serialisedBooster = booster.toByteArray();
+            byte[] serialisedBooster = booster.toByteArray("ubj");
             return XGBoost.loadModel(serialisedBooster);
         } catch (XGBoostError | IOException e) {
             throw new IllegalStateException("Unable to copy XGBoost model.",e);
@@ -339,7 +339,7 @@ public final class XGBoostModel<T extends Output<T>> extends Model<T> {
         modelBuilder.setConverter(converter.serialize());
         try {
             for (Booster b : models) {
-                modelBuilder.addModels(ByteString.copyFrom(b.toByteArray()));
+                modelBuilder.addModels(ByteString.copyFrom(b.toByteArray("ubj")));
             }
         } catch (XGBoostError e) {
             throw new IllegalStateException("Failed to serialize XGBoost model");

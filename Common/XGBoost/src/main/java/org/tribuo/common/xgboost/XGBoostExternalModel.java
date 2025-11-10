@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,7 +229,7 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
                 }
             }
             List<Pair<String,Double>> list = new ArrayList<>();
-            while(q.size() > 0) {
+            while(!q.isEmpty()) {
                 list.add(q.poll());
             }
             Collections.reverse(list);
@@ -255,7 +255,7 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
             Collectors.toList()));
         modelBuilder.addAllBackwardFeatureMapping(Arrays.stream(featureBackwardMapping).boxed().collect(Collectors.toList()));
         try {
-            modelBuilder.setModel(ByteString.copyFrom(model.toByteArray()));
+            modelBuilder.setModel(ByteString.copyFrom(model.toByteArray("ubj")));
         } catch (XGBoostError e) {
             throw new IllegalStateException("Failed to serialize XGBoost model");
         }
