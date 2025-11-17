@@ -127,6 +127,29 @@ public class TestClassificationEnsembles {
         return m;
     }
 
+    /**
+     * Tests parallel bagging with 2 threads to exercise the parallel training
+     * codepath.
+     * @param p The train/test dataset pair.
+     * @return The trained model.
+     */
+    public Model<Label> testBaggingParallel(
+            Pair<Dataset<Label>,Dataset<Label>> p) {
+        BaggingTrainer<Label> parallelBagT = new BaggingTrainer<>(t,
+                new VotingCombiner(), 10, Trainer.DEFAULT_SEED, 2);
+        Model<Label> m = parallelBagT.train(p.getA());
+        LabelEvaluator e = new LabelEvaluator();
+        LabelEvaluation evaluation = e.evaluate(m,p.getB());
+        Map<String, List<Pair<String,Double>>> features =
+                m.getTopFeatures(3);
+        Assertions.assertNotNull(features);
+        Assertions.assertFalse(features.isEmpty());
+        features = m.getTopFeatures(-1);
+        Assertions.assertNotNull(features);
+        Assertions.assertFalse(features.isEmpty());
+        return m;
+    }
+
     public Model<Label> testRandomForest(Pair<Dataset<Label>,Dataset<Label>> p) {
         Model<Label> m = rfT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
@@ -163,6 +186,9 @@ public class TestClassificationEnsembles {
         Model<Label> bag = testBagging(p);
         Helpers.testModelProtoSerialization(bag,Label.class);
 
+        Model<Label> parallelBag = testBaggingParallel(p);
+        Helpers.testModelProtoSerialization(parallelBag,Label.class);
+
         Model<Label> rf = testRandomForest(p);
         Helpers.testModelProtoSerialization(rf,Label.class);
 
@@ -175,6 +201,7 @@ public class TestClassificationEnsembles {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.sparseTrainTest();
         testAdaBoost(p);
         testBagging(p);
+        testBaggingParallel(p);
         testRandomForest(p);
         testExtraTrees(p);
     }
@@ -184,6 +211,7 @@ public class TestClassificationEnsembles {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.binarySparseTrainTest();
         testAdaBoost(p);
         testBagging(p);
+        testBaggingParallel(p);
         testRandomForest(p);
         testExtraTrees(p);
     }
