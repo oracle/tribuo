@@ -39,8 +39,7 @@ import java.util.List;
  * Optimized ensemble model for tree-based models.
  * <p>
  * This subclass of {@link WeightedEnsembleModel} provides optimized prediction performance
- * for ensembles containing {@link TreeModel}s. Non-tree models in the ensemble fall back
- * to standard prediction.
+ * for ensembles containing {@link TreeModel}s.
  * </p>
  */
 public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsembleModel<T> {
@@ -143,17 +142,12 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 
 		// Optimization: Create sparse vector once and reuse across all trees.
 		// TreeModel has a predict(SGDVector, Example) overload for this purpose.
-		// Non-tree models fall back to standard prediction.
 		SparseVector vec = SparseVector.createSparseVector(
 			example, featureIDMap, false);
 
 		for (Model<T> model : models) {
-			if (model instanceof TreeModel) {
-				TreeModel<T> treeModel = (TreeModel<T>) model;
-				predictions.add(treeModel.predict(vec, example));
-			} else {
-				predictions.add(model.predict(example));
-			}
+			TreeModel<T> treeModel = (TreeModel<T>) model;
+			predictions.add(treeModel.predict(vec, example));
 		}
 
 		return combiner.combine(outputIDInfo, predictions, weights);
