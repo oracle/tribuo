@@ -58,10 +58,13 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 	 * @param outputIDInfo The output domain.
 	 * @param newModels The list of ensemble members.
 	 * @param combiner The combination function.
+	 * @throws IllegalArgumentException if any model in newModels is not
+	 *         an instance of TreeModel.
 	 */
 	public TreeEnsembleModel(String name, EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDMap,
 	                         ImmutableOutputInfo<T> outputIDInfo, List<Model<T>> newModels, EnsembleCombiner<T> combiner) {
 		super(name, provenance, featureIDMap, outputIDInfo, newModels, combiner);
+		requireTreeModels(newModels);
 	}
 
 	/**
@@ -73,11 +76,32 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 	 * @param newModels The list of ensemble members.
 	 * @param combiner The combination function.
 	 * @param weights The model combination weights.
+	 * @throws IllegalArgumentException if any model in newModels is not
+	 *         an instance of TreeModel.
 	 */
 	public TreeEnsembleModel(String name, EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDMap,
 	                         ImmutableOutputInfo<T> outputIDInfo, List<Model<T>> newModels,
 	                         EnsembleCombiner<T> combiner, float[] weights) {
 		super(name, provenance, featureIDMap, outputIDInfo, newModels, combiner, weights);
+		requireTreeModels(newModels);
+	}
+
+	/**
+	 * Requires that all models in the list are TreeModel instances.
+	 * @param models The list of models to check.
+	 * @param <T> The output type.
+	 * @throws IllegalArgumentException if any model is not a TreeModel
+	 *         instance.
+	 */
+	private static <T extends Output<T>> void requireTreeModels(List<Model<T>> models) {
+		for (int i = 0; i < models.size(); i++) {
+			Model<T> model = models.get(i);
+			if (!(model instanceof TreeModel)) {
+				throw new IllegalArgumentException(
+					"Model at index " + i + " is not a TreeModel. " +
+					"Found: " + model.getClass().getName());
+			}
+		}
 	}
 
 	/**
