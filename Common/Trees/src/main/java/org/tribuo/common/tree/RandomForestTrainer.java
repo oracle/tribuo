@@ -88,7 +88,7 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
      * @param numMembers The number of ensemble members to train.
      * @param seed The RNG seed.
      * @param numThreads The number of threads to use for parallel training.
-     *                   Use -1 to use all available processors, 1 for single-threaded.
+     *                   Use USE_ALL_AVAILABLE_PROCESSORS to use all available processors, 1 for single-threaded.
      */
     public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed, int numThreads) {
         super(trainer,combiner,numMembers,seed,numThreads);
