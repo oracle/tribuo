@@ -86,7 +86,7 @@ public class TreeEnsembleOptimizationTest {
 	}
 
 	/**
-	 * Verifies that TreeModel.predict(SparseVector, Example) produces
+	 * Verifies that TreeModel.predict(SGDVector, Example) produces
 	 * identical results to TreeModel.predict(Example).
 	 */
 	@Test

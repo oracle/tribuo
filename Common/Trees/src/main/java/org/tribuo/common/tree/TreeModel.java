@@ -32,6 +32,7 @@ import org.tribuo.common.tree.protos.SplitNodeProto;
 import org.tribuo.common.tree.protos.TreeModelProto;
 import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -317,11 +318,11 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
     }
 
     /**
-     * Makes a prediction using a pre-computed sparse vector.
+     * Makes a prediction using a pre-computed vector.
      * <p>
      * This method is useful for ensemble models where the same example needs to be
-     * predicted by multiple trees. Creating the sparse vector once and reusing it
-     * across all trees avoids redundant sparse vector creation overhead.
+     * predicted by multiple trees. Creating the vector once and reusing it
+     * across all trees avoids redundant vector creation overhead.
      * </p>
      * <p>
      * <b>Note:</b> This method is intended for internal use by ensemble models
@@ -329,20 +330,30 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * in user code. Use {@link #predict(Example)} instead for standard predictions.
      * </p>
      * <p>
-     * This method validates that the sparse vector contains at least one active element.
-     * If the sparse vector is empty, an {@code IllegalArgumentException} is thrown.
-     * The caller is responsible for ensuring the sparse vector was created from the
-     * same feature map as this model.
+     * This method validates that:
+     * </p>
+     * <ul>
+     *   <li>The vector contains at least one active element</li>
+     *   <li>The vector size matches the feature map size</li>
+     * </ul>
+     * <p>
+     * These validations ensure that the vector was created using the same
+     * feature map as this model.
      * </p>
      *
-     * @param vec The sparse vector representation of the example.
+     * @param vec The vector representation of the example.
      * @param example The original example (used for metadata in the prediction).
      * @return The prediction for this example.
-     * @throws IllegalArgumentException If the sparse vector has no active elements.
+     * @throws IllegalArgumentException If validation fails.
      */
-    public Prediction<T> predict(SparseVector vec, Example<T> example) {
+    public Prediction<T> predict(SGDVector vec, Example<T> example) {
         if (vec.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
+        }
+        if (vec.size() != featureIDMap.size()) {
+            throw new IllegalArgumentException("Vector size (" + vec.size() +
+                ") does not match feature map size (" + featureIDMap.size() +
+                "). The vector must be created from the same feature map as this model.");
         }
 
         Node<T> oldNode = root;
@@ -350,7 +361,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
 
         while (curNode != null) {
             oldNode = curNode;
-            curNode = oldNode.getNextNode(vec);
+            curNode = oldNode.getNextNode((SparseVector) vec);
         }
 
         //

@@ -118,7 +118,7 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 		List<Prediction<T>> predictions = new ArrayList<>();
 
 		// Optimization: Create sparse vector once and reuse across all trees.
-		// TreeModel has a predict(SparseVector, Example) overload for this purpose.
+		// TreeModel has a predict(SGDVector, Example) overload for this purpose.
 		// Non-tree models fall back to standard prediction.
 		SparseVector vec = SparseVector.createSparseVector(
 			example, featureIDMap, false);

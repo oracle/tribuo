@@ -31,6 +31,7 @@ import org.tribuo.common.tree.SplitNode;
 import org.tribuo.common.tree.TreeModel;
 import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -164,12 +165,17 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
     }
 
     /**
-     * Makes a prediction using a pre-computed sparse vector.
-     * See {@link TreeModel#predict(SparseVector, Example)} for details.
+     * Makes a prediction using a pre-computed vector.
+     * See {@link TreeModel#predict(SGDVector, Example)} for details.
      */
-    public Prediction<Regressor> predict(SparseVector vec, Example<Regressor> example) {
+    public Prediction<Regressor> predict(SGDVector vec, Example<Regressor> example) {
         if (vec.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
+        }
+        if (vec.size() != featureIDMap.size()) {
+            throw new IllegalArgumentException("Vector size (" + vec.size() +
+                ") does not match feature map size (" + featureIDMap.size() +
+                "). The vector must be created from the same feature map as this model.");
         }
 
         List<Prediction<Regressor>> predictionList = new ArrayList<>();
@@ -179,7 +185,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
 
             while (curNode != null) {
                 oldNode = curNode;
-                curNode = oldNode.getNextNode(vec);
+                curNode = oldNode.getNextNode((SparseVector) vec);
             }
 
             //
