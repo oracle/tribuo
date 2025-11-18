@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15-latest
+    runs-on: macos-15-intel
     strategy:
       matrix:
         # test against supported LTS versions and latest
@@ -29,7 +29,7 @@ jobs:
       - name: Build with Maven
         run: mvn -B package --file pom.xml
   build-17:
-    runs-on: macos-15-latest
+    runs-on: macos-15-intel
     name: macOS x86_64 Java SE 17
     steps:
       - uses: actions/checkout@v4
