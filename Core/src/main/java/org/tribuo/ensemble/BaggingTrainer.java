@@ -86,7 +86,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
     @Config(mandatory=true, description="The combination function to aggregate each ensemble member's outputs.")
     protected EnsembleCombiner<T> combiner;
 
-    @Config(description="The number of threads to use for training. Defaults to 1 (single-threaded). Set to USE_ALL_AVAILABLE_PROCESSORS to use all available processors.")
+    @Config(description="The number of threads to use for training. Defaults to 1 (single-threaded). Set to BaggingTrainer.USE_ALL_AVAILABLE_PROCESSORS to use all available processors.")
     protected int numThreads = 1;
 
     protected SplittableRandom rng;
