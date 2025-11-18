@@ -80,6 +80,22 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
     }
 
     /**
+     * Constructs a RandomForestTrainer with parallel training support.
+     * <p>
+     * Throws {@link PropertyException} if the trainer is not set to subsample the features.
+     * @param trainer The tree trainer.
+     * @param combiner The combining function for the ensemble.
+     * @param numMembers The number of ensemble members to train.
+     * @param seed The RNG seed.
+     * @param numThreads The number of threads to use for parallel training.
+     *                   Use -1 to use all available processors, 1 for single-threaded.
+     */
+    public RandomForestTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed, int numThreads) {
+        super(trainer,combiner,numMembers,seed,numThreads);
+        postConfig();
+    }
+
+    /**
      * Used by the OLCUT configuration system, and should not be called by external code.
      */
     @Override
