@@ -160,6 +160,14 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
         //
         // Ensures we handle collisions correctly
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
+        return predict(vec, example);
+    }
+
+    /**
+     * Makes a prediction using a pre-computed sparse vector.
+     * See {@link TreeModel#predict(SparseVector, Example)} for details.
+     */
+    public Prediction<Regressor> predict(SparseVector vec, Example<Regressor> example) {
         if (vec.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }

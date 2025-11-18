@@ -17,10 +17,16 @@
 package org.tribuo.common.tree;
 
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.ensemble.EnsembleModel;
+import org.tribuo.provenance.EnsembleModelProvenance;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -102,6 +108,12 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
     }
 
     @Override
+    protected EnsembleModel<T> createEnsemble(EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, ArrayList<Model<T>> models) {
+        // Use TreeEnsembleModel for optimized prediction performance
+        return new TreeEnsembleModel<>(ensembleName(), provenance, featureIDs, labelIDs, models, combiner);
+    }
+
+    @Override
     public String toString() {
         StringBuilder buffer = new StringBuilder();
 
@@ -118,5 +130,5 @@ public class RandomForestTrainer<T extends Output<T>> extends BaggingTrainer<T> 
 
         return buffer.toString();
     }
-    
+
 }

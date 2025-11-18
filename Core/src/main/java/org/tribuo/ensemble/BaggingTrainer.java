@@ -168,7 +168,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
 
         return buffer.toString();
     }
-    
+
     @Override
     public EnsembleModel<T> train(Dataset<T> examples) {
         return train(examples, Collections.emptyMap());
@@ -213,7 +213,21 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         }
 
         EnsembleModelProvenance provenance = new EnsembleModelProvenance(WeightedEnsembleModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance, ListProvenance.createListProvenance(models));
-        return new WeightedEnsembleModel<>(ensembleName(),provenance,featureIDs,labelIDs,models,combiner);
+        return createEnsemble(provenance, featureIDs, labelIDs, models);
+    }
+
+    /**
+     * Factory method to create the ensemble model.
+     * Subclasses can override this to return optimized ensemble implementations.
+     *
+     * @param provenance The ensemble provenance.
+     * @param featureIDs The feature domain.
+     * @param labelIDs The output domain.
+     * @param models The list of trained models.
+     * @return An ensemble model.
+     */
+    protected EnsembleModel<T> createEnsemble(EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, ArrayList<Model<T>> models) {
+        return new WeightedEnsembleModel<>(ensembleName(), provenance, featureIDs, labelIDs, models, combiner);
     }
 
     /**

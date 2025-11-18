@@ -151,7 +151,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * once they can be built because both children have been created and provided to the builder.
      * <p>
      * This approach should traverse the entire tree in the correct order but we check at the end of the method
-     * that everything looks good.  
+     * that everything looks good.
      * @param nodeProtos The node protos to deserialize.
      * @param outputClass The output type.
      * @param <U> The output type of the nodes.
@@ -313,9 +313,27 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         //
         // Ensures we handle collisions correctly
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
+        return predict(vec, example);
+    }
+
+    /**
+     * Makes a prediction using a pre-computed sparse vector.
+     * <p>
+     * This method is useful for ensemble models where the same example needs to be
+     * predicted by multiple trees. Creating the sparse vector once and reusing it
+     * across all trees avoids redundant sparse vector creation overhead.
+     * </p>
+     *
+     * @param vec The sparse vector representation of the example.
+     * @param example The original example (used for metadata in the prediction).
+     * @return The prediction for this example.
+     * @throws IllegalArgumentException If the sparse vector has no active elements.
+     */
+    public Prediction<T> predict(SparseVector vec, Example<T> example) {
         if (vec.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
+
         Node<T> oldNode = root;
         Node<T> curNode = root;
 
