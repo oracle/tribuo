@@ -323,6 +323,17 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * predicted by multiple trees. Creating the sparse vector once and reusing it
      * across all trees avoids redundant sparse vector creation overhead.
      * </p>
+     * <p>
+     * <b>Note:</b> This method is intended for internal use by ensemble models
+     * (e.g., {@link TreeEnsembleModel}) and should generally not be called directly
+     * in user code. Use {@link #predict(Example)} instead for standard predictions.
+     * </p>
+     * <p>
+     * This method validates that the sparse vector contains at least one active element.
+     * If the sparse vector is empty, an {@code IllegalArgumentException} is thrown.
+     * The caller is responsible for ensuring the sparse vector was created from the
+     * same feature map as this model.
+     * </p>
      *
      * @param vec The sparse vector representation of the example.
      * @param example The original example (used for metadata in the prediction).

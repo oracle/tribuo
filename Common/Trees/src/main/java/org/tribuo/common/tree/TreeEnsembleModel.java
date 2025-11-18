@@ -16,6 +16,8 @@
 
 package org.tribuo.common.tree;
 
+import com.google.protobuf.Any;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.tribuo.Example;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
@@ -26,6 +28,9 @@ import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.ensemble.WeightedEnsembleModel;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.EnsembleModelProvenance;
+import org.tribuo.protos.core.ModelProto;
+import org.tribuo.protos.core.WeightedEnsembleModelProto;
+import org.tribuo.util.Util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +44,11 @@ import java.util.List;
  * </p>
  */
 public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsembleModel<T> {
+
+	/**
+	 * Protobuf serialization version.
+	 */
+	public static final int CURRENT_VERSION = 0;
 
 	/**
 	 * Constructs a tree ensemble model with uniform weights.
@@ -70,6 +80,39 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 		super(name, provenance, featureIDMap, outputIDInfo, newModels, combiner, weights);
 	}
 
+	/**
+	 * Deserialization factory.
+	 * <p>
+	 * Delegates to the parent class's deserialization logic for validation and parsing,
+	 * then reconstructs as a TreeEnsembleModel.
+	 * </p>
+	 * @param version The serialized object version.
+	 * @param className The class name.
+	 * @param message The serialized data.
+	 * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
+	 * @return The deserialized object.
+	 */
+	@SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
+	public static TreeEnsembleModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+		if (version < 0 || version > CURRENT_VERSION) {
+			throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
+		}
+		WeightedEnsembleModelProto proto = message.unpack(WeightedEnsembleModelProto.class);
+		// Delegate to parent for validation and parsing
+		WeightedEnsembleModel<?> parent = WeightedEnsembleModel.deserializeFromProto(version, className, message);
+		// Extract weights and combiner from proto (since they're protected in parent)
+		float[] weights = Util.toPrimitiveFloat(proto.getWeightsList());
+		EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());
+		return new TreeEnsembleModel(parent.getName(), parent.getProvenance(),
+			parent.getFeatureIDMap(), parent.getOutputIDInfo(), parent.getModels(),
+			combiner, weights);
+	}
+
+	@Override
+	protected TreeEnsembleModel<T> copy(String name, EnsembleModelProvenance newProvenance, List<Model<T>> newModels) {
+		return new TreeEnsembleModel<>(name, newProvenance, featureIDMap, outputIDInfo, newModels, combiner);
+	}
+
 	@Override
 	public Prediction<T> predict(Example<T> example) {
 		List<Prediction<T>> predictions = new ArrayList<>();
@@ -90,6 +133,16 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 		}
 
 		return combiner.combine(outputIDInfo, predictions, weights);
+	}
+
+	@Override
+	public ModelProto serialize() {
+		// Call parent's serialization, then update the class name
+		ModelProto parentProto = super.serialize();
+		return ModelProto.newBuilder(parentProto)
+			.setClassName(TreeEnsembleModel.class.getName())
+			.setVersion(CURRENT_VERSION)
+			.build();
 	}
 }
 
