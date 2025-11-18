@@ -130,7 +130,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
      * @param combiner The combination function.
      * @param numMembers The number of ensemble members to train.
      * @param seed The RNG seed used to bootstrap the datasets.
-     * @param numThreads The number of threads to use for parallel training. Set to USE_ALL_AVAILABLE_PROCESSORS to use all available processors, 1 for single-threaded.
+     * @param numThreads The number of threads to use for parallel training. Set to {@link BaggingTrainer#USE_ALL_AVAILABLE_PROCESSORS} to use all available processors, 1 for single-threaded.
      */
     public BaggingTrainer(Trainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed, int numThreads) {
         this.innerTrainer = trainer;
