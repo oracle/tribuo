@@ -32,6 +32,7 @@ import org.tribuo.classification.evaluation.LabelEvaluator;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.common.tree.ExtraTreesTrainer;
 import org.tribuo.common.tree.RandomForestTrainer;
+import org.tribuo.common.tree.TreeEnsembleModel;
 import org.tribuo.dataset.DatasetView;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.junit.jupiter.api.Assertions;
@@ -52,10 +53,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * These tests live here rather than in Classification/Core because otherwise it would induce circularity in the build.
@@ -190,10 +191,12 @@ public class TestClassificationEnsembles {
         Helpers.testModelProtoSerialization(parallelBag,Label.class);
 
         Model<Label> rf = testRandomForest(p);
-        Helpers.testModelProtoSerialization(rf,Label.class);
+        Model<Label> deserRf = Helpers.testModelProtoSerialization(rf,Label.class);
+        assertTrue(deserRf instanceof TreeEnsembleModel, "RandomForest should deserialize as TreeEnsembleModel");
 
         Model<Label> extra = testExtraTrees(p);
-        Helpers.testModelProtoSerialization(extra,Label.class);
+        Model<Label> deserExtra = Helpers.testModelProtoSerialization(extra,Label.class);
+        assertTrue(deserExtra instanceof TreeEnsembleModel, "ExtraTrees should deserialize as TreeEnsembleModel");
     }
 
     @Test

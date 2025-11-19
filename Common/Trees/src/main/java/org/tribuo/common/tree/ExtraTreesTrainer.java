@@ -17,10 +17,16 @@
 package org.tribuo.common.tree;
 
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
+import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.ensemble.EnsembleCombiner;
+import org.tribuo.ensemble.EnsembleModel;
+import org.tribuo.provenance.EnsembleModelProvenance;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -75,6 +81,22 @@ public class ExtraTreesTrainer<T extends Output<T>> extends BaggingTrainer<T> {
         postConfig();
     }
 
+    /**
+     * Constructs an ExtraTreesTrainer with parallel training support.
+     * <p>
+     * Throws {@link PropertyException} if the trainer is not set to use random split points.
+     * @param trainer The tree trainer.
+     * @param combiner The combining function for the ensemble.
+     * @param numMembers The number of ensemble members to train.
+     * @param seed The RNG seed.
+     * @param numThreads The number of threads to use for parallel training.
+     *                   Use {@link BaggingTrainer#USE_ALL_AVAILABLE_PROCESSORS} to use all available processors, 1 for single-threaded.
+     */
+    public ExtraTreesTrainer(DecisionTreeTrainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed, int numThreads) {
+        super(trainer,combiner,numMembers,seed,numThreads);
+        postConfig();
+    }
+
     @Override
     public void postConfig() {
         super.postConfig();
@@ -91,6 +113,12 @@ public class ExtraTreesTrainer<T extends Output<T>> extends BaggingTrainer<T> {
     @Override
     protected String ensembleName() {
         return "extra-trees-ensemble";
+    }
+
+    @Override
+    protected EnsembleModel<T> createEnsemble(EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, ArrayList<Model<T>> models) {
+        // Use TreeEnsembleModel for optimized prediction performance
+        return new TreeEnsembleModel<>(ensembleName(), provenance, featureIDs, labelIDs, models, combiner);
     }
 
     @Override

@@ -23,6 +23,7 @@ import org.tribuo.Trainer;
 import org.tribuo.common.tree.AbstractCARTTrainer;
 import org.tribuo.common.tree.ExtraTreesTrainer;
 import org.tribuo.common.tree.RandomForestTrainer;
+import org.tribuo.common.tree.TreeEnsembleModel;
 import org.tribuo.ensemble.BaggingTrainer;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.ensemble.AveragingCombiner;
@@ -38,6 +39,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.tribuo.common.tree.AbstractCARTTrainer.MIN_EXAMPLES;
 
 public class TestRegressionEnsembles {
@@ -94,13 +96,17 @@ public class TestRegressionEnsembles {
         Model<Regressor> mBagging = testMultiBagging(p);
         Helpers.testModelProtoSerialization(mBagging,Regressor.class);
         Model<Regressor> rf = testRandomForest(p);
-        Helpers.testModelProtoSerialization(rf,Regressor.class);
+        Model<Regressor> deserRf = Helpers.testModelProtoSerialization(rf,Regressor.class);
+        assertTrue(deserRf instanceof TreeEnsembleModel, "RandomForest should deserialize as TreeEnsembleModel");
         Model<Regressor> mRF = testMultiRandomForest(p);
-        Helpers.testModelProtoSerialization(mRF,Regressor.class);
+        Model<Regressor> deserMRf = Helpers.testModelProtoSerialization(mRF,Regressor.class);
+        assertTrue(deserMRf instanceof TreeEnsembleModel, "RandomForest should deserialize as TreeEnsembleModel");
         Model<Regressor> extra = testExtraTrees(p);
-        Helpers.testModelProtoSerialization(extra,Regressor.class);
+        Model<Regressor> deserExtra = Helpers.testModelProtoSerialization(extra,Regressor.class);
+        assertTrue(deserExtra instanceof TreeEnsembleModel, "ExtraTrees should deserialize as TreeEnsembleModel");
         Model<Regressor> mExtra = testMultiExtraTrees(p);
-        Helpers.testModelProtoSerialization(mExtra,Regressor.class);
+        Model<Regressor> deserMExtra = Helpers.testModelProtoSerialization(mExtra,Regressor.class);
+        assertTrue(deserMExtra instanceof TreeEnsembleModel, "ExtraTrees should deserialize as TreeEnsembleModel");
     }
 
     @Test

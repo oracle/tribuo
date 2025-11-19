@@ -32,6 +32,7 @@ import org.tribuo.common.tree.protos.SplitNodeProto;
 import org.tribuo.common.tree.protos.TreeModelProto;
 import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -151,7 +152,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * once they can be built because both children have been created and provided to the builder.
      * <p>
      * This approach should traverse the entire tree in the correct order but we check at the end of the method
-     * that everything looks good.  
+     * that everything looks good.
      * @param nodeProtos The node protos to deserialize.
      * @param outputClass The output type.
      * @param <U> The output type of the nodes.
@@ -313,15 +314,54 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         //
         // Ensures we handle collisions correctly
         SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
+        return predict(vec, example);
+    }
+
+    /**
+     * Makes a prediction using a pre-computed vector.
+     * <p>
+     * This method is useful for ensemble models where the same example needs to be
+     * predicted by multiple trees. Creating the vector once and reusing it
+     * across all trees avoids redundant vector creation overhead.
+     * </p>
+     * <p>
+     * <b>Note:</b> This method is intended for internal use by ensemble models
+     * (e.g., {@link TreeEnsembleModel}) and should generally not be called directly
+     * in user code. Use {@link #predict(Example)} instead for standard predictions.
+     * </p>
+     * <p>
+     * This method validates that:
+     * </p>
+     * <ul>
+     *   <li>The vector contains at least one active element</li>
+     *   <li>The vector size matches the feature map size</li>
+     * </ul>
+     * <p>
+     * These validations ensure that the vector was created using the same
+     * feature map as this model.
+     * </p>
+     *
+     * @param vec The vector representation of the example.
+     * @param example The original example (used for metadata in the prediction).
+     * @return The prediction for this example.
+     * @throws IllegalArgumentException If validation fails.
+     */
+    public Prediction<T> predict(SGDVector vec, Example<T> example) {
         if (vec.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
+        if (vec.size() != featureIDMap.size()) {
+            throw new IllegalArgumentException("Vector size (" + vec.size() +
+                ") does not match feature map size (" + featureIDMap.size() +
+                "). The vector must be created from the same feature map as this model.");
+        }
+
         Node<T> oldNode = root;
         Node<T> curNode = root;
 
         while (curNode != null) {
             oldNode = curNode;
-            curNode = oldNode.getNextNode(vec);
+            curNode = oldNode.getNextNode((SparseVector) vec);
         }
 
         //

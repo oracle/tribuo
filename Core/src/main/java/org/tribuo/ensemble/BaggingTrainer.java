@@ -61,6 +61,12 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
 
     private static final Logger logger = Logger.getLogger(BaggingTrainer.class.getName());
 
+    /**
+     * Constant for numThreads indicating to use all available processors
+     * via Runtime.getRuntime().availableProcessors().
+     */
+    public static final int USE_ALL_AVAILABLE_PROCESSORS = -1;
+
     // Thread factory for ensemble training, uses low priority to avoid starving other operations
     private static final ThreadFactory LOW_PRIORITY_THREAD_FACTORY = r -> {
         Thread t = new Thread(r);
@@ -80,7 +86,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
     @Config(mandatory=true, description="The combination function to aggregate each ensemble member's outputs.")
     protected EnsembleCombiner<T> combiner;
 
-    @Config(description="The number of threads to use for training. Defaults to 1 (single-threaded). Set to -1 to use all available processors.")
+    @Config(description="The number of threads to use for training. Defaults to 1 (single-threaded). Set to BaggingTrainer.USE_ALL_AVAILABLE_PROCESSORS to use all available processors.")
     protected int numThreads = 1;
 
     protected SplittableRandom rng;
@@ -124,7 +130,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
      * @param combiner The combination function.
      * @param numMembers The number of ensemble members to train.
      * @param seed The RNG seed used to bootstrap the datasets.
-     * @param numThreads The number of threads to use for parallel training. Set to -1 to use all available processors, 1 for single-threaded.
+     * @param numThreads The number of threads to use for parallel training. Set to {@link BaggingTrainer#USE_ALL_AVAILABLE_PROCESSORS} to use all available processors, 1 for single-threaded.
      */
     public BaggingTrainer(Trainer<T> trainer, EnsembleCombiner<T> combiner, int numMembers, long seed, int numThreads) {
         this.innerTrainer = trainer;
@@ -168,7 +174,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
 
         return buffer.toString();
     }
-    
+
     @Override
     public EnsembleModel<T> train(Dataset<T> examples) {
         return train(examples, Collections.emptyMap());
@@ -196,7 +202,7 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         ImmutableOutputInfo<T> labelIDs = examples.getOutputIDInfo();
 
         // Determine number of threads
-        int threads = (numThreads == -1) ? Runtime.getRuntime().availableProcessors() : numThreads;
+        int threads = (numThreads == USE_ALL_AVAILABLE_PROCESSORS) ? Runtime.getRuntime().availableProcessors() : numThreads;
 
         // Pre-generate all random seeds - this maintains reproducibility
         int[] seeds = new int[numMembers];
@@ -213,7 +219,21 @@ public class BaggingTrainer<T extends Output<T>> implements Trainer<T> {
         }
 
         EnsembleModelProvenance provenance = new EnsembleModelProvenance(WeightedEnsembleModel.class.getName(), OffsetDateTime.now(), examples.getProvenance(), trainerProvenance, runProvenance, ListProvenance.createListProvenance(models));
-        return new WeightedEnsembleModel<>(ensembleName(),provenance,featureIDs,labelIDs,models,combiner);
+        return createEnsemble(provenance, featureIDs, labelIDs, models);
+    }
+
+    /**
+     * Factory method to create the ensemble model.
+     * Subclasses can override this to return optimized ensemble implementations.
+     *
+     * @param provenance The ensemble provenance.
+     * @param featureIDs The feature domain.
+     * @param labelIDs The output domain.
+     * @param models The list of trained models.
+     * @return An ensemble model.
+     */
+    protected EnsembleModel<T> createEnsemble(EnsembleModelProvenance provenance, ImmutableFeatureMap featureIDs, ImmutableOutputInfo<T> labelIDs, ArrayList<Model<T>> models) {
+        return new WeightedEnsembleModel<>(ensembleName(), provenance, featureIDs, labelIDs, models, combiner);
     }
 
     /**
