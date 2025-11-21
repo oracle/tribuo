@@ -47,8 +47,10 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,6 +83,14 @@ public class TestClassificationEnsembles {
         logger.setLevel(Level.WARNING);
     }
 
+    private static Map<String, List<Pair<String, Double>>> sortFeatures(Map<String, List<Pair<String, Double>>> m) {
+        Map<String, List<Pair<String, Double>>> sorted = new TreeMap<>(m);
+        for (Map.Entry<String, List<Pair<String, Double>>> e : sorted.entrySet()) {
+            e.getValue().sort(Comparator.comparing(Pair::getA));
+        }
+        return sorted;
+    }
+
     @Test
     public void testSingleClassTraining() {
         testSingleClassTraining(adaT);
@@ -105,10 +115,10 @@ public class TestClassificationEnsembles {
         Model<Label> m = adaT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
-        Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+        Map<String, List<Pair<String,Double>>> features = sortFeatures(m.getTopFeatures(3));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
-        features = m.getTopFeatures(-1);
+        features = sortFeatures(m.getTopFeatures(-1));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         return m;
@@ -118,10 +128,10 @@ public class TestClassificationEnsembles {
         Model<Label> m = bagT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
-        Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+        Map<String, List<Pair<String,Double>>> features = sortFeatures(m.getTopFeatures(3));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
-        features = m.getTopFeatures(-1);
+        features = sortFeatures(m.getTopFeatures(-1));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         return m;
@@ -131,10 +141,10 @@ public class TestClassificationEnsembles {
         Model<Label> m = rfT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
-        Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+        Map<String, List<Pair<String,Double>>> features = sortFeatures(m.getTopFeatures(3));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
-        features = m.getTopFeatures(-1);
+        features = sortFeatures(m.getTopFeatures(-1));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         return m;
@@ -144,10 +154,10 @@ public class TestClassificationEnsembles {
         Model<Label> m = eTT.train(p.getA());
         LabelEvaluator e = new LabelEvaluator();
         LabelEvaluation evaluation = e.evaluate(m,p.getB());
-        Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
+        Map<String, List<Pair<String,Double>>> features = sortFeatures(m.getTopFeatures(3));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
-        features = m.getTopFeatures(-1);
+        features = sortFeatures(m.getTopFeatures(-1));
         Assertions.assertNotNull(features);
         Assertions.assertFalse(features.isEmpty());
         return m;
