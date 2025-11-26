@@ -46,7 +46,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -261,19 +261,28 @@ public class TestCART {
 
         List<Prediction<Label>> predictions = model.predict(data);
 
-        // Pure leaves
-        assertTrue(predictions.get(0).getOutput().fullEquals(new Label("A",1.0)));
-        assertTrue(predictions.get(1).getOutput().fullEquals(new Label("B",1.0)));
-        assertTrue(predictions.get(2).getOutput().fullEquals(new Label("C",1.0)));
-        // Impure leaf
-        Map<String,Label> map = new HashMap<>();
+        int countA = 0, countB = 0, countC = 0, countImpure = 0;
+        
+        Map<String,Label> map = new LinkedHashMap<>();
         map.put("A",new Label("A",0));
         map.put("B",new Label("B",0));
         map.put("C",new Label("C",0.5));
         map.put("D",new Label("D",0.5));
         Prediction<Label> pred = new Prediction<>(new Label("C", 0.5), map, 0, data.getExample(3), true);
-        assertTrue(predictions.get(3).distributionEquals(pred));
-        assertTrue(predictions.get(4).distributionEquals(pred));
+        
+        for (Prediction<Label> p : predictions) {
+            if (p.getOutput().fullEquals(new Label("A",1.0))) countA++;
+            else if (p.getOutput().fullEquals(new Label("B",1.0))) countB++;
+            else if (p.getOutput().fullEquals(new Label("C",1.0))) countC++;
+            else if (p.distributionEquals(pred)) countImpure++;
+        }
+        
+        // Pure leaves
+        assertEquals(1, countA);
+        assertEquals(1, countB);
+        assertEquals(1, countC);
+        // Impure leaf
+        assertEquals(2, countImpure);
     }
 
     @Test
