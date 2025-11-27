@@ -35,8 +35,6 @@ import org.tribuo.regression.rtree.impurity.RegressorImpurity;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity.ImpurityTuple;
 import org.tribuo.util.Util;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -400,12 +398,12 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
      * Inverts a training dataset from row major to column major. This partially de-sparsifies the dataset
      * so it's very expensive in terms of memory.
      * @param examples An input dataset.
+     * @param featureInfos The feature id mapping.
+     * @param outputInfo The output regression id mapping.
      * @return A list of TreeFeatures which contain {@link InvertedFeature}s.
      */
-    public static InvertedData invertData(Dataset<Regressor> examples) {
-        ImmutableFeatureMap featureInfos = examples.getFeatureIDMap();
-        ImmutableOutputInfo<Regressor> labelInfo = examples.getOutputIDInfo();
-        int numLabels = labelInfo.size();
+    public static InvertedData invertData(Dataset<Regressor> examples, ImmutableFeatureMap featureInfos, ImmutableOutputInfo<Regressor> outputInfo) {
+        int numLabels = outputInfo.size();
         int numFeatures = featureInfos.size();
         int[] indices = new int[examples.size()];
         float[][] targets = new float[numLabels][examples.size()];
@@ -418,7 +416,7 @@ public class RegressorTrainingNode extends AbstractTrainingNode<Regressor> {
             data.add(new TreeFeature(i));
         }
 
-        int[] ids = ((ImmutableRegressionInfo) labelInfo).getNaturalOrderToIDMapping();
+        int[] ids = ((ImmutableRegressionInfo) outputInfo).getNaturalOrderToIDMapping();
         for (int i = 0; i < examples.size(); i++) {
             Example<Regressor> e = examples.getExample(i);
             indices[i] = i;

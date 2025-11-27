@@ -32,8 +32,6 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.util.Util;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,11 +70,12 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * Constructor which creates the inverted file.
      * @param impurity The impurity function to use.
      * @param examples The training data.
+     * @param featureIDMap The feature id mapping.
+     * @param outputIDInfo The output id mapping.
      * @param leafDeterminer Contains parameters needed to determine whether a child node will be a leaf.
      */
-    public ClassifierTrainingNode(LabelImpurity impurity, Dataset<Label> examples, LeafDeterminer leafDeterminer) {
-        this(impurity,invertData(examples), examples.size(), 0, examples.getFeatureIDMap(),
-                examples.getOutputIDInfo(),leafDeterminer);
+    public ClassifierTrainingNode(LabelImpurity impurity, Dataset<Label> examples, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> outputIDInfo, LeafDeterminer leafDeterminer) {
+        this(impurity,invertData(examples, featureIDMap, outputIDInfo), examples.size(), 0, featureIDMap, outputIDInfo,leafDeterminer);
     }
 
     private ClassifierTrainingNode(LabelImpurity impurity, ArrayList<TreeFeature> data, int numExamples, int depth,
@@ -361,11 +360,11 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
      * Inverts a training dataset from row major to column major. This partially de-sparsifies the dataset
      * so it's very expensive in terms of memory.
      * @param examples An input dataset.
+     * @param featureInfos The feature id mapping.
+     * @param labelInfo The label id mapping.
      * @return A list of TreeFeatures which contain {@link InvertedFeature}s.
      */
-    private static ArrayList<TreeFeature> invertData(Dataset<Label> examples) {
-        ImmutableFeatureMap featureInfos = examples.getFeatureIDMap();
-        ImmutableOutputInfo<Label> labelInfo = examples.getOutputIDInfo();
+    private static ArrayList<TreeFeature> invertData(Dataset<Label> examples, ImmutableFeatureMap featureInfos, ImmutableOutputInfo<Label> labelInfo) {
         int numLabels = labelInfo.size();
         int numFeatures = featureInfos.size();
         int numExamples = examples.size();

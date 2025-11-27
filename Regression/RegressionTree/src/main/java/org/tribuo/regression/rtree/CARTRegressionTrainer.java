@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,6 +137,8 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
 
     @Override
     protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples,
+                                                             ImmutableFeatureMap featureIDMap,
+                                                             ImmutableOutputInfo<Regressor> outputIDInfo,
                                                              AbstractTrainingNode.LeafDeterminer leafDeterminer) {
         throw new IllegalStateException("Shouldn't reach here.");
     }
@@ -187,7 +189,7 @@ public final class CARTRegressionTrainer extends AbstractCARTTrainer<Regressor> 
         AbstractTrainingNode.LeafDeterminer leafDeterminer = new AbstractTrainingNode.LeafDeterminer(maxDepth,
                 minChildWeight, scaledMinImpurityDecrease);
 
-        InvertedData data = RegressorTrainingNode.invertData(examples);
+        InvertedData data = RegressorTrainingNode.invertData(examples, featureIDMap, outputIDInfo);
 
         Map<String, Node<Regressor>> nodeMap = new HashMap<>();
         for (Regressor r : domain) {

@@ -18,6 +18,8 @@ package org.tribuo.classification.dtree;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import org.tribuo.Dataset;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.dtree.impl.ClassifierTrainingNode;
@@ -144,8 +146,10 @@ public class CARTClassificationTrainer extends AbstractCARTTrainer<Label> {
 
     @Override
     protected AbstractTrainingNode<Label> mkTrainingNode(Dataset<Label> examples,
+                                                         ImmutableFeatureMap featureIDMap,
+                                                         ImmutableOutputInfo<Label> outputIDInfo,
                                                          AbstractTrainingNode.LeafDeterminer leafDeterminer) {
-        return new ClassifierTrainingNode(impurity, examples, leafDeterminer);
+        return new ClassifierTrainingNode(impurity, examples, featureIDMap, outputIDInfo, leafDeterminer);
     }
 
     @Override

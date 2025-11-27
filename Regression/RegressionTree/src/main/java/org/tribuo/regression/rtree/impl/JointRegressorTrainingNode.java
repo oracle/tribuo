@@ -34,8 +34,6 @@ import org.tribuo.regression.rtree.impurity.RegressorImpurity;
 import org.tribuo.regression.rtree.impurity.RegressorImpurity.ImpurityTuple;
 import org.tribuo.util.Util;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,12 +74,15 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * Constructor which creates the inverted file.
      * @param impurity The impurity function to use.
      * @param examples The training data.
+     * @param featureIDMap The feature id mapping.
+     * @param outputIDInfo The output id mapping.
      * @param normalize Normalizes the leaves so each leaf has a distribution which sums to 1.0.
      * @param leafDeterminer Contains parameters needed to determine whether a node is a leaf.
      */
-    public JointRegressorTrainingNode(RegressorImpurity impurity, Dataset<Regressor> examples, boolean normalize,
-                                      LeafDeterminer leafDeterminer) {
-        this(impurity, invertData(examples), examples.size(), examples.getFeatureIDMap(), examples.getOutputIDInfo(),
+    public JointRegressorTrainingNode(RegressorImpurity impurity, Dataset<Regressor> examples,
+                                      ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Regressor> outputIDInfo,
+                                      boolean normalize, LeafDeterminer leafDeterminer) {
+        this(impurity, invertData(examples, featureIDMap, outputIDInfo), examples.size(), featureIDMap, outputIDInfo,
                 normalize, leafDeterminer);
     }
 
@@ -451,15 +452,15 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
      * Inverts a training dataset from row major to column major. This partially de-sparsifies the dataset
      * so it's very expensive in terms of memory.
      * @param examples An input dataset.
+     * @param featureInfos The feature id mapping.
+     * @param outputInfo The output id mapping.
      * @return A list of TreeFeatures which contain {@link InvertedFeature}s.
      */
-    private static InvertedData invertData(Dataset<Regressor> examples) {
-        ImmutableFeatureMap featureInfos = examples.getFeatureIDMap();
-        ImmutableOutputInfo<Regressor> labelInfo = examples.getOutputIDInfo();
-        int numLabels = labelInfo.size();
+    private static InvertedData invertData(Dataset<Regressor> examples, ImmutableFeatureMap featureInfos, ImmutableOutputInfo<Regressor> outputInfo) {
+        int numLabels = outputInfo.size();
         int numFeatures = featureInfos.size();
         int[] indices = new int[examples.size()];
-        float[][] targets = new float[labelInfo.size()][examples.size()];
+        float[][] targets = new float[outputInfo.size()][examples.size()];
         float[] weights = new float[examples.size()];
 
         logger.fine("Building initial List<TreeFeature> for " + numFeatures + " features and " + numLabels + " outputs");
@@ -469,7 +470,7 @@ public class JointRegressorTrainingNode extends AbstractTrainingNode<Regressor> 
             data.add(new TreeFeature(i));
         }
 
-        int[] ids = ((ImmutableRegressionInfo) labelInfo).getNaturalOrderToIDMapping();
+        int[] ids = ((ImmutableRegressionInfo) outputInfo).getNaturalOrderToIDMapping();
         for (int i = 0; i < examples.size(); i++) {
             Example<Regressor> e = examples.getExample(i);
             indices[i] = i;
