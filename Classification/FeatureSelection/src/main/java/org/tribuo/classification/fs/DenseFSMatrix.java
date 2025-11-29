@@ -34,7 +34,7 @@ import org.tribuo.util.infotheory.impl.CachedTriple;
 import org.tribuo.util.infotheory.impl.PairDistribution;
 import org.tribuo.util.infotheory.impl.TripleDistribution;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -73,7 +73,7 @@ final class DenseFSMatrix implements FSMatrix {
 
     @Override
     public double mi(int featureIndex) {
-        Map<CachedPair<Integer,Integer>, MutableLong> map = new HashMap<>();
+        Map<CachedPair<Integer,Integer>, MutableLong> map = new LinkedHashMap<>();
         for (int i = 0; i < labels.length; i++) {
             CachedPair<Integer, Integer> p = new CachedPair<>(features[featureIndex][i],labels[i]);
             MutableLong l = map.computeIfAbsent(p, k -> new MutableLong());
@@ -84,7 +84,7 @@ final class DenseFSMatrix implements FSMatrix {
 
     @Override
     public double mi(int firstIndex, int secondIndex) {
-        Map<CachedPair<Integer,Integer>, MutableLong> map = new HashMap<>();
+        Map<CachedPair<Integer,Integer>, MutableLong> map = new LinkedHashMap<>();
         for (int i = 0; i < labels.length; i++) {
             CachedPair<Integer, Integer> p = new CachedPair<>(features[firstIndex][i],features[secondIndex][i]);
             MutableLong l = map.computeIfAbsent(p, k -> new MutableLong());
@@ -95,7 +95,7 @@ final class DenseFSMatrix implements FSMatrix {
 
     @Override
     public double jmi(int featureIndex, int jointIndex) {
-        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new HashMap<>();
+        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new LinkedHashMap<>();
         for (int i = 0; i < labels.length; i++) {
             CachedTriple<Integer, Integer, Integer> p = new CachedTriple<>(features[featureIndex][i],
                     features[jointIndex][i],labels[i]);
@@ -107,7 +107,7 @@ final class DenseFSMatrix implements FSMatrix {
 
     @Override
     public double jmi(int firstIndex, int jointIndex, int targetIndex) {
-        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new HashMap<>();
+        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new LinkedHashMap<>();
         for (int i = 0; i < labels.length; i++) {
             CachedTriple<Integer, Integer, Integer> p = new CachedTriple<>(features[firstIndex][i],
                     features[jointIndex][i],features[targetIndex][i]);
@@ -119,7 +119,7 @@ final class DenseFSMatrix implements FSMatrix {
 
     @Override
     public double cmi(int featureIndex, int conditionIndex) {
-        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new HashMap<>();
+        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new LinkedHashMap<>();
         for (int i = 0; i < labels.length; i++) {
             CachedTriple<Integer, Integer, Integer> p = new CachedTriple<>(features[featureIndex][i],
                     labels[i],features[conditionIndex][i]);
@@ -131,7 +131,7 @@ final class DenseFSMatrix implements FSMatrix {
 
     @Override
     public double cmi(int firstIndex, int secondIndex, int conditionIndex) {
-        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new HashMap<>();
+        Map<CachedTriple<Integer,Integer,Integer>, MutableLong> map = new LinkedHashMap<>();
         for (int i = 0; i < labels.length; i++) {
             CachedTriple<Integer, Integer, Integer> p = new CachedTriple<>(features[firstIndex][i],
                     features[secondIndex][i],features[conditionIndex][i]);

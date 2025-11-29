@@ -26,6 +26,7 @@ import org.tribuo.classification.Label;
 import org.tribuo.classification.LabelFactory;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
+import org.tribuo.util.Util;
 import org.tribuo.util.infotheory.InformationTheory;
 
 import java.util.Arrays;
@@ -34,6 +35,7 @@ import java.util.SplittableRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -144,7 +146,8 @@ public class MIMTest {
         assertEquals(5,scores.size());
 
         assertEquals(Arrays.asList("E","B","C","D","A"),sfs.featureNames());
-        assertEquals(Arrays.asList(1.0, 0.1887218755408671, 0.1887218755408671, 0.0487949406953985, 0.0),sfs.featureScores());
+        double[] expected = new double[]{1.0, 0.18872187554086714,  0.1887218755408671, 0.0487949406953985, 0.0};
+        assertArrayEquals(expected, Util.toPrimitiveDouble(sfs.featureScores()), 1e-12);
     }
 
 }
