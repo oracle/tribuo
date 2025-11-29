@@ -51,6 +51,12 @@ import java.util.stream.IntStream;
  */
 public final class mRMR implements FeatureSelector<Label> {
     private static final Logger logger = Logger.getLogger(mRMR.class.getName());
+    
+    /**
+     * The tolerance for floating point comparisons. Scores within this are considered equal
+     * and will be tie-broken by lexicographic ordering of feature names.
+     */
+    private static final double SCORE_TOLERANCE = 1e-12;
 
     @Config(mandatory = true, description = "Number of bins to use when discretising continuous features.")
     private int numBins;
@@ -135,7 +141,7 @@ public final class mRMR implements FeatureSelector<Label> {
         int curIdx = -1;
         double curVal = -1.0;
         for (int i = 0; i < numFeatures; i++) {
-            if (miCache[i] > curVal) {
+            if (miCache[i] > curVal + SCORE_TOLERANCE || (Math.abs(miCache[i] - curVal) <= SCORE_TOLERANCE && curIdx != -1 && fmap.get(i).getName().compareTo(fmap.get(curIdx).getName()) < 0)) {
                 curIdx = i;
                 curVal = miCache[i];
             }
@@ -158,7 +164,14 @@ public final class mRMR implements FeatureSelector<Label> {
                     for (int j = 0; j < redundancyCache.length; j++) {
                         redundancyCache[j] += updates[j];
                     }
-                    maxPair = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().filter(j -> unselectedFeatures[j]).mapToObj(j -> new Pair<>(j, miCache[j] - (redundancyCache[j]/curI))).max(Comparator.comparingDouble(Pair::getB)).get()).get();
+                    maxPair = fjp.submit(() -> IntStream.range(0, numFeatures).parallel().filter(j -> unselectedFeatures[j]).mapToObj(j -> new Pair<>(j, miCache[j] - (redundancyCache[j]/curI))).max((p1, p2) -> {
+                        double diff = p1.getB() - p2.getB();
+                        if (Math.abs(diff) > SCORE_TOLERANCE) {
+                            return Double.compare(p1.getB(), p2.getB());
+                        }
+                        // For ties, prefer lexicographically smaller names (reverse comparison for max())
+                        return fmap.get(p2.getA()).getName().compareTo(fmap.get(p1.getA()).getName());
+                    }).get()).get();
                 } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
@@ -170,7 +183,7 @@ public final class mRMR implements FeatureSelector<Label> {
                         int prevIdx = selectedFeatures[i-1];
                         redundancyCache[j] += data.mi(j,prevIdx);
                         double sum = miCache[j] - (redundancyCache[j] / i);
-                        if (sum > maxScore) {
+                        if (sum > maxScore + SCORE_TOLERANCE || (Math.abs(sum - maxScore) <= SCORE_TOLERANCE && maxIndex != -1 && fmap.get(j).getName().compareTo(fmap.get(maxIndex).getName()) < 0)) {
                             maxScore = sum;
                             maxIndex = j;
                         }
