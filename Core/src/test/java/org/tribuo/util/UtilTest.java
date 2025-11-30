@@ -51,6 +51,21 @@ public class UtilTest {
     }
 
     @Test
+    public void testArgmin() {
+        assertThrows(IllegalArgumentException.class, () -> Util.argmin(new ArrayList<Double>()));
+
+        List<Integer> lst = Collections.singletonList(1);
+        Pair<Integer, Integer> argmin = Util.argmin(lst);
+        assertEquals(0, argmin.getA());
+        assertEquals(1, argmin.getB());
+
+        lst = Arrays.asList(3, 2, 1);
+        argmin = Util.argmin(lst);
+        assertEquals(2, argmin.getA());
+        assertEquals(1, argmin.getB());
+    }
+
+    @Test
     public void testAUC() {
         double output;
 
@@ -78,6 +93,20 @@ public class UtilTest {
 
         output = Util.auc(new double[]{0,0.5,1},new double[]{0,0.5,1});
         assertEquals(0.5,output,DELTA);
+    }
+
+    @Test
+    public void testBinarySearch(){
+
+        List<String> stringList = Arrays.asList("apple", "banana", "cherry", "date", "fig", "grape");
+        List<Integer> intList = List.of(1, 3, 5, 7, 9);
+
+        assertEquals( -1, Util.binarySearch(stringList, "Cherry"));
+        assertEquals( 2, Util.binarySearch(stringList, "cherry"));
+
+        assertEquals(2, Util.binarySearch(intList, 5, x -> x));
+        assertEquals(-4, Util.binarySearch(intList, 6, x -> x));
+
     }
 
 }
