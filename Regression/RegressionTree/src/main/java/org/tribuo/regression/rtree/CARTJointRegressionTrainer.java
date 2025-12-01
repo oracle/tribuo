@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.tribuo.regression.rtree;
 
 import com.oracle.labs.mlrg.olcut.config.Config;
 import org.tribuo.Dataset;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Trainer;
 import org.tribuo.common.tree.AbstractCARTTrainer;
 import org.tribuo.common.tree.AbstractTrainingNode;
@@ -138,8 +140,10 @@ public class CARTJointRegressionTrainer extends AbstractCARTTrainer<Regressor> {
 
     @Override
     protected AbstractTrainingNode<Regressor> mkTrainingNode(Dataset<Regressor> examples,
+                                                             ImmutableFeatureMap featureIDMap,
+                                                             ImmutableOutputInfo<Regressor> outputIDInfo,
                                                              AbstractTrainingNode.LeafDeterminer leafDeterminer) {
-        return new JointRegressorTrainingNode(impurity, examples, normalize, leafDeterminer);
+        return new JointRegressorTrainingNode(impurity, examples, featureIDMap, outputIDInfo, normalize, leafDeterminer);
     }
 
     @Override

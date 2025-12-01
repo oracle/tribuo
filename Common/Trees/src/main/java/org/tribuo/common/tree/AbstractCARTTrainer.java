@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,7 +219,7 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
         AbstractTrainingNode.LeafDeterminer leafDeterminer = new AbstractTrainingNode.LeafDeterminer(maxDepth,
                 minChildWeight, scaledMinImpurityDecrease);
 
-        AbstractTrainingNode<T> root = mkTrainingNode(examples, leafDeterminer);
+        AbstractTrainingNode<T> root = mkTrainingNode(examples, featureIDMap, outputIDInfo, leafDeterminer);
         Deque<AbstractTrainingNode<T>> queue = new ArrayDeque<>();
         queue.add(root);
 
@@ -247,10 +247,14 @@ public abstract class AbstractCARTTrainer<T extends Output<T>> implements Decisi
     /**
      * Makes the initial training node.
      * @param examples The dataset to use.
+     * @param featureIDMap The feature id map.
+     * @param outputIDInfo The output id info.
      * @param leafDeterminer The leaf determination function.
      * @return The initial training node.
      */
     protected abstract AbstractTrainingNode<T> mkTrainingNode(Dataset<T> examples,
+                                                              ImmutableFeatureMap featureIDMap,
+                                                              ImmutableOutputInfo<T> outputIDInfo,
                                                               AbstractTrainingNode.LeafDeterminer leafDeterminer);
 
     /**
