@@ -177,6 +177,7 @@ public final class ReproUtil<T extends Output<T>> {
         // construct the correct component name using ProvenanceUtil.computeName, and
         // link a provObject to its corresponding configuration in the cm.
         ProvenanceUtil.ProvenanceOrdering ordering = ProvenanceUtil.orderProvenances(this.modelProvenance);
+        Set<String> usedComponentNames = new java.util.HashSet<>();
 
         for (int i = 0; i < ordering.traversalOrder.size(); i++){
             if(ordering.traversalOrder.get(i) instanceof TrainerProvenance trainerProvenance){
@@ -184,6 +185,7 @@ public final class ReproUtil<T extends Output<T>> {
                 Configurable configurableObject;
                 try {
                     configurableObject = cm.lookup(componentName);
+                    usedComponentNames.add(componentName);
                 } catch (PropertyException e) {
                     try {
                         Class<?> trainerClass = Class.forName(trainerProvenance.getClassName());
@@ -191,9 +193,33 @@ public final class ReproUtil<T extends Output<T>> {
                             @SuppressWarnings("unchecked")
                             Class<? extends Configurable> configurableClass = (Class<? extends Configurable>) trainerClass;
                             List<String> names = cm.listAll(configurableClass);
-                            if (names.size() == 1) {
-                                logger.log(Level.WARNING, "Fallback to class-based lookup for component " + componentName + ", found " + names.get(0));
-                                configurableObject = cm.lookup(names.get(0));
+                            // Sort names to ensure deterministic mapping, preferring numeric suffix sort
+                            Collections.sort(names, (a, b) -> {
+                                try {
+                                    int lastDashA = a.lastIndexOf('-');
+                                    int lastDashB = b.lastIndexOf('-');
+                                    if (lastDashA != -1 && lastDashB != -1) {
+                                        int valA = Integer.parseInt(a.substring(lastDashA + 1));
+                                        int valB = Integer.parseInt(b.substring(lastDashB + 1));
+                                        return Integer.compare(valA, valB);
+                                    }
+                                } catch (NumberFormatException nfe) {
+                                    // ignore
+                                }
+                                return a.compareTo(b);
+                            });
+
+                            String foundName = null;
+                            for (String name : names) {
+                                if (!usedComponentNames.contains(name)) {
+                                    foundName = name;
+                                    break;
+                                }
+                            }
+                            if (foundName != null) {
+                                logger.log(Level.WARNING, "Fallback to class-based lookup for component " + componentName + ", found " + foundName);
+                                configurableObject = cm.lookup(foundName);
+                                usedComponentNames.add(foundName);
                             } else {
                                 throw e;
                             }
