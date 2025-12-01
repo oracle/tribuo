@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationData;
 import com.oracle.labs.mlrg.olcut.config.ConfigurationManager;
+import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.MapProvenance;
@@ -180,7 +181,30 @@ public final class ReproUtil<T extends Output<T>> {
         for (int i = 0; i < ordering.traversalOrder.size(); i++){
             if(ordering.traversalOrder.get(i) instanceof TrainerProvenance trainerProvenance){
                 String componentName = ProvenanceUtil.computeName(trainerProvenance, i);
-                Configurable configurableObject = cm.lookup(componentName);
+                Configurable configurableObject;
+                try {
+                    configurableObject = cm.lookup(componentName);
+                } catch (PropertyException e) {
+                    try {
+                        Class<?> trainerClass = Class.forName(trainerProvenance.getClassName());
+                        if (Configurable.class.isAssignableFrom(trainerClass)) {
+                            @SuppressWarnings("unchecked")
+                            Class<? extends Configurable> configurableClass = (Class<? extends Configurable>) trainerClass;
+                            List<String> names = cm.listAll(configurableClass);
+                            if (names.size() == 1) {
+                                logger.log(Level.WARNING, "Fallback to class-based lookup for component " + componentName + ", found " + names.get(0));
+                                configurableObject = cm.lookup(names.get(0));
+                            } else {
+                                throw e;
+                            }
+                        } else {
+                            throw e;
+                        }
+                    } catch (ClassNotFoundException ex) {
+                        throw new IllegalStateException("Failed to load trainer class " + trainerProvenance.getClassName(), ex);
+                    }
+                }
+
                 // Once a Trainer is identified we need to set the invocationCount as identified
                 // in the provenance. Invocation count is not configurable since it is a provenance value,
                 // it is an immutable value mapping one-to-one to a single execution.
