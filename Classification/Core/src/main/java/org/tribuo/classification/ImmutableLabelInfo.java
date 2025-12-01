@@ -25,7 +25,6 @@ import org.tribuo.classification.protos.ImmutableLabelInfoProto;
 import org.tribuo.protos.core.OutputDomainProto;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,6 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,8 +69,7 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
         idLabelMap = new LinkedHashMap<>();
         labelIDMap = new LinkedHashMap<>();
         int counter = 0;
-        List<String> keys = new ArrayList<>(labelCounts.keySet());
-        Collections.sort(keys);
+        SortedSet<String> keys = new TreeSet<>(labelCounts.keySet());
         Set<Label> domainSet = new LinkedHashSet<>();
         for (String key : keys) {
             idLabelMap.put(counter,key);
