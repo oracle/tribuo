@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
@@ -139,11 +141,12 @@ public class Prediction<T extends Output<T>> implements ProtoSerializable<Predic
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"rawtypes","unchecked"}) // types are checked via getClass to ensure that the example, output and scores are all the same class.
-    public static Prediction<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static Prediction<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -156,14 +159,14 @@ public class Prediction<T extends Output<T>> implements ProtoSerializable<Predic
         if (exampleSize < 0) {
             throw new IllegalStateException("Invalid protobuf, found a negative example size");
         }
-        Example<?> example = ProtoUtil.deserialize(proto.getExample());
-        Output<?> output = ProtoUtil.deserialize(proto.getOutput());
+        Example<?> example = ProtoUtil.deserialize(proto.getExample(), deserCache);
+        Output<?> output = ProtoUtil.deserialize(proto.getOutput(), deserCache);
         if (!output.getClass().equals(example.getOutput().getClass())) {
             throw new IllegalStateException("Invalid protobuf, example and output types do not match, example = " + example.getOutput().getClass() + ", output = " + output.getClass());
         }
         Map map = new HashMap();
         for (Map.Entry<String, OutputProto> e : proto.getOutputScoresMap().entrySet()) {
-            Output<?> tmpOutput = ProtoUtil.deserialize(e.getValue());
+            Output<?> tmpOutput = ProtoUtil.deserialize(e.getValue(), deserCache);
             if (!tmpOutput.getClass().equals(output.getClass())) {
                 throw new IllegalStateException("Invalid protobuf, output scores not all the same type, found " + tmpOutput.getClass() + ", expected " + output.getClass());
             }

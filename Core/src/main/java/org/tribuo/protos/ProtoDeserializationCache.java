@@ -18,28 +18,28 @@ package org.tribuo.protos;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.tribuo.FeatureMap;
-import org.tribuo.OutputInfo;
+import org.tribuo.ImmutableFeatureMap;
+import org.tribuo.ImmutableOutputInfo;
 
 /**
  * A cache used to dedupe objects during deserialization.
  * <p>
- * Supports deduping {@link FeatureMap} and {@link OutputInfo} instances as these are the largest
- * shared structures. Feature map instances which are equal according to {@link FeatureMap#equals}
+ * Supports deduping {@link ImmutableFeatureMap} and {@link ImmutableOutputInfo} instances as these are the largest
+ * shared structures. Feature map instances which are equal according to {@link ImmutableFeatureMap#equals}
  * will be deduplicated by returning the canonical instance.
  */
 public final class ProtoDeserializationCache {
 
-    private final Map<FeatureMap, FeatureMap> featureMapCache;
+    private final Map<ImmutableFeatureMap, ImmutableFeatureMap> featureMapCache;
 
-    private final Map<OutputInfo<?>, OutputInfo<?>> outputInfoCache;
+    private final Map<ImmutableOutputInfo<?>, ImmutableOutputInfo<?>> outputInfoCache;
 
     /**
      * Create an empty deserialization cache.
      */
     public ProtoDeserializationCache() {
-        this.featureMapCache = new HashMap<>();
-        this.outputInfoCache = new HashMap<>();
+        this.featureMapCache = new HashMap<>(4);
+        this.outputInfoCache = new HashMap<>(4);
     }
 
     /**
@@ -48,8 +48,8 @@ public final class ProtoDeserializationCache {
      * @param featureMap The feature map to canonicalise.
      * @return The canonicalised value (i.e., a cached one which is equal to the method argument).
      */
-    public FeatureMap canconicalise(FeatureMap featureMap) {
-        FeatureMap canonicalisedValue = featureMapCache.computeIfAbsent(featureMap, k -> featureMap);
+    public ImmutableFeatureMap canonicalise(ImmutableFeatureMap featureMap) {
+        ImmutableFeatureMap canonicalisedValue = featureMapCache.computeIfAbsent(featureMap, k -> featureMap);
         return canonicalisedValue;
     }
 
@@ -59,9 +59,25 @@ public final class ProtoDeserializationCache {
      * @param outputInfo The output info to canonicalise.
      * @return The canonicalised value (i.e., a cached one which is equal to the method argument).
      */
-    public OutputInfo<?> canconicalise(OutputInfo<?> outputInfo) {
-        OutputInfo<?> canonicalisedValue = outputInfoCache.computeIfAbsent(outputInfo, k -> outputInfo);
+    public ImmutableOutputInfo<?> canonicalise(ImmutableOutputInfo<?> outputInfo) {
+        ImmutableOutputInfo<?> canonicalisedValue = outputInfoCache.computeIfAbsent(outputInfo, k -> outputInfo);
         return canonicalisedValue;
+    }
+
+    /**
+     * Returns the current size of the output info cache.
+     * @return The output info cache size.
+     */
+    public int outputInfoCacheSize() {
+        return outputInfoCache.size();
+    }
+
+    /**
+     * Returns the current size of the feature map cache.
+     * @return The feature map cache size.
+     */
+    public int featureMapCacheSize() {
+        return featureMapCache.size();
     }
 
 }

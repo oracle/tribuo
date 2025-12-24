@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.tribuo.common.liblinear.LibLinearModel;
 import org.tribuo.common.liblinear.LibLinearTrainer;
 import org.tribuo.common.liblinear.protos.LibLinearModelProto;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXInitializer;
@@ -100,7 +101,7 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
             for (int i = 0; i < curLabels.length; i++) {
                 tmp.remove(i);
             }
-            Set<Label> tmpSet = new HashSet<>(tmp.values().size());
+            Set<Label> tmpSet = new HashSet<>(tmp.size());
             for (Label l : tmp.values()) {
                 tmpSet.add(new Label(l.getLabel(),0.0));
             }
@@ -115,10 +116,11 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static LibLinearClassificationModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static LibLinearClassificationModel deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -127,7 +129,7 @@ public class LibLinearClassificationModel extends LibLinearModel<Label> implemen
         }
         LibLinearModelProto proto = message.unpack(LibLinearModelProto.class);
 
-        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
         if (!carrier.outputDomain().getOutput(0).getClass().equals(Label.class)) {
             throw new IllegalStateException("Invalid protobuf, output domain is not a label domain, found " + carrier.outputDomain().getClass());
         }

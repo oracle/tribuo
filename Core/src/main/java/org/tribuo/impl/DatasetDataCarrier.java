@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,56 +24,34 @@ import org.tribuo.FeatureMap;
 import org.tribuo.Output;
 import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.DatasetDataProto;
 import org.tribuo.provenance.DataProvenance;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Serialization carrier for common fields in Dataset.
  * <p>
  * Likely to be a record one day.
+ *
+ * @param provenance           The data provenance.
+ * @param featureDomain        The features this dataset contains.
+ * @param outputDomain         The outputs this dataset contains.
+ * @param transformProvenances The transformation provenances.
+ * @param outputFactory        The output factory.
+ * @param tribuoVersion        The Tribuo version string.
  */
-public final class DatasetDataCarrier<T extends Output<T>> {
+public record DatasetDataCarrier<T extends Output<T>>(DataProvenance provenance, FeatureMap featureDomain,
+                                                      OutputInfo<T> outputDomain, OutputFactory<T> outputFactory,
+                                                      List<ObjectProvenance> transformProvenances,
+                                                      String tribuoVersion) {
     private static final ProtoProvenanceSerialization PROVENANCE_SERIALIZER = new ProtoProvenanceSerialization(false);
 
     /**
-     * The data provenance.
-     */
-    private final DataProvenance provenance;
-
-    /**
-     * The features this dataset contains.
-     */
-    private final FeatureMap featureDomain;
-
-    /**
-     * The outputs this dataset contains.
-     */
-    private final OutputInfo<T> outputDomain;
-
-    /**
-     * The transformation provenances.
-     */
-    private final List<ObjectProvenance> transformProvenances;
-
-    /**
-     * The output factory.
-     */
-    private final OutputFactory<T> outputFactory;
-
-    /**
-     * The Tribuo version string.
-     */
-    private final String tribuoVersion;
-
-    /**
      * Constructs a new DatasetDataCarrier.
-     * <p>
-     * Will be the canonical constructor for the record form.
      *
      * @param provenance           The data provenance.
      * @param featureDomain        The feature domain.
@@ -82,26 +60,36 @@ public final class DatasetDataCarrier<T extends Output<T>> {
      * @param transformProvenances The transform provenances.
      * @param tribuoVersion        The Tribuo version string.
      */
-    public DatasetDataCarrier(DataProvenance provenance, FeatureMap featureDomain, OutputInfo<T> outputDomain, OutputFactory<T> outputFactory, List<ObjectProvenance> transformProvenances, String tribuoVersion) {
-        this.provenance = provenance;
-        this.featureDomain = featureDomain;
-        this.outputDomain = outputDomain;
-        this.outputFactory = outputFactory;
-        this.transformProvenances = Collections.unmodifiableList(transformProvenances);
-        this.tribuoVersion = tribuoVersion;
+    public DatasetDataCarrier {
+        transformProvenances = Collections.unmodifiableList(transformProvenances);
+    }
+
+    /**
+     * Deserializes a {@link DatasetDataProto} into a {@link DatasetDataCarrier}.
+     * <p>
+     * Uses an empty deserialization cache.
+     *
+     * @param proto The proto to deserialize.
+     * @return The model data.
+     * @deprecated The serialization cache version should be preferred.
+     */
+    @Deprecated
+    public static DatasetDataCarrier<?> deserialize(DatasetDataProto proto) {
+        return deserialize(proto, new ProtoDeserializationCache());
     }
 
     /**
      * Deserializes a {@link DatasetDataProto} into a {@link DatasetDataCarrier}.
      *
      * @param proto The proto to deserialize.
+     * @param deserCache The deserialization cache to use.
      * @return The model data.
      */
     @SuppressWarnings({"unchecked", "rawtypes"}) // guarded by a getClass check
-    public static DatasetDataCarrier<?> deserialize(DatasetDataProto proto) {
+    public static DatasetDataCarrier<?> deserialize(DatasetDataProto proto, ProtoDeserializationCache deserCache) {
         DataProvenance provenance = (DataProvenance) ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(proto.getProvenance()));
-        FeatureMap featureDomain = FeatureMap.deserialize(proto.getFeatureDomain());
-        OutputInfo outputDomain = OutputInfo.deserialize(proto.getOutputDomain());
+        FeatureMap featureDomain = FeatureMap.deserialize(proto.getFeatureDomain(), deserCache);
+        OutputInfo outputDomain = OutputInfo.deserialize(proto.getOutputDomain(), deserCache);
         OutputFactory outputFactory = OutputFactory.deserialize(proto.getOutputFactory());
         if (outputDomain.getDomain().iterator().next().getClass() != outputFactory.getUnknownOutput().getClass()) {
             throw new IllegalStateException("Invalid protobuf, output domain and output factory use different outputs, output domain " + outputDomain.getClass() + ", output factory " + outputFactory.getClass());
@@ -135,60 +123,6 @@ public final class DatasetDataCarrier<T extends Output<T>> {
         return builder.build();
     }
 
-    /**
-     * Get the dataset provenance.
-     *
-     * @return The dataset provenance.
-     */
-    public DataProvenance provenance() {
-        return provenance;
-    }
-
-    /**
-     * Get the feature domain.
-     *
-     * @return The feature domain.
-     */
-    public FeatureMap featureDomain() {
-        return featureDomain;
-    }
-
-    /**
-     * Get the output domain.
-     *
-     * @return The output domain.
-     */
-    public OutputInfo<T> outputDomain() {
-        return outputDomain;
-    }
-
-    /**
-     * Get the transform provenances.
-     *
-     * @return The transform provenances.
-     */
-    public List<ObjectProvenance> transformProvenances() {
-        return transformProvenances;
-    }
-
-    /**
-     * Get the output factory.
-     *
-     * @return The output factory.
-     */
-    public OutputFactory<T> outputFactory() {
-        return outputFactory;
-    }
-
-    /**
-     * Gets the Tribuo version string.
-     *
-     * @return The Tribuo version string.
-     */
-    public String tribuoVersion() {
-        return tribuoVersion;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -198,19 +132,14 @@ public final class DatasetDataCarrier<T extends Output<T>> {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(provenance, featureDomain, outputDomain, transformProvenances, outputFactory, tribuoVersion);
-    }
-
-    @Override
     public String toString() {
         return "DatasetDataCarrier{" +
-            "provenance=" + provenance +
-            ", featureDomain=" + featureDomain +
-            ", outputDomain=" + outputDomain +
-            ", transformProvenances=" + transformProvenances +
-            ", outputFactory=" + outputFactory +
-            ", tribuoVersion=" + tribuoVersion +
-            '}';
+                "provenance=" + provenance +
+                ", featureDomain=" + featureDomain +
+                ", outputDomain=" + outputDomain +
+                ", transformProvenances=" + transformProvenances +
+                ", outputFactory=" + outputFactory +
+                ", tribuoVersion=" + tribuoVersion +
+                '}';
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.tribuo.OutputFactory;
 import org.tribuo.SelectedFeatureSet;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.ExampleProto;
@@ -104,7 +105,7 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
 
         // Validate feature set & k
         Set<String> tmpFeatures = new LinkedHashSet<>();
-        if (k == 0 || featureSet.featureNames().size() == 0) {
+        if (k == 0 || featureSet.featureNames().isEmpty()) {
             throw new IllegalArgumentException("Tried to select zero features.");
         } else if (k != FeatureSelector.SELECT_ALL && !featureSet.isOrdered()) {
             throw new IllegalArgumentException("Tried to select the top " + k + " features from an unordered feature set.");
@@ -126,7 +127,7 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
         FeatureMap wfm = dataset.getFeatureMap();
         Set<String> datasetFeatures = new HashSet<>(wfm.keySet());
         datasetFeatures.retainAll(selectedFeatures);
-        if (datasetFeatures.size() == 0) {
+        if (datasetFeatures.isEmpty()) {
             throw new IllegalArgumentException("The selected feature set had no overlap with the supplied dataset.");
         }
 
@@ -148,7 +149,7 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
                 }
             }
             // Check if there are features to remove
-            if (features.size() > 0) {
+            if (!features.isEmpty()) {
                 copy.removeFeatures(features);
             }
             // If the example is still valid then add it, otherwise increment the removed counter
@@ -186,22 +187,23 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
-    public static SelectedFeatureDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static SelectedFeatureDataset<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         SelectedFeatureDatasetProto proto = message.unpack(SelectedFeatureDatasetProto.class);
-        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata(), deserCache);
         Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
         FeatureMap fmap = carrier.featureDomain();
         List<Example<?>> examples = new ArrayList<>();
         int idx = 0;
         for (ExampleProto e : proto.getExamplesList()) {
-            Example<?> example = Example.deserialize(e);
+            Example<?> example = Example.deserialize(e, deserCache);
             if (example.getOutput().getClass().equals(outputClass)) {
                 for (Feature f : example) {
                     if (fmap.get(f.getName()) == null) {
@@ -228,7 +230,7 @@ public final class SelectedFeatureDataset<T extends Output<T>> extends Immutable
         if (numRemoved < 0) {
             throw new IllegalStateException("Invalid protobuf, number of examples removed must be non-negative, found " + numRemoved);
         }
-        SelectedFeatureSet featureSet = ProtoUtil.deserialize(proto.getFeatureSet());
+        SelectedFeatureSet featureSet = ProtoUtil.deserialize(proto.getFeatureSet(), deserCache);
         List<String> featureList = proto.getSelectedFeaturesList();
         Set<String> selectedFeatures = new LinkedHashSet<>(featureList);
         if (selectedFeatures.size() != featureList.size()) {

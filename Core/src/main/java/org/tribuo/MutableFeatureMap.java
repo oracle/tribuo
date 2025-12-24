@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.tribuo;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
@@ -66,17 +67,18 @@ public class MutableFeatureMap extends FeatureMap {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static MutableFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static MutableFeatureMap deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         MutableFeatureMapProto proto = message.unpack(MutableFeatureMapProto.class);
         MutableFeatureMap obj = new MutableFeatureMap(proto.getConvertHighCardinality());
         for (VariableInfoProto infoProto : proto.getInfoList()) {
-            VariableInfo info = ProtoUtil.deserialize(infoProto);
+            VariableInfo info = ProtoUtil.deserialize(infoProto, deserCache);
             Object o = obj.put(info);
             if (o != null) {
                 throw new IllegalStateException("Invalid protobuf, found two mappings for " + info.getName());
@@ -113,12 +115,20 @@ public class MutableFeatureMap extends FeatureMap {
         info.observe(value);
 
         // If there are too many categories, convert into a real info and drop the old categorical info.
-        if (convertHighCardinality && info instanceof CategoricalInfo) {
-            CategoricalInfo cInfo = (CategoricalInfo) info;
+        if (convertHighCardinality && info instanceof CategoricalInfo cInfo) {
             if (cInfo.getUniqueObservations() > CategoricalInfo.THRESHOLD) {
                 m.put(name,cInfo.generateRealInfo());
             }
         }
+    }
+
+    /**
+     * Adds an occurrence of a feature.
+     *
+     * @param f The feature to observe.
+     */
+    public void add(Feature f) {
+        add(f.getName(), f.getValue());
     }
 
     /**

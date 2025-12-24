@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.util.SortUtil;
 import org.tribuo.math.protos.DenseTensorProto;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.util.Util;
 
 import java.nio.ByteBuffer;
@@ -202,10 +203,11 @@ public class DenseMatrix implements Matrix {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static DenseMatrix deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static DenseMatrix deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }

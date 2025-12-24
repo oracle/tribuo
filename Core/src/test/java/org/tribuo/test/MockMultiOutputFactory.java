@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputFactory;
 import org.tribuo.evaluation.Evaluation;
 import org.tribuo.evaluation.Evaluator;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.OutputFactoryProto;
 import org.tribuo.provenance.OutputFactoryProvenance;
 
@@ -35,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
+public final class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
 
     public static final MockMultiOutput UNKNOWN_MULTILABEL = new MockMultiOutput("unk");
 
@@ -46,9 +47,10 @@ public class MockMultiOutputFactory implements OutputFactory<MockMultiOutput> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @return The deserialized object.
      */
-    public static MockMultiOutputFactory deserializeFromProto(int version, String className, Any message) {
+    public static MockMultiOutputFactory deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) {
         if (version < 0 || version > 0) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }

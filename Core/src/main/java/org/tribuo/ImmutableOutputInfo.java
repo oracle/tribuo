@@ -26,6 +26,8 @@ import java.util.List;
  * An {@link OutputInfo} that is fixed, and contains an id number for each valid output.
  * <p>
  * In the case of real valued outputs, the id number represents the dimension.
+ * <p>
+ * Implementations must implement equals and hashCode to allow the deserialization deduplication cache to work.
  */
 public interface ImmutableOutputInfo<T extends Output<T>> extends OutputInfo<T>, Iterable<Pair<Integer,T>> {
 

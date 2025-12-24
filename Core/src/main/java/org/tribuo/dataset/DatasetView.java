@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.DatasetViewProto;
 import org.tribuo.provenance.DatasetProvenance;
@@ -172,25 +173,32 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
-    public static DatasetView<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static DatasetView<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         DatasetViewProto proto = message.unpack(DatasetViewProto.class);
-        Dataset<?> inner = Dataset.deserialize(proto.getInnerDataset());
+        Dataset<?> inner = Dataset.deserialize(proto.getInnerDataset(), deserCache);
         Class<?> outputClass = inner.getOutputFactory().getUnknownOutput().getClass();
-        OutputInfo<?> outputDomain = OutputInfo.deserialize(proto.getOutputDomain());
+        OutputInfo<?> outputDomain = OutputInfo.deserialize(proto.getOutputDomain(), deserCache);
+        if (!(outputDomain instanceof ImmutableOutputInfo)) {
+            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
+        }
         Set<?> domain = outputDomain.getDomain();
         for (Object o : domain) {
             if (!o.getClass().equals(outputClass)) {
                 throw new IllegalStateException("Invalid protobuf, output domains do not match, expected " + outputClass + " found " + o.getClass());
             }
         }
-        FeatureMap featureDomain = FeatureMap.deserialize(proto.getFeatureDomain());
+        FeatureMap featureDomain = FeatureMap.deserialize(proto.getFeatureDomain(), deserCache);
+        if (!(featureDomain instanceof ImmutableFeatureMap)) {
+            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
+        }
         int[] indices = Util.toPrimitiveInt(proto.getIndicesList());
         if (!validateIndices(inner.size(),indices)) {
             throw new IllegalStateException("Invalid protobuf, indices are not all inside the range of the inner dataset");
@@ -202,12 +210,6 @@ public final class DatasetView<T extends Output<T>> extends ImmutableDataset<T> 
                     throw new IllegalStateException("Invalid protobuf, feature domain does not contain feature " + f.getName() + " present in an example");
                 }
             }
-        }
-        if (!(featureDomain instanceof ImmutableFeatureMap)) {
-            throw new IllegalStateException("Invalid protobuf, feature map was not immutable");
-        }
-        if (!(outputDomain instanceof ImmutableOutputInfo)) {
-            throw new IllegalStateException("Invalid protobuf, output info was not immutable");
         }
         return new DatasetView(inner, indices, proto.getSeed(), proto.getTag(),
             (ImmutableFeatureMap) featureDomain, (ImmutableOutputInfo) outputDomain, proto.getSampled(),

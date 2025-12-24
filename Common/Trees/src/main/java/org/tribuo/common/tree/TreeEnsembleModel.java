@@ -27,6 +27,7 @@ import org.tribuo.Prediction;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.ensemble.WeightedEnsembleModel;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.WeightedEnsembleModelProto;
@@ -112,17 +113,18 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 	 * @param version The serialized object version.
 	 * @param className The class name.
 	 * @param message The serialized data.
+	 * @param deserCache The deserialization cache for deduping model metadata.
 	 * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
 	 * @return The deserialized object.
 	 */
 	@SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
-	public static TreeEnsembleModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+	public static TreeEnsembleModel<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
 		if (version < 0 || version > CURRENT_VERSION) {
 			throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
 		}
 		WeightedEnsembleModelProto proto = message.unpack(WeightedEnsembleModelProto.class);
 		// Delegate to parent for validation and parsing
-		WeightedEnsembleModel<?> parent = WeightedEnsembleModel.deserializeFromProto(version, className, message);
+		WeightedEnsembleModel<?> parent = WeightedEnsembleModel.deserializeFromProto(version, className, message, deserCache);
 		// Extract weights and combiner from proto (since they're protected in parent)
 		float[] weights = Util.toPrimitiveFloat(proto.getWeightsList());
 		EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());

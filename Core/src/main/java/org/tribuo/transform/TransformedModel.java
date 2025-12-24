@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.TransformedModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -83,20 +84,21 @@ public class TransformedModel<T extends Output<T>> extends Model<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static TransformedModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static TransformedModel<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         TransformedModelProto proto = message.unpack(TransformedModelProto.class);
 
         // We discard the output domain and feature domain from the carrier and use the ones in the inner model.
-        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
-        Model<?> model = Model.deserialize(proto.getModel());
-        TransformerMap transformerMap = TransformerMap.deserialize(proto.getTransformerMap());
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
+        Model<?> model = Model.deserialize(proto.getModel(), deserCache);
+        TransformerMap transformerMap = TransformerMap.deserialize(proto.getTransformerMap(), deserCache);
 
         return new TransformedModel(carrier.name(), carrier.provenance(), model, transformerMap, proto.getDensify());
     }

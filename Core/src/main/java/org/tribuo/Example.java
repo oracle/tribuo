@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package org.tribuo;
 
 import org.tribuo.hash.HashedFeatureMap;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ExampleProto;
@@ -378,6 +379,16 @@ public abstract class Example<T extends Output<T>> implements Iterable<Feature>,
      * @return The deserialized example.
      */
     public static Example<?> deserialize(ExampleProto proto) {
-        return ProtoUtil.deserialize(proto);
+        return deserialize(proto, new ProtoDeserializationCache());
+    }
+
+    /**
+     * Deserializes an example proto into an example.
+     * @param proto The proto to deserialize.
+     * @param deserCache The deserialization cache to use.
+     * @return The deserialized example.
+     */
+    public static Example<?> deserialize(ExampleProto proto, ProtoDeserializationCache deserCache) {
+        return ProtoUtil.deserialize(proto, deserCache);
     }
 }
