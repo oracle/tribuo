@@ -127,7 +127,7 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 		WeightedEnsembleModel<?> parent = WeightedEnsembleModel.deserializeFromProto(version, className, message, deserCache);
 		// Extract weights and combiner from proto (since they're protected in parent)
 		float[] weights = Util.toPrimitiveFloat(proto.getWeightsList());
-		EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());
+		EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner(), deserCache);
 		return new TreeEnsembleModel(parent.getName(), parent.getProvenance(),
 			parent.getFeatureIDMap(), parent.getOutputIDInfo(), parent.getModels(),
 			combiner, weights);

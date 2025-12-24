@@ -153,7 +153,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         ImmutableFeatureMap featureDomain = carrier.featureDomain();
         ImmutableOutputInfo<?> outputDomain = carrier.outputDomain();
         Class<?> outputClass = outputDomain.getOutput(0).getClass();
-        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());
+        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner(), deserCache);
         if (!outputClass.equals(combiner.getTypeWitness())) {
             throw new IllegalStateException("Invalid protobuf, combiner and output domain have a type mismatch, expected " + outputClass + " found " + combiner.getTypeWitness());
         }
