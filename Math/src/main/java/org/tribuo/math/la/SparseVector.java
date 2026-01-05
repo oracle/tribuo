@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.ToDoubleBiFunction;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -56,7 +58,43 @@ import java.util.stream.Collectors;
  * This vector has immutable indices. It cannot get new indices after construction,
  * and will throw {@link IllegalArgumentException} if such an operation is tried.
  */
-public class SparseVector implements SGDVector {
+public non-sealed class SparseVector implements SGDVector {
+    private static final Logger logger = Logger.getLogger(SparseVector.class.getName());
+
+    /**
+     * The name of the system property to override the default threshold.
+     */
+    public static final String FEATURE_SPARSITY_THRESHOLD_PROPERTY = "TRIBUO_FEATURE_SPARSITY_THRESHOLD";
+
+    /**
+     * Default value of {@link #FEATURE_SPARSITY_THRESHOLD}.
+     */
+    public static final float DEFAULT_FEATURE_SPARSITY_THRESHOLD = 0.6f;
+
+    /**
+     * Threshold for building a {@link SparseVector} over a {@link DenseVector} in
+     * {@link SGDVector#createFromExample(Example, ImmutableFeatureMap, boolean)}.
+     * <p>
+     * The value is the fraction of features which are present compared to the size of the domain,
+     * so 0.6 would mean that at least 60% of the features in the domain must be present to produce a {@link DenseVector}.
+     * <p>
+     * This value can be controlled by setting the {@link #FEATURE_SPARSITY_THRESHOLD_PROPERTY} on JVM startup,
+     * otherwise it defaults to {@link #DEFAULT_FEATURE_SPARSITY_THRESHOLD}.
+     */
+    public static final float FEATURE_SPARSITY_THRESHOLD;
+
+    static {
+        float candidate = DEFAULT_FEATURE_SPARSITY_THRESHOLD;
+        String tmp = System.getProperty(FEATURE_SPARSITY_THRESHOLD_PROPERTY);
+        if (tmp != null) {
+            try {
+                candidate = Float.parseFloat(tmp);
+            } catch (NumberFormatException e) {
+                logger.warning("Unexpected value for " + FEATURE_SPARSITY_THRESHOLD_PROPERTY + ", found " + tmp);
+            }
+        }
+        FEATURE_SPARSITY_THRESHOLD = candidate;
+    }
 
     /**
      * Protobuf serialization version.
@@ -74,6 +112,10 @@ public class SparseVector implements SGDVector {
     protected final double[] values;
     private final int size;
 
+    private final ImmutableFeatureMap featureMap;
+
+    private final Example<?> example;
+
     /**
      * Creates an empty sparse vector.
      * @param size The dimension.
@@ -83,6 +125,8 @@ public class SparseVector implements SGDVector {
         this.values = new double[0];
         this.size = size;
         this.shape = new int[]{size};
+        this.featureMap = null;
+        this.example = null;
     }
 
     /**
@@ -94,16 +138,59 @@ public class SparseVector implements SGDVector {
      * @param values The values.
      */
     SparseVector(int size, int[] indices, double[] values) {
+        this(size, indices, values, null, null);
+    }
+
+    /**
+     * Used internally for performance.
+     * Does not defensively copy the input, nor check it's sorted.
+     * <p>
+     * @param size The dimension of this vector.
+     * @param indices The indices.
+     * @param values The values.
+     * @param example The example this vector was created from.
+     * @param featureMap The feature map which supplied the indices.
+     */
+    SparseVector(int size, int[] indices, double[] values, Example<?> example, ImmutableFeatureMap featureMap) {
         this.size = size;
         this.shape = new int[]{size};
         this.indices = indices;
         this.values = values;
+        this.featureMap = featureMap;
+        this.example = example;
+    }
+
+    /**
+     * Unpacks the pre-validated values list into the backing array.
+     * @param values The values of this dense vector.
+     * @param example The example this vector was created from.
+     * @param featureMap The feature map which supplied the indices.
+     * @param addBias Add a bias feature.
+     */
+    SparseVector(List<VectorTuple> values, ImmutableFeatureMap featureMap, Example<?> example, boolean addBias) {
+        this.size = addBias ? featureMap.size() + 1 : featureMap.size();
+        this.shape = new int[]{size};
+        int numValues = addBias ? values.size() + 1 : values.size();
+        this.indices = new int[numValues];
+        this.values = new double[numValues];
+        this.featureMap = featureMap;
+        this.example = example;
+        int i = 0;
+        for (var v : values) {
+            this.indices[i] = v.index;
+            this.values[i] = v.value;
+            i++;
+        }
+        if (addBias) {
+            this.indices[i] = size-1;
+            this.values[i] = 1;
+        }
     }
 
     /**
      * Returns a deep copy of the supplied sparse vector.
      * <p>
-     * Copies the value by iterating it's VectorTuple.
+     * Copies the value by iterating its VectorTuple.
      * @param other The SparseVector to copy.
      */
     private SparseVector(SparseVector other) {
@@ -119,6 +206,8 @@ public class SparseVector implements SGDVector {
             i++;
         }
         this.shape = new int[]{size};
+        this.featureMap = null;
+        this.example = null;
     }
 
     /**
@@ -133,6 +222,8 @@ public class SparseVector implements SGDVector {
         Arrays.fill(this.values,value);
         this.size = size;
         this.shape = new int[]{size};
+        this.featureMap = null;
+        this.example = null;
     }
 
     /**
@@ -203,7 +294,7 @@ public class SparseVector implements SGDVector {
             tmpValues[i] = 1.0;
             i++;
         }
-        return new SparseVector(size,Arrays.copyOf(tmpIndices,i),Arrays.copyOf(tmpValues,i));
+        return new SparseVector(size,Arrays.copyOf(tmpIndices,i),Arrays.copyOf(tmpValues,i),example,featureInfo);
     }
 
     /**
@@ -389,15 +480,16 @@ public class SparseVector implements SGDVector {
 
     /**
      * Equals is defined mathematically, that is two SGDVectors are equal iff they have the same indices
-     * and the same values at those indices.
+     * and the same values at those indices (dense vectors will have indices for zeros, and sparse will not,
+     * but these are ignored).
      * @param other Object to compare against.
      * @return True if this vector and the other vector contain the same values in the same order.
      */
     @Override
     public boolean equals(Object other) {
-        if (other instanceof SGDVector) {
+        if (other instanceof SparseVector) {
             Iterator<VectorTuple> ourItr = iterator();
-            Iterator<VectorTuple> otherItr = ((SGDVector)other).iterator();
+            Iterator<VectorTuple> otherItr = ((SparseVector)other).iterator();
             VectorTuple ourTuple;
             VectorTuple otherTuple;
 
@@ -411,6 +503,30 @@ public class SparseVector implements SGDVector {
 
             // If one of the iterators still has elements then they are not the same.
             return !(ourItr.hasNext() || otherItr.hasNext());
+        } else if (other instanceof DenseVector otherDense) {
+            if (otherDense.size() != size) {
+                return false;
+            } else {
+                // Check our iterator against their dense get
+                int prevIndex = 0;
+                for (var v : this) {
+                    for (; prevIndex < v.index; prevIndex++) {
+                        if (otherDense.get(prevIndex) != 0.0) {
+                            return false;
+                        }
+                    }
+                    if (Math.abs(v.value - otherDense.get(v.index)) > VectorTuple.DELTA) {
+                        return false;
+                    }
+                    prevIndex++;
+                }
+                for (; prevIndex < size; prevIndex++) {
+                    if (otherDense.get(prevIndex) != 0.0) {
+                        return false;
+                    }
+                }
+                return true;
+            }
         } else {
             return false;
         }
@@ -1091,6 +1207,16 @@ public class SparseVector implements SGDVector {
         }
         variance += (size - values.length) * mean * mean;
         return variance;
+    }
+
+    @Override
+    public Optional<ImmutableFeatureMap> featureIDMap() {
+        return Optional.ofNullable(featureMap);
+    }
+
+    @Override
+    public Optional<Example<?>> example() {
+        return Optional.ofNullable(example);
     }
 
     @Override
