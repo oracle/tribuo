@@ -54,7 +54,7 @@ public class MatrixTuple {
      * @param j The j index.
      * @param value The value.
      */
-    public MatrixTuple(int i, int j, int value) {
+    public MatrixTuple(int i, int j, double value) {
         this.i = i;
         this.j = j;
         this.value = value;
@@ -62,8 +62,7 @@ public class MatrixTuple {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof MatrixTuple) {
-            MatrixTuple otherM = (MatrixTuple) o;
+        if (o instanceof MatrixTuple otherM) {
             if ((i == otherM.i) && (j == otherM.j)) {
                 return Math.abs(value - otherM.value) < 1e-12;
             } else {
