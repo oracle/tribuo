@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.protos.KernelProto;
 import org.tribuo.math.protos.SigmoidKernelProto;
 import org.tribuo.protos.ProtoSerializableClass;
@@ -86,7 +86,7 @@ public class Sigmoid implements Kernel {
     }
 
     @Override
-    public double similarity(SparseVector a, SparseVector b) {
+    public double similarity(SGDVector a, SGDVector b) {
         return Math.tanh(gamma * a.dot(b) + intercept);
     }
 
