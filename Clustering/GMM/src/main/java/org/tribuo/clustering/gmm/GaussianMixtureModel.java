@@ -256,15 +256,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
-        SGDVector vector;
-        if (example.size() == featureIDMap.size()) {
-            vector = DenseVector.createDenseVector(example, featureIDMap, false);
-        } else {
-            vector = SparseVector.createSparseVector(example, featureIDMap, false);
-        }
-        if (vector.numActiveElements() == 0) {
-            throw new IllegalArgumentException("No features found in Example " + example.toString());
-        }
+        SGDVector vector = SGDVector.createFromExample(example, featureIDMap, false);
 
         // generate cluster responsibilities and normalize into a distribution
         DenseVector responsibilities = new DenseVector(distributions.length);

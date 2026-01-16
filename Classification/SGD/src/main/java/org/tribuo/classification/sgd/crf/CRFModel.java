@@ -382,18 +382,10 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
         if (length == 0) {
             throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
         }
-        int featureSpaceSize = featureIDMap.size();
         SGDVector[] features = new SGDVector[length];
         int i = 0;
         for (Example<T> e : example) {
-            if (e.size() == featureSpaceSize) {
-                features[i] = DenseVector.createDenseVector(e, featureIDMap, false);
-            } else {
-                features[i] = SparseVector.createSparseVector(e, featureIDMap, false);
-            }
-            if (features[i].numActiveElements() == 0) {
-                throw new IllegalArgumentException("No features found in Example " + e.toString());
-            }
+            features[i] = SGDVector.createFromExample(e,featureIDMap,false);
             i++;
         }
         return features;
@@ -411,20 +403,12 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
         if (length == 0) {
             throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
         }
-        int featureSpaceSize = featureIDMap.size();
         int[] labels = new int[length];
         SGDVector[] features = new SGDVector[length];
         int i = 0;
         for (Example<Label> e : example) {
             labels[i] = labelIDMap.getID(e.getOutput());
-            if (e.size() == featureSpaceSize) {
-                features[i] = DenseVector.createDenseVector(e, featureIDMap, false);
-            } else {
-                features[i] = SparseVector.createSparseVector(e, featureIDMap, false);
-            }
-            if (features[i].numActiveElements() == 0) {
-                throw new IllegalArgumentException("No features found in Example " + e.toString());
-            }
+            features[i] = SGDVector.createFromExample(e,featureIDMap,false);
             i++;
         }
         return new Pair<>(labels,features);

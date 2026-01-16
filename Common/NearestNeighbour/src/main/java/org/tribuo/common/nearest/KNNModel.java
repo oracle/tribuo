@@ -202,12 +202,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
     @Override
     public Prediction<T> predict(Example<T> example) {
-        SGDVector input;
-        if (example.size() == featureIDMap.size()) {
-            input = DenseVector.createDenseVector(example, featureIDMap, false);
-        } else {
-            input = SparseVector.createSparseVector(example, featureIDMap, false);
-        }
+        SGDVector input = SGDVector.createFromExample(example, featureIDMap, false);
 
         if (input.numActiveElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example);
@@ -249,12 +244,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
             for (Example<T> example : examples) {
                 innerPredictions.clear();
-                SGDVector input;
-                if (example.size() == featureIDMap.size()) {
-                    input = DenseVector.createDenseVector(example, featureIDMap, false);
-                } else {
-                    input = SparseVector.createSparseVector(example, featureIDMap, false);
-                }
+                SGDVector input = SGDVector.createFromExample(example, featureIDMap, false);
 
                 List<Pair<Integer, Double>> indexDistancePairList = neighboursQuery.query(input, k);
 
@@ -300,12 +290,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         List<Prediction<T>> innerPredictions = null;
         ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
         for (Example<T> example : examples) {
-            SGDVector input;
-            if (example.size() == featureIDMap.size()) {
-                input = DenseVector.createDenseVector(example, featureIDMap, false);
-            } else {
-                input = SparseVector.createSparseVector(example, featureIDMap, false);
-            }
+            SGDVector input = SGDVector.createFromExample(example, featureIDMap, false);
 
             Function<Pair<SGDVector, T>, OutputDoublePair<T>> distanceFunc =
                 (a) -> new OutputDoublePair<>(a.getB(), dist.computeDistance(a.getA(), input));
@@ -449,12 +434,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
                                                                     ImmutableOutputInfo<T> outputIDInfo,
                                                                     int k,
                                                                     Example<T> example) {
-        SGDVector vector;
-        if (example.size() == featureIDMap.size()) {
-            vector = DenseVector.createDenseVector(example, featureIDMap, false);
-        } else {
-            vector = SparseVector.createSparseVector(example, featureIDMap, false);
-        }
+        SGDVector vector = SGDVector.createFromExample(example, featureIDMap, false);
 
         List<Pair<Integer, Double>> indexDistancePairList = nq.query(vector, k);
 

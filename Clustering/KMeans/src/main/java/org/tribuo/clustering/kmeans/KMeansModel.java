@@ -174,15 +174,7 @@ public class KMeansModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
-        SGDVector vector;
-        if (example.size() == featureIDMap.size()) {
-            vector = DenseVector.createDenseVector(example, featureIDMap, false);
-        } else {
-            vector = SparseVector.createSparseVector(example, featureIDMap, false);
-        }
-        if (vector.numActiveElements() == 0) {
-            throw new IllegalArgumentException("No features found in Example " + example.toString());
-        }
+        SGDVector vector = SGDVector.createFromExample(example, featureIDMap, false);
         double minDistance = Double.POSITIVE_INFINITY;
         int id = -1;
         for (int i = 0; i < centroidVectors.length; i++) {

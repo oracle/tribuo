@@ -214,11 +214,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
 
         int i = 0;
         for (Example<T> e : examples) {
-            if (e.size() == featureIDMap.size()) {
-                vectors[i] = new Pair<>(DenseVector.createDenseVector(e, featureIDMap, false),e.getOutput());
-            } else {
-                vectors[i] = new Pair<>(SparseVector.createSparseVector(e,featureIDMap,false),e.getOutput());
-            }
+            vectors[i] = new Pair<>(SGDVector.createFromExample(e, featureIDMap, false), e.getOutput());
             i++;
         }
 
