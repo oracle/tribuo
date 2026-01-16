@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.tribuo.common.tree.LeafNode;
 import org.tribuo.common.tree.Node;
 import org.tribuo.common.tree.SplitNode;
 import org.tribuo.common.tree.impl.IntArrayContainer;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.util.Util;
 
@@ -387,7 +387,7 @@ public class ClassifierTrainingNode extends AbstractTrainingNode<Label> {
 
         for (int i = 0; i < examples.size(); i++) {
             Example<Label> e = examples.getExample(i);
-            SparseVector vec = SparseVector.createSparseVector(e,featureInfos,false);
+            SGDVector vec = SGDVector.createFromExample(e, featureInfos, false);
             int lastID = 0;
             for (VectorTuple f : vec) {
                 int curID = f.index;
