@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,7 @@ import org.tribuo.common.nearest.protos.KNNModelProto;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distance.Distance;
-import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
@@ -363,7 +361,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
                                                  ThreadLocal<PriorityQueue<OutputDoublePair<T>>> queuePool,
                                                  org.tribuo.math.distance.Distance dist,
                                                  Example<T> example) {
-        SparseVector vector = SparseVector.createSparseVector(example, featureIDMap, false);
+        SGDVector vector = SGDVector.createFromExample(example, featureIDMap, false);
         List<Future<List<OutputDoublePair<T>>>> futures = new ArrayList<>();
 
         for (int i = 0; i < numThreads; i++) {
