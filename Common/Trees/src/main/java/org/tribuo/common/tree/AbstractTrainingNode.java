@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.tribuo.common.tree;
 
 import org.tribuo.Output;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 
 import java.util.List;
 import java.util.SplittableRandom;
@@ -131,7 +131,7 @@ public abstract class AbstractTrainingNode<T extends Output<T>> implements Node<
     }
 
     @Override
-    public Node<T> getNextNode(SparseVector example) {
+    public Node<T> getNextNode(SGDVector example) {
         if (split) {
             double feature = example.get(splitID);
             if (feature > splitValue) {
