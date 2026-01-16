@@ -211,11 +211,7 @@ public class GMMTrainer implements Trainer<ClusterID> {
         SGDVector[] data = new SGDVector[examples.size()];
         int n = 0;
         for (Example<ClusterID> example : examples) {
-            if (example.size() == numFeatures) {
-                data[n] = DenseVector.createDenseVector(example, featureMap, false);
-            } else {
-                data[n] = SparseVector.createSparseVector(example, featureMap, false);
-            }
+            data[n] = SGDVector.createFromExample(example, featureMap, false);
             responsibilities[n] = new DenseVector(numGaussians);
             n++;
         }

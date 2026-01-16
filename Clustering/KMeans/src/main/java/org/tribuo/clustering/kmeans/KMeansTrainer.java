@@ -292,11 +292,7 @@ public class KMeansTrainer implements Trainer<ClusterID>, WeightedExamples {
         int n = 0;
         for (Example<ClusterID> example : examples) {
             weights[n] = example.getWeight();
-            if (example.size() == featureMap.size()) {
-                data[n] = DenseVector.createDenseVector(example, featureMap, false);
-            } else {
-                data[n] = SparseVector.createSparseVector(example, featureMap, false);
-            }
+            data[n] = SGDVector.createFromExample(example, featureMap, false);
             oldCentre[n] = -1;
             n++;
         }
