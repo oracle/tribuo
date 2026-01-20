@@ -227,7 +227,7 @@ graph.
 Tribuo has a number of other modules:
 
 |  Folder | ArtifactID | Package root | Description |
-|---------| --- | --- | --- | --- |
+|---------| --- | --- | --- |
 | Json  | `tribuo-json` | `org.tribuo.json` | Contains support for reading and writing Json formatted data, along with a program for inspecting and removing provenance information from models. |
 | ModelCard | `tribuo-interop-modelcard` | `org.tribuo.interop.modelcard` | Contains support for reading and writing model cards in Json format, using the provenance information in Tribuo models to guide the card construction. |
 | Reproducibility | `tribuo-reproducibility` | `org.tribuo.reproducibility` | A utility for reproducing Tribuo models and datasets. |
