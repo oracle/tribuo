@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.tribuo.regression.ensemble;
+package org.tribuo.test;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
@@ -26,24 +26,24 @@ import org.tribuo.Prediction;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.EnsembleCombinerProto;
-import org.tribuo.regression.Regressor;
-import org.tribuo.util.onnx.ONNXContext;
 import org.tribuo.util.onnx.ONNXInitializer;
 import org.tribuo.util.onnx.ONNXNode;
 import org.tribuo.util.onnx.ONNXOperators;
 import org.tribuo.util.onnx.ONNXRef;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * A combiner which performs a weighted or unweighted average of the predicted
- * regressors independently across the output dimensions.
+ * A combiner which performs a weighted or unweighted vote across the predicted labels. Basically the same as
+ * org.tribuo.classification.ensemble.VotingCombiner, but for {@link MockOutput}.
+ * <p>
+ * This uses the most likely prediction from each ensemble member.
  */
-public class AveragingCombiner implements EnsembleCombiner<Regressor> {
+public final class MockVotingCombiner implements EnsembleCombiner<MockOutput> {
 
     /**
      * Protobuf serialization version.
@@ -51,27 +51,26 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     public static final int CURRENT_VERSION = 0;
 
     /**
-     * Constructs an averaging combiner.
+     * Constructs a voting combiner.
      */
-    public AveragingCombiner() {}
+    public MockVotingCombiner() {}
 
     /**
      * Deserialization factory.
-     *
-     * @param version   The serialized object version.
+     * @param version The serialized object version.
      * @param className The class name.
-     * @param message   The serialized data.
+     * @param message The serialized data.
      * @param deserCache The deserialization cache for deduping model metadata.
      * @return The deserialized object.
      */
-    public static AveragingCombiner deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) {
+    public static MockVotingCombiner deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         if (message.getValue() != ByteString.EMPTY) {
             throw new IllegalArgumentException("Invalid proto");
         }
-        return new AveragingCombiner();
+        return new MockVotingCombiner();
     }
 
     @Override
@@ -83,80 +82,74 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     }
 
     @Override
-    public Prediction<Regressor> combine(ImmutableOutputInfo<Regressor> outputInfo, List<Prediction<Regressor>> predictions) {
+    public Prediction<MockOutput> combine(ImmutableOutputInfo<MockOutput> outputInfo, List<Prediction<MockOutput>> predictions) {
         int numPredictions = predictions.size();
-        int dimensions = outputInfo.size();
         int numUsed = 0;
-        String[] names;
-        double[] mean = new double[dimensions];
-        double[] variance = new double[dimensions];
-        for (Prediction<Regressor> p : predictions) {
+        double weight = 1.0 / numPredictions;
+        double[] score = new double[outputInfo.size()];
+        for (Prediction<MockOutput> p : predictions) {
             if (numUsed < p.getNumActiveFeatures()) {
                 numUsed = p.getNumActiveFeatures();
             }
-            Regressor curValue = p.getOutput();
-            for (int i = 0; i < dimensions; i++) {
-                double value = curValue.getValues()[i];
-                double oldMean = mean[i];
-                mean[i] += (value - oldMean);
-                variance[i] += (value - oldMean) * (value - mean[i]);
-            }
-        }
-        names = predictions.get(0).getOutput().getNames();
-        if (numPredictions > 1) {
-            for (int i = 0; i < dimensions; i++) {
-                variance[i] /= (numPredictions-1);
-            }
-        } else {
-            Arrays.fill(variance,0);
+            score[outputInfo.getID(p.getOutput())] += weight;
         }
 
-        Example<Regressor> example = predictions.get(0).getExample();
-        return new Prediction<>(new Regressor(names,mean,variance),numUsed,example);
+        double maxScore = Double.NEGATIVE_INFINITY;
+        MockOutput maxMockOutput = null;
+        Map<String,MockOutput> predictionMap = new LinkedHashMap<>();
+        for (int i = 0; i < score.length; i++) {
+            String name = outputInfo.getOutput(i).label;
+            MockOutput label = new MockOutput(name);
+            predictionMap.put(name,label);
+            if (score[i] > maxScore) {
+                maxScore = score[i];
+                maxMockOutput = label;
+            }
+        }
+
+        Example<MockOutput> example = predictions.get(0).getExample();
+
+        return new Prediction<>(maxMockOutput,predictionMap,numUsed,example,true);
     }
 
     @Override
-    public Prediction<Regressor> combine(ImmutableOutputInfo<Regressor> outputInfo, List<Prediction<Regressor>> predictions, float[] weights) {
+    public Prediction<MockOutput> combine(ImmutableOutputInfo<MockOutput> outputInfo, List<Prediction<MockOutput>> predictions, float[] weights) {
         if (predictions.size() != weights.length) {
             throw new IllegalArgumentException("predictions and weights must be the same length. predictions.size()="+predictions.size()+", weights.length="+weights.length);
         }
-        int dimensions = outputInfo.size();
         int numUsed = 0;
-        String[] names;
-        double[] mean = new double[dimensions];
-        double[] variance = new double[dimensions];
-        double weightSum = 0.0;
+        double sum = 0.0;
+        double[] score = new double[outputInfo.size()];
         for (int i = 0; i < weights.length; i++) {
-            Prediction<Regressor> p = predictions.get(i);
+            Prediction<MockOutput> p = predictions.get(i);
             if (numUsed < p.getNumActiveFeatures()) {
                 numUsed = p.getNumActiveFeatures();
             }
-            Regressor curValue = p.getOutput();
-            float weight = weights[i];
-            weightSum += weight;
-            for (int j = 0; j < dimensions; j++) {
-                double value = curValue.getValues()[j];
-                double oldMean = mean[j];
-                mean[j] += (weight / weightSum) * (value - oldMean);
-                variance[j] += weight * (value - oldMean) * (value - mean[j]);
-            }
-        }
-        names = predictions.get(0).getOutput().getNames();
-        if (weights.length > 1) {
-            for (int i = 0; i < dimensions; i++) {
-                variance[i] /= (weightSum-1);
-            }
-        } else {
-            Arrays.fill(variance,0);
+            score[outputInfo.getID(p.getOutput())] += weights[i];
+            sum += weights[i];
         }
 
-        Example<Regressor> example = predictions.get(0).getExample();
-        return new Prediction<>(new Regressor(names,mean,variance),numUsed,example);
+        double maxScore = Double.NEGATIVE_INFINITY;
+        MockOutput maxMockOutput = null;
+        Map<String,MockOutput> predictionMap = new LinkedHashMap<>();
+        for (int i = 0; i < score.length; i++) {
+            String name = outputInfo.getOutput(i).label;
+            MockOutput label = new MockOutput(name);
+            predictionMap.put(name,label);
+            if (score[i] > maxScore) {
+                maxScore = score[i];
+                maxMockOutput = label;
+            }
+        }
+
+        Example<MockOutput> example = predictions.get(0).getExample();
+
+        return new Prediction<>(maxMockOutput,predictionMap,numUsed,example,true);
     }
 
     @Override
     public String toString() {
-        return "MultipleOutputAveragingCombiner()";
+        return "VotingCombiner()";
     }
 
     @Override
@@ -165,34 +158,35 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
     }
 
     @Override
-    public Class<Regressor> getTypeWitness() {
-        return Regressor.class;
+    public Class<MockOutput> getTypeWitness() {
+        return MockOutput.class;
     }
 
     /**
-     * Exports this averaging combiner, writing constructed nodes into the {@link ONNXContext}
-     * governing {@code input} and returning the leaf node of the combiner.
+     * Exports this voting combiner to ONNX.
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
-     * @param input The node to combine
-     * @return A node representing the final average operation.
+     * @param input The input tensor to combine.
+     * @return the final node proto representing the voting operation.
      */
     @Override
     public ONNXNode exportCombiner(ONNXNode input) {
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("axes", new int[]{2});
-        attributes.put("keepdims", 0);
-        return input.apply(ONNXOperators.REDUCE_MEAN, attributes);
+        // Hardmax!
+        // Take the mean over the maxed predictions
+        Map<String,Object> attributes = new HashMap<>();
+        attributes.put("axes",new int[]{2});
+        attributes.put("keepdims",0);
+        return input.apply(ONNXOperators.HARDMAX, Collections.singletonMap("axis", 1))
+                .apply(ONNXOperators.REDUCE_MEAN, attributes);
     }
 
     /**
-     * Exports this averaging combiner, writing constructed nodes into the {@link ONNXContext}
-     * governing {@code input} and returning the leaf node of the combiner.
+     * Exports this voting combiner to ONNX
      * <p>
      * The input should be a 3-tensor [batch_size, num_outputs, num_ensemble_members].
-     * @param input The node to combine
-     * @param weight The node of weights to use in combining.
-     * @return A node representing the final average operation.
+     * @param input The input tensor to combine.
+     * @param weight The combination weight node.
+     * @return the final node proto representing the voting operation.
      */
     @Override
     public <T extends ONNXRef<?>> ONNXNode exportCombiner(ONNXNode input, T weight) {
@@ -203,21 +197,22 @@ public class AveragingCombiner implements EnsembleCombiner<Regressor> {
 
         ONNXNode unsqueezed = weight.apply(ONNXOperators.UNSQUEEZE, unsqueezeAxes);
 
+        // Hardmax!
         // Multiply the input by the weights.
-        ONNXNode mulByWeights = input.apply(ONNXOperators.MUL, unsqueezed);
+        ONNXNode mulByWeights = input.apply(ONNXOperators.HARDMAX, Collections.singletonMap("axis", 1))
+                .apply(ONNXOperators.MUL, unsqueezed);
 
         // Sum the weights
         ONNXNode weightSum = weight.apply(ONNXOperators.REDUCE_SUM);
 
-
-        // Take the mean
+        // Take the weighted mean over the outputs
         return mulByWeights.apply(ONNXOperators.REDUCE_SUM, sumAxes, Collections.singletonMap("keepdims", 0))
                 .apply(ONNXOperators.DIV, weightSum);
     }
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof AveragingCombiner;
+        return o instanceof MockVotingCombiner;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.EnumProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.primitives.IntProvenance;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
@@ -491,10 +492,11 @@ public final class BinningTransformation implements Transformation {
          * @param version The serialized object version.
          * @param className The class name.
          * @param message The serialized data.
+         * @param deserCache The deserialization cache for deduping model metadata.
          * @throws InvalidProtocolBufferException If the message is not a {@link BinningTransformerProto}.
          * @return The deserialized object.
          */
-        static BinningTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        static BinningTransformer deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
             BinningTransformerProto proto = message.unpack(BinningTransformerProto.class);
             if (version == CURRENT_VERSION) {
                 if (proto.getBinsCount() == proto.getValuesCount()) {

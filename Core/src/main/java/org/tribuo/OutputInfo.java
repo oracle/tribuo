@@ -17,6 +17,7 @@
 package org.tribuo;
 
 import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.OutputDomainProto;
@@ -100,6 +101,21 @@ public interface OutputInfo<T extends Output<T>> extends ProtoSerializable<Outpu
      * @return The deserialized OutputInfo.
      */
     public static OutputInfo<?> deserialize(OutputDomainProto proto) {
-        return ProtoUtil.deserialize(proto);
+        return deserialize(proto, new ProtoDeserializationCache());
+    }
+
+    /**
+     * Deserializes a {@link OutputDomainProto} into a {@link OutputInfo} subclass, canonicalising it with respect
+     * to the deserialization cache if it is immutable.
+     * @param proto The proto to deserialize.
+     * @param deserCache The deserialization cache to use.
+     * @return The deserialized OutputInfo.
+     */
+    public static OutputInfo<?> deserialize(OutputDomainProto proto, ProtoDeserializationCache deserCache) {
+        OutputInfo<?> output = ProtoUtil.deserialize(proto, deserCache);
+        if (output instanceof ImmutableOutputInfo<?> imOutput) {
+            output = deserCache.canonicalise(imOutput);
+        }
+        return output;
     }
 }

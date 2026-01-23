@@ -34,6 +34,7 @@ import org.tribuo.math.protos.ParametersProto;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
@@ -101,10 +102,11 @@ public final class FMParameters implements FeedForwardParameters {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static FMParameters deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static FMParameters deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -113,7 +115,7 @@ public final class FMParameters implements FeedForwardParameters {
         List<TensorProto> tensorProtoList = proto.getWeightsList();
         Tensor[] tensors = new Tensor[tensorProtoList.size()];
         for (int i = 0; i < tensors.length; i++) {
-            tensors[i] = ProtoUtil.deserialize(tensorProtoList.get(i));
+            tensors[i] = ProtoUtil.deserialize(tensorProtoList.get(i), deserCache);
         }
         if (tensors[0] instanceof DenseVector) {
             int numOutputs = ((DenseVector) tensors[0]).size();

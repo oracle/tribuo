@@ -68,7 +68,8 @@ public final class ProtoUtil {
      *     <li>Check to see if there is a valid redirect for this version and class name tuple.
      *     If there is then the new class name is used for the following steps.</li>
      *     <li>Lookup the class name and instantiate the {@link Class} object.</li>
-     *     <li>Find the 3 arg static method {@code deserializeFromProto(int version, String className, com.google.protobuf.Any message)}.</li>
+     *     <li>Find the 4 arg static method {@code deserializeFromProto(int version, String className, com.google.protobuf.Any message, ProtoDeserializationCache cache)}.</li>
+     *     <li>If that is missing look for the 3 arg static method {@code deserializeFromProto(int version, String className, com.google.protobuf.Any message)} from Tribuo v4, which will not dedupe on load.</li>
      *     <li>Call the method passing along the original three arguments (note this uses the
      *     original class name even if a redirect has been applied).</li>
      *     <li>Return the freshly constructed object, or rethrow any runtime exceptions.</li>
@@ -77,10 +78,12 @@ public final class ProtoUtil {
      * Throws {@link IllegalStateException} if:
      * <ul>
      *     <li>the requested class could not be found on the classpath/modulepath</li>
-     *     <li>the requested class does not have the necessary 3 arg constructor</li>
+     *     <li>the requested class does not have the necessary 3 or 4 arg constructor</li>
      *     <li>the deserialization method could not be invoked due to its accessibility, or is in some other way invalid</li>
      *     <li>the deserialization method threw an exception</li>
      * </ul>
+     * <p>
+     * This method initializes an empty deserialization cache.
      *
      * @param serialized The protobuf to deserialize.
      * @param <SERIALIZED> The protobuf type.
@@ -88,7 +91,39 @@ public final class ProtoUtil {
      * @return The deserialized object.
      */
     public static <SERIALIZED extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(SERIALIZED serialized) {
+        return deserialize(serialized, new ProtoDeserializationCache());
+    }
 
+    /**
+     * Instantiates the class from the supplied protobuf fields.
+     * <p>
+     * Deserialization proceeds as follows:
+     * <ul>
+     *     <li>Check to see if there is a valid redirect for this version and class name tuple.
+     *     If there is then the new class name is used for the following steps.</li>
+     *     <li>Lookup the class name and instantiate the {@link Class} object.</li>
+     *     <li>Find the 4 arg static method {@code deserializeFromProto(int version, String className, com.google.protobuf.Any message, ProtoDeserializationCache cache)}.</li>
+     *     <li>If that is missing look for the 3 arg static method {@code deserializeFromProto(int version, String className, com.google.protobuf.Any message)} from Tribuo v4, which will not dedupe on load.</li>
+     *     <li>Call the method passing along the original three arguments (note this uses the
+     *     original class name even if a redirect has been applied).</li>
+     *     <li>Return the freshly constructed object, or rethrow any runtime exceptions.</li>
+     * </ul>
+     * <p>
+     * Throws {@link IllegalStateException} if:
+     * <ul>
+     *     <li>the requested class could not be found on the classpath/modulepath</li>
+     *     <li>the requested class does not have the necessary 3 or 4 arg constructor</li>
+     *     <li>the deserialization method could not be invoked due to its accessibility, or is in some other way invalid</li>
+     *     <li>the deserialization method threw an exception</li>
+     * </ul>
+     *
+     * @param serialized The protobuf to deserialize.
+     * @param deserCache The current deserialization cache.
+     * @param <SERIALIZED> The protobuf type.
+     * @param <PROTO_SERIALIZABLE> The deserialized type.
+     * @return The deserialized object.
+     */
+    public static <SERIALIZED extends Message, PROTO_SERIALIZABLE extends ProtoSerializable<SERIALIZED>> PROTO_SERIALIZABLE deserialize(SERIALIZED serialized, ProtoDeserializationCache deserCache) {
         // Extract version from serialized
         FieldDescriptor fieldDescriptor = serialized.getDescriptorForType().findFieldByName("version");
         int version = (Integer) serialized.getField(fieldDescriptor);
@@ -109,22 +144,30 @@ public final class ProtoUtil {
             fieldDescriptor = serialized.getDescriptorForType().findFieldByName("serialized_data");
             Any serializedData = (Any) serialized.getField(fieldDescriptor);
 
-            Method method = protoSerializableClass.getDeclaredMethod(ProtoSerializable.DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
+            Method method;
+            boolean fourArg = false;
+            try {
+                method = protoSerializableClass.getDeclaredMethod(ProtoSerializable.DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class, ProtoDeserializationCache.class);
+                fourArg = true;
+            } catch (NoSuchMethodException e) {
+                method = protoSerializableClass.getDeclaredMethod(ProtoSerializable.DESERIALIZATION_METHOD_NAME, int.class, String.class, Any.class);
+            }
             Class<?> deserializationReturnType = method.getReturnType();
             if (!ProtoSerializable.class.isAssignableFrom(deserializationReturnType)) {
                 throw new IllegalStateException("Method " + protoSerializableClass + "." + ProtoSerializable.DESERIALIZATION_METHOD_NAME + " does not return an instance of " + protoSerializableClass);
             }
             method.setAccessible(true);
+            // Uses the ternary so the SuppressWarnings annotation binds correctly.
             @SuppressWarnings("unchecked")
-            PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) method.invoke(null, version, targetClassName, serializedData);
+            final PROTO_SERIALIZABLE protoSerializable = (PROTO_SERIALIZABLE) (fourArg ? method.invoke(null, version, targetClassName, serializedData, deserCache) : method.invoke(null, version, targetClassName, serializedData));
             method.setAccessible(false);
             return protoSerializable;
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Failed to find class " + targetClassName, e);
         } catch (NoSuchMethodException e) {
-            throw new IllegalStateException("Failed to find deserialization method " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
+            throw new IllegalStateException("Failed to find deserialization method " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + " with arguments (int, String, com.google.protobuf.Any) or (int, String, com.google.protobuf.Any, ProtoDeserializationCache) on class " + targetClassName, e);
         } catch (IllegalAccessException e) {
-            throw new IllegalStateException("Failed to invoke deserialization method " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName, e);
+            throw new IllegalStateException("Failed to invoke deserialization method " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + " with arguments (int, String, com.google.protobuf.Any) or (int, String, com.google.protobuf.Any, ProtoDeserializationCache) on class " + targetClassName, e);
         } catch (InvocationTargetException e) {
             throw new IllegalStateException("The deserialization method for " + ProtoSerializable.DESERIALIZATION_METHOD_NAME + "(int, String, com.google.protobuf.Any) on class " + targetClassName + " threw an exception", e);
         }

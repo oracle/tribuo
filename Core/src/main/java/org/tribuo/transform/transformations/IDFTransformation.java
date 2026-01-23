@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.tribuo.transform.transformations;
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.Provenance;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
 import org.tribuo.protos.ProtoUtil;
@@ -131,10 +132,11 @@ public class IDFTransformation implements Transformation {
          * @param version The serialized object version.
          * @param className The class name.
          * @param message The serialized data.
+         * @param deserCache The deserialization cache for deduping model metadata.
          * @throws InvalidProtocolBufferException If the message is not a {@link IDFTransformerProto}.
          * @return The deserialized object.
          */
-        static IDFTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        static IDFTransformer deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
             IDFTransformerProto proto = message.unpack(IDFTransformerProto.class);
             if (version == CURRENT_VERSION) {
                 return new IDFTransformer((int)proto.getDf(), (int)proto.getN());

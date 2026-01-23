@@ -23,6 +23,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.SequenceModelProto;
@@ -215,7 +216,17 @@ public abstract class SequenceModel<T extends Output<T>> implements ProtoSeriali
      * @return The model.
      */
     public static SequenceModel<?> deserialize(SequenceModelProto proto) {
-        return ProtoUtil.deserialize(proto);
+        return deserialize(proto, new ProtoDeserializationCache());
+    }
+
+    /**
+     * Deserializes the model from the supplied protobuf.
+     * @param proto The protobuf to deserialize.
+     * @param deserCache The deserialization cache to use.
+     * @return The model.
+     */
+    public static SequenceModel<?> deserialize(SequenceModelProto proto, ProtoDeserializationCache deserCache) {
+        return ProtoUtil.deserialize(proto, deserCache);
     }
 
     /**

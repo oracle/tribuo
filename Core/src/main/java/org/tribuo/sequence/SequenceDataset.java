@@ -29,6 +29,7 @@ import org.tribuo.OutputFactory;
 import org.tribuo.OutputInfo;
 import org.tribuo.Tribuo;
 import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.SequenceDatasetProto;
@@ -250,7 +251,17 @@ public abstract class SequenceDataset<T extends Output<T>> implements Iterable<S
      * @return The sequence dataset.
      */
     public static SequenceDataset<?> deserialize(SequenceDatasetProto sequenceProto) {
-        return ProtoUtil.deserialize(sequenceProto);
+        return deserialize(sequenceProto, new ProtoDeserializationCache());
+    }
+
+    /**
+     * Deserializes a sequence dataset proto into a sequence dataset.
+     * @param sequenceProto The proto to deserialize.
+     * @param deserCache The deserialization cache.
+     * @return The sequence dataset.
+     */
+    public static SequenceDataset<?> deserialize(SequenceDatasetProto sequenceProto, ProtoDeserializationCache deserCache) {
+        return ProtoUtil.deserialize(sequenceProto, deserCache);
     }
 
     /**

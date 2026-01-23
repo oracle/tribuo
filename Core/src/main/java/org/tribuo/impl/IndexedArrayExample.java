@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.protos.core.IndexedArrayExampleProto;
@@ -157,11 +158,12 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks.
-    public static ArrayExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static ArrayExample<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -169,15 +171,15 @@ public class IndexedArrayExample<T extends Output<T>> extends ArrayExample<T> {
         if ((proto.getFeatureNameCount() != proto.getFeatureValueCount()) || (proto.getFeatureNameCount() != proto.getFeatureIdxCount())) {
             throw new IllegalStateException("Invalid protobuf, different numbers of feature names, ids and values, found " + proto.getFeatureNameCount() + " names, " + proto.getFeatureIdxCount() + " ids, and " + proto.getFeatureValueCount() + " values.");
         }
-        Output<?> output = ProtoUtil.deserialize(proto.getOutput());
+        Output<?> output = ProtoUtil.deserialize(proto.getOutput(), deserCache);
         int outputID = proto.getOutputIdx();
 
-        FeatureMap fmap = ProtoUtil.deserialize(proto.getFeatureDomain());
+        FeatureMap fmap = FeatureMap.deserialize(proto.getFeatureDomain(), deserCache);
         if (!(fmap instanceof ImmutableFeatureMap)) {
             throw new IllegalStateException("Invalid protobuf, feature domain was not ImmutableFeatureMap, found " + fmap.getClass());
         }
         ImmutableFeatureMap featureDomain = (ImmutableFeatureMap) fmap;
-        OutputInfo<?> outputMap = ProtoUtil.deserialize(proto.getOutputDomain());
+        OutputInfo<?> outputMap = OutputInfo.deserialize(proto.getOutputDomain(), deserCache);
         if (!(outputMap instanceof ImmutableOutputInfo)) {
             throw new IllegalStateException("Invalid protobuf, output domain was not ImmutableOutputInfo, found " + outputMap.getClass());
         }
