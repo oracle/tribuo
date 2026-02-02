@@ -39,6 +39,9 @@ import org.tribuo.regression.evaluation.RegressionEvaluator;
 import org.tribuo.regression.example.RegressionDataGenerator;
 import org.tribuo.regression.sgd.objectives.SquaredLoss;
 import org.tribuo.test.Helpers;
+import org.tribuo.transform.TransformationMap;
+import org.tribuo.transform.TransformerMap;
+import org.tribuo.transform.transformations.LinearScalingTransformation;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
@@ -56,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class TestLinearModel {
 
     private static final LinearTrainer linear = new LinearTrainer(new SquaredLoss(), 50, false, 1e-4, 1e-4, 0);
+    private static final LinearTrainer l2Linear = new LinearTrainer(new SquaredLoss(), 50, true, 1e-4, 1e-4, 5.0);
     private static final RegressionEvaluator e = new RegressionEvaluator();
 
     @BeforeAll
@@ -76,8 +80,12 @@ public class TestLinearModel {
         var csvLoader = new CSVLoader<>(';',outputFactory);
         var wineSource = csvLoader.loadDataSource(Paths.get("../../tutorials/winequality-red.csv"),"quality");
         var splitter = new TrainTestSplitter<>(wineSource, 0.7f, 0L);
-        Dataset<Regressor> trainData = new MutableDataset<>(splitter.getTrain());
-        Dataset<Regressor> testData = new MutableDataset<>(splitter.getTest());
+        MutableDataset<Regressor> trainData = new MutableDataset<>(splitter.getTrain());
+        TransformationMap tmap = new TransformationMap(List.of(new LinearScalingTransformation(0.0, 1.0)));
+        var transformers = trainData.createTransformers(tmap);
+        trainData.transform(transformers);
+        MutableDataset<Regressor> testData = new MutableDataset<>(splitter.getTest());
+        testData.transform(transformers);
 
         var evaluator = new RegressionEvaluator();
         System.out.printf("Training data size = %d, number of features = %d%n",trainData.size(),trainData.getFeatureMap().size());
@@ -87,16 +95,31 @@ public class TestLinearModel {
         var model = linear.train(trainData);
         var lrEndTime = System.currentTimeMillis();
         System.out.println("Training linear regression with l-bfgs took " + Util.formatDuration(lrStartTime,lrEndTime));
+        System.out.println(model.getWeightsCopy());
+        System.out.println("Weight two norm = " + model.getWeightsCopy().twoNorm());
 
         var evaluation = evaluator.evaluate(model, trainData);
         System.out.println(evaluation.toString());
 
         var testEvaluation = evaluator.evaluate(model, testData);
         System.out.println(testEvaluation.toString());
+
+        var lrl2StartTime = System.currentTimeMillis();
+        var l2model = l2Linear.train(trainData);
+        var lrl2EndTime = System.currentTimeMillis();
+        System.out.println("Training linear regression with l-bfgs took " + Util.formatDuration(lrl2StartTime,lrl2EndTime));
+        System.out.println(l2model.getWeightsCopy());
+        System.out.println("Weight two norm = " + l2model.getWeightsCopy().twoNorm());
+
+        var l2evaluation = evaluator.evaluate(l2model, trainData);
+        System.out.println(l2evaluation.toString());
+
+        var l2testEvaluation = evaluator.evaluate(l2model, testData);
+        System.out.println(l2testEvaluation.toString());
     }
 
-    public static Model<Regressor> testLinear(Pair<Dataset<Regressor>,Dataset<Regressor>> p) {
-        Model<Regressor> m = linear.train(p.getA());
+    public static Model<Regressor> testLinear(Pair<Dataset<Regressor>,Dataset<Regressor>> p, LinearTrainer trainer) {
+        Model<Regressor> m = trainer.train(p.getA());
         RegressionEvaluation evaluation = e.evaluate(m,p.getB());
         Map<String, List<Pair<String,Double>>> features = m.getTopFeatures(3);
         Assertions.assertNotNull(features);
@@ -124,14 +147,15 @@ public class TestLinearModel {
     @Test
     public void testDenseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
-        Model<Regressor> model = testLinear(p);
+        Model<Regressor> model = testLinear(p, linear);
         Helpers.testModelProtoSerialization(model, Regressor.class, p.getB());
+        testLinear(p, l2Linear);
     }
 
     @Test
     public void testSparseData() {
         Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.sparseTrainTest();
-        testLinear(p);
+        testLinear(p, linear);
     }
 
     @Test

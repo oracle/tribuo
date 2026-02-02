@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -161,7 +161,7 @@ public abstract class AbstractLinearTrainer<T extends Output<T>, U, V extends Ab
         // Includes bias
         LinearParameters parameters = new LinearParameters(featureSpaceSize+1,numOutputs);
 
-        double l2RegStrength = 1.0 / (this.regularisationStrength * weightSum);
+        double l2RegStrength = this.regularisationStrength == 0 ? 0.0 : 1.0 / this.regularisationStrength;
 
         logger.info(String.format("Training linear model with %d examples, %d features and %d outputs", examples.size(), featureSpaceSize, numOutputs));
         LBFGS lbfgs = new LBFGS(memorySize, maxIterations, tolerance, gradientTolerance);
@@ -177,6 +177,21 @@ public abstract class AbstractLinearTrainer<T extends Output<T>, U, V extends Ab
             for (int i = 0; i < weights.length; i++) {
                 loss += p.loss()[i] * weights[i];
             }
+            // Add L2 regularization to gradient and loss (exclude bias column)
+            if (l2Penalty) {
+                Matrix w = (Matrix) params[0];
+                Matrix regGrad = w.copy();
+                // last column stores the bias term
+                for (int r = 0; r < regGrad.getDimension1Size(); r++) {
+                    regGrad.set(r, featureSpaceSize, 0.0);
+                }
+                // Loss term: 0.5 * lambda * ||W||^2 (bias excluded)
+                double norm = regGrad.twoNorm();
+                loss += 0.5 * l2RegStrength * norm * norm;
+                // Gradient term: lambda * W (bias excluded)
+                regGrad.scaleInPlace(-l2RegStrength);
+                gradient.intersectAndAddInPlace(regGrad);
+            }
             return new LBFGS.GradAndLoss(new Tensor[]{gradient}, loss);
         };
 
@@ -186,6 +201,16 @@ public abstract class AbstractLinearTrainer<T extends Output<T>, U, V extends Ab
             double loss = 0.0;
             for (int i = 0; i < weights.length; i++) {
                 loss += lossArr[i] * weights[i];
+            }
+            if (l2Penalty) {
+                Matrix w = (Matrix) params[0];
+                Matrix regW = w.copy();
+                // last column stores the bias term
+                for (int r = 0; r < regW.getDimension1Size(); r++) {
+                    regW.set(r, featureSpaceSize, 0.0);
+                }
+                double norm = regW.twoNorm();
+                loss += 0.5 * l2RegStrength * norm * norm;
             }
             return loss;
         };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.LBFGS;
 import org.tribuo.test.Helpers;
+import org.tribuo.transform.TransformationMap;
+import org.tribuo.transform.transformations.LinearScalingTransformation;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
@@ -57,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestLinearModel {
     private static final LinearTrainer logistic = new LinearTrainer(new LogMulticlass(), 50, false, 1e-4, 1e-4, 0);
+    private static final LinearTrainer l2Logistic = new LinearTrainer(new LogMulticlass(), 50, true, 1e-4, 1e-4, 1);
     private static final LinearTrainer hinge = new LinearTrainer(new Hinge(), 50, false, 1e-4, 1e-4, 0);
 
     @BeforeAll
@@ -73,12 +76,16 @@ public class TestLinearModel {
         var outputFactory = new LabelFactory();
         var obj = new LogMulticlass();
         var linear = new LinearTrainer(obj, 50, false, 1e-4, 1e-4, 0);
-        var mnistSource = new IDXDataSource<>(Path.of("../../tutorials/train-images-idx3-ubyte.gz"), Path.of("../..//tutorials/train-labels-idx1-ubyte.gz"), outputFactory);
-        var testSource = new IDXDataSource<>(Path.of("../../tutorials/t10k-images-idx3-ubyte.gz"), Path.of("../..//tutorials/t10k-labels-idx1-ubyte.gz"), outputFactory);
+        var mnistSource = new IDXDataSource<>(Path.of("../../tutorials/train-images-idx3-ubyte.gz"), Path.of("../../tutorials/train-labels-idx1-ubyte.gz"), outputFactory);
+        var testSource = new IDXDataSource<>(Path.of("../../tutorials/t10k-images-idx3-ubyte.gz"), Path.of("../../tutorials/t10k-labels-idx1-ubyte.gz"), outputFactory);
 
         var fullTrainData = new MutableDataset<>(mnistSource);
-        var trainData = DatasetView.createBootstrapView(fullTrainData, 6000, 12345);
+        Dataset<Label> trainData = DatasetView.createBootstrapView(fullTrainData, 6000, 12345);
+        TransformationMap tmap = new TransformationMap(List.of(new LinearScalingTransformation(0.0, 1.0)));
+        var transformers = trainData.createTransformers(tmap, true);
+        trainData = transformers.transformDataset(trainData);
         var testData = new MutableDataset<>(testSource);
+        testData.transform(transformers);
 
         var evaluator = new LabelEvaluator();
         System.out.printf("Training data size = %d, number of features = %d, number of classes = %d%n",trainData.size(),trainData.getFeatureMap().size(),trainData.getOutputInfo().size());
@@ -94,9 +101,23 @@ public class TestLinearModel {
 
         var testEvaluation = evaluator.evaluate(model, testData);
         System.out.println(testEvaluation.toString());
+
+        var lrl2StartTime = System.currentTimeMillis();
+        var l2model = l2Logistic.train(trainData);
+        var lrl2EndTime = System.currentTimeMillis();
+        System.out.println("Training logistic regression with l-bfgs took " + Util.formatDuration(lrl2StartTime,lrl2EndTime));
+
+        var l2evaluation = evaluator.evaluate(l2model, trainData);
+        System.out.println(l2evaluation.toString());
+
+        var l2testEvaluation = evaluator.evaluate(l2model, testData);
+        System.out.println(l2testEvaluation.toString());
+
+        System.out.println("Weight two norm = " + model.getWeightsCopy().twoNorm());
+        System.out.println("l2 reg Weight two norm = " + l2model.getWeightsCopy().twoNorm());
     }
 
-    //@Test
+    @Test
     public void testIrises() throws IOException {
         var outputFactory = new LabelFactory();
         var obj = new LogMulticlass();
@@ -104,7 +125,7 @@ public class TestLinearModel {
         var csvLoader = new CSVLoader<>(outputFactory);
 
         var irisHeaders = new String[]{"sepalLength", "sepalWidth", "petalLength", "petalWidth", "species"};
-        var irisesSource = csvLoader.loadDataSource(Paths.get("../..//tutorials/bezdekIris.data"),"species",irisHeaders);
+        var irisesSource = csvLoader.loadDataSource(Paths.get("../../tutorials/bezdekIris.data"),"species",irisHeaders);
         var irisSplitter = new TrainTestSplitter<>(irisesSource,0.7,1L);
 
         var trainData = new MutableDataset<>(irisSplitter.getTrain());
@@ -118,12 +139,25 @@ public class TestLinearModel {
         var model = linear.train(trainData);
         var lrEndTime = System.currentTimeMillis();
         System.out.println("Training logistic regression with l-bfgs took " + Util.formatDuration(lrStartTime,lrEndTime));
+        System.out.println(model.getWeightsCopy());
 
         var evaluation = evaluator.evaluate(model, trainData);
         System.out.println(evaluation.toString());
 
         var testEvaluation = evaluator.evaluate(model, testData);
         System.out.println(testEvaluation.toString());
+
+        var lrl2StartTime = System.currentTimeMillis();
+        var l2model = l2Logistic.train(trainData);
+        var lrl2EndTime = System.currentTimeMillis();
+        System.out.println("Training logistic regression with l-bfgs took " + Util.formatDuration(lrl2StartTime,lrl2EndTime));
+        System.out.println(l2model.getWeightsCopy());
+
+        var l2evaluation = evaluator.evaluate(l2model, trainData);
+        System.out.println(l2evaluation.toString());
+
+        var l2testEvaluation = evaluator.evaluate(l2model, testData);
+        System.out.println(l2testEvaluation.toString());
     }
 
     public static LinearSGDModel testLinear(Pair<Dataset<Label>,Dataset<Label>> p, LinearTrainer trainer) {
@@ -171,6 +205,7 @@ public class TestLinearModel {
         Model<Label> model = testLinear(p, logistic);
         Helpers.testModelProtoSerialization(model, Label.class, p.getB());
         model = testLinear(p, hinge);
+        model = testLinear(p, l2Logistic);
     }
 
     @Test
