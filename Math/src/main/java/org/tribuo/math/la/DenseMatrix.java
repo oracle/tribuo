@@ -1685,6 +1685,30 @@ public class DenseMatrix implements Matrix {
         }
 
         /**
+         * Deserializes a TensorProto into a CholeskyFactorization, validating that it is a lower triangular matrix.
+         * @param lMatrixProto The proto to deserialize.
+         * @return The CholeskyFactorization.
+         */
+        public static CholeskyFactorization deserialize(TensorProto lMatrixProto) {
+            Tensor t = Tensor.deserialize(lMatrixProto);
+            if (!(t instanceof DenseMatrix lMatrix)) {
+                throw new IllegalArgumentException("Input is not a DenseMatrix, found " + t.getClass());
+            }
+            if (lMatrix.dim1 != lMatrix.dim2) {
+                throw new IllegalArgumentException("Not a factorized matrix, it isn't square, shape = [" + lMatrix.dim1 + ", " + lMatrix.dim2 + "]");
+            }
+            // Check upper triangle is zeroed
+            for (int i = 0; i < lMatrix.dim1; i++) {
+                for (int j = 0; j < i; j++) {
+                    if (lMatrix.get(j,i) != 0.0) {
+                        throw new IllegalArgumentException("Not a factorized matrix, the upper triangle is non-zero, input["+j+","+i+"] = " + lMatrix.get(j,i));
+                    }
+                }
+            }
+            return new CholeskyFactorization(lMatrix);
+        }
+
+        /**
          * Returns a deep copy of this factorization.
          * @return A copy of this factorization.
          */

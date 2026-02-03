@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,7 +148,6 @@ public final class GaussianProcessTrainer implements Trainer<Regressor> {
             } else {
                 inputs[n] = SparseVector.createSparseVector(e, featureIDMap, false);
             }
-            inputs[n] = SparseVector.createSparseVector(e, featureIDMap, false);
             double curWeight = Math.sqrt(e.getWeight());
             weights[n] = curWeight;
             for (Regressor.DimensionTuple r : e.getOutput()) {
