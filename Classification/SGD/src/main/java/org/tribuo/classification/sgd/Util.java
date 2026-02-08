@@ -26,35 +26,6 @@ import java.util.SplittableRandom;
  */
 public class Util {
     /**
-     * In place shuffle of the features, labels and weights.
-     * @deprecated In favour of {@link org.tribuo.common.sgd.AbstractLinearSGDTrainer#shuffleInPlace}.
-     * @param features Input features.
-     * @param labels Input labels.
-     * @param weights Input weights.
-     * @param rng SplittableRandom number generator.
-     */
-    @Deprecated
-    public static void shuffleInPlace(SparseVector[] features, int[] labels, double[] weights, SplittableRandom rng) {
-        int size = features.length;
-        // Shuffle array
-        for (int i = size; i > 1; i--) {
-            int j = rng.nextInt(i);
-            //swap features
-            SparseVector tmpFeature = features[i-1];
-            features[i-1] = features[j];
-            features[j] = tmpFeature;
-            //swap labels
-            int tmpLabel = labels[i-1];
-            labels[i-1] = labels[j];
-            labels[j] = tmpLabel;
-            //swap weights
-            double tmpWeight = weights[i-1];
-            weights[i-1] = weights[j];
-            weights[j] = tmpWeight;
-        }
-    }
-
-    /**
      * In place shuffle of the features, labels, weights and indices.
      * @param features Input features.
      * @param labels Input labels.
@@ -62,13 +33,13 @@ public class Util {
      * @param indices Input indices.
      * @param rng SplittableRandom number generator.
      */
-    public static void shuffleInPlace(SparseVector[] features, int[] labels, double[] weights, int[] indices, SplittableRandom rng) {
+    public static void shuffleInPlace(SGDVector[] features, int[] labels, double[] weights, int[] indices, SplittableRandom rng) {
         int size = features.length;
         // Shuffle array
         for (int i = size; i > 1; i--) {
             int j = rng.nextInt(i);
             //swap features
-            SparseVector tmpFeature = features[i-1];
+            SGDVector tmpFeature = features[i-1];
             features[i-1] = features[j];
             features[j] = tmpFeature;
             //swap labels
@@ -94,9 +65,9 @@ public class Util {
      * @param rng SplittableRandom number generator.
      * @return A tuple of shuffled features, labels and weights.
      */
-    public static ExampleArray shuffle(SparseVector[] features, int[] labels, double[] weights, SplittableRandom rng) {
+    public static ExampleArray shuffle(SGDVector[] features, int[] labels, double[] weights, SplittableRandom rng) {
         int size = features.length;
-        SparseVector[] newFeatures = new SparseVector[size];
+        SGDVector[] newFeatures = new SGDVector[size];
         int[] newLabels = new int[size];
         double[] newWeights = new double[size];
         for (int i = 0; i < newFeatures.length; i++) {
@@ -108,7 +79,7 @@ public class Util {
         for (int i = size; i > 1; i--) {
             int j = rng.nextInt(i);
             //swap features
-            SparseVector tmpFeature = newFeatures[i-1];
+            SGDVector tmpFeature = newFeatures[i-1];
             newFeatures[i-1] = newFeatures[j];
             newFeatures[j] = tmpFeature;
             //swap labels
@@ -124,34 +95,13 @@ public class Util {
     }
 
     /**
-     * A nominal tuple. One day it'll be a record, but not today.
+     * A nominal tuple containing a shuffled example array.
+     *
+     * @param features The examples encoded as sparse vectors.
+     * @param labels   The label indices.
+     * @param weights  The example weights.
      */
-    public static class ExampleArray {
-        /**
-         * The examples encoded as sparse vectors.
-         */
-        public final SparseVector[] features;
-        /**
-         * The label indices.
-         */
-        public final int[] labels;
-        /**
-         * The example weights.
-         */
-        public final double[] weights;
-
-        /**
-         * Constructs an example array.
-         * @param features The examples' features.
-         * @param labels The label indices.
-         * @param weights The example weights.
-         */
-        public ExampleArray(SparseVector[] features, int[] labels, double[] weights) {
-            this.features = features;
-            this.labels = labels;
-            this.weights = weights;
-        }
-    }
+    public record ExampleArray(SGDVector[] features, int[] labels, double[] weights) { }
 
     /**
      * In place shuffle used for sequence problems.
@@ -218,26 +168,11 @@ public class Util {
     }
 
     /**
-     * A nominal tuple. One day it'll be a record, but not today.
+     * A nominal tuple containing a shuffled example array.
+     *
+     * @param features The array of sequence example features.
+     * @param labels   The sequence example label indices.
+     * @param weights  The sequence example weights.
      */
-    public static class SequenceExampleArray {
-        /**
-         * The array of sequence example features.
-         */
-        public final SGDVector[][] features;
-        /**
-         * The sequence example label indices.
-         */
-        public final int[][] labels;
-        /**
-         * The sequence example weights.
-         */
-        public final double[] weights;
-
-        SequenceExampleArray(SGDVector[][] features, int[][] labels, double[] weights) {
-            this.features = features;
-            this.labels = labels;
-            this.weights = weights;
-        }
-    }
+    public record SequenceExampleArray(SGDVector[][] features, int[][] labels, double[] weights) { }
 }

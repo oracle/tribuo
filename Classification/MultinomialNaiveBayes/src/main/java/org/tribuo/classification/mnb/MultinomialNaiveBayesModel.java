@@ -31,6 +31,7 @@ import org.tribuo.classification.mnb.protos.MultinomialNaiveBayesProto;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
@@ -166,7 +167,7 @@ public class MultinomialNaiveBayesModel extends Model<Label> {
             }
             distribution.put(name,label);
         }
-        Prediction<Label> p = new Prediction<>(maxLabel, distribution, exVector.numActiveElements(), example, true);
+        Prediction<Label> p = new Prediction<>(maxLabel, distribution, exVector.numNonZeroElements(), example, true);
         return p;
     }
 

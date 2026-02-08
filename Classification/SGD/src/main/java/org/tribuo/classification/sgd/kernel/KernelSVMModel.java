@@ -31,8 +31,10 @@ import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.kernel.Kernel;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
+import org.tribuo.math.optimisers.SGD;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -42,6 +44,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Vector;
 
 /**
  * The inference time version of a kernel model trained using Pegasos.
@@ -61,12 +64,12 @@ public class KernelSVMModel extends Model<Label> {
     public static final int CURRENT_VERSION = 0;
 
     private final Kernel kernel;
-    private final SparseVector[] supportVectors;
+    private final SGDVector[] supportVectors;
     private final DenseMatrix weights;
 
     KernelSVMModel(String name, ModelProvenance description,
                           ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap,
-                          Kernel kernel, SparseVector[] supportVectors, DenseMatrix weights) {
+                          Kernel kernel, SGDVector[] supportVectors, DenseMatrix weights) {
         super(name, description, featureIDMap, labelIDMap, false);
         this.kernel = kernel;
         this.supportVectors = supportVectors;
@@ -94,15 +97,15 @@ public class KernelSVMModel extends Model<Label> {
         @SuppressWarnings("unchecked") // guarded by getClass
         ImmutableOutputInfo<Label> outputDomain = (ImmutableOutputInfo<Label>) carrier.outputDomain();
 
-        SparseVector[] supportVectors = new SparseVector[proto.getSupportVectorsCount()];
+        SGDVector[] supportVectors = new SGDVector[proto.getSupportVectorsCount()];
         int featureSize = carrier.featureDomain().size() + 1;
         List<TensorProto> supportProtos = proto.getSupportVectorsList();
         for (int i = 0; i < supportProtos.size(); i++) {
             Tensor tensor = Tensor.deserialize(supportProtos.get(i));
-            if (!(tensor instanceof SparseVector)) {
-                throw new IllegalStateException("Invalid protobuf, support vector must be a sparse vector, found " + tensor.getClass());
+            if (!(tensor instanceof SGDVector)) {
+                throw new IllegalStateException("Invalid protobuf, support vector must be a SGDVector, found " + tensor.getClass());
             }
-            SparseVector vec = (SparseVector) tensor;
+            SGDVector vec = (SGDVector) tensor;
             if (vec.size() != featureSize) {
                 throw new IllegalStateException("Invalid protobuf, support vector size must equal feature domain size, found " + vec.size() + ", expected " + featureSize);
             }
@@ -137,9 +140,9 @@ public class KernelSVMModel extends Model<Label> {
 
     @Override
     public Prediction<Label> predict(Example<Label> example) {
-        SparseVector features = SparseVector.createSparseVector(example,featureIDMap,true);
+        SGDVector features = SGDVector.createFromExample(example,featureIDMap,true);
         // Due to bias feature
-        if (features.numActiveElements() == 1) {
+        if (features.numNonZeroElements() == 1) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
         double[] scores = new double[supportVectors.length];
@@ -161,7 +164,7 @@ public class KernelSVMModel extends Model<Label> {
                 maxLabel = label;
             }
         }
-        return new Prediction<>(maxLabel, predMap, features.numActiveElements(), example, generatesProbabilities);
+        return new Prediction<>(maxLabel, predMap, features.numNonZeroElements(), example, generatesProbabilities);
     }
 
     @Override
@@ -181,7 +184,7 @@ public class KernelSVMModel extends Model<Label> {
         modelBuilder.setMetadata(carrier.serialize());
         modelBuilder.setKernel(kernel.serialize());
         modelBuilder.setWeights(weights.serialize());
-        for (SparseVector v : supportVectors) {
+        for (SGDVector v : supportVectors) {
             modelBuilder.addSupportVectors(v.serialize());
         }
 
@@ -195,7 +198,7 @@ public class KernelSVMModel extends Model<Label> {
 
     @Override
     protected KernelSVMModel copy(String newName, ModelProvenance newProvenance) {
-        SparseVector[] vectorCopies = new SparseVector[supportVectors.length];
+        SGDVector[] vectorCopies = new SGDVector[supportVectors.length];
         for (int i = 0; i < vectorCopies.length; i++) {
             vectorCopies[i] = supportVectors[i].copy();
         }

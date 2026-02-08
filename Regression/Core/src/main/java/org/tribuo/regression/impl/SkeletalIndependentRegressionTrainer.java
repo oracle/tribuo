@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Trainer;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.regression.Regressor;
@@ -100,10 +100,10 @@ public abstract class SkeletalIndependentRegressionTrainer<T> implements Trainer
         boolean needBias = useBias();
         float[] weights = new float[numExamples];
         double[][] outputs = new double[outputInfo.size()][numExamples];
-        SparseVector[] inputs = new SparseVector[numExamples];
+        SGDVector[] inputs = new SGDVector[numExamples];
         int i = 0;
         for (Example<Regressor> e : examples) {
-            inputs[i] = SparseVector.createSparseVector(e,featureMap,needBias);
+            inputs[i] = SGDVector.createFromExample(e,featureMap,needBias);
             weights[i] = e.getWeight();
             for (Regressor.DimensionTuple r : e.getOutput()) {
                 int id = outputInfo.getID(r);
@@ -155,7 +155,7 @@ public abstract class SkeletalIndependentRegressionTrainer<T> implements Trainer
      * @param rng The RNG to use.
      * @return An object representing the model. Should be the same type as that expected by {@link #createModel}.
      */
-    protected abstract T trainDimension(double[] outputs, SparseVector[] features, float[] weights, SplittableRandom rng);
+    protected abstract T trainDimension(double[] outputs, SGDVector[] features, float[] weights, SplittableRandom rng);
 
     /**
      * Returns true if the SparseVector should be constructed with a bias feature.

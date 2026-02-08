@@ -298,6 +298,17 @@ public non-sealed class DenseVector implements SGDVector {
         return elements.length;
     }
 
+    @Override
+    public int numNonZeroElements() {
+        int count = 0;
+        for (int i = 0; i < elements.length; i++) {
+            if (get(i) != 0.0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /**
      * Gets the index of the maximum element.
      * @return The index of the maximum element.

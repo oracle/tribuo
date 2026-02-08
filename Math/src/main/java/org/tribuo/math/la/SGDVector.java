@@ -71,6 +71,12 @@ public sealed interface SGDVector extends Tensor, Iterable<VectorTuple> permits 
     public int numActiveElements();
 
     /**
+     * Returns the number of non-zero elements in the vector currently.
+     * @return The number of non-zero elements.
+     */
+    public int numNonZeroElements();
+
+    /**
      * Generates a new vector with each element scaled by {@code coefficient}.
      * @param coefficient The coefficient to scale the elements by.
      * @return A new {@link SGDVector}.

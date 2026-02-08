@@ -478,6 +478,17 @@ public non-sealed class SparseVector implements SGDVector {
         return values.length;
     }
 
+    @Override
+    public int numNonZeroElements() {
+        int count = 0;
+        for (VectorTuple vector : this) {
+            if (vector.value != 0.0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /**
      * Equals is defined mathematically, that is two SGDVectors are equal iff they have the same indices
      * and the same values at those indices (dense vectors will have indices for zeros, and sparse will not,

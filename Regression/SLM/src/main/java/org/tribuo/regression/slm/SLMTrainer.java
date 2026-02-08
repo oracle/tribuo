@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.tribuo.SparseTrainer;
 import org.tribuo.WeightedExamples;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
@@ -153,10 +154,10 @@ public class SLMTrainer implements SparseTrainer<Regressor>, WeightedExamples {
         int numExamples = examples.size();
         int numFeatures = normalize ? featureIDMap.size() : featureIDMap.size() + 1; //include bias
         DenseMatrix outputMatrix = new DenseMatrix(numOutputs,numExamples);
-        SparseVector[] inputs = new SparseVector[numExamples];
+        SGDVector[] inputs = new SGDVector[numExamples];
         int n = 0;
         for (Example<Regressor> e : examples) {
-            inputs[n] = SparseVector.createSparseVector(e,featureIDMap,!normalize);
+            inputs[n] = SGDVector.createFromExample(e,featureIDMap,!normalize);
             double curWeight = Math.sqrt(e.getWeight());
             inputs[n].scaleInPlace(curWeight); //rescale features by example weight
             for (Regressor.DimensionTuple r : e.getOutput()) {
