@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.tribuo.classification.LabelFactory;
 import org.tribuo.classification.explanations.TabularExplainer;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.interop.ExternalModel;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.regression.RegressionFactory;
@@ -159,7 +159,7 @@ public class LIMEBase implements TabularExplainer<Regressor> {
     private List<Example<Regressor>> sampleData(Example<Label> example) {
         List<Example<Regressor>> output = new ArrayList<>();
 
-        SparseVector exampleVector = SparseVector.createSparseVector(example,fMap,false);
+        SGDVector exampleVector = SGDVector.createFromExample(example,fMap,false);
 
         Random innerRNG = new Random(rng.nextLong());
         for (int i = 0; i < numSamples; i++) {
@@ -172,7 +172,7 @@ public class LIMEBase implements TabularExplainer<Regressor> {
             Prediction<Label> samplePrediction = innerModel.predict(sample);
 
             // Measure the distance between this point and the input, to be used as a weight.
-            double distance = measureDistance(fMap,numTrainingExamples,exampleVector, SparseVector.createSparseVector(sample,fMap,false));
+            double distance = measureDistance(fMap,numTrainingExamples, exampleVector, SGDVector.createFromExample(sample,fMap,false));
 
             // Transform distance through the kernel function.
             distance = kernelDist(distance,kernelWidth);
@@ -193,7 +193,7 @@ public class LIMEBase implements TabularExplainer<Regressor> {
      * @param input The input sparse vector to use.
      * @return An Example sampled from the supplied feature map and input vector.
      */
-    public static Example<Label> samplePoint(Random rng, ImmutableFeatureMap fMap, long numTrainingExamples, SparseVector input) {
+    public static Example<Label> samplePoint(Random rng, ImmutableFeatureMap fMap, long numTrainingExamples, SGDVector input) {
         ArrayList<String> names = new ArrayList<>();
         ArrayList<Double> values = new ArrayList<>();
 
@@ -201,17 +201,15 @@ public class LIMEBase implements TabularExplainer<Regressor> {
             int id = ((VariableIDInfo)info).getID();
             double inputValue = input.get(id);
 
-            if (info instanceof CategoricalInfo) {
+            if (info instanceof CategoricalInfo catInfo) {
                 // This one is tricksy as categorical info essentially implicitly includes a zero.
-                CategoricalInfo catInfo = (CategoricalInfo) info;
                 double sample = catInfo.frequencyBasedSample(rng,numTrainingExamples);
                 // If we didn't sample zero.
                 if (Math.abs(sample) > 1e-10) {
                     names.add(info.getName());
                     values.add(sample);
                 }
-            } else if (info instanceof RealInfo) {
-                RealInfo realInfo = (RealInfo) info;
+            } else if (info instanceof RealInfo realInfo) {
                 // As realInfo is sparse we sample from the mixture distribution,
                 // either 0 or N(inputValue,variance).
                 // This assumes realInfo never observed a zero, which is enforced from v2.1
@@ -272,7 +270,7 @@ public class LIMEBase implements TabularExplainer<Regressor> {
      * @param sample The sampled point.
      * @return The distance between the two points.
      */
-    public static double measureDistance(ImmutableFeatureMap fMap, long numTrainingExamples, SparseVector input, SparseVector sample) {
+    public static double measureDistance(ImmutableFeatureMap fMap, long numTrainingExamples, SGDVector input, SGDVector sample) {
         double score = 0.0;
 
         Iterator<VectorTuple> itr = input.iterator();
@@ -329,8 +327,7 @@ public class LIMEBase implements TabularExplainer<Regressor> {
         VariableInfo info = fMap.get(index);
         if (info instanceof CategoricalInfo) {
             return 1.0;
-        } else if (info instanceof RealInfo) {
-            RealInfo rInfo = (RealInfo) info;
+        } else if (info instanceof RealInfo rInfo) {
             // Fudge the distance calculation so it doesn't overpower the categoricals.
             double curScore = value * value;
             double range;
@@ -365,8 +362,7 @@ public class LIMEBase implements TabularExplainer<Regressor> {
                 // else the values are the same so the hamming distance is zero.
                 return 0.0;
             }
-        } else if (info instanceof RealInfo) {
-            RealInfo rInfo = (RealInfo) info;
+        } else if (info instanceof RealInfo rInfo) {
             // Fudge the distance calculation so it doesn't overpower the categoricals.
             double tmp = firstValue - secondValue;
             double range;
