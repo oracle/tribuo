@@ -32,9 +32,7 @@ import org.tribuo.math.kernel.Kernel;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
-import org.tribuo.math.optimisers.SGD;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -44,7 +42,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Vector;
 
 /**
  * The inference time version of a kernel model trained using Pegasos.

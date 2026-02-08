@@ -33,14 +33,12 @@ import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

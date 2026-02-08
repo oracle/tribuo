@@ -28,7 +28,6 @@ import org.tribuo.MutableDataset;
 import org.tribuo.MutableFeatureMap;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
-import org.tribuo.math.optimisers.SGD;
 import org.tribuo.math.protos.SparseTensorProto;
 import org.tribuo.math.protos.TensorProto;
 import org.tribuo.test.Helpers;

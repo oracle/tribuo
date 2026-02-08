@@ -34,7 +34,6 @@ import org.tribuo.math.distributions.MultivariateNormalDistribution;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.TensorProto;
@@ -80,7 +79,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
     private final MultivariateNormalDistribution.CovarianceType covarianceType;
 
-    private transient MultivariateNormalDistribution[] distributions;
+    private final MultivariateNormalDistribution[] distributions;
 
     GaussianMixtureModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                          ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] meanVectors,

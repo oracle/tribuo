@@ -32,7 +32,6 @@ import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.TensorProto;

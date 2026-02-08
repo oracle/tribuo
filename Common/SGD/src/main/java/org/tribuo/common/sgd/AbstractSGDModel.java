@@ -24,7 +24,6 @@ import org.tribuo.Output;
 import org.tribuo.math.FeedForwardParameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
 /**

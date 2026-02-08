@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
-import org.tribuo.PredictionTest;
 import org.tribuo.impl.ArrayExample;
-import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
-import org.tribuo.protos.core.PredictionProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockDataSourceProvenance;
 import org.tribuo.test.MockOutput;
