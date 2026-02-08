@@ -31,7 +31,6 @@ import org.tribuo.classification.mnb.protos.MultinomialNaiveBayesProto;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.DenseSparseMatrix;
 import org.tribuo.math.la.DenseVector;
-import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;

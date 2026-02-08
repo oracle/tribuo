@@ -38,7 +38,6 @@ import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;

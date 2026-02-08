@@ -17,7 +17,6 @@
 package org.tribuo.classification.sgd;
 
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 
 import java.util.SplittableRandom;
 
