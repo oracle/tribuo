@@ -176,7 +176,7 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
                 denseCount++;
             }
             sgdTargets[n] = getTarget(outputIDInfo,example.getOutput());
-            featureSize += sgdFeatures[n].numActiveElements();
+            featureSize += sgdFeatures[n].numNonZeroElements();
             n++;
         }
         logger.info(String.format("Training SGD model with %d examples", n));

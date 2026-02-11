@@ -62,7 +62,7 @@ public abstract class SkeletalIndependentRegressionModel extends Model<Regressor
             outputs[i] = scoreDimension(i,features);
         }
 
-        return new Prediction<>(new Regressor(outputs),features.numActiveElements(),example);
+        return new Prediction<>(new Regressor(outputs),features.numNonZeroElements(),example);
     }
 
     /**
