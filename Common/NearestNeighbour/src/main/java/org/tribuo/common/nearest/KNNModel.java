@@ -41,8 +41,6 @@ import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.OutputProto;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +52,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -64,10 +61,6 @@ import java.util.stream.Stream;
 
 /**
  * A k-nearest neighbours model.
- * <p>
- * Note multi-threaded prediction uses a {@link ForkJoinPool} which requires that the Tribuo codebase
- * is given the "modifyThread" and "modifyThreadGroup" privileges when running under a
- * {@link java.lang.SecurityManager}.
  */
 public class KNNModel<T extends Output<T>> extends Model<T> {
 
@@ -77,9 +70,6 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * Protobuf serialization version.
      */
     public static final int CURRENT_VERSION = 0;
-
-    // Thread factory for the FJP, to allow use with OpenSearch's SecureSM
-    private static final CustomForkJoinWorkerThreadFactory THREAD_FACTORY = new CustomForkJoinWorkerThreadFactory();
 
     /**
      * The parallel backend for batch predictions.
@@ -214,7 +204,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         List<Prediction<T>> predictions;
         Stream<Pair<SGDVector,T>> stream = Stream.of(vectors);
         if (numThreads > 1) {
-            try (ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false)){
+            try (ForkJoinPool fjp = new ForkJoinPool(numThreads)){
                 predictions = fjp.submit(()->StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map(pred).collect(Collectors.toList())).get();
             } catch (InterruptedException | ExecutionException e) {
                 logger.log(Level.SEVERE,"Exception when predicting in KNNModel",e);
@@ -264,19 +254,20 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * @return The predictions.
      */
     private List<Prediction<T>> innerPredictMultithreaded(Iterable<Example<T>> examples) {
-        switch (parallelBackend) {
-            case STREAMS:
+        return switch (parallelBackend) {
+            case STREAMS -> {
                 logger.log(Level.FINE, "Parallel backend - streams");
-                return innerPredictStreams(examples);
-            case THREADPOOL:
+                yield innerPredictStreams(examples);
+            }
+            case THREADPOOL -> {
                 logger.log(Level.FINE, "Parallel backend - threadpool");
-                return innerPredictThreadPool(examples);
-            case INNERTHREADPOOL:
+                yield innerPredictThreadPool(examples);
+            }
+            case INNERTHREADPOOL -> {
                 logger.log(Level.FINE, "Parallel backend - within example threadpool");
-                return innerPredictWithinExampleThreadPool(examples);
-            default:
-                throw new IllegalArgumentException("Unknown backend " + parallelBackend);
-        }
+                yield innerPredictWithinExampleThreadPool(examples);
+            }
+        };
     }
 
     /**
@@ -287,7 +278,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private List<Prediction<T>> innerPredictStreams(Iterable<Example<T>> examples) {
         List<Prediction<T>> predictions = new ArrayList<>();
         List<Prediction<T>> innerPredictions = null;
-        try (ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false)) {
+        try (ForkJoinPool fjp = new ForkJoinPool(numThreads)) {
             for (Example<T> example : examples) {
                 SGDVector input = SGDVector.createFromExample(example, featureIDMap, false);
 
@@ -537,12 +528,4 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         }
     }
 
-    /**
-     * Used to allow FJPs to work with OpenSearch's SecureSM.
-     */
-    private static final class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
-        public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-            return AccessController.doPrivileged((PrivilegedAction<ForkJoinWorkerThread>) () -> new ForkJoinWorkerThread(pool) {});
-        }
-    }
 }
