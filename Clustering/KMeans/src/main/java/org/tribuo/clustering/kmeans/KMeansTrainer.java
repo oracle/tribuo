@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,6 @@ import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
 import org.tribuo.util.Util;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +49,6 @@ import java.util.Map.Entry;
 import java.util.SplittableRandom;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -73,10 +70,6 @@ import java.util.stream.Stream;
  * <p>
  * The train method will instantiate dense examples as dense vectors, speeding up the computation.
  * <p>
- * Note parallel training uses a {@link ForkJoinPool} which requires that the Tribuo codebase
- * is given the "modifyThread" and "modifyThreadGroup" privileges when running under a
- * {@link java.lang.SecurityManager}.
- * <p>
  * See:
  * <pre>
  * J. Friedman, T. Hastie, &amp; R. Tibshirani.
@@ -93,9 +86,6 @@ import java.util.stream.Stream;
  */
 public class KMeansTrainer implements Trainer<ClusterID>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(KMeansTrainer.class.getName());
-
-    // Thread factory for the FJP, to allow use with OpenSearch's SecureSM
-    private static final CustomForkJoinWorkerThreadFactory THREAD_FACTORY = new CustomForkJoinWorkerThreadFactory();
 
     /**
      * Possible distance functions.
@@ -335,11 +325,7 @@ public class KMeansTrainer implements Trainer<ClusterID>, WeightedExamples {
         ForkJoinPool fjp = null;
         try {
             if (parallel) {
-                if (System.getSecurityManager() == null) {
-                    fjp = new ForkJoinPool(numThreads);
-                } else {
-                    fjp = new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
-                }
+                fjp = new ForkJoinPool(numThreads);
             }
             for (int i = 0; (i < iterations) && !converged; i++) {
                 logger.log(Level.FINE,"Beginning iteration " + i);
@@ -564,12 +550,4 @@ public class KMeansTrainer implements Trainer<ClusterID>, WeightedExamples {
      */
     record IntAndVector(int idx, SGDVector vector) { }
 
-    /**
-     * Used to allow FJPs to work with OpenSearch's SecureSM.
-     */
-    private static final class CustomForkJoinWorkerThreadFactory implements ForkJoinPool.ForkJoinWorkerThreadFactory {
-        public final ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-            return AccessController.doPrivileged((PrivilegedAction<ForkJoinWorkerThread>) () -> new ForkJoinWorkerThread(pool) {});
-        }
-    }
 }
