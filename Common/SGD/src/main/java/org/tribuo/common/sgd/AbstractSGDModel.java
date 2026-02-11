@@ -71,7 +71,7 @@ public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
      */
     protected PredAndActive predictSingle(Example<T> example) {
         SGDVector features = SGDVector.createFromExample(example, featureIDMap, addBias);
-        return new PredAndActive(modelParameters.predict(features),features.numActiveElements());
+        return new PredAndActive(modelParameters.predict(features),features.numNonZeroElements());
     }
 
     /**

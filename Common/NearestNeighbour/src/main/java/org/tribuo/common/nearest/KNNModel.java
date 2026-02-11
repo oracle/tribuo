@@ -202,25 +202,26 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     public Prediction<T> predict(Example<T> example) {
         SGDVector input = SGDVector.createFromExample(example, featureIDMap, false);
 
-        if (input.numActiveElements() == 0) {
+        if (input.numNonZeroElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example);
         }
 
         Function<Pair<SGDVector,T>, OutputDoublePair<T>> distanceFunc =
             (a) -> new OutputDoublePair<>(a.getB(), dist.computeDistance(a.getA(), input));
 
+        Function<OutputDoublePair<T>, Prediction<T>> pred =
+                (a) -> new Prediction<>(a.output, input.numNonZeroElements(), example);
         List<Prediction<T>> predictions;
         Stream<Pair<SGDVector,T>> stream = Stream.of(vectors);
         if (numThreads > 1) {
-            ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
-            try {
-                predictions = fjp.submit(()->StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map((a) -> new Prediction<>(a.output, input.numActiveElements(), example)).collect(Collectors.toList())).get();
+            try (ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false)){
+                predictions = fjp.submit(()->StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map(pred).collect(Collectors.toList())).get();
             } catch (InterruptedException | ExecutionException e) {
                 logger.log(Level.SEVERE,"Exception when predicting in KNNModel",e);
                 throw new IllegalStateException("Failed to process example in parallel",e);
             }
         } else {
-            predictions = stream.map(distanceFunc).sorted().limit(k).map((a) -> new Prediction<>(a.output, input.numActiveElements(), example)).collect(Collectors.toList());
+            predictions = stream.map(distanceFunc).sorted().limit(k).map(pred).collect(Collectors.toList());
         }
 
         return combiner.combine(outputIDInfo,predictions);
@@ -248,7 +249,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
                 for (Pair<Integer, Double> simplePair : indexDistancePairList) {
                     Pair<SGDVector,T> pair = vectors[simplePair.getA()];
-                    innerPredictions.add(new Prediction<>(pair.getB(), input.numActiveElements(), example));
+                    innerPredictions.add(new Prediction<>(pair.getB(), input.numNonZeroElements(), example));
                 }
 
                 predictions.add(combiner.combine(outputIDInfo, innerPredictions));
@@ -286,21 +287,22 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
     private List<Prediction<T>> innerPredictStreams(Iterable<Example<T>> examples) {
         List<Prediction<T>> predictions = new ArrayList<>();
         List<Prediction<T>> innerPredictions = null;
-        ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false);
-        for (Example<T> example : examples) {
-            SGDVector input = SGDVector.createFromExample(example, featureIDMap, false);
+        try (ForkJoinPool fjp = System.getSecurityManager() == null ? new ForkJoinPool(numThreads) : new ForkJoinPool(numThreads, THREAD_FACTORY, null, false)) {
+            for (Example<T> example : examples) {
+                SGDVector input = SGDVector.createFromExample(example, featureIDMap, false);
 
-            Function<Pair<SGDVector, T>, OutputDoublePair<T>> distanceFunc =
-                (a) -> new OutputDoublePair<>(a.getB(), dist.computeDistance(a.getA(), input));
+                Function<Pair<SGDVector, T>, OutputDoublePair<T>> distanceFunc =
+                        (a) -> new OutputDoublePair<>(a.getB(), dist.computeDistance(a.getA(), input));
 
-            Stream<Pair<SGDVector, T>> stream = Stream.of(vectors);
-            try {
-                innerPredictions = fjp.submit(() -> StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map((a) -> new Prediction<>(a.output, input.numActiveElements(), example)).collect(Collectors.toList())).get();
-            } catch (InterruptedException | ExecutionException e) {
-                logger.log(Level.SEVERE, "Exception when predicting in KNNModel", e);
+                Stream<Pair<SGDVector, T>> stream = Stream.of(vectors);
+                try {
+                    innerPredictions = fjp.submit(() -> StreamUtil.boundParallelism(stream.parallel()).map(distanceFunc).sorted().limit(k).map((a) -> new Prediction<>(a.output, input.numNonZeroElements(), example)).collect(Collectors.toList())).get();
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.log(Level.SEVERE, "Exception when predicting in KNNModel", e);
+                }
+
+                predictions.add(combiner.combine(outputIDInfo, innerPredictions));
             }
-
-            predictions.add(combiner.combine(outputIDInfo, innerPredictions));
         }
 
         return predictions;
@@ -390,7 +392,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
         List<Prediction<T>> predictions = new ArrayList<>();
 
         for (OutputDoublePair<T> pair : queue) {
-            predictions.add(new Prediction<>(pair.output,vector.numActiveElements(),example));
+            predictions.add(new Prediction<>(pair.output,vector.numNonZeroElements(),example));
         }
 
         return combiner.combine(outputIDInfo,predictions);
@@ -440,7 +442,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
 
         for (Pair<Integer, Double> simplePair : indexDistancePairList) {
             Pair<SGDVector,T> pair = vectors[simplePair.getA()];
-            localPredictions.add(new Prediction<>(pair.getB(), vector.numActiveElements(), example));
+            localPredictions.add(new Prediction<>(pair.getB(), vector.numNonZeroElements(), example));
         }
 
         return combiner.combine(outputIDInfo,localPredictions);

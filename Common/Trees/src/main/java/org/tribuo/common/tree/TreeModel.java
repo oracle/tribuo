@@ -346,7 +346,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * @throws IllegalArgumentException If validation fails.
      */
     public Prediction<T> predict(SGDVector vec, Example<T> example) {
-        if (vec.numActiveElements() == 0) {
+        if (vec.numNonZeroElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
         if (vec.size() != featureIDMap.size()) {
@@ -365,7 +365,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
 
         //
         // oldNode must be a LeafNode.
-        return ((LeafNode<T>) oldNode).getPrediction(vec.numActiveElements(),example);
+        return ((LeafNode<T>) oldNode).getPrediction(vec.numNonZeroElements(),example);
     }
 
     @Override
@@ -432,7 +432,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
 
         //
         // oldNode must be a LeafNode.
-        Prediction<T> pred = ((LeafNode<T>) oldNode).getPrediction(vec.numActiveElements(),example);
+        Prediction<T> pred = ((LeafNode<T>) oldNode).getPrediction(vec.numNonZeroElements(),example);
 
         List<Pair<String,Double>> pairs = new ArrayList<>();
         int i = list.size() + 1;

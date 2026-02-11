@@ -190,13 +190,13 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
                         maxLabel = label;
                     }
                 }
-                output.add(new Prediction<>(maxLabel, predMap, features[i].numActiveElements(), example.get(i), true));
+                output.add(new Prediction<>(maxLabel, predMap, features[i].numNonZeroElements(), example.get(i), true));
             }
         } else {
             int[] predLabels = parameters.predict(features);
 
             for (int i = 0; i < predLabels.length; i++) {
-                output.add(new Prediction<>(outputIDMap.getOutput(predLabels[i]),features[i].numActiveElements(),example.get(i)));
+                output.add(new Prediction<>(outputIDMap.getOutput(predLabels[i]),features[i].numNonZeroElements(),example.get(i)));
             }
         }
 

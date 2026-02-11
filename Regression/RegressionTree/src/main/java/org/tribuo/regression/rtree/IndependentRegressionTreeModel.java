@@ -168,7 +168,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
      * See {@link TreeModel#predict(SGDVector, Example)} for details.
      */
     public Prediction<Regressor> predict(SGDVector vec, Example<Regressor> example) {
-        if (vec.numActiveElements() == 0) {
+        if (vec.numNonZeroElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
         if (vec.size() != featureIDMap.size()) {
@@ -189,7 +189,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
 
             //
             // oldNode must be a LeafNode.
-            predictionList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numActiveElements(), example));
+            predictionList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numNonZeroElements(), example));
         }
         return combine(predictionList);
     }
@@ -246,7 +246,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
     @Override
     public Optional<Excuse<Regressor>> getExcuse(Example<Regressor> example) {
         SGDVector vec = SGDVector.createFromExample(example, featureIDMap, false);
-        if (vec.numActiveElements() == 0) {
+        if (vec.numNonZeroElements() == 0) {
             return Optional.empty();
         }
 
@@ -273,7 +273,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
 
             //
             // oldNode must be a LeafNode.
-            predList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numActiveElements(), example));
+            predList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numNonZeroElements(), example));
 
             List<Pair<String, Double>> pairs = new ArrayList<>();
             int i = list.size() + 1;

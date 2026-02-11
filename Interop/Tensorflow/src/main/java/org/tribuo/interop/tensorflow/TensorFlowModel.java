@@ -99,7 +99,7 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a Prediction.
-            return outputConverter.convertToPrediction(outputTensor, outputIDInfo, vec.numActiveElements(), example);
+            return outputConverter.convertToPrediction(outputTensor, outputIDInfo, vec.numNonZeroElements(), example);
         }
     }
 
@@ -132,7 +132,7 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
         int[] numActiveElements = new int[batchExamples.size()];
         for (int i = 0; i < batchExamples.size(); i++) {
             SGDVector vec = SGDVector.createFromExample(batchExamples.get(i), featureIDMap, false);
-            numActiveElements[i] = vec.numActiveElements();
+            numActiveElements[i] = vec.numNonZeroElements();
             vectors.add(vec);
         }
 
