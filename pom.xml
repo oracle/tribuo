@@ -41,7 +41,7 @@
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tribuo.java.version>17</tribuo.java.version>
+        <tribuo.java.version>21</tribuo.java.version>
         <maven.compiler.source>${tribuo.java.version}</maven.compiler.source>
         <maven.compiler.target>${tribuo.java.version}</maven.compiler.target>
         <maven.compiler.release>${tribuo.java.version}</maven.compiler.release>
