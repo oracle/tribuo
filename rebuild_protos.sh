@@ -67,6 +67,7 @@ $PROTOC $PROTO_DEPS --proto_path=Classification/SGD/src/main/resources/protos --
 
 # Clustering
 $PROTOC $PROTO_DEPS --proto_path=Clustering/Core/src/main/resources/protos --java_out=Clustering/Core/src/main/java Clustering/Core/src/main/resources/protos/tribuo-clustering-core.proto
+$PROTOC $PROTO_DEPS --proto_path=Clustering/GMM/src/main/resources/protos --java_out=Clustering/GMM/src/main/java Clustering/GMM/src/main/resources/protos/tribuo-clustering-gmm.proto
 $PROTOC $PROTO_DEPS --proto_path=Clustering/Hdbscan/src/main/resources/protos --java_out=Clustering/Hdbscan/src/main/java Clustering/Hdbscan/src/main/resources/protos/tribuo-clustering-hdbscan.proto
 $PROTOC $PROTO_DEPS --proto_path=Clustering/KMeans/src/main/resources/protos --java_out=Clustering/KMeans/src/main/java Clustering/KMeans/src/main/resources/protos/tribuo-clustering-kmeans.proto
 
