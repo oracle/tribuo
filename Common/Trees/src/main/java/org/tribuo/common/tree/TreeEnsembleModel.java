@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.ensemble.WeightedEnsembleModel;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.provenance.EnsembleModelProvenance;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.WeightedEnsembleModelProto;
@@ -142,8 +142,7 @@ public final class TreeEnsembleModel<T extends Output<T>> extends WeightedEnsemb
 
 		// Optimization: Create sparse vector once and reuse across all trees.
 		// TreeModel has a predict(SGDVector, Example) overload for this purpose.
-		SparseVector vec = SparseVector.createSparseVector(
-			example, featureIDMap, false);
+		SGDVector vec = SGDVector.createFromExample(example, featureIDMap, false);
 
 		for (Model<T> model : models) {
 			TreeModel<T> treeModel = (TreeModel<T>) model;

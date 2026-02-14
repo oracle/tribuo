@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,15 @@
 
 package org.tribuo.math.la;
 
+import org.tribuo.Example;
+import org.tribuo.Feature;
+import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.math.util.VectorNormalizer;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.ToDoubleBiFunction;
@@ -26,8 +33,11 @@ import java.util.function.ToDoubleBiFunction;
  * Interface for 1 dimensional {@link Tensor}s.
  * <p>
  * Vectors have immutable sizes and immutable indices (so {@link SparseVector} can't grow).
+ * <p>
+ * Vectors are sealed to be either sparse or dense, though those classes can be subclassed to allow further
+ * optimizations.
  */
-public interface SGDVector extends Tensor, Iterable<VectorTuple> {
+public sealed interface SGDVector extends Tensor, Iterable<VectorTuple> permits DenseVector, SparseVector {
 
     /**
      * Applies a {@link ToDoubleBiFunction} elementwise to this {@link SGDVector}.
@@ -39,6 +49,8 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
 
     /**
      * Returns a deep copy of this vector.
+     * <p>
+     * Note: does not copy the feature map or example references.
      * @return A copy of this vector.
      */
     @Override
@@ -56,6 +68,12 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
      * @return The number of non-zero elements.
      */
     public int numActiveElements();
+
+    /**
+     * Returns the number of non-zero elements in the vector currently.
+     * @return The number of non-zero elements.
+     */
+    public int numNonZeroElements();
 
     /**
      * Generates a new vector with each element scaled by {@code coefficient}.
@@ -110,8 +128,8 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
     public double sum();
 
     /**
-     * Calculates the euclidean norm for this vector.
-     * @return The euclidean norm.
+     * Calculates the Euclidean norm for this vector.
+     * @return The Euclidean norm.
      */
     @Override
     public double twoNorm();
@@ -237,8 +255,82 @@ public interface SGDVector extends Tensor, Iterable<VectorTuple> {
     public double variance(double mean);
 
     /**
+     * If this vector was constructed from an {@link Example} return the feature map used for the indices.
+     * Otherwise return {@link Optional#empty()}.
+     * @return The feature map used to construct this vector, if known.
+     */
+    public Optional<ImmutableFeatureMap> featureIDMap();
+
+    /**
+     * If this vector was constructed from an {@link Example} return the example.
+     * Otherwise return {@link Optional#empty()}.
+     * @return The example used to construct this vector.
+     */
+    public Optional<Example<?>> example();
+
+    /**
      * Returns an array containing all the values in the vector (including any implicit zeros).
      * @return An array copy.
      */
     public double[] toArray();
+
+    /**
+     * Builds a {@link SGDVector} from an {@link Example}.
+     * <p>
+     * Used in training and inference.
+     * <p>
+     * Throws {@link IllegalArgumentException} if the Example contains NaN-valued features or
+     * if no features in this Example are present in the feature map.
+     * <p>
+     * Unspecified features are set to zero.
+     * <p>
+     * Chooses to return either a {@link DenseVector} or a {@link SparseVector} based on the feature sparsity,
+     * examples with feature sparsity above the threshold in {@link SparseVector#FEATURE_SPARSITY_THRESHOLD} use
+     * {@link SparseVector}, and otherwise return {@link DenseVector}.
+     * @param example     The example to convert.
+     * @param featureInfo The feature information, used to calculate the dimension of this SGDVector.
+     * @param addBias     Add a bias feature.
+     * @return An SGDVector representing the example's features.
+     */
+    public static SGDVector createFromExample(Example<?> example, ImmutableFeatureMap featureInfo, boolean addBias) {
+        List<VectorTuple> tuples = new ArrayList<>();
+        // Compute feature indices
+        for (Feature f : example) {
+            int index = featureInfo.getID(f.getName());
+            if (index > -1) {
+                //  Allows NaN features if they are unknown to the domain because they are skipped.
+                if (Double.isNaN(f.getValue())) {
+                    throw new IllegalArgumentException("Example contained a NaN feature, " + f.toString());
+                }
+                tuples.add(new VectorTuple(index, f.getValue()));
+            }
+        }
+        if (tuples.isEmpty()) {
+            throw new IllegalArgumentException("No features in this example were found in the feature map. Example - " + example.toString());
+        }
+        // Sort tuples and combine identical indices
+        tuples.sort(Comparator.comparingInt(VectorTuple::index));
+        List<VectorTuple> mergedTuples = new ArrayList<>(tuples.size());
+        int prevIndex = -1;
+        for (VectorTuple tuple : tuples) {
+            if (tuple.index > prevIndex) {
+                // unseen index, add to merged list
+                mergedTuples.add(tuple);
+                prevIndex = tuple.index;
+            } else if (tuple.index == prevIndex) {
+                // merge values
+                mergedTuples.get(mergedTuples.size()-1).value += tuple.value;
+            } else {
+                // should not occur due to the sort
+                throw new IllegalStateException("Unexpected index: " + tuple.index + ", previous index: " + prevIndex);
+            }
+        }
+        float density = ((float) mergedTuples.size()) / featureInfo.size();
+        if (density >= SparseVector.FEATURE_SPARSITY_THRESHOLD) {
+            return new DenseVector(mergedTuples, featureInfo, example, addBias);
+        } else {
+            return new SparseVector(mergedTuples, featureInfo, example, addBias);
+        }
+    }
+
 }

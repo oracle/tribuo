@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.tribuo.Trainer;
 import org.tribuo.common.tree.ExtraTreesTrainer;
 import org.tribuo.common.tree.RandomForestTrainer;
 import org.tribuo.common.tree.TreeEnsembleModel;
-import org.tribuo.common.tree.TreeModel;
 import org.tribuo.ensemble.EnsembleModel;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.regression.Regressor;

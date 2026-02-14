@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.provenance.ModelProvenance;
 
 import java.io.IOException;
@@ -94,12 +94,12 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
         }
         // This adds overhead and triggers lookups for each feature, but is necessary to correctly calculate
         // the number of features used in this example.
-        SparseVector vec = SparseVector.createSparseVector(example, featureIDMap, false);
+        SGDVector vec = SGDVector.createFromExample(example, featureIDMap, false);
         try (TensorMap transformedInput = featureConverter.convert(vec);
              Tensor outputTensor = transformedInput.feedInto(session.runner())
                      .fetch(outputName).run().get(0)) {
             // Transform the returned tensor into a Prediction.
-            return outputConverter.convertToPrediction(outputTensor, outputIDInfo, vec.numActiveElements(), example);
+            return outputConverter.convertToPrediction(outputTensor, outputIDInfo, vec.numNonZeroElements(), example);
         }
     }
 
@@ -128,11 +128,11 @@ public abstract class TensorFlowModel<T extends Output<T>> extends Model<T> impl
             throw new IllegalStateException("Can't use a closed model, the state has gone.");
         }
         // Convert the batch
-        List<SparseVector> vectors = new ArrayList<>(batchExamples.size());
+        List<SGDVector> vectors = new ArrayList<>(batchExamples.size());
         int[] numActiveElements = new int[batchExamples.size()];
         for (int i = 0; i < batchExamples.size(); i++) {
-            SparseVector vec = SparseVector.createSparseVector(batchExamples.get(i), featureIDMap, false);
-            numActiveElements[i] = vec.numActiveElements();
+            SGDVector vec = SGDVector.createFromExample(batchExamples.get(i), featureIDMap, false);
+            numActiveElements[i] = vec.numNonZeroElements();
             vectors.add(vec);
         }
 

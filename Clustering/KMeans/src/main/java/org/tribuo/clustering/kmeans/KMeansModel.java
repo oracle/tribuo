@@ -32,7 +32,6 @@ import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.TensorProto;
@@ -174,15 +173,7 @@ public class KMeansModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
-        SGDVector vector;
-        if (example.size() == featureIDMap.size()) {
-            vector = DenseVector.createDenseVector(example, featureIDMap, false);
-        } else {
-            vector = SparseVector.createSparseVector(example, featureIDMap, false);
-        }
-        if (vector.numActiveElements() == 0) {
-            throw new IllegalArgumentException("No features found in Example " + example.toString());
-        }
+        SGDVector vector = SGDVector.createFromExample(example, featureIDMap, false);
         double minDistance = Double.POSITIVE_INFINITY;
         int id = -1;
         for (int i = 0; i < centroidVectors.length; i++) {

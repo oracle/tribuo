@@ -32,7 +32,6 @@ import org.tribuo.clustering.hdbscan.protos.ClusterExemplarProto;
 import org.tribuo.math.distance.DistanceType;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
@@ -287,11 +286,7 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         SGDVector[] data = new SGDVector[examples.size()];
         int n = 0;
         for (Example<ClusterID> example : examples) {
-            if (example.size() == featureMap.size()) {
-                data[n] = DenseVector.createDenseVector(example, featureMap, false);
-            } else {
-                data[n] = SparseVector.createSparseVector(example, featureMap, false);
-            }
+            data[n] = SGDVector.createFromExample(example, featureMap, false);
             n++;
         }
 

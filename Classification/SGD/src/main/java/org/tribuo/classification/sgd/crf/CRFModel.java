@@ -190,13 +190,13 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
                         maxLabel = label;
                     }
                 }
-                output.add(new Prediction<>(maxLabel, predMap, features[i].numActiveElements(), example.get(i), true));
+                output.add(new Prediction<>(maxLabel, predMap, features[i].numNonZeroElements(), example.get(i), true));
             }
         } else {
             int[] predLabels = parameters.predict(features);
 
             for (int i = 0; i < predLabels.length; i++) {
-                output.add(new Prediction<>(outputIDMap.getOutput(predLabels[i]),features[i].numActiveElements(),example.get(i)));
+                output.add(new Prediction<>(outputIDMap.getOutput(predLabels[i]),features[i].numNonZeroElements(),example.get(i)));
             }
         }
 
@@ -317,60 +317,6 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
     }
 
     /**
-     * Converts a {@link SequenceExample} into an array of {@link SparseVector}s suitable for CRF prediction.
-     * @deprecated As it's replaced with {@link #convertToVector} which is more flexible.
-     * @param example The sequence example to convert
-     * @param featureIDMap The feature id map, used to discover the number of features.
-     * @param <T> The type parameter of the sequence example.
-     * @return An array of {@link SparseVector}.
-     */
-    @Deprecated
-    public static <T extends Output<T>> SparseVector[] convert(SequenceExample<T> example, ImmutableFeatureMap featureIDMap) {
-        int length = example.size();
-        if (length == 0) {
-            throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
-        }
-        SparseVector[] features = new SparseVector[length];
-        int i = 0;
-        for (Example<T> e : example) {
-            features[i] = SparseVector.createSparseVector(e,featureIDMap,false);
-            if (features[i].numActiveElements() == 0) {
-                throw new IllegalArgumentException("No features found in Example " + e.toString());
-            }
-            i++;
-        }
-        return features;
-    }
-
-    /**
-     * Converts a {@link SequenceExample} into an array of {@link SparseVector}s and labels suitable for CRF prediction.
-     * @deprecated As it's replaced with {@link #convertToVector} which is more flexible.
-     * @param example The sequence example to convert
-     * @param featureIDMap The feature id map, used to discover the number of features.
-     * @param labelIDMap The label id map, used to get the index of the labels.
-     * @return A {@link Pair} of an int array of labels and an array of {@link SparseVector}.
-     */
-    @Deprecated
-    public static Pair<int[],SparseVector[]> convert(SequenceExample<Label> example, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<Label> labelIDMap) {
-        int length = example.size();
-        if (length == 0) {
-            throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
-        }
-        int[] labels = new int[length];
-        SparseVector[] features = new SparseVector[length];
-        int i = 0;
-        for (Example<Label> e : example) {
-            labels[i] = labelIDMap.getID(e.getOutput());
-            features[i] = SparseVector.createSparseVector(e,featureIDMap,false);
-            if (features[i].numActiveElements() == 0) {
-                throw new IllegalArgumentException("No features found in Example " + e.toString());
-            }
-            i++;
-        }
-        return new Pair<>(labels,features);
-    }
-
-    /**
      * Converts a {@link SequenceExample} into an array of {@link SGDVector}s suitable for CRF prediction.
      * @param example The sequence example to convert
      * @param featureIDMap The feature id map, used to discover the number of features.
@@ -382,18 +328,10 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
         if (length == 0) {
             throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
         }
-        int featureSpaceSize = featureIDMap.size();
         SGDVector[] features = new SGDVector[length];
         int i = 0;
         for (Example<T> e : example) {
-            if (e.size() == featureSpaceSize) {
-                features[i] = DenseVector.createDenseVector(e, featureIDMap, false);
-            } else {
-                features[i] = SparseVector.createSparseVector(e, featureIDMap, false);
-            }
-            if (features[i].numActiveElements() == 0) {
-                throw new IllegalArgumentException("No features found in Example " + e.toString());
-            }
+            features[i] = SGDVector.createFromExample(e,featureIDMap,false);
             i++;
         }
         return features;
@@ -411,20 +349,12 @@ public class CRFModel extends ConfidencePredictingSequenceModel {
         if (length == 0) {
             throw new IllegalArgumentException("SequenceExample is empty, " + example.toString());
         }
-        int featureSpaceSize = featureIDMap.size();
         int[] labels = new int[length];
         SGDVector[] features = new SGDVector[length];
         int i = 0;
         for (Example<Label> e : example) {
             labels[i] = labelIDMap.getID(e.getOutput());
-            if (e.size() == featureSpaceSize) {
-                features[i] = DenseVector.createDenseVector(e, featureIDMap, false);
-            } else {
-                features[i] = SparseVector.createSparseVector(e, featureIDMap, false);
-            }
-            if (features[i].numActiveElements() == 0) {
-                throw new IllegalArgumentException("No features found in Example " + e.toString());
-            }
+            features[i] = SGDVector.createFromExample(e,featureIDMap,false);
             i++;
         }
         return new Pair<>(labels,features);

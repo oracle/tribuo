@@ -36,7 +36,6 @@ import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.onnx.ONNXNode;
 
-import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

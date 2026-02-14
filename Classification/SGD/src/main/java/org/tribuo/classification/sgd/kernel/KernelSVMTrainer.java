@@ -30,7 +30,6 @@ import org.tribuo.math.kernel.Kernel;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.provenance.TrainerProvenance;
 import org.tribuo.provenance.impl.TrainerProvenanceImpl;
@@ -155,14 +154,14 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
         }
         ImmutableOutputInfo<Label> labelIDMap = examples.getOutputIDInfo();
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
-        SparseVector[] sgdFeatures = new SparseVector[examples.size()];
+        SGDVector[] sgdFeatures = new SGDVector[examples.size()];
         int[] sgdLabels = new int[examples.size()];
         double[] weights = new double[examples.size()];
         int[] indices = new int[examples.size()];
         int n = 0;
         for (Example<Label> example : examples) {
             weights[n] = example.getWeight();
-            sgdFeatures[n] = SparseVector.createSparseVector(example,featureIDMap,true);
+            sgdFeatures[n] = SGDVector.createFromExample(example,featureIDMap,true);
             sgdLabels[n] = labelIDMap.getID(example.getOutput());
             indices[n] = n;
             n++;
@@ -172,7 +171,7 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
 
         double loss = 0.0;
         int iteration = 0;
-        Map<Integer,SparseVector> supportVectors = new HashMap<>();
+        Map<Integer,SGDVector> supportVectors = new HashMap<>();
         double[][] alphas = new double[labelIDMap.size()][examples.size()];
 
         for (int i = 0; i < epochs; i++) {
@@ -211,9 +210,9 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
         }
 
         int counter = 0;
-        SparseVector[] supportArray = new SparseVector[supportVectors.size()];
+        SGDVector[] supportArray = new SGDVector[supportVectors.size()];
         for (int i = 0; i < sgdFeatures.length; i++) {
-            SparseVector value = supportVectors.get(i);
+            SGDVector value = supportVectors.get(i);
             if (value != null) {
                 supportArray[counter] = value;
                 counter++;
@@ -250,10 +249,10 @@ public class KernelSVMTrainer implements Trainer<Label>, WeightedExamples {
         return "KernelSVMTrainer(kernel="+kernel.toString()+",lambda="+lambda+",epochs="+epochs+",seed="+seed+")";
     }
 
-    private SGDVector predict(SparseVector features, Map<Integer,SparseVector> sv, double[][] alphas) {
+    private SGDVector predict(SGDVector features, Map<Integer,SGDVector> sv, double[][] alphas) {
         double[] score = new double[alphas.length];
 
-        for (Map.Entry<Integer, SparseVector> e : sv.entrySet()) {
+        for (Map.Entry<Integer, SGDVector> e : sv.entrySet()) {
             double distance = kernel.similarity(features,e.getValue());
             for (int i = 0; i < alphas.length; i++) {
                 score[i] += alphas[i][e.getKey()] * distance;

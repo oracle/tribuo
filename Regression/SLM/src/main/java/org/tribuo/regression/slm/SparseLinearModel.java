@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.tribuo.Prediction;
 import org.tribuo.VariableInfo;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
@@ -134,8 +135,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         int featureSize = proto.getBias() ? carrier.featureDomain().size() + 1 : carrier.featureDomain().size();
         for (int i = 0; i < weights.length; i++) {
             Tensor deser = Tensor.deserialize(proto.getWeights(i));
-            if (deser instanceof SparseVector) {
-                SparseVector v = (SparseVector) deser;
+            if (deser instanceof SparseVector v) {
                 if (v.size() == featureSize) {
                     weights[i] = v;
                 } else {
@@ -175,7 +175,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
                 weights, featureMeans, featureNorms, yMean, yNorm, proto.getBias());
     }
 
-    private static Map<String, List<String>> generateActiveFeatures(String[] dimensionNames, ImmutableFeatureMap featureMap, SparseVector[] weightsArray) {
+    private static Map<String, List<String>> generateActiveFeatures(String[] dimensionNames, ImmutableFeatureMap featureMap, SGDVector[] weightsArray) {
         Map<String, List<String>> map = new HashMap<>();
 
         for (int i = 0; i < dimensionNames.length; i++) {
@@ -201,16 +201,16 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
      * @return The feature vector.
      */
     @Override
-    protected SparseVector createFeatures(Example<Regressor> example) {
-        SparseVector features = SparseVector.createSparseVector(example, featureIDMap, bias);
+    protected SGDVector createFeatures(Example<Regressor> example) {
+        SGDVector features = SGDVector.createFromExample(example, featureIDMap, bias);
         features.intersectAndAddInPlace(featureMeans, (a) -> -a);
         features.hadamardProductInPlace(featureVariance, (a) -> 1.0 / a);
         return features;
     }
 
     @Override
-    protected DimensionTuple scoreDimension(int dimensionIdx, SparseVector features) {
-        double prediction = weights[dimensionIdx].numActiveElements() > 0 ? weights[dimensionIdx].dot(features) : 1.0;
+    protected DimensionTuple scoreDimension(int dimensionIdx, SGDVector features) {
+        double prediction = weights[dimensionIdx].numNonZeroElements() > 0 ? weights[dimensionIdx].dot(features) : 1.0;
         prediction *= yVariance[dimensionIdx];
         prediction += yMean[dimensionIdx];
         return new DimensionTuple(dimensions[dimensionIdx], prediction);
@@ -259,7 +259,7 @@ public class SparseLinearModel extends SkeletalIndependentRegressionSparseModel 
         Prediction<Regressor> prediction = predict(example);
         Map<String, List<Pair<String, Double>>> weightMap = new HashMap<>();
 
-        SparseVector features = createFeatures(example);
+        SGDVector features = createFeatures(example);
         for (int i = 0; i < dimensions.length; i++) {
             List<Pair<String, Double>> classScores = new ArrayList<>();
             for (VectorTuple f : features) {

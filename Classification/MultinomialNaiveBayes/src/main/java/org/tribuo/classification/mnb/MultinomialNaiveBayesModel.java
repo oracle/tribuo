@@ -166,7 +166,7 @@ public class MultinomialNaiveBayesModel extends Model<Label> {
             }
             distribution.put(name,label);
         }
-        Prediction<Label> p = new Prediction<>(maxLabel, distribution, exVector.numActiveElements(), example, true);
+        Prediction<Label> p = new Prediction<>(maxLabel, distribution, exVector.numNonZeroElements(), example, true);
         return p;
     }
 

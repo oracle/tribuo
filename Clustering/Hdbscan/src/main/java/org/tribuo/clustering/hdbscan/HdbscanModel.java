@@ -33,14 +33,12 @@ import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.distance.Distance;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -202,15 +200,7 @@ public final class HdbscanModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
-        SGDVector vector;
-        if (example.size() == featureIDMap.size()) {
-            vector = DenseVector.createDenseVector(example, featureIDMap, false);
-        } else {
-            vector = SparseVector.createSparseVector(example, featureIDMap, false);
-        }
-        if (vector.numActiveElements() == 0) {
-            throw new IllegalArgumentException("No features found in Example " + example);
-        }
+        SGDVector vector = SGDVector.createFromExample(example, featureIDMap, false);
 
         double minDistance = Double.POSITIVE_INFINITY;
         int clusterLabel = HdbscanTrainer.OUTLIER_NOISE_CLUSTER_LABEL;

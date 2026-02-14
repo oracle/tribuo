@@ -24,7 +24,6 @@ import org.tribuo.Output;
 import org.tribuo.math.FeedForwardParameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 
 /**
@@ -71,17 +70,8 @@ public abstract class AbstractSGDModel<T extends Output<T>> extends Model<T> {
      * @return The prediction and the number of features involved.
      */
     protected PredAndActive predictSingle(Example<T> example) {
-        SGDVector features;
-        if (example.size() == featureIDMap.size()) {
-            features = DenseVector.createDenseVector(example, featureIDMap, addBias);
-        } else {
-            features = SparseVector.createSparseVector(example, featureIDMap, addBias);
-        }
-        int minNumFeatures = addBias ? 1 : 0;
-        if (features.numActiveElements() == minNumFeatures) {
-            throw new IllegalArgumentException("No features found in Example " + example.toString());
-        }
-        return new PredAndActive(modelParameters.predict(features),features.numActiveElements());
+        SGDVector features = SGDVector.createFromExample(example, featureIDMap, addBias);
+        return new PredAndActive(modelParameters.predict(features),features.numNonZeroElements());
     }
 
     /**

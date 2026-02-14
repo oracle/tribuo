@@ -34,7 +34,6 @@ import org.tribuo.math.distributions.MultivariateNormalDistribution;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.TensorProto;
@@ -80,7 +79,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
     private final MultivariateNormalDistribution.CovarianceType covarianceType;
 
-    private transient MultivariateNormalDistribution[] distributions;
+    private final MultivariateNormalDistribution[] distributions;
 
     GaussianMixtureModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                          ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] meanVectors,
@@ -256,15 +255,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
     @Override
     public Prediction<ClusterID> predict(Example<ClusterID> example) {
-        SGDVector vector;
-        if (example.size() == featureIDMap.size()) {
-            vector = DenseVector.createDenseVector(example, featureIDMap, false);
-        } else {
-            vector = SparseVector.createSparseVector(example, featureIDMap, false);
-        }
-        if (vector.numActiveElements() == 0) {
-            throw new IllegalArgumentException("No features found in Example " + example.toString());
-        }
+        SGDVector vector = SGDVector.createFromExample(example, featureIDMap, false);
 
         // generate cluster responsibilities and normalize into a distribution
         DenseVector responsibilities = new DenseVector(distributions.length);

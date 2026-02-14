@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import org.tribuo.common.tree.TreeModel;
 import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
@@ -160,7 +159,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
     public Prediction<Regressor> predict(Example<Regressor> example) {
         //
         // Ensures we handle collisions correctly
-        SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
+        SGDVector vec = SGDVector.createFromExample(example, featureIDMap, false);
         return predict(vec, example);
     }
 
@@ -169,7 +168,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
      * See {@link TreeModel#predict(SGDVector, Example)} for details.
      */
     public Prediction<Regressor> predict(SGDVector vec, Example<Regressor> example) {
-        if (vec.numActiveElements() == 0) {
+        if (vec.numNonZeroElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
         if (vec.size() != featureIDMap.size()) {
@@ -185,12 +184,12 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
 
             while (curNode != null) {
                 oldNode = curNode;
-                curNode = oldNode.getNextNode((SparseVector) vec);
+                curNode = oldNode.getNextNode(vec);
             }
 
             //
             // oldNode must be a LeafNode.
-            predictionList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numActiveElements(), example));
+            predictionList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numNonZeroElements(), example));
         }
         return combine(predictionList);
     }
@@ -233,7 +232,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
                 }
             }
             List<Pair<String, Double>> list = new ArrayList<>();
-            while (q.size() > 0) {
+            while (!q.isEmpty()) {
                 list.add(q.poll());
             }
             Collections.reverse(list);
@@ -246,8 +245,8 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
 
     @Override
     public Optional<Excuse<Regressor>> getExcuse(Example<Regressor> example) {
-        SparseVector vec = SparseVector.createSparseVector(example, featureIDMap, false);
-        if (vec.numActiveElements() == 0) {
+        SGDVector vec = SGDVector.createFromExample(example, featureIDMap, false);
+        if (vec.numNonZeroElements() == 0) {
             return Optional.empty();
         }
 
@@ -274,7 +273,7 @@ public final class IndependentRegressionTreeModel extends TreeModel<Regressor> {
 
             //
             // oldNode must be a LeafNode.
-            predList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numActiveElements(), example));
+            predList.add(((LeafNode<Regressor>) oldNode).getPrediction(vec.numNonZeroElements(), example));
 
             List<Pair<String, Double>> pairs = new ArrayList<>();
             int i = list.size() + 1;
