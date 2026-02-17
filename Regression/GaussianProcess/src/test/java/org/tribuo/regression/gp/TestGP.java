@@ -16,26 +16,33 @@
 
 package org.tribuo.regression.gp;
 
+import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
+import org.tribuo.Model;
 import org.tribuo.MutableDataset;
 import org.tribuo.data.csv.CSVLoader;
 import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.math.kernel.RBF;
 import org.tribuo.regression.RegressionFactory;
 import org.tribuo.regression.Regressor;
+import org.tribuo.regression.evaluation.RegressionEvaluation;
 import org.tribuo.regression.evaluation.RegressionEvaluator;
+import org.tribuo.regression.example.RegressionDataGenerator;
+import org.tribuo.test.Helpers;
 import org.tribuo.util.Util;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
 public class TestGP {
+    private static final GaussianProcessTrainer gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5, false);
+    private static final RegressionEvaluator e = new RegressionEvaluator();
 
     @Test
     public void testWine() throws IOException {
         var outputFactory = new RegressionFactory();
-        var linear = new GaussianProcessTrainer(new RBF(1), 0.5, false);
+        var gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5, false);
 
         var csvLoader = new CSVLoader<>(';',outputFactory);
         var wineSource = csvLoader.loadDataSource(Paths.get("../../tutorials/winequality-red.csv"),"quality");
@@ -48,7 +55,7 @@ public class TestGP {
         System.out.printf("Testing data size = %d, number of features = %d%n",testData.size(),testData.getFeatureMap().size());
 
         var lrStartTime = System.currentTimeMillis();
-        var model = linear.train(trainData);
+        var model = gpTrainer.train(trainData);
         var lrEndTime = System.currentTimeMillis();
         System.out.println("Training GP took " + Util.formatDuration(lrStartTime,lrEndTime));
 
@@ -57,6 +64,19 @@ public class TestGP {
 
         var testEvaluation = evaluator.evaluate(model, testData);
         System.out.println(testEvaluation.toString());
+    }
+
+    public static Model<Regressor> testGP(Pair<Dataset<Regressor>,Dataset<Regressor>> p, GaussianProcessTrainer t) {
+        Model<Regressor> gpModel = t.train(p.getA());
+        RegressionEvaluation evaluation = e.evaluate(gpModel,p.getB());
+        return gpModel;
+    }
+
+    @Test
+    public void testDenseData() {
+        Pair<Dataset<Regressor>,Dataset<Regressor>> p = RegressionDataGenerator.denseTrainTest();
+        Model<Regressor> model = testGP(p, gpTrainer);
+        Helpers.testModelProtoSerialization(model, Regressor.class, p.getB());
     }
 
 }

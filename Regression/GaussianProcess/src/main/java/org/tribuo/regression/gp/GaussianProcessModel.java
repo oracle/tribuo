@@ -37,6 +37,7 @@ import org.tribuo.math.la.Tensor;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
+import org.tribuo.regression.gp.protos.GaussianProcessModelProto;
 import org.tribuo.util.Util;
 
 import java.util.ArrayList;
@@ -127,6 +128,7 @@ public final class GaussianProcessModel extends Model<Regressor> {
         if (featureMatrix.getDimension2Size() != numFeatures) {
             throw new IllegalStateException("Invalid protobuf, feature matrix not the right size, expected [numExamples,"+ numFeatures +"], found " + Arrays.toString(featureMatrix.getShape()));
         }
+        int numExamples = featureMatrix.getDimension1Size();
 
         Tensor alphaTensor = Tensor.deserialize(proto.getAlphas());
         if (!(alphaTensor instanceof DenseMatrix alphaMatrix)) {
@@ -137,8 +139,8 @@ public final class GaussianProcessModel extends Model<Regressor> {
         }
 
         DenseMatrix.CholeskyFactorization factorization = DenseMatrix.CholeskyFactorization.deserialize(proto.getCholesky());
-        if (factorization.dim1() != outputSize) {
-            throw new IllegalStateException("Invalid protobuf, cholesky not the right size, expected ["+outputSize+","+ outputSize +"], found " + Arrays.toString(factorization.lMatrix().getShape()));
+        if (factorization.dim1() != numExamples) {
+            throw new IllegalStateException("Invalid protobuf, cholesky not the right size, expected ["+numExamples+","+ numExamples +"], found " + Arrays.toString(factorization.lMatrix().getShape()));
         }
 
         Tensor outputMeansTensor = Tensor.deserialize(proto.getOutputMeans());
@@ -170,7 +172,7 @@ public final class GaussianProcessModel extends Model<Regressor> {
         modelBuilder.setKernel(kernel.serialize());
         modelBuilder.setFeatures(features.serialize());
         modelBuilder.setAlphas(alpha.serialize());
-        modelBuilder.setFactorization(fact.lMatrix().serialize());
+        modelBuilder.setCholesky(fact.lMatrix().serialize());
         modelBuilder.setOutputMeans(outputMeans.serialize());
         modelBuilder.setOutputVariances(outputVariances.serialize());
 
