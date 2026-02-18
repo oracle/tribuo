@@ -30,6 +30,7 @@ import org.tribuo.ONNXExportable;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.WeightedEnsembleModelProto;
 import org.tribuo.provenance.EnsembleModelProvenance;
@@ -118,17 +119,18 @@ public class WeightedEnsembleModel<T extends Output<T>> extends EnsembleModel<T>
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
-    public static WeightedEnsembleModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static WeightedEnsembleModel<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         WeightedEnsembleModelProto proto = message.unpack(WeightedEnsembleModelProto.class);
 
-        ModelDataCarrier<? extends Output<?>> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ModelDataCarrier<? extends Output<?>> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
         ModelProvenance prov = carrier.provenance();
         if (!(prov instanceof EnsembleModelProvenance)) {
             throw new IllegalStateException("Invalid protobuf, the provenance was not an EnsembleModelProvenance. Found " + prov);
@@ -136,7 +138,7 @@ public class WeightedEnsembleModel<T extends Output<T>> extends EnsembleModel<T>
         EnsembleModelProvenance ensembleProvenance = (EnsembleModelProvenance) prov;
         ImmutableOutputInfo<? extends Output<?>> outputDomain = carrier.outputDomain();
         Class<? extends Output> outputClass = outputDomain.getOutput(0).getClass();
-        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());
+        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner(), deserCache);
         if (!outputClass.equals(combiner.getTypeWitness())) {
             throw new IllegalStateException("Invalid protobuf, combiner and output domain have a type mismatch, expected " + outputClass + " found " + combiner.getTypeWitness());
         }
@@ -149,7 +151,7 @@ public class WeightedEnsembleModel<T extends Output<T>> extends EnsembleModel<T>
         }
         List<Model> models = new ArrayList<>(proto.getModelsCount());
         for (ModelProto p : proto.getModelsList()) {
-            Model model = Model.deserialize(p);
+            Model model = Model.deserialize(p, deserCache);
             if (model.validate(outputClass)) {
                 models.add(model);
             } else {

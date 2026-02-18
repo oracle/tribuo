@@ -22,6 +22,7 @@ import com.oracle.labs.mlrg.olcut.provenance.Provenance;
 import com.oracle.labs.mlrg.olcut.util.MutableLong;
 import org.tribuo.MutableDataset;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.TransformerMapProto;
 import org.tribuo.protos.core.TransformerProto;
 import org.tribuo.test.MockDataSourceProvenance;
@@ -315,10 +316,11 @@ public class TransformationMapTest {
          * @param version   The serialized object version.
          * @param className The class name.
          * @param message   The serialized data.
+         * @param deserCache The deserialization cache for deduping model metadata.
          * @throws InvalidProtocolBufferException If the message is not a {@link TestCountTransformerProto}.
          * @return The deserialized object.
          */
-        static CountTransformer deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+        static CountTransformer deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
             TestCountTransformerProto proto = message.unpack(TestCountTransformerProto.class);
             if (version == 0) {
                 Map<Double, MutableLong> countMap = new HashMap<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.tribuo.math.la.Tensor;
 import org.tribuo.math.neighbour.NeighboursQuery;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.protos.TensorProto;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.OutputProto;
@@ -137,21 +138,22 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // Guarded by getClass checks to ensure all outputs are the same type.
-    public static KNNModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static KNNModel<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         KNNModelProto proto = message.unpack(KNNModelProto.class);
 
-        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
         ImmutableFeatureMap featureDomain = carrier.featureDomain();
         ImmutableOutputInfo<?> outputDomain = carrier.outputDomain();
         Class<?> outputClass = outputDomain.getOutput(0).getClass();
-        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner());
+        EnsembleCombiner<?> combiner = EnsembleCombiner.deserialize(proto.getCombiner(), deserCache);
         if (!outputClass.equals(combiner.getTypeWitness())) {
             throw new IllegalStateException("Invalid protobuf, combiner and output domain have a type mismatch, expected " + outputClass + " found " + combiner.getTypeWitness());
         }
@@ -192,7 +194,7 @@ public class KNNModel<T extends Output<T>> extends Model<T> {
             }
         }
 
-        org.tribuo.math.distance.Distance dist = ProtoUtil.deserialize(proto.getDistance());
+        org.tribuo.math.distance.Distance dist = ProtoUtil.deserialize(proto.getDistance(), deserCache);
         Backend backend = Backend.valueOf(proto.getParallelBackend());
         NeighboursQueryFactory queryFactory = NeighboursQueryFactory.deserialize(proto.getNeighboursQueryFactory());
 

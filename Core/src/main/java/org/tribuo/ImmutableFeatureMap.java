@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.tribuo;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.FeatureDomainProto;
@@ -100,17 +101,18 @@ public class ImmutableFeatureMap extends FeatureMap {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static ImmutableFeatureMap deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static ImmutableFeatureMap deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         ImmutableFeatureMapProto proto = message.unpack(ImmutableFeatureMapProto.class);
         ImmutableFeatureMap obj = new ImmutableFeatureMap();
         for (VariableInfoProto infoProto : proto.getInfoList()) {
-            VariableIDInfo info = ProtoUtil.deserialize(infoProto);
+            VariableIDInfo info = ProtoUtil.deserialize(infoProto, deserCache);
             Object o = obj.idMap.put(info.getID(), info);
             Object otherO = obj.m.put(info.getName(),info);
             if ((o != null) || (otherO != null)) {

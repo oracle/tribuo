@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.oracle.labs.mlrg.olcut.provenance.ListProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.ObjectProvenance;
 import org.tribuo.impl.DatasetDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.DatasetProto;
 import org.tribuo.protos.core.MutableDatasetProto;
 import org.tribuo.provenance.DataProvenance;
@@ -119,19 +120,20 @@ public class MutableDataset<T extends Output<T>> extends Dataset<T> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded & checked by getClass checks.
-    public static MutableDataset<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static MutableDataset<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         MutableDatasetProto proto = message.unpack(MutableDatasetProto.class);
-        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata());
+        DatasetDataCarrier<?> carrier = DatasetDataCarrier.deserialize(proto.getMetadata(), deserCache);
         Class<?> outputClass = carrier.outputFactory().getUnknownOutput().getClass();
         FeatureMap fmap = carrier.featureDomain();
-        List<Example<?>> examples = deserializeExamples(proto.getExamplesList(), outputClass, fmap);
+        List<Example<?>> examples = deserializeExamples(proto.getExamplesList(), outputClass, fmap, deserCache);
         if (!(fmap instanceof MutableFeatureMap)) {
             throw new IllegalStateException("Invalid protobuf, feature map was not mutable");
         }

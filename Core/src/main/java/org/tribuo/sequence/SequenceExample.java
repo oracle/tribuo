@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.tribuo.OutputFactory;
 import org.tribuo.hash.HashedFeatureMap;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.BinaryFeaturesExample;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoSerializableField;
@@ -185,20 +186,21 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // guarded by getClass checks
-    public static SequenceExample<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static SequenceExample<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         SequenceExampleImplProto proto = message.unpack(SequenceExampleImplProto.class);
         List<Example<?>> examples = new ArrayList<>();
         for (ExampleProto p : proto.getExamplesList()) {
-            examples.add(Example.deserialize(p));
+            examples.add(Example.deserialize(p, deserCache));
         }
-        if (examples.size() > 0) {
+        if (!examples.isEmpty()) {
             Class<? extends Output> first = examples.get(0).getOutput().getClass();
             for (int i = 1; i < examples.size(); i++) {
                 Class<? extends Output> other = examples.get(i).getOutput().getClass();
@@ -216,7 +218,17 @@ public class SequenceExample<T extends Output<T>> implements Iterable<Example<T>
      * @return The sequence example.
      */
     public static SequenceExample<?> deserialize(SequenceExampleProto e) {
-        return ProtoUtil.deserialize(e);
+        return deserialize(e, new ProtoDeserializationCache());
+    }
+
+    /**
+     * Deserialization shortcut, used to firm up the types.
+     * @param e The proto to deserialize.
+     * @param deserCache The deserialization cache.
+     * @return The sequence example.
+     */
+    public static SequenceExample<?> deserialize(SequenceExampleProto e, ProtoDeserializationCache deserCache) {
+        return ProtoUtil.deserialize(e, deserCache);
     }
 
     /**

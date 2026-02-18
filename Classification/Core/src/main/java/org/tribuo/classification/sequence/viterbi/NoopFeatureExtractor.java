@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl
 import org.tribuo.Feature;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.protos.LabelFeatureExtractorProto;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializableClass;
 import org.tribuo.protos.ProtoUtil;
 
@@ -52,9 +53,10 @@ public class NoopFeatureExtractor implements LabelFeatureExtractor {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @return The deserialized object.
      */
-    public static NoopFeatureExtractor deserializeFromProto(int version, String className, Any message) {
+    public static NoopFeatureExtractor deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
@@ -63,6 +65,7 @@ public class NoopFeatureExtractor implements LabelFeatureExtractor {
         }
         return new NoopFeatureExtractor();
     }
+
     @Override
     public List<Feature> extractFeatures(List<Label> previousOutcomes, double value) {
         return Collections.emptyList();
@@ -83,4 +86,3 @@ public class NoopFeatureExtractor implements LabelFeatureExtractor {
         return ProtoUtil.serialize(this);
     }
 }
-

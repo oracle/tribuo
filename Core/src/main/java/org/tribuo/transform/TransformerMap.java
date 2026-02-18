@@ -28,6 +28,7 @@ import org.tribuo.Example;
 import org.tribuo.MutableDataset;
 import org.tribuo.Output;
 import org.tribuo.impl.ArrayExample;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.TransformerListProto;
@@ -89,12 +90,22 @@ public final class TransformerMap implements ProtoSerializable<TransformerMapPro
      * @return The deserialized TransformerMap.
      */
     public static TransformerMap deserialize(TransformerMapProto proto) {
+        return deserialize(proto, new ProtoDeserializationCache());
+    }
+
+    /**
+     * Deserializes a {@link TransformerMapProto} into a {@link TransformerMap}.
+     * @param proto The proto to deserialize.
+     * @param deserCache The deserialization cache.
+     * @return The deserialized TransformerMap.
+     */
+    public static TransformerMap deserialize(TransformerMapProto proto, ProtoDeserializationCache deserCache) {
         if (proto.getVersion() == CURRENT_VERSION) {
             Map<String,List<Transformer>> map = new LinkedHashMap<>();
             for (Map.Entry<String,TransformerListProto> e : proto.getTransformersMap().entrySet()) {
                 List<Transformer> list = new ArrayList<>();
                 for (TransformerProto p : e.getValue().getTransformerList()) {
-                    list.add(ProtoUtil.deserialize(p));
+                    list.add(ProtoUtil.deserialize(p, deserCache));
                 }
                 map.put(e.getKey(),list);
             }

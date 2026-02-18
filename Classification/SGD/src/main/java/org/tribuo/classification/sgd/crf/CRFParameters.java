@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.tribuo.math.la.Tensor;
 import org.tribuo.math.protos.ParametersProto;
 import org.tribuo.math.util.HeapMerger;
 import org.tribuo.math.util.Merger;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoUtil;
 
 import java.util.ArrayList;
@@ -89,19 +90,20 @@ public class CRFParameters implements Parameters {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static CRFParameters deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static CRFParameters deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         CRFParametersProto proto = message.unpack(CRFParametersProto.class);
         int numLabels = proto.getNumLabels();
         int numFeatures = proto.getNumFeatures();
-        Tensor biasTensor = ProtoUtil.deserialize(proto.getBiases());
-        Tensor featureLabelTensor = ProtoUtil.deserialize(proto.getFeatureLabelWeights());
-        Tensor labelLabelTensor = ProtoUtil.deserialize(proto.getLabelLabelWeights());
+        Tensor biasTensor = ProtoUtil.deserialize(proto.getBiases(), deserCache);
+        Tensor featureLabelTensor = ProtoUtil.deserialize(proto.getFeatureLabelWeights(), deserCache);
+        Tensor labelLabelTensor = ProtoUtil.deserialize(proto.getLabelLabelWeights(), deserCache);
         if (!(biasTensor instanceof DenseVector)) {
             throw new IllegalArgumentException("Invalid protobuf, expected bias vector, found " + biasTensor.getClass().getSimpleName());
         } else if (((DenseVector)biasTensor).size() != numLabels) {
