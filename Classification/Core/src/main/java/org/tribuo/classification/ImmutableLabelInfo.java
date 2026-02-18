@@ -29,9 +29,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,15 +66,18 @@ public class ImmutableLabelInfo extends LabelInfo implements ImmutableOutputInfo
 
     ImmutableLabelInfo(LabelInfo info) {
         super(info);
-        idLabelMap = new HashMap<>();
-        labelIDMap = new HashMap<>();
+        idLabelMap = new LinkedHashMap<>();
+        labelIDMap = new LinkedHashMap<>();
         int counter = 0;
-        for (Map.Entry<String,MutableLong> e : labelCounts.entrySet()) {
-            idLabelMap.put(counter,e.getKey());
-            labelIDMap.put(e.getKey(),counter);
+        SortedSet<String> keys = new TreeSet<>(labelCounts.keySet());
+        Set<Label> domainSet = new LinkedHashSet<>();
+        for (String key : keys) {
+            idLabelMap.put(counter,key);
+            labelIDMap.put(key,counter);
+            domainSet.add(labels.get(key));
             counter++;
         }
-        domain = Collections.unmodifiableSet(new HashSet<>(labels.values()));
+        domain = Collections.unmodifiableSet(domainSet);
     }
 
     ImmutableLabelInfo(LabelInfo info, Map<Label,Integer> mapping) {

@@ -94,7 +94,7 @@ public class TestSGDLinear {
         assertEquals(0.0,evaluation.accuracy(new Label("Baz")));
         assertEquals(0.0,evaluation.accuracy(new Label("Quux")));
         assertEquals(1.0,evaluation.recall(new Label("Foo")));
-        assertEquals(1.0,evaluation.recall(new Label("Bar"))); // This is due to the random init of the classifier.
+        assertEquals(0.0,evaluation.recall(new Label("Bar")));
     }
 
     @Test

@@ -19,6 +19,7 @@ package org.tribuo.classification.dtree;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.Dataset;
+import org.tribuo.ImmutableDataset;
 import org.tribuo.Example;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
@@ -250,7 +251,8 @@ public class TestClassificationEnsembles {
             List<Prediction<Label>> deserOutput = deserModel.predict(p.getB());
 
             AdaBoostTrainer trainer = new AdaBoostTrainer(t,10);
-            WeightedEnsembleModel<Label> model = trainer.train(p.getA());
+            Dataset<Label> train = new ImmutableDataset<>(p.getA(), p.getA().getProvenance(), p.getA().getOutputFactory(), deserModel.getFeatureIDMap(), deserModel.getOutputIDInfo(), false);
+            WeightedEnsembleModel<Label> model = trainer.train(train);
             List<Prediction<Label>> output = model.predict(p.getB());
 
             assertEquals(deserOutput.size(), p.getB().size());
