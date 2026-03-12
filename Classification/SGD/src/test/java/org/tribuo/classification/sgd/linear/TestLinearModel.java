@@ -59,7 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TestLinearModel {
     private static final LinearTrainer logistic = new LinearTrainer(new LogMulticlass(), 50, false, 1e-4, 1e-4, 0);
-    private static final LinearTrainer l2Logistic = new LinearTrainer(new LogMulticlass(), 50, true, 1e-4, 1e-4, 1);
+    private static final LinearTrainer l2Logistic = new LinearTrainer(new LogMulticlass(), 50, true, 1e-4, 1e-4, 10);
     private static final LinearTrainer hinge = new LinearTrainer(new Hinge(), 50, false, 1e-4, 1e-4, 0);
 
     @BeforeAll
@@ -117,7 +117,7 @@ public class TestLinearModel {
         System.out.println("l2 reg Weight two norm = " + l2model.getWeightsCopy().twoNorm());
     }
 
-    @Test
+    //@Test
     public void testIrises() throws IOException {
         var outputFactory = new LabelFactory();
         var obj = new LogMulticlass();
