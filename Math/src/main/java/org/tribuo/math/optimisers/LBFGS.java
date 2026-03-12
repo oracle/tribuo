@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 
 package org.tribuo.math.optimisers;
 
+import com.oracle.labs.mlrg.olcut.config.Config;
+import com.oracle.labs.mlrg.olcut.config.Configurable;
+import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
+import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
+import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
 import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseSparseMatrix;
@@ -25,6 +30,7 @@ import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 
@@ -39,7 +45,8 @@ import java.util.function.ToDoubleFunction;
  * Springer, 2006.
  * </pre>
  */
-public final class LBFGS {
+public final class LBFGS implements Configurable, Provenancable<ConfiguredObjectProvenance> {
+    private static final System.Logger logger = System.getLogger(LBFGS.class.getName());
 
     /**
      * Return value from an L-BFGS evaluation.
@@ -49,15 +56,32 @@ public final class LBFGS {
      */
     public record GradAndLoss(Tensor[] gradient, double loss) { }
 
-    private static final System.Logger logger = System.getLogger(LBFGS.class.getName());
+    @Config(description = "The maximum number of iterations.")
+    private int maxIterations = 1000;
 
-    private final int maxIterations;
+    @Config(description = "The loss convergence tolerance.")
+    private double tolerance = 1e-5;
 
-    private final double tolerance;
+    @Config(description = "The gradient convergence tolerance.")
+    private double gradientTolerance = 1e-4;
 
-    private final double gradientTolerance;
+    @Config(description = "The number of previous gradients to keep in the Hessian approximation.")
+    private int memorySize = 10;
 
-    private final int memorySize;
+    @Config(description = "Use a Wolfe line search, instead of a simpler backtracking line search.")
+    private boolean useWolfe = true;
+
+    /**
+     * Constructs a limited memory BFGS optimizer with a Wolfe line search.
+     *
+     * @param memorySize        The memory size of the Hessian approximation, typically 10.
+     * @param maxIterations     The maximum number of iterations, typically 1000.
+     * @param tolerance         The convergence tolerance typically 1e-5.
+     * @param gradientTolerance The zero gradient tolerance, typically 1e-4.
+     */
+    public LBFGS(int memorySize, int maxIterations, double tolerance, double gradientTolerance) {
+        this(memorySize, maxIterations, tolerance, gradientTolerance, true);
+    }
 
     /**
      * Constructs a limited memory BFGS optimizer.
@@ -66,22 +90,35 @@ public final class LBFGS {
      * @param maxIterations     The maximum number of iterations, typically 1000.
      * @param tolerance         The convergence tolerance typically 1e-5.
      * @param gradientTolerance The zero gradient tolerance, typically 1e-4.
+     * @param useWolfe          Use a Wolfe line search if true, otherwise use a backtracking one.
      */
-    public LBFGS(int memorySize, int maxIterations, double tolerance, double gradientTolerance) {
+    public LBFGS(int memorySize, int maxIterations, double tolerance, double gradientTolerance, boolean useWolfe) {
         this.memorySize = memorySize;
         this.maxIterations = maxIterations;
         this.tolerance = tolerance;
         this.gradientTolerance = gradientTolerance;
+        this.useWolfe = useWolfe;
     }
 
     /**
-     * Constructs a limited memory BFGS optimizer with a memory size of 10, max iterations of 1000 and tolerance
-     * of 1e-5.
+     * Constructs a limited memory BFGS optimizer with a memory size of 10, max iterations of 1000, tolerance
+     * of 1e-5 and a Wolfe line search.
      */
     public LBFGS() {
         this(10, 1000, 1e-5, 1e-4);
     }
 
+    @Override
+    public ConfiguredObjectProvenance getProvenance() {
+        return new ConfiguredObjectProvenanceImpl(this, "LBFGS");
+    }
+
+    /**
+     * Minimizes the supplied function using limited memory BFGS.
+     * @param parameters The function parameters.
+     * @param lossAndGrad A function which generates the loss and gradient given the parameters.
+     * @param loss A function which generates the loss given the parameters.
+     */
     public void optimize(Parameters parameters, Function<Tensor[], GradAndLoss> lossAndGrad, ToDoubleFunction<Tensor[]> loss) {
         Tensor[] params = parameters.get();
 
@@ -92,23 +129,24 @@ public final class LBFGS {
         var yArr = new DenseVector[this.memorySize];
         // scale history
         var rhoArr = new double[this.memorySize];
-        double gamma = -1.0;
+        double[] alpha = new double[this.memorySize];
+        double gamma = 1.0;
 
         double oldLoss = 0.0;
 
         LBFGS.GradAndLoss gradLoss = lossAndGrad.apply(params);
         DenseVector q = ravelArray(gradLoss.gradient);
-        q.scaleInPlace(1.0 / q.twoNorm());
         DenseVector gradCopy = q.copy();
         DenseVector oldGrad;
         boolean converged = false;
         double lossValue = gradLoss.loss();
         for (int i = 0; i < maxIterations; i++) {
-            // compute descent direction
+            // Zero the alphas from the previous iteration.
+            Arrays.fill(alpha, 0.0);
 
+            // compute descent direction
             // - compute Hessian approximation
             // -- first recursion
-            double[] alpha = new double[histSize];
             for (int j = 0; j < histSize; j++) {
                 double curAlpha = rhoArr[j] * sArr[j].dot(q);
                 alpha[j] = curAlpha;
@@ -126,8 +164,23 @@ public final class LBFGS {
             // reverse direction for gradient descent
             r.scaleInPlace(-1.0);
 
+            // Defensive check: if the approximate inverse-Hessian produced a non-descent direction,
+            // fall back to steepest descent. Wolfe line search requires g^T p < 0.
+            double gradDotDescent = gradCopy.dot(r);
+            if (gradDotDescent > 0.0) {
+                logger.log(System.Logger.Level.WARNING,
+                        "L-BFGS produced a non-descent direction (g^T p=" + gradDotDescent + ") at iteration " + i + ", falling back to steepest descent.");
+                r = gradCopy.copy();
+                r.scaleInPlace(-1.0);
+            }
+
             // line search
-            var stepSize = backtrackingLineSearch(loss, params, r, gradCopy);
+            double stepSize;
+            if (this.useWolfe) {
+                stepSize = wolfeLineSearch(lossAndGrad, loss, params, r, gradCopy);
+            } else {
+                stepSize = backtrackingLineSearch(loss, params, r, gradCopy);
+            }
             double gradNorm = r.twoNorm();
             r.scaleInPlace(stepSize);
 
@@ -144,6 +197,10 @@ public final class LBFGS {
                 converged = true;
                 logger.log(System.Logger.Level.WARNING, "L-BFGS diverged at iteration " + i + " with loss value " + lossValue + " due to a NaN gradient");
                 break;
+            } else if (stepSize == 0.0) {
+                converged = true;
+                logger.log(System.Logger.Level.WARNING, "L-BFGS line search could not proceed due to a diverging descent direction at iteration " + i + " with loss value " + lossValue);
+                break;
             }
 
             // update parameters
@@ -159,20 +216,30 @@ public final class LBFGS {
             if (histSize < this.memorySize) {
                 histSize++;
             }
-            // write new cache entries
-            sArr[0] = r;
             // compute new gradient for position i+1
             gradLoss = lossAndGrad.apply(params);
             lossValue = gradLoss.loss();
             q = ravelArray(gradLoss.gradient);
             oldGrad = gradCopy;
             gradCopy = q.copy();
+
+            // s_k = x_{k+1} - x_k as the parameter update is r.
+            sArr[0] = r;
             yArr[0] = gradCopy.subtract(oldGrad);
-            double sdoty = sArr[0].dot(yArr[0]);
-            rhoArr[0] = 1.0 / sdoty;
             double ydoty = yArr[0].dot(yArr[0]);
-            gamma = sdoty / ydoty;
-            logger.log(System.Logger.Level.INFO, "L-BFGS iteration " + i + ", loss = " + lossValue + " gradNorm " + gradNorm + " gamma " + gamma);
+            double sdoty = sArr[0].dot(yArr[0]);
+
+            // Skip invalid curvature updates. Standard L-BFGS requires sdoty > 0.
+            // If invalid, set rho[0] to 0 so this history element is ignored.
+            if (sdoty > 1e-16 && ydoty > 0.0) {
+                rhoArr[0] = 1.0 / sdoty;
+                gamma = sdoty / ydoty;
+            } else {
+                rhoArr[0] = 0.0;
+                // keep gamma unchanged
+                logger.log(System.Logger.Level.WARNING,
+                        "Invalid curvature update at iteration " + i + " (sdoty=" + sdoty + ", ydoty=" + ydoty + "), skipping L-BFGS memory update.");
+            }
             if (ydoty == 0.0) {
                 logger.log(System.Logger.Level.INFO, "L-BFGS converged as gradient is unchanging");
                 break;
@@ -263,11 +330,10 @@ public final class LBFGS {
         Tensor[] newPos = unravelVector(params, raveledParams);
         double curLoss = lossFunc.applyAsDouble(newPos);
         var convergenceLimit = C_ONE * descentDirection.dot(gradient);
-        /* This check causes edge case training runs to fail, though it seems useful.
-        if (convergenceLimit < 0) {
-            throw new IllegalStateException("Invalid convergence limit, descent direction & gradient point in orthogonal or opposite directions, convergenceLimit " + convergenceLimit);
+        if (convergenceLimit > 0) {
+            logger.log(System.Logger.Level.WARNING, "Invalid convergence limit, descent direction & gradient point in orthogonal or opposite directions, convergenceLimit " + convergenceLimit);
+            return 0.0;
         }
-        */
         int itr = 0;
         while ((curLoss > (startLoss + alpha*convergenceLimit)) && (itr < MAX_LINESEARCH_ITR)) {
             double newAlpha = alpha * C_TWO;
@@ -285,5 +351,128 @@ public final class LBFGS {
         }
 
         return alpha;
+    }
+
+    /**
+     * A strong Wolfe line search.
+     * <p>
+     * Enforces:
+     * <ul>
+     *     <li><b>Armijo</b>: {@code f(x + alpha p) <= f(x) + c1 * alpha * g(x)^T p}</li>
+     *     <li><b>Strong curvature</b>: {@code |g(x + alpha p)^T p| <= c2 * |g(x)^T p|}</li>
+     * </ul>
+     * <p>
+     * This is a bracketing + zoom line search as described in Nocedal & Wright (2006).
+     * <p>
+     * Requirements:
+     * <ul>
+     *     <li>{@code gradient} is the gradient at {@code params}.</li>
+     *     <li>{@code descentDirection} is a descent direction: {@code gradient.dot(descentDirection) < 0}.</li>
+     * </ul>
+     *
+     * @param lossAndGrad A function returning loss and gradient at a position.
+     * @param lossFunc A function returning loss at a position. Used to reduce gradient evaluations.
+     * @param params The current parameter tensors, not mutated by the search.
+     * @param descentDirection The search direction p.
+     * @param gradient The gradient at position {@code params}.
+     * @return A step size alpha which (approximately) satisfies the strong Wolfe conditions.
+     */
+    private static double wolfeLineSearch(Function<Tensor[], GradAndLoss> lossAndGrad,
+                                         ToDoubleFunction<Tensor[]> lossFunc,
+                                         Tensor[] params,
+                                         DenseVector descentDirection,
+                                         DenseVector gradient) {
+        final double alphaInit = 1.0;
+        final double alphaMax = 50.0;
+
+        final double phi0 = lossFunc.applyAsDouble(params);
+        final double dphi0 = gradient.dot(descentDirection);
+        if (!(dphi0 < 0.0)) {
+            throw new IllegalStateException("wolfeLineSearch requires a descent direction, gradient dot direction=" + dphi0);
+        }
+
+        double alphaPrev = 0.0;
+        double phiPrev = phi0;
+        double alpha = alphaInit;
+
+        for (int itr = 0; itr < MAX_LINESEARCH_ITR; itr++) {
+            double phi = phiAt(lossFunc, params, descentDirection, alpha);
+
+            if ((phi > phi0 + C_ONE * alpha * dphi0) || (itr > 0 && phi >= phiPrev)) {
+                return zoom(lossAndGrad, lossFunc, params, descentDirection, phi0, dphi0, alphaPrev, alpha, C_ONE, C_TWO);
+            }
+
+            double dphi = dPhiAt(lossAndGrad, params, descentDirection, alpha);
+            if (Math.abs(dphi) <= C_TWO * Math.abs(dphi0)) {
+                logger.log(System.Logger.Level.INFO, "Line search terminated with alpha " + alpha + " at itr " + itr + " with end loss " + phi + ", start loss " + phi0 + ", convergence limit " + C_TWO*Math.abs(dphi0));
+                return alpha;
+            }
+
+            if (dphi >= 0.0) {
+                return zoom(lossAndGrad, lossFunc, params, descentDirection, phi0, dphi0, alpha, alphaPrev, C_ONE, C_TWO);
+            }
+
+            alphaPrev = alpha;
+            phiPrev = phi;
+            alpha = Math.min(alpha * 2.0, alphaMax);
+        }
+
+        logger.log(System.Logger.Level.INFO, "Exceeded line search iterations with alpha " + alpha + ", convergence limit " + C_TWO*Math.abs(dphi0) + ", start loss " + phi0 + ", end loss " + phiPrev);
+        return alpha;
+    }
+
+    private static double zoom(Function<Tensor[], GradAndLoss> lossAndGrad,
+                               ToDoubleFunction<Tensor[]> lossFunc,
+                               Tensor[] params,
+                               DenseVector p,
+                               double phi0,
+                               double dphi0,
+                               double aLo,
+                               double aHi,
+                               double c1,
+                               double c2) {
+        double phiLo = phiAt(lossFunc, params, p, aLo);
+
+        for (int itr = 0; itr < MAX_LINESEARCH_ITR; itr++) {
+            // Bisect range
+            double aJ = 0.5 * (aLo + aHi);
+            double phiJ = phiAt(lossFunc, params, p, aJ);
+
+            if ((phiJ > phi0 + c1 * aJ * dphi0) || (phiJ >= phiLo)) {
+                aHi = aJ;
+            } else {
+                double dphiJ = dPhiAt(lossAndGrad, params, p, aJ);
+                if (Math.abs(dphiJ) <= c2 * Math.abs(dphi0)) {
+                    return aJ;
+                }
+                if (dphiJ * (aHi - aLo) >= 0.0) {
+                    aHi = aLo;
+                }
+                aLo = aJ;
+                phiLo = phiJ;
+            }
+
+            // Interval disappeared
+            if (Math.abs(aHi - aLo) < 1e-12) {
+                return aJ;
+            }
+        }
+
+        return 0.5 * (aLo + aHi);
+    }
+
+    private static double phiAt(ToDoubleFunction<Tensor[]> lossFunc, Tensor[] params, DenseVector p, double alpha) {
+        DenseVector raveledParams = ravelArray(params);
+        raveledParams.intersectAndAddInPlace(p, a -> a * alpha);
+        Tensor[] newPos = unravelVector(params, raveledParams);
+        return lossFunc.applyAsDouble(newPos);
+    }
+
+    private static double dPhiAt(Function<Tensor[], GradAndLoss> lossAndGrad, Tensor[] params, DenseVector p, double alpha) {
+        DenseVector raveledParams = ravelArray(params);
+        raveledParams.intersectAndAddInPlace(p, a -> a * alpha);
+        Tensor[] newPos = unravelVector(params, raveledParams);
+        DenseVector g = ravelArray(lossAndGrad.apply(newPos).gradient());
+        return g.dot(p);
     }
 }
