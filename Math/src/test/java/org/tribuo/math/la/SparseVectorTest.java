@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.tribuo.math.la;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
+import org.junit.jupiter.api.Assertions;
 import org.tribuo.CategoricalIDInfo;
 import org.tribuo.CategoricalInfo;
 import org.tribuo.Example;
@@ -220,9 +221,9 @@ public class SparseVectorTest {
         SparseVector b = generateVectorB();
         SparseVector c = generateVectorC();
 
-        assertArrayEquals(a.difference(b), new int[0]);
-        assertArrayEquals(a.difference(c), new int[]{0,4,8});
-        assertArrayEquals(c.difference(a), new int[]{6,7,9});
+        assertArrayEquals(new int[0], a.difference(b));
+        assertArrayEquals(new int[]{0,4,8}, a.difference(c));
+        assertArrayEquals(new int[]{6,7,9}, c.difference(a));
     }
 
     @Test
@@ -232,9 +233,9 @@ public class SparseVectorTest {
         SparseVector c = generateVectorC();
         SparseVector empty = generateEmptyVector();
 
-        assertArrayEquals(a.intersection(b), new int[]{0,1,4,5,8});
-        assertArrayEquals(a.intersection(c), new int[]{1,5});
-        assertArrayEquals(a.intersection(empty), new int[0]);
+        assertArrayEquals(new int[]{0,1,4,5,8}, a.intersection(b));
+        assertArrayEquals(new int[]{1,5}, a.intersection(c));
+        assertArrayEquals(new int[0], a.intersection(empty));
     }
 
     @Test
@@ -367,7 +368,7 @@ public class SparseVectorTest {
     }
 
     @Test
-    public void duplicateFeatureIDs() throws Exception {
+    public void duplicateFeatureIDs() {
         ImmutableFeatureMap fmap = new TestMap();
 
         Example<MockOutput> collision = generateExample(new String[]{"FOO","BAR","BAZ","QUUX"},new double[]{1.0,2.2,3.3,4.4});
@@ -629,6 +630,12 @@ public class SparseVectorTest {
         MockOutput mock = new MockOutput("MOCK");
         ArrayExample<MockOutput> example = new ArrayExample<>(mock,new String[]{"A","B","C"},new double[]{1,2,3});
         SparseVector vector = SparseVector.createSparseVector(example,immutableFeatureMap,false);
+        var otherVector = SGDVector.createFromExample(example,immutableFeatureMap,false);
+        assertEquals(vector,otherVector);
+        Assertions.assertSame(vector.example().get(), example);
+        Assertions.assertSame(vector.featureIDMap().get(), immutableFeatureMap);
+        Assertions.assertSame(vector.example().get(), otherVector.example().get());
+        Assertions.assertSame(vector.featureIDMap().get(), otherVector.featureIDMap().get());
         assertEquals(3,vector.numActiveElements());
         assertEquals(immutableFeatureMap.size(),vector.size());
         assertEquals(1.0,vector.get(0));
@@ -642,6 +649,8 @@ public class SparseVectorTest {
 
         example = new ArrayExample<>(mock,new String[]{"A","AA","BB","CC"},new double[]{1,2,3,4});
         vector = SparseVector.createSparseVector(example,immutableFeatureMap,false);
+        otherVector = SGDVector.createFromExample(example,immutableFeatureMap,false);
+        assertEquals(vector,otherVector);
         assertEquals(1,vector.numActiveElements());
         assertEquals(immutableFeatureMap.size(),vector.size());
         assertEquals(1.0,vector.get(0));
@@ -655,6 +664,8 @@ public class SparseVectorTest {
 
         example = new ArrayExample<>(mock,new String[]{"A","AA","BB","CC"},new double[]{1,2,3,4});
         vector = SparseVector.createSparseVector(example,immutableFeatureMap,true);
+        otherVector = SGDVector.createFromExample(example,immutableFeatureMap,true);
+        assertEquals(vector,otherVector);
         assertEquals(2,vector.numActiveElements());
         assertEquals(immutableFeatureMap.size()+1,vector.size()); // due to bias
         assertEquals(1.0,vector.get(0));
@@ -664,6 +675,21 @@ public class SparseVectorTest {
         assertEquals(0.0,vector.get(4));
         assertEquals(0.0,vector.get(5));
         assertEquals(0.0,vector.get(6));
+        assertEquals(1.0,vector.get(7));
+
+        example = new ArrayExample<>(mock,new String[]{"A","B","C","D","E","F","G"},new double[]{1,2,3,4,5,6,7});
+        vector = SparseVector.createSparseVector(example,immutableFeatureMap,true);
+        otherVector = SGDVector.createFromExample(example,immutableFeatureMap,true);
+        assertEquals(vector,otherVector);
+        assertEquals(8,vector.numActiveElements());
+        assertEquals(immutableFeatureMap.size()+1,vector.size()); // due to bias
+        assertEquals(1.0,vector.get(0));
+        assertEquals(2.0,vector.get(1));
+        assertEquals(3.0,vector.get(2));
+        assertEquals(4.0,vector.get(3));
+        assertEquals(5.0,vector.get(4));
+        assertEquals(6.0,vector.get(5));
+        assertEquals(7.0,vector.get(6));
         assertEquals(1.0,vector.get(7));
     }
 

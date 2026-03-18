@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 
@@ -54,7 +54,7 @@ public abstract class SkeletalIndependentRegressionModel extends Model<Regressor
 
     @Override
     public Prediction<Regressor> predict(Example<Regressor> example) {
-        SparseVector features = createFeatures(example);
+        SGDVector features = createFeatures(example);
 
         Regressor.DimensionTuple[] outputs = new Regressor.DimensionTuple[dimensions.length];
 
@@ -62,7 +62,7 @@ public abstract class SkeletalIndependentRegressionModel extends Model<Regressor
             outputs[i] = scoreDimension(i,features);
         }
 
-        return new Prediction<>(new Regressor(outputs),features.numActiveElements(),example);
+        return new Prediction<>(new Regressor(outputs),features.numNonZeroElements(),example);
     }
 
     /**
@@ -72,8 +72,8 @@ public abstract class SkeletalIndependentRegressionModel extends Model<Regressor
      * @param example The example to convert.
      * @return The feature vector.
      */
-    protected SparseVector createFeatures(Example<Regressor> example) {
-        return SparseVector.createSparseVector(example,featureIDMap,false);
+    protected SGDVector createFeatures(Example<Regressor> example) {
+        return SGDVector.createFromExample(example,featureIDMap,false);
     }
 
     /**
@@ -82,5 +82,5 @@ public abstract class SkeletalIndependentRegressionModel extends Model<Regressor
      * @param features The features to use.
      * @return A single dimension prediction.
      */
-    protected abstract Regressor.DimensionTuple scoreDimension(int dimensionIdx, SparseVector features);
+    protected abstract Regressor.DimensionTuple scoreDimension(int dimensionIdx, SGDVector features);
 }

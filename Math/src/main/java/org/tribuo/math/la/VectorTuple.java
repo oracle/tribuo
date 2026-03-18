@@ -53,15 +53,30 @@ public class VectorTuple {
      * @param index The current index.
      * @param value The current value.
      */
-    public VectorTuple(int index, int value) {
+    public VectorTuple(int index, double value) {
         this.index = index;
         this.value = value;
     }
 
+    /**
+     * Accessor method for index.
+     * @return The index.
+     */
+    public int index() {
+        return index;
+    }
+
+    /**
+     * Accessor method for the value.
+     * @return The value.
+     */
+    public double value() {
+        return value;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (o instanceof VectorTuple) {
-            VectorTuple otherM = (VectorTuple) o;
+        if (o instanceof VectorTuple otherM) {
             if (index == otherM.index) {
                 return (Math.abs(value - otherM.value) < DELTA);
             } else {

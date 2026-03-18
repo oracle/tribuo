@@ -30,9 +30,7 @@ import org.tribuo.Trainer;
 import org.tribuo.common.nearest.KNNModel.Backend;
 import org.tribuo.ensemble.EnsembleCombiner;
 import org.tribuo.math.distance.DistanceType;
-import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.neighbour.NeighboursQueryFactory;
 import org.tribuo.math.neighbour.NeighboursQueryFactoryType;
 import org.tribuo.math.neighbour.bruteforce.NeighboursBruteForceFactory;
@@ -214,11 +212,7 @@ public class KNNTrainer<T extends Output<T>> implements Trainer<T> {
 
         int i = 0;
         for (Example<T> e : examples) {
-            if (e.size() == featureIDMap.size()) {
-                vectors[i] = new Pair<>(DenseVector.createDenseVector(e, featureIDMap, false),e.getOutput());
-            } else {
-                vectors[i] = new Pair<>(SparseVector.createSparseVector(e,featureIDMap,false),e.getOutput());
-            }
+            vectors[i] = new Pair<>(SGDVector.createFromExample(e, featureIDMap, false), e.getOutput());
             i++;
         }
 

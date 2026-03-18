@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package org.tribuo.math.kernel;
 import com.oracle.labs.mlrg.olcut.config.Configurable;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.Provenancable;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.protos.KernelProto;
 import org.tribuo.protos.ProtoSerializable;
 import org.tribuo.protos.ProtoUtil;
@@ -32,12 +32,12 @@ import org.tribuo.protos.ProtoUtil;
 public interface Kernel extends Configurable, ProtoSerializable<KernelProto>, Provenancable<ConfiguredObjectProvenance> {
 
     /**
-     * Calculates the similarity between two {@link SparseVector}s.
-     * @param first The first SparseVector.
-     * @param second The second SparseVector.
+     * Calculates the similarity between two {@link SGDVector}s.
+     * @param first The first SGDVector.
+     * @param second The second SGDVector.
      * @return A value between 0 and 1, where 1 is most similar and 0 is least similar.
      */
-    public double similarity(SparseVector first, SparseVector second);
+    public double similarity(SGDVector first, SGDVector second);
 
     /**
      * Deserializes the kernel from the supplied protobuf.

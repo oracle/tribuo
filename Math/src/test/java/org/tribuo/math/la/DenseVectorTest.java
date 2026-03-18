@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -383,17 +383,27 @@ public class DenseVectorTest {
         // Check without bias
         Example<MockOutput> dense = Helpers.mkExample(output,"F0","F1","F2","F3","F4");
         DenseVector vector = DenseVector.createDenseVector(dense,fmap,false);
+        var otherVector = SGDVector.createFromExample(dense,fmap,false);
+        Assertions.assertEquals(vector,otherVector);
+        Assertions.assertSame(vector.example().get(), dense);
+        Assertions.assertSame(vector.featureIDMap().get(), fmap);
+        Assertions.assertSame(vector.example().get(), otherVector.example().get());
+        Assertions.assertSame(vector.featureIDMap().get(), otherVector.featureIDMap().get());
         Assertions.assertEquals(5,vector.size());
         Assertions.assertEquals(5,vector.numActiveElements());
 
         // Check bias
         vector = DenseVector.createDenseVector(dense,fmap,true);
+        otherVector = SGDVector.createFromExample(dense,fmap,true);
+        Assertions.assertEquals(vector,otherVector);
         Assertions.assertEquals(6,vector.size());
         Assertions.assertEquals(6,vector.numActiveElements());
 
         // Check sparse is made dense
         Example<MockOutput> sparse = Helpers.mkExample(output,"F1","F3");
         vector = DenseVector.createDenseVector(sparse,fmap,false);
+        otherVector = SGDVector.createFromExample(sparse,fmap,false);
+        Assertions.assertEquals(vector,otherVector);
         Assertions.assertEquals(2,sparse.size());
         Assertions.assertEquals(5,vector.size());
         Assertions.assertEquals(5,vector.numActiveElements());
@@ -401,6 +411,8 @@ public class DenseVectorTest {
         // Check extra features are ignored
         Example<MockOutput> extraFeatures = Helpers.mkExample(output,"F0","F1","F2","F3","F4","F5");
         vector = DenseVector.createDenseVector(extraFeatures,fmap,false);
+        otherVector = SGDVector.createFromExample(extraFeatures,fmap,false);
+        Assertions.assertEquals(vector,otherVector);
         Assertions.assertEquals(5,vector.size());
         Assertions.assertEquals(5,vector.numActiveElements());
 
@@ -409,6 +421,8 @@ public class DenseVectorTest {
                 new String[]{"F0","F1","F2","F3","F4"},
                 new double[]{-1,2,-3,4,-5});
         vector = DenseVector.createDenseVector(values,fmap,true);
+        otherVector = SGDVector.createFromExample(values,fmap,true);
+        Assertions.assertEquals(vector,otherVector);
         Assertions.assertEquals(6,vector.size());
         Assertions.assertEquals(6,vector.numActiveElements());
         Assertions.assertEquals(-1,vector.get(0));
@@ -422,16 +436,22 @@ public class DenseVectorTest {
         Example<MockOutput> empty = Helpers.mkExample(output,new String[0]);
         Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(empty,fmap,true));
         Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(empty,fmap,false));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> SGDVector.createFromExample(empty,fmap,true));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> SGDVector.createFromExample(empty,fmap,false));
 
         // Check example with no feature overlap throws
         Example<MockOutput> noOverlap = Helpers.mkExample(output, "A0","A1");
         Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(noOverlap,fmap,true));
         Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(noOverlap,fmap,false));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> SGDVector.createFromExample(noOverlap,fmap,true));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> SGDVector.createFromExample(noOverlap,fmap,false));
 
         // Check NaN valued feature throws
         Example<MockOutput> nanFeatures = new ArrayExample<MockOutput>(output,new String[]{"F0"},new double[]{Double.NaN});
         Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(nanFeatures,fmap,true));
         Assertions.assertThrows(IllegalArgumentException.class,() -> DenseVector.createDenseVector(nanFeatures,fmap,false));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> SGDVector.createFromExample(nanFeatures,fmap,true));
+        Assertions.assertThrows(IllegalArgumentException.class,() -> SGDVector.createFromExample(nanFeatures,fmap,false));
     }
 
     public static DenseVector invert(DenseVector input) {

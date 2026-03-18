@@ -37,7 +37,7 @@ import org.tribuo.data.columnar.ResponseProcessor;
 import org.tribuo.data.columnar.RowProcessor;
 import org.tribuo.impl.ArrayExample;
 import org.tribuo.impl.ListExample;
-import org.tribuo.math.la.SparseVector;
+import org.tribuo.math.la.SGDVector;
 import org.tribuo.provenance.SimpleDataSourceProvenance;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.evaluation.RegressionEvaluation;
@@ -248,7 +248,7 @@ public class LIMEColumnar extends LIMEBase implements ColumnarExplainer<Regresso
                     }
                 }
                 // Extract the tabular features into a SparseVector for later
-                SparseVector tabularVector = SparseVector.createSparseVector(labelledExample,tabularDomain,false);
+                SGDVector tabularVector = SGDVector.createFromExample(labelledExample,tabularDomain,false);
 
                 // Tokenize the text fields, and generate the perturbed text representation
                 Map<String, String> exampleTextValues = new HashMap<>();
@@ -311,7 +311,7 @@ public class LIMEColumnar extends LIMEBase implements ColumnarExplainer<Regresso
      * @param textTokens A map from the field names to lists of tokens for those fields.
      * @return A sampled dataset.
      */
-    private List<Example<Regressor>> sampleData(SparseVector tabularVector, Map<String,String> text, Map<String,List<Token>> textTokens) {
+    private List<Example<Regressor>> sampleData(SGDVector tabularVector, Map<String,String> text, Map<String,List<Token>> textTokens) {
         List<Example<Regressor>> output = new ArrayList<>();
 
         Random innerRNG = new Random(rng.nextLong());
@@ -326,17 +326,15 @@ public class LIMEColumnar extends LIMEBase implements ColumnarExplainer<Regresso
                 int id = ((VariableIDInfo) info).getID();
                 double inputValue = tabularVector.get(id);
 
-                if (info instanceof CategoricalInfo) {
+                if (info instanceof CategoricalInfo catInfo) {
                     // This one is tricksy as categorical info essentially implicitly includes a zero.
-                    CategoricalInfo catInfo = (CategoricalInfo) info;
                     double sample = catInfo.frequencyBasedSample(innerRNG,numTrainingExamples);
                     // If we didn't sample zero.
                     if (Math.abs(sample) > 1e-10) {
                         Feature newFeature = new Feature(info.getName(),sample);
                         tabularFeatures.add(newFeature);
                     }
-                } else if (info instanceof RealInfo) {
-                    RealInfo realInfo = (RealInfo) info;
+                } else if (info instanceof RealInfo realInfo) {
                     // As realInfo is sparse we sample from the mixture distribution,
                     // either 0 or N(inputValue,variance).
                     // This assumes realInfo never observed a zero, which is enforced from v2.1
@@ -368,7 +366,7 @@ public class LIMEColumnar extends LIMEBase implements ColumnarExplainer<Regresso
             // Add the tabular features to the current example
             sampledExample.addAll(tabularFeatures);
             // Calculate tabular distance
-            double tabularDistance = measureDistance(tabularDomain,numTrainingExamples,tabularVector, SparseVector.createSparseVector(sampledExample,tabularDomain,false));
+            double tabularDistance = measureDistance(tabularDomain,numTrainingExamples,tabularVector, SGDVector.createFromExample(sampledExample,tabularDomain,false));
 
             // features are the full text features
             List<Feature> textFeatures = new ArrayList<>();

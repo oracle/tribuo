@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.tribuo.common.tree.protos.TreeModelProto;
 import org.tribuo.common.tree.protos.TreeNodeProto;
 import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -315,7 +314,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
     public Prediction<T> predict(Example<T> example) {
         //
         // Ensures we handle collisions correctly
-        SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
+        SGDVector vec = SGDVector.createFromExample(example, featureIDMap, false);
         return predict(vec, example);
     }
 
@@ -349,7 +348,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
      * @throws IllegalArgumentException If validation fails.
      */
     public Prediction<T> predict(SGDVector vec, Example<T> example) {
-        if (vec.numActiveElements() == 0) {
+        if (vec.numNonZeroElements() == 0) {
             throw new IllegalArgumentException("No features found in Example " + example.toString());
         }
         if (vec.size() != featureIDMap.size()) {
@@ -363,12 +362,12 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
 
         while (curNode != null) {
             oldNode = curNode;
-            curNode = oldNode.getNextNode((SparseVector) vec);
+            curNode = oldNode.getNextNode(vec);
         }
 
         //
         // oldNode must be a LeafNode.
-        return ((LeafNode<T>) oldNode).getPrediction(vec.numActiveElements(),example);
+        return ((LeafNode<T>) oldNode).getPrediction(vec.numNonZeroElements(),example);
     }
 
     @Override
@@ -404,7 +403,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
             }
         }
         List<Pair<String,Double>> list = new ArrayList<>();
-        while (q.size() > 0) {
+        while (!q.isEmpty()) {
             list.add(q.poll());
         }
         Collections.reverse(list);
@@ -420,7 +419,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
         List<String> list = new ArrayList<>();
         //
         // Ensures we handle collisions correctly
-        SparseVector vec = SparseVector.createSparseVector(example,featureIDMap,false);
+        SGDVector vec = SGDVector.createFromExample(example, featureIDMap, false);
         Node<T> oldNode = root;
         Node<T> curNode = root;
 
@@ -435,7 +434,7 @@ public class TreeModel<T extends Output<T>> extends SparseModel<T> {
 
         //
         // oldNode must be a LeafNode.
-        Prediction<T> pred = ((LeafNode<T>) oldNode).getPrediction(vec.numActiveElements(),example);
+        Prediction<T> pred = ((LeafNode<T>) oldNode).getPrediction(vec.numNonZeroElements(),example);
 
         List<Pair<String,Double>> pairs = new ArrayList<>();
         int i = list.size() + 1;

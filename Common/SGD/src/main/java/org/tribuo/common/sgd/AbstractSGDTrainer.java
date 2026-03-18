@@ -31,7 +31,6 @@ import org.tribuo.math.FeedForwardParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
-import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.provenance.ModelProvenance;
@@ -162,7 +161,6 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         SGDObjective<U> objective = getObjective();
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
-        int featureSpaceSize = featureIDMap.size();
 
         SGDVector[] sgdFeatures = new SGDVector[examples.size()];
         @SuppressWarnings("unchecked")
@@ -173,14 +171,12 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
         long denseCount = 0;
         for (Example<T> example : examples) {
             weights[n] = example.getWeight();
-            if (example.size() == featureSpaceSize) {
-                sgdFeatures[n] = DenseVector.createDenseVector(example, featureIDMap, addBias);
+            sgdFeatures[n] = SGDVector.createFromExample(example, featureIDMap, addBias);
+            if (sgdFeatures[n] instanceof DenseVector) {
                 denseCount++;
-            } else {
-                sgdFeatures[n] = SparseVector.createSparseVector(example, featureIDMap, addBias);
             }
             sgdTargets[n] = getTarget(outputIDInfo,example.getOutput());
-            featureSize += sgdFeatures[n].numActiveElements();
+            featureSize += sgdFeatures[n].numNonZeroElements();
             n++;
         }
         logger.info(String.format("Training SGD model with %d examples", n));

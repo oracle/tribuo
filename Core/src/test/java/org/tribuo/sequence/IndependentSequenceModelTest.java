@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,9 @@
 
 package org.tribuo.sequence;
 
-import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.tribuo.Dataset;
-import org.tribuo.Model;
 import org.tribuo.Prediction;
-import org.tribuo.ensemble.WeightedEnsembleModel;
-import org.tribuo.protos.core.ModelProto;
 import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.test.Helpers;
 import org.tribuo.test.MockOutput;
@@ -40,7 +35,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class IndependentSequenceModelTest {
 
