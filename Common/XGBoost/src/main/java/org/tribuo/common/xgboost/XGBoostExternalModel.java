@@ -40,6 +40,7 @@ import org.tribuo.interop.ExternalDatasetProvenance;
 import org.tribuo.interop.ExternalModel;
 import org.tribuo.interop.ExternalTrainerProvenance;
 import org.tribuo.math.la.SparseVector;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.DatasetProvenance;
@@ -128,21 +129,22 @@ public final class XGBoostExternalModel<T extends Output<T>> extends ExternalMod
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @throws XGBoostError If the XGBoost byte array failed to parse.
      * @throws IOException If the XGBoost byte array failed to parse.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"}) // output converter and domain are checked via getClass.
-    public static XGBoostExternalModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException, XGBoostError, IOException {
+    public static XGBoostExternalModel<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException, XGBoostError, IOException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         XGBoostExternalModelProto proto = message.unpack(XGBoostExternalModelProto.class);
 
-        XGBoostOutputConverter<?> converter = ProtoUtil.deserialize(proto.getConverter());
+        XGBoostOutputConverter<?> converter = ProtoUtil.deserialize(proto.getConverter(), deserCache);
         Class<?> converterWitness = converter.getTypeWitness();
-        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
         if (!carrier.outputDomain().getOutput(0).getClass().equals(converterWitness)) {
             throw new IllegalStateException("Invalid protobuf, output domain does not match the converter, found " + carrier.outputDomain().getClass() + " and " + converterWitness);
         }

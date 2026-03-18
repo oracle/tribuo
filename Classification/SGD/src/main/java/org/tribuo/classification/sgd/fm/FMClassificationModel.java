@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.tribuo.impl.ModelDataCarrier;
 import org.tribuo.math.Parameters;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.util.VectorNormalizer;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.onnx.ONNXNode;
@@ -79,16 +80,17 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static FMClassificationModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static FMClassificationModel deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         FMClassificationModelProto proto = message.unpack(FMClassificationModelProto.class);
 
-        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
         if (!carrier.outputDomain().getOutput(0).getClass().equals(Label.class)) {
             throw new IllegalStateException("Invalid protobuf, output domain is not a label domain, found " + carrier.outputDomain().getClass());
         }
@@ -100,7 +102,7 @@ public class FMClassificationModel extends AbstractFMModel<Label> implements ONN
             throw new IllegalStateException("Invalid protobuf, parameters must be FMParameters, found " + params.getClass());
         }
 
-        VectorNormalizer normalizer = VectorNormalizer.deserialize(proto.getNormalizer());
+        VectorNormalizer normalizer = VectorNormalizer.deserialize(proto.getNormalizer(), deserCache);
 
         return new FMClassificationModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,(FMParameters) params, normalizer, carrier.generatesProbabilities());
     }

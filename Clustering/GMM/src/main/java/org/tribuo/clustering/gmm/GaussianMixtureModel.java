@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.tribuo.math.la.SparseVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.la.VectorTuple;
 import org.tribuo.math.protos.TensorProto;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.ModelProto;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.util.Util;
@@ -80,7 +81,7 @@ public class GaussianMixtureModel extends Model<ClusterID> {
 
     private final MultivariateNormalDistribution.CovarianceType covarianceType;
 
-    private transient MultivariateNormalDistribution[] distributions;
+    private final MultivariateNormalDistribution[] distributions;
 
     GaussianMixtureModel(String name, ModelProvenance description, ImmutableFeatureMap featureIDMap,
                          ImmutableOutputInfo<ClusterID> outputIDInfo, DenseVector[] meanVectors,
@@ -105,16 +106,17 @@ public class GaussianMixtureModel extends Model<ClusterID> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static GaussianMixtureModel deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static GaussianMixtureModel deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         GaussianMixtureModelProto proto = message.unpack(GaussianMixtureModelProto.class);
 
-        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
         if (!carrier.outputDomain().getOutput(0).getClass().equals(ClusterID.class)) {
             throw new IllegalStateException("Invalid protobuf, output domain is not a clustering domain, found " + carrier.outputDomain().getClass());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.tribuo.Model;
 import org.tribuo.Output;
 import org.tribuo.Prediction;
 import org.tribuo.impl.ModelDataCarrier;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.IndependentSequenceModelProto;
 import org.tribuo.protos.core.SequenceModelProto;
 import org.tribuo.provenance.ModelProvenance;
@@ -57,19 +58,20 @@ public class IndependentSequenceModel<T extends Output<T>> extends SequenceModel
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings({"unchecked","rawtypes"})
-    public static IndependentSequenceModel<?> deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static IndependentSequenceModel<?> deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         IndependentSequenceModelProto proto = message.unpack(IndependentSequenceModelProto.class);
 
         // We discard the output domain and feature domain from the carrier and use the ones in the inner model.
-        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata());
-        Model<?> model = Model.deserialize(proto.getModel());
+        ModelDataCarrier<?> carrier = ModelDataCarrier.deserialize(proto.getMetadata(), deserCache);
+        Model<?> model = Model.deserialize(proto.getModel(), deserCache);
 
         return new IndependentSequenceModel(carrier.name(), carrier.provenance(), model);
     }

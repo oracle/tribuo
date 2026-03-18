@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.util.MutableNumber;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.clustering.protos.ClusteringInfoProto;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoSerializableClass;
 
 import java.util.Collections;
@@ -90,10 +91,11 @@ public class ImmutableClusteringInfo extends ClusteringInfo implements Immutable
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static ImmutableClusteringInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static ImmutableClusteringInfo deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > 0) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }

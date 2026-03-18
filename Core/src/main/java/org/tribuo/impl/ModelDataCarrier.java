@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,134 +23,51 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.Output;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.ModelDataProto;
 import org.tribuo.provenance.ModelProvenance;
 
-import java.util.Objects;
-
 /**
  * Serialization carrier for common fields in Model and SequenceModel.
- * <p>
- * Likely to be a record one day.
+ *
+ * @param name                   The model's name.
+ * @param provenance             The model provenance.
+ * @param featureDomain          The features this model knows about.
+ * @param outputDomain           The outputs this model predicts.
+ * @param generatesProbabilities Does this model generate probability distributions in the output.
+ * @param tribuoVersion          The Tribuo version string.
  */
-public final class ModelDataCarrier<T extends Output<T>> {
+public record ModelDataCarrier<T extends Output<T>>(String name, ModelProvenance provenance,
+                                                    ImmutableFeatureMap featureDomain,
+                                                    ImmutableOutputInfo<T> outputDomain, boolean generatesProbabilities,
+                                                    String tribuoVersion) {
     private static final ProtoProvenanceSerialization PROVENANCE_SERIALIZER = new ProtoProvenanceSerialization(false);
 
     /**
-     * The model's name.
-     */
-    private final String name;
-
-    /**
-     * The model provenance.
-     */
-    private final ModelProvenance provenance;
-
-    /**
-     * The features this model knows about.
-     */
-    private final ImmutableFeatureMap featureDomain;
-
-    /**
-     * The outputs this model predicts.
-     */
-    private final ImmutableOutputInfo<T> outputDomain;
-
-    /**
-     * Does this model generate probability distributions in the output.
-     */
-    private final boolean generatesProbabilities;
-
-    /**
-     * The Tribuo version string.
-     */
-    private final String tribuoVersion;
-
-    /**
-     * Constructs a new ModelDataCarrier.
+     * Deserializes a {@link ModelDataProto} into a {@link ModelDataCarrier}.
      * <p>
-     * Will be the canonical constructor for the record form.
+     * Uses an empty deserialization cache.
      *
-     * @param name                   The model name.
-     * @param provenance             The model provenance.
-     * @param featureDomain          The feature domain.
-     * @param outputDomain           The output domain.
-     * @param generatesProbabilities Does this model generate probabilities?
-     * @param tribuoVersion          The Tribuo version string.
+     * @param proto The proto to deserialize.
+     * @return The model data.
+     * @deprecated The serialization cache version should be preferred.
      */
-    public ModelDataCarrier(String name, ModelProvenance provenance, ImmutableFeatureMap featureDomain, ImmutableOutputInfo<T> outputDomain, boolean generatesProbabilities, String tribuoVersion) {
-        this.name = name;
-        this.provenance = provenance;
-        this.featureDomain = featureDomain;
-        this.outputDomain = outputDomain;
-        this.generatesProbabilities = generatesProbabilities;
-        this.tribuoVersion = tribuoVersion;
-    }
-
-    /**
-     * The model name.
-     *
-     * @return The model name.
-     */
-    public String name() {
-        return name;
-    }
-
-    /**
-     * The model provenance.
-     *
-     * @return The model provenance.
-     */
-    public ModelProvenance provenance() {
-        return provenance;
-    }
-
-    /**
-     * The feature domain.
-     *
-     * @return The feature domain.
-     */
-    public ImmutableFeatureMap featureDomain() {
-        return featureDomain;
-    }
-
-    /**
-     * The output domain.
-     *
-     * @return The output domain.
-     */
-    public ImmutableOutputInfo<T> outputDomain() {
-        return outputDomain;
-    }
-
-    /**
-     * Does this model generate probabilities?
-     *
-     * @return Does the model generate probabilities?
-     */
-    public boolean generatesProbabilities() {
-        return generatesProbabilities;
-    }
-
-    /**
-     * Gets the Tribuo version string.
-     *
-     * @return The Tribuo version string.
-     */
-    public String tribuoVersion() {
-        return tribuoVersion;
+    @Deprecated
+    public static ModelDataCarrier<?> deserialize(ModelDataProto proto) {
+        return deserialize(proto, new ProtoDeserializationCache());
     }
 
     /**
      * Deserializes a {@link ModelDataProto} into a {@link ModelDataCarrier}.
      *
      * @param proto The proto to deserialize.
+     * @param deserCache The current deserialization cache.
      * @return The model data.
      */
-    public static ModelDataCarrier<?> deserialize(ModelDataProto proto) {
+    public static ModelDataCarrier<?> deserialize(ModelDataProto proto, ProtoDeserializationCache deserCache) {
         ModelProvenance provenance = (ModelProvenance) ProvenanceUtil.unmarshalProvenance(PROVENANCE_SERIALIZER.deserializeFromProto(proto.getProvenance()));
-        ImmutableFeatureMap featureDomain = (ImmutableFeatureMap) FeatureMap.deserialize(proto.getFeatureDomain());
-        ImmutableOutputInfo<?> outputDomain = (ImmutableOutputInfo<?>) OutputInfo.deserialize(proto.getOutputDomain());
+        ImmutableFeatureMap featureDomain = (ImmutableFeatureMap) FeatureMap.deserialize(proto.getFeatureDomain(), deserCache);
+        ImmutableOutputInfo<?> outputDomain = (ImmutableOutputInfo<?>) OutputInfo.deserialize(proto.getOutputDomain(), deserCache);
         return new ModelDataCarrier<>(proto.getName(), provenance, featureDomain, outputDomain, proto.getGenerateProbabilities(), proto.getTribuoVersion());
     }
 
@@ -177,19 +94,12 @@ public final class ModelDataCarrier<T extends Output<T>> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof ModelDataCarrier)) {
+        if (!(o instanceof ModelDataCarrier<?> that)) {
             return false;
         }
-        ModelDataCarrier<?> that = (ModelDataCarrier<?>) o;
         return generatesProbabilities == that.generatesProbabilities && name.equals(that.name)
                 && provenance.equals(that.provenance) && featureDomain.equals(that.featureDomain)
                 && outputDomain.equals(that.outputDomain) && tribuoVersion.equals(that.tribuoVersion);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name, provenance, featureDomain, outputDomain,
-                generatesProbabilities, tribuoVersion);
     }
 
     @Override

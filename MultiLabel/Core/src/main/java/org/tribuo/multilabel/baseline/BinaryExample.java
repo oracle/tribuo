@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.tribuo.Output;
 import org.tribuo.classification.Label;
 import org.tribuo.multilabel.MultiLabel;
 import org.tribuo.multilabel.protos.BinaryExampleProto;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.ProtoUtil;
 import org.tribuo.protos.core.ExampleProto;
 import org.tribuo.util.Merger;
@@ -86,20 +87,21 @@ class BinaryExample extends Example<Label> {
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
     @SuppressWarnings("unchecked") // guarded by an instanceof check on the output type.
-    public static BinaryExample deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static BinaryExample deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > CURRENT_VERSION) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + CURRENT_VERSION);
         }
         BinaryExampleProto proto = message.unpack(BinaryExampleProto.class);
-        Example<?> innerExample = ProtoUtil.deserialize(proto.getInnerExample());
+        Example<?> innerExample = ProtoUtil.deserialize(proto.getInnerExample(), deserCache);
         if (!(innerExample.getOutput() instanceof MultiLabel)) {
             throw new IllegalStateException("Invalid protobuf, inner example did not contain a MultiLabel.");
         }
-        Output<?> output = ProtoUtil.deserialize(proto.getLabel());
+        Output<?> output = ProtoUtil.deserialize(proto.getLabel(), deserCache);
         if (!(output instanceof Label)) {
             throw new IllegalStateException("Invalid protobuf, binary label is not a Label");
         }

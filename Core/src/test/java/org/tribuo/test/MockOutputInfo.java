@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.MutableOutputInfo;
 import org.tribuo.OutputInfo;
+import org.tribuo.protos.ProtoDeserializationCache;
 import org.tribuo.protos.core.OutputDomainProto;
 import org.tribuo.test.protos.MockOutputInfoProto;
 
@@ -40,7 +41,7 @@ import java.util.logging.Logger;
  * <p>
  * Implements both MutableOutputInfo and ImmutableOutputInfo. Don't do this in real code!
  */
-public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableOutputInfo<MockOutput> {
+public final class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableOutputInfo<MockOutput> {
     private static final Logger logger = Logger.getLogger(MockOutputInfo.class.getName());
 
     private final Map<String, MutableLong> labelCounts;
@@ -86,10 +87,11 @@ public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableO
      * @param version The serialized object version.
      * @param className The class name.
      * @param message The serialized data.
+     * @param deserCache The deserialization cache for deduping model metadata.
      * @throws InvalidProtocolBufferException If the protobuf could not be parsed from the {@code message}.
      * @return The deserialized object.
      */
-    public static MockOutputInfo deserializeFromProto(int version, String className, Any message) throws InvalidProtocolBufferException {
+    public static MockOutputInfo deserializeFromProto(int version, String className, Any message, ProtoDeserializationCache deserCache) throws InvalidProtocolBufferException {
         if (version < 0 || version > 0) {
             throw new IllegalArgumentException("Unknown version " + version + ", this class supports at most version " + 0);
         }
@@ -176,7 +178,7 @@ public class MockOutputInfo implements MutableOutputInfo<MockOutput>, ImmutableO
     }
 
     @Override
-    public OutputInfo<MockOutput> copy() {
+    public MockOutputInfo copy() {
         return new MockOutputInfo(this);
     }
 
