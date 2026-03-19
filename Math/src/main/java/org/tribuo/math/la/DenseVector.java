@@ -467,8 +467,7 @@ public non-sealed class DenseVector implements SGDVector {
 
     @Override
     public void intersectAndAddInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof SGDVector) {
-            SGDVector otherVec = (SGDVector) other;
+        if (other instanceof SGDVector otherVec) {
             if (otherVec.size() != elements.length) {
                 throw new IllegalArgumentException("Can't intersect two vectors of different dimension, this = " + elements.length + ", other = " + otherVec.size());
             }
@@ -490,8 +489,7 @@ public non-sealed class DenseVector implements SGDVector {
 
     @Override
     public void hadamardProductInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof SGDVector) {
-            SGDVector otherVec = (SGDVector) other;
+        if (other instanceof SGDVector otherVec) {
             if (otherVec.size() != elements.length) {
                 throw new IllegalArgumentException("Can't hadamard product two vectors of different dimension, this = " + elements.length + ", other = " + otherVec.size());
             }
@@ -569,18 +567,16 @@ public non-sealed class DenseVector implements SGDVector {
 
     @Override
     public Matrix outer(SGDVector other) {
-        if (other instanceof DenseVector) {
+        if (other instanceof DenseVector otherVec) {
             //Outer product is a DenseMatrix
-            DenseVector otherVec = (DenseVector) other;
             double[][] output = new double[elements.length][];
             for (int i = 0; i < elements.length; i++) {
                 DenseVector tmp = otherVec.scale(get(i));
                 output[i] = tmp.elements;
             }
             return new DenseMatrix(output);
-        } else if (other instanceof SparseVector) {
+        } else if (other instanceof SparseVector otherVec) {
             //Outer product is a DenseSparseMatrix
-            SparseVector otherVec = (SparseVector) other;
             SparseVector[] output = new SparseVector[elements.length];
             for (int i = 0; i < elements.length; i++) {
                 output[i] = otherVec.scale(get(i));
@@ -742,7 +738,7 @@ public non-sealed class DenseVector implements SGDVector {
     /**
      * An optimisation for the exponential normalizer when
      * you already know the normalization constant.
-     *
+     * <p>
      * Used in the CRF.
      * @param total The normalization constant.
      */

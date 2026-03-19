@@ -36,13 +36,13 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 public class TestGP {
-    private static final GaussianProcessTrainer gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5, false);
+    private static final GaussianProcessTrainer gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5);
     private static final RegressionEvaluator e = new RegressionEvaluator();
 
     @Test
     public void testWine() throws IOException {
         var outputFactory = new RegressionFactory();
-        var gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5, false);
+        var gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5);
 
         var csvLoader = new CSVLoader<>(';',outputFactory);
         var wineSource = csvLoader.loadDataSource(Paths.get("../../tutorials/winequality-red.csv"),"quality");

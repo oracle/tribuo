@@ -69,12 +69,6 @@ public final class GaussianProcessTrainer implements Trainer<Regressor> {
     @Config(mandatory = true, description = "Noise level, must be non-negative.")
     private double alpha;
 
-    /**
-     * Should the kernel hyperparameters be optimized?
-     */
-    @Config(mandatory = false, description = "Should the kernel hyperparameters be optimized?")
-    private boolean optimizeKernel;
-
     private int trainInvocationCount = 0;
 
     /**
@@ -86,12 +80,10 @@ public final class GaussianProcessTrainer implements Trainer<Regressor> {
      * Constructs a GP trainer with the specified parameters.
      * @param kernel The kernel function.
      * @param alpha The noise level.
-     * @param optimizeKernel Should the kernel hyperparameters be optimized?
      */
-    public GaussianProcessTrainer(Kernel kernel, double alpha, boolean optimizeKernel) {
+    public GaussianProcessTrainer(Kernel kernel, double alpha) {
         this.kernel = kernel;
         this.alpha = alpha;
-        this.optimizeKernel = optimizeKernel;
         postConfig();
     }
 
@@ -173,12 +165,8 @@ public final class GaussianProcessTrainer implements Trainer<Regressor> {
 
         Matrix featureMatrix = Matrix.aggregate(inputs, inputs.length, false);
 
-        Kernel curKernel;
-        if (optimizeKernel) {
-            curKernel = null;
-        } else {
-            curKernel = kernel;
-        }
+        // This is where we should optimize the kernel hyperparameters with LBFGS
+        Kernel curKernel = kernel;
 
         // Compute kernel matrix
         DenseMatrix kernelMat = curKernel.computeKernelMatrix(featureMatrix);

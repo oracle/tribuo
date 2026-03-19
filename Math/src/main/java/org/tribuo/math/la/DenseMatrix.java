@@ -537,8 +537,7 @@ public class DenseMatrix implements Matrix {
     @Override
     public DenseMatrix matrixMultiply(Matrix other) {
         if (dim2 == other.getDimension1Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim1][otherDense.dim2];
 
                 for (int i = 0; i < dim1; i++) {
@@ -548,8 +547,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim2 = otherSparse.getDimension2Size();
                 double[][] output = new double[dim1][otherDim2];
 
@@ -583,8 +581,7 @@ public class DenseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeBoth(Matrix other) {
         if (dim1 == other.getDimension2Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim2][otherDense.dim1];
 
                 for (int i = 0; i < dim2; i++) {
@@ -594,8 +591,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim1 = otherSparse.getDimension1Size();
                 double[][] output = new double[dim2][otherDim1];
 
@@ -616,8 +612,7 @@ public class DenseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeThis(Matrix other) {
         if (dim1 == other.getDimension1Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim2][otherDense.dim2];
 
                 for (int i = 0; i < dim2; i++) {
@@ -627,8 +622,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim2 = otherSparse.getDimension2Size();
                 double[][] output = new double[dim2][otherDim2];
 
@@ -649,8 +643,7 @@ public class DenseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeOther(Matrix other) {
         if (dim2 == other.getDimension2Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim1][otherDense.dim1];
 
                 for (int i = 0; i < dim1; i++) {
@@ -660,8 +653,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim1 = otherSparse.getDimension1Size();
                 double[][] output = new double[dim1][otherDim1];
 
@@ -817,8 +809,7 @@ public class DenseMatrix implements Matrix {
 
     @Override
     public void intersectAndAddInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof Matrix) {
-            Matrix otherMat = (Matrix) other;
+        if (other instanceof Matrix otherMat) {
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
                 if (otherMat instanceof DenseMatrix) {
                     // Get is efficient on DenseMatrix
@@ -870,8 +861,7 @@ public class DenseMatrix implements Matrix {
 
     @Override
     public void hadamardProductInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof Matrix) {
-            Matrix otherMat = (Matrix) other;
+        if (other instanceof Matrix otherMat) {
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
                 if (otherMat instanceof DenseMatrix) {
                     // Get is efficient on DenseMatrix
@@ -2091,7 +2081,7 @@ public class DenseMatrix implements Matrix {
          */
         @Override
         public double determinant() {
-            return eigenvalues.reduce(1.0, java.util.function.DoubleUnaryOperator.identity(), (a, b) -> a*b);
+            return eigenvalues.reduce(1.0, DoubleUnaryOperator.identity(), (a, b) -> a*b);
         }
 
         /**
@@ -2099,7 +2089,7 @@ public class DenseMatrix implements Matrix {
          * @return True if the eigenvalues are positive.
          */
         public boolean positiveEigenvalues() {
-            return eigenvalues.reduce(true, java.util.function.DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
+            return eigenvalues.reduce(true, DoubleUnaryOperator.identity(), (value, bool) -> bool && value > 0.0);
         }
 
         /**
@@ -2107,7 +2097,7 @@ public class DenseMatrix implements Matrix {
          * @return True if the eigenvalues are non-zero (i.e. the matrix is not singular).
          */
         public boolean nonSingular() {
-            return eigenvalues.reduce(true, java.util.function.DoubleUnaryOperator.identity(),(value, bool) -> bool && value != 0.0);
+            return eigenvalues.reduce(true, DoubleUnaryOperator.identity(), (value, bool) -> bool && value != 0.0);
         }
 
         /**

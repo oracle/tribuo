@@ -347,7 +347,7 @@ public non-sealed class SparseVector implements SGDVector {
         } else {
             List<Map.Entry<Integer, Double>> sortedEntries = indexMap.entrySet()
                     .stream().sorted(Map.Entry.comparingByKey())
-                    .collect(Collectors.toList());
+                    .toList();
 
             int[] indices = new int[sortedEntries.size()];
             double[] values = new double[sortedEntries.size()];
@@ -500,9 +500,9 @@ public non-sealed class SparseVector implements SGDVector {
      */
     @Override
     public boolean equals(Object other) {
-        if (other instanceof SparseVector) {
+        if (other instanceof SparseVector otherSparse) {
             Iterator<VectorTuple> ourItr = iterator();
-            Iterator<VectorTuple> otherItr = ((SparseVector)other).iterator();
+            Iterator<VectorTuple> otherItr = otherSparse.iterator();
             VectorTuple ourTuple;
             VectorTuple otherTuple;
 
@@ -593,8 +593,8 @@ public non-sealed class SparseVector implements SGDVector {
         if (other.size() != size) {
             throw new IllegalArgumentException("Can't subtract two vectors of different dimension, this = " + size + ", other = " + other.size());
         }
-        if (other instanceof DenseVector) {
-            DenseVector output = ((DenseVector)other).copy();
+        if (other instanceof DenseVector otherDense) {
+            DenseVector output = otherDense.copy();
             output.scaleInPlace(-1.0);
             for (VectorTuple tuple : this) {
                 output.set(tuple.index, tuple.value + output.get(tuple.index));
@@ -616,8 +616,7 @@ public non-sealed class SparseVector implements SGDVector {
 
     @Override
     public void intersectAndAddInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof SparseVector) {
-            SparseVector otherVec = (SparseVector) other;
+        if (other instanceof SparseVector otherVec) {
             if (otherVec.size() != size) {
                 throw new IllegalArgumentException("Can't intersect two vectors of different dimension, this = " + size + ", other = " + otherVec.size());
             } else if (otherVec.numActiveElements() > 0) {
@@ -650,8 +649,7 @@ public non-sealed class SparseVector implements SGDVector {
                     values[i] += f.applyAsDouble(tuple.value);
                 }
             }
-        } else if (other instanceof DenseVector) {
-            DenseVector otherVec = (DenseVector) other;
+        } else if (other instanceof DenseVector otherVec) {
             if (otherVec.size() != size) {
                 throw new IllegalArgumentException("Can't intersect two vectors of different dimension, this = " + size + ", other = " + otherVec.size());
             }
@@ -665,8 +663,7 @@ public non-sealed class SparseVector implements SGDVector {
 
     @Override
     public void hadamardProductInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof SparseVector) {
-            SparseVector otherVec = (SparseVector) other;
+        if (other instanceof SparseVector otherVec) {
             if (otherVec.size() != size) {
                 throw new IllegalArgumentException("Can't hadamard product two vectors of different dimension, this = " + size + ", other = " + otherVec.size());
             } else if (otherVec.numActiveElements() > 0) {
@@ -699,8 +696,7 @@ public non-sealed class SparseVector implements SGDVector {
                     values[i] *= f.applyAsDouble(tuple.value);
                 }
             }
-        } else if (other instanceof DenseVector) {
-            DenseVector otherVec = (DenseVector) other;
+        } else if (other instanceof DenseVector otherVec) {
             if (otherVec.size() != size) {
                 throw new IllegalArgumentException("Can't hadamard product two vectors of different dimension, this = " + size + ", other = " + otherVec.size());
             }
@@ -828,9 +824,8 @@ public non-sealed class SparseVector implements SGDVector {
      */
     @Override
     public Matrix outer(SGDVector other) {
-        if (other instanceof SparseVector) {
+        if (other instanceof SparseVector otherVec) {
             //This horrible mess is why there should be a sparse-sparse matrix type.
-            SparseVector otherVec = (SparseVector) other;
             SparseVector[] output = new SparseVector[size];
             int i = 0;
             for (VectorTuple tuple : this) {
@@ -847,9 +842,8 @@ public non-sealed class SparseVector implements SGDVector {
             }
             //TODO this is suboptimal if there are lots of missing rows.
             return new DenseSparseMatrix(output);
-        } else if (other instanceof DenseVector) {
+        } else if (other instanceof DenseVector otherVec) {
             //Outer product is a DenseMatrix because DenseSparseMatrix is the wrong way around.
-            DenseVector otherVec = (DenseVector) other;
             int otherSize = otherVec.size();
             double[][] output = new double[size][];
             int i = 0;
