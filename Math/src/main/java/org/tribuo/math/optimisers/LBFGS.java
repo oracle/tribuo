@@ -174,15 +174,8 @@ public final class LBFGS implements Configurable, Provenancable<ConfiguredObject
                 r.scaleInPlace(-1.0);
             }
 
-            // line search
-            double stepSize;
-            if (this.useWolfe) {
-                stepSize = wolfeLineSearch(lossAndGrad, loss, params, r, gradCopy);
-            } else {
-                stepSize = backtrackingLineSearch(loss, params, r, gradCopy);
-            }
+            // Compute gradient norm for convergence checks
             double gradNorm = r.twoNorm();
-            r.scaleInPlace(stepSize);
 
             // check convergence
             if (Math.abs(lossValue - oldLoss) * 2 < (tolerance * (Math.abs(lossValue) + Math.abs(oldLoss) + 1e-10))) {
@@ -197,7 +190,19 @@ public final class LBFGS implements Configurable, Provenancable<ConfiguredObject
                 converged = true;
                 logger.log(System.Logger.Level.WARNING, "L-BFGS diverged at iteration " + i + " with loss value " + lossValue + " due to a NaN gradient");
                 break;
-            } else if (stepSize == 0.0) {
+            }
+
+            // line search
+            double stepSize;
+            if (this.useWolfe) {
+                stepSize = wolfeLineSearch(lossAndGrad, loss, params, r, gradCopy);
+            } else {
+                stepSize = backtrackingLineSearch(loss, params, r, gradCopy);
+            }
+            r.scaleInPlace(stepSize);
+
+            // Check if line search failed
+            if (stepSize < 1e-16) {
                 converged = true;
                 logger.log(System.Logger.Level.WARNING, "L-BFGS line search could not proceed due to a diverging descent direction at iteration " + i + " with loss value " + lossValue);
                 break;
@@ -260,16 +265,12 @@ public final class LBFGS implements Configurable, Provenancable<ConfiguredObject
         int i = 0;
         int numElements = 0;
         for (var g : gradient) {
-            if (g instanceof DenseVector gVec) {
-                arr[i] = gVec;
-            } else if (g instanceof DenseMatrix gMat) {
-                arr[i] = gMat.ravel();
-            } else if (g instanceof SparseVector gVec) {
-                arr[i] = gVec.densify();
-            } else if (g instanceof DenseSparseMatrix gMat) {
-                arr[i] = gMat.densify().ravel();
-            } else {
-                throw new IllegalArgumentException("Unexpected tensor type " + g.getClass());
+            switch (g) {
+                case DenseVector gVec -> arr[i] = gVec;
+                case DenseMatrix gMat -> arr[i] = gMat.ravel();
+                case SparseVector gVec -> arr[i] = gVec.densify();
+                case DenseSparseMatrix gMat -> arr[i] = gMat.densify().ravel();
+                default -> throw new IllegalArgumentException("Unexpected tensor type " + g.getClass());
             }
             numElements += arr[i].size();
             i++;
