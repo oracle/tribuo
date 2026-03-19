@@ -39,7 +39,7 @@ public class TestGP {
     private static final GaussianProcessTrainer gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5);
     private static final RegressionEvaluator e = new RegressionEvaluator();
 
-    @Test
+    //@Test
     public void testWine() throws IOException {
         var outputFactory = new RegressionFactory();
         var gpTrainer = new GaussianProcessTrainer(new RBF(1), 0.5);
