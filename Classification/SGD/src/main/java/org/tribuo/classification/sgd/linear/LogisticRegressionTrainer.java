@@ -20,8 +20,6 @@ import org.tribuo.Trainer;
 import org.tribuo.classification.sgd.objectives.LogMulticlass;
 import org.tribuo.math.optimisers.AdaGrad;
 
-import java.util.logging.Logger;
-
 /**
  * A logistic regression trainer that uses a reasonable objective, optimiser,
  * number of epochs and minibatch size. If you wish to modify any of these 
@@ -30,13 +28,12 @@ import java.util.logging.Logger;
  * This is strictly a convenience class for folks who are looking for
  * a simple logistic regression.
  */
-public class LogisticRegressionTrainer extends LinearSGDTrainer {
-    private static final Logger logger = Logger.getLogger(LogisticRegressionTrainer.class.getName());
+public final class LogisticRegressionTrainer extends LinearSGDTrainer {
 
     /**
      * Constructs a simple logistic regression, using {@link AdaGrad} with a learning rate of 1.0 as
      * the gradient optimizer, training for 5 epochs.
-     *
+     * <p>
      * It's equivalent to this:
      * {@code new LinearSGDTrainer(new LogMulticlass(), new AdaGrad(1.0, 0.1), 5, Trainer.DEFAULT_SEED); }
      */

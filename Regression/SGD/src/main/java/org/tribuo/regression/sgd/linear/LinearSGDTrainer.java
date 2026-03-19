@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,17 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.common.sgd.AbstractLinearSGDTrainer;
-import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.LinearParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
+import org.tribuo.math.la.SparseVector;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.sgd.RegressionObjective;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -42,7 +45,7 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  */
-public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor,DenseVector,LinearSGDModel> {
+public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor, DenseVector, LinearSGDModel, DenseMatrix> {
     private static final Logger logger = Logger.getLogger(LinearSGDTrainer.class.getName());
 
     @Config(mandatory = true,description="The regression objective to use.")
@@ -97,6 +100,11 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor,DenseVe
     }
 
     @Override
+    protected DenseVector[] createTargetArray(int size) {
+        return new DenseVector[size];
+    }
+
+    @Override
     protected DenseVector getTarget(ImmutableOutputInfo<Regressor> outputInfo, Regressor output) {
         double[] regressorsBuffer = new double[outputInfo.size()];
         for (Regressor.DimensionTuple r : output) {
@@ -107,8 +115,13 @@ public class LinearSGDTrainer extends AbstractLinearSGDTrainer<Regressor,DenseVe
     }
 
     @Override
-    protected SGDObjective<DenseVector> getObjective() {
+    protected RegressionObjective getObjective() {
         return objective;
+    }
+
+    @Override
+    protected DenseMatrix getTargetBatch(DenseVector[] outputs, int start, int size) {
+        return (DenseMatrix) Matrix.aggregate(Arrays.copyOfRange(outputs, start, start+size), size, false);
     }
 
     @Override

@@ -243,6 +243,19 @@ public class CRFTrainer implements SequenceTrainer<Label>, WeightedExamples {
         return trainInvocationCounter;
     }
 
+    public synchronized void setInvocationCount(int invocationCount){
+        if(invocationCount < 0){
+            throw new IllegalArgumentException("The supplied invocationCount is less than zero.");
+        }
+
+        rng = new SplittableRandom(seed);
+
+        for (trainInvocationCounter = 0; trainInvocationCounter < invocationCount; trainInvocationCounter++){
+            SplittableRandom localRNG = rng.split();
+        }
+
+    }
+
     @Override
     public String toString() {
         return "CRFTrainer(optimiser="+optimiser.toString()+",epochs="+epochs+",minibatchSize="+minibatchSize+",seed="+seed+")";

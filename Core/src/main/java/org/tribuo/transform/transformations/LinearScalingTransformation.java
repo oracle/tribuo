@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -222,7 +222,7 @@ public final class LinearScalingTransformation implements Transformation {
 
         LinearScalingTransformer(double observedMin, double observedMax, double targetMin, double targetMax) {
             if ((observedMin > observedMax) || (targetMin > targetMax)) {
-                throw new IllegalArgumentException("observedMin and targetMin must be less than observedMax and targetMax respectively");
+                throw new IllegalArgumentException("observedMin and targetMin must be less than observedMax and targetMax respectively, found observedMin= " + observedMin + ", observedMax=" + observedMax + ", targetMin=" + targetMin + ", targetMax=" + targetMax);
             }
             this.observedMin = observedMin;
             this.observedMax = observedMax;

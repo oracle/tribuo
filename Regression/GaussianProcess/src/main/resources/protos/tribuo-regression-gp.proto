@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+syntax = "proto3";
+
+/*
+ * Protos for serializing Tribuo's Gaussian Process regression models.
+ */
+package tribuo.regression.mnb;
+
+option java_multiple_files = true;
+option java_package = "org.tribuo.regression.gp.protos";
+
+// Import Tribuo's core protos
+import "tribuo-core.proto";
+
+// Import Tribuo's math protos
+import "tribuo-math.proto";
+
+/*
+GaussianProcessModel proto
+ */
+message GaussianProcessModelProto {
+  tribuo.core.ModelDataProto metadata = 1;
+  repeated string dimensions = 2;
+  tribuo.math.KernelProto kernel = 3;
+  tribuo.math.TensorProto features = 4;
+  tribuo.math.TensorProto alphas = 5;
+  tribuo.math.TensorProto cholesky = 6;
+  tribuo.math.TensorProto output_means = 7;
+  tribuo.math.TensorProto output_variances = 8;
+}
