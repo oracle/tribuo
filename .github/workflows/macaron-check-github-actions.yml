@@ -34,5 +34,5 @@ jobs:
         with:
           repo_path: ./
           policy_file: check-github-actions
-          policy_purl: pkg:github/${{ github.repository }}@.*
+          policy_purl: pkg:github.com/${{ github.repository }}@.*
 
