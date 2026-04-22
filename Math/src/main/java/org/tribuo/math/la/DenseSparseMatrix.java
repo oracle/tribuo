@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.stream.Collectors;
 
@@ -142,6 +143,20 @@ public class DenseSparseMatrix implements Matrix {
         SparseVector[] newValues = new SparseVector[dimension];
         for (int i = 0; i < dimension; i++) {
             newValues[i] = new SparseVector(dimension, new int[]{i}, new double[]{1.0});
+        }
+        return new DenseSparseMatrix(newValues);
+    }
+
+    /**
+     * Creates a diagonal matrix using the supplied value.
+     * @param size The size of the matrix.
+     * @param value The value to use for the diagonal.
+     * @return A diagonal matrix.
+     */
+    public static DenseSparseMatrix createDiagonal(int size, double value) {
+        SparseVector[] newValues = new SparseVector[size];
+        for (int i = 0; i < size; i++) {
+            newValues[i] = new SparseVector(size, new int[]{i}, new double[]{value});
         }
         return new DenseSparseMatrix(newValues);
     }
@@ -343,8 +358,7 @@ public class DenseSparseMatrix implements Matrix {
      */
     @Override
     public void intersectAndAddInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof Matrix) {
-            Matrix otherMat = (Matrix) other;
+        if (other instanceof Matrix otherMat) {
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
                 if (otherMat instanceof DenseMatrix) {
                     DenseMatrix otherDenseMat = (DenseMatrix) other;
@@ -369,8 +383,7 @@ public class DenseSparseMatrix implements Matrix {
      */
     @Override
     public void hadamardProductInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof Matrix) {
-            Matrix otherMat = (Matrix) other;
+        if (other instanceof Matrix otherMat) {
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
                 if (otherMat instanceof DenseMatrix) {
                     DenseMatrix otherDenseMat = (DenseMatrix) other;
@@ -390,8 +403,8 @@ public class DenseSparseMatrix implements Matrix {
 
     @Override
     public void foreachInPlace(DoubleUnaryOperator f) {
-        for (int i = 0; i < values.length; i++) {
-            values[i].foreachInPlace(f);
+        for (SparseVector value : values) {
+            value.foreachInPlace(f);
         }
     }
 
@@ -440,6 +453,15 @@ public class DenseSparseMatrix implements Matrix {
     }
 
     @Override
+    public int[] indexOfRowMax() {
+        int[] output = new int[dim1];
+        for (int i = 0; i < dim1; i++) {
+            output[i] = values[i].indexOfMax();
+        }
+        return output;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other instanceof Matrix) {
             Iterator<MatrixTuple> ourItr = iterator();
@@ -482,8 +504,7 @@ public class DenseSparseMatrix implements Matrix {
     @Override
     public DenseMatrix matrixMultiply(Matrix other) {
         if (dim2 == other.getDimension1Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim1][otherDense.dim2];
 
                 for (int i = 0; i < dim1; i++) {
@@ -493,8 +514,7 @@ public class DenseSparseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim2 = otherSparse.getDimension2Size();
                 double[][] output = new double[dim1][otherDim2];
 
@@ -528,8 +548,7 @@ public class DenseSparseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeBoth(Matrix other) {
         if (dim1 == other.getDimension2Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim2][otherDense.dim1];
 
                 for (int i = 0; i < dim2; i++) {
@@ -539,8 +558,7 @@ public class DenseSparseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim1 = otherSparse.getDimension1Size();
                 double[][] output = new double[dim2][otherDim1];
 
@@ -561,8 +579,7 @@ public class DenseSparseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeThis(Matrix other) {
         if (dim1 == other.getDimension1Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim2][otherDense.dim2];
 
                 for (int i = 0; i < dim2; i++) {
@@ -572,8 +589,7 @@ public class DenseSparseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim2 = otherSparse.getDimension2Size();
                 double[][] output = new double[dim2][otherDim2];
 
@@ -594,8 +610,7 @@ public class DenseSparseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeOther(Matrix other) {
         if (dim2 == other.getDimension2Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim1][otherDense.dim1];
 
                 for (int i = 0; i < dim1; i++) {
@@ -605,8 +620,7 @@ public class DenseSparseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim1 = otherSparse.getDimension1Size();
                 double[][] output = new double[dim1][otherDim1];
 
@@ -658,6 +672,15 @@ public class DenseSparseMatrix implements Matrix {
     }
 
     @Override
+    public DenseVector columnSum() {
+        DenseVector output = new DenseVector(dim2);
+        for (int i = 0; i < dim1; i++) {
+            output.intersectAndAddInPlace(values[i]);
+        }
+        return output;
+    }
+
+    @Override
     public DenseVector rowSum() {
         double[] rowSum = new double[dim1];
         for (int i = 0; i < dim1; i++) {
@@ -671,6 +694,24 @@ public class DenseSparseMatrix implements Matrix {
         for (int i = 0; i < dim1; i++) {
             values[i].scaleInPlace(scalingCoefficients.get(i));
         }
+    }
+
+    /**
+     * Reduces the rows of this matrix from left to right, producing a column vector.
+     * <p>
+     * The first argument to the reducer is the transformed element, the second is the state.
+     * @param initialValue The initial value for the reduction.
+     * @param op An operation to apply to each value.
+     * @param reduction The reduction operation.
+     * @return A vector containing the reduced values.
+     */
+    @Override
+    public DenseVector reduceRows(double initialValue, DoubleUnaryOperator op, DoubleBinaryOperator reduction) {
+        double[] output = new double[dim1];
+        for (int i = 0; i < dim1; i++) {
+            output[i] = values[i].reduce(initialValue, op, reduction);
+        }
+        return new DenseVector(output);
     }
 
     @Override
@@ -691,6 +732,20 @@ public class DenseSparseMatrix implements Matrix {
     @Override
     public MatrixIterator iterator() {
         return new DenseSparseMatrixIterator(this);
+    }
+
+    /**
+     * Returns a dense copy of this matrix.
+     * @return A dense copy of this matrix.
+     */
+    public DenseMatrix densify() {
+        double[][] output = new double[dim1][];
+
+        for (int i = 0; i < dim1; i++) {
+            output[i] = values[i].toArray();
+        }
+
+        return new DenseMatrix(output);
     }
 
     private static class DenseSparseMatrixIterator implements MatrixIterator {

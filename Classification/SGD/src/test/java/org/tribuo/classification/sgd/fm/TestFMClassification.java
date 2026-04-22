@@ -26,16 +26,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
 import org.tribuo.Model;
+import org.tribuo.MutableDataset;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
 import org.tribuo.classification.Label;
 import org.tribuo.classification.evaluation.LabelEvaluation;
 import org.tribuo.classification.evaluation.LabelEvaluator;
+import org.tribuo.classification.example.InterlockingCrescentsDataSource;
 import org.tribuo.classification.example.LabelledDataGenerator;
 import org.tribuo.classification.sgd.objectives.Hinge;
 import org.tribuo.classification.sgd.objectives.LogMulticlass;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.AbstractSGDTrainer;
+import org.tribuo.evaluation.TrainTestSplitter;
 import org.tribuo.interop.onnx.OnnxTestUtils;
 import org.tribuo.math.optimisers.AdaGrad;
 import org.tribuo.protos.core.ModelProto;
@@ -121,8 +124,27 @@ public class TestFMClassification {
             m.predict(LabelledDataGenerator.emptyExample());
         });
     }
-    @Test
 
+    @Test
+    public void testBatching() {
+        LabelEvaluator eval = new LabelEvaluator();
+        InterlockingCrescentsDataSource source = new InterlockingCrescentsDataSource(100);
+        TrainTestSplitter<Label> split = new TrainTestSplitter<>(source);
+        Dataset<Label> train = new MutableDataset<>(split.getTrain());
+        Dataset<Label> test = new MutableDataset<>(split.getTest());
+
+        FMClassificationTrainer batch = new FMClassificationTrainer(new LogMulticlass(),new AdaGrad(0.1,0.1),5,1000, 10, Trainer.DEFAULT_SEED, 5, 0.1);
+        Model<Label> batchModel = batch.train(train);
+        LabelEvaluation batchEval = eval.evaluate(batchModel, test);
+
+        FMClassificationTrainer single = new FMClassificationTrainer(new LogMulticlass(),new AdaGrad(0.1,0.1),2,1000, 1, Trainer.DEFAULT_SEED, 5, 0.1);
+        Model<Label> singleModel = single.train(train);
+        LabelEvaluation singleEval = eval.evaluate(singleModel, test);
+
+        assertEquals(batchEval.accuracy(), singleEval.accuracy());
+    }
+
+    @Test
     public void testOnnxSerialization() throws IOException, OrtException {
         Pair<Dataset<Label>,Dataset<Label>> p = LabelledDataGenerator.denseTrainTest();
         FMClassificationModel model = t.train(p.getA());

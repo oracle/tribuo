@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,11 @@ import com.oracle.labs.mlrg.olcut.config.Config;
 import com.oracle.labs.mlrg.olcut.config.PropertyException;
 import com.oracle.labs.mlrg.olcut.provenance.ConfiguredObjectProvenance;
 import com.oracle.labs.mlrg.olcut.provenance.impl.ConfiguredObjectProvenanceImpl;
-import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.Parameters;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.regression.sgd.RegressionObjective;
-
-import java.util.function.DoubleUnaryOperator;
 
 /**
  * Huber loss, i.e., a mixture of l2 and l1 losses.
@@ -39,8 +38,6 @@ public class Huber implements RegressionObjective {
 
     @Config(description="Cost beyond which the loss function is linear.")
     private double cost = DEFAULT_COST;
-
-    private DoubleUnaryOperator lossFunc;
 
     /**
      * Huber Loss using the default cost {@link #DEFAULT_COST}.
@@ -66,30 +63,52 @@ public class Huber implements RegressionObjective {
         if (cost <= 0) {
             throw new PropertyException("","cost","Cost must be a positive value, found " + cost);
         }
-        lossFunc = (a) -> {
-            if (a > cost) {
-                return (cost * a) - (0.5 * cost * cost);
-            } else {
-                return 0.5 * a * a;
-            }
-        };
-    }
-
-    @Deprecated
-    @Override
-    public Pair<Double, SGDVector> loss(DenseVector truth, SGDVector prediction) {
-        return lossAndGradient(truth, prediction);
     }
 
     @Override
-    public Pair<Double, SGDVector> lossAndGradient(DenseVector truth, SGDVector prediction) {
+    public Parameters.LossAndGrad lossAndGradient(DenseVector truth, SGDVector prediction) {
         DenseVector difference = truth.subtract(prediction);
-        DenseVector absoluteDifference = difference.copy();
-        absoluteDifference.foreachInPlace(Math::abs);
+        double loss = difference.reduce(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
+        difference.foreachInPlace(this::gradient);
+        return new Parameters.LossAndGrad(loss,difference);
+    }
 
-        double loss = absoluteDifference.reduce(0.0,lossFunc,Double::sum);
-        difference.foreachInPlace((a) -> {if (Math.abs(a) > cost) { return Double.compare(a,0.0)*cost; } else { return a; }});
-        return new Pair<>(loss,difference);
+    @Override
+    public Parameters.BatchLossAndGrad batchLossAndGradient(DenseMatrix truth, DenseMatrix prediction) {
+        DenseMatrix difference = truth.subtract(prediction);
+        DenseVector loss = difference.reduceRows(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
+        difference.foreachInPlace(this::gradient);
+        return new Parameters.BatchLossAndGrad(loss.toArray(), difference);
+    }
+
+    @Override
+    public double loss(DenseVector truth, SGDVector prediction) {
+        DenseVector difference = truth.subtract(prediction);
+        double loss = difference.reduce(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
+        return loss;
+    }
+
+    @Override
+    public double[] batchLoss(DenseMatrix truth, DenseMatrix prediction) {
+        DenseMatrix difference = truth.subtract(prediction);
+        DenseVector loss = difference.reduceRows(0.0, (double a) -> lossFunc(Math.abs(a)), Double::sum);
+        return loss.toArray();
+    }
+
+    private double gradient(double input) {
+        if (Math.abs(input) > cost) {
+            return Double.compare(input,0.0) * cost;
+        } else {
+            return input;
+        }
+    }
+
+    private double lossFunc(double input) {
+        if (input > cost) {
+            return (cost * input) - (0.5 * cost * cost);
+        } else {
+            return 0.5 * input * input;
+        }
     }
 
     @Override
