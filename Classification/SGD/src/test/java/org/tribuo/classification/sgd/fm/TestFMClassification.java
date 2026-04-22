@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.tribuo.Dataset;
+import org.tribuo.ImmutableDataset;
 import org.tribuo.Model;
 import org.tribuo.Prediction;
 import org.tribuo.Trainer;
@@ -166,7 +167,8 @@ public class TestFMClassification {
             List<Prediction<Label>> deserOutput = deserModel.predict(p.getB());
 
             FMClassificationTrainer trainer = new FMClassificationTrainer(new LogMulticlass(), new AdaGrad(0.1,0.1),5,1000, Trainer.DEFAULT_SEED,1,0.1);
-            Model<Label> model = trainer.train(p.getA());
+            Dataset<Label> train = new ImmutableDataset<>(p.getA().getData(), p.getA().getProvenance(), p.getA().getOutputFactory(), deserModel.getFeatureIDMap(), deserModel.getOutputIDInfo(), false);
+            Model<Label> model = trainer.train(train);
             List<Prediction<Label>> output = model.predict(p.getB());
 
             assertEquals(deserOutput.size(), p.getB().size());
