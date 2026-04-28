@@ -103,6 +103,7 @@ public class LibLinearAnomalyModel extends LibLinearModel<Event> {
             throw new IllegalStateException("Invalid protobuf, expected 1 model, found " + proto.getModelsCount());
         }
         try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(proto.getModels(0).toByteArray()))) {
+            ois.setObjectInputFilter(LIBLINEAR_FILTER);
             de.bwaldvogel.liblinear.Model model = (de.bwaldvogel.liblinear.Model) ois.readObject();
             return new LibLinearAnomalyModel(carrier.name(),carrier.provenance(),carrier.featureDomain(),outputDomain,Collections.singletonList(model));
         } catch (IOException | ClassNotFoundException e) {

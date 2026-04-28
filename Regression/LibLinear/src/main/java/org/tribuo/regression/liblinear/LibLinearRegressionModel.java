@@ -127,6 +127,7 @@ public class LibLinearRegressionModel extends LibLinearModel<Regressor> implemen
             for (ByteString modelArray : proto.getModelsList()) {
                 ByteArrayInputStream bais = new ByteArrayInputStream(modelArray.toByteArray());
                 try (ObjectInputStream ois = new ObjectInputStream(bais)) {
+                    ois.setObjectInputFilter(LIBLINEAR_FILTER);
                     de.bwaldvogel.liblinear.Model model = (de.bwaldvogel.liblinear.Model) ois.readObject();
                     models.add(model);
                 }

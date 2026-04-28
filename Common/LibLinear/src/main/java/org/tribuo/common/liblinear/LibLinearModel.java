@@ -35,6 +35,7 @@ import org.tribuo.util.Util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputFilter;
 import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -68,6 +69,22 @@ import java.util.stream.Collectors;
 public abstract class LibLinearModel<T extends Output<T>> extends Model<T> {
 
     private static final Logger logger = Logger.getLogger(LibLinearModel.class.getName());
+
+    /**
+     * Deserialization filter for liblinear, only allows the types which can be part of a de.bwaldvogel.liblinear.Model.
+     */
+    protected static final ObjectInputFilter LIBLINEAR_FILTER = (ObjectInputFilter.FilterInfo filterInfo) -> {
+        Class<?> incomingClass = filterInfo.serialClass();
+        // Allows primitives, primitive arrays, Model, SolverType and bare enums (from SolverType)
+        // All other classes are rejected
+        if (incomingClass.isPrimitive() || incomingClass.equals(de.bwaldvogel.liblinear.Model.class) || incomingClass.equals(SolverType.class) || (incomingClass.equals(Enum.class))) {
+            return ObjectInputFilter.Status.ALLOWED;
+        } else if (incomingClass.isArray() && incomingClass.getComponentType().isPrimitive()) {
+            return ObjectInputFilter.Status.ALLOWED;
+        } else {
+            return ObjectInputFilter.Status.REJECTED;
+        }
+    };
 
     /**
      * Protobuf serialization version.
