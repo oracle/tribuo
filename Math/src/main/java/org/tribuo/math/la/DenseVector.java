@@ -215,7 +215,7 @@ public non-sealed class DenseVector implements SGDVector {
         if (shape[0] < 1) {
             throw new IllegalArgumentException("Invalid proto, shape must be positive, found " + shape[0] + " at position 0");
         }
-        int numElements = Util.product(shape);
+        int numElements = shape[0];
         DoubleBuffer buffer = proto.getValues().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
         if (buffer.remaining() != numElements) {
             throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + buffer.remaining() + " values");

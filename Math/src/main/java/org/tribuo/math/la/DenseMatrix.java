@@ -231,7 +231,7 @@ public class DenseMatrix implements Matrix {
                 throw new IllegalArgumentException("Invalid proto, shape must be positive, found " + shape[i] + " at position " + i);
             }
         }
-        int numElements = Util.product(shape);
+        int numElements = Math.multiplyExact(shape[0], shape[1]);
         DoubleBuffer buffer = proto.getValues().asReadOnlyByteBuffer().order(ByteOrder.LITTLE_ENDIAN).asDoubleBuffer();
         if (buffer.remaining() != numElements) {
             throw new IllegalArgumentException("Invalid proto, claimed " + numElements + ", but only had " + buffer.remaining() + " values");
