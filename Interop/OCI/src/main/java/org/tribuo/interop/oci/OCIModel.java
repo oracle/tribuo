@@ -77,6 +77,8 @@ import java.util.stream.Collectors;
 /**
  * A wrapper class around an OCI Data Science Model Deployment endpoint which sends off inputs for scoring and
  * converts the output into a Tribuo prediction.
+ * <p>
+ * Deserialized models need the endpoint URL set with {@link #setEndpointURL} before the model can make predictions.
  */
 public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseMatrix, DenseMatrix> implements AutoCloseable {
 
@@ -89,7 +91,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
 
     private final Path configFile;
     private final String profileName;
-    private final String endpointURL;
+    private String endpointURL;
     private final String modelDeploymentId;
     private final OCIOutputConverter<T> outputConverter;
 
@@ -97,7 +99,7 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     private final AuthenticationDetailsProvider authProvider;
     private final RequestSigningFilter requestSigningFilter;
     private final Client jerseyClient;
-    private final WebTarget modelEndpoint;
+    private WebTarget modelEndpoint;
     private final ObjectMapper mapper;
 
     /**
@@ -184,6 +186,46 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
     }
 
     /**
+     * Deserialization constructor.
+     *
+     * @param name                   The model name.
+     * @param provenance             The model provenance.
+     * @param featureIDMap           The feature map.
+     * @param outputIDInfo           The output map.
+     * @param featureForwardMapping  The forward mapping between Tribuo's feature indices and the external ones.
+     * @param featureBackwardMapping The backward mapping between Tribuo's feature indices and the external ones.
+     * @param configFile             The OCI configuration file, if null use the default file.
+     * @param authProvider           The OCI authentication provider.
+     * @param modelDeploymentId      The model deployment ID.
+     * @param outputConverter        The output conversion function.
+     */
+    OCIModel(String name, ModelProvenance provenance, ImmutableFeatureMap featureIDMap, ImmutableOutputInfo<T> outputIDInfo,
+             int[] featureForwardMapping, int[] featureBackwardMapping,
+             Path configFile, String profileName,
+             AuthenticationDetailsProvider authProvider, String modelDeploymentId, OCIOutputConverter<T> outputConverter) {
+        super(name, provenance, featureIDMap, outputIDInfo, featureForwardMapping, featureBackwardMapping, outputConverter.generatesProbabilities());
+        // These fields need to be set by the user after deserialization.
+        this.modelEndpoint = null;
+        this.endpointURL = null;
+
+        this.configFile = configFile;
+        this.profileName = profileName;
+        this.authProvider = authProvider;
+        this.modelDeploymentId = modelDeploymentId;
+        this.outputConverter = outputConverter;
+        this.mapper = new ObjectMapper();
+
+        // Pre-Requirement: Allow setting of restricted headers. This is required to allow the SigningFilter
+        // to set the host header that gets computed during signing of the request.
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+
+        // 1) Create a request signing filter instance
+        this.requestSigningFilter = RequestSigningFilter.fromAuthProvider(authProvider);
+        // 2) Create a Jersey client and register the request signing filter
+        this.jerseyClient = ClientBuilder.newBuilder().build().register(requestSigningFilter);
+    }
+
+    /**
      * Deserialization factory.
      * @param version The serialized object version.
      * @param className The class name.
@@ -214,7 +256,19 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
 
         return new OCIModel(carrier.name(), carrier.provenance(), carrier.featureDomain(), carrier.outputDomain(),
                 featureForwardMapping, featureBackwardMapping, configFile, proto.getProfileName(), authProvider,
-                proto.getEndpointUrl(), proto.getModelDeploymentId(), converter);
+                proto.getModelDeploymentId(), converter);
+    }
+
+    /**
+     * Sets the endpoint URL.
+     * <p>
+     * Must be called on deserialized models before prediction.
+     * The value may be stored in the provenance and should be validated before use.
+     * @param endpointURL The endpoint URL.
+     */
+    public void setEndpointURL(String endpointURL) {
+        this.endpointURL = endpointURL;
+        this.modelEndpoint = jerseyClient.target(endpointURL + modelDeploymentId).path("predict");
     }
 
     @Override
@@ -244,6 +298,9 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
 
     @Override
     protected DenseMatrix externalPrediction(DenseMatrix features) {
+        if (endpointURL == null) {
+            throw new IllegalStateException("Endpoint URL must be set after deserialization before this model can make predictions.");
+        }
         Invocation.Builder ib = modelEndpoint.request();
         ib.accept(MediaType.APPLICATION_JSON);
         try (Response response = ib.buildPost(Entity.entity(formatMatrix(features), MediaType.APPLICATION_JSON)).invoke()) {
@@ -316,7 +373,6 @@ public final class OCIModel<T extends Output<T>> extends ExternalModel<T, DenseM
         modelBuilder.addAllBackwardFeatureMapping(Arrays.stream(featureBackwardMapping).boxed().collect(Collectors.toList()));
         modelBuilder.setConfigFile(configFile.toString());
         modelBuilder.setProfileName(profileName);
-        modelBuilder.setEndpointUrl(endpointURL);
         modelBuilder.setModelDeploymentId(modelDeploymentId);
         modelBuilder.setOutputConverter(outputConverter.serialize());
 
