@@ -40,7 +40,7 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMClassificationTrainer extends AbstractFMTrainer<Label, Integer, FMClassificationModel> {
+public class FMClassificationTrainer extends AbstractFMTrainer<Label, Integer, FMClassificationModel, int[]> {
     private static final Logger logger = Logger.getLogger(FMClassificationTrainer.class.getName());
 
     @Config(description = "The classification objective function to use.")
@@ -109,13 +109,27 @@ public class FMClassificationTrainer extends AbstractFMTrainer<Label, Integer, F
     }
 
     @Override
+    protected Integer[] createTargetArray(int size) {
+        return new Integer[size];
+    }
+
+    @Override
     protected Integer getTarget(ImmutableOutputInfo<Label> outputInfo, Label output) {
         return outputInfo.getID(output);
     }
 
     @Override
-    protected SGDObjective<Integer> getObjective() {
+    protected LabelObjective getObjective() {
         return objective;
+    }
+
+    @Override
+    protected int[] getTargetBatch(Integer[] outputs, int start, int size) {
+        int[] output = new int[size];
+        for (int i = start; i < start+size; i++) {
+            output[i - start] = outputs[i];
+        }
+        return output;
     }
 
     @Override

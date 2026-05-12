@@ -17,6 +17,7 @@
 package org.tribuo.multilabel.sgd;
 
 import org.tribuo.common.sgd.SGDObjective;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.util.VectorNormalizer;
 
@@ -26,7 +27,7 @@ import org.tribuo.math.util.VectorNormalizer;
  * An objective knows if it generates a probabilistic model or not,
  * and what kind of normalization needs to be applied to produce probability values.
  */
-public interface MultiLabelObjective extends SGDObjective<SGDVector> {
+public interface MultiLabelObjective extends SGDObjective<SGDVector, Matrix> {
 
     /**
      * Generates a new {@link VectorNormalizer} which normalizes the predictions into a suitable format.

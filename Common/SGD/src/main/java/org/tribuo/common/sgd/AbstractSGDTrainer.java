@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,9 @@ import org.tribuo.Trainer;
 import org.tribuo.WeightedExamples;
 import org.tribuo.math.FeedForwardParameters;
 import org.tribuo.math.StochasticGradientOptimiser;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 import org.tribuo.math.optimisers.AdaGrad;
@@ -53,11 +55,12 @@ import java.util.logging.Logger;
  * Proceedings of COMPSTAT, 2010.
  * </pre>
  * @param <T> The output type.
- * @param <U> The intermediate representation of the labels.
+ * @param <U> The intermediate representation of the outputs.
  * @param <V> The model type.
  * @param <X> The parameter type.
+ * @param <Y> The intermediate representation of a batch of outputs.
  */
-public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T>,X extends FeedForwardParameters> implements Trainer<T>, WeightedExamples {
+public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T>,X extends FeedForwardParameters,Y> implements Trainer<T>, WeightedExamples {
     private static final Logger logger = Logger.getLogger(AbstractSGDTrainer.class.getName());
 
     @Config(description="The gradient optimiser to use.")
@@ -158,13 +161,12 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
             trainInvocationCounter++;
         }
 
-        SGDObjective<U> objective = getObjective();
+        SGDObjective<U,Y> objective = getObjective();
         ImmutableOutputInfo<T> outputIDInfo = examples.getOutputIDInfo();
         ImmutableFeatureMap featureIDMap = examples.getFeatureIDMap();
 
         SGDVector[] sgdFeatures = new SGDVector[examples.size()];
-        @SuppressWarnings("unchecked")
-        U[] sgdTargets = (U[]) new Object[examples.size()];
+        U[] sgdTargets = createTargetArray(examples.size());
         double[] weights = new double[examples.size()];
         int n = 0;
         long featureSize = 0;
@@ -197,8 +199,8 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
             if (minibatchSize == 1) {
                 for (int j = 0; j < sgdFeatures.length; j++) {
                     SGDVector pred = parameters.predict(sgdFeatures[j]);
-                    Pair<Double,SGDVector> output = objective.lossAndGradient(sgdTargets[j],pred);
-                    loss += output.getA()*weights[j];
+                    var output = objective.lossAndGradient(sgdTargets[j],pred);
+                    loss += output.loss()*weights[j];
 
                     Tensor[] updates = localOptimiser.step(parameters.gradients(output,sgdFeatures[j]),weights[j]);
                     parameters.update(updates);
@@ -210,26 +212,28 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
                     }
                 }
             } else {
-                Tensor[][] gradients = new Tensor[minibatchSize][];
+                SGDVector[] batch = new SGDVector[minibatchSize];
                 for (int j = 0; j < sgdFeatures.length; j += minibatchSize) {
                     double tempWeight = 0.0;
-                    int curSize = 0;
-                    for (int k = j; k < j+minibatchSize && k < sgdFeatures.length; k++) {
-                        SGDVector pred = parameters.predict(sgdFeatures[k]);
-                        Pair<Double,SGDVector> output = objective.lossAndGradient(sgdTargets[k],pred);
-                        loss += output.getA()*weights[k];
+                    final int bound = Math.min(j+minibatchSize, sgdFeatures.length);
+                    final int batchSize = bound - j;
+                    System.arraycopy(sgdFeatures, j, batch, 0, batchSize);
+                    Matrix featureBatch = Matrix.aggregate(batch, batchSize, false);
+                    Y curBatchTargets = getTargetBatch(sgdTargets, j, batchSize);
+                    DenseMatrix predictions = parameters.predict(featureBatch);
+                    var output = objective.batchLossAndGradient(curBatchTargets, predictions);
+                    Tensor[] gradients = parameters.gradients(output, featureBatch);
+                    double[] lossArr = output.loss();
+                    for (int k = j; k < bound; k++) {
                         tempWeight += weights[k];
-
-                        gradients[k-j] = parameters.gradients(output,sgdFeatures[k]);
-                        curSize++;
+                        loss += lossArr[k-j] * weights[k];
                     }
-                    Tensor[] updates = parameters.merge(gradients,curSize);
-                    for (int k = 0; k < updates.length; k++) {
-                        updates[k].scaleInPlace(minibatchSize);
+                    for (int k = 0; k < gradients.length; k++) {
+                        gradients[k].scaleInPlace(batchSize);
                     }
-                    tempWeight /= minibatchSize;
-                    updates = localOptimiser.step(updates,tempWeight);
-                    parameters.update(updates);
+                    tempWeight /= batchSize;
+                    gradients = localOptimiser.step(gradients,tempWeight);
+                    parameters.update(gradients);
 
                     iteration++;
                     if ((loggingInterval != -1) && (iteration % loggingInterval == 0)) {
@@ -265,6 +269,13 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
     }
 
     /**
+     * Creates the target array, to get around generic array creation issues.
+     * @param size The size of the array.
+     * @return The target array of the required type.
+     */
+    protected abstract U[] createTargetArray(int size);
+
+    /**
      * Extracts the appropriate training time representation from the supplied output.
      * @param outputInfo The output info to use.
      * @param output The output to extract.
@@ -276,7 +287,16 @@ public abstract class AbstractSGDTrainer<T extends Output<T>,U,V extends Model<T
      * Returns the objective used by this trainer.
      * @return The SGDObjective used by this trainer.
      */
-    protected abstract SGDObjective<U> getObjective();
+    protected abstract SGDObjective<U,Y> getObjective();
+
+    /**
+     * Returns a batch of outputs.
+     * @param outputs The (possibly shuffled) outputs.
+     * @param start The starting index.
+     * @param size The requested batch size.
+     * @return A batch of outputs (can be smaller than the requested size).
+     */
+    protected abstract Y getTargetBatch(U[] outputs, int start, int size);
 
     /**
      * Creates the appropriate model subclass for this subclass of AbstractSGDTrainer.

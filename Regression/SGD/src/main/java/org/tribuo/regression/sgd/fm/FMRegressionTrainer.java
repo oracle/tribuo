@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,16 @@ import org.tribuo.ImmutableFeatureMap;
 import org.tribuo.ImmutableOutputInfo;
 import org.tribuo.common.sgd.AbstractFMTrainer;
 import org.tribuo.common.sgd.FMParameters;
-import org.tribuo.common.sgd.SGDObjective;
 import org.tribuo.math.StochasticGradientOptimiser;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.provenance.ModelProvenance;
 import org.tribuo.regression.ImmutableRegressionInfo;
 import org.tribuo.regression.Regressor;
 import org.tribuo.regression.sgd.RegressionObjective;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -43,7 +45,7 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVector, FMRegressionModel> {
+public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVector, FMRegressionModel, DenseMatrix> {
     private static final Logger logger = Logger.getLogger(FMRegressionTrainer.class.getName());
 
     @Config(mandatory = true, description = "The regression objective to use.")
@@ -119,6 +121,11 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVecto
     }
 
     @Override
+    protected DenseVector[] createTargetArray(int size) {
+        return new DenseVector[size];
+    }
+
+    @Override
     protected DenseVector getTarget(ImmutableOutputInfo<Regressor> outputInfo, Regressor output) {
         ImmutableRegressionInfo regressionInfo = (ImmutableRegressionInfo) outputInfo;
         double[] regressorsBuffer = new double[outputInfo.size()];
@@ -134,8 +141,13 @@ public class FMRegressionTrainer extends AbstractFMTrainer<Regressor, DenseVecto
     }
 
     @Override
-    protected SGDObjective<DenseVector> getObjective() {
+    protected RegressionObjective getObjective() {
         return objective;
+    }
+
+    @Override
+    protected DenseMatrix getTargetBatch(DenseVector[] outputs, int start, int size) {
+        return (DenseMatrix) Matrix.aggregate(Arrays.copyOfRange(outputs, start, start+size), size, false);
     }
 
     @Override

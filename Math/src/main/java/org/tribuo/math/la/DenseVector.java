@@ -467,8 +467,7 @@ public non-sealed class DenseVector implements SGDVector {
 
     @Override
     public void intersectAndAddInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof SGDVector) {
-            SGDVector otherVec = (SGDVector) other;
+        if (other instanceof SGDVector otherVec) {
             if (otherVec.size() != elements.length) {
                 throw new IllegalArgumentException("Can't intersect two vectors of different dimension, this = " + elements.length + ", other = " + otherVec.size());
             }
@@ -490,8 +489,7 @@ public non-sealed class DenseVector implements SGDVector {
 
     @Override
     public void hadamardProductInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof SGDVector) {
-            SGDVector otherVec = (SGDVector) other;
+        if (other instanceof SGDVector otherVec) {
             if (otherVec.size() != elements.length) {
                 throw new IllegalArgumentException("Can't hadamard product two vectors of different dimension, this = " + elements.length + ", other = " + otherVec.size());
             }
@@ -569,18 +567,16 @@ public non-sealed class DenseVector implements SGDVector {
 
     @Override
     public Matrix outer(SGDVector other) {
-        if (other instanceof DenseVector) {
+        if (other instanceof DenseVector otherVec) {
             //Outer product is a DenseMatrix
-            DenseVector otherVec = (DenseVector) other;
             double[][] output = new double[elements.length][];
             for (int i = 0; i < elements.length; i++) {
                 DenseVector tmp = otherVec.scale(get(i));
                 output[i] = tmp.elements;
             }
             return new DenseMatrix(output);
-        } else if (other instanceof SparseVector) {
+        } else if (other instanceof SparseVector otherVec) {
             //Outer product is a DenseSparseMatrix
-            SparseVector otherVec = (SparseVector) other;
             SparseVector[] output = new SparseVector[elements.length];
             for (int i = 0; i < elements.length; i++) {
                 output[i] = otherVec.scale(get(i));
@@ -661,6 +657,34 @@ public non-sealed class DenseVector implements SGDVector {
     }
 
     /**
+     * Sets this vector to be the same as {@code other} copying from {@code thisStartPos} to {@code otherStartPos} for {@code length} elements.
+     * @param other The {@link DenseVector} to copy.
+     * @param thisStartPos The source start position.
+     * @param otherStartPos The destination start position.
+     * @param length The length to copy.
+     */
+    public void setElements(DenseVector other, int thisStartPos, int otherStartPos, int length) {
+        if (length > other.size()) {
+            throw new IllegalArgumentException("Invalid length argument, expected length <= " + other.size() + ", found " + length);
+        }
+        if (thisStartPos > elements.length) {
+            throw new IllegalArgumentException("Invalid start argument, expected start pos inside this vector, found " + thisStartPos);
+        }
+        if (otherStartPos > other.size()) {
+            throw new IllegalArgumentException("Invalid start argument, expected other start pos inside the other vector, found " + otherStartPos);
+        }
+        if (thisStartPos + length > elements.length) {
+            throw new IllegalArgumentException("Invalid arguments, startPos + length must be less than size, startPos " + thisStartPos + ", length " + length + ", size " + elements.length);
+        }
+        if (otherStartPos + length > other.elements.length) {
+            throw new IllegalArgumentException("Invalid arguments, destStartPos + length must be less than other.size, startPos " + otherStartPos + ", length " + length + ", size " + other.elements.length);
+        }
+        for (int i = 0; i < length; i++) {
+            elements[thisStartPos + i] = other.get(otherStartPos + i);
+        }
+    }
+
+    /**
      * Fills this {@link DenseVector} with {@code value}.
      * @param value The value to store in this vector.
      */
@@ -714,7 +738,7 @@ public non-sealed class DenseVector implements SGDVector {
     /**
      * An optimisation for the exponential normalizer when
      * you already know the normalization constant.
-     *
+     * <p>
      * Used in the CRF.
      * @param total The normalization constant.
      */

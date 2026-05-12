@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -304,6 +305,22 @@ public class DenseMatrix implements Matrix {
     }
 
     /**
+     * Returns a flattened copy of this matrix.
+     * @return A flattened copy.
+     */
+    public DenseVector ravel() {
+        double[] vector = new double[numElements];
+        int a = 0;
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                vector[a] = get(i,j);
+                a++;
+            }
+        }
+        return new DenseVector(vector);
+    }
+
+    /**
      * Copies the matrix.
      * @return A deep copy of the matrix.
      */
@@ -419,6 +436,43 @@ public class DenseMatrix implements Matrix {
         values[i][j] = value;
     }
 
+    /**
+     * Sets all the values of this dense matrix using the supplied values which are assumed to come from a
+     * {@link #ravel()} of the matrix.
+     * @param vec The values to set.
+     */
+    public void set(DenseVector vec) {
+       if (vec.size() != numElements) {
+           throw new IllegalArgumentException("Invalid vector, must have " + numElements + " elements, found " + vec.size());
+       }
+        int a = 0;
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                values[i][j] = vec.get(a);
+                a++;
+            }
+        }
+    }
+
+    /**
+     * Sets all the values of this dense matrix using the supplied values which are assumed to come from an aggregated
+     * {@link #ravel()} of the matrix.
+     * @param vec The values to set.
+     * @param startPos The start position in the supplied vector.
+     */
+    public void set(DenseVector vec, int startPos) {
+        if (vec.size() > numElements + startPos) {
+            throw new IllegalArgumentException("Invalid vector, must have " + numElements + " remaining elements, found " + (vec.size() - startPos));
+        }
+        int a = 0;
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                values[i][j] = vec.get(startPos + a);
+                a++;
+            }
+        }
+    }
+
     @Override
     public int getDimension1Size() {
         return dim1;
@@ -483,8 +537,7 @@ public class DenseMatrix implements Matrix {
     @Override
     public DenseMatrix matrixMultiply(Matrix other) {
         if (dim2 == other.getDimension1Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim1][otherDense.dim2];
 
                 for (int i = 0; i < dim1; i++) {
@@ -494,8 +547,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim2 = otherSparse.getDimension2Size();
                 double[][] output = new double[dim1][otherDim2];
 
@@ -529,8 +581,7 @@ public class DenseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeBoth(Matrix other) {
         if (dim1 == other.getDimension2Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim2][otherDense.dim1];
 
                 for (int i = 0; i < dim2; i++) {
@@ -540,8 +591,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim1 = otherSparse.getDimension1Size();
                 double[][] output = new double[dim2][otherDim1];
 
@@ -562,8 +612,7 @@ public class DenseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeThis(Matrix other) {
         if (dim1 == other.getDimension1Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim2][otherDense.dim2];
 
                 for (int i = 0; i < dim2; i++) {
@@ -573,8 +622,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim2 = otherSparse.getDimension2Size();
                 double[][] output = new double[dim2][otherDim2];
 
@@ -595,8 +643,7 @@ public class DenseMatrix implements Matrix {
 
     private DenseMatrix matrixMultiplyTransposeOther(Matrix other) {
         if (dim2 == other.getDimension2Size()) {
-            if (other instanceof DenseMatrix) {
-                DenseMatrix otherDense = (DenseMatrix) other;
+            if (other instanceof DenseMatrix otherDense) {
                 double[][] output = new double[dim1][otherDense.dim1];
 
                 for (int i = 0; i < dim1; i++) {
@@ -606,8 +653,7 @@ public class DenseMatrix implements Matrix {
                 }
 
                 return new DenseMatrix(output);
-            } else if (other instanceof DenseSparseMatrix) {
-                DenseSparseMatrix otherSparse = (DenseSparseMatrix) other;
+            } else if (other instanceof DenseSparseMatrix otherSparse) {
                 int otherDim1 = otherSparse.getDimension1Size();
                 double[][] output = new double[dim1][otherDim1];
 
@@ -714,10 +760,56 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * Returns a new matrix representing {@code this} subtract {@code other}.
+     * <p>
+     * The two matrices must be the same size.
+     * @param other The other matrix.
+     * @return A new matrix representing the difference between the two matrices.
+     */
+    public DenseMatrix subtract(Matrix other) {
+        if ((dim1 != other.getDimension1Size()) || (dim2 != other.getDimension2Size())) {
+            throw new IllegalArgumentException("Invalid input, dimension mismatch, this ["+dim1+","+dim2+"], other ["+other.getDimension1Size()+","+other.getDimension2Size()+"]");
+        }
+        double[][] output = new double[this.getDimension1Size()][];
+
+        for (int i = 0; i < dim1; i++) {
+            output[i] = getRow(i).subtract(other.getRow(i)).elements;
+        }
+
+        return new DenseMatrix(output);
+    }
+
+    /**
+     * Adds the vector to each row of this matrix.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     */
+    public void rowIntersectAndAddInPlace(SGDVector vector) {
+        rowIntersectAndAddInPlace(vector, DoubleUnaryOperator.identity());
+    }
+
+    /**
+     * Adds the vector to each row of this matrix, applying the operator {@code f} to each element.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     * @param f The operator to use.
+     */
+    public void rowIntersectAndAddInPlace(SGDVector vector, DoubleUnaryOperator f) {
+        if (vector.size() != dim2) {
+            throw new IllegalArgumentException("Expected same number of dimensions as this matrix has columns, dim 2 = " + dim2 + ", vector.size " + vector.size() );
+        }
+        for (int i = 0; i < dim1; i++) {
+            DenseVector tmp = new DenseVector(values[i]);
+            tmp.intersectAndAddInPlace(vector, f);
+        }
+    }
+
     @Override
     public void intersectAndAddInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof Matrix) {
-            Matrix otherMat = (Matrix) other;
+        if (other instanceof Matrix otherMat) {
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
                 if (otherMat instanceof DenseMatrix) {
                     // Get is efficient on DenseMatrix
@@ -740,10 +832,36 @@ public class DenseMatrix implements Matrix {
         }
     }
 
+    /**
+     * Adds the vector to each row of this matrix.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     */
+    public void rowHadamardProductInPlace(SGDVector vector) {
+        rowHadamardProductInPlace(vector, DoubleUnaryOperator.identity());
+    }
+
+    /**
+     * Adds the vector to each row of this matrix, applying the operator {@code f} to each element.
+     *
+     * <p>The vector must be the same dimension as the number of columns in this matrix.
+     * @param vector The vector to add.
+     * @param f The operator to use.
+     */
+    public void rowHadamardProductInPlace(SGDVector vector, DoubleUnaryOperator f) {
+        if (vector.size() != dim2) {
+            throw new IllegalArgumentException("Expected same number of dimensions as this matrix has columns, dim 2 = " + dim2 + ", vector.size " + vector.size() );
+        }
+        for (int i = 0; i < dim1; i++) {
+            DenseVector tmp = new DenseVector(values[i]);
+            tmp.hadamardProductInPlace(vector, f);
+        }
+    }
+
     @Override
     public void hadamardProductInPlace(Tensor other, DoubleUnaryOperator f) {
-        if (other instanceof Matrix) {
-            Matrix otherMat = (Matrix) other;
+        if (other instanceof Matrix otherMat) {
             if ((dim1 == otherMat.getDimension1Size()) && (dim2 == otherMat.getDimension2Size())) {
                 if (otherMat instanceof DenseMatrix) {
                     // Get is efficient on DenseMatrix
@@ -860,6 +978,22 @@ public class DenseMatrix implements Matrix {
             output[i] = get(i,index);
         }
         return new DenseVector(output);
+    }
+
+    @Override
+    public int[] indexOfRowMax() {
+        int[] output = new int[dim1];
+        for (int i = 0; i < dim1; i++) {
+            double max = Double.NEGATIVE_INFINITY;
+            for (int j = 0; j < dim2; j++) {
+                double tmp = get(i,j);
+                if (tmp > max) {
+                    max = tmp;
+                    output[i] = j;
+                }
+            }
+        }
+        return output;
     }
 
     /**
@@ -1394,6 +1528,7 @@ public class DenseMatrix implements Matrix {
      * Returns a dense vector containing each column sum.
      * @return The column sums.
      */
+    @Override
     public DenseVector columnSum() {
         double[] columnSum = new double[dim2];
         for (int i = 0; i < dim1; i++) {
@@ -1456,6 +1591,28 @@ public class DenseMatrix implements Matrix {
         return returnVal;
     }
 
+    /**
+     * Reduces the rows of this matrix from left to right, producing a column vector.
+     * <p>
+     * The first argument to the reducer is the transformed element, the second is the state.
+     * @param initialValue The initial value for the reduction.
+     * @param op An operation to apply to each value.
+     * @param reduction The reduction operation.
+     * @return A vector containing the reduced values.
+     */
+    @Override
+    public DenseVector reduceRows(double initialValue, DoubleUnaryOperator op, DoubleBinaryOperator reduction) {
+        double[] output = new double[dim1];
+        Arrays.fill(output, initialValue);
+        for (int i = 0; i < dim1; i++) {
+            for (int j = 0; j < dim2; j++) {
+                double transformed = op.applyAsDouble(get(i, j));
+                output[i] = reduction.applyAsDouble(transformed, output[i]);
+            }
+        }
+        return new DenseVector(output);
+    }
+
     private class DenseMatrixIterator implements MatrixIterator {
         private final DenseMatrix matrix;
         private final MatrixTuple tuple;
@@ -1515,6 +1672,38 @@ public class DenseMatrix implements Matrix {
 
         CholeskyFactorization(DenseMatrix lMatrix) {
             this.lMatrix = lMatrix;
+        }
+
+        /**
+         * Deserializes a TensorProto into a CholeskyFactorization, validating that it is a lower triangular matrix.
+         * @param lMatrixProto The proto to deserialize.
+         * @return The CholeskyFactorization.
+         */
+        public static CholeskyFactorization deserialize(TensorProto lMatrixProto) {
+            Tensor t = Tensor.deserialize(lMatrixProto);
+            if (!(t instanceof DenseMatrix lMatrix)) {
+                throw new IllegalArgumentException("Input is not a DenseMatrix, found " + t.getClass());
+            }
+            if (lMatrix.dim1 != lMatrix.dim2) {
+                throw new IllegalArgumentException("Not a factorized matrix, it isn't square, shape = [" + lMatrix.dim1 + ", " + lMatrix.dim2 + "]");
+            }
+            // Check upper triangle is zeroed
+            for (int i = 0; i < lMatrix.dim1; i++) {
+                for (int j = 0; j < i; j++) {
+                    if (lMatrix.get(j,i) != 0.0) {
+                        throw new IllegalArgumentException("Not a factorized matrix, the upper triangle is non-zero, input["+j+","+i+"] = " + lMatrix.get(j,i));
+                    }
+                }
+            }
+            return new CholeskyFactorization(lMatrix);
+        }
+
+        /**
+         * Returns a deep copy of this factorization.
+         * @return A copy of this factorization.
+         */
+        public CholeskyFactorization copy() {
+            return new CholeskyFactorization(lMatrix.copy());
         }
 
         /**
@@ -1892,7 +2081,7 @@ public class DenseMatrix implements Matrix {
          */
         @Override
         public double determinant() {
-            return eigenvalues.reduce(1.0,DoubleUnaryOperator.identity(), (a,b) -> a*b);
+            return eigenvalues.reduce(1.0, DoubleUnaryOperator.identity(), (a, b) -> a*b);
         }
 
         /**
@@ -1900,7 +2089,7 @@ public class DenseMatrix implements Matrix {
          * @return True if the eigenvalues are positive.
          */
         public boolean positiveEigenvalues() {
-            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value > 0.0);
+            return eigenvalues.reduce(true, DoubleUnaryOperator.identity(), (value, bool) -> bool && value > 0.0);
         }
 
         /**
@@ -1908,7 +2097,7 @@ public class DenseMatrix implements Matrix {
          * @return True if the eigenvalues are non-zero (i.e. the matrix is not singular).
          */
         public boolean nonSingular() {
-            return eigenvalues.reduce(true,DoubleUnaryOperator.identity(),(value, bool) -> bool && value != 0.0);
+            return eigenvalues.reduce(true, DoubleUnaryOperator.identity(), (value, bool) -> bool && value != 0.0);
         }
 
         /**

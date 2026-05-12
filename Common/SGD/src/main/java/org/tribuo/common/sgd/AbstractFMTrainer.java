@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  * 2010 IEEE International Conference on Data Mining
  * </pre>
  */
-public abstract class AbstractFMTrainer<T extends Output<T>, U, V extends AbstractFMModel<T>> extends AbstractSGDTrainer<T, U, V, FMParameters> {
+public abstract class AbstractFMTrainer<T extends Output<T>, U, V extends AbstractFMModel<T>,Y> extends AbstractSGDTrainer<T, U, V, FMParameters,Y> {
     private static final Logger logger = Logger.getLogger(AbstractFMTrainer.class.getName());
 
     @Config(mandatory = true, description = "The size of the factorized feature representation.")

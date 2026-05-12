@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2025, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 package org.tribuo.math;
 
-import com.oracle.labs.mlrg.olcut.util.Pair;
+import org.tribuo.math.la.DenseMatrix;
 import org.tribuo.math.la.DenseVector;
+import org.tribuo.math.la.Matrix;
 import org.tribuo.math.la.SGDVector;
 import org.tribuo.math.la.Tensor;
 
@@ -34,13 +35,29 @@ public interface FeedForwardParameters extends Parameters {
     public DenseVector predict(SGDVector example);
 
     /**
+     * Generates a batch of un-normalized predictions by feeding the features through the parameters.
+     * @param batch The feature matrix.
+     * @return The prediction.
+     */
+    public DenseMatrix predict(Matrix batch);
+
+    /**
      * Generates the parameter gradients given the loss, output gradient and input
      * features.
      * @param score The loss and gradient.
      * @param features The input features.
      * @return The parameter gradient array.
      */
-    public Tensor[] gradients(Pair<Double, SGDVector> score, SGDVector features);
+    public Tensor[] gradients(LossAndGrad score, SGDVector features);
+
+    /**
+     * Generates the parameter gradients given the loss, output gradient and input
+     * feature batch.
+     * @param score The loss and gradient.
+     * @param batch The input features.
+     * @return The parameter gradient array.
+     */
+    public Tensor[] gradients(BatchLossAndGrad score, Matrix batch);
 
     /**
      * Returns a copy of the parameters.

@@ -77,6 +77,7 @@ $PROTOC $PROTO_DEPS --proto_path=MultiLabel/SGD/src/main/resources/protos --java
 
 # Regression
 $PROTOC $PROTO_DEPS --proto_path=Regression/Core/src/main/resources/protos --java_out=Regression/Core/src/main/java Regression/Core/src/main/resources/protos/tribuo-regression-core.proto
+$PROTOC $PROTO_DEPS --proto_path=Regression/GaussianProcess/src/main/resources/protos --java_out=Regression/GaussianProcess/src/main/java Regression/GaussianProcess/src/main/resources/protos/tribuo-regression-gp.proto
 $PROTOC $PROTO_DEPS --proto_path=Regression/LibSVM/src/main/resources/protos --java_out=Regression/LibSVM/src/main/java Regression/LibSVM/src/main/resources/protos/tribuo-regression-libsvm.proto
 $PROTOC $PROTO_DEPS --proto_path=Regression/RegressionTree/src/main/resources/protos --java_out=Regression/RegressionTree/src/main/java Regression/RegressionTree/src/main/resources/protos/tribuo-regression-tree.proto
 $PROTOC $PROTO_DEPS --proto_path=Regression/SGD/src/main/resources/protos --java_out=Regression/SGD/src/main/java Regression/SGD/src/main/resources/protos/tribuo-regression-sgd.proto
