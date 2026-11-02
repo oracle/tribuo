@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2023, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -478,10 +478,10 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         int[] currentClusterLabels = new int[emst.getNumVertices()];
         Arrays.fill(currentClusterLabels, 1);
 
-        // A list of clusters in the cluster tree, with the 0th cluster (noise) null:
+        // A list of clusters in the cluster tree, with the sentinel at index 0 for noise:
         ArrayList<HdbscanCluster> clusters = new ArrayList<>();
         clusters.add(HdbscanCluster.NOT_A_CLUSTER);
-        clusters.add(new HdbscanCluster(1, HdbscanCluster.NOT_A_CLUSTER, Double.NaN, emst.getNumVertices()));
+        clusters.add(HdbscanCluster.create(1, HdbscanCluster.NOT_A_CLUSTER, Double.NaN, emst.getNumVertices()));
 
         // Sets for the clusters and vertices that are affected by the edge(s) being removed. The labels depend
         // on being ordered.
@@ -671,9 +671,10 @@ public final class HdbscanTrainer implements Trainer<ClusterID> {
         // Iterate through every cluster, propagating stability from children to parents:
         while (!clustersToExamine.isEmpty()) {
             HdbscanCluster currentCluster = clustersToExamine.poll();
-            currentCluster.propagate();
+            currentCluster.finishPropagation();
 
             if (currentCluster.getParent() != HdbscanCluster.NOT_A_CLUSTER) {
+                currentCluster.propagateToParent();
                 HdbscanCluster parent = currentCluster.getParent();
 
                 if (!addedToExaminationList.get(parent.getLabel())) {
