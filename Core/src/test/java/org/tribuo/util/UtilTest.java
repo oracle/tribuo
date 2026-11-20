@@ -20,13 +20,16 @@ package org.tribuo.util;
 import com.oracle.labs.mlrg.olcut.util.Pair;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -107,6 +110,40 @@ public class UtilTest {
         assertEquals(2, Util.binarySearch(intList, 5, x -> x));
         assertEquals(-4, Util.binarySearch(intList, 6, x -> x));
 
+    }
+
+    @Test
+    public void testSortedDifference() {
+        assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
+            assertArrayEquals(new int[]{1, 3}, Util.sortedDifference(new int[]{1, 2, 3}, new int[]{2}));
+            assertArrayEquals(new int[]{1, 3}, Util.sortedDifference(new int[]{1, 3}, new int[]{2}));
+            assertArrayEquals(new int[]{1}, Util.sortedDifference(new int[]{1}, new int[]{5}));
+            assertArrayEquals(new int[]{5}, Util.sortedDifference(new int[]{5}, new int[]{1}));
+            assertArrayEquals(new int[]{}, Util.sortedDifference(new int[]{1, 2}, new int[]{1, 2}));
+            assertArrayEquals(new int[]{1, 2}, Util.sortedDifference(new int[]{1, 2}, new int[]{}));
+            assertArrayEquals(new int[]{}, Util.sortedDifference(new int[]{}, new int[]{1, 2}));
+            assertArrayEquals(new int[]{0, 4, 7}, Util.sortedDifference(new int[]{0, 2, 4, 6, 7}, new int[]{1, 2, 3, 6, 8}));
+
+            // Compare against a simple filter for all strictly increasing arrays with values in 0..4.
+            List<int[]> arrays = new ArrayList<>();
+            for (int mask = 0; mask < 32; mask++) {
+                int[] arr = new int[Integer.bitCount(mask)];
+                int k = 0;
+                for (int v = 0; v < 5; v++) {
+                    if ((mask & (1 << v)) != 0) {
+                        arr[k++] = v;
+                    }
+                }
+                arrays.add(arr);
+            }
+            for (int[] first : arrays) {
+                for (int[] second : arrays) {
+                    int[] expected = Arrays.stream(first).filter(x -> Arrays.binarySearch(second, x) < 0).toArray();
+                    assertArrayEquals(expected, Util.sortedDifference(first, second),
+                            () -> Arrays.toString(first) + " minus " + Arrays.toString(second));
+                }
+            }
+        });
     }
 
 }
