@@ -1327,17 +1327,14 @@ public final class Util {
         int i = 0;
         int j = 0;
         while (i < first.length && j < second.length) {
-            //after this loop, either itr is out or tuple.index >= otherTuple.index
-            while (i < first.length && (first[i] < second[j])) {
+            if (first[i] < second[j]) {
                 diffIndicesList.add(first[i]);
                 i++;
-            }
-            //after this loop, either otherItr is out or tuple.index <= otherTuple.index
-            while (j < second.length && (first[i] > second[j])) {
+            } else if (first[i] > second[j]) {
                 j++;
-            }
-            if (first[i] != second[j]) {
-                diffIndicesList.add(first[i]);
+            } else {
+                // first[i] is in second, skip it. j is not advanced so repeated values in first are skipped too.
+                i++;
             }
         }
         for (; i < first.length; i++) {
