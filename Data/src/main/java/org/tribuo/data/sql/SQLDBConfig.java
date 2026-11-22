@@ -80,9 +80,11 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
      * @param properties The connection properties.
      */
     public SQLDBConfig(String connectionString, String username, String password, Map<String, String> properties) {
-        this(connectionString, properties);
+        this.connectionString = connectionString;
         this.username = username;
         this.password = password;
+        this.propMap = properties;
+        normalizeProperties();
     }
 
     /**
@@ -97,12 +99,10 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
      * @param properties The connection properties.
      */
     public SQLDBConfig(String host, String port, String db, String username, String password, Map<String, String> properties) {
-        this(makeConnectionString(host, port, db), properties);
+        this(makeConnectionString(host, port, db), username, password, properties);
         this.host = host;
         this.port = port;
         this.db = db;
-        this.username = username;
-        this.password = password;
     }
 
     /**
@@ -111,8 +111,7 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
      * @param properties The connection properties.
      */
     public SQLDBConfig(String connectionString, Map<String, String> properties) {
-        this.connectionString = connectionString;
-        this.propMap = properties;
+        this(connectionString, null, null, properties);
     }
 
     private static String makeConnectionString(String host, String port, String db) {
@@ -124,27 +123,29 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
      */
     @Override
     public void postConfig() {
-
-        if(propMap.containsKey("user")) {
-            if(username == null) {
-                username = propMap.remove("user");
-            } else {
-                propMap.remove("user");
-            }
-        }
-        if(propMap.containsKey("password")) {
-            if(password == null) {
-                password = propMap.remove("password");
-            } else {
-                propMap.remove("password");
-            }
-        }
+        normalizeProperties();
         if(connectionString == null) {
             if(host != null && port != null && db != null) {
                 connectionString = makeConnectionString(host, port, db);
             } else {
                 throw new PropertyException(SQLDBConfig.class.getName(), "connectionString", "All of host, port, and db must be specified if connectionString is null");
             }
+        }
+    }
+
+    /**
+     * Copies connection properties and moves credentials into the redacted fields.
+     * Explicitly configured credentials take precedence over the properties map.
+     */
+    private void normalizeProperties() {
+        propMap = new HashMap<>(propMap);
+        String propertyUsername = propMap.remove("user");
+        String propertyPassword = propMap.remove("password");
+        if (username == null) {
+            username = propertyUsername;
+        }
+        if (password == null) {
+            password = propertyPassword;
         }
     }
 
@@ -157,8 +158,10 @@ public class SQLDBConfig implements Configurable, Provenancable<ConfiguredObject
 
         Properties props = new Properties();
         props.putAll(propMap);
-        if(username != null && password != null) {
+        if(username != null) {
             props.put("user", username);
+        }
+        if(password != null) {
             props.put("password", password);
         }
         return DriverManager.getConnection(connectionString, props);
